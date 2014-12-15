@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Open Radio</string>
+    <string name="action_settings">Settings</string>
+    <string name="all_categories_title">All Categories</string>
+    <string name="all_categories_sub_title">radio stations of all categories</string>
+
+</resources>
