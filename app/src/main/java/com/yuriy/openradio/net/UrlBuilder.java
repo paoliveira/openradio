@@ -62,4 +62,16 @@ public class UrlBuilder {
         return Uri.parse(BASE_URL + "stations/apikey/" + ApiKeyLoader.getApiKey(context)
                 + "/id/" + categoryId);
     }
+
+    /**
+     * Get Uri for the concrete Radio Station details.
+     *
+     * @param context    Context of the application.
+     * @param stationId  Id of the Radio Station.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getStation(final Context context, final String stationId) {
+        return Uri.parse(BASE_URL + "station/apikey/" + ApiKeyLoader.getApiKey(context)
+                + "/id/" + stationId);
+    }
 }

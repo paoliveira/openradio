@@ -1,5 +1,12 @@
 package com.yuriy.openradio.business;
 
+import android.media.MediaMetadata;
+import android.util.Log;
+
+import com.yuriy.openradio.api.RadioStationVO;
+
+import org.json.JSONException;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -9,6 +16,8 @@ package com.yuriy.openradio.business;
 
 
 public class JSONDataParserImpl implements DataParser {
+
+    private static final String CLASS_NAME = JSONDataParserImpl.class.getSimpleName();
 
     /**
      * JSON Keys
@@ -43,4 +52,47 @@ public class JSONDataParserImpl implements DataParser {
     public static final String KEY_TIME = "time";
 
     public static final String KEY_DIRECTORY = "directory";
+
+    public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
+
+    /**
+     * Build {@link android.media.MediaMetadata} from provided
+     * {@link com.yuriy.openradio.api.RadioStationVO}.
+     *
+     * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
+     * @return {@link android.media.MediaMetadata}
+     */
+    public static MediaMetadata buildMediaMetadataFromRadioStation(final RadioStationVO radioStation)
+            throws JSONException {
+
+        final String title = radioStation.getName();
+        //final String album = radioStation.getString(JSON_ALBUM);
+        //final String artist = radioStation.getString(JSON_ARTIST);
+        //final String genre = radioStation.getString(JSON_GENRE);
+        final String source = radioStation.getStreamURL();
+        //final String iconUrl = radioStation.getString(JSON_IMAGE);
+        //final int trackNumber = radioStation.getInt(JSON_TRACK_NUMBER);
+        //final int totalTrackCount = radioStation.getInt(JSON_TOTAL_TRACK_COUNT);
+        //final int duration = radioStation.getInt(JSON_DURATION) * 1000; // ms
+        final String id = String.valueOf(radioStation.getId());
+
+        Log.d(CLASS_NAME, "Media Metadata from Radio Station: " + radioStation);
+
+        // Adding the music source to the MediaMetadata (and consequently using it in the
+        // mediaSession.setMetadata) is not a good idea for a real world music app, because
+        // the session metadata can be accessed by notification listeners. This is done in this
+        // sample for convenience only.
+        return new MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
+                .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
+                //.putString(MediaMetadata.METADATA_KEY_ALBUM, album)
+                //.putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
+                //.putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
+                //.putString(MediaMetadata.METADATA_KEY_GENRE, genre)
+                //.putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                //.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
+                //.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+                .build();
+    }
 }

@@ -186,6 +186,59 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         return radioStations;
     }
 
+    @Override
+    public RadioStationVO getStation(Downloader downloader, Uri uri) {
+        final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
+
+        // Download response from the server
+        final String response = downloader.downloadDataFromUri(uri);
+        Log.i(CLASS_NAME, "Response:\n" + response);
+
+        // Ignore empty response
+        if (response.isEmpty()) {
+            Log.w(CLASS_NAME, "Can not parse data, response is empty");
+            return radioStation;
+        }
+
+        JSONObject object = null;
+
+        try {
+            object = new JSONObject(response);
+        } catch (JSONException e) {
+            Log.e(CLASS_NAME, "Can not convert response to JSON:" + e.getMessage());
+            return radioStation;
+        }
+
+        // TODO: Use data parser to parse JSON to value object
+
+        try {
+
+            if (object.has(JSONDataParserImpl.KEY_ID)) {
+                radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
+            }
+            if (object.has(JSONDataParserImpl.KEY_STATUS)) {
+                radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
+            }
+            if (object.has(JSONDataParserImpl.KEY_STREAM_URL)) {
+                radioStation.setStreamURL(object.getString(JSONDataParserImpl.KEY_STREAM_URL));
+            }
+            if (object.has(JSONDataParserImpl.KEY_NAME)) {
+                radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
+            }
+            if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
+                radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
+            }
+            if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
+                radioStation.setBitRate(object.getString(JSONDataParserImpl.KEY_BIT_RATE));
+            }
+
+        } catch (JSONException e) {
+            Log.e(CLASS_NAME, "Can not parse Radio Station:" + e.getMessage());
+        }
+
+        return radioStation;
+    }
+
     /**
      * Download data as {@link org.json.JSONArray}.
      *

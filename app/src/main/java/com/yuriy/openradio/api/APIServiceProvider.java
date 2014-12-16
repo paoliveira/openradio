@@ -46,4 +46,13 @@ public interface APIServiceProvider {
      * @return collection of the Radio Stations.
      */
     public List<RadioStationVO> getStationsInCategory(final Downloader downloader, final Uri uri);
+
+    /**
+     * Get a Radio Station.
+     *
+     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
+     * @param uri        {@link android.net.Uri} of the request.
+     * @return Radio Station.
+     */
+    public RadioStationVO getStation(final Downloader downloader, final Uri uri);
 }
