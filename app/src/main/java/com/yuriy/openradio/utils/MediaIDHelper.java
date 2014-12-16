@@ -20,4 +20,7 @@ public class MediaIDHelper {
     public static final String MEDIA_ID_PARENT_CATEGORIES = "__PARENT_CATEGORIES__";
 
     public static final String MEDIA_ID_CHILD_CATEGORIES = "__CHILD_CATEGORIES__";
+
+    public static final String MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
+            = "__RADIO_STATIONS_IN_CATEGORY__";
 }

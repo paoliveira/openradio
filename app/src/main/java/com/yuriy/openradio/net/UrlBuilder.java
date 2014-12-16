@@ -40,7 +40,7 @@ public class UrlBuilder {
     }
 
     /**
-     * Get Uri for the All Categories list.
+     * Get Uri for the Child Category's list (list of the categories in the main menu item).
      *
      * @param context   Context of the application.
      * @param primaryId Id of the primary Menu Item
@@ -49,5 +49,17 @@ public class UrlBuilder {
     public static Uri getChildCategoriesUrl(final Context context, final String primaryId) {
         return Uri.parse(BASE_URL + "childCategories/apikey/" + ApiKeyLoader.getApiKey(context)
                 + "/primaryid/" + primaryId);
+    }
+
+    /**
+     * Get Uri for the list of the Radio Stations in concrete Category.
+     *
+     * @param context    Context of the application.
+     * @param categoryId Id of the Category.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getStationsInCategory(final Context context, final String categoryId) {
+        return Uri.parse(BASE_URL + "stations/apikey/" + ApiKeyLoader.getApiKey(context)
+                + "/id/" + categoryId);
     }
 }

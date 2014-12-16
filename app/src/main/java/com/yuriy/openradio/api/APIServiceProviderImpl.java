@@ -155,6 +155,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         return childCategories;
     }
 
+    @Override
+    public List<RadioStationVO> getStationsInCategory(final Downloader downloader, final Uri uri) {
+        return null;
+    }
+
     /**
      * Parse incoming data as {@link org.json.JSONArray}.
      *

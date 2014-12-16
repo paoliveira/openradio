@@ -18,6 +18,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.api.CategoryVO;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
@@ -195,7 +196,7 @@ public class OpenRadioService
                         @Override
                         public void run() {
 
-                            // Load all categories into menu
+                            // Load child categories into menu
                             loadChildCategories(
                                     serviceProvider,
                                     downloader,
@@ -206,6 +207,30 @@ public class OpenRadioService
                         }
                     }
             );
+        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES)) {
+            // Use result.detach to allow calling result.sendResult from another thread:
+            result.detach();
+
+            final String childMenuId
+                    = parentId.replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
+
+            apiCallExecutor.submit(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Load Radio Stations into menu
+                            loadStationsInCategory(
+                                    serviceProvider,
+                                    downloader,
+                                    childMenuId,
+                                    mediaItems,
+                                    result
+                            );
+                        }
+                    });
+
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);
             result.sendResult(mediaItems);
@@ -268,7 +293,7 @@ public class OpenRadioService
     }
 
     /**
-     * Load All Categories into Menu.
+     * Load Child Categories into Menu.
      *
      * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
      * @param downloader      {@link com.yuriy.openradio.net.Downloader}
@@ -285,9 +310,7 @@ public class OpenRadioService
                 = serviceProvider.getChildCategories(downloader,
                 UrlBuilder.getChildCategoriesUrl(getApplicationContext(), primaryItemId));
 
-        String subTitle;
         for (CategoryVO category : childCategories) {
-            subTitle = "(" + String.valueOf(category.getAmount() + ") ") + category.getDescription();
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
@@ -297,7 +320,43 @@ public class OpenRadioService
                             .setTitle(category.getName())
                             .setIconUri(Uri.parse("android.resource://" +
                                     "com.example.android.mediabrowserservice/drawable/ic_by_genre"))
-                            .setSubtitle(subTitle)
+                            .setSubtitle(category.getDescription())
+                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+            ));
+        }
+
+        result.sendResult(mediaItems);
+    }
+
+    /**
+     * Load Radio Stations into Menu.
+     *
+     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
+     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
+     * @param categoryId      Id of the Category.
+     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
+     * @param result          Result of the loading.
+     */
+    private void loadStationsInCategory(final APIServiceProvider serviceProvider,
+                                        final Downloader downloader,
+                                        final String categoryId,
+                                        final List<MediaBrowser.MediaItem> mediaItems,
+                                        final Result<List<MediaBrowser.MediaItem>> result) {
+        final List<RadioStationVO> radioStations
+                = serviceProvider.getStationsInCategory(downloader,
+                UrlBuilder.getStationsInCategory(getApplicationContext(), categoryId));
+
+        for (RadioStationVO radioStation : radioStations) {
+            mediaItems.add(new MediaBrowser.MediaItem(
+                    new MediaDescription.Builder()
+                            .setMediaId(
+                                    MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
+                                            + String.valueOf(radioStation.getId())
+                            )
+                            .setTitle(radioStation.getName())
+                            .setIconUri(Uri.parse("android.resource://" +
+                                    "com.example.android.mediabrowserservice/drawable/ic_by_genre"))
+                            .setSubtitle(radioStation.getCountry())
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
         }
