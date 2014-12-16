@@ -37,7 +37,6 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -58,6 +57,11 @@ public class OpenRadioService
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName();
 
     public static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
+
+    /**
+     * Delay stopSelf by using a handler.
+     */
+    private static final int STOP_DELAY = 30000;
 
     /**
      * The volume we set the media player to when we lose audio focus,
@@ -96,7 +100,7 @@ public class OpenRadioService
     private WifiManager.WifiLock mWifiLock;
 
     // Type of audio focus we have:
-    private AudioFocus mAudioFocus = AudioFocus.NoFocusNoDuck;
+    private AudioFocus mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK;
 
     private AudioManager mAudioManager;
 
@@ -133,20 +137,21 @@ public class OpenRadioService
     private MediaNotification mMediaNotification;
 
     private enum AudioFocus {
+
         /**
          * There is no audio focus, and no possible to "duck"
          */
-        NoFocusNoDuck,
+        NO_FOCUS_NO_DUCK,
 
         /**
          * There is no focus, but can play at a low volume ("ducking")
          */
-        NoFocusCanDuck,
+        NO_FOCUS_CAN_DUCK,
 
         /**
          * There is full audio focus
          */
-        Focused
+        FOCUSED
     }
 
     private Handler mDelayedStopHandler = new Handler() {
@@ -383,7 +388,7 @@ public class OpenRadioService
         Log.d(CLASS_NAME, "On AudioFocusChange. focusChange=" + focusChange);
         if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
             // We have gained focus:
-            mAudioFocus = AudioFocus.Focused;
+            mAudioFocus = AudioFocus.FOCUSED;
 
         } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS ||
                 focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
@@ -391,7 +396,7 @@ public class OpenRadioService
             // We have lost focus. If we can duck (low playback volume), we can keep playing.
             // Otherwise, we need to pause the playback.
             boolean canDuck = focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
-            mAudioFocus = canDuck ? AudioFocus.NoFocusCanDuck : AudioFocus.NoFocusNoDuck;
+            mAudioFocus = canDuck ? AudioFocus.NO_FOCUS_CAN_DUCK : AudioFocus.NO_FOCUS_NO_DUCK;
 
             // If we are playing, we need to reset media player by calling configMediaPlayerState
             // with mAudioFocus properly set.
@@ -688,8 +693,8 @@ public class OpenRadioService
         stopForeground(true);
 
         // reset the delayed stop handler.
-        //mDelayedStopHandler.removeCallbacksAndMessages(null);
-        //mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
 
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer && mMediaPlayer != null) {
@@ -751,13 +756,13 @@ public class OpenRadioService
      */
     private void configMediaPlayerState() {
         Log.d(CLASS_NAME, "ConfigAndStartMediaPlayer. mAudioFocus=" + mAudioFocus);
-        if (mAudioFocus == AudioFocus.NoFocusNoDuck) {
+        if (mAudioFocus == AudioFocus.NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck, we have to pause,
             if (mState == PlaybackState.STATE_PLAYING) {
                 handlePauseRequest();
             }
         } else {  // we have audio focus:
-            if (mAudioFocus == AudioFocus.NoFocusCanDuck) {
+            if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
                 mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK);     // we'll be relatively quiet
             } else {
                 mMediaPlayer.setVolume(VOLUME_NORMAL, VOLUME_NORMAL); // we can be loud again
@@ -802,7 +807,7 @@ public class OpenRadioService
      *
      */
     private void updatePlaybackState(String error) {
-        Log.d(CLASS_NAME, "updatePlaybackState, setting session playback state to " + mState);
+        Log.d(CLASS_NAME, "UpdatePlaybackState, setting session playback state to " + mState);
 
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
@@ -831,6 +836,7 @@ public class OpenRadioService
 
         mSession.setPlaybackState(stateBuilder.build());
 
+        Log.d(CLASS_NAME, "UpdatePlaybackState, state:" + mState);
         if (mState == PlaybackState.STATE_PLAYING || mState == PlaybackState.STATE_PAUSED) {
             mMediaNotification.startNotification();
         }
@@ -860,7 +866,7 @@ public class OpenRadioService
      */
     private void tryToGetAudioFocus() {
         Log.d(CLASS_NAME, "Try To Get Audio Focus");
-        if (mAudioFocus == AudioFocus.Focused) {
+        if (mAudioFocus == AudioFocus.FOCUSED) {
             return;
         }
         final int result = mAudioManager.requestAudioFocus(
@@ -869,7 +875,7 @@ public class OpenRadioService
         if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             return;
         }
-        mAudioFocus = AudioFocus.Focused;
+        mAudioFocus = AudioFocus.FOCUSED;
     }
 
     /**
@@ -877,13 +883,13 @@ public class OpenRadioService
      */
     private void giveUpAudioFocus() {
         Log.d(CLASS_NAME, "Give Up Audio Focus");
-        if (mAudioFocus != AudioFocus.Focused) {
+        if (mAudioFocus != AudioFocus.FOCUSED) {
             return;
         }
         if (mAudioManager.abandonAudioFocus(this) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             return;
         }
-        mAudioFocus = AudioFocus.NoFocusNoDuck;
+        mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK;
     }
 
     /**
@@ -952,6 +958,20 @@ public class OpenRadioService
             super.onSkipToQueueItem(id);
 
             Log.i(CLASS_NAME, "On Skip to queue item, id:" + id);
+
+            if (mState == PlaybackState.STATE_PAUSED) {
+                mState = PlaybackState.STATE_STOPPED;
+            }
+
+            if (!playingQueue.isEmpty()) {
+
+                // set the current index on queue from the music Id:
+                mCurrentIndexOnQueue
+                        = QueueHelper.getRadioStationIndexOnQueue(playingQueue, String.valueOf(id));
+
+                // Play the Radio Station
+                handlePlayRequest();
+            }
         }
 
         @Override
