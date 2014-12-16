@@ -130,6 +130,8 @@ public class OpenRadioService
      */
     private boolean mServiceStarted;
 
+    private MediaNotification mMediaNotification;
+
     private enum AudioFocus {
         /**
          * There is no audio focus, and no possible to "duck"
@@ -179,11 +181,21 @@ public class OpenRadioService
         mSession.setCallback(new MediaSessionCallback());
         mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+
+        mMediaNotification = new MediaNotification(this);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        // Service is being killed, so make sure we release our resources
+        handleStopRequest(null);
+
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        // In particular, always release the MediaSession to clean up resources
+        // and notify associated MediaController(s).
+        mSession.release();
     }
 
     @Override
@@ -819,9 +831,9 @@ public class OpenRadioService
 
         mSession.setPlaybackState(stateBuilder.build());
 
-        //if (mState == PlaybackState.STATE_PLAYING || mState == PlaybackState.STATE_PAUSED) {
-        //    mMediaNotification.startNotification();
-        //}
+        if (mState == PlaybackState.STATE_PLAYING || mState == PlaybackState.STATE_PAUSED) {
+            mMediaNotification.startNotification();
+        }
     }
 
     private long getAvailableActions() {
@@ -887,7 +899,7 @@ public class OpenRadioService
         giveUpAudioFocus();
         updatePlaybackState(withError);
 
-        //mMediaNotification.stopNotification();
+        mMediaNotification.stopNotification();
 
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
