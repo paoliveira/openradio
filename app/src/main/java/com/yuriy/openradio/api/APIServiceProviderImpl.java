@@ -51,26 +51,14 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     @Override
     public List<CategoryVO> getAllCategories(final Downloader downloader, final Uri uri) {
 
-        // TODO: Refactor all categories and children of category as there are 99% of similarity
-
         final List<CategoryVO> allCategories = new ArrayList<>();
-
-        // Download response from the server
-        final String response = downloader.downloadDataFromUri(uri);
-        Log.i(CLASS_NAME, "Response:\n" + response);
-
-        // Ignore empty response
-        if (response.isEmpty()) {
-            Log.w(CLASS_NAME, "Can not parse data, response is empty");
-            return allCategories;
-        }
 
         if (mDataParser == null) {
             Log.w(CLASS_NAME, "Can not parse data, parser is null");
             return allCategories;
         }
 
-        final JSONArray array = getArrayOfCategories(response);
+        final JSONArray array = downloadJSONArray(downloader, uri);
 
         JSONObject object;
         CategoryVO category;
@@ -79,6 +67,8 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 object = (JSONObject) array.get(i);
 
                 category = CategoryVO.makeDefaultInstance();
+
+                // TODO: Use data parser to parse JSON to value object
 
                 if (object.has(JSONDataParserImpl.KEY_ID)) {
                     category.setId(object.getInt(JSONDataParserImpl.KEY_ID));
@@ -103,26 +93,14 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     @Override
     public List<CategoryVO> getChildCategories(final Downloader downloader, final Uri uri) {
 
-        // TODO: Refactor all categories and children of category as there are 99% of similarity
-
         final List<CategoryVO> childCategories = new ArrayList<>();
-
-        // Download response from the server
-        final String response = downloader.downloadDataFromUri(uri);
-        Log.i(CLASS_NAME, "Response:\n" + response);
-
-        // Ignore empty response
-        if (response.isEmpty()) {
-            Log.w(CLASS_NAME, "Can not parse data, response is empty");
-            return childCategories;
-        }
 
         if (mDataParser == null) {
             Log.w(CLASS_NAME, "Can not parse data, parser is null");
             return childCategories;
         }
 
-        final JSONArray array = getArrayOfCategories(response);
+        final JSONArray array = downloadJSONArray(downloader, uri);
 
         JSONObject object;
         CategoryVO category;
@@ -132,11 +110,13 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
                 category = CategoryVO.makeDefaultInstance();
 
+                // TODO: Use data parser to parse JSON to value object
+
                 if (object.has(JSONDataParserImpl.KEY_ID)) {
                     category.setId(object.getInt(JSONDataParserImpl.KEY_ID));
                 }
                 if (object.has(JSONDataParserImpl.KEY_AMOUNT)) {
-                    category.setId(object.getInt(JSONDataParserImpl.KEY_AMOUNT));
+                    category.setAmount(object.getInt(JSONDataParserImpl.KEY_AMOUNT));
                 }
                 if (object.has(JSONDataParserImpl.KEY_NAME)) {
                     category.setName(object.getString(JSONDataParserImpl.KEY_NAME));
@@ -157,21 +137,79 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
     @Override
     public List<RadioStationVO> getStationsInCategory(final Downloader downloader, final Uri uri) {
-        return null;
+
+        final List<RadioStationVO> radioStations = new ArrayList<>();
+
+        if (mDataParser == null) {
+            Log.w(CLASS_NAME, "Can not parse data, parser is null");
+            return radioStations;
+        }
+
+        final JSONArray array = downloadJSONArray(downloader, uri);
+
+        JSONObject object;
+        RadioStationVO radioStation;
+        for (int i = 0; i < array.length(); i++) {
+            try {
+                object = (JSONObject) array.get(i);
+
+                radioStation = RadioStationVO.makeDefaultInstance();
+
+                // TODO: Use data parser to parse JSON to value object
+
+                if (object.has(JSONDataParserImpl.KEY_ID)) {
+                    radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
+                }
+                if (object.has(JSONDataParserImpl.KEY_STATUS)) {
+                    radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
+                }
+                if (object.has(JSONDataParserImpl.KEY_STREAM_URL)) {
+                    radioStation.setStreamURL(object.getString(JSONDataParserImpl.KEY_STREAM_URL));
+                }
+                if (object.has(JSONDataParserImpl.KEY_NAME)) {
+                    radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
+                }
+                if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
+                    radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
+                }
+                if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
+                    radioStation.setBitRate(object.getString(JSONDataParserImpl.KEY_BIT_RATE));
+                }
+
+                radioStations.add(radioStation);
+
+            } catch (JSONException e) {
+                Log.e(CLASS_NAME, "Can not parse Radio Station:" + e.getMessage());
+            }
+        }
+
+        return radioStations;
     }
 
     /**
-     * Parse incoming data as {@link org.json.JSONArray}.
+     * Download data as {@link org.json.JSONArray}.
      *
-     * @param data Input data as String
+     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader}.
+     * @param uri        Uri to download from.
      * @return {@link org.json.JSONArray}
      */
-    private JSONArray getArrayOfCategories(final String data) {
+    private JSONArray downloadJSONArray(final Downloader downloader, final Uri uri) {
         JSONArray array = new JSONArray();
+
+        // Download response from the server
+        final String response = downloader.downloadDataFromUri(uri);
+        Log.i(CLASS_NAME, "Response:\n" + response);
+
+        // Ignore empty response
+        if (response.isEmpty()) {
+            Log.w(CLASS_NAME, "Can not parse data, response is empty");
+            return array;
+        }
+
         try {
-            array = new JSONArray(data);
+            array = new JSONArray(response);
         } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Can not get array of categories:" + e.getMessage());
+            Log.e(CLASS_NAME, "Can not get JSON array:" + e.getMessage());
         }
         return array;
     }
