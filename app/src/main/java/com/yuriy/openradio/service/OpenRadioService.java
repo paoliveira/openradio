@@ -79,6 +79,9 @@ public class OpenRadioService
      */
     private MediaPlayer mMediaPlayer;
 
+    /**
+     * Media Session
+     */
     private MediaSession mSession;
 
     private int mCurrentIndexOnQueue;
@@ -99,9 +102,14 @@ public class OpenRadioService
      */
     private WifiManager.WifiLock mWifiLock;
 
-    // Type of audio focus we have:
+    /**
+     * Type of audio focus we have
+     */
     private AudioFocus mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK;
 
+    /**
+     * audio manager object.
+     */
     private AudioManager mAudioManager;
 
     /**
@@ -134,6 +142,9 @@ public class OpenRadioService
      */
     private boolean mServiceStarted;
 
+    /**
+     * Notification object.
+     */
     private MediaNotification mMediaNotification;
 
     private enum AudioFocus {
@@ -369,18 +380,18 @@ public class OpenRadioService
 
     @Override
     public boolean onError(final MediaPlayer mediaPlayer, final int what, final int extra) {
-        Log.e(CLASS_NAME, "On MediaPlayer error");
-        return false;
+        Log.e(CLASS_NAME, "MediaPlayer error: what=" + what + ", extra=" + extra);
+        handleStopRequest("MediaPlayer error " + what + " (" + extra + ")");
+        return true; // true indicates we handled the error
     }
 
     @Override
     public void onPrepared(final MediaPlayer mediaPlayer) {
-        Log.i(CLASS_NAME, "On MediaPlayer prepared");
+        Log.i(CLASS_NAME, "MediaPlayer prepared");
 
-        if (!mMediaPlayer.isPlaying()) {
-            mMediaPlayer.start();
-        }
-
+        // The media player is done preparing. That means we can start playing if we
+        // have audio focus.
+        configMediaPlayerState();
     }
 
     @Override
@@ -587,7 +598,7 @@ public class OpenRadioService
      * Starts playing the current song in the playing queue.
      */
     void playCurrentSong() {
-        MediaMetadata track = getCurrentPlayingMusic();
+        MediaMetadata track = getCurrentPlayingRadioStation();
         if (track == null) {
             Log.e(CLASS_NAME, "playSong:  ignoring request to play next song, because cannot" +
                     " find it." +
@@ -605,12 +616,13 @@ public class OpenRadioService
         // release everything except MediaPlayer
         relaxResources(false);
 
+        createMediaPlayerIfNeeded();
+
+        mState = PlaybackState.STATE_BUFFERING;
+
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
         try {
-            createMediaPlayerIfNeeded();
-
-            mState = PlaybackState.STATE_BUFFERING;
-
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setDataSource(source);
 
             // Starts preparing the media player in the background. When
@@ -634,23 +646,24 @@ public class OpenRadioService
         }
     }
 
-    private MediaMetadata getCurrentPlayingMusic() {
-        if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, playingQueue)) {
-            final MediaSession.QueueItem item = playingQueue.get(mCurrentIndexOnQueue);
-            if (item != null) {
-                final String mediaId = item.getDescription().getMediaId();
-                final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
-                Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
-                MediaMetadata track = null;
-                try {
-                    track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(radioStation);
-                } catch (JSONException e) {
-                    Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
-                }
-                return track;
-            }
+    private MediaMetadata getCurrentPlayingRadioStation() {
+        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, playingQueue)) {
+            return null;
         }
-        return null;
+        final MediaSession.QueueItem item = playingQueue.get(mCurrentIndexOnQueue);
+        if (item == null) {
+            return null;
+        }
+        final String mediaId = item.getDescription().getMediaId();
+        final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
+        Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
+        MediaMetadata track = null;
+        try {
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(radioStation);
+        } catch (JSONException e) {
+            Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
+        }
+        return track;
     }
 
     private void updateMetadata() {
@@ -761,7 +774,8 @@ public class OpenRadioService
             if (mState == PlaybackState.STATE_PLAYING) {
                 handlePauseRequest();
             }
-        } else {  // we have audio focus:
+        } else {
+            // we have audio focus:
             if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
                 mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK);     // we'll be relatively quiet
             } else {
@@ -770,10 +784,11 @@ public class OpenRadioService
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
                 if (!mMediaPlayer.isPlaying()) {
-                    Log.d(CLASS_NAME, "configAndStartMediaPlayer startMediaPlayer.");
+                    Log.d(CLASS_NAME, "ConfigAndStartMediaPlayer startMediaPlayer");
                     mMediaPlayer.start();
                 }
                 mPlayOnFocusGain = false;
+                Log.d(CLASS_NAME, "ConfigAndStartMediaPlayer set state playing");
                 mState = PlaybackState.STATE_PLAYING;
             }
         }
@@ -864,17 +879,22 @@ public class OpenRadioService
     /**
      * Try to get the system audio focus.
      */
-    private void tryToGetAudioFocus() {
-        Log.d(CLASS_NAME, "Try To Get Audio Focus");
+    void tryToGetAudioFocus() {
+        Log.d(CLASS_NAME, "Try To Get Audio Focus, current focus:" + mAudioFocus);
         if (mAudioFocus == AudioFocus.FOCUSED) {
             return;
         }
+
         final int result = mAudioManager.requestAudioFocus(
                 this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN
         );
+
+        //Log.d(CLASS_NAME, "Audio Focus result:" + result);
         if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             return;
         }
+
+        Log.i(CLASS_NAME, "Audio Focus focused");
         mAudioFocus = AudioFocus.FOCUSED;
     }
 
@@ -896,7 +916,7 @@ public class OpenRadioService
      * Handle a request to stop music
      */
     private void handleStopRequest(String withError) {
-        Log.d(CLASS_NAME, "handleStopRequest: mState=" + mState + " error=" + withError);
+        Log.d(CLASS_NAME, "Handle stop request: state=" + mState + " error=" + withError);
 
         mState = PlaybackState.STATE_STOPPED;
 
@@ -914,7 +934,7 @@ public class OpenRadioService
 
     private void setCustomAction(final PlaybackState.Builder stateBuilder) {
 
-        /*MediaMetadata currentMusic = getCurrentPlayingMusic();
+        /*MediaMetadata currentMusic = getCurrentPlayingRadioStation();
         if (currentMusic != null) {
             // Set appropriate "Favorite" icon on Custom action:
             String mediaId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
