@@ -252,12 +252,15 @@ public class OpenRadioService
         final APIServiceProvider serviceProvider = new APIServiceProviderImpl(dataParser);
 
         if (MediaIDHelper.MEDIA_ID_ROOT.equals(parentId)) {
+
+            final String iconUrl = "android.resource://" +
+                    getApplicationContext().getPackageName() + "/drawable/ic_all_categories";
+
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
                             .setTitle(getString(R.string.all_categories_title))
-                            .setIconUri(Uri.parse("android.resource://" +
-                                    "com.example.android.mediabrowserservice/drawable/ic_by_genre"))
+                            .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(getString(R.string.all_categories_sub_title))
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
@@ -440,6 +443,9 @@ public class OpenRadioService
 
         QueueHelper.copyCollection(allCategories, list);
 
+        final String iconUrl = "android.resource://" +
+                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
+
         for (CategoryVO category : allCategories) {
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
@@ -448,8 +454,7 @@ public class OpenRadioService
                                             + String.valueOf(category.getId())
                             )
                             .setTitle(category.getName())
-                            .setIconUri(Uri.parse("android.resource://" +
-                                    "com.example.android.mediabrowserservice/drawable/ic_by_genre"))
+                            .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
@@ -477,6 +482,9 @@ public class OpenRadioService
 
         QueueHelper.copyCollection(childCategories, list);
 
+        final String iconUrl = "android.resource://" +
+                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
+
         for (CategoryVO category : childCategories) {
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
@@ -485,8 +493,7 @@ public class OpenRadioService
                                             + String.valueOf(category.getId())
                             )
                             .setTitle(category.getName())
-                            .setIconUri(Uri.parse("android.resource://" +
-                                    "com.example.android.mediabrowserservice/drawable/ic_by_genre"))
+                            .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
@@ -514,6 +521,9 @@ public class OpenRadioService
 
         QueueHelper.copyCollection(radioStations, list);
 
+        final String iconUrl = "android.resource://" +
+                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
+
         for (RadioStationVO radioStation : radioStations) {
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
@@ -522,8 +532,7 @@ public class OpenRadioService
                                             + String.valueOf(radioStation.getId())
                             )
                             .setTitle(radioStation.getName())
-                            .setIconUri(Uri.parse("android.resource://" +
-                                    "com.example.android.mediabrowserservice/drawable/ic_by_genre"))
+                            .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(radioStation.getCountry())
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
