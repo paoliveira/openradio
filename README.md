@@ -10,3 +10,4 @@
 
 ### Delivery files ###
 * [Android Media Browser simulator](https://bitbucket.org/ChernyshovYuriy/openradio/src/db36135fb9ada868f678ce9db9dab7c0c34e5a2b/app/assets/media-browser-simulator.apk) need to simulate vehicle's HMI.
+* [Android APK file](https://bitbucket.org/ChernyshovYuriy/openradio/src/75c0c12d1defa453811075b657cc1d0b61c28cd1/app/app-release.apk)
