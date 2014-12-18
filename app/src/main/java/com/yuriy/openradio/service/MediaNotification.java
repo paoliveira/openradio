@@ -255,20 +255,24 @@ public class MediaNotification extends BroadcastReceiver {
                     mService.getString(R.string.label_next), mNextIntent);
         }
 
-        MediaDescription description = mMetadata.getDescription();
+        final MediaDescription description = mMetadata.getDescription();
 
         String fetchArtUrl = null;
         Bitmap art = description.getIconBitmap();
+        //Log.d(CLASS_NAME, "Art:" + art + " Icon Uri:" + description.getIconUri());
         if (art == null && description.getIconUri() != null) {
             // This sample assumes the iconUri will be a valid URL formatted String, but
             // it can actually be any valid Android Uri formatted String.
             // async fetch the album art icon
-            String artUrl = description.getIconUri().toString();
+            final String artUrl = description.getIconUri().toString();
+            //Log.d(CLASS_NAME, "Art URL:" + artUrl);
             art = mAlbumArtCache.get(artUrl);
+            //Log.d(CLASS_NAME, "Art 1:" + art);
             if (art == null) {
                 fetchArtUrl = artUrl;
                 // use a placeholder art while the remote art is being downloaded
                 art = BitmapFactory.decodeResource(mService.getResources(), R.drawable.ic_default_art);
+                //Log.d(CLASS_NAME, "Art 2:" + art);
             }
         }
 
