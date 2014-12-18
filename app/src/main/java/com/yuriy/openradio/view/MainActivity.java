@@ -55,6 +55,13 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 final MediaBrowser.MediaItem item = mBrowserAdapter.getItem(position);
+                Log.i(CLASS_NAME, "Item selected:" + item);
+
+                mBrowserAdapter.clear();
+
+                mMediaId = item.getMediaId();
+                mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
+
                 try {
                     //FragmentDataHelper listener = (FragmentDataHelper) getActivity();
                     //listener.onMediaItemSelected(item);
@@ -145,7 +152,7 @@ public class MainActivity extends FragmentActivity {
             if (mMediaBrowser.getSessionToken() == null) {
                 throw new IllegalArgumentException("No Session token");
             }
-            MediaController mediaController = new MediaController(
+            final MediaController mediaController = new MediaController(
                     MainActivity.this,
                     mMediaBrowser.getSessionToken()
             );
