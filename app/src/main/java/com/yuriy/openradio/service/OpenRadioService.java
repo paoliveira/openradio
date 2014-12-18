@@ -561,7 +561,8 @@ public class OpenRadioService
 
         MediaMetadata track;
         try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(radioStation);
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
+                    radioStation);
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Can not parse Media Metadata:" + e.getMessage());
             return;
@@ -668,7 +669,8 @@ public class OpenRadioService
         Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
         MediaMetadata track = null;
         try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(radioStation);
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
+                    radioStation);
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
         }
@@ -688,7 +690,8 @@ public class OpenRadioService
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
         final MediaMetadata track;
         try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(radioStation);
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
+                    radioStation);
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
             return;
@@ -1013,7 +1016,10 @@ public class OpenRadioService
                 mState = PlaybackState.STATE_STOPPED;
             }
 
-            QueueHelper.copyCollection(playingQueue, QueueHelper.getPlayingQueue(radioStations));
+            QueueHelper.copyCollection(playingQueue, QueueHelper.getPlayingQueue(
+                    getApplicationContext(),
+                    radioStations)
+            );
 
             mSession.setQueue(playingQueue);
 

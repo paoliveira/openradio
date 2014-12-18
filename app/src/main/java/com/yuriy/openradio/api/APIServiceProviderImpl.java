@@ -225,6 +225,9 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             if (object.has(JSONDataParserImpl.KEY_NAME)) {
                 radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
             }
+            if (object.has(JSONDataParserImpl.KEY_WEBSITE)) {
+                radioStation.setWebSite(object.getString(JSONDataParserImpl.KEY_WEBSITE));
+            }
             if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
                 radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
             }

@@ -1,5 +1,6 @@
 package com.yuriy.openradio.business;
 
+import android.content.Context;
 import android.media.MediaMetadata;
 import android.util.Log;
 
@@ -62,8 +63,13 @@ public class JSONDataParserImpl implements DataParser {
      * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadata buildMediaMetadataFromRadioStation(final RadioStationVO radioStation)
+    public static MediaMetadata buildMediaMetadataFromRadioStation(
+            final Context context,
+            final RadioStationVO radioStation)
             throws JSONException {
+
+        final String iconUrl = "android.resource://" +
+                context.getPackageName() + "/drawable/ic_radio_station";
 
         final String title = radioStation.getName();
         //final String album = radioStation.getString(JSON_ALBUM);
@@ -76,7 +82,7 @@ public class JSONDataParserImpl implements DataParser {
         //final int duration = radioStation.getInt(JSON_DURATION) * 1000; // ms
         final String id = String.valueOf(radioStation.getId());
 
-        Log.d(CLASS_NAME, "Media Metadata from Radio Station: " + radioStation);
+        Log.d(CLASS_NAME, "Media Metadata for " + radioStation);
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
@@ -89,7 +95,7 @@ public class JSONDataParserImpl implements DataParser {
                 //.putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
                 //.putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
                 //.putString(MediaMetadata.METADATA_KEY_GENRE, genre)
-                //.putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)
                 //.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
                 //.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)

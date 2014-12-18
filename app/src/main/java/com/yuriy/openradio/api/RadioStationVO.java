@@ -22,6 +22,8 @@ public class RadioStationVO {
 
     private String mStreamURL = "";
 
+    private String mWebSite = "";
+
     // TODO: Convert to enum
     private String mCountry = "";
 
@@ -80,6 +82,27 @@ public class RadioStationVO {
 
     public void setBitRate(final String value) {
         mBitRate = value;
+    }
+
+    public String getWebSite() {
+        return mWebSite;
+    }
+
+    public void setWebSite(final String value) {
+        mWebSite = value;
+    }
+
+    @Override
+    public String toString() {
+        return "RadioStation{" +
+                "id=" + mId +
+                ", status=" + mStatus +
+                ", name='" + mName + '\'' +
+                ", streamURL='" + mStreamURL + '\'' +
+                ", webSite='" + mWebSite + '\'' +
+                ", country='" + mCountry + '\'' +
+                ", bitRate='" + mBitRate + '\'' +
+                '}';
     }
 
     /**

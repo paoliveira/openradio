@@ -1,5 +1,6 @@
 package com.yuriy.openradio.utils;
 
+import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.util.Log;
@@ -24,6 +25,7 @@ public class QueueHelper {
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
     public static List<MediaSession.QueueItem> getPlayingQueue(
+            final Context context,
             final List<RadioStationVO> radioStations) {
         final List<MediaSession.QueueItem> queue = new ArrayList<>();
         int count = 0;
@@ -32,7 +34,7 @@ public class QueueHelper {
         for (RadioStationVO radioStation : radioStations) {
 
             try {
-                track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(radioStation);
+                track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(context, radioStation);
             } catch (JSONException e) {
                 Log.e(CLASS_NAME, "Can not parse Media Metadata:" + e.getMessage());
                 continue;
