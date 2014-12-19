@@ -1,6 +1,7 @@
 package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
+import android.media.browse.MediaBrowser;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.utils.ImageFetcher;
 
 import java.util.List;
@@ -21,12 +21,12 @@ import java.util.List;
  * On 12/18/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class CategoriesAdapter extends BaseAdapter {
+public class MediaItemsAdapter extends BaseAdapter {
 
     private ListAdapterViewHolder mViewHolder;
     private Activity mCurrentActivity;
     //private ImageFetcher mImageFetcher;
-    private final ListAdapterData<CategoryVO> mAdapterData = new ListAdapterData<>(null);
+    private final ListAdapterData<MediaBrowser.MediaItem> mAdapterData = new ListAdapterData<>(null);
 
     /**
      * Constructor.
@@ -34,7 +34,7 @@ public class CategoriesAdapter extends BaseAdapter {
      * @param activity     current {@link android.app.Activity}
      * @param imageFetcher {@link ImageFetcher} instance
      */
-    public CategoriesAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
+    public MediaItemsAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
         mCurrentActivity = activity;
         //mImageFetcher = imageFetcher;
     }
@@ -56,10 +56,10 @@ public class CategoriesAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, final ViewGroup parent) {
-        final CategoryVO categoryVO = (CategoryVO) getItem(position);
+        final MediaBrowser.MediaItem mediaItem = (MediaBrowser.MediaItem) getItem(position);
         convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
-        mViewHolder.mNameView.setText(categoryVO.getName());
-        mViewHolder.mDescriptionView.setText(categoryVO.getDescription());
+        mViewHolder.mNameView.setText(mediaItem.getDescription().getTitle());
+        mViewHolder.mDescriptionView.setText(mediaItem.getDescription().getSubtitle());
         return convertView;
     }
 
@@ -67,7 +67,7 @@ public class CategoriesAdapter extends BaseAdapter {
      * Add {@link com.yuriy.openradio.api.CategoryVO} into the collection.
      * @param value {@link com.yuriy.openradio.api.CategoryVO}
      */
-    public void addItem(final CategoryVO value) {
+    public void addItem(final MediaBrowser.MediaItem value) {
         mAdapterData.addItem(value);
     }
 
@@ -75,8 +75,8 @@ public class CategoriesAdapter extends BaseAdapter {
      * Add {@link com.yuriy.openradio.api.CategoryVO}s into the collection.
      * @param items Collection of the {@link com.yuriy.openradio.api.CategoryVO}
      */
-    public void addItems(final List<CategoryVO> items) {
-        for (CategoryVO item : items) {
+    public void addItems(final List<MediaBrowser.MediaItem> items) {
+        for (MediaBrowser.MediaItem item : items) {
             addItem(item);
         }
     }

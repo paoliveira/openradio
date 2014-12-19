@@ -1,28 +1,22 @@
 package com.yuriy.openradio.view;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -30,16 +24,13 @@ public class MainActivity extends FragmentActivity {
 
     private static final String CLASS_NAME = MainActivity.class.getSimpleName();
 
-    /**
-     * The mediaId to be used for subscribing for children using the MediaBrowser.
-     */
-    private String mMediaId;
-
     private MediaBrowser mMediaBrowser;
 
-    private BrowseAdapter mBrowserAdapter;
+    private MediaItemsAdapter mBrowserAdapter;
 
-    private final List<String> mediaItemsQueue = new LinkedList<>();
+    private final List<String> mediaItemsStack = new LinkedList<>();
+
+    private boolean isInit = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +40,7 @@ public class MainActivity extends FragmentActivity {
         final View controls = findViewById(R.id.controls);
         controls.setVisibility(View.GONE);
 
-        mBrowserAdapter = new BrowseAdapter(this);
+        mBrowserAdapter = new MediaItemsAdapter(this, null);
 
         final ListView listView = (ListView) findViewById(R.id.list_view);
         listView.setAdapter(mBrowserAdapter);
@@ -58,15 +49,11 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
-                final MediaBrowser.MediaItem item = mBrowserAdapter.getItem(position);
-                mMediaId = item.getMediaId();
 
-                //Log.i(CLASS_NAME, "Item selected:" + item);
-                Log.i(CLASS_NAME, "Item Id selected:" + mMediaId);
+                final MediaBrowser.MediaItem item
+                        = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
 
-                mediaItemsQueue.add(mMediaId);
-
-                mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
+                addMediaItemToQueue(item.getMediaId());
             }
         });
 
@@ -116,22 +103,35 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onBackPressed() {
 
-        if (mediaItemsQueue.isEmpty()) {
-            super.onBackPressed();
+        //Log.i(CLASS_NAME, "Back pressed");
 
+        if (mediaItemsStack.size() == 1) {
+
+            mMediaBrowser.unsubscribe(mediaItemsStack.remove(mediaItemsStack.size() - 1));
+            mediaItemsStack.clear();
+
+            super.onBackPressed();
             return;
         }
 
+        final String currentMediaId = mediaItemsStack.remove(mediaItemsStack.size() - 1);
+        //Log.i(CLASS_NAME, "Item Id remove: " + currentMediaId);
+
+        mMediaBrowser.unsubscribe(currentMediaId);
+        for (String mediaItemId : mediaItemsStack) {
+            mMediaBrowser.unsubscribe(mediaItemId);
+        }
+
         mMediaBrowser.disconnect();
-
-        mMediaId = mediaItemsQueue.remove(mediaItemsQueue.size() - 1);
-        mMediaId = mediaItemsQueue.remove(mediaItemsQueue.size() - 1);
-
-        Log.i(CLASS_NAME, "Item Id back selected:" + mMediaId);
-
         mMediaBrowser.connect();
+    }
 
-        mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
+    private void addMediaItemToQueue(final String mediaId) {
+        Log.i(CLASS_NAME, "MediaItem Id added:" + mediaId);
+
+        mediaItemsStack.add(mediaId);
+
+        mMediaBrowser.subscribe(mediaId, mSubscriptionCallback);
     }
 
     private MediaBrowser.SubscriptionCallback mSubscriptionCallback
@@ -140,12 +140,12 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onChildrenLoaded(final String parentId,
                                      final List<MediaBrowser.MediaItem> children) {
-            Log.i(CLASS_NAME, "On children loaded");
+            Log.i(CLASS_NAME, "On children loaded:" + children.size() + " " + parentId);
 
             mBrowserAdapter.clear();
             mBrowserAdapter.notifyDataSetInvalidated();
             for (MediaBrowser.MediaItem item : children) {
-                mBrowserAdapter.add(item);
+                mBrowserAdapter.addItem(item);
             }
             mBrowserAdapter.notifyDataSetChanged();
         }
@@ -165,20 +165,27 @@ public class MainActivity extends FragmentActivity {
         public void onConnected() {
             super.onConnected();
 
-            Log.i(CLASS_NAME, "MediaBrowser connected");
+            Log.i(CLASS_NAME, "MediaBrowser connected, stack empty:" + mediaItemsStack.isEmpty());
 
-            if (mMediaId == null) {
-                mMediaId = mMediaBrowser.getRoot();
-                mediaItemsQueue.add(mMediaId);
+            if (mediaItemsStack.isEmpty()) {
+                addMediaItemToQueue(mMediaBrowser.getRoot());
             }
-            mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
+
             if (mMediaBrowser.getSessionToken() == null) {
                 throw new IllegalArgumentException("No Session token");
             }
+
+            mMediaBrowser.subscribe(mediaItemsStack.get(mediaItemsStack.size() - 1), mSubscriptionCallback);
+
+            if (getMediaController() != null) {
+                return;
+            }
+
             final MediaController mediaController = new MediaController(
                     MainActivity.this,
                     mMediaBrowser.getSessionToken()
             );
+
             setMediaController(mediaController);
         }
 
@@ -198,48 +205,4 @@ public class MainActivity extends FragmentActivity {
             setMediaController(null);
         }
     };
-
-    /**
-     * An adapter for showing the list of browsed MediaItem's
-     */
-    private static class BrowseAdapter extends ArrayAdapter<MediaBrowser.MediaItem> {
-
-        public BrowseAdapter(final Context context) {
-            super(context, R.layout.category_list_item, new ArrayList<MediaBrowser.MediaItem>());
-        }
-
-        static class ViewHolder {
-            private ImageView mImageView;
-            private TextView mNameView;
-            private TextView mDescriptionView;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-
-            ViewHolder holder;
-
-            if (convertView == null) {
-                convertView = LayoutInflater.from(getContext())
-                        .inflate(R.layout.category_list_item, parent, false);
-                holder = new ViewHolder();
-                holder.mImageView = (ImageView) convertView.findViewById(R.id.img_view);
-                holder.mNameView = (TextView) convertView.findViewById(R.id.name_view);
-                holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description_view);
-                convertView.setTag(holder);
-            } else {
-                holder = (ViewHolder) convertView.getTag();
-            }
-
-            final MediaBrowser.MediaItem item = getItem(position);
-            holder.mNameView.setText(item.getDescription().getTitle());
-            holder.mDescriptionView.setText(item.getDescription().getSubtitle());
-            if (item.isPlayable()) {
-                holder.mImageView.setImageDrawable(
-                        getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
-                //holder.mImageView.setVisibility(View.VISIBLE);
-            }
-            return convertView;
-        }
-    }
 }
