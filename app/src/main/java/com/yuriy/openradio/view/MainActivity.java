@@ -23,6 +23,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity {
@@ -37,6 +38,8 @@ public class MainActivity extends FragmentActivity {
     private MediaBrowser mMediaBrowser;
 
     private BrowseAdapter mBrowserAdapter;
+
+    private final List<String> mediaItemsQueue = new LinkedList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,21 +56,17 @@ public class MainActivity extends FragmentActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(final AdapterView<?> parent, final View view,
+                                    final int position, final long id) {
                 final MediaBrowser.MediaItem item = mBrowserAdapter.getItem(position);
-                Log.i(CLASS_NAME, "Item selected:" + item);
-
-                mBrowserAdapter.clear();
-
                 mMediaId = item.getMediaId();
-                mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
 
-                try {
-                    //FragmentDataHelper listener = (FragmentDataHelper) getActivity();
-                    //listener.onMediaItemSelected(item);
-                } catch (ClassCastException ex) {
-                    Log.e(CLASS_NAME, "Exception trying to cast to FragmentDataHelper", ex);
-                }
+                //Log.i(CLASS_NAME, "Item selected:" + item);
+                Log.i(CLASS_NAME, "Item Id selected:" + mMediaId);
+
+                mediaItemsQueue.add(mMediaId);
+
+                mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
             }
         });
 
@@ -114,12 +113,35 @@ public class MainActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onBackPressed() {
+
+        if (mediaItemsQueue.isEmpty()) {
+            super.onBackPressed();
+
+            return;
+        }
+
+        mMediaBrowser.disconnect();
+
+        mMediaId = mediaItemsQueue.remove(mediaItemsQueue.size() - 1);
+        mMediaId = mediaItemsQueue.remove(mediaItemsQueue.size() - 1);
+
+        Log.i(CLASS_NAME, "Item Id back selected:" + mMediaId);
+
+        mMediaBrowser.connect();
+
+        mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
+    }
+
     private MediaBrowser.SubscriptionCallback mSubscriptionCallback
             = new MediaBrowser.SubscriptionCallback() {
 
         @Override
         public void onChildrenLoaded(final String parentId,
                                      final List<MediaBrowser.MediaItem> children) {
+            Log.i(CLASS_NAME, "On children loaded");
+
             mBrowserAdapter.clear();
             mBrowserAdapter.notifyDataSetInvalidated();
             for (MediaBrowser.MediaItem item : children) {
@@ -147,6 +169,7 @@ public class MainActivity extends FragmentActivity {
 
             if (mMediaId == null) {
                 mMediaId = mMediaBrowser.getRoot();
+                mediaItemsQueue.add(mMediaId);
             }
             mMediaBrowser.subscribe(mMediaId, mSubscriptionCallback);
             if (mMediaBrowser.getSessionToken() == null) {
@@ -201,7 +224,6 @@ public class MainActivity extends FragmentActivity {
                         .inflate(R.layout.category_list_item, parent, false);
                 holder = new ViewHolder();
                 holder.mImageView = (ImageView) convertView.findViewById(R.id.img_view);
-                holder.mImageView.setVisibility(View.GONE);
                 holder.mNameView = (TextView) convertView.findViewById(R.id.name_view);
                 holder.mDescriptionView = (TextView) convertView.findViewById(R.id.description_view);
                 convertView.setTag(holder);
@@ -211,11 +233,11 @@ public class MainActivity extends FragmentActivity {
 
             final MediaBrowser.MediaItem item = getItem(position);
             holder.mNameView.setText(item.getDescription().getTitle());
-            holder.mDescriptionView.setText(item.getDescription().getDescription());
+            holder.mDescriptionView.setText(item.getDescription().getSubtitle());
             if (item.isPlayable()) {
                 holder.mImageView.setImageDrawable(
                         getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
-                holder.mImageView.setVisibility(View.VISIBLE);
+                //holder.mImageView.setVisibility(View.VISIBLE);
             }
             return convertView;
         }
