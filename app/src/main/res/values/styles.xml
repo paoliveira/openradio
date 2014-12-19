@@ -1,9 +1,13 @@
 <resources>
 
-    <style name="AppTheme" parent="AppBaseTheme">
-    </style>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="android:Theme.Holo.Light.DarkActionBar">
 
-    <style name="AppBaseTheme" parent="android:Theme.Light">
+        <item name="android:colorPrimary">#FF3D434C</item>
+        <item name="android:colorPrimaryDark">#FF3D434C</item>
+        <item name="android:colorAccent">#FFff5722</item>
+        <item name="android:colorBackground">#FF556677</item>
+
     </style>
 
 </resources>
