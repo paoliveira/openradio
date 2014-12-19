@@ -58,8 +58,17 @@ public class MediaItemsAdapter extends BaseAdapter {
     public View getView(final int position, View convertView, final ViewGroup parent) {
         final MediaBrowser.MediaItem mediaItem = (MediaBrowser.MediaItem) getItem(position);
         convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
+
         mViewHolder.mNameView.setText(mediaItem.getDescription().getTitle());
         mViewHolder.mDescriptionView.setText(mediaItem.getDescription().getSubtitle());
+        if (mediaItem.isBrowsable()) {
+            mViewHolder.mImageView.setImageDrawable(
+                    mCurrentActivity.getDrawable(R.drawable.ic_child_categories));
+        } else if (mediaItem.isPlayable()) {
+            mViewHolder.mImageView.setImageDrawable(
+                    mCurrentActivity.getDrawable(R.drawable.ic_radio_station));
+        }
+
         return convertView;
     }
 
