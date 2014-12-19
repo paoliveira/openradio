@@ -25,6 +25,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".view.QueueActivity"/>
+
         <meta-data
             android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/ic_notification" />

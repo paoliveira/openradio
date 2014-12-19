@@ -30,15 +30,10 @@ public class MainActivity extends FragmentActivity {
 
     private final List<String> mediaItemsStack = new LinkedList<>();
 
-    private boolean isInit = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        final View controls = findViewById(R.id.controls);
-        controls.setVisibility(View.GONE);
 
         mBrowserAdapter = new MediaItemsAdapter(this, null);
 
@@ -53,7 +48,14 @@ public class MainActivity extends FragmentActivity {
                 final MediaBrowser.MediaItem item
                         = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
 
-                addMediaItemToQueue(item.getMediaId());
+                if (item.isBrowsable()) {
+                    addMediaItemToQueue(item.getMediaId());
+                } else if (item.isPlayable()) {
+                    getMediaController().getTransportControls()
+                            .playFromMediaId(item.getMediaId(), null);
+
+                    startActivity(QueueActivity.makeIntent(MainActivity.this));
+                }
             }
         });
 
