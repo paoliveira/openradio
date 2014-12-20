@@ -3,6 +3,7 @@ package com.yuriy.openradio.view.list;
 import android.app.Activity;
 import android.media.browse.MediaBrowser;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.MediaIDHelper;
 
 import java.util.List;
 
@@ -22,6 +24,8 @@ import java.util.List;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 public class MediaItemsAdapter extends BaseAdapter {
+
+    private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName();
 
     private ListAdapterViewHolder mViewHolder;
     private Activity mCurrentActivity;
@@ -61,12 +65,17 @@ public class MediaItemsAdapter extends BaseAdapter {
 
         mViewHolder.mNameView.setText(mediaItem.getDescription().getTitle());
         mViewHolder.mDescriptionView.setText(mediaItem.getDescription().getSubtitle());
-        if (mediaItem.isBrowsable()) {
+        if (mediaItem.getMediaId().equals(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)) {
             mViewHolder.mImageView.setImageDrawable(
-                    mCurrentActivity.getDrawable(R.drawable.ic_child_categories));
-        } else if (mediaItem.isPlayable()) {
-            mViewHolder.mImageView.setImageDrawable(
-                    mCurrentActivity.getDrawable(R.drawable.ic_radio_station));
+                    mCurrentActivity.getDrawable(R.drawable.ic_all_categories));
+        } else {
+            if (mediaItem.isBrowsable()) {
+                mViewHolder.mImageView.setImageDrawable(
+                        mCurrentActivity.getDrawable(R.drawable.ic_child_categories));
+            } else if (mediaItem.isPlayable()) {
+                mViewHolder.mImageView.setImageDrawable(
+                        mCurrentActivity.getDrawable(R.drawable.ic_radio_station));
+            }
         }
 
         return convertView;
