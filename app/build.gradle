@@ -5,11 +5,23 @@ android {
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
 
+    def versionPropsFile = file('version.properties')
+    def code = 1
+    if (versionPropsFile.canRead()) {
+        def Properties versionProps = new Properties()
+        versionProps.load(new FileInputStream(versionPropsFile))
+        code = versionProps['VERSION_CODE'].toInteger()
+    } else {
+        throw new GradleException("Could not read version.properties !")
+    }
+
+    println "Version code:" + code
+
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 21
         targetSdkVersion 21
-        versionCode 1
+        versionCode code
         versionName "0.1"
     }
 
@@ -19,11 +31,53 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+
+        assembleRelease {
+            doLast {
+                // Post release actions, prepare variables for the next release
+                tasks.getAndIncrementVersionCode.execute()
+            }
+        }
+
+        /*
+        applicationVariants.all { variant ->
+            def f = variant.outputFile
+            def fname = f.name.replace(".apk",
+                    "-${defaultConfig.versionName}.apk")
+            variant.outputFile = new File(f.parent, fname)
+        }
+        */
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    //compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.android.support:appcompat-v7:21.+'
+    compile 'com.android.support:appcompat-v7:21.0.3'
+}
+
+/*tasks.whenTaskAdded { task ->
+    println "TASK:" + task.name
+    if (task.name.equals("assembleRelease")) {
+        println "Add Assemble Release Task. Prepare vars for next release ..."
+        task.dependsOn getAndIncrementVersionCode
+    }
+}*/
+
+task getAndIncrementVersionCode << {
+
+    println "Get And Increment Version code"
+
+    def versionPropsFile = file('version.properties')
+    if (versionPropsFile.canRead()) {
+        def Properties versionProps = new Properties()
+        versionProps.load(new FileInputStream(versionPropsFile))
+        def code = versionProps['VERSION_CODE'].toInteger() + 1
+        versionProps['VERSION_CODE'] = code.toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
+
+        println "Version code incremented to " + code
+    } else {
+        throw new GradleException("Could not read version.properties !")
+    }
 }

@@ -1,7 +1,7 @@
 .gradle
 /build
 /.idea
-.DS_Store
 /local.properties
+version.properties
 *.iml
 api_key
