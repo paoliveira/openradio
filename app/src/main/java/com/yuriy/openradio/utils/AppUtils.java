@@ -1,10 +1,13 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Build;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -20,7 +23,17 @@ import java.io.InputStream;
 /**
  * {@link AppUtils} is a helper class which holds various help-methods
  */
-public class AppUtils {
+public final class AppUtils {
+
+    /**
+     * Tag string to use in logging message.
+     */
+    private static final String CLASS_NAME = AppUtils.class.getSimpleName();
+
+    /**
+     * Private constructor
+     */
+    private AppUtils() {}
 
     /**
      * Read resource file as bytes array.
@@ -28,7 +41,6 @@ public class AppUtils {
      * @param id      Identifier of the resource.
      * @param context Application context.
      * @return Bytes array associated with a resource
-     * @throws java.io.IOException
      */
     public static byte[] getResource(final int id, final Context context) {
         final Resources resources = context.getResources();
@@ -90,9 +102,8 @@ public class AppUtils {
         // activity runs full screen
         final DisplayMetrics displayMetrics = new DisplayMetrics();
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        final int height = displayMetrics.heightPixels;
 
-        return height;
+        return displayMetrics.heightPixels;
     }
 
     public static int getWidthScreenSize(FragmentActivity context) {
@@ -100,9 +111,8 @@ public class AppUtils {
         // activity runs full screen
         final DisplayMetrics displayMetrics = new DisplayMetrics();
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
-        final int width = displayMetrics.widthPixels;
 
-        return width;
+        return displayMetrics.widthPixels;
     }
 
     public static int getLongestScreenSize(FragmentActivity context) {
@@ -121,5 +131,51 @@ public class AppUtils {
         // TODO
 
         return height > width ? height : width;
+    }
+
+    /**
+     * Get application's version
+     *
+     * @param context Application context.
+     * @return Application Version
+     */
+    public static String getApplicationVersion(final Context context) {
+        final PackageInfo packageInfo = getPackageInfo(context);
+        if (packageInfo != null) {
+            return packageInfo.versionName;
+        } else {
+            Log.w(CLASS_NAME, "Can't get application version");
+            return "?";
+        }
+    }
+
+    /**
+     * @return PackageInfo for the current application or null if the PackageManager could not be
+     * contacted.
+     */
+    private static PackageInfo getPackageInfo(final Context context) {
+        final PackageManager packageManager = context.getPackageManager();
+        if (packageManager == null) {
+            Log.w(CLASS_NAME, "Package manager is NULL");
+            return null;
+        }
+        String packageName = "";
+        try {
+            packageName = context.getPackageName();
+            return packageManager.getPackageInfo(packageName, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(CLASS_NAME, "Failed to find PackageInfo : " + packageName);
+            return null;
+        } catch (RuntimeException e) {
+            // To catch RuntimeException("Package manager has died") that can occur on some
+            // version of Android,
+            // when the remote PackageManager is unavailable. I suspect this sometimes occurs
+            // when the App is being reinstalled.
+            Log.e(CLASS_NAME, "Package manager has died : " + packageName);
+            return null;
+        } catch (Throwable e) {
+            Log.e(CLASS_NAME, "Package manager has Throwable : " + e);
+            return null;
+        }
     }
 }

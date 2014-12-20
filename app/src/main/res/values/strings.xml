@@ -15,4 +15,19 @@
     <string name="no_network_connection_toast">No network connection found</string>
     <string name="error_loading_media">Error Loading Media</string>
 
+    <!-- About Section -->
+
+    <string name="about_thanks_1">This project is use the Dirble\'s API - a service that provides a list of radio stations broadcasting their live stream on the Internet:</string>
+    <string name="about_thanks_1_title">Dirble\'s API</string>
+    <string name="about_thanks_1_url">https://dirble.com/developer/api</string>
+    <string name="about_thanks_2">Graphics are provided by:</string>
+    <string name="about_thanks_2_title">Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes</string>
+    <string name="about_thanks_2_url">http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html</string>
+    <string name="about_author">Author:</string>
+    <string name="about_author_name">Yuriy Chernyshov</string>
+    <string name="about_project_home_title">Project home:</string>
+    <string name="about_project_home_desc">If you have any requests, suggestions, comments that can improve the application - please do not hesitate create an Issue in the Issues tab of the project\'s home page.</string>
+    <string name="ok_label">OK</string>
+    <string name="close_label">Close</string>
+
 </resources>

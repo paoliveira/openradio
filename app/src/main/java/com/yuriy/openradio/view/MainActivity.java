@@ -1,5 +1,8 @@
 package com.yuriy.openradio.view;
 
+import android.app.DialogFragment;
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
@@ -143,6 +146,21 @@ public class MainActivity extends FragmentActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_about) {
+            // DialogFragment.show() will take care of adding the fragment
+            // in a transaction.  We also want to remove any currently showing
+            // dialog, so make our own transaction and take care of that here.
+            final FragmentTransaction fragmentTransaction = getFragmentManager()
+                    .beginTransaction();
+            final Fragment fragmentByTag = getFragmentManager()
+                    .findFragmentByTag(AboutDialog.DIALOG_TAG);
+            if (fragmentByTag != null) {
+                fragmentTransaction.remove(fragmentByTag);
+            }
+            fragmentTransaction.addToBackStack(null);
+
+            // Show About Dialog
+            final DialogFragment aboutDialog = AboutDialog.newInstance();
+            aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
             return true;
         }
 
