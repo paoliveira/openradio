@@ -105,8 +105,6 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onBackPressed() {
 
-        //Log.i(CLASS_NAME, "Back pressed");
-
         if (mediaItemsStack.size() == 1) {
 
             mMediaBrowser.unsubscribe(mediaItemsStack.remove(mediaItemsStack.size() - 1));
@@ -117,7 +115,6 @@ public class MainActivity extends FragmentActivity {
         }
 
         final String currentMediaId = mediaItemsStack.remove(mediaItemsStack.size() - 1);
-        //Log.i(CLASS_NAME, "Item Id remove: " + currentMediaId);
 
         mMediaBrowser.unsubscribe(currentMediaId);
         for (String mediaItemId : mediaItemsStack) {
