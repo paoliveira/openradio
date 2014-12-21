@@ -88,7 +88,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *         int count = urls.length;
  *         long totalSize = 0;
  *         for (int i = 0; i < count; i++) {
- *             totalSize += Downloader.downloadData(urls[i]);
+ *             totalSize += Downloader.downloadFile(urls[i]);
  *             publishProgress((int) ((i / (float) count) * 100));
  *             // Escape early if cancel() is called
  *             if (isCancelled()) break;
@@ -201,7 +201,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
     private static final int MAXIMUM_POOL_SIZE = 128;
     private static final int KEEP_ALIVE = 1;
 
-    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+    private static final ThreadFactory  sThreadFactory = new ThreadFactory() {
         private final AtomicInteger mCount = new AtomicInteger(1);
 
         public Thread newThread(Runnable r) {
@@ -224,7 +224,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * An {@link java.util.concurrent.Executor} that executes tasks one at a time in serial
      * order.  This serialization is global to a particular process.
      */
-    public static final Executor SERIAL_EXECUTOR = AppUtils.hasHoneycomb() ? new SerialExecutor() :
+    public static final Executor SERIAL_EXECUTOR = Utils.hasHoneycomb() ? new SerialExecutor() :
             Executors.newSingleThreadExecutor(sThreadFactory);
 
     public static final Executor DUAL_THREAD_EXECUTOR =
@@ -285,7 +285,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
          */
         RUNNING,
         /**
-         * Indicates that {@link AsyncTask#onPostExecute} has finished.
+         * Indicates that {@link com.yuriy.openradio.utils.AsyncTask#onPostExecute} has finished.
          */
         FINISHED,
     }
@@ -551,7 +551,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * @return This instance of AsyncTask.
      *
      * @throws IllegalStateException If {@link #getStatus()} returns either
-     *         {@link AsyncTask.Status#RUNNING} or {@link AsyncTask.Status#FINISHED}.
+     *         {@link com.yuriy.openradio.utils.AsyncTask.Status#RUNNING} or {@link com.yuriy.openradio.utils.AsyncTask.Status#FINISHED}.
      *
      * @see #executeOnExecutor(java.util.concurrent.Executor, Object[])
      * @see #execute(Runnable)
@@ -589,7 +589,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * @return This instance of AsyncTask.
      *
      * @throws IllegalStateException If {@link #getStatus()} returns either
-     *         {@link AsyncTask.Status#RUNNING} or {@link AsyncTask.Status#FINISHED}.
+     *         {@link com.yuriy.openradio.utils.AsyncTask.Status#RUNNING} or {@link com.yuriy.openradio.utils.AsyncTask.Status#FINISHED}.
      *
      * @see #execute(Object[])
      */

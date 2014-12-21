@@ -3,7 +3,6 @@ package com.yuriy.openradio.view.list;
 import android.app.Activity;
 import android.media.browse.MediaBrowser;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

@@ -63,9 +63,9 @@ public abstract class ImageWorker {
 
     /**
      * Load an image specified by the data parameter into an ImageView (override
-     * {@link ImageWorker#processBitmap(Object)} to define the processing logic). A memory and
+     * {@link com.yuriy.openradio.utils.ImageWorker#processBitmap(Object)} to define the processing logic). A memory and
      * disk cache will be used if an {@link ImageCache} has been added using
-     * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)}. If the
+     * {@link com.yuriy.openradio.utils.ImageWorker#addImageCache(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)}. If the
      * image is found in the memory cache, it is set immediately, otherwise an {@link AsyncTask}
      * will be created to asynchronously load the bitmap.
      *
@@ -120,7 +120,7 @@ public abstract class ImageWorker {
     }
 
     /**
-     * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
+     * Adds an {@link ImageCache} to this {@link com.yuriy.openradio.utils.ImageWorker} to handle disk and memory bitmap
      * caching.
      * @param fragmentManager
      * @param cacheParams The cache parameters to use for the image cache.
@@ -133,7 +133,7 @@ public abstract class ImageWorker {
     }
 
     /**
-     * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
+     * Adds an {@link ImageCache} to this {@link com.yuriy.openradio.utils.ImageWorker} to handle disk and memory bitmap
      * caching.
      * @param activity
      * @param diskCacheDirectoryName See
@@ -163,7 +163,7 @@ public abstract class ImageWorker {
      * example, you could resize a large bitmap here, or pull down an image from the network.
      *
      * @param data The data to identify which image to process, as provided by
-     *            {@link ImageWorker#loadImage(Object, android.widget.ImageView)}
+     *            {@link com.yuriy.openradio.utils.ImageWorker#loadImage(Object, android.widget.ImageView)}
      * @return The processed bitmap
      */
     protected abstract Bitmap processBitmap(Object data);
@@ -290,7 +290,7 @@ public abstract class ImageWorker {
             // here, if it was, and the thread is still running, we may as well add the processed
             // bitmap to our cache as it might be used again in the future
             if (bitmap != null) {
-                if (AppUtils.hasHoneycomb()) {
+                if (Utils.hasHoneycomb()) {
                     // Running on Honeycomb or newer, so wrap in a standard BitmapDrawable
                     drawable = new BitmapDrawable(mResources, bitmap);
                 } else {
@@ -393,8 +393,8 @@ public abstract class ImageWorker {
                             drawable
                     });
             // Set background to loading bitmap
-            //imageView.setBackgroundDrawable(
-            //        new BitmapDrawable(mResources, mLoadingBitmap));
+            imageView.setBackgroundDrawable(
+                    new BitmapDrawable(mResources, mLoadingBitmap));
 
             imageView.setImageDrawable(td);
             td.startTransition(FADE_IN_TIME);

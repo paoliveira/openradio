@@ -51,9 +51,9 @@ import java.util.Set;
 /**
  * This class handles disk and memory caching of bitmaps in conjunction with the
  * {@link ImageWorker} class and its subclasses. Use
- * {@link ImageCache#getInstance(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)} to get an instance of this
+ * {@link com.yuriy.openradio.utils.ImageCache#getInstance(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to get an instance of this
  * class, although usually a cache should be added directly to an {@link ImageWorker} by calling
- * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)}.
+ * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
  */
 public class ImageCache {
     private static final String TAG = "ImageCache";
@@ -85,7 +85,7 @@ public class ImageCache {
     /**
      * Create a new ImageCache object using the specified parameters. This should not be
      * called directly by other classes, instead use
-     * {@link ImageCache#getInstance(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)} to fetch an ImageCache
+     * {@link com.yuriy.openradio.utils.ImageCache#getInstance(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to fetch an ImageCache
      * instance.
      *
      * @param cacheParams The cache parameters to use to initialize the cache
@@ -95,7 +95,7 @@ public class ImageCache {
     }
 
     /**
-     * Return an {@link ImageCache} instance. A {@link ImageCache.RetainFragment} is used to retain the
+     * Return an {@link com.yuriy.openradio.utils.ImageCache} instance. A {@link com.yuriy.openradio.utils.ImageCache.RetainFragment} is used to retain the
      * ImageCache object across configuration changes such as a change in device orientation.
      *
      * @param fragmentManager The fragment manager to use when dealing with the retained fragment.
@@ -144,7 +144,7 @@ public class ImageCache {
             // require knowledge of the expected size of the bitmaps. From Honeycomb to JellyBean
             // the size would need to be precise, from KitKat onward the size would just need to
             // be the upper bound (due to changes in how inBitmap can re-use bitmaps).
-            if (AppUtils.hasHoneycomb()) {
+            if (Utils.hasHoneycomb()) {
                 mReusableBitmaps =
                         Collections.synchronizedSet(new HashSet<SoftReference<Bitmap>>());
             }
@@ -164,7 +164,7 @@ public class ImageCache {
                     } else {
                         // The removed entry is a standard BitmapDrawable
 
-                        if (AppUtils.hasHoneycomb()) {
+                        if (Utils.hasHoneycomb()) {
                             // We're running on Honeycomb or later, so add the bitmap
                             // to a SoftReference set for possible use with inBitmap later
                             mReusableBitmaps.add(new SoftReference<Bitmap>(oldValue.getBitmap()));
@@ -477,8 +477,8 @@ public class ImageCache {
 
         /**
          * Create a set of image cache parameters that can be provided to
-         * {@link ImageCache#getInstance(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)} or
-         * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, ImageCache.ImageCacheParams)}.
+         * {@link com.yuriy.openradio.utils.ImageCache#getInstance(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} or
+         * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
          * @param context A context to use.
          * @param diskCacheDirectoryName A unique subdirectory name that will be appended to the
          *                               application cache directory. Usually "cache" or "images"
@@ -520,7 +520,7 @@ public class ImageCache {
     private static boolean canUseForInBitmap(
             Bitmap candidate, BitmapFactory.Options targetOptions) {
         //BEGIN_INCLUDE(can_use_for_inbitmap)
-        if (!AppUtils.hasKitKat()) {
+        if (!Utils.hasKitKat()) {
             // On earlier versions, the dimensions must match exactly and the inSampleSize must be 1
             return candidate.getWidth() == targetOptions.outWidth
                     && candidate.getHeight() == targetOptions.outHeight
@@ -564,14 +564,11 @@ public class ImageCache {
     public static File getDiskCacheDir(Context context, String uniqueName) {
         // Check if media is mounted or storage is built-in, if so, try and use external cache dir
         // otherwise use internal cache dir
-        /*final String cachePath =
+        final String cachePath =
                 Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()) ||
                         !isExternalStorageRemovable() ? getExternalCacheDir(context).getPath() :
                                 context.getCacheDir().getPath();
 
-        return new File(cachePath + File.separator + uniqueName);*/
-
-        final String cachePath = context.getCacheDir().getPath();
         return new File(cachePath + File.separator + uniqueName);
     }
 
@@ -618,11 +615,11 @@ public class ImageCache {
 
         // From KitKat onward use getAllocationByteCount() as allocated bytes can potentially be
         // larger than bitmap byte count.
-        if (AppUtils.hasKitKat()) {
+        if (Utils.hasKitKat()) {
             return bitmap.getAllocationByteCount();
         }
 
-        if (AppUtils.hasHoneycombMR1()) {
+        if (Utils.hasHoneycombMR1()) {
             return bitmap.getByteCount();
         }
 
@@ -638,7 +635,7 @@ public class ImageCache {
      */
     @TargetApi(VERSION_CODES.GINGERBREAD)
     public static boolean isExternalStorageRemovable() {
-        if (AppUtils.hasGingerbread()) {
+        if (Utils.hasGingerbread()) {
             return Environment.isExternalStorageRemovable();
         }
         return true;
@@ -652,7 +649,7 @@ public class ImageCache {
      */
     @TargetApi(VERSION_CODES.FROYO)
     public static File getExternalCacheDir(Context context) {
-        if (AppUtils.hasFroyo()) {
+        if (Utils.hasFroyo()) {
             return context.getExternalCacheDir();
         }
 
@@ -669,7 +666,7 @@ public class ImageCache {
      */
     @TargetApi(VERSION_CODES.GINGERBREAD)
     public static long getUsableSpace(File path) {
-        if (AppUtils.hasGingerbread()) {
+        if (Utils.hasGingerbread()) {
             return path.getUsableSpace();
         }
         final StatFs stats = new StatFs(path.getPath());
