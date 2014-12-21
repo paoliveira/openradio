@@ -12,7 +12,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Yuriy Chernyshov
@@ -32,6 +34,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
      */
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = APIServiceProviderImpl.class.getSimpleName();
+
+    /**
+     * Cache of the API responses. It used in order to avoid API call amount on the server.
+     */
+    private static final Map<String, JSONArray> RESPONSES_MAP = new Hashtable<>();
 
     /**
      * Implementation of the {@link com.yuriy.openradio.business.DataParser} allows to
@@ -243,6 +250,13 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     /**
+     * Clear responses cache
+     */
+    public static void clearCache() {
+        RESPONSES_MAP.clear();
+    }
+
+    /**
      * Download data as {@link org.json.JSONArray}.
      *
      * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader}.
@@ -252,9 +266,17 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     private JSONArray downloadJSONArray(final Downloader downloader, final Uri uri) {
         JSONArray array = new JSONArray();
 
+        // Check cache to avoid unnecessary API call
+        if (RESPONSES_MAP.containsKey(uri.toString())) {
+            // Return cached value
+            Log.i(CLASS_NAME, "Get response from the cache");
+            return RESPONSES_MAP.get(uri.toString());
+        }
+
         // Download response from the server
         final String response = downloader.downloadDataFromUri(uri);
-        Log.i(CLASS_NAME, "Response:\n" + response);
+        //Log.i(CLASS_NAME, "URI:" + uri);
+        //Log.i(CLASS_NAME, "Response:\n" + response);
 
         // Ignore empty response
         if (response.isEmpty()) {
@@ -267,6 +289,10 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Can not get JSON array:" + e.getMessage());
         }
+
+        // Cache result
+        RESPONSES_MAP.put(uri.toString(), array);
+
         return array;
     }
 }

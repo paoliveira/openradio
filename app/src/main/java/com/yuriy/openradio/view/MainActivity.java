@@ -17,6 +17,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
@@ -71,6 +72,9 @@ public class MainActivity extends FragmentActivity {
 
         // Set content.
         setContentView(R.layout.activity_main);
+
+        // Invalidate API responses cache
+        APIServiceProviderImpl.clearCache();
 
         // Instantiate adapter
         mBrowserAdapter = new MediaItemsAdapter(this, null);
@@ -219,7 +223,7 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onChildrenLoaded(final String parentId,
                                      final List<MediaBrowser.MediaItem> children) {
-            Log.i(CLASS_NAME, "On children loaded:" + children.size() + " " + parentId);
+            Log.i(CLASS_NAME, "On children loaded");
 
             mBrowserAdapter.clear();
             mBrowserAdapter.notifyDataSetInvalidated();
