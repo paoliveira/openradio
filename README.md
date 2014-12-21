@@ -6,12 +6,13 @@
 * This project is use the [Dirble's API](https://dirble.com/developer/api) - a service that provides a list of radio stations broadcasting their live stream on the Internet.
 * Graphics are provided by [Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes](http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html)
 * Android requirements : Android 5.0 (API level 21) (new APIs for implementing audio playback that is compatible with Auto) or newer.
-* Version : 0.1 (Alpha)
+* Version : 1.0
 
 ### Delivery files ###
 
 * [Android Media Browser simulator](https://bitbucket.org/ChernyshovYuriy/openradio/src/db36135fb9ada868f678ce9db9dab7c0c34e5a2b/app/assets/media-browser-simulator.apk) need to simulate vehicle's HMI.
 * [Android APK file](https://bitbucket.org/ChernyshovYuriy/openradio/src/75c0c12d1defa453811075b657cc1d0b61c28cd1/app/app-release.apk)
+* [Google Play](https://play.google.com/store/apps/details?id=com.yuriy.openradio)
 
 ### How to install and run ###
 * There is a possibility to run application as general Android one, just to be sure that everything working as expected.
