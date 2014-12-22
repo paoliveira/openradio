@@ -21,6 +21,7 @@ import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.util.Log;
 
+import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 
@@ -62,6 +63,32 @@ public class QueueHelper {
         return queue;
     }
 
+    /**
+     * Method return index of the {@link com.yuriy.openradio.api.RadioStationVO} at the queue.
+     *
+     * @param queue   Playing queue.
+     * @param mediaId Id of the Radio Station.
+     * @return Index of the Radio Station in the queue.
+     */
+    public static int getRadioStationIndexOnQueue(final Iterable<MediaSession.QueueItem> queue,
+                                                  final long mediaId) {
+        int index = 0;
+        for (MediaSession.QueueItem item: queue) {
+            if (mediaId == item.getQueueId()) {
+                return index;
+            }
+            index++;
+        }
+        return -1;
+    }
+
+    /**
+     * Method return index of the {@link com.yuriy.openradio.api.RadioStationVO} at the queue.
+     *
+     * @param queue   Playing queue.
+     * @param mediaId Id of the Radio Station.
+     * @return Index of the Radio Station in the queue.
+     */
     public static int getRadioStationIndexOnQueue(final Iterable<MediaSession.QueueItem> queue,
                                                   final String mediaId) {
         int index = 0;
@@ -98,5 +125,25 @@ public class QueueHelper {
         for (T sourceItem : source) {
             destination.add(sourceItem);
         }
+    }
+
+    public static String getGenreNameById(final String genreId,
+                                          final List<CategoryVO> categoriesList) {
+        String genre = "";
+        if (genreId == null) {
+            return genre;
+        }
+        if (categoriesList == null) {
+            return genre;
+        }
+
+        for (CategoryVO category : categoriesList) {
+            if (String.valueOf(category.getId()).equals(genreId)) {
+                genre = category.getName();
+                break;
+            }
+        }
+
+        return genre;
     }
 }

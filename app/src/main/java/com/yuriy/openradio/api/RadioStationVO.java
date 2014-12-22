@@ -46,6 +46,8 @@ public class RadioStationVO {
     // TODO: Convert to enum
     private String mBitRate = "";
 
+    private String mGenre = "";
+
     /**
      * Private constructor.
      * Disallow instantiation of this helper class.
@@ -108,6 +110,14 @@ public class RadioStationVO {
         mWebSite = value;
     }
 
+    public String getGenre() {
+        return mGenre;
+    }
+
+    public void setGenre(final String value) {
+        mGenre = value;
+    }
+
     @Override
     public String toString() {
         return "RadioStation{" +
@@ -118,6 +128,7 @@ public class RadioStationVO {
                 ", webSite='" + mWebSite + '\'' +
                 ", country='" + mCountry + '\'' +
                 ", bitRate='" + mBitRate + '\'' +
+                ", genre='" + mGenre + '\'' +
                 '}';
     }
 

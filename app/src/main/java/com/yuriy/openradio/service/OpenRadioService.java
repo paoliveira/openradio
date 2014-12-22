@@ -100,6 +100,9 @@ public class OpenRadioService
      */
     private MediaSession mSession;
 
+    /**
+     * Index of the current playing song.
+     */
     private int mCurrentIndexOnQueue;
 
     /**
@@ -540,7 +543,12 @@ public class OpenRadioService
         final String iconUrl = "android.resource://" +
                 getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
 
+        final String genre = QueueHelper.getGenreNameById(categoryId, childCategories);
+
         for (RadioStationVO radioStation : radioStations) {
+
+            radioStation.setGenre(genre);
+
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
@@ -623,16 +631,16 @@ public class OpenRadioService
     /**
      * Starts playing the current song in the playing queue.
      */
-    void playCurrentSong() {
-        MediaMetadata track = getCurrentPlayingRadioStation();
+    private void playCurrentSong() {
+        final MediaMetadata track = getCurrentPlayingRadioStation();
         if (track == null) {
-            Log.e(CLASS_NAME, "playSong:  ignoring request to play next song, because cannot" +
-                    " find it." +
-                    " currentIndex=" + mCurrentIndexOnQueue +
-                    " playQueue.size=" + playingQueue.size());
+            Log.e(CLASS_NAME, "Play Radio Station: ignoring request to play next song, " +
+                    "because cannot find it." +
+                    " CurrentIndex=" + mCurrentIndexOnQueue + "." +
+                    " PlayQueue.size=" + playingQueue.size());
             return;
         }
-        String source = track.getString(JSONDataParserImpl.CUSTOM_METADATA_TRACK_SOURCE);
+        final String source = track.getString(JSONDataParserImpl.CUSTOM_METADATA_TRACK_SOURCE);
         Log.d(CLASS_NAME, "Play Radio Station: current (" + mCurrentIndexOnQueue + ") in playingQueue. " +
                 " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
                 " source=" + source);
@@ -1015,7 +1023,7 @@ public class OpenRadioService
 
                 // set the current index on queue from the music Id:
                 mCurrentIndexOnQueue
-                        = QueueHelper.getRadioStationIndexOnQueue(playingQueue, String.valueOf(id));
+                        = QueueHelper.getRadioStationIndexOnQueue(playingQueue, id);
 
                 // Play the Radio Station
                 handlePlayRequest();

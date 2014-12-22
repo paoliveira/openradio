@@ -21,7 +21,7 @@
 
         <item name="android:colorPrimary">#FF3D434C</item>
         <item name="android:colorPrimaryDark">#FF3D434C</item>
-        <item name="android:colorAccent">#FFff5722</item>
+        <item name="android:colorAccent">#FF448811</item>
 
     </style>
 

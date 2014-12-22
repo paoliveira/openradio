@@ -85,12 +85,12 @@ public class JSONDataParserImpl implements DataParser {
             throws JSONException {
 
         final String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/ic_radio_station";
+                context.getPackageName() + "/drawable/radio_station_bg";
 
         final String title = radioStation.getName();
         //final String album = radioStation.getString(JSON_ALBUM);
-        //final String artist = radioStation.getString(JSON_ARTIST);
-        //final String genre = radioStation.getString(JSON_GENRE);
+        final String artist = radioStation.getCountry();
+        final String genre = radioStation.getGenre();
         final String source = radioStation.getStreamURL();
         //final String iconUrl = radioStation.getString(JSON_IMAGE);
         //final int trackNumber = radioStation.getInt(JSON_TRACK_NUMBER);
@@ -108,9 +108,9 @@ public class JSONDataParserImpl implements DataParser {
                 .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
                 .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
                 //.putString(MediaMetadata.METADATA_KEY_ALBUM, album)
-                //.putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
                 //.putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
-                //.putString(MediaMetadata.METADATA_KEY_GENRE, genre)
+                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
                 .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)
                 //.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
