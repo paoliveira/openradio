@@ -23,10 +23,14 @@ package com.yuriy.openradio.api;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
+import android.util.Log;
+
 /**
  * {@link com.yuriy.openradio.api.CategoryVO} is a value object that holds Radio Category data.
  */
 public class CategoryVO {
+
+    private static final String CLASS_NAME = CategoryVO.class.getSimpleName();
 
     private int mId;
 
@@ -54,7 +58,11 @@ public class CategoryVO {
         return mName;
     }
 
-    public void setName(final String value) {
+    public void setName(String value) {
+        if (value == null) {
+            Log.w(CLASS_NAME, "Attempt to set null Name, reset it to empty String");
+            value = "";
+        }
         mName = value;
     }
 

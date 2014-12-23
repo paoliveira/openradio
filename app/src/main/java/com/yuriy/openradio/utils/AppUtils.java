@@ -25,6 +25,8 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Yuriy Chernyshov
@@ -128,5 +130,30 @@ public final class AppUtils {
             Log.e(CLASS_NAME, "Package manager has Throwable : " + e);
             return null;
         }
+    }
+
+    /**
+     * This is a helper method with allows to prevent get a list of the predefined categories,
+     * in order to do not show an empty category.
+     *
+     * @return Collection of the categories.
+     */
+    public static Set<String> predefinedCategories() {
+        final Set<String> predefinedCategories = new HashSet<>();
+        predefinedCategories.add("Classical");
+        predefinedCategories.add("Country");
+        predefinedCategories.add("Decades");
+        predefinedCategories.add("Electronic");
+        predefinedCategories.add("Folk");
+        predefinedCategories.add("International");
+        predefinedCategories.add("Jazz");
+        predefinedCategories.add("Misc");
+        predefinedCategories.add("Pop");
+        predefinedCategories.add("R&B/Urban");
+        predefinedCategories.add("Rap");
+        predefinedCategories.add("Reggae");
+        predefinedCategories.add("Rock");
+        predefinedCategories.add("Talk & Speech");
+        return predefinedCategories;
     }
 }

@@ -45,6 +45,7 @@ import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
@@ -54,6 +55,7 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -465,7 +467,13 @@ public class OpenRadioService
         final String iconUrl = "android.resource://" +
                 getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
 
+        final Set<String> predefinedCategories = AppUtils.predefinedCategories();
         for (CategoryVO category : allCategories) {
+
+            if (!predefinedCategories.contains(category.getName())) {
+                continue;
+            }
+
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
