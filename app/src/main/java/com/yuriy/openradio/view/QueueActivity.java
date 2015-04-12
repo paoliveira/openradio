@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -45,7 +46,7 @@ import java.util.List;
  */
 
 /**
- * {@link com.yuriy.openradio.view.QueueActivity} is the activity which represents
+ * {@link QueueActivity} is the activity which represents
  * UI for the playing a queue of the radio stations
  */
 public class QueueActivity extends FragmentActivity {
@@ -95,6 +96,17 @@ public class QueueActivity extends FragmentActivity {
      */
     private QueueAdapter mQueueAdapter;
 
+    /**
+     * Position of the first visible element in the List, usually using when restore position
+     * when List re-creating.
+     */
+    private int mListFirstVisiblePosition = 0;
+
+    /**
+     * Key value for the first visible ID in the List for the store Bundle
+     */
+    private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -120,27 +132,50 @@ public class QueueActivity extends FragmentActivity {
         mQueueAdapter = new QueueAdapter(this);
 
         // Get list view reference from the inflated xml
-        final ListView mListView = (ListView) findViewById(R.id.queue_list_view);
+        final ListView listView = (ListView) findViewById(R.id.queue_list_view);
+        // Set List's choice mode
+        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         // Set adapter
-        mListView.setAdapter(mQueueAdapter);
+        listView.setAdapter(mQueueAdapter);
         // Set focusable
-        mListView.setFocusable(true);
-        // Set listener
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        listView.setFocusable(true);
+        // Set listeners
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
 
+                mListFirstVisiblePosition = position;
+
                 final MediaSession.QueueItem item = mQueueAdapter.getItem(position);
                 mTransportControls.skipToQueueItem(item.getQueueId());
             }
         });
+        listView.setOnScrollListener(
+                new AbsListView.OnScrollListener() {
+                    @Override
+                    public void onScrollStateChanged(AbsListView view, int scrollState) {
+                        if (scrollState == SCROLL_STATE_IDLE) {
+                            return;
+                        }
+                        mListFirstVisiblePosition = listView.getFirstVisiblePosition();
+                    }
+
+                    @Override
+                    public void onScroll(AbsListView view, int firstVisibleItem,
+                                         int visibleItemCount, int totalItemCount) {
+
+                    }
+                }
+        );
 
         // Initialize Media Browser
         mMediaBrowser = new MediaBrowser(
                 this, new ComponentName(this, OpenRadioService.class), connectionCallback, null
         );
+
+        restoreState(savedInstanceState);
     }
 
     @Override
@@ -165,8 +200,20 @@ public class QueueActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        // Get list view reference from the inflated xml
+        final ListView listView = (ListView) findViewById(R.id.queue_list_view);
+
+        // Save first visible ID of the List
+        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, listView.getFirstVisiblePosition());
+
+        super.onSaveInstanceState(outState);
+    }
+
     /**
-     * Factory method to create an Intent for the {@link com.yuriy.openradio.view.QueueActivity}
+     * Factory method to create an Intent for the {@link QueueActivity}
      * launching.
      *
      * @param context Context of the callee.
@@ -175,6 +222,20 @@ public class QueueActivity extends FragmentActivity {
      */
     public static Intent makeIntent(final Context context) {
         return new Intent(context, QueueActivity.class);
+    }
+
+    /**
+     * Restore state of the UI as it was before destroying.
+     *
+     * @param savedInstanceState {@link android.os.Bundle} with stored values.
+     */
+    private void restoreState(final Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            // Nothing to restore
+            return;
+        }
+        // Restore List's position
+        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
     }
 
     /**
@@ -198,7 +259,7 @@ public class QueueActivity extends FragmentActivity {
                     mMediaBrowser.getSessionToken()
             );
 
-            // Initialize Transport Controlls
+            // Initialize Transport Controls
             mTransportControls = mMediaController.getTransportControls();
             // Register callbacks
             mMediaController.registerCallback(sessionCallback);
@@ -293,6 +354,11 @@ public class QueueActivity extends FragmentActivity {
             case PlaybackState.STATE_PLAYING:
                 statusBuilder.append("playing");
                 enablePlay = false;
+
+                if (mListFirstVisiblePosition == 0) {
+                    mListFirstVisiblePosition = mQueueAdapter.getActivePosition();
+                }
+
                 break;
             case PlaybackState.STATE_PAUSED:
                 statusBuilder.append("paused");
@@ -307,6 +373,11 @@ public class QueueActivity extends FragmentActivity {
                 break;
             case PlaybackState.STATE_BUFFERING:
                 statusBuilder.append("buffering");
+
+                if (mListFirstVisiblePosition == 0) {
+                    mListFirstVisiblePosition = mQueueAdapter.getActivePosition();
+                }
+
                 break;
             case PlaybackState.STATE_NONE:
                 statusBuilder.append("none");
@@ -318,6 +389,10 @@ public class QueueActivity extends FragmentActivity {
             default:
                 statusBuilder.append(mPlaybackState);
         }
+
+        final ListView listView = (ListView) findViewById(R.id.queue_list_view);
+        listView.setSelection(mListFirstVisiblePosition);
+
         statusBuilder.append(" -- At position: ").append(state.getPosition());
         Log.d(CLASS_NAME, statusBuilder.toString());
 

@@ -33,23 +33,40 @@ import java.util.ArrayList;
  */
 public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
 
-    // The currently selected/active queue item Id.
+    /**
+     * The currently selected/active queue item Id.
+     */
     private long mActiveQueueItemId = MediaSession.QueueItem.UNKNOWN_ID;
 
-    public QueueAdapter(Activity context) {
+    /**
+     * Position of the Active element.
+     */
+    private int mActivePosition = 0;
+
+    /**
+     * Constructor.
+     * @param context Context.
+     */
+    public QueueAdapter(final Activity context) {
         super(context, R.layout.media_list_item, new ArrayList<MediaSession.QueueItem>());
     }
 
+    /**
+     * Set active ID from the items queue.
+     * @param id Id of the Ite.
+     */
     public void setActiveQueueItemId(long id) {
-        this.mActiveQueueItemId = id;
+        mActiveQueueItemId = id;
     }
 
-    private static class ViewHolder {
-        ImageView mImageView;
-        TextView mTitleView;
-        TextView mDescriptionView;
+    /**
+     * @return Position of the current active element.
+     */
+    public int getActivePosition() {
+        return mActivePosition;
     }
 
+    @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
 
@@ -73,6 +90,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
 
         // If the itemId matches the active Id then use a different icon
         if (mActiveQueueItemId == item.getQueueId()) {
+            mActivePosition = position;
             holder.mImageView.setImageDrawable(
                     getContext().getDrawable(R.drawable.ic_equalizer_white_24dp));
         } else {
@@ -80,5 +98,14 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
                     getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
         }
         return convertView;
+    }
+
+    /**
+     * Static class to hold UI controls references.
+     */
+    private static class ViewHolder {
+        ImageView mImageView;
+        TextView mTitleView;
+        TextView mDescriptionView;
     }
 }

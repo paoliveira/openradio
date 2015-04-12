@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 
 android {
 
-    compileSdkVersion 21
-    buildToolsVersion "21.1.2"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     def versionPropsFile = file('version.properties')
     def code = 1
@@ -20,7 +20,7 @@ android {
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 21
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode code
         versionName "1.1"
     }
@@ -51,18 +51,16 @@ android {
 }
 
 dependencies {
-    //compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:appcompat-v7:22.0.0'
 }
 
-/*tasks.whenTaskAdded { task ->
-    println "TASK:" + task.name
+tasks.whenTaskAdded { task ->
+    //println "TASK:" + task.name
     if (task.name.equals("assembleRelease")) {
         println "Add Assemble Release Task. Prepare vars for next release ..."
         task.dependsOn getAndIncrementVersionCode
     }
-}*/
+}
 
 task getAndIncrementVersionCode << {
 

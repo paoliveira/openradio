@@ -21,6 +21,7 @@ import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
+import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,8 +67,23 @@ public class MainActivity extends FragmentActivity {
      */
     private final Map<String, Integer> listPositionMap = new Hashtable<>();
 
+    /**
+     * Key value for the Media Stack for the store Bundle.
+     */
+    private static final String BUNDLE_ARG_MEDIA_ITEMS_STACK = "BUNDLE_ARG_MEDIA_ITEMS_STACK";
+
+    /**
+     * Key value for the List-Position map for the store Bundle.
+     */
+    private static final String BUNDLE_ARG_LIST_POSITION_MAP = "BUNDLE_ARG_LIST_POSITION_MAP";
+
+    /**
+     * Key value for the first visible ID in the List for the store Bundle
+     */
+    private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Set content.
@@ -118,6 +134,8 @@ public class MainActivity extends FragmentActivity {
                 new ComponentName(this, OpenRadioService.class),
                 connectionCallback, null
         );
+
+        restoreState(savedInstanceState);
     }
 
     @Override
@@ -172,6 +190,30 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
+    protected void onSaveInstanceState(final Bundle outState) {
+
+        // Get list view reference from the inflated xml
+        final ListView listView = (ListView) findViewById(R.id.list_view);
+
+        // Save Media Stack
+        outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mediaItemsStack);
+
+        // Save List-Position Map
+        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) listPositionMap);
+
+        // Save first visible ID of the List
+        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, listView.getFirstVisiblePosition());
+
+        // Keep last selected position for the given category.
+        // We will use it when back to this category
+        listPositionMap.put(
+                mediaItemsStack.get(mediaItemsStack.size() - 1), listView.getFirstVisiblePosition()
+        );
+
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     public void onBackPressed() {
 
         // If there is root category - close activity
@@ -212,6 +254,41 @@ public class MainActivity extends FragmentActivity {
         mediaItemsStack.add(mediaId);
 
         mMediaBrowser.subscribe(mediaId, subscriptionCallback);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void restoreState(final Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            // Nothing to restore
+            return;
+        }
+
+        // Restore map of the List - Position values
+        final Map<String, Integer> listPositionMapRestored
+                = (Map<String, Integer>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
+        if (listPositionMapRestored != null) {
+            listPositionMap.clear();
+            for (String key : listPositionMapRestored.keySet()) {
+                listPositionMap.put(key, listPositionMapRestored.get(key));
+            }
+        }
+
+        // Restore Media Items stack
+        final List<String> mediaItemsStackRestored
+                = (List<String>) savedInstanceState.getSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK);
+        if (mediaItemsStackRestored != null) {
+            mediaItemsStack.clear();
+            for (String item : mediaItemsStackRestored) {
+                mediaItemsStack.add(item);
+            }
+        }
+
+        // Restore List's position
+        final int listFirstVisiblePosition
+                = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
+        // Get list view reference from the inflated xml
+        final ListView listView = (ListView) findViewById(R.id.list_view);
+        listView.setSelection(listFirstVisiblePosition);
     }
 
     /**
