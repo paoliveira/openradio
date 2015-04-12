@@ -3,3 +3,4 @@
 /.idea
 /local.properties
 *.iml
+.DS_Store
