@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="app_name">Open Radio</string>
     <string name="action_about">Om</string>
     <string name="all_categories_title">Alle kategorier</string>
     <string name="all_categories_sub_title">radiostasjoner i alle kategorier</string>
@@ -17,10 +18,16 @@
     <!-- About Section -->
 
     <string name="about_thanks_1">Dette prosjektet er bruk Dirble API - en tjeneste som gir en liste over radiostasjoner som kringkaster sin live stream på internett:</string>
+    <string name="about_thanks_1_title">Dirble\'s API</string>
+    <string name="about_thanks_1_url">https://dirble.com/developer/api</string>
     <string name="about_thanks_2">Grafikken er levert av:</string>
+    <string name="about_thanks_2_title">Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes</string>
+    <string name="about_thanks_2_url">http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html</string>
     <string name="about_author">Forfatter:</string>
+    <string name="about_author_name">Yuriy Chernyshov</string>
     <string name="about_project_home_title">Prosjekt hjemme:</string>
     <string name="about_project_home_desc">Hvis du har noen forespørsler, forslag, kommentarer som kan forbedre programmet - ikke nøl med å skape et problem i den kategorien av prosjektets hjemmeside Issues.</string>
+    <string name="ok_label">OK</string>
     <string name="close_label">Lukk</string>
 
 </resources>
