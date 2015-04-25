@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="action_about">Om</string>
+    <string name="all_categories_title">Alle kategorier</string>
+    <string name="all_categories_sub_title">radiostasjoner i alle kategorier</string>
+    <string name="label_previous">Forrige</string>
+    <string name="label_next">Neste</string>
+    <string name="label_pause">Pause</string>
+    <string name="label_play">Spille</string>
+    <string name="skip_previous">Hoppe til forrige</string>
+    <string name="skip_next">Fortsett til neste</string>
+    <string name="play_pause">Spill eller pause</string>
+    <string name="no_network_connection_toast">Ingen nettverkstilkobling funnet</string>
+    <string name="error_loading_media">Feil ved lasting av Media</string>
+
+    <!-- About Section -->
+
+    <string name="about_thanks_1">Dette prosjektet er bruk Dirble API - en tjeneste som gir en liste over radiostasjoner som kringkaster sin live stream på internett:</string>
+    <string name="about_thanks_2">Grafikken er levert av:</string>
+    <string name="about_author">Forfatter:</string>
+    <string name="about_project_home_title">Prosjekt hjemme:</string>
+    <string name="about_project_home_desc">Hvis du har noen forespørsler, forslag, kommentarer som kan forbedre programmet - ikke nøl med å skape et problem i den kategorien av prosjektets hjemmeside Issues.</string>
+    <string name="close_label">Lukk</string>
+
+</resources>
