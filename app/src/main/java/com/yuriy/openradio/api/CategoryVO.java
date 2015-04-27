@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import android.util.Log;
 /**
  * {@link com.yuriy.openradio.api.CategoryVO} is a value object that holds Radio Category data.
  */
-public class CategoryVO {
+public final class CategoryVO {
 
     private static final String CLASS_NAME = CategoryVO.class.getSimpleName();
 
@@ -39,6 +39,8 @@ public class CategoryVO {
     private String mName = "";
 
     private String mDescription = "";
+
+    private String mTitle = "";
 
     /**
      * Private constructor.
@@ -80,6 +82,14 @@ public class CategoryVO {
 
     public void setAmount(final int value) {
         mAmount = value;
+    }
+
+    public String getTitle() {
+        return mTitle;
+    }
+
+    public void setTitle(String value) {
+        mTitle = value;
     }
 
     /**

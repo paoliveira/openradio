@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Yuriy Chernyshov
@@ -186,7 +188,7 @@ public class OpenRadioService
         FOCUSED
     }
 
-    private Handler mDelayedStopHandler = new Handler() {
+    private final Handler mDelayedStopHandler = new Handler() {
 
         @Override
         public void handleMessage(Message msg) {
@@ -267,10 +269,8 @@ public class OpenRadioService
 
         // Instantiate appropriate downloader (HTTP one)
         final Downloader downloader = new HTTPDownloaderImpl();
-        // Instantiate appropriate parser (JSON one)
-        final DataParser dataParser = new JSONDataParserImpl();
         // Instantiate appropriate API service provider
-        final APIServiceProvider serviceProvider = new APIServiceProviderImpl(dataParser);
+        final APIServiceProvider serviceProvider = getServiceProvider();
 
         if (MediaIDHelper.MEDIA_ID_ROOT.equals(parentId)) {
 
@@ -405,7 +405,7 @@ public class OpenRadioService
     @Override
     public boolean onError(final MediaPlayer mediaPlayer, final int what, final int extra) {
         Log.e(CLASS_NAME, "MediaPlayer error: what=" + what + ", extra=" + extra);
-        handleStopRequest("MediaPlayer error " + what + " (" + extra + ")");
+        handleStopRequest(getString(R.string.media_player_error));
         return true; // true indicates we handled the error
     }
 
@@ -462,6 +462,11 @@ public class OpenRadioService
         final List<CategoryVO> list = serviceProvider.getAllCategories(downloader,
                 UrlBuilder.getAllCategoriesUrl(getApplicationContext()));
 
+        if (list.isEmpty()) {
+            updatePlaybackState(getString(R.string.no_data_message));
+            return;
+        }
+
         QueueHelper.copyCollection(allCategories, list);
 
         final String iconUrl = "android.resource://" +
@@ -470,7 +475,7 @@ public class OpenRadioService
         final Set<String> predefinedCategories = AppUtils.predefinedCategories();
         for (CategoryVO category : allCategories) {
 
-            if (!predefinedCategories.contains(category.getName())) {
+            if (!predefinedCategories.contains(category.getTitle())) {
                 continue;
             }
 
@@ -480,7 +485,7 @@ public class OpenRadioService
                                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES
                                             + String.valueOf(category.getId())
                             )
-                            .setTitle(category.getName())
+                            .setTitle(category.getTitle())
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
@@ -507,6 +512,11 @@ public class OpenRadioService
         final List<CategoryVO> list = serviceProvider.getChildCategories(downloader,
                 UrlBuilder.getChildCategoriesUrl(getApplicationContext(), primaryItemId));
 
+        if (list.isEmpty()) {
+            updatePlaybackState(getString(R.string.no_data_message));
+            return;
+        }
+
         QueueHelper.copyCollection(childCategories, list);
 
         final String iconUrl = "android.resource://" +
@@ -519,7 +529,7 @@ public class OpenRadioService
                                     MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES
                                             + String.valueOf(category.getId())
                             )
-                            .setTitle(category.getName())
+                            .setTitle(category.getTitle())
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
@@ -545,6 +555,11 @@ public class OpenRadioService
                                         final Result<List<MediaBrowser.MediaItem>> result) {
         final List<RadioStationVO> list = serviceProvider.getStationsInCategory(downloader,
                 UrlBuilder.getStationsInCategory(getApplicationContext(), categoryId));
+
+        if (list.isEmpty()) {
+            updatePlaybackState(getString(R.string.no_data_message));
+            return;
+        }
 
         QueueHelper.copyCollection(radioStations, list);
 
@@ -590,6 +605,13 @@ public class OpenRadioService
         final RadioStationVO radioStation
                 = serviceProvider.getStation(downloader,
                 UrlBuilder.getStation(getApplicationContext(), radioStationId));
+
+        if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
+            updatePlaybackState(getString(R.string.no_data_message));
+            return;
+        }
+
+        QueueHelper.updateRadioStation(radioStation, radioStations);
 
         MediaMetadata track;
         try {
@@ -637,9 +659,9 @@ public class OpenRadioService
     }
 
     /**
-     * Starts playing the current song in the playing queue.
+     * Starts playing the current Radio Station in the playing queue.
      */
-    private void playCurrentSong() {
+    private void playCurrentStation() {
         final MediaMetadata track = getCurrentPlayingRadioStation();
         if (track == null) {
             Log.e(CLASS_NAME, "Play Radio Station: ignoring request to play next song, " +
@@ -684,7 +706,7 @@ public class OpenRadioService
 
         } catch (IOException ex) {
             Log.e(CLASS_NAME, "IOException playing song:" + ex.getMessage());
-            updatePlaybackState(ex.getMessage());
+            updatePlaybackState(getString(R.string.can_not_play_station));
         }
     }
 
@@ -698,11 +720,52 @@ public class OpenRadioService
         }
         final String mediaId = item.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
+
+        // If there is no detailed information about Radio Station - download it here and
+        // update model.
+        if (!radioStation.getIsUpdated()) {
+            final CountDownLatch latch = new CountDownLatch(1);
+            apiCallExecutor.submit(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Start download information about Radio Station
+                            final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
+                                    new HTTPDownloaderImpl(),
+                                    UrlBuilder.getStation(
+                                            getApplicationContext(),
+                                            String.valueOf(radioStation.getId())
+                                    )
+                            );
+                            radioStation.setStreamURL(radioStationUpdated.getStreamURL());
+                            radioStation.setBitRate(radioStationUpdated.getBitRate());
+                            radioStation.setIsUpdated(true);
+
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            try {
+                latch.await(3, TimeUnit.SECONDS);
+            } catch (final InterruptedException e) {
+                /* Ignore this exception */
+            }
+        }
+
+        if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
+            updatePlaybackState(getString(R.string.no_data_message));
+        }
+
         Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
         MediaMetadata track = null;
         try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
-                    radioStation);
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+                    getApplicationContext(),
+                    radioStation
+            );
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
         }
@@ -713,7 +776,7 @@ public class OpenRadioService
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, playingQueue)) {
             Log.e(CLASS_NAME, "Can't retrieve current metadata.");
             mState = PlaybackState.STATE_ERROR;
-            updatePlaybackState("No Metadata");
+            updatePlaybackState(getString(R.string.no_metadata));
             return;
         }
 
@@ -797,7 +860,7 @@ public class OpenRadioService
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing
-            playCurrentSong();
+            playCurrentStation();
         }
     }
 
@@ -819,6 +882,9 @@ public class OpenRadioService
                 handlePauseRequest();
             }
         } else {
+            if (mMediaPlayer == null) {
+                return;
+            }
             // we have audio focus:
             if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
                 mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK);     // we'll be relatively quiet
@@ -865,7 +931,7 @@ public class OpenRadioService
      * @param error if not null, error message to present to the user.
      *
      */
-    private void updatePlaybackState(String error) {
+    private void updatePlaybackState(final String error) {
         Log.d(CLASS_NAME, "UpdatePlaybackState, setting session playback state to " + mState);
 
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
@@ -959,7 +1025,7 @@ public class OpenRadioService
     /**
      * Handle a request to stop music
      */
-    private void handleStopRequest(String withError) {
+    private void handleStopRequest(final String withError) {
         Log.d(CLASS_NAME, "Handle stop request: state=" + mState + " error=" + withError);
 
         mState = PlaybackState.STATE_STOPPED;
@@ -991,6 +1057,16 @@ public class OpenRadioService
             stateBuilder.addCustomAction(CUSTOM_ACTION_THUMBS_UP, getString(R.string.favorite),
                     favoriteIcon);
         }*/
+    }
+
+    /**
+     * @return Implementation of the {@link com.yuriy.openradio.api.APIServiceProvider} interface.
+     */
+    private static APIServiceProvider getServiceProvider() {
+        // Instantiate appropriate parser (JSON one)
+        final DataParser dataParser = new JSONDataParserImpl();
+        // Instantiate appropriate API service provider
+        return new APIServiceProviderImpl(dataParser);
     }
 
     private final class MediaSessionCallback extends MediaSession.Callback {
@@ -1104,7 +1180,7 @@ public class OpenRadioService
                 Log.e(CLASS_NAME, "skipToNext: cannot skip to next. next Index=" +
                         mCurrentIndexOnQueue + " queue length=" + playingQueue.size());
 
-                handleStopRequest("Cannot skip");
+                handleStopRequest(getString(R.string.can_not_skip));
             }
         }
 
@@ -1127,7 +1203,7 @@ public class OpenRadioService
                 Log.e(CLASS_NAME, "skipToPrevious: cannot skip to previous. previous Index=" +
                         mCurrentIndexOnQueue + " queue length=" + playingQueue.size());
 
-                handleStopRequest("Cannot skip");
+                handleStopRequest(getString(R.string.can_not_skip));
             }
         }
     }

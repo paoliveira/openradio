@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.yuriy.openradio.business.JSONDataParserImpl;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -124,6 +123,18 @@ public class QueueHelper {
         destination.clear();
         for (T sourceItem : source) {
             destination.add(sourceItem);
+        }
+    }
+
+    public static void updateRadioStation(final RadioStationVO radioStationVO,
+                                          final List<RadioStationVO> radioStationVOs) {
+        for (RadioStationVO radioStation : radioStationVOs) {
+            if (radioStationVO.getId() == radioStation.getId()) {
+                radioStation.setStreamURL(radioStationVO.getStreamURL());
+                radioStation.setBitRate(radioStationVO.getBitRate());
+                radioStation.setIsUpdated(true);
+                break;
+            }
         }
     }
 

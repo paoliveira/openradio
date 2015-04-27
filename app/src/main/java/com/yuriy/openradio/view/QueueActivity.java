@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
@@ -107,6 +108,11 @@ public class QueueActivity extends FragmentActivity {
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
 
+    /**
+     * Progress Bar to indicate that Radio Station is going to play.
+     */
+    private ProgressBar mProgressBar;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +133,8 @@ public class QueueActivity extends FragmentActivity {
         mPlayPause = (ImageButton) findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(buttonListener);
+
+        mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
 
         // Initialize adapter
         mQueueAdapter = new QueueAdapter(this);
@@ -239,6 +247,27 @@ public class QueueActivity extends FragmentActivity {
     }
 
     /**
+     * Show progress when state of the station is set to "buffering"
+     */
+    private void showProgressBar() {
+        if (mProgressBar == null) {
+            // Skip further action
+            return;
+        }
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hide progress whether Station has been loaded or error has occured
+     */
+    private void hideProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.INVISIBLE);
+    }
+
+    /**
      * Callback object for the Media Browser connection events
      */
     private final MediaBrowser.ConnectionCallback connectionCallback
@@ -348,10 +377,11 @@ public class QueueActivity extends FragmentActivity {
         mQueueAdapter.notifyDataSetChanged();
 
         boolean enablePlay = false;
-        final StringBuilder statusBuilder = new StringBuilder();
+        final StringBuilder statusBuilder = new StringBuilder("Status ");
 
         switch (state.getState()) {
             case PlaybackState.STATE_PLAYING:
+                hideProgressBar();
                 statusBuilder.append("playing");
                 enablePlay = false;
 
@@ -369,9 +399,11 @@ public class QueueActivity extends FragmentActivity {
                 enablePlay = true;
                 break;
             case PlaybackState.STATE_ERROR:
+                hideProgressBar();
                 statusBuilder.append("error: ").append(state.getErrorMessage());
                 break;
             case PlaybackState.STATE_BUFFERING:
+                showProgressBar();
                 statusBuilder.append("buffering");
 
                 if (mListFirstVisiblePosition == 0) {
@@ -380,6 +412,7 @@ public class QueueActivity extends FragmentActivity {
 
                 break;
             case PlaybackState.STATE_NONE:
+                hideProgressBar();
                 statusBuilder.append("none");
                 enablePlay = false;
                 break;
@@ -387,6 +420,7 @@ public class QueueActivity extends FragmentActivity {
                 statusBuilder.append("connecting");
                 break;
             default:
+                hideProgressBar();
                 statusBuilder.append(mPlaybackState);
         }
 

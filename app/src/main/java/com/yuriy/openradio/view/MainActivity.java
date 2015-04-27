@@ -14,6 +14,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
@@ -82,6 +84,16 @@ public class MainActivity extends FragmentActivity {
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
 
+    /**
+     * Progress Bar view to indicate that data is loading.
+     */
+    private ProgressBar mProgressBar;
+
+    /**
+     * Text View to display that data has not been loaded.
+     */
+    private TextView mNoDataView;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +106,12 @@ public class MainActivity extends FragmentActivity {
 
         // Instantiate adapter
         mBrowserAdapter = new MediaItemsAdapter(this, null);
+
+        // Initialize progress bar
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_view);
+
+        // Initialize No Data text view
+        mNoDataView = (TextView) findViewById(R.id.no_data_view);
 
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.list_view);
@@ -113,6 +131,8 @@ public class MainActivity extends FragmentActivity {
                 // Current selected media item
                 final MediaBrowser.MediaItem item
                         = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
+
+                showProgressBar();
 
                 // If it is browsable - then we navigate to the next category
                 if (item.isBrowsable()) {
@@ -216,6 +236,8 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onBackPressed() {
 
+        hideNoDataMessage();
+
         // If there is root category - close activity
         if (mediaItemsStack.size() == 1) {
 
@@ -254,6 +276,46 @@ public class MainActivity extends FragmentActivity {
         mediaItemsStack.add(mediaId);
 
         mMediaBrowser.subscribe(mediaId, subscriptionCallback);
+    }
+
+    /**
+     * Show progress bar.
+     */
+    private void showProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hide progress bar.
+     */
+    private void hideProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.GONE);
+    }
+
+    /**
+     * Show "No data" text view.
+     */
+    private void showNoDataMessage() {
+        if (mNoDataView == null) {
+            return;
+        }
+        mNoDataView.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hide "No data" text view.
+     */
+    private void hideNoDataMessage() {
+        if (mNoDataView == null) {
+            return;
+        }
+        mNoDataView.setVisibility(View.GONE);
     }
 
     @SuppressWarnings("unchecked")
@@ -302,12 +364,18 @@ public class MainActivity extends FragmentActivity {
                                      final List<MediaBrowser.MediaItem> children) {
             Log.i(CLASS_NAME, "On children loaded");
 
+            hideProgressBar();
+
             mBrowserAdapter.clear();
             mBrowserAdapter.notifyDataSetInvalidated();
             for (MediaBrowser.MediaItem item : children) {
                 mBrowserAdapter.addItem(item);
             }
             mBrowserAdapter.notifyDataSetChanged();
+
+            if (children.isEmpty()) {
+                showNoDataMessage();
+            }
 
             // Get list view reference from the inflated xml
             final ListView listView = (ListView) findViewById(R.id.list_view);
@@ -323,6 +391,9 @@ public class MainActivity extends FragmentActivity {
 
         @Override
         public void onError(final String id) {
+
+            hideProgressBar();
+
             Toast.makeText(
                     MainActivity.this, R.string.error_loading_media, Toast.LENGTH_LONG
             ).show();

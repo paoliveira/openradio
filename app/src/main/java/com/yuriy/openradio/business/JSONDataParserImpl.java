@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +69,12 @@ public class JSONDataParserImpl implements DataParser {
     public static final String KEY_TIME = "time";
 
     public static final String KEY_DIRECTORY = "directory";
+
+    public static final String KEY_STREAMS = "streams";
+
+    public static final String KEY_STREAM = "stream";
+
+    public static final String KEY_STATION_ID = "Station_id";
 
     public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
 

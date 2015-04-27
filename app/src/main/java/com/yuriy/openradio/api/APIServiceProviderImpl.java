@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,8 +96,8 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 if (object.has(JSONDataParserImpl.KEY_ID)) {
                     category.setId(object.getInt(JSONDataParserImpl.KEY_ID));
                 }
-                if (object.has(JSONDataParserImpl.KEY_NAME)) {
-                    category.setName(object.getString(JSONDataParserImpl.KEY_NAME));
+                if (object.has(JSONDataParserImpl.KEY_TITLE)) {
+                    category.setTitle(object.getString(JSONDataParserImpl.KEY_TITLE));
                 }
                 if (object.has(JSONDataParserImpl.KEY_DESCRIPTION)) {
                     category.setDescription(object.getString(JSONDataParserImpl.KEY_DESCRIPTION));
@@ -141,8 +141,8 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 if (object.has(JSONDataParserImpl.KEY_AMOUNT)) {
                     category.setAmount(object.getInt(JSONDataParserImpl.KEY_AMOUNT));
                 }
-                if (object.has(JSONDataParserImpl.KEY_NAME)) {
-                    category.setName(object.getString(JSONDataParserImpl.KEY_NAME));
+                if (object.has(JSONDataParserImpl.KEY_TITLE)) {
+                    category.setTitle(object.getString(JSONDataParserImpl.KEY_TITLE));
                 }
                 if (object.has(JSONDataParserImpl.KEY_DESCRIPTION)) {
                     category.setDescription(object.getString(JSONDataParserImpl.KEY_DESCRIPTION));
@@ -223,7 +223,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             return radioStation;
         }
 
-        JSONObject object = null;
+        JSONObject object;
 
         try {
             object = new JSONObject(response);
@@ -236,14 +236,8 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
         try {
 
-            if (object.has(JSONDataParserImpl.KEY_ID)) {
-                radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
-            }
             if (object.has(JSONDataParserImpl.KEY_STATUS)) {
                 radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
-            }
-            if (object.has(JSONDataParserImpl.KEY_STREAM_URL)) {
-                radioStation.setStreamURL(object.getString(JSONDataParserImpl.KEY_STREAM_URL));
             }
             if (object.has(JSONDataParserImpl.KEY_NAME)) {
                 radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
@@ -254,10 +248,13 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
                 radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
             }
-            if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
-                radioStation.setBitRate(object.getString(JSONDataParserImpl.KEY_BIT_RATE));
+            if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
+                final StreamVO streamVO
+                        = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
+                radioStation.setStreamURL(streamVO.getUrl());
+                radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
+                radioStation.setId(streamVO.getId());
             }
-
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Can not parse Radio Station:" + e.getMessage());
         }
@@ -310,5 +307,65 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         RESPONSES_MAP.put(uri.toString(), array);
 
         return array;
+    }
+
+    /**
+     * Select stream item from the collection of the streams.
+     *
+     * @param jsonArray Collection of the streams.
+     * @return Selected stream.
+     */
+    private StreamVO selectStream(final JSONArray jsonArray) {
+        final StreamVO streamVO = StreamVO.makeDefaultInstance();
+
+        if (jsonArray == null) {
+            return streamVO;
+        }
+
+        JSONObject object;
+        int length = jsonArray.length();
+        int bitrate = 0;
+        int id = 0;
+        String stream = "";
+        for (int i = 0; i < length; i++) {
+            try {
+                object = jsonArray.getJSONObject(i);
+
+                if (object == null) {
+                    continue;
+                }
+
+                if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
+                    bitrate = object.getInt(JSONDataParserImpl.KEY_BIT_RATE);
+                }
+                if (object.has(JSONDataParserImpl.KEY_STREAM)) {
+                    stream = object.getString(JSONDataParserImpl.KEY_STREAM);
+                }
+                if (object.has(JSONDataParserImpl.KEY_STATION_ID)) {
+                    id = object.getInt(JSONDataParserImpl.KEY_STATION_ID);
+                }
+
+                if (stream == null || stream.isEmpty()) {
+                    continue;
+                }
+
+                // If there is only one stream - select it or select channel with 128 kBit/sec
+                if (length == 1 || bitrate == 128) {
+                    streamVO.setBitrate(bitrate);
+                    streamVO.setUrl(stream);
+                    streamVO.setId(id);
+                    break;
+                }
+
+            } catch (final JSONException e) {
+                Log.e(CLASS_NAME, "Can not parse Stream:" + e.getMessage());
+            }
+        }
+
+        if (streamVO.getUrl().isEmpty()) {
+            Log.w(CLASS_NAME, "Stream has not been selected from:" + jsonArray);
+        }
+
+        return streamVO;
     }
 }

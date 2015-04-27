@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,6 +47,13 @@ public class RadioStationVO {
     private String mBitRate = "";
 
     private String mGenre = "";
+
+    /**
+     * Flag indicates that Station's data has been downloaded and updates.
+     * In version Dirble v2 when list of the stations received they comes without stream url
+     * and bitrate, upon selecting one - it is necessary to load additional data.
+     */
+    private boolean mIsUpdated;
 
     /**
      * Private constructor.
@@ -116,6 +123,14 @@ public class RadioStationVO {
 
     public void setGenre(final String value) {
         mGenre = value;
+    }
+
+    public boolean getIsUpdated() {
+        return mIsUpdated;
+    }
+
+    public void setIsUpdated(final boolean value) {
+        mIsUpdated = value;
     }
 
     @Override

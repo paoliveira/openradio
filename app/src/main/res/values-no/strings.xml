@@ -30,4 +30,12 @@
     <string name="ok_label">OK</string>
     <string name="close_label">Lukk</string>
 
+    <!-- Version 1.2  -->
+
+    <string name="no_data_message">Ingen data mottatt</string>
+    <string name="media_player_error">"Media Player feil"</string>
+    <string name="can_not_play_station">Kan ikke spille Station</string>
+    <string name="no_metadata">Ingen Metadata</string>
+    <string name="can_not_skip">Kan ikke hoppe</string>
+
 </resources>

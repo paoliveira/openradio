@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class UrlBuilder {
     /**
      * Base URL for the API requests
      */
-    protected static final String BASE_URL = "http://api.dirble.com/v1/";
+    protected static final String BASE_URL = "http://api.dirble.com/v2/";
 
     /**
      * Private constructor.
@@ -53,7 +53,7 @@ public class UrlBuilder {
      * @return {@link android.net.Uri}
      */
     public static Uri getAllCategoriesUrl(final Context context) {
-        return Uri.parse(BASE_URL + "categories/apikey/" + ApiKeyLoader.getApiKey(context));
+        return Uri.parse(BASE_URL + "categories?token=" + ApiKeyLoader.getApiKey(context));
     }
 
     /**
@@ -64,8 +64,10 @@ public class UrlBuilder {
      * @return {@link android.net.Uri}
      */
     public static Uri getChildCategoriesUrl(final Context context, final String primaryId) {
-        return Uri.parse(BASE_URL + "childCategories/apikey/" + ApiKeyLoader.getApiKey(context)
-                + "/primaryid/" + primaryId);
+        return Uri.parse(
+                BASE_URL + "category/" + primaryId + "/childs"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
     }
 
     /**
@@ -76,8 +78,10 @@ public class UrlBuilder {
      * @return {@link android.net.Uri}
      */
     public static Uri getStationsInCategory(final Context context, final String categoryId) {
-        return Uri.parse(BASE_URL + "stations/apikey/" + ApiKeyLoader.getApiKey(context)
-                + "/id/" + categoryId);
+        return Uri.parse(
+                BASE_URL + "category/" + categoryId + "/stations"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
     }
 
     /**
@@ -88,7 +92,8 @@ public class UrlBuilder {
      * @return {@link android.net.Uri}
      */
     public static Uri getStation(final Context context, final String stationId) {
-        return Uri.parse(BASE_URL + "station/apikey/" + ApiKeyLoader.getApiKey(context)
-                + "/id/" + stationId);
+        return Uri.parse(
+                BASE_URL + "station/" + stationId + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
     }
 }
