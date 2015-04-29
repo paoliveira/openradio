@@ -262,6 +262,21 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         return radioStation;
     }
 
+    @Override
+    public List<RadioStationVO> getStationsInCountry(final Downloader downloader, final Uri uri) {
+
+        final List<RadioStationVO> radioStations = new ArrayList<>();
+
+        if (mDataParser == null) {
+            Log.w(CLASS_NAME, "Can not parse data, parser is null");
+            return radioStations;
+        }
+
+        final JSONArray array = downloadJSONArray(downloader, uri);
+
+        return radioStations;
+    }
+
     /**
      * Clear responses cache
      */

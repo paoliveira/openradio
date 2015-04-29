@@ -1,9 +1,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
+
+    <item
+        android:id="@+id/action_country"
+        android:orderInCategory="100"
+        app:showAsAction="ifRoom"
+        android:title="@string/action_country" />
+
     <item
         android:id="@+id/action_about"
-        android:orderInCategory="100"
-        android:showAsAction="never"
+        android:orderInCategory="101"
+        app:showAsAction="never"
         android:title="@string/action_about" />
+
 </menu>

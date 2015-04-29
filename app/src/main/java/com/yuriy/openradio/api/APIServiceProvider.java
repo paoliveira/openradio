@@ -71,4 +71,6 @@ public interface APIServiceProvider {
      * @return Radio Station.
      */
     public RadioStationVO getStation(final Downloader downloader, final Uri uri);
+
+    public List<RadioStationVO> getStationsInCountry(final Downloader downloader, final Uri uri);
 }

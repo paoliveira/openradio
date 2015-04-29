@@ -76,7 +76,14 @@ public class OpenRadioService
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName();
 
-    public static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
+    private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
+
+    private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
+
+    private static final String VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND
+            = "VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND";
+
+    private static final String KEY_NAME_COUNTRY_CODE = "KEY_NAME_COUNTRY_CODE";
 
     /**
      * Delay stopSelf by using a handler.
@@ -222,6 +229,22 @@ public class OpenRadioService
                 | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+
+        Log.i(CLASS_NAME, "On Start Command: " + intent);
+
+        final Bundle bundle = intent.getExtras();
+        if (bundle != null && bundle.containsKey(KEY_NAME_COMMAND_NAME)) {
+            final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
+            if (command.equals(VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND)) {
+
+            }
+        }
+
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -445,6 +468,14 @@ public class OpenRadioService
         }
 
         configMediaPlayerState();
+    }
+
+    public static Intent makeLoadStationsByCountryIntent(final Context context,
+                                                         final String country) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND);
+        intent.putExtra(KEY_NAME_COUNTRY_CODE, country);
+        return intent;
     }
 
     /**

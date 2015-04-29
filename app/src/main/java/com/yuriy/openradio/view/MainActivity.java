@@ -20,6 +20,8 @@ import android.widget.Toast;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
+import com.yuriy.openradio.service.LocationService;
+import com.yuriy.openradio.service.LocationServiceListener;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
@@ -186,7 +188,6 @@ public class MainActivity extends FragmentActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_about) {
             // DialogFragment.show() will take care of adding the fragment
             // in a transaction.  We also want to remove any currently showing
@@ -204,6 +205,26 @@ public class MainActivity extends FragmentActivity {
             final DialogFragment aboutDialog = AboutDialog.newInstance();
             aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
             return true;
+        } else if (id == R.id.action_country) {
+            LocationService.getCountry(
+                    this,
+                    new LocationServiceListener() {
+
+                        @Override
+                        public void onCountryCodeLocated(final String countryCode) {
+
+                            mMediaBrowser.disconnect();
+
+                            MainActivity.this.startService(
+                                    OpenRadioService.makeLoadStationsByCountryIntent(
+                                            MainActivity.this, countryCode
+                                    )
+                            );
+
+                            mMediaBrowser.connect();
+                        }
+                    }
+            );
         }
 
         return super.onOptionsItemSelected(item);

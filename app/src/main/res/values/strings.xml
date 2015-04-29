@@ -30,12 +30,16 @@
     <string name="ok_label">OK</string>
     <string name="close_label">Close</string>
 
-    <!-- Version 1.2  -->
+    <!-- Version 1.2 -->
 
     <string name="no_data_message">No data received</string>
     <string name="media_player_error">"Media Player error"</string>
     <string name="can_not_play_station">Can not play Station</string>
     <string name="no_metadata">"No Metadata"</string>
     <string name="can_not_skip">"Can not skip"</string>
+
+    <!-- Version 1.3 -->
+
+    <string name="action_country">Country</string>
 
 </resources>
