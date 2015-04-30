@@ -54,6 +54,8 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -77,6 +79,11 @@ public class OpenRadioService
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName();
 
     public static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
+
+    /**
+     * Timeout for the response from the Radio Station's stream, in milliseconds.
+     */
+    private static final int RADIO_STATION_BUFFERING_TIMEOUT = 8000;
 
     /**
      * Delay stopSelf by using a handler.
@@ -169,6 +176,11 @@ public class OpenRadioService
      * Notification object.
      */
     private MediaNotification mMediaNotification;
+
+    /**
+     * Handler to manage response for the Radio Station's stream.
+     */
+    private Handler radioStationTimeoutHandler = new Handler();
 
     private enum AudioFocus {
 
@@ -467,6 +479,14 @@ public class OpenRadioService
             return;
         }
 
+        Collections.sort(list, new Comparator<CategoryVO>() {
+
+            @Override
+            public int compare(CategoryVO lhs, CategoryVO rhs) {
+                return lhs.getTitle().compareTo(rhs.getTitle());
+            }
+        });
+
         QueueHelper.copyCollection(allCategories, list);
 
         final String iconUrl = "android.resource://" +
@@ -517,6 +537,14 @@ public class OpenRadioService
             return;
         }
 
+        Collections.sort(list, new Comparator<CategoryVO>() {
+
+            @Override
+            public int compare(CategoryVO lhs, CategoryVO rhs) {
+                return lhs.getTitle().compareTo(rhs.getTitle());
+            }
+        });
+
         QueueHelper.copyCollection(childCategories, list);
 
         final String iconUrl = "android.resource://" +
@@ -563,26 +591,33 @@ public class OpenRadioService
 
         QueueHelper.copyCollection(radioStations, list);
 
-        final String iconUrl = "android.resource://" +
-                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
+        /*Collections.sort(radioStations, new Comparator<RadioStationVO>() {
+            @Override
+            public int compare(RadioStationVO lhs, RadioStationVO rhs) {
+                return lhs.getName().compareTo(rhs.getName());
+            }
+        });*/
 
         final String genre = QueueHelper.getGenreNameById(categoryId, childCategories);
+
+        MediaMetadata track;
 
         for (RadioStationVO radioStation : radioStations) {
 
             radioStation.setGenre(genre);
 
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
-                                            + String.valueOf(radioStation.getId())
-                            )
-                            .setTitle(radioStation.getName())
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(radioStation.getCountry())
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
+            try {
+                track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
+                        radioStation);
+            } catch (JSONException e) {
+                Log.e(CLASS_NAME, "Can not parse Media Metadata:" + e.getMessage());
+                continue;
+            }
+
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+            mediaItems.add(mediaItem);
         }
 
         result.sendResult(mediaItems);
@@ -934,6 +969,16 @@ public class OpenRadioService
     private void updatePlaybackState(final String error) {
         Log.d(CLASS_NAME, "UpdatePlaybackState, setting session playback state to " + mState);
 
+        // Start timeout handler for the new Radio Station
+        if (mState == PlaybackState.STATE_BUFFERING) {
+            radioStationTimeoutHandler.postDelayed(
+                    radioStationTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
+            );
+        // Or cancel it in case of Success or Error
+        } else {
+            radioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
+        }
+
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             position = mMediaPlayer.getCurrentPosition();
@@ -966,6 +1011,19 @@ public class OpenRadioService
             mMediaNotification.startNotification();
         }
     }
+
+    /**
+     * Runnable for the Radio Station buffering timeout.
+     */
+    private final Runnable radioStationTimeoutRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+
+            handleStopRequest(null);
+            handleStopRequest(getString(R.string.can_not_play_station));
+        }
+    };
 
     private long getAvailableActions() {
         long actions = PlaybackState.ACTION_PLAY

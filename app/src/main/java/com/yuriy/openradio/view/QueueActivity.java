@@ -206,6 +206,8 @@ public class QueueActivity extends FragmentActivity {
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
         }
+
+        hideProgressBar();
     }
 
     @Override

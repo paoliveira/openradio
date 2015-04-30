@@ -110,6 +110,8 @@ public class MainActivity extends FragmentActivity {
         // Initialize progress bar
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_view);
 
+        hideProgressBar();
+
         // Initialize No Data text view
         mNoDataView = (TextView) findViewById(R.id.no_data_view);
 
@@ -139,11 +141,20 @@ public class MainActivity extends FragmentActivity {
                     addMediaItemToStack(item.getMediaId());
                 } else if (item.isPlayable()) {
                     // Else - we play an item
-                    getMediaController().getTransportControls()
-                            .playFromMediaId(item.getMediaId(), null);
+                    getMediaController().getTransportControls().playFromMediaId(
+                            item.getMediaId(), null
+                    );
 
                     // Call appropriate activity for the items playing
-                    startActivity(QueueActivity.makeIntent(MainActivity.this));
+                    runOnUiThread(
+                            new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    startActivity(QueueActivity.makeIntent(MainActivity.this));
+                                }
+                            }
+                    );
                 }
             }
         });
@@ -156,18 +167,20 @@ public class MainActivity extends FragmentActivity {
         );
 
         restoreState(savedInstanceState);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
         mMediaBrowser.connect();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onResume() {
+        super.onResume();
+
+        hideProgressBar();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
         mMediaBrowser.disconnect();
     }
@@ -237,6 +250,7 @@ public class MainActivity extends FragmentActivity {
     public void onBackPressed() {
 
         hideNoDataMessage();
+        hideProgressBar();
 
         // If there is root category - close activity
         if (mediaItemsStack.size() == 1) {
@@ -362,7 +376,7 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onChildrenLoaded(final String parentId,
                                      final List<MediaBrowser.MediaItem> children) {
-            Log.i(CLASS_NAME, "On children loaded");
+            Log.i(CLASS_NAME, "On children loaded:" + parentId);
 
             hideProgressBar();
 
