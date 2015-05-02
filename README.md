@@ -11,8 +11,7 @@
 ### Delivery files ###
 
 * [Android Media Browser simulator](https://bitbucket.org/ChernyshovYuriy/openradio/src/db36135fb9ada868f678ce9db9dab7c0c34e5a2b/app/assets/media-browser-simulator.apk) need to simulate vehicle's HMI.
-* Android APK file located at **OpenRadio/app/app-release.apk** - this application is suitable for the Android Media Browser simulator
-* [Google Play](https://play.google.com/store/apps/details?id=com.yuriy.openradio) - this application is **not** suitable for the Android Media Browser simulator
+* [Google Play](https://play.google.com/store/apps/details?id=com.yuriy.openradio) - this application is  suitable now for the Android Media Browser simulator as well as for the Android Auto.
 
 ### How to install and run ###
 * There is a possibility to run application as general Android one, just to be sure that everything working as expected.
