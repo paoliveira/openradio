@@ -85,8 +85,15 @@ public class MediaItemsAdapter extends BaseAdapter {
                     mCurrentActivity.getDrawable(R.drawable.ic_all_categories));
         } else {
             if (mediaItem.isBrowsable()) {
-                mViewHolder.mImageView.setImageDrawable(
-                        mCurrentActivity.getDrawable(R.drawable.ic_child_categories));
+                if (mediaItem.getDescription().getTitle().equals(
+                        mCurrentActivity.getString(R.string.category_empty)
+                )) {
+                    mViewHolder.mImageView.setImageDrawable(
+                            mCurrentActivity.getDrawable(R.drawable.ic_radio_station_empty));
+                } else {
+                    mViewHolder.mImageView.setImageDrawable(
+                            mCurrentActivity.getDrawable(R.drawable.ic_child_categories));
+                }
             } else if (mediaItem.isPlayable()) {
                 mViewHolder.mImageView.setImageDrawable(
                         mCurrentActivity.getDrawable(R.drawable.ic_radio_station));

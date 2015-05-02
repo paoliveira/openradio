@@ -37,5 +37,6 @@
     <string name="can_not_play_station">Can not play Station</string>
     <string name="no_metadata">"No Metadata"</string>
     <string name="can_not_skip">"Can not skip"</string>
+    <string name="category_empty">Category is empty</string>
 
 </resources>

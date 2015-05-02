@@ -18,11 +18,13 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
+import io.fabric.sdk.android.Fabric;
 import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -97,6 +99,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);
@@ -126,13 +129,19 @@ public class MainActivity extends FragmentActivity {
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
 
-                // Keep last selected position for the given category.
-                // We will use it when back to this category
-                listPositionMap.put(mediaItemsStack.get(mediaItemsStack.size() - 1), position);
-
                 // Current selected media item
                 final MediaBrowser.MediaItem item
                         = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
+
+                if (item.isBrowsable() && item.getDescription().getTitle().equals(
+                        getString(R.string.category_empty))
+                        ) {
+                    return;
+                }
+
+                // Keep last selected position for the given category.
+                // We will use it when back to this category
+                listPositionMap.put(mediaItemsStack.get(mediaItemsStack.size() - 1), position);
 
                 showProgressBar();
 

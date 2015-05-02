@@ -37,5 +37,6 @@
     <string name="can_not_play_station">Kan ikke spille Station</string>
     <string name="no_metadata">Ingen Metadata</string>
     <string name="can_not_skip">Kan ikke hoppe</string>
+    <string name="category_empty">Kategorien er tom</string>
 
 </resources>

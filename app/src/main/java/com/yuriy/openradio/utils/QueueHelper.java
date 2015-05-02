@@ -19,13 +19,10 @@ package com.yuriy.openradio.utils;
 import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
-import android.util.Log;
 
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.JSONDataParserImpl;
-
-import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +45,7 @@ public class QueueHelper {
         MediaSession.QueueItem item;
         MediaMetadata track;
         for (RadioStationVO radioStation : radioStations) {
-
-            try {
-                track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(context, radioStation);
-            } catch (JSONException e) {
-                Log.e(CLASS_NAME, "Can not parse Media Metadata:" + e.getMessage());
-                continue;
-            }
-
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(context, radioStation);
             item = new MediaSession.QueueItem(track.getDescription(), count++);
             queue.add(item);
         }
