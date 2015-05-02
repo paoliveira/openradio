@@ -18,6 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.service.LocationService;
@@ -30,6 +31,8 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.
@@ -99,18 +102,18 @@ public class MainActivity extends FragmentActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);
-
-        // Invalidate API responses cache
-        APIServiceProviderImpl.clearCache();
 
         // Instantiate adapter
         mBrowserAdapter = new MediaItemsAdapter(this, null);
 
         // Initialize progress bar
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_view);
+
+        hideProgressBar();
 
         // Initialize No Data text view
         mNoDataView = (TextView) findViewById(R.id.no_data_view);
@@ -126,13 +129,19 @@ public class MainActivity extends FragmentActivity {
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
 
-                // Keep last selected position for the given category.
-                // We will use it when back to this category
-                listPositionMap.put(mediaItemsStack.get(mediaItemsStack.size() - 1), position);
-
                 // Current selected media item
                 final MediaBrowser.MediaItem item
                         = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
+
+                if (item.isBrowsable() && item.getDescription().getTitle().equals(
+                        getString(R.string.category_empty))
+                        ) {
+                    return;
+                }
+
+                // Keep last selected position for the given category.
+                // We will use it when back to this category
+                listPositionMap.put(mediaItemsStack.get(mediaItemsStack.size() - 1), position);
 
                 showProgressBar();
 
@@ -141,11 +150,20 @@ public class MainActivity extends FragmentActivity {
                     addMediaItemToStack(item.getMediaId());
                 } else if (item.isPlayable()) {
                     // Else - we play an item
-                    getMediaController().getTransportControls()
-                            .playFromMediaId(item.getMediaId(), null);
+                    getMediaController().getTransportControls().playFromMediaId(
+                            item.getMediaId(), null
+                    );
 
                     // Call appropriate activity for the items playing
-                    startActivity(QueueActivity.makeIntent(MainActivity.this));
+                    runOnUiThread(
+                            new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    startActivity(QueueActivity.makeIntent(MainActivity.this));
+                                }
+                            }
+                    );
                 }
             }
         });
@@ -158,18 +176,20 @@ public class MainActivity extends FragmentActivity {
         );
 
         restoreState(savedInstanceState);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
 
         mMediaBrowser.connect();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onResume() {
+        super.onResume();
+
+        hideProgressBar();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
         mMediaBrowser.disconnect();
     }
@@ -258,6 +278,7 @@ public class MainActivity extends FragmentActivity {
     public void onBackPressed() {
 
         hideNoDataMessage();
+        hideProgressBar();
 
         // If there is root category - close activity
         if (mediaItemsStack.size() == 1) {
@@ -383,7 +404,7 @@ public class MainActivity extends FragmentActivity {
         @Override
         public void onChildrenLoaded(final String parentId,
                                      final List<MediaBrowser.MediaItem> children) {
-            Log.i(CLASS_NAME, "On children loaded");
+            Log.i(CLASS_NAME, "On children loaded:" + parentId);
 
             hideProgressBar();
 

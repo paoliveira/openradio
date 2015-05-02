@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.MediaMetadata;
 import android.util.Log;
 
+import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 
 import org.json.JSONException;
@@ -85,10 +86,8 @@ public class JSONDataParserImpl implements DataParser {
      * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadata buildMediaMetadataFromRadioStation(
-            final Context context,
-            final RadioStationVO radioStation)
-            throws JSONException {
+    public static MediaMetadata buildMediaMetadataFromRadioStation(final Context context,
+                                                                   final RadioStationVO radioStation) {
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/radio_station_bg";
@@ -112,6 +111,43 @@ public class JSONDataParserImpl implements DataParser {
         // sample for convenience only.
         return new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
+                .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
+                //.putString(MediaMetadata.METADATA_KEY_ALBUM, album)
+                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
+                //.putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
+                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
+                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                //.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
+                //.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+                .build();
+    }
+
+    /**
+     * Create {@link MediaMetadata} for the empty category.
+     *
+     * @param context Context of the callee.
+     * @return Object of the {@link MediaMetadata} type.
+     */
+    public static MediaMetadata buildMediaMetadataForEmptyCategory(final Context context,
+                                                                   final String parentId) {
+
+        final String iconUrl = "android.resource://" +
+                context.getPackageName() + "/drawable/ic_radio_station_empty";
+
+        final String title = context.getString(R.string.category_empty);
+        //final String album = radioStation.getString(JSON_ALBUM);
+        final String artist = "";
+        final String genre = "";
+        final String source = "";
+        //final String iconUrl = radioStation.getString(JSON_IMAGE);
+
+        // Adding the music source to the MediaMetadata (and consequently using it in the
+        // mediaSession.setMetadata) is not a good idea for a real world music app, because
+        // the session metadata can be accessed by notification listeners. This is done in this
+        // sample for convenience only.
+        return new MediaMetadata.Builder()
+                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, parentId)
                 .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
                 //.putString(MediaMetadata.METADATA_KEY_ALBUM, album)
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)

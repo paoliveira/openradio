@@ -47,6 +47,7 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+        <meta-data android:name="com.crashlytics.ApiKey" android:value="3bba57c385bc4f6235b8e544ab5ed6d37745a00a"/>
 
     </application>
 

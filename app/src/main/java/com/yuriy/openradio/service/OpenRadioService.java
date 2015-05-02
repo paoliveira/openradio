@@ -50,10 +50,10 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
 
-import org.json.JSONException;
-
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -76,7 +76,7 @@ public class OpenRadioService
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName();
 
-    private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
+    //private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
 
@@ -84,6 +84,11 @@ public class OpenRadioService
             = "VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND";
 
     private static final String KEY_NAME_COUNTRY_CODE = "KEY_NAME_COUNTRY_CODE";
+
+    /**
+     * Timeout for the response from the Radio Station's stream, in milliseconds.
+     */
+    private static final int RADIO_STATION_BUFFERING_TIMEOUT = 8000;
 
     /**
      * Delay stopSelf by using a handler.
@@ -177,6 +182,13 @@ public class OpenRadioService
      */
     private MediaNotification mMediaNotification;
 
+    /**
+     * Handler to manage response for the Radio Station's stream.
+     */
+    private Handler radioStationTimeoutHandler = new Handler();
+
+    private String mCurrentCategory = "";
+
     private enum AudioFocus {
 
         /**
@@ -251,6 +263,8 @@ public class OpenRadioService
     public void onDestroy() {
         super.onDestroy();
 
+        Log.d(CLASS_NAME, "On Destroy");
+
         // Service is being killed, so make sure we release our resources
         handleStopRequest(null);
 
@@ -274,11 +288,11 @@ public class OpenRadioService
                     + clientPackageName);
             return null;
         }
-        if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
+        //if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
             // it.
-        }
+        //}
         return new BrowserRoot(MediaIDHelper.MEDIA_ID_ROOT, null);
     }
 
@@ -333,8 +347,12 @@ public class OpenRadioService
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
 
+
+
             final String primaryMenuId
                     = parentId.replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
+
+            mCurrentCategory = primaryMenuId;
 
             apiCallExecutor.submit(
                     new Runnable() {
@@ -498,6 +516,14 @@ public class OpenRadioService
             return;
         }
 
+        Collections.sort(list, new Comparator<CategoryVO>() {
+
+            @Override
+            public int compare(CategoryVO lhs, CategoryVO rhs) {
+                return lhs.getTitle().compareTo(rhs.getTitle());
+            }
+        });
+
         QueueHelper.copyCollection(allCategories, list);
 
         final String iconUrl = "android.resource://" +
@@ -548,6 +574,14 @@ public class OpenRadioService
             return;
         }
 
+        Collections.sort(list, new Comparator<CategoryVO>() {
+
+            @Override
+            public int compare(CategoryVO lhs, CategoryVO rhs) {
+                return lhs.getTitle().compareTo(rhs.getTitle());
+            }
+        });
+
         QueueHelper.copyCollection(childCategories, list);
 
         final String iconUrl = "android.resource://" +
@@ -587,15 +621,33 @@ public class OpenRadioService
         final List<RadioStationVO> list = serviceProvider.getStationsInCategory(downloader,
                 UrlBuilder.getStationsInCategory(getApplicationContext(), categoryId));
 
+        MediaMetadata track;
+
         if (list.isEmpty()) {
+
+            track = JSONDataParserImpl.buildMediaMetadataForEmptyCategory(
+                    getApplicationContext(),
+                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
+            );
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            mediaItems.add(mediaItem);
+            result.sendResult(mediaItems);
+
             updatePlaybackState(getString(R.string.no_data_message));
+
             return;
         }
 
         QueueHelper.copyCollection(radioStations, list);
 
-        final String iconUrl = "android.resource://" +
-                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
+        /*Collections.sort(radioStations, new Comparator<RadioStationVO>() {
+            @Override
+            public int compare(RadioStationVO lhs, RadioStationVO rhs) {
+                return lhs.getName().compareTo(rhs.getName());
+            }
+        });*/
 
         final String genre = QueueHelper.getGenreNameById(categoryId, childCategories);
 
@@ -603,17 +655,15 @@ public class OpenRadioService
 
             radioStation.setGenre(genre);
 
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
-                                            + String.valueOf(radioStation.getId())
-                            )
-                            .setTitle(radioStation.getName())
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(radioStation.getCountry())
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+                    getApplicationContext(),
+                    radioStation
+            );
+
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+            mediaItems.add(mediaItem);
         }
 
         result.sendResult(mediaItems);
@@ -645,13 +695,10 @@ public class OpenRadioService
         QueueHelper.updateRadioStation(radioStation, radioStations);
 
         MediaMetadata track;
-        try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
-                    radioStation);
-        } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Can not parse Media Metadata:" + e.getMessage());
-            return;
-        }
+        track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+                getApplicationContext(),
+                radioStation
+        );
 
         final MediaDescription mediaDescription = track.getDescription();
         final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
@@ -752,6 +799,10 @@ public class OpenRadioService
         final String mediaId = item.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
 
+        if (radioStation == null) {
+            return null;
+        }
+
         // If there is no detailed information about Radio Station - download it here and
         // update model.
         if (!radioStation.getIsUpdated()) {
@@ -791,16 +842,10 @@ public class OpenRadioService
         }
 
         Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
-        MediaMetadata track = null;
-        try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
-                    getApplicationContext(),
-                    radioStation
-            );
-        } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
-        }
-        return track;
+        return JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+                getApplicationContext(),
+                radioStation
+        );
     }
 
     private void updateMetadata() {
@@ -814,14 +859,8 @@ public class OpenRadioService
         final MediaSession.QueueItem queueItem = playingQueue.get(mCurrentIndexOnQueue);
         final String mediaId = queueItem.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
-        final MediaMetadata track;
-        try {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
-                    radioStation);
-        } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Update metadata:" + e.getMessage());
-            return;
-        }
+        final MediaMetadata track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
+                radioStation);
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
         if (!mediaId.equals(trackId)) {
             throw new IllegalStateException("track ID (" + trackId + ") " +
@@ -965,6 +1004,16 @@ public class OpenRadioService
     private void updatePlaybackState(final String error) {
         Log.d(CLASS_NAME, "UpdatePlaybackState, setting session playback state to " + mState);
 
+        // Start timeout handler for the new Radio Station
+        if (mState == PlaybackState.STATE_BUFFERING) {
+            radioStationTimeoutHandler.postDelayed(
+                    radioStationTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
+            );
+        // Or cancel it in case of Success or Error
+        } else {
+            radioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
+        }
+
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             position = mMediaPlayer.getCurrentPosition();
@@ -973,7 +1022,7 @@ public class OpenRadioService
         final PlaybackState.Builder stateBuilder
                 = new PlaybackState.Builder().setActions(getAvailableActions());
 
-        setCustomAction(stateBuilder);
+        //setCustomAction(stateBuilder);
 
         // If there is an error message, send it to the playback state:
         if (error != null) {
@@ -997,6 +1046,19 @@ public class OpenRadioService
             mMediaNotification.startNotification();
         }
     }
+
+    /**
+     * Runnable for the Radio Station buffering timeout.
+     */
+    private final Runnable radioStationTimeoutRunnable = new Runnable() {
+
+        @Override
+        public void run() {
+
+            handleStopRequest(null);
+            handleStopRequest(getString(R.string.can_not_play_station));
+        }
+    };
 
     private long getAvailableActions() {
         long actions = PlaybackState.ACTION_PLAY
@@ -1073,9 +1135,8 @@ public class OpenRadioService
         mServiceStarted = false;
     }
 
-    private void setCustomAction(final PlaybackState.Builder stateBuilder) {
-
-        /*MediaMetadata currentMusic = getCurrentPlayingRadioStation();
+    /*private void setCustomAction(final PlaybackState.Builder stateBuilder) {
+        MediaMetadata currentMusic = getCurrentPlayingRadioStation();
         if (currentMusic != null) {
             // Set appropriate "Favorite" icon on Custom action:
             String mediaId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
@@ -1087,8 +1148,8 @@ public class OpenRadioService
                     mediaId, " current favorite=" + mMusicProvider.isFavorite(mediaId));
             stateBuilder.addCustomAction(CUSTOM_ACTION_THUMBS_UP, getString(R.string.favorite),
                     favoriteIcon);
-        }*/
-    }
+        }
+    }*/
 
     /**
      * @return Implementation of the {@link com.yuriy.openradio.api.APIServiceProvider} interface.
@@ -1137,8 +1198,11 @@ public class OpenRadioService
             if (!playingQueue.isEmpty()) {
 
                 // set the current index on queue from the music Id:
-                mCurrentIndexOnQueue
-                        = QueueHelper.getRadioStationIndexOnQueue(playingQueue, id);
+                mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(playingQueue, id);
+
+                if (mCurrentIndexOnQueue == -1) {
+                    return;
+                }
 
                 // Play the Radio Station
                 handlePlayRequest();
@@ -1153,6 +1217,11 @@ public class OpenRadioService
 
             if (mState == PlaybackState.STATE_PAUSED) {
                 mState = PlaybackState.STATE_STOPPED;
+            }
+
+            if (mediaId.equals("-1")) {
+                updatePlaybackState(getString(R.string.no_data_message));
+                return;
             }
 
             QueueHelper.copyCollection(playingQueue, QueueHelper.getPlayingQueue(
@@ -1171,6 +1240,10 @@ public class OpenRadioService
 
             // Set the current index on queue from the Radio Station Id:
             mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(playingQueue, mediaId);
+
+            if (mCurrentIndexOnQueue == -1) {
+                return;
+            }
 
             // Play Radio Station
             handlePlayRequest();

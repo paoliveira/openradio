@@ -206,6 +206,8 @@ public class QueueActivity extends FragmentActivity {
         if (mMediaBrowser != null) {
             mMediaBrowser.disconnect();
         }
+
+        hideProgressBar();
     }
 
     @Override
@@ -370,6 +372,7 @@ public class QueueActivity extends FragmentActivity {
     private void onPlaybackStateChanged(final PlaybackState state) {
         Log.d(CLASS_NAME, "On Playback State Changed " + state);
         if (state == null) {
+            hideProgressBar();
             return;
         }
 

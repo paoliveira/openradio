@@ -180,23 +180,29 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
                 // TODO: Use data parser to parse JSON to value object
 
-                if (object.has(JSONDataParserImpl.KEY_ID)) {
-                    radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
-                }
                 if (object.has(JSONDataParserImpl.KEY_STATUS)) {
                     radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
-                }
-                if (object.has(JSONDataParserImpl.KEY_STREAM_URL)) {
-                    radioStation.setStreamURL(object.getString(JSONDataParserImpl.KEY_STREAM_URL));
                 }
                 if (object.has(JSONDataParserImpl.KEY_NAME)) {
                     radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
                 }
+                if (object.has(JSONDataParserImpl.KEY_WEBSITE)) {
+                    radioStation.setWebSite(object.getString(JSONDataParserImpl.KEY_WEBSITE));
+                }
                 if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
                     radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
                 }
-                if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
-                    radioStation.setBitRate(object.getString(JSONDataParserImpl.KEY_BIT_RATE));
+
+                if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
+                    final StreamVO streamVO
+                            = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
+                    radioStation.setStreamURL(streamVO.getUrl());
+                    radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
+                    radioStation.setId(streamVO.getId());
+                }
+
+                if (radioStation.getStreamURL().isEmpty()) {
+                    continue;
                 }
 
                 radioStations.add(radioStation);
@@ -248,6 +254,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
                 radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
             }
+
             if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
                 final StreamVO streamVO
                         = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
@@ -364,13 +371,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                     continue;
                 }
 
-                // If there is only one stream - select it or select channel with 128 kBit/sec
-                if (length == 1 || bitrate == 128) {
-                    streamVO.setBitrate(bitrate);
-                    streamVO.setUrl(stream);
-                    streamVO.setId(id);
-                    break;
-                }
+                streamVO.setBitrate(bitrate);
+                streamVO.setUrl(stream);
+                streamVO.setId(id);
+
+                break;
 
             } catch (final JSONException e) {
                 Log.e(CLASS_NAME, "Can not parse Stream:" + e.getMessage());
