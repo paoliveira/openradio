@@ -20,9 +20,6 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.service.LocationService;
-import com.yuriy.openradio.service.LocationServiceListener;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
@@ -225,26 +222,6 @@ public class MainActivity extends FragmentActivity {
             final DialogFragment aboutDialog = AboutDialog.newInstance();
             aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
             return true;
-        } else if (id == R.id.action_country) {
-            LocationService.getCountry(
-                    this,
-                    new LocationServiceListener() {
-
-                        @Override
-                        public void onCountryCodeLocated(final String countryCode) {
-
-                            mMediaBrowser.disconnect();
-
-                            MainActivity.this.startService(
-                                    OpenRadioService.makeLoadStationsByCountryIntent(
-                                            MainActivity.this, countryCode
-                                    )
-                            );
-
-                            mMediaBrowser.connect();
-                        }
-                    }
-            );
         }
 
         return super.onOptionsItemSelected(item);

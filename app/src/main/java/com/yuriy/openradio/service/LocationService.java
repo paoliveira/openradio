@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.yuriy.openradio.service;
 
 import android.content.Context;
@@ -7,6 +23,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,11 +37,60 @@ import java.util.Locale;
  */
 public class LocationService {
 
-    public LocationService() {
+    private static final String CLASS_NAME = LocationService.class.getSimpleName();
 
+    /**
+     *
+     */
+    private String mCountryCode = "";
+
+    /**
+     * Private constructor.
+     */
+    private LocationService() { }
+
+    /**
+     * Factory method to return default instance of the {@link LocationService}.
+     *
+     * @return Instance of the {@link LocationService}.
+     */
+    public static LocationService getInstance() {
+        return new LocationService();
     }
 
-    public static void getCountry(final Context context, final LocationServiceListener listener) {
+    /**
+     *
+     * @return
+     */
+    public String getCountryCode() {
+        return mCountryCode;
+    }
+
+    public void requestCountryCodeLastKnown(final Context context) {
+        final LocationManager locationManager
+                = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        String locationProvider = LocationManager.NETWORK_PROVIDER;
+        // Or use LocationManager.GPS_PROVIDER
+
+        final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
+        if (lastKnownLocation == null) {
+            Log.w(CLASS_NAME, "LastKnownLocation unavailable");
+            return;
+        }
+
+        try {
+            mCountryCode = extractCountryCode(
+                    context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
+            );
+        } catch (IOException e) {
+            mCountryCode = "";
+        }
+
+        Log.d(CLASS_NAME, "LastKnownLocation:" + mCountryCode);
+    }
+
+    public void requestCountryCode(final Context context, final LocationServiceListener listener) {
         // Acquire a reference to the system Location Manager
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -40,15 +106,13 @@ public class LocationService {
                 }
 
                 try {
-                    listener.onCountryCodeLocated(
-                            extractCountryCode(
-                                    context, location.getLatitude(), location.getLongitude()
-                            )
+                    mCountryCode = extractCountryCode(
+                            context, location.getLatitude(), location.getLongitude()
                     );
                 } catch (IOException e) {
-                    listener.onCountryCodeLocated("");
+                    mCountryCode = "";
                 }
-
+                listener.onCountryCodeLocated(mCountryCode);
                 locationManager.removeUpdates(this);
             }
 

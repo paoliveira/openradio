@@ -78,12 +78,7 @@ public class OpenRadioService
 
     //private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
-    private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
-
-    private static final String VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND
-            = "VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND";
-
-    private static final String KEY_NAME_COUNTRY_CODE = "KEY_NAME_COUNTRY_CODE";
+    //private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
 
     /**
      * Timeout for the response from the Radio Station's stream, in milliseconds.
@@ -187,7 +182,15 @@ public class OpenRadioService
      */
     private Handler radioStationTimeoutHandler = new Handler();
 
+    /**
+     * Id of the current Category. It is used for example when back from an empty Category.
+     */
     private String mCurrentCategory = "";
+
+    /**
+     * Service class to provide information about current location.
+     */
+    private final LocationService mLocationService = LocationService.getInstance();
 
     private enum AudioFocus {
 
@@ -227,6 +230,8 @@ public class OpenRadioService
 
         Log.i(CLASS_NAME, "On Create");
 
+        mLocationService.requestCountryCodeLastKnown(this);
+
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
         mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "OpenRadio_lock");
@@ -248,13 +253,10 @@ public class OpenRadioService
 
         Log.i(CLASS_NAME, "On Start Command: " + intent);
 
-        final Bundle bundle = intent.getExtras();
+       /* final Bundle bundle = intent.getExtras();
         if (bundle != null && bundle.containsKey(KEY_NAME_COMMAND_NAME)) {
             final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
-            if (command.equals(VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND)) {
-
-            }
-        }
+        }*/
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -314,6 +316,7 @@ public class OpenRadioService
             final String iconUrl = "android.resource://" +
                     getApplicationContext().getPackageName() + "/drawable/ic_all_categories";
 
+            // Worldwide Stations
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
@@ -322,6 +325,25 @@ public class OpenRadioService
                             .setSubtitle(getString(R.string.all_categories_sub_title))
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
+
+            // Country Stations
+            if (!mLocationService.getCountryCode().isEmpty()) {
+                mediaItems.add(new MediaBrowser.MediaItem(
+                        new MediaDescription.Builder()
+                                .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
+                                .setTitle(getString(R.string.country_stations_title))
+                                .setIconUri(
+                                        UrlBuilder.getCountryFlagSmall(
+                                                mLocationService.getCountryCode()
+                                        )
+                                )
+                                .setSubtitle(getString(R.string.country_stations_sub_title))
+                                .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                ));
+            } else {
+                // TODO : Dispatch event to the MainActivity to inform user to activate Location
+            }
+
             result.sendResult(mediaItems);
         } else if (MediaIDHelper.MEDIA_ID_ALL_CATEGORIES.equals(parentId)) {
             // Use result.detach to allow calling result.sendResult from another thread:
@@ -346,8 +368,6 @@ public class OpenRadioService
         } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES)) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
-
-
 
             final String primaryMenuId
                     = parentId.replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
@@ -486,14 +506,6 @@ public class OpenRadioService
         }
 
         configMediaPlayerState();
-    }
-
-    public static Intent makeLoadStationsByCountryIntent(final Context context,
-                                                         final String country) {
-        final Intent intent = new Intent(context, OpenRadioService.class);
-        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STATIONS_OF_COUNTRY_COMMAND);
-        intent.putExtra(KEY_NAME_COUNTRY_CODE, country);
-        return intent;
     }
 
     /**

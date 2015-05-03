@@ -43,4 +43,9 @@
 
     <string name="action_country">Country</string>
 
+    <!-- Version 1.4 -->
+
+    <string name="country_stations_title">Country\'s Radio Stations</string>
+    <string name="country_stations_sub_title">radio stations of the country</string>
+
 </resources>

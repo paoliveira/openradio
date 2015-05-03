@@ -14,31 +14,32 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.utils;
+package com.yuriy.openradio.business;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
- * On 12/14/14
+ * On 5/2/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
 /**
- * Utility class to help on queue related tasks.
- * Media IDs used on browseable items of MediaBrowser.
+ * {@link FlagLoader} is an interface that provides methods to load flag's images.
  */
-public class MediaIDHelper {
+public interface FlagLoader {
 
-    public static final String MEDIA_ID_ROOT = "__ROOT__";
+    /**
+     * Load bitmap of the flag of the provided country.
+     *
+     * @param countryCode Country code.
+     */
+    void loadFlag(final String countryCode);
 
-    public static final String MEDIA_ID_ALL_CATEGORIES = "__ALL_CATEGORIES__";
-
-    public static final String MEDIA_ID_COUNTRY_STATIONS = "__COUNTRY_STATIONS__";
-
-    public static final String MEDIA_ID_PARENT_CATEGORIES = "__PARENT_CATEGORIES__";
-
-    public static final String MEDIA_ID_CHILD_CATEGORIES = "__CHILD_CATEGORIES__";
-
-    public static final String MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
-            = "__RADIO_STATIONS_IN_CATEGORY__";
+    /**
+     * Check whether flag of the specified country has been loaded.
+     *
+     * @param countryCode Country code.
+     * @return True in case of the flag has been loaded before, False - otherwise.
+     */
+    boolean isFlagLoaded(final String countryCode);
 }

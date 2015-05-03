@@ -36,9 +36,14 @@ import com.yuriy.openradio.utils.ApiKeyLoader;
 public class UrlBuilder {
 
     /**
-     * Base URL for the API requests
+     * Base URL for the API requests.
      */
     protected static final String BASE_URL = "http://api.dirble.com/v2/";
+
+    /**
+     * URL of the Geo Names service to obtain country's flag.
+     */
+    private static final String GEO_NAMES_FLAGS = "http://www.geonames.org/flags/";
 
     /**
      * Private constructor.
@@ -95,5 +100,27 @@ public class UrlBuilder {
         return Uri.parse(
                 BASE_URL + "station/" + stationId + "?token=" + ApiKeyLoader.getApiKey(context)
         );
+    }
+
+    /**
+     * Get Uri for the provided country flag of the small size for the usage in Geo Names service.
+     *
+     * @param countryCode Country code.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getCountryFlagSmall(final String countryCode) {
+        return getCountryFlag(countryCode.toLowerCase(), "l");
+    }
+
+    /**
+     * Get Uri for the provided country flag and flag size for the usage in Geo Names service.
+     *
+     * @param countryCode Country code.
+     * @param size        Size of the flag's image. Could be "l" for the small size and
+     *                    "x" for the big size.
+     * @return {@link android.net.Uri}
+     */
+    private static Uri getCountryFlag(final String countryCode, final String size) {
+        return Uri.parse(GEO_NAMES_FLAGS + size + "/" + countryCode.toLowerCase() + ".gif");
     }
 }
