@@ -4,10 +4,12 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
+import android.content.IntentFilter;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,6 +22,9 @@ import android.widget.Toast;
 
 import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
+import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
@@ -96,6 +101,12 @@ public class MainActivity extends FragmentActivity {
      */
     private TextView mNoDataView;
 
+    /**
+     * Receiver for the local application;s events
+     */
+    private final AppLocalBroadcastReceiver mAppLocalBroadcastReceiver
+            = AppLocalBroadcastReceiver.getInstance();
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,6 +114,9 @@ public class MainActivity extends FragmentActivity {
 
         // Set content.
         setContentView(R.layout.activity_main);
+
+        // Register local receivers.
+        registerReceivers();
 
         // Instantiate adapter
         mBrowserAdapter = new MediaItemsAdapter(this, null);
@@ -188,6 +202,9 @@ public class MainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        // Unregister local receivers
+        unregisterReceivers();
+        // Disconnect Media Browser
         mMediaBrowser.disconnect();
     }
 
@@ -285,6 +302,14 @@ public class MainActivity extends FragmentActivity {
     }
 
     /**
+     * Start request location procedure. Despite the fact that whether user enable Location or not,
+     * just request Location via Android API and return result via Broadcast event.
+     */
+    public void processLocationCallback() {
+        startService(OpenRadioService.makeRequestLocationIntent(this));
+    }
+
+    /**
      * Add {@link android.media.browse.MediaBrowser.MediaItem} to stack.
      *
      * @param mediaId Id of the {@link android.view.MenuItem}
@@ -370,6 +395,33 @@ public class MainActivity extends FragmentActivity {
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.list_view);
         listView.setSelection(listFirstVisiblePosition);
+    }
+
+    /**
+     * Register receiver for the application's local events.
+     */
+    private void registerReceivers() {
+
+        mAppLocalBroadcastReceiver.registerListener(receiverCallback);
+
+        // Create filter and add actions
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationDisabled());
+        intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationCountryCode());
+        // Register receiver
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                mAppLocalBroadcastReceiver,
+                intentFilter
+        );
+    }
+
+    /**
+     * Unregister receiver for the application's local events.
+     */
+    private void unregisterReceivers() {
+        mAppLocalBroadcastReceiver.unregisterListener();
+
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mAppLocalBroadcastReceiver);
     }
 
     /**
@@ -475,6 +527,37 @@ public class MainActivity extends FragmentActivity {
             Log.w(CLASS_NAME, "MediaBrowser connection failed");
 
             setMediaController(null);
+        }
+    };
+
+    /**
+     * Callback receiver of the local application's event.
+     */
+    private final AppLocalBroadcastReceiverCallback receiverCallback
+            = new AppLocalBroadcastReceiverCallback() {
+
+        @Override
+        public void onLocationDisabled() {
+            Log.i(CLASS_NAME, "LocationDisabled");
+
+            if (AppPreferencesManager.isLocationDialogShown()) {
+                return;
+            }
+
+            final BaseDialogFragment useLocationServiceDialog = BaseDialogFragment.newInstance(
+                    UseLocationDialog.class.getName()
+            );
+            useLocationServiceDialog.setCancelable(false);
+            useLocationServiceDialog.show(getFragmentManager(), UseLocationDialog.DIALOG_TAG);
+
+            AppPreferencesManager.setIsLocationDialogShown(true);
+        }
+
+        @Override
+        public void onLocationCountryCode(final String countryCode) {
+            // Disconnect and connect back to media browser
+            mMediaBrowser.disconnect();
+            mMediaBrowser.connect();
         }
     };
 }

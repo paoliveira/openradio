@@ -33,6 +33,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.yuriy.openradio.R;
@@ -40,6 +41,7 @@ import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
@@ -78,7 +80,10 @@ public class OpenRadioService
 
     //private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
-    //private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
+    private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
+
+    private static final String VALUE_NAME_REQUEST_LOCATION_COMMAND
+            = "VALUE_NAME_REQUEST_LOCATION_COMMAND";
 
     /**
      * Timeout for the response from the Radio Station's stream, in milliseconds.
@@ -230,6 +235,10 @@ public class OpenRadioService
 
         Log.i(CLASS_NAME, "On Create");
 
+        // Set application's context for the Preferences.
+        AppPreferencesManager.setContext(this);
+
+        mLocationService.checkLocationEnable(this);
         mLocationService.requestCountryCodeLastKnown(this);
 
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
@@ -253,10 +262,24 @@ public class OpenRadioService
 
         Log.i(CLASS_NAME, "On Start Command: " + intent);
 
-       /* final Bundle bundle = intent.getExtras();
+        final Bundle bundle = intent.getExtras();
         if (bundle != null && bundle.containsKey(KEY_NAME_COMMAND_NAME)) {
             final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
-        }*/
+
+            if (command.equals(VALUE_NAME_REQUEST_LOCATION_COMMAND)) {
+                mLocationService.requestCountryCode(this, new LocationServiceListener() {
+
+                    @Override
+                    public void onCountryCodeLocated(final String countryCode) {
+                        LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
+                                AppLocalBroadcastReceiver.createIntentLocationCountryCode(
+                                        countryCode
+                                )
+                        );
+                    }
+                });
+            }
+        }
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -340,8 +363,6 @@ public class OpenRadioService
                                 .setSubtitle(getString(R.string.country_stations_sub_title))
                                 .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
                 ));
-            } else {
-                // TODO : Dispatch event to the MainActivity to inform user to activate Location
             }
 
             result.sendResult(mediaItems);
@@ -506,6 +527,17 @@ public class OpenRadioService
         }
 
         configMediaPlayerState();
+    }
+
+    /**
+     * Factory method to make intent to use for the request location procedure.
+     *
+     * @return {@link Intent}.
+     */
+    public static Intent makeRequestLocationIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REQUEST_LOCATION_COMMAND);
+        return intent;
     }
 
     /**

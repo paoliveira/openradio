@@ -14,9 +14,6 @@
     <string name="play_pause">Spill eller pause</string>
     <string name="no_network_connection_toast">Ingen nettverkstilkobling funnet</string>
     <string name="error_loading_media">Feil ved lasting av Media</string>
-
-    <!-- About Section -->
-
     <string name="about_thanks_1">Dette prosjektet er bruk Dirble API - en tjeneste som gir en liste over radiostasjoner som kringkaster sin live stream på internett:</string>
     <string name="about_thanks_1_title">Dirble\'s API</string>
     <string name="about_thanks_1_url">https://dirble.com/developer/api</string>
@@ -29,14 +26,14 @@
     <string name="about_project_home_desc">Hvis du har noen forespørsler, forslag, kommentarer som kan forbedre programmet - ikke nøl med å skape et problem i den kategorien av prosjektets hjemmeside Issues.</string>
     <string name="ok_label">OK</string>
     <string name="close_label">Lukk</string>
-
-    <!-- Version 1.2  -->
-
     <string name="no_data_message">Ingen data mottatt</string>
     <string name="media_player_error">"Media Player feil"</string>
     <string name="can_not_play_station">Kan ikke spille Station</string>
     <string name="no_metadata">Ingen Metadata</string>
     <string name="can_not_skip">Kan ikke hoppe</string>
     <string name="category_empty">Kategorien er tom</string>
+    <string name="use_location_service_message">Beliggenhet Tjenesten er deaktivert på enheten.\nFor å bruke ytterligere funksjoner av Open Radio (slik at radiostasjoner i nåværende posisjon) kan du aktivere plasseringstjeneste.</string>
+    <string name="location_service">Location Service</string>
+    <string name="enable_location_service_btn_label">Aktiver Location Service</string>
 
 </resources>

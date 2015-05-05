@@ -23,6 +23,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.io.IOException;
@@ -59,18 +60,43 @@ public class LocationService {
     }
 
     /**
-     *
-     * @return
+     * @return Country code for the current user's location.
      */
     public String getCountryCode() {
         return mCountryCode;
     }
 
+    /**
+     * Check whether location service is enabled on the phone. It dispatch appropriate local
+     * event in case of negative result.
+     *
+     * @param context {@link Context} of the callee.
+     */
+    public void checkLocationEnable(final Context context) {
+        final LocationManager locationManager
+                = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        final String locationProvider = LocationManager.NETWORK_PROVIDER;
+
+        if (locationManager.isProviderEnabled(locationProvider)) {
+            return;
+        }
+
+        LocalBroadcastManager.getInstance(context).sendBroadcast(
+                AppLocalBroadcastReceiver.createIntentLocationDisabled()
+        );
+    }
+
+    /**
+     * Request last know user's country code.
+     *
+     * @param context {@link Context} of the callee.
+     */
     public void requestCountryCodeLastKnown(final Context context) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
-        String locationProvider = LocationManager.NETWORK_PROVIDER;
+        final String locationProvider = LocationManager.NETWORK_PROVIDER;
         // Or use LocationManager.GPS_PROVIDER
 
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);

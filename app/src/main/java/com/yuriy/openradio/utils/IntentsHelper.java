@@ -18,6 +18,7 @@ package com.yuriy.openradio.utils;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.provider.Settings;
 
 /**
  * Created by Yuriy Chernyshov
@@ -26,6 +27,8 @@ import android.net.Uri;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 public final class IntentsHelper {
+
+    public static final int REQUEST_CODE_LOCATION_SETTINGS = 100;
 
     /**
      * Private constructor
@@ -36,9 +39,18 @@ public final class IntentsHelper {
      * Make intent to navigate to provided url.
      *
      * @param url Url to navigate to.
-     * @return {@link android.content.Intent}
+     * @return {@link android.content.Intent}.
      */
     public static Intent makeUrlBrowsableIntent(final String url) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+    }
+
+    /**
+     * Make Intent to open Location Service settings,
+     *
+     * @return {@link android.content.Intent}.
+     */
+    public static Intent makeOpenLocationSettingsIntent() {
+        return new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
     }
 }
