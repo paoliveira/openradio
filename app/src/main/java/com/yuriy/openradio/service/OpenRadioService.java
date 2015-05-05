@@ -386,6 +386,27 @@ public class OpenRadioService
                         }
                     }
             );
+        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)) {
+            // Use result.detach to allow calling result.sendResult from another thread:
+            result.detach();
+
+            apiCallExecutor.submit(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Load all categories into menu
+                            loadCountryStations(
+                                    serviceProvider,
+                                    downloader,
+                                    mLocationService.getCountryCode(),
+                                    mediaItems,
+                                    result
+                            );
+                        }
+                    }
+            );
         } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES)) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
@@ -552,7 +573,7 @@ public class OpenRadioService
                                    final Downloader downloader,
                                    final List<MediaBrowser.MediaItem> mediaItems,
                                    final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<CategoryVO> list = serviceProvider.getAllCategories(downloader,
+        final List<CategoryVO> list = serviceProvider.getCategories(downloader,
                 UrlBuilder.getAllCategoriesUrl(getApplicationContext()));
 
         if (list.isEmpty()) {
@@ -610,7 +631,7 @@ public class OpenRadioService
                                      final String primaryItemId,
                                      final List<MediaBrowser.MediaItem> mediaItems,
                                      final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<CategoryVO> list = serviceProvider.getChildCategories(downloader,
+        final List<CategoryVO> list = serviceProvider.getCategories(downloader,
                 UrlBuilder.getChildCategoriesUrl(getApplicationContext(), primaryItemId));
 
         if (list.isEmpty()) {
@@ -662,7 +683,7 @@ public class OpenRadioService
                                         final String categoryId,
                                         final List<MediaBrowser.MediaItem> mediaItems,
                                         final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<RadioStationVO> list = serviceProvider.getStationsInCategory(downloader,
+        final List<RadioStationVO> list = serviceProvider.getStations(downloader,
                 UrlBuilder.getStationsInCategory(getApplicationContext(), categoryId));
 
         MediaMetadata track;
@@ -698,6 +719,67 @@ public class OpenRadioService
         for (RadioStationVO radioStation : radioStations) {
 
             radioStation.setGenre(genre);
+
+            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+                    getApplicationContext(),
+                    radioStation
+            );
+
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+            mediaItems.add(mediaItem);
+        }
+
+        result.sendResult(mediaItems);
+    }
+
+    /**
+     * Load Radio Stations of the provided Country into Menu.
+     *
+     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
+     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
+     * @param countryCode     Country code.
+     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
+     * @param result          Result of the loading.
+     */
+    private void loadCountryStations(final APIServiceProvider serviceProvider,
+                                     final Downloader downloader,
+                                     final String countryCode,
+                                     final List<MediaBrowser.MediaItem> mediaItems,
+                                     final Result<List<MediaBrowser.MediaItem>> result) {
+        final List<RadioStationVO> list = serviceProvider.getStations(downloader,
+                UrlBuilder.getStationsInCountry(getApplicationContext(), countryCode));
+
+        MediaMetadata track;
+
+        if (list.isEmpty()) {
+
+            track = JSONDataParserImpl.buildMediaMetadataForEmptyCategory(
+                    getApplicationContext(),
+                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
+            );
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            mediaItems.add(mediaItem);
+            result.sendResult(mediaItems);
+
+            updatePlaybackState(getString(R.string.no_data_message));
+
+            return;
+        }
+
+        QueueHelper.copyCollection(radioStations, list);
+
+        /*Collections.sort(radioStations, new Comparator<RadioStationVO>() {
+            @Override
+            public int compare(RadioStationVO lhs, RadioStationVO rhs) {
+                return lhs.getName().compareTo(rhs.getName());
+            }
+        });*/
+
+        for (RadioStationVO radioStation : radioStations) {
 
             track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
                     getApplicationContext(),

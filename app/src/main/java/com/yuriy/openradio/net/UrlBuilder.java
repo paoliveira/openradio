@@ -90,6 +90,20 @@ public class UrlBuilder {
     }
 
     /**
+     * Get Uri for the list of the Radio Stations in concrete Category.
+     *
+     * @param context     Context of the application.
+     * @param countryCode Country Code.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getStationsInCountry(final Context context, final String countryCode) {
+        return Uri.parse(
+                BASE_URL + "countries/" + countryCode + "/stations"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
+    }
+
+    /**
      * Get Uri for the concrete Radio Station details.
      *
      * @param context    Context of the application.

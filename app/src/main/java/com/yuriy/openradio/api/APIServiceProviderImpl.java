@@ -72,7 +72,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<CategoryVO> getAllCategories(final Downloader downloader, final Uri uri) {
+    public List<CategoryVO> getCategories(final Downloader downloader, final Uri uri) {
 
         final List<CategoryVO> allCategories = new ArrayList<>();
 
@@ -114,52 +114,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<CategoryVO> getChildCategories(final Downloader downloader, final Uri uri) {
-
-        final List<CategoryVO> childCategories = new ArrayList<>();
-
-        if (mDataParser == null) {
-            Log.w(CLASS_NAME, "Can not parse data, parser is null");
-            return childCategories;
-        }
-
-        final JSONArray array = downloadJSONArray(downloader, uri);
-
-        JSONObject object;
-        CategoryVO category;
-        for (int i = 0; i < array.length(); i++) {
-            try {
-                object = (JSONObject) array.get(i);
-
-                category = CategoryVO.makeDefaultInstance();
-
-                // TODO: Use data parser to parse JSON to value object
-
-                if (object.has(JSONDataParserImpl.KEY_ID)) {
-                    category.setId(object.getInt(JSONDataParserImpl.KEY_ID));
-                }
-                if (object.has(JSONDataParserImpl.KEY_AMOUNT)) {
-                    category.setAmount(object.getInt(JSONDataParserImpl.KEY_AMOUNT));
-                }
-                if (object.has(JSONDataParserImpl.KEY_TITLE)) {
-                    category.setTitle(object.getString(JSONDataParserImpl.KEY_TITLE));
-                }
-                if (object.has(JSONDataParserImpl.KEY_DESCRIPTION)) {
-                    category.setDescription(object.getString(JSONDataParserImpl.KEY_DESCRIPTION));
-                }
-
-                childCategories.add(category);
-
-            } catch (JSONException e) {
-                Log.e(CLASS_NAME, "Can not parse Radio Category:" + e.getMessage());
-            }
-        }
-
-        return childCategories;
-    }
-
-    @Override
-    public List<RadioStationVO> getStationsInCategory(final Downloader downloader, final Uri uri) {
+    public List<RadioStationVO> getStations(final Downloader downloader, final Uri uri) {
 
         final List<RadioStationVO> radioStations = new ArrayList<>();
 
@@ -267,21 +222,6 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         }
 
         return radioStation;
-    }
-
-    @Override
-    public List<RadioStationVO> getStationsInCountry(final Downloader downloader, final Uri uri) {
-
-        final List<RadioStationVO> radioStations = new ArrayList<>();
-
-        if (mDataParser == null) {
-            Log.w(CLASS_NAME, "Can not parse data, parser is null");
-            return radioStations;
-        }
-
-        final JSONArray array = downloadJSONArray(downloader, uri);
-
-        return radioStations;
     }
 
     /**
