@@ -36,7 +36,7 @@ public interface Downloader {
      * Method to download data from provided {@link android.net.Uri}.
      *
      * @param uri Provided {@link android.net.Uri}.
-     * @return Downloaded data/
+     * @return Downloaded data.
      */
-    public String downloadDataFromUri(final Uri uri);
+    byte[] downloadDataFromUri(final Uri uri);
 }

@@ -49,10 +49,10 @@ public class HTTPDownloaderImpl implements Downloader {
     private static final String CLASS_NAME = HTTPDownloaderImpl.class.getSimpleName();
 
     @Override
-    public String downloadDataFromUri(final Uri uri) {
+    public byte[] downloadDataFromUri(final Uri uri) {
         Log.i(CLASS_NAME, "Request URL:" + uri);
         HttpGet request = null;
-        String response = "";
+        byte[] response = new byte[0];
         try {
             request = new HttpGet(uri.toString());
         } catch (IllegalArgumentException e) {
@@ -73,7 +73,7 @@ public class HTTPDownloaderImpl implements Downloader {
                 final HttpEntity entity = httpResponse.getEntity();
                 if (entity != null) {
                     try {
-                        response = EntityUtils.toString(entity);
+                        response = EntityUtils.toByteArray(entity);
                         return response;
                     } catch (IOException e) {
                         Log.e(CLASS_NAME, "EntityUtils error: " + e.getMessage());

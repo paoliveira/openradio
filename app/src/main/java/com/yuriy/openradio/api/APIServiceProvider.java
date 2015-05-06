@@ -43,7 +43,7 @@ public interface APIServiceProvider {
      *
      * @return Collection of the {@link com.yuriy.openradio.api.CategoryVO}s
      */
-    public List<CategoryVO> getCategories(final Downloader downloader, final Uri uri);
+    List<CategoryVO> getCategories(final Downloader downloader, final Uri uri);
 
     /**
      * Get a list of Radio Stations by the provided Uri.
@@ -52,7 +52,7 @@ public interface APIServiceProvider {
      * @param uri        {@link android.net.Uri} of the request.
      * @return collection of the Radio Stations.
      */
-    public List<RadioStationVO> getStations(final Downloader downloader, final Uri uri);
+    List<RadioStationVO> getStations(final Downloader downloader, final Uri uri);
 
     /**
      * Get a Radio Station.
@@ -61,5 +61,5 @@ public interface APIServiceProvider {
      * @param uri        {@link android.net.Uri} of the request.
      * @return Radio Station.
      */
-    public RadioStationVO getStation(final Downloader downloader, final Uri uri);
+    RadioStationVO getStation(final Downloader downloader, final Uri uri);
 }

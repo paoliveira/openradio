@@ -16,6 +16,16 @@
 
 package com.yuriy.openradio.business;
 
+import android.content.Context;
+
+import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.net.HTTPDownloaderImpl;
+import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.AppUtils;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -24,13 +34,48 @@ package com.yuriy.openradio.business;
  */
 public class FlagLoaderImpl implements FlagLoader {
 
-    @Override
-    public void loadFlag(final String countryCode) {
+    private static final String FLAGS_DIR = "/img/flags";
 
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
+
+    /**
+     *
+     */
+    private FlagLoaderImpl() { }
+
+    /**
+     *
+     * @return
+     */
+    public static FlagLoader getInstance() {
+        return new FlagLoaderImpl();
     }
 
     @Override
-    public boolean isFlagLoaded(String countryCode) {
-        return false;
+    public void loadFlag(final Context context, final String countryCode) {
+        EXECUTOR_SERVICE.submit(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        final Downloader downloader = new HTTPDownloaderImpl();
+                        final byte[] data = downloader.downloadDataFromUri(
+                                UrlBuilder.getCountryFlagSmall(countryCode)
+                        );
+                        AppUtils.saveDataToFile(
+                                data,
+                                AppUtils.getExternalStorageDir(context)
+                                        + FLAGS_DIR, "flag-" + countryCode + ".jpg"
+                        );
+                    }
+                }
+        );
+    }
+
+    @Override
+    public boolean isFlagLoaded(final Context context, final String countryCode) {
+        return AppUtils.isFileExist(
+                AppUtils.getExternalStorageDir(context) + FLAGS_DIR + "flag-" + countryCode + ".jpg"
+        );
     }
 }

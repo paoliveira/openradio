@@ -175,7 +175,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
 
         // Download response from the server
-        final String response = downloader.downloadDataFromUri(uri);
+        final String response = new String(downloader.downloadDataFromUri(uri));
         Log.i(CLASS_NAME, "Response:\n" + response);
 
         // Ignore empty response
@@ -249,7 +249,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         }
 
         // Download response from the server
-        final String response = downloader.downloadDataFromUri(uri);
+        final String response = new String(downloader.downloadDataFromUri(uri));
         //Log.i(CLASS_NAME, "URI:" + uri);
         //Log.i(CLASS_NAME, "Response:\n" + response);
 

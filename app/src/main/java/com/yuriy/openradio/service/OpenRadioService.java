@@ -43,6 +43,8 @@ import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
+import com.yuriy.openradio.business.FlagLoader;
+import com.yuriy.openradio.business.FlagLoaderImpl;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -350,15 +352,20 @@ public class OpenRadioService
             ));
 
             // Country Stations
-            if (!mLocationService.getCountryCode().isEmpty()) {
+            final String countryCode = mLocationService.getCountryCode();
+            if (!countryCode.isEmpty()) {
+
+                final FlagLoader flagLoader = FlagLoaderImpl.getInstance();
+                if (!flagLoader.isFlagLoaded(this, countryCode)) {
+                    flagLoader.loadFlag(this, countryCode);
+                }
+
                 mediaItems.add(new MediaBrowser.MediaItem(
                         new MediaDescription.Builder()
                                 .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
                                 .setTitle(getString(R.string.country_stations_title))
                                 .setIconUri(
-                                        UrlBuilder.getCountryFlagSmall(
-                                                mLocationService.getCountryCode()
-                                        )
+                                        UrlBuilder.getCountryFlagSmall(countryCode)
                                 )
                                 .setSubtitle(getString(R.string.country_stations_sub_title))
                                 .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE

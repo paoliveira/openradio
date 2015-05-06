@@ -16,13 +16,17 @@
 
 package com.yuriy.openradio.utils;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -155,5 +159,150 @@ public final class AppUtils {
         predefinedCategories.add("Rock");
         predefinedCategories.add("Talk & Speech");
         return predefinedCategories;
+    }
+
+    /**
+     * This method save provided Bitmap to the specified file.
+     *
+     * @param bitmap   Bitmap data.
+     * @param dirName  Path to the directory.
+     * @param fileName Name of the file.
+     */
+    public static void saveBitmapToFile(final Bitmap bitmap, final String dirName,
+                                        final String fileName) {
+
+        if (bitmap == null) {
+            Log.e(CLASS_NAME, "Save bitmap to file, bitmap is null");
+            return;
+        }
+        // Create directory if needed
+        createDirIfNeeded(dirName);
+
+        //create a file to write bitmap data
+        final File file = new File(dirName + "/" + fileName);
+
+        // http://stackoverflow.com/questions/11539657/open-failed-ebusy-device-or-resource-busy
+        file.renameTo(file);
+        file.delete();
+
+        //Convert bitmap to byte array
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        final byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+        //write the bytes in file
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            fileOutputStream.write(byteArray);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                byteArrayOutputStream.flush();
+            } catch (IOException e) {
+                /* Ignore */
+            }
+            try {
+                if (fileOutputStream != null) {
+                    fileOutputStream.flush();
+                    fileOutputStream.close();
+                }
+            } catch (IOException e) {
+                /* Ignore */
+            }
+        }
+    }
+
+    /**
+     * Save data bytes to a file
+     *
+     * @param data     data as bytes array
+     * @param filePath a path to file
+     *
+     * @return true in case of success, false - otherwise
+     */
+    public static boolean saveDataToFile(byte[] data, String filePath) {
+        if (data == null) {
+            Log.w(CLASS_NAME, "Save data to file -> data is null, path:" + filePath);
+            return false;
+        }
+        File file = new File(filePath);
+        Log.d(CLASS_NAME, "Saving data to file '" + filePath + "', exists:" + file.exists());
+        if (file.exists()) {
+            file.delete();
+        }
+        FileOutputStream mFileOutputStream = null;
+        boolean result = false;
+        try {
+            mFileOutputStream = new FileOutputStream(file.getPath());
+            mFileOutputStream.write(data);
+
+            result = true;
+        } catch (IOException e) {
+            Log.e(CLASS_NAME, "Save Data To File IOException", e);
+        } finally {
+            if (mFileOutputStream != null) {
+                try {
+                    mFileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param data
+     * @param dirName
+     * @param fileName
+     * @return
+     */
+    public static boolean saveDataToFile(final byte[] data, final String dirName,
+                                         final String fileName) {
+        createDirIfNeeded(dirName);
+        return saveDataToFile(data, dirName + "/" + fileName);
+    }
+
+    /**
+     * This method creates a directory with given name is such does not exists
+     *
+     * @param path a path to the directory
+     */
+    public static void createDirIfNeeded(final String path) {
+        final File file = new File(path);
+        if (file.exists() && !file.isDirectory()) {
+            file.delete();
+        }
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+    public static boolean isFileExist(final String path) {
+        final File file = new File(path);
+        return file.exists() && !file.isDirectory();
+    }
+
+    /**
+     * Return {@link java.io.File} object legal to call on API 8.
+     *
+     * @param type The type of files directory to return. May be null for the root of the
+     *             files directory or one of the following Environment constants for a subdirectory:
+     *             DIRECTORY_MUSIC, DIRECTORY_PODCASTS, DIRECTORY_RINGTONES, DIRECTORY_ALARMS,
+     *             DIRECTORY_NOTIFICATIONS, DIRECTORY_PICTURES, or DIRECTORY_MOVIES.
+     * @param context Context of the callee.
+     * @return {@link java.io.File} object.
+     */
+    @TargetApi(8)
+    public static File getExternalFilesDirAPI8(final Context context, final String type) {
+        return context.getExternalFilesDir(type);
+    }
+
+    public static String getExternalStorageDir(final Context context) {
+        final File externalDir = getExternalFilesDirAPI8(context, null);
+        return externalDir != null ? externalDir.getAbsolutePath() : null;
     }
 }

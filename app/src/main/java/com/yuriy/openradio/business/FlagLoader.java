@@ -23,6 +23,8 @@ package com.yuriy.openradio.business;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
+import android.content.Context;
+
 /**
  * {@link FlagLoader} is an interface that provides methods to load flag's images.
  */
@@ -31,15 +33,17 @@ public interface FlagLoader {
     /**
      * Load bitmap of the flag of the provided country.
      *
+     * @param context     Context of the callee.
      * @param countryCode Country code.
      */
-    void loadFlag(final String countryCode);
+    void loadFlag(final Context context, final String countryCode);
 
     /**
      * Check whether flag of the specified country has been loaded.
      *
      * @param countryCode Country code.
+     * @param context     Context of the callee.
      * @return True in case of the flag has been loaded before, False - otherwise.
      */
-    boolean isFlagLoaded(final String countryCode);
+    boolean isFlagLoaded(final Context context, final String countryCode);
 }
