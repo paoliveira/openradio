@@ -18,6 +18,7 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -45,6 +46,7 @@ import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.FlagLoader;
 import com.yuriy.openradio.business.FlagLoaderImpl;
+import com.yuriy.openradio.business.FlagLoaderListener;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -353,24 +355,49 @@ public class OpenRadioService
 
             // Country Stations
             final String countryCode = mLocationService.getCountryCode();
+            //If the Country code is known
             if (!countryCode.isEmpty()) {
 
+                // In order to avoid "IllegalStateException: onLoadChildren must call detach()
+                // or sendResult() before returning for package=com.yuriy.openradio" introduce
+                // Latch here
+                final CountDownLatch latch = new CountDownLatch(1);
+
+                // Load Flag, add event listener, when complete - add Item to the menu
                 final FlagLoader flagLoader = FlagLoaderImpl.getInstance();
-                flagLoader.getFlag(this, countryCode);
+                flagLoader.getFlag(this, countryCode, new FlagLoaderListener() {
 
-                mediaItems.add(new MediaBrowser.MediaItem(
-                        new MediaDescription.Builder()
-                                .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
-                                .setTitle(getString(R.string.country_stations_title))
-                                .setIconUri(
-                                        UrlBuilder.getCountryFlagSmall(countryCode)
-                                )
-                                .setSubtitle(getString(R.string.country_stations_sub_title))
-                                .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-                ));
+                    @Override
+                    public void onComplete(final Bitmap bitmap) {
+                        mediaItems.add(new MediaBrowser.MediaItem(
+                                new MediaDescription.Builder()
+                                        .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
+                                        .setTitle(getString(R.string.country_stations_title))
+                                        .setIconBitmap(bitmap)
+                                        .setSubtitle(getString(R.string.country_stations_sub_title))
+                                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                        ));
+
+                        result.sendResult(mediaItems);
+
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(final String message) {
+                        result.sendResult(mediaItems);
+
+                        latch.countDown();
+                    }
+                });
+
+                try {
+                    latch.await(3, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    /* Ignore */
+                    result.sendResult(mediaItems);
+                }
             }
-
-            result.sendResult(mediaItems);
         } else if (MediaIDHelper.MEDIA_ID_ALL_CATEGORIES.equals(parentId)) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();

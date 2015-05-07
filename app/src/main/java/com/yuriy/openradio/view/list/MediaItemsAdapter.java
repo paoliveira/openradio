@@ -17,6 +17,7 @@
 package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
+import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
@@ -28,7 +29,6 @@ import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.ImageFetcher;
-import com.yuriy.openradio.utils.MediaIDHelper;
 
 import java.util.List;
 
@@ -76,28 +76,16 @@ public class MediaItemsAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, final ViewGroup parent) {
         final MediaBrowser.MediaItem mediaItem = (MediaBrowser.MediaItem) getItem(position);
+        final MediaDescription description = mediaItem.getDescription();
+
         convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
 
-        mViewHolder.mNameView.setText(mediaItem.getDescription().getTitle());
-        mViewHolder.mDescriptionView.setText(mediaItem.getDescription().getSubtitle());
-        if (mediaItem.getMediaId().equals(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)) {
-            mViewHolder.mImageView.setImageDrawable(
-                    mCurrentActivity.getDrawable(R.drawable.ic_all_categories));
+        mViewHolder.mNameView.setText(description.getTitle());
+        mViewHolder.mDescriptionView.setText(description.getSubtitle());
+        if (description.getIconBitmap() != null) {
+            mViewHolder.mImageView.setImageBitmap(description.getIconBitmap());
         } else {
-            if (mediaItem.isBrowsable()) {
-                if (mediaItem.getDescription().getTitle().equals(
-                        mCurrentActivity.getString(R.string.category_empty)
-                )) {
-                    mViewHolder.mImageView.setImageDrawable(
-                            mCurrentActivity.getDrawable(R.drawable.ic_radio_station_empty));
-                } else {
-                    mViewHolder.mImageView.setImageDrawable(
-                            mCurrentActivity.getDrawable(R.drawable.ic_child_categories));
-                }
-            } else if (mediaItem.isPlayable()) {
-                mViewHolder.mImageView.setImageDrawable(
-                        mCurrentActivity.getDrawable(R.drawable.ic_radio_station));
-            }
+            mViewHolder.mImageView.setImageURI(description.getIconUri());
         }
 
         return convertView;

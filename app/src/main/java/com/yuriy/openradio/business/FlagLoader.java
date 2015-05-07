@@ -35,6 +35,7 @@ public interface FlagLoader {
      *
      * @param context     Context of the callee.
      * @param countryCode Country code.
+     * @param listener    Listener for the loader events.
      */
-    void getFlag(final Context context, final String countryCode);
+    void getFlag(final Context context, final String countryCode, final FlagLoaderListener listener);
 }

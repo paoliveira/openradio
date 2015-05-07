@@ -55,10 +55,16 @@ public class FlagLoaderImpl implements FlagLoader {
     }
 
     @Override
-    public void getFlag(final Context context, final String countryCode) {
+    public void getFlag(final Context context, final String countryCode,
+                        final FlagLoaderListener listener) {
         final File file = new File(getFlagUrl(context, countryCode));
         if (file.exists() && file.isFile()) {
-            final Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+
+            if (listener == null) {
+                return;
+            }
+            listener.onComplete(BitmapFactory.decodeFile(file.getAbsolutePath()));
+
             return;
         }
         EXECUTOR_SERVICE.submit(
@@ -74,6 +80,11 @@ public class FlagLoaderImpl implements FlagLoader {
                                 data,
                                 getFlagUrl(context, countryCode)
                         );
+
+                        if (listener == null) {
+                            return;
+                        }
+                        listener.onComplete(BitmapFactory.decodeFile(file.getAbsolutePath()));
                     }
                 }
         );
@@ -87,6 +98,9 @@ public class FlagLoaderImpl implements FlagLoader {
      * @return Url to the flag image of the country.
      */
     private String getFlagUrl(final Context context, final String countryCode) {
-        return AppUtils.getExternalStorageDir(context) + FLAGS_DIR + "flag-" + countryCode + ".jpg";
+        // Create directory if such does nor exists
+        AppUtils.createDirIfNeeded(AppUtils.getExternalStorageDir(context) + FLAGS_DIR);
+        // return a path to the file
+        return AppUtils.getExternalStorageDir(context) + FLAGS_DIR + "/flag-" + countryCode + ".jpg";
     }
 }
