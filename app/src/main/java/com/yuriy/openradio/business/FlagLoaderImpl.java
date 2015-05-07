@@ -17,12 +17,15 @@
 package com.yuriy.openradio.business;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 
+import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -52,7 +55,12 @@ public class FlagLoaderImpl implements FlagLoader {
     }
 
     @Override
-    public void loadFlag(final Context context, final String countryCode) {
+    public void getFlag(final Context context, final String countryCode) {
+        final File file = new File(getFlagUrl(context, countryCode));
+        if (file.exists() && file.isFile()) {
+            final Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+            return;
+        }
         EXECUTOR_SERVICE.submit(
                 new Runnable() {
 
@@ -64,18 +72,21 @@ public class FlagLoaderImpl implements FlagLoader {
                         );
                         AppUtils.saveDataToFile(
                                 data,
-                                AppUtils.getExternalStorageDir(context)
-                                        + FLAGS_DIR, "flag-" + countryCode + ".jpg"
+                                getFlagUrl(context, countryCode)
                         );
                     }
                 }
         );
     }
 
-    @Override
-    public boolean isFlagLoaded(final Context context, final String countryCode) {
-        return AppUtils.isFileExist(
-                AppUtils.getExternalStorageDir(context) + FLAGS_DIR + "flag-" + countryCode + ".jpg"
-        );
+    /**
+     * Build url to the county's flag.
+     *
+     * @param context     Callee context.
+     * @param countryCode Country code.
+     * @return Url to the flag image of the country.
+     */
+    private String getFlagUrl(final Context context, final String countryCode) {
+        return AppUtils.getExternalStorageDir(context) + FLAGS_DIR + "flag-" + countryCode + ".jpg";
     }
 }

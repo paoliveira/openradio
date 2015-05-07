@@ -36,14 +36,5 @@ public interface FlagLoader {
      * @param context     Context of the callee.
      * @param countryCode Country code.
      */
-    void loadFlag(final Context context, final String countryCode);
-
-    /**
-     * Check whether flag of the specified country has been loaded.
-     *
-     * @param countryCode Country code.
-     * @param context     Context of the callee.
-     * @return True in case of the flag has been loaded before, False - otherwise.
-     */
-    boolean isFlagLoaded(final Context context, final String countryCode);
+    void getFlag(final Context context, final String countryCode);
 }

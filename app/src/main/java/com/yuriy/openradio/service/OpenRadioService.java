@@ -356,9 +356,7 @@ public class OpenRadioService
             if (!countryCode.isEmpty()) {
 
                 final FlagLoader flagLoader = FlagLoaderImpl.getInstance();
-                if (!flagLoader.isFlagLoaded(this, countryCode)) {
-                    flagLoader.loadFlag(this, countryCode);
-                }
+                flagLoader.getFlag(this, countryCode);
 
                 mediaItems.add(new MediaBrowser.MediaItem(
                         new MediaDescription.Builder()
