@@ -240,14 +240,23 @@ public class MainActivity extends FragmentActivity {
         // Save List-Position Map
         outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) listPositionMap);
 
+        // Get first visible item id
+        int firstVisiblePosition = listView.getFirstVisiblePosition();
+        // Just in case ...
+        if (firstVisiblePosition < 0) {
+            firstVisiblePosition = 0;
+        }
+
         // Save first visible ID of the List
-        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, listView.getFirstVisiblePosition());
+        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
 
         // Keep last selected position for the given category.
-        // We will use it when back to this category
-        listPositionMap.put(
-                mediaItemsStack.get(mediaItemsStack.size() - 1), listView.getFirstVisiblePosition()
-        );
+        // We will use it when back to this category. Only if collection is not empty.
+        if (!mediaItemsStack.isEmpty()) {
+            listPositionMap.put(
+                    mediaItemsStack.get(mediaItemsStack.size() - 1), firstVisiblePosition
+            );
+        }
 
         super.onSaveInstanceState(outState);
     }
