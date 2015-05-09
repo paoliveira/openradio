@@ -187,7 +187,7 @@ public final class AppUtils {
 
         //Convert bitmap to byte array
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
         final byte[] byteArray = byteArrayOutputStream.toByteArray();
 
         //write the bytes in file

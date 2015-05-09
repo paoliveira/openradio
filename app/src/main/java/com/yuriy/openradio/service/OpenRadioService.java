@@ -60,7 +60,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -201,6 +203,8 @@ public class OpenRadioService
      */
     private final LocationService mLocationService = LocationService.getInstance();
 
+    private static final Object RADIO_STATIONS_MANAGING_LOCK = new Object();
+
     private enum AudioFocus {
 
         /**
@@ -262,9 +266,13 @@ public class OpenRadioService
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(final Intent intent, final int flags, final int startId) {
 
         Log.i(CLASS_NAME, "On Start Command: " + intent);
+
+        if (intent == null) {
+            return super.onStartCommand(intent, flags, startId);
+        }
 
         final Bundle bundle = intent.getExtras();
         if (bundle != null && bundle.containsKey(KEY_NAME_COMMAND_NAME)) {
@@ -737,14 +745,9 @@ public class OpenRadioService
             return;
         }
 
-        QueueHelper.copyCollection(radioStations, list);
-
-        /*Collections.sort(radioStations, new Comparator<RadioStationVO>() {
-            @Override
-            public int compare(RadioStationVO lhs, RadioStationVO rhs) {
-                return lhs.getName().compareTo(rhs.getName());
-            }
-        });*/
+        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            QueueHelper.copyCollection(radioStations, list);
+        }
 
         final String genre = QueueHelper.getGenreNameById(categoryId, childCategories);
 
@@ -802,14 +805,9 @@ public class OpenRadioService
             return;
         }
 
-        QueueHelper.copyCollection(radioStations, list);
-
-        /*Collections.sort(radioStations, new Comparator<RadioStationVO>() {
-            @Override
-            public int compare(RadioStationVO lhs, RadioStationVO rhs) {
-                return lhs.getName().compareTo(rhs.getName());
-            }
-        });*/
+        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            QueueHelper.copyCollection(radioStations, list);
+        }
 
         for (RadioStationVO radioStation : radioStations) {
 
@@ -850,7 +848,9 @@ public class OpenRadioService
             return;
         }
 
-        QueueHelper.updateRadioStation(radioStation, radioStations);
+        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            QueueHelper.updateRadioStation(radioStation, radioStations);
+        }
 
         MediaMetadata track;
         track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
@@ -895,76 +895,51 @@ public class OpenRadioService
     }
 
     /**
-     * Starts playing the current Radio Station in the playing queue.
+     * Retrieve currently selected Radio Station. If the URl is not yet obtained via API the
+     * it will be retrieved as well, appropriate event will be dispatched via listener.
+     *
+     * @param listener {@link RadioStationUpdateListener}
      */
-    private void playCurrentStation() {
-        final MediaMetadata track = getCurrentPlayingRadioStation();
-        if (track == null) {
-            Log.e(CLASS_NAME, "Play Radio Station: ignoring request to play next song, " +
-                    "because cannot find it." +
-                    " CurrentIndex=" + mCurrentIndexOnQueue + "." +
-                    " PlayQueue.size=" + playingQueue.size());
-            return;
-        }
-        final String source = track.getString(JSONDataParserImpl.CUSTOM_METADATA_TRACK_SOURCE);
-        Log.d(CLASS_NAME, "Play Radio Station: current (" + mCurrentIndexOnQueue + ") in playingQueue. " +
-                " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
-                " source=" + source);
-
-        mState = PlaybackState.STATE_STOPPED;
-
-        // release everything except MediaPlayer
-        relaxResources(false);
-
-        createMediaPlayerIfNeeded();
-
-        mState = PlaybackState.STATE_BUFFERING;
-
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-
-        try {
-            mMediaPlayer.setDataSource(source);
-
-            // Starts preparing the media player in the background. When
-            // it's done, it will call our OnPreparedListener (that is,
-            // the onPrepared() method on this class, since we set the
-            // listener to 'this'). Until the media player is prepared,
-            // we *cannot* call start() on it!
-            mMediaPlayer.prepareAsync();
-
-            // If we are streaming from the internet, we want to hold a
-            // Wifi lock, which prevents the Wifi radio from going to
-            // sleep while the song is playing.
-            mWifiLock.acquire();
-
-            updatePlaybackState(null);
-            updateMetadata();
-
-        } catch (IOException ex) {
-            Log.e(CLASS_NAME, "IOException playing song:" + ex.getMessage());
-            updatePlaybackState(getString(R.string.can_not_play_station));
-        }
-    }
-
-    private MediaMetadata getCurrentPlayingRadioStation() {
+    private void getCurrentPlayingRadioStation(final RadioStationUpdateListener listener) {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, playingQueue)) {
-            return null;
+            if (listener != null) {
+                listener.onComplete(null);
+            }
+            return;
         }
         final MediaSession.QueueItem item = playingQueue.get(mCurrentIndexOnQueue);
         if (item == null) {
-            return null;
+            if (listener != null) {
+                listener.onComplete(null);
+            }
+            return;
         }
         final String mediaId = item.getDescription().getMediaId();
-        final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
 
-        if (radioStation == null) {
-            return null;
+        RadioStationVO radioStation;
+        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
+        }
+
+        // Make a copy of the Radio Station
+        final RadioStationVO radioStationCopy = radioStation;
+
+        if (radioStationCopy == null) {
+            if (listener != null) {
+                listener.onComplete(null);
+            }
+            return;
         }
 
         // If there is no detailed information about Radio Station - download it here and
         // update model.
-        if (!radioStation.getIsUpdated()) {
-            final CountDownLatch latch = new CountDownLatch(1);
+
+        if (radioStationCopy.getStreamURL() != null && !radioStationCopy.getStreamURL().isEmpty()) {
+            radioStationCopy.setIsUpdated(true);
+        }
+
+        if (!radioStationCopy.getIsUpdated()) {
+
             apiCallExecutor.submit(
                     new Runnable() {
 
@@ -976,30 +951,36 @@ public class OpenRadioService
                                     new HTTPDownloaderImpl(),
                                     UrlBuilder.getStation(
                                             getApplicationContext(),
-                                            String.valueOf(radioStation.getId())
+                                            String.valueOf(radioStationCopy.getId())
                                     )
                             );
-                            radioStation.setStreamURL(radioStationUpdated.getStreamURL());
-                            radioStation.setBitRate(radioStationUpdated.getBitRate());
-                            radioStation.setIsUpdated(true);
+                            radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
+                            radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
+                            radioStationCopy.setIsUpdated(true);
 
-                            latch.countDown();
+                            if (listener != null) {
+                                listener.onComplete(
+                                        buildMetadata(radioStationCopy)
+                                );
+                            }
                         }
                     }
             );
-
-            try {
-                latch.await(3, TimeUnit.SECONDS);
-            } catch (final InterruptedException e) {
-                /* Ignore this exception */
+        } else {
+            if (listener != null) {
+                listener.onComplete(
+                        buildMetadata(radioStationCopy)
+                );
             }
         }
+    }
 
+    private MediaMetadata buildMetadata(final RadioStationVO radioStation) {
         if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
             updatePlaybackState(getString(R.string.no_data_message));
         }
 
-        Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
+        //Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
         return JSONDataParserImpl.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation
@@ -1017,8 +998,10 @@ public class OpenRadioService
         final MediaSession.QueueItem queueItem = playingQueue.get(mCurrentIndexOnQueue);
         final String mediaId = queueItem.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
-        final MediaMetadata track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(getApplicationContext(),
-                radioStation);
+        final MediaMetadata track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+                getApplicationContext(),
+                radioStation
+        );
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
         if (!mediaId.equals(trackId)) {
             throw new IllegalStateException("track ID (" + trackId + ") " +
@@ -1088,9 +1071,71 @@ public class OpenRadioService
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing
-            playCurrentStation();
+            getCurrentPlayingRadioStation(radioStationUpdateListener);
         }
     }
+
+    /**
+     * Listener for the getting current playing Radio Station data event.
+     */
+    private final RadioStationUpdateListener radioStationUpdateListener
+            = new RadioStationUpdateListener() {
+
+        @Override
+        public void onComplete(final MediaMetadata track) {
+            if (track == null) {
+                Log.e(CLASS_NAME, "Play Radio Station: ignoring request to play next song, " +
+                        "because cannot find it." +
+                        " CurrentIndex=" + mCurrentIndexOnQueue + "." +
+                        " PlayQueue.size=" + playingQueue.size());
+                return;
+            }
+            final String source = track.getString(JSONDataParserImpl.CUSTOM_METADATA_TRACK_SOURCE);
+            Log.d(CLASS_NAME, "Play Radio Station: current (" + mCurrentIndexOnQueue + ") in playingQueue. " +
+                    " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
+                    " source=" + source);
+
+            mState = PlaybackState.STATE_STOPPED;
+
+            // release everything except MediaPlayer
+            relaxResources(false);
+
+            createMediaPlayerIfNeeded();
+
+            mState = PlaybackState.STATE_BUFFERING;
+
+            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+
+            final Map<String, String> headers = new HashMap<>();
+            headers.put("Connection", "keep-alive");
+            headers.put("Keep-Alive", "timeout=2000");
+
+            try {
+                mMediaPlayer.setDataSource(
+                        getApplicationContext(), Uri.parse(source), headers
+                );
+
+                // Starts preparing the media player in the background. When
+                // it's done, it will call our OnPreparedListener (that is,
+                // the onPrepared() method on this class, since we set the
+                // listener to 'this'). Until the media player is prepared,
+                // we *cannot* call start() on it!
+                mMediaPlayer.prepareAsync();
+
+                // If we are streaming from the internet, we want to hold a
+                // Wifi lock, which prevents the Wifi radio from going to
+                // sleep while the song is playing.
+                mWifiLock.acquire();
+
+                updatePlaybackState(null);
+                updateMetadata();
+
+            } catch (IOException ex) {
+                Log.e(CLASS_NAME, "IOException playing song:" + ex.getMessage());
+                updatePlaybackState(getString(R.string.can_not_play_station));
+            }
+        }
+    };
 
     /**
      * Reconfigures MediaPlayer according to audio focus settings and
@@ -1382,10 +1427,12 @@ public class OpenRadioService
                 return;
             }
 
-            QueueHelper.copyCollection(playingQueue, QueueHelper.getPlayingQueue(
-                    getApplicationContext(),
-                    radioStations)
-            );
+            synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+                QueueHelper.copyCollection(playingQueue, QueueHelper.getPlayingQueue(
+                                getApplicationContext(),
+                                radioStations)
+                );
+            }
 
             mSession.setQueue(playingQueue);
 

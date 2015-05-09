@@ -17,13 +17,14 @@
 package com.yuriy.openradio.business;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.yuriy.openradio.R;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.BitmapHelper;
 
 import java.io.File;
 import java.util.concurrent.ExecutorService;
@@ -37,18 +38,21 @@ import java.util.concurrent.Executors;
  */
 public class FlagLoaderImpl implements FlagLoader {
 
+    /**
+     * Path to the directory with Flags, under app's folder.
+     */
     private static final String FLAGS_DIR = "/img/flags";
 
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
     /**
-     *
+     * Private constructor.
      */
     private FlagLoaderImpl() { }
 
     /**
-     *
-     * @return
+     * Factory method to make default instance of the {@link FlagLoader}.
+     * @return Default instance of the {@link FlagLoader}.
      */
     public static FlagLoader getInstance() {
         return new FlagLoaderImpl();
@@ -57,7 +61,9 @@ public class FlagLoaderImpl implements FlagLoader {
     @Override
     public void getFlag(final Context context, final String countryCode,
                         final FlagLoaderListener listener) {
+        // Get a Flag's file
         final File file = new File(getFlagUrl(context, countryCode));
+        // If Flag exists - return it
         if (file.exists() && file.isFile()) {
 
             if (listener == null) {
@@ -67,6 +73,7 @@ public class FlagLoaderImpl implements FlagLoader {
 
             return;
         }
+        // Otherwise retrieve it from the Geo Service
         EXECUTOR_SERVICE.submit(
                 new Runnable() {
 
@@ -76,9 +83,17 @@ public class FlagLoaderImpl implements FlagLoader {
                         final byte[] data = downloader.downloadDataFromUri(
                                 UrlBuilder.getCountryFlagSmall(countryCode)
                         );
-                        AppUtils.saveDataToFile(
-                                data,
-                                getFlagUrl(context, countryCode)
+
+                        AppUtils.saveBitmapToFile(
+                                BitmapHelper.overlayWithFlag(
+                                        BitmapFactory.decodeResource(
+                                                context.getResources(),
+                                                R.drawable.ic_all_categories
+                                        ),
+                                        data
+                                ),
+                                AppUtils.getExternalStorageDir(context) + FLAGS_DIR,
+                                "flag-" + countryCode + ".jpg"
                         );
 
                         if (listener == null) {

@@ -373,6 +373,7 @@ public class QueueActivity extends FragmentActivity {
         Log.d(CLASS_NAME, "On Playback State Changed " + state);
         if (state == null) {
             hideProgressBar();
+            stop();
             return;
         }
 
@@ -517,5 +518,15 @@ public class QueueActivity extends FragmentActivity {
             return;
         }
         mTransportControls.skipToNext();
+    }
+
+    /**
+     * Stop media handler
+     */
+    private void stop() {
+        if (mTransportControls == null) {
+            return;
+        }
+        mTransportControls.stop();
     }
 }

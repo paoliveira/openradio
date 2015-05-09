@@ -90,7 +90,7 @@ public class JSONDataParserImpl implements DataParser {
                                                                    final RadioStationVO radioStation) {
 
         final String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/radio_station_bg";
+                context.getPackageName() + "/drawable/radio_station_alpha_bg";
 
         final String title = radioStation.getName();
         //final String album = radioStation.getString(JSON_ALBUM);
