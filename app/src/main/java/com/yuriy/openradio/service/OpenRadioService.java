@@ -405,6 +405,8 @@ public class OpenRadioService
                     /* Ignore */
                     result.sendResult(mediaItems);
                 }
+            } else {
+                result.sendResult(mediaItems);
             }
         } else if (MediaIDHelper.MEDIA_ID_ALL_CATEGORIES.equals(parentId)) {
             // Use result.detach to allow calling result.sendResult from another thread:

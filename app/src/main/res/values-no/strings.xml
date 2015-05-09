@@ -32,6 +32,8 @@
     <string name="no_metadata">Ingen Metadata</string>
     <string name="can_not_skip">Kan ikke hoppe</string>
     <string name="category_empty">Kategorien er tom</string>
+    <string name="country_stations_title">Landets radiostasjoner</string>
+    <string name="country_stations_sub_title">radiostasjoner i landet</string>
     <string name="use_location_service_message">Beliggenhet Tjenesten er deaktivert på enheten.\nFor å bruke ytterligere funksjoner av Open Radio (slik at radiostasjoner i nåværende posisjon) kan du aktivere plasseringstjeneste.</string>
     <string name="location_service">Location Service</string>
     <string name="enable_location_service_btn_label">Aktiver Location Service</string>
