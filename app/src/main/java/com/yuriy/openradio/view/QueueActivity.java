@@ -109,6 +109,11 @@ public class QueueActivity extends FragmentActivity {
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
 
     /**
+     * Key value for the selected media id (from {@link MainActivity}).
+     */
+    private static final String BUNDLE_ARG_SELECTED_MEDIA_ID = "BUNDLE_ARG_SELECTED_MEDIA_ID";
+
+    /**
      * Progress Bar to indicate that Radio Station is going to play.
      */
     private ProgressBar mProgressBar;
@@ -153,9 +158,6 @@ public class QueueActivity extends FragmentActivity {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
-
-                mListFirstVisiblePosition = position;
-
                 final MediaSession.QueueItem item = mQueueAdapter.getItem(position);
                 mTransportControls.skipToQueueItem(item.getQueueId());
             }
@@ -227,11 +229,30 @@ public class QueueActivity extends FragmentActivity {
      * launching.
      *
      * @param context Context of the callee.
+     * @param mediaId Selected Media Id.
      *
      * @return {@link android.content.Intent}
      */
-    public static Intent makeIntent(final Context context) {
-        return new Intent(context, QueueActivity.class);
+    public static Intent makeIntent(final Context context, final String mediaId) {
+        final Intent intent = new Intent(context, QueueActivity.class);
+        intent.putExtra(BUNDLE_ARG_SELECTED_MEDIA_ID, mediaId);
+        return intent;
+    }
+
+    /**
+     * Extract the value of the Selected Media Id (selected in the {@link MainActivity}).
+     *
+     * @param intent Intent associated with the start of the {@link QueueActivity}.
+     * @return Value of the Selected Media Id.
+     */
+    private static String getSelectedMediaId(final Intent intent) {
+        if (intent == null) {
+            return "";
+        }
+        if (!intent.hasExtra(BUNDLE_ARG_SELECTED_MEDIA_ID)) {
+            return "";
+        }
+        return intent.getStringExtra(BUNDLE_ARG_SELECTED_MEDIA_ID);
     }
 
     /**
@@ -303,7 +324,23 @@ public class QueueActivity extends FragmentActivity {
 
             // Update queue
             final List<MediaSession.QueueItem> queue = mMediaController.getQueue();
+
             if (queue != null) {
+
+                // If the ie no first visible position restored, try to get selected id from the
+                // bundles of the Intent.
+
+                if (mListFirstVisiblePosition == 0) {
+                    final int queueSize = queue.size();
+                    final String selectedMediaId = getSelectedMediaId(getIntent());
+                    for (int i = 0; i < queueSize; i++) {
+                        if (queue.get(i).getDescription().getMediaId().equals(selectedMediaId)) {
+                            mListFirstVisiblePosition = i;
+                            break;
+                        }
+                    }
+                }
+
                 mQueueAdapter.clear();
                 mQueueAdapter.notifyDataSetInvalidated();
                 mQueueAdapter.addAll(queue);

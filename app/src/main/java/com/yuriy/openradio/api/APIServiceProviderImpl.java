@@ -153,7 +153,10 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                             = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
                     radioStation.setStreamURL(streamVO.getUrl());
                     radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
-                    radioStation.setId(streamVO.getId());
+                }
+
+                if (object.has(JSONDataParserImpl.KEY_ID)) {
+                    radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
                 }
 
                 if (radioStation.getStreamURL().isEmpty()) {

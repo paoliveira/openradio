@@ -173,13 +173,15 @@ public class MainActivity extends FragmentActivity {
 
                 showProgressBar();
 
+                final String mediaId = item.getMediaId();
+
                 // If it is browsable - then we navigate to the next category
                 if (item.isBrowsable()) {
-                    addMediaItemToStack(item.getMediaId());
+                    addMediaItemToStack(mediaId);
                 } else if (item.isPlayable()) {
                     // Else - we play an item
                     getMediaController().getTransportControls().playFromMediaId(
-                            item.getMediaId(), null
+                            mediaId, null
                     );
 
                     // Call appropriate activity for the items playing
@@ -188,7 +190,9 @@ public class MainActivity extends FragmentActivity {
 
                                 @Override
                                 public void run() {
-                                    startActivity(QueueActivity.makeIntent(MainActivity.this));
+                                    startActivity(
+                                            QueueActivity.makeIntent(MainActivity.this, mediaId)
+                                    );
                                 }
                             }
                     );
