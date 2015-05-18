@@ -529,11 +529,7 @@ public class MainActivity extends FragmentActivity {
                     subscriptionCallback
             );
 
-            if (getMediaController() != null) {
-                return;
-            }
-
-            // Initialize media controller
+            // (Re)-Initialize media controller
             final MediaController mediaController = new MediaController(
                     MainActivity.this,
                     mMediaBrowser.getSessionToken()
