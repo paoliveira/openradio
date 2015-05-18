@@ -42,6 +42,8 @@ import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
 import java.io.Serializable;
@@ -135,8 +137,11 @@ public class MainActivity extends FragmentActivity {
         // Register local receivers.
         registerReceivers();
 
+        // Handles loading the  image in a background thread
+        final ImageFetcher imageFetcher = ImageFetcherFactory.getSmallImageFetcher(this);
+
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(this, null);
+        mBrowserAdapter = new MediaItemsAdapter(this, imageFetcher);
 
         // Initialize progress bar
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_view);

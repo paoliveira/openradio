@@ -22,6 +22,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.support.v4.app.FragmentActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
@@ -304,5 +306,23 @@ public final class AppUtils {
     public static String getExternalStorageDir(final Context context) {
         final File externalDir = getExternalFilesDirAPI8(context, null);
         return externalDir != null ? externalDir.getAbsolutePath() : null;
+    }
+
+    public static int getLongestScreenSize(FragmentActivity context) {
+        // Fetch screen height and width, to use as our max size when loading images as this
+        // activity runs full screen
+        final DisplayMetrics displayMetrics = new DisplayMetrics();
+        context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        final int height = displayMetrics.heightPixels;
+        final int width = displayMetrics.widthPixels;
+
+        // For this sample we'll use half of the longest width to resize our images. As the
+        // image scaling ensures the image is larger than this, we should be left with a
+        // resolution that is appropriate for both portrait and landscape. For best image quality
+        // we shouldn't divide by 2, but this will use more memory and require a larger memory
+        // cache.
+        // TODO
+
+        return height > width ? height : width;
     }
 }

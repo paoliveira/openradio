@@ -48,6 +48,10 @@ public class RadioStationVO {
 
     private String mGenre = "";
 
+    private String mImageUrl = "";
+
+    private String mThumbUrl = "";
+
     /**
      * Flag indicates that Station's data has been downloaded and updates.
      * In version Dirble v2 when list of the stations received they comes without stream url
@@ -133,17 +137,36 @@ public class RadioStationVO {
         mIsUpdated = value;
     }
 
+    public String getImageUrl() {
+        return mImageUrl;
+    }
+
+    public void setImageUrl(final String value) {
+        mImageUrl = value;
+    }
+
+    public String getThumbUrl() {
+        return mThumbUrl;
+    }
+
+    public void setThumbUrl(final String value) {
+        mThumbUrl = value;
+    }
+
     @Override
     public String toString() {
-        return "RadioStation{" +
-                "id=" + mId +
-                ", status=" + mStatus +
-                ", name='" + mName + '\'' +
-                ", streamURL='" + mStreamURL + '\'' +
-                ", webSite='" + mWebSite + '\'' +
-                ", country='" + mCountry + '\'' +
-                ", bitRate='" + mBitRate + '\'' +
-                ", genre='" + mGenre + '\'' +
+        return "RadioStationVO{" +
+                "mId=" + mId +
+                ", mStatus=" + mStatus +
+                ", mName='" + mName + '\'' +
+                ", mStreamURL='" + mStreamURL + '\'' +
+                ", mWebSite='" + mWebSite + '\'' +
+                ", mCountry='" + mCountry + '\'' +
+                ", mBitRate='" + mBitRate + '\'' +
+                ", mGenre='" + mGenre + '\'' +
+                ", mImageUrl='" + mImageUrl + '\'' +
+                ", mThumbUrl='" + mThumbUrl + '\'' +
+                ", mIsUpdated=" + mIsUpdated +
                 '}';
     }
 

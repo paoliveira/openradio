@@ -19,6 +19,7 @@ package com.yuriy.openradio.view.list;
 import android.app.Activity;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
+import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +45,7 @@ public class MediaItemsAdapter extends BaseAdapter {
 
     private ListAdapterViewHolder mViewHolder;
     private Activity mCurrentActivity;
-    //private ImageFetcher mImageFetcher;
+    private ImageFetcher mImageFetcher;
     private final ListAdapterData<MediaBrowser.MediaItem> mAdapterData = new ListAdapterData<>(null);
 
     /**
@@ -55,7 +56,7 @@ public class MediaItemsAdapter extends BaseAdapter {
      */
     public MediaItemsAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
         mCurrentActivity = activity;
-        //mImageFetcher = imageFetcher;
+        mImageFetcher = imageFetcher;
     }
 
     @Override
@@ -85,7 +86,20 @@ public class MediaItemsAdapter extends BaseAdapter {
         if (description.getIconBitmap() != null) {
             mViewHolder.mImageView.setImageBitmap(description.getIconBitmap());
         } else {
-            mViewHolder.mImageView.setImageURI(description.getIconUri());
+            final Uri iconUri = description.getIconUri();
+            if (mediaItem.isPlayable()) {
+
+                if (iconUri != null
+                        && iconUri.toString().startsWith("android")) {
+                    mViewHolder.mImageView.setImageURI(iconUri);
+                } else {
+                    // Load the image asynchronously into the ImageView, this also takes care of
+                    // setting a placeholder image while the background thread runs
+                    mImageFetcher.loadImage(iconUri, mViewHolder.mImageView);
+                }
+            } else {
+                mViewHolder.mImageView.setImageURI(iconUri);
+            }
         }
 
         return convertView;

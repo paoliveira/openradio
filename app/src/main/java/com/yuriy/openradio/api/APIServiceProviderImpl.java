@@ -133,31 +133,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
                 radioStation = RadioStationVO.makeDefaultInstance();
 
-                // TODO: Use data parser to parse JSON to value object
-
-                if (object.has(JSONDataParserImpl.KEY_STATUS)) {
-                    radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
-                }
-                if (object.has(JSONDataParserImpl.KEY_NAME)) {
-                    radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
-                }
-                if (object.has(JSONDataParserImpl.KEY_WEBSITE)) {
-                    radioStation.setWebSite(object.getString(JSONDataParserImpl.KEY_WEBSITE));
-                }
-                if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
-                    radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
-                }
-
-                if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
-                    final StreamVO streamVO
-                            = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
-                    radioStation.setStreamURL(streamVO.getUrl());
-                    radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
-                }
-
-                if (object.has(JSONDataParserImpl.KEY_ID)) {
-                    radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
-                }
+                updateRadioStation(radioStation, object);
 
                 if (radioStation.getStreamURL().isEmpty()) {
                     continue;
@@ -196,30 +172,8 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             return radioStation;
         }
 
-        // TODO: Use data parser to parse JSON to value object
-
         try {
-
-            if (object.has(JSONDataParserImpl.KEY_STATUS)) {
-                radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
-            }
-            if (object.has(JSONDataParserImpl.KEY_NAME)) {
-                radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
-            }
-            if (object.has(JSONDataParserImpl.KEY_WEBSITE)) {
-                radioStation.setWebSite(object.getString(JSONDataParserImpl.KEY_WEBSITE));
-            }
-            if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
-                radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
-            }
-
-            if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
-                final StreamVO streamVO
-                        = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
-                radioStation.setStreamURL(streamVO.getUrl());
-                radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
-                radioStation.setId(streamVO.getId());
-            }
+            updateRadioStation(radioStation, object);
         } catch (JSONException e) {
             Log.e(CLASS_NAME, "Can not parse Radio Station:" + e.getMessage());
         }
@@ -330,5 +284,58 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         }
 
         return streamVO;
+    }
+
+    /**
+     * Updates {@link RadioStationVO} with the values extraced from the JSOn Object.
+     *
+     * @param radioStation Instance of the {@link RadioStationVO} to be updated.
+     * @param object       JSON object that holds informational parameters.
+     * @throws JSONException
+     */
+    private void updateRadioStation(final RadioStationVO radioStation, final JSONObject object)
+            throws JSONException {
+
+        if (object.has(JSONDataParserImpl.KEY_STATUS)) {
+            radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
+        }
+        if (object.has(JSONDataParserImpl.KEY_NAME)) {
+            radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
+        }
+        if (object.has(JSONDataParserImpl.KEY_WEBSITE)) {
+            radioStation.setWebSite(object.getString(JSONDataParserImpl.KEY_WEBSITE));
+        }
+        if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
+            radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
+        }
+
+        if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
+            final StreamVO streamVO
+                    = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
+            radioStation.setStreamURL(streamVO.getUrl());
+            radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
+        }
+
+        if (object.has(JSONDataParserImpl.KEY_ID)) {
+            radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
+        }
+
+        if (object.has(JSONDataParserImpl.KEY_IMAGE)) {
+            // TODO : Encapsulate Image in the same way as Stream.
+            final JSONObject imageObject = object.getJSONObject(JSONDataParserImpl.KEY_IMAGE);
+
+            if (imageObject.has(JSONDataParserImpl.KEY_URL)) {
+                radioStation.setImageUrl(imageObject.getString(JSONDataParserImpl.KEY_URL));
+            }
+
+            if (imageObject.has(JSONDataParserImpl.KEY_THUMB)) {
+                final JSONObject imageThumbObject = imageObject.getJSONObject(
+                        JSONDataParserImpl.KEY_THUMB
+                );
+                if (imageThumbObject.has(JSONDataParserImpl.KEY_URL)) {
+                    radioStation.setThumbUrl(imageThumbObject.getString(JSONDataParserImpl.KEY_URL));
+                }
+            }
+        }
     }
 }
