@@ -46,6 +46,16 @@ public interface APIServiceProvider {
     List<CategoryVO> getCategories(final Downloader downloader, final Uri uri);
 
     /**
+     * Get a list of all countries.
+     *
+     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
+     * @param uri        {@link android.net.Uri} of the request.
+     *
+     * @return Collection of the Countries
+     */
+    List<String> getCounties(final Downloader downloader, final Uri uri);
+
+    /**
      * Get a list of Radio Stations by the provided Uri.
      *
      * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.

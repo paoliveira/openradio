@@ -129,7 +129,7 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Fabric.with(this, new Crashlytics());
+        //Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);

@@ -62,6 +62,16 @@ public class UrlBuilder {
     }
 
     /**
+     * Get Uri for the All Countries list.
+     *
+     * @param context Context of the application.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getAllCountriesUrl(final Context context) {
+        return Uri.parse(BASE_URL + "countries?token=" + ApiKeyLoader.getApiKey(context));
+    }
+
+    /**
      * Get Uri for the Child Category's list (list of the categories in the main menu item).
      *
      * @param context   Context of the application.

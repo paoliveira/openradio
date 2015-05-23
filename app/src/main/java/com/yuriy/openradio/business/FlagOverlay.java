@@ -24,18 +24,21 @@ package com.yuriy.openradio.business;
  */
 
 import android.content.Context;
+import android.graphics.Bitmap;
 
 /**
- * {@link FlagLoader} is an interface that provides methods to load flag's images.
+ * {@link FlagOverlay} is an interface that provides method to overlay flag over image.
  */
-public interface FlagLoader {
+public interface FlagOverlay {
 
     /**
-     * Load bitmap of the flag of the provided country.
+     * Overlay bitmap of the flag of the provided country over provided image.
      *
      * @param context     Context of the callee.
      * @param countryCode Country code.
-     * @param listener    Listener for the loader events.
+     * @param baseBitmap  Bitmap to overlay Flag over to.
+     *
+     * @return Bitmap of the base image overlayed by the flag.
      */
-    void getFlag(final Context context, final String countryCode, final FlagLoaderListener listener);
+    Bitmap getFlag(final Context context, final String countryCode, final Bitmap baseBitmap);
 }

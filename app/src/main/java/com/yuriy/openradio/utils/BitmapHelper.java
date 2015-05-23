@@ -29,7 +29,7 @@ import java.net.URL;
 /**
  * {@link BitmapHelper} is a helper class that provides different methods to operate over Bitmap.
  */
-public class BitmapHelper {
+public final class BitmapHelper {
 
     // Bitmap size for album art in media notifications when there are more than 3 playback actions
     public static final int MEDIA_ART_SMALL_WIDTH  = 64;
@@ -156,26 +156,21 @@ public class BitmapHelper {
      * Overlay Flag over Bitmap.
      *
      * @param baseBitmap Bitmap to overlay with Flag.
-     * @param flagData   Flag Bitmap.
+     * @param flagBitmap Flag Bitmap.
      * @return Overlay Bitmap.
      */
-    public static Bitmap overlayWithFlag(final Bitmap baseBitmap, final byte[] flagData) {
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-
-        // Calculate inSampleSize
-        options.inSampleSize = calculateInSampleSize(
-                options, baseBitmap.getWidth() / 3, baseBitmap.getHeight() / 3
+    public static Bitmap overlayWithFlag(final Bitmap baseBitmap, final Bitmap flagBitmap) {
+        // %
+        final double scaleToUse = 60.0;
+        final double scaledW = baseBitmap.getWidth() * scaleToUse / 100;
+        final double scaledH = flagBitmap.getHeight() * (Math.abs(scaledW / flagBitmap.getWidth()));
+        final Bitmap scaledFlag = Bitmap.createScaledBitmap(
+                flagBitmap,
+                (int) scaledW,
+                (int) scaledH,
+                false
         );
 
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-
-        final Bitmap flagBitmap = BitmapFactory.decodeByteArray(
-                flagData, 0, flagData.length, options
-        );
-
-        return overlay(baseBitmap, flagBitmap);
+        return overlay(baseBitmap, scaledFlag);
     }
 }

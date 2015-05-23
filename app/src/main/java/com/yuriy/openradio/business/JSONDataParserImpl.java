@@ -53,6 +53,8 @@ public class JSONDataParserImpl implements DataParser {
 
     public static final String KEY_COUNTRY = "country";
 
+    public static final String KEY_COUNTRY_CODE = "country_code";
+
     public static final String KEY_BIT_RATE = "bitrate";
 
     public static final String KEY_STATUS = "status";

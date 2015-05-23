@@ -19,6 +19,7 @@ package com.yuriy.openradio.service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -44,9 +45,8 @@ import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
-import com.yuriy.openradio.business.FlagLoader;
-import com.yuriy.openradio.business.FlagLoaderImpl;
-import com.yuriy.openradio.business.FlagLoaderListener;
+import com.yuriy.openradio.business.FlagOverlay;
+import com.yuriy.openradio.business.FlagOverlayImpl;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -64,10 +64,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Yuriy Chernyshov
@@ -75,7 +73,7 @@ import java.util.concurrent.TimeUnit;
  * On 12/13/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class OpenRadioService
+public final class OpenRadioService
         extends MediaBrowserService
         implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener,
                    MediaPlayer.OnErrorListener,
@@ -238,7 +236,7 @@ public class OpenRadioService
     };
 
     @Override
-    public void onCreate() {
+    public final void onCreate() {
         super.onCreate();
 
         Log.i(CLASS_NAME, "On Create");
@@ -266,7 +264,7 @@ public class OpenRadioService
     }
 
     @Override
-    public int onStartCommand(final Intent intent, final int flags, final int startId) {
+    public final int onStartCommand(final Intent intent, final int flags, final int startId) {
 
         Log.i(CLASS_NAME, "On Start Command: " + intent);
 
@@ -297,7 +295,7 @@ public class OpenRadioService
     }
 
     @Override
-    public void onDestroy() {
+    public final void onDestroy() {
         super.onDestroy();
 
         Log.d(CLASS_NAME, "On Destroy");
@@ -312,7 +310,7 @@ public class OpenRadioService
     }
 
     @Override
-    public BrowserRoot onGetRoot(final String clientPackageName, final int clientUid,
+    public final BrowserRoot onGetRoot(final String clientPackageName, final int clientUid,
                                  final Bundle rootHints) {
         Log.d(CLASS_NAME, "OnGetRoot: clientPackageName=" + clientPackageName
                 + ", clientUid=" + clientUid + ", rootHints=" + rootHints);
@@ -334,7 +332,7 @@ public class OpenRadioService
     }
 
     @Override
-    public void onLoadChildren(final String parentId,
+    public final void onLoadChildren(final String parentId,
                                final Result<List<MediaBrowser.MediaItem>> result) {
 
         Log.i(CLASS_NAME, "OnLoadChildren:" + parentId);
@@ -361,50 +359,39 @@ public class OpenRadioService
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
 
+            // All countries list
+            mediaItems.add(new MediaBrowser.MediaItem(
+                    new MediaDescription.Builder()
+                            .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
+                            .setTitle(getString(R.string.countries_list_title))
+                            .setIconUri(Uri.parse(iconUrl))
+                            .setSubtitle(getString(R.string.country_stations_sub_title))
+                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+            ));
+
             // Country Stations
             final String countryCode = mLocationService.getCountryCode();
             //If the Country code is known
             if (!countryCode.isEmpty()) {
 
-                // In order to avoid "IllegalStateException: onLoadChildren must call detach()
-                // or sendResult() before returning for package=com.yuriy.openradio" introduce
-                // Latch here
-                final CountDownLatch latch = new CountDownLatch(1);
-
-                // Load Flag, add event listener, when complete - add Item to the menu
-                final FlagLoader flagLoader = FlagLoaderImpl.getInstance();
-                flagLoader.getFlag(this, countryCode, new FlagLoaderListener() {
-
-                    @Override
-                    public void onComplete(final Bitmap bitmap) {
-                        mediaItems.add(new MediaBrowser.MediaItem(
-                                new MediaDescription.Builder()
-                                        .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
-                                        .setTitle(getString(R.string.country_stations_title))
-                                        .setIconBitmap(bitmap)
-                                        .setSubtitle(getString(R.string.country_stations_sub_title))
-                                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                // Overlay base image with the appropriate flag
+                final FlagOverlay flagOverlay = FlagOverlayImpl.getInstance();
+                final Bitmap bitmap = flagOverlay.getFlag(this, countryCode,
+                        BitmapFactory.decodeResource(
+                                getResources(),
+                                R.drawable.ic_all_categories
                         ));
-
-                        result.sendResult(mediaItems);
-
-                        latch.countDown();
-                    }
-
-                    @Override
-                    public void onError(final String message) {
-                        result.sendResult(mediaItems);
-
-                        latch.countDown();
-                    }
-                });
-
-                try {
-                    latch.await(3, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    /* Ignore */
-                    result.sendResult(mediaItems);
-                }
+                mediaItems.add(new MediaBrowser.MediaItem(
+                        new MediaDescription.Builder()
+                                .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
+                                .setTitle(getString(R.string.country_stations_title))
+                                .setIconBitmap(bitmap)
+                                .setSubtitle(getString(
+                                        R.string.country_stations_sub_title
+                                ))
+                                .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                ));
+                result.sendResult(mediaItems);
             } else {
                 result.sendResult(mediaItems);
             }
@@ -428,6 +415,26 @@ public class OpenRadioService
                         }
                     }
             );
+        } else if (MediaIDHelper.MEDIA_ID_COUNTRIES_LIST.equals(parentId)) {
+            // Use result.detach to allow calling result.sendResult from another thread:
+            result.detach();
+
+            apiCallExecutor.submit(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Load all countries into menu
+                            loadAllCountries(
+                                    serviceProvider,
+                                    downloader,
+                                    mediaItems,
+                                    result
+                            );
+                        }
+                    }
+            );
         } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
@@ -443,6 +450,30 @@ public class OpenRadioService
                                     serviceProvider,
                                     downloader,
                                     mLocationService.getCountryCode(),
+                                    mediaItems,
+                                    result
+                            );
+                        }
+                    }
+            );
+        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)) {
+            // Use result.detach to allow calling result.sendResult from another thread:
+            result.detach();
+
+            final String countryCode
+                    = parentId.replace(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, "");
+
+            apiCallExecutor.submit(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Load all categories into menu
+                            loadCountryStations(
+                                    serviceProvider,
+                                    downloader,
+                                    countryCode,
                                     mediaItems,
                                     result
                             );
@@ -529,7 +560,7 @@ public class OpenRadioService
     }
 
     @Override
-    public void onCompletion(final MediaPlayer mediaPlayer) {
+    public final void onCompletion(final MediaPlayer mediaPlayer) {
         Log.i(CLASS_NAME, "On MediaPlayer completion");
 
         // The media player finished playing the current song, so we go ahead
@@ -548,14 +579,14 @@ public class OpenRadioService
     }
 
     @Override
-    public boolean onError(final MediaPlayer mediaPlayer, final int what, final int extra) {
+    public final boolean onError(final MediaPlayer mediaPlayer, final int what, final int extra) {
         Log.e(CLASS_NAME, "MediaPlayer error: what=" + what + ", extra=" + extra);
         handleStopRequest(getString(R.string.media_player_error));
         return true; // true indicates we handled the error
     }
 
     @Override
-    public void onPrepared(final MediaPlayer mediaPlayer) {
+    public final void onPrepared(final MediaPlayer mediaPlayer) {
         Log.i(CLASS_NAME, "MediaPlayer prepared");
 
         // The media player is done preparing. That means we can start playing if we
@@ -564,7 +595,7 @@ public class OpenRadioService
     }
 
     @Override
-    public void onAudioFocusChange(int focusChange) {
+    public final void onAudioFocusChange(int focusChange) {
         Log.d(CLASS_NAME, "On AudioFocusChange. focusChange=" + focusChange);
         if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
             // We have gained focus:
@@ -652,6 +683,72 @@ public class OpenRadioService
                             .setTitle(category.getTitle())
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())
+                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+            ));
+        }
+
+        result.sendResult(mediaItems);
+    }
+
+    /**
+     * Load All Countries into Menu.
+     *
+     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
+     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
+     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
+     * @param result          Result of the loading.
+     */
+    private void loadAllCountries(final APIServiceProvider serviceProvider,
+                                  final Downloader downloader,
+                                  final List<MediaBrowser.MediaItem> mediaItems,
+                                  final Result<List<MediaBrowser.MediaItem>> result) {
+        final List<String> list = serviceProvider.getCounties(downloader,
+                UrlBuilder.getAllCountriesUrl(getApplicationContext()));
+
+        if (list.isEmpty()) {
+            updatePlaybackState(getString(R.string.no_data_message));
+            return;
+        }
+
+        Collections.sort(list, new Comparator<String>() {
+
+            @Override
+            public int compare(String lhs, String rhs) {
+                return lhs.compareTo(rhs);
+            }
+        });
+
+        final String iconUrl = "android.resource://" +
+                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
+
+        String countryName;
+        // Overlay base image with the appropriate flag
+        final FlagOverlay flagLoader = FlagOverlayImpl.getInstance();
+        Bitmap bitmap;
+
+        for (final String countryCode : list) {
+
+            if (AppUtils.COUNTRY_CODE_TO_NAME.containsKey(countryCode)) {
+                countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
+            } else {
+                countryName = "";
+            }
+
+            bitmap = flagLoader.getFlag(this, countryCode,
+                    BitmapFactory.decodeResource(
+                            getResources(),
+                            R.drawable.ic_child_categories
+                    )
+            );
+
+            mediaItems.add(new MediaBrowser.MediaItem(
+                    new MediaDescription.Builder()
+                            .setMediaId(
+                                    MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + countryCode
+                            )
+                            .setTitle(countryName)
+                            .setIconBitmap(bitmap)
+                            .setSubtitle(countryCode)
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
         }

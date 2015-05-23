@@ -47,4 +47,9 @@
     <string name="location_service">Location Service</string>
     <string name="enable_location_service_btn_label">Enable Location Service</string>
 
+    <!-- Version 1.5 -->
+
+    <string name="countries_list_title">All Countries</string>
+    <string name="countries_list_sub_title">radio stations by countries</string>
+
 </resources>

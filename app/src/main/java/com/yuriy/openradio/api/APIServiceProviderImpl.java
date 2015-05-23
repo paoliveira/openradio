@@ -114,6 +114,35 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
+    public List<String> getCounties(Downloader downloader, Uri uri) {
+
+        final List<String> allCountries = new ArrayList<>();
+
+        if (mDataParser == null) {
+            Log.w(CLASS_NAME, "Can not parse data, parser is null");
+            return allCountries;
+        }
+
+        final JSONArray array = downloadJSONArray(downloader, uri);
+
+        JSONObject object;
+
+        for (int i = 0; i < array.length(); i++) {
+            try {
+                object = (JSONObject) array.get(i);
+
+                if (object.has(JSONDataParserImpl.KEY_COUNTRY_CODE)) {
+                    allCountries.add(object.getString(JSONDataParserImpl.KEY_COUNTRY_CODE));
+                }
+            } catch (JSONException e) {
+                Log.e(CLASS_NAME, "Can not parse Country name:" + e.getMessage());
+            }
+        }
+
+        return allCountries;
+    }
+
+    @Override
     public List<RadioStationVO> getStations(final Downloader downloader, final Uri uri) {
 
         final List<RadioStationVO> radioStations = new ArrayList<>();
