@@ -39,7 +39,7 @@ import java.io.Writer;
  * {@link com.yuriy.openradio.utils.ApiKeyLoader} is a helper class to provide
  * Dirble API key
  */
-public class ApiKeyLoader {
+public final class ApiKeyLoader {
 
     /**
      * Load API key from the resources.
@@ -52,7 +52,7 @@ public class ApiKeyLoader {
         final Writer writer = new StringWriter();
         final char[] buffer = new char[1024];
         try {
-            Reader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+            final Reader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
             int length;
             while ((length = reader.read(buffer)) != -1) {
                 writer.write(buffer, 0, length);

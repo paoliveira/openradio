@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.service;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -31,8 +32,12 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
+import android.os.Messenger;
 import android.os.PowerManager;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
 import android.support.v4.content.LocalBroadcastManager;
@@ -88,6 +93,20 @@ public final class OpenRadioService
 
     private static final String VALUE_NAME_REQUEST_LOCATION_COMMAND
             = "VALUE_NAME_REQUEST_LOCATION_COMMAND";
+
+    private static final String VALUE_NAME_GET_RADIO_STATION_COMMAND
+            = "VALUE_NAME_GET_RADIO_STATION_COMMAND";
+
+    private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
+
+    private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
+
+    private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
+
+    /**
+     * Action to thumbs up a media item
+     */
+    private static final String CUSTOM_ACTION_THUMBS_UP = "com.yuriy.openradio.service.THUMBS_UP";
 
     /**
      * Timeout for the response from the Radio Station's stream, in milliseconds.
@@ -189,7 +208,17 @@ public final class OpenRadioService
     /**
      * Handler to manage response for the Radio Station's stream.
      */
-    private Handler radioStationTimeoutHandler = new Handler();
+    private Handler mRadioStationTimeoutHandler = new Handler();
+
+    /**
+     * Handler to handle incoming to the Serive messages.
+     */
+    private MessagesHandler mMessagesHandler;
+
+    /**
+     * Looper associated with the MessagesHandler's thread.
+     */
+    private volatile Looper mServiceLooper;
 
     /**
      * Id of the current Category. It is used for example when back from an empty Category.
@@ -244,6 +273,19 @@ public final class OpenRadioService
         // Set application's context for the Preferences.
         AppPreferencesManager.setContext(this);
 
+        // Create and start a background HandlerThread since by
+        // default a Service runs in the UI Thread, which we don't
+        // want to block.
+        final HandlerThread thread = new HandlerThread(
+                OpenRadioService.class.getSimpleName() + "-MessagesThread"
+        );
+        thread.start();
+
+        // Get the HandlerThread's Looper and use it for our Handler.
+        mServiceLooper = thread.getLooper();
+        mMessagesHandler = new MessagesHandler(mServiceLooper);
+        mMessagesHandler.setReference(this);
+
         mLocationService.checkLocationEnable(this);
         mLocationService.requestCountryCodeLastKnown(this);
 
@@ -273,22 +315,29 @@ public final class OpenRadioService
         }
 
         final Bundle bundle = intent.getExtras();
-        if (bundle != null && bundle.containsKey(KEY_NAME_COMMAND_NAME)) {
-            final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
+        if (bundle == null) {
+            return super.onStartCommand(intent, flags, startId);
+        }
 
-            if (command.equals(VALUE_NAME_REQUEST_LOCATION_COMMAND)) {
-                mLocationService.requestCountryCode(this, new LocationServiceListener() {
+        final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
 
-                    @Override
-                    public void onCountryCodeLocated(final String countryCode) {
-                        LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
-                                AppLocalBroadcastReceiver.createIntentLocationCountryCode(
-                                        countryCode
-                                )
-                        );
-                    }
-                });
-            }
+        if (command.equals(VALUE_NAME_REQUEST_LOCATION_COMMAND)) {
+            mLocationService.requestCountryCode(this, new LocationServiceListener() {
+
+                @Override
+                public void onCountryCodeLocated(final String countryCode) {
+                    LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
+                            AppLocalBroadcastReceiver.createIntentLocationCountryCode(
+                                    countryCode
+                            )
+                    );
+                }
+            });
+        } else if (command.equals(VALUE_NAME_GET_RADIO_STATION_COMMAND)) {
+            // Create a Message that will be sent to the MessagesHandler to
+            // retrieve a RadioStation based on a MediaDescription in the Intent.
+            final Message message = mMessagesHandler.makeGetRadioStationMessage(intent);
+            mMessagesHandler.sendMessage(message);
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -311,7 +360,7 @@ public final class OpenRadioService
 
     @Override
     public final BrowserRoot onGetRoot(final String clientPackageName, final int clientUid,
-                                 final Bundle rootHints) {
+                                       final Bundle rootHints) {
         Log.d(CLASS_NAME, "OnGetRoot: clientPackageName=" + clientPackageName
                 + ", clientUid=" + clientUid + ", rootHints=" + rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
@@ -324,16 +373,16 @@ public final class OpenRadioService
             return null;
         }
         //if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
-            // Optional: if your app needs to adapt ads, music library or anything else that
-            // needs to run differently when connected to the car, this is where you should handle
-            // it.
+        // Optional: if your app needs to adapt ads, music library or anything else that
+        // needs to run differently when connected to the car, this is where you should handle
+        // it.
         //}
         return new BrowserRoot(MediaIDHelper.MEDIA_ID_ROOT, null);
     }
 
     @Override
     public final void onLoadChildren(final String parentId,
-                               final Result<List<MediaBrowser.MediaItem>> result) {
+                                     final Result<List<MediaBrowser.MediaItem>> result) {
 
         Log.i(CLASS_NAME, "OnLoadChildren:" + parentId);
 
@@ -626,12 +675,65 @@ public final class OpenRadioService
     /**
      * Factory method to make intent to use for the request location procedure.
      *
+     * @param context Context of the callee.
      * @return {@link Intent}.
      */
     public static Intent makeRequestLocationIntent(final Context context) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REQUEST_LOCATION_COMMAND);
         return intent;
+    }
+
+    /**
+     * Factory method to make intent to use for the request location procedure.
+     *
+     * @param context          Context of the callee.
+     * @param mediaDescription {@link MediaDescription} of the {@link RadioStationVO}.
+     * @param handler          {@link Handler} object to use for the Messages exchanging.
+     * @return {@link Intent}.
+     */
+    public static Intent makeGetRadioStationIntent(final Context context,
+                                                   final MediaDescription mediaDescription,
+                                                   final Handler handler) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
+        intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
+        intent.putExtra(EXTRA_KEY_MESSAGES_HANDLER, new Messenger(handler));
+        return intent;
+    }
+
+    /**
+     * Extract {@link RadioStationVO} from the {@link Message} that has been received from the
+     * {@link OpenRadioService} as a result of the {@link RadioStationVO} retrieving.
+     *
+     * @param message {@link Message} receiving from the {@link OpenRadioService}.
+     * @return {@link RadioStationVO} object or null in case of any error.
+     */
+    public static RadioStationVO getRadioStationFromMessage(final Message message) {
+        if (message == null) {
+            return null;
+        }
+        final Bundle data = message.getData();
+        if (data == null) {
+            return null;
+        }
+        final RadioStationVO radioStation = (RadioStationVO) data.getSerializable(
+                EXTRA_KEY_RADIO_STATION
+        );
+        if (radioStation == null) {
+            return null;
+        }
+        return radioStation;
+    }
+
+    private static MediaDescription extractMediaDescription(final Intent intent) {
+        if (intent == null) {
+            return new MediaDescription.Builder().build();
+        }
+        if (!intent.hasExtra(EXTRA_KEY_MEDIA_DESCRIPTION)) {
+            return new MediaDescription.Builder().build();
+        }
+        return intent.getParcelableExtra(EXTRA_KEY_MEDIA_DESCRIPTION);
     }
 
     /**
@@ -1115,7 +1217,7 @@ public final class OpenRadioService
      * "foreground service" status, the wake locks and possibly the MediaPlayer.
      *
      * @param releaseMediaPlayer Indicates whether the Media Player should also
-     *            be released or not
+     *                           be released or not
      */
     private void relaxResources(boolean releaseMediaPlayer) {
         Log.d(CLASS_NAME, "RelaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
@@ -1301,19 +1403,18 @@ public final class OpenRadioService
      * Update the current media player state, optionally showing an error message.
      *
      * @param error if not null, error message to present to the user.
-     *
      */
     private void updatePlaybackState(final String error) {
         Log.d(CLASS_NAME, "UpdatePlaybackState, setting session playback state to " + mState);
 
         // Start timeout handler for the new Radio Station
         if (mState == PlaybackState.STATE_BUFFERING) {
-            radioStationTimeoutHandler.postDelayed(
+            mRadioStationTimeoutHandler.postDelayed(
                     radioStationTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
             );
-        // Or cancel it in case of Success or Error
+            // Or cancel it in case of Success or Error
         } else {
-            radioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
+            mRadioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
         }
 
         long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
@@ -1324,7 +1425,7 @@ public final class OpenRadioService
         final PlaybackState.Builder stateBuilder
                 = new PlaybackState.Builder().setActions(getAvailableActions());
 
-        //setCustomAction(stateBuilder);
+        setCustomAction(stateBuilder);
 
         // If there is an error message, send it to the playback state:
         if (error != null) {
@@ -1437,21 +1538,36 @@ public final class OpenRadioService
         mServiceStarted = false;
     }
 
-    /*private void setCustomAction(final PlaybackState.Builder stateBuilder) {
-        MediaMetadata currentMusic = getCurrentPlayingRadioStation();
-        if (currentMusic != null) {
-            // Set appropriate "Favorite" icon on Custom action:
-            String mediaId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-            int favoriteIcon = R.drawable.ic_star_off;
-            if (mMusicProvider.isFavorite(mediaId)) {
-                favoriteIcon = R.drawable.ic_star_on;
-            }
-            Log.d(CLASS_NAME, "updatePlaybackState, setting Favorite custom action of music ",
-                    mediaId, " current favorite=" + mMusicProvider.isFavorite(mediaId));
-            stateBuilder.addCustomAction(CUSTOM_ACTION_THUMBS_UP, getString(R.string.favorite),
-                    favoriteIcon);
-        }
-    }*/
+    private void setCustomAction(final PlaybackState.Builder stateBuilder) {
+        getCurrentPlayingRadioStation(
+                new RadioStationUpdateListener() {
+
+                    @Override
+                    public void onComplete(final MediaMetadata currentMusic) {
+
+                        if (currentMusic == null) {
+                            return;
+                        }
+                        // Set appropriate "Favorite" icon on Custom action:
+                        String mediaId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+                        int favoriteIcon = R.drawable.ic_star_off;
+                        /*if (mMusicProvider.isFavorite(mediaId)) {
+                            favoriteIcon = R.drawable.ic_star_on;
+                        }*/
+                        /*Log.d(
+                                CLASS_NAME,
+                                "UpdatePlaybackState, setting Favorite custom action of music ",
+                                mediaId, " current favorite=" + mMusicProvider.isFavorite(mediaId)
+                        );*/
+                        stateBuilder.addCustomAction(
+                                CUSTOM_ACTION_THUMBS_UP,
+                                getString(R.string.favorite),
+                                favoriteIcon
+                        );
+                    }
+                }
+        );
+    }
 
     /**
      * @return Implementation of the {@link com.yuriy.openradio.api.APIServiceProvider} interface.
@@ -1613,6 +1729,162 @@ public final class OpenRadioService
 
                 handleStopRequest(getString(R.string.can_not_skip));
             }
+        }
+
+        @Override
+        public void onCustomAction(final String action, final Bundle extras) {
+            super.onCustomAction(action, extras);
+
+            if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
+                Log.i(CLASS_NAME, "OnCustomAction: favorite for current track");
+                /*MediaMetadata track = getCurrentPlayingMusic();
+                if (track != null) {
+                    String musicId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+                    mMusicProvider.setFavorite(musicId, !mMusicProvider.isFavorite(musicId));
+                }*/
+                // playback state needs to be updated because the "Favorite" icon on the
+                // custom action will change to reflect the new favorite state.
+                updatePlaybackState(null);
+            } else {
+                Log.e(CLASS_NAME, "Unsupported action: " + action);
+            }
+        }
+    }
+
+    /**
+     * An inner class that inherits from {@link android.os.Handler} and uses its
+     * {@link #handleMessage(android.os.Message)} hook method to process Messages sent to
+     * it from {@link #onStartCommand(Intent, int, int)} (android.content.Intent)} that indicate which
+     * action to perform.
+     */
+    public static final class MessagesHandler extends Handler {
+
+        /**
+         * String tag to use in the logging.
+         */
+        private static final String CLASS_NAME = MessagesHandler.class.getSimpleName();
+
+        /**
+         * Reference to the outer class (service).
+         */
+        private OpenRadioService mReference;
+
+        /**
+         * Make the request to get {@link RadioStationVO} with the provided {@link MediaDescription}.
+         */
+        public static final int MSG_GET_RADIO_STATION = 1;
+
+        /**
+         * Class constructor initializes the Looper.
+         *
+         * @param looper The Looper that we borrow from HandlerThread.
+         */
+        public MessagesHandler(final Looper looper) {
+            super(looper);
+        }
+
+        /**
+         * Hook method that process incoming commands.
+         */
+        @Override
+        public void handleMessage(final Message message) {
+
+            final int what = message.what;
+            final Intent intent = (Intent) message.obj;
+            switch (what) {
+                case MSG_GET_RADIO_STATION:
+                    getRadioStationAndReply(intent);
+                    break;
+                default:
+                    Log.w(CLASS_NAME, "Handle unknown msg:" + what);
+            }
+        }
+
+        /**
+         * Set the reference to the outer class (service).
+         * @param value Instance of the {@link OpenRadioService}
+         */
+        public void setReference(final OpenRadioService value) {
+            mReference = value;
+        }
+
+        /**
+         * Retrieves the designated {@link RadioStationVO} and reply
+         * via the {@link android.os.Messenger}
+         * sent with the {@link android.content.Intent}.
+         */
+        private void getRadioStationAndReply(final Intent intent) {
+            if (mReference == null) {
+                return;
+            }
+            final MediaDescription mediaDescription = extractMediaDescription(intent);
+            if (mediaDescription == null) {
+                return;
+            }
+            final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                    mediaDescription.getMediaId(), mReference.radioStations
+            );
+            // Extract the Messenger.
+            final Messenger messenger = (Messenger) intent.getExtras().get(
+                    EXTRA_KEY_MESSAGES_HANDLER
+            );
+            sendRadioStation(messenger, radioStation);
+        }
+
+        /**
+         * Send the RadioStation back to the callee via the Messenger.
+         *
+         * @param messenger {@link android.os.Messenger}
+         * @param radioStation {@link RadioStationVO}
+         */
+        private void sendRadioStation(final Messenger messenger,
+                                      final RadioStationVO radioStation) {
+            // Call factory method to create Message.
+            final Message message = makeReplyMessageWithRadioStation(radioStation);
+
+            try {
+                // Send RadioStation to back to the callee.
+                message.what = MSG_GET_RADIO_STATION;
+                messenger.send(message);
+            } catch (RemoteException e) {
+                Log.e(CLASS_NAME, "Exception while sending:" + e.getMessage());
+            }
+        }
+
+        /**
+         * A factory method that creates a Message to return to the
+         * callee with the {@link RadioStationVO}.
+         *
+         * @param radioStation Instance of the {@link RadioStationVO}
+         */
+        private Message makeReplyMessageWithRadioStation(final RadioStationVO radioStation) {
+            final Message message = Message.obtain();
+
+            // Return the result to indicate whether the retrieved action was
+            // succeeded or failed.
+            message.arg1 = radioStation == null
+                    ? Activity.RESULT_CANCELED
+                    : Activity.RESULT_OK;
+
+            final Bundle data = new Bundle();
+
+            // Put Radio Station into the data.
+            data.putSerializable(EXTRA_KEY_RADIO_STATION, radioStation);
+            message.setData(data);
+            return message;
+        }
+
+        /**
+         * A factory method that creates a {@link android.os.Message} that contains
+         * information on the {@link RadioStationVO} to retrieve.
+         */
+        private Message makeGetRadioStationMessage(final Intent intent) {
+
+            final Message message = Message.obtain();
+            // Include Intent in Message to indicate which data to retrieve.
+            message.obj = intent;
+            message.what = MSG_GET_RADIO_STATION;
+            return message;
         }
     }
 }

@@ -36,7 +36,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
@@ -51,8 +50,6 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.

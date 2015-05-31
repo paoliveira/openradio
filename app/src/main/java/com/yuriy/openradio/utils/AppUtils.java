@@ -299,10 +299,10 @@ public final class AppUtils {
     }
 
     /**
-     * Get application's version
+     * Get application's version name.
      *
      * @param context Application context.
-     * @return Application Version
+     * @return Application Version name.
      */
     public static String getApplicationVersion(final Context context) {
         final PackageInfo packageInfo = getPackageInfo(context);
@@ -311,6 +311,22 @@ public final class AppUtils {
         } else {
             Log.w(CLASS_NAME, "Can't get application version");
             return "?";
+        }
+    }
+
+    /**
+     * Get application's version code.
+     *
+     * @param context Application context.
+     * @return Application Version code.
+     */
+    public static int getApplicationCode(final Context context) {
+        final PackageInfo packageInfo = getPackageInfo(context);
+        if (packageInfo != null) {
+            return packageInfo.versionCode;
+        } else {
+            Log.w(CLASS_NAME, "Can't get code version");
+            return 0;
         }
     }
 

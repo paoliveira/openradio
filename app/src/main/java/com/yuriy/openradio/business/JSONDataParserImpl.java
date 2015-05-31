@@ -23,8 +23,6 @@ import android.util.Log;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 
-import org.json.JSONException;
-
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio

@@ -7,6 +7,7 @@ package com.yuriy.openradio.view.list;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,4 +31,9 @@ public class ListAdapterViewHolder {
      * Category image view.
      */
     public ImageView mImageView;
+
+    /**
+     *
+     */
+    public CheckBox mFavoriteCheckView;
 }

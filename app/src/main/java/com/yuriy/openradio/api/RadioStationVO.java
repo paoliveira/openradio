@@ -23,11 +23,13 @@ package com.yuriy.openradio.api;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
+import java.io.Serializable;
+
 /**
  * {@link com.yuriy.openradio.api.RadioStationVO} is a value object that holds information
  * about concrete Radio Station.
  */
-public class RadioStationVO {
+public class RadioStationVO implements Serializable {
 
     private int mId;
 

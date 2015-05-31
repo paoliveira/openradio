@@ -17,18 +17,27 @@
 package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.service.DBService;
+import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 
 import java.util.List;
@@ -39,14 +48,20 @@ import java.util.List;
  * On 12/18/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class MediaItemsAdapter extends BaseAdapter {
+public final class MediaItemsAdapter extends BaseAdapter {
 
+    @SuppressWarnings("unused")
     private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName();
 
     private ListAdapterViewHolder mViewHolder;
     private Activity mCurrentActivity;
     private ImageFetcher mImageFetcher;
     private final ListAdapterData<MediaBrowser.MediaItem> mAdapterData = new ListAdapterData<>(null);
+
+    /**
+     * Stores an instance of {@link com.yuriy.openradio.view.list.MediaItemsAdapter.MessagesHandler}.
+     */
+    private Handler mMessagesHandler = null;
 
     /**
      * Constructor.
@@ -57,25 +72,27 @@ public class MediaItemsAdapter extends BaseAdapter {
     public MediaItemsAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
         mCurrentActivity = activity;
         mImageFetcher = imageFetcher;
+        // Initialize the Messages Handler.
+        mMessagesHandler = new MessagesHandler(mCurrentActivity);
     }
 
     @Override
-    public int getCount() {
+    public final int getCount() {
         return mAdapterData.getItemsCount();
     }
 
     @Override
-    public Object getItem(final int position) {
+    public final Object getItem(final int position) {
         return mAdapterData.getItem(position);
     }
 
     @Override
-    public long getItemId(final int position) {
+    public final long getItemId(final int position) {
         return position;
     }
 
     @Override
-    public View getView(final int position, View convertView, final ViewGroup parent) {
+    public final View getView(final int position, View convertView, final ViewGroup parent) {
         final MediaBrowser.MediaItem mediaItem = (MediaBrowser.MediaItem) getItem(position);
         final MediaDescription description = mediaItem.getDescription();
 
@@ -102,6 +119,32 @@ public class MediaItemsAdapter extends BaseAdapter {
             }
         }
 
+        if (mediaItem.isPlayable()) {
+            mViewHolder.mFavoriteCheckView.setVisibility(View.VISIBLE);
+
+            mViewHolder.mFavoriteCheckView.setOnCheckedChangeListener(
+                    new CompoundButton.OnCheckedChangeListener() {
+
+                        @Override
+                        public void onCheckedChanged(final CompoundButton buttonView,
+                                                     final boolean isChecked) {
+
+                            // Make Intent to get RadioStation object associated with the
+                            // Media Description
+                            final Intent intent = OpenRadioService.makeGetRadioStationIntent(
+                                    mCurrentActivity,
+                                    description,
+                                    mMessagesHandler
+                            );
+                            // Send Intent to the OpenRadioService.
+                            mCurrentActivity.startService(intent);
+                        }
+                    }
+            );
+        } else {
+            mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
+        }
+
         return convertView;
     }
 
@@ -109,7 +152,7 @@ public class MediaItemsAdapter extends BaseAdapter {
      * Add {@link com.yuriy.openradio.api.CategoryVO} into the collection.
      * @param value {@link com.yuriy.openradio.api.CategoryVO}
      */
-    public void addItem(final MediaBrowser.MediaItem value) {
+    public final void addItem(final MediaBrowser.MediaItem value) {
         mAdapterData.addItem(value);
     }
 
@@ -117,7 +160,7 @@ public class MediaItemsAdapter extends BaseAdapter {
      * Add {@link com.yuriy.openradio.api.CategoryVO}s into the collection.
      * @param items Collection of the {@link com.yuriy.openradio.api.CategoryVO}
      */
-    public void addItems(final List<MediaBrowser.MediaItem> items) {
+    public final void addItems(final List<MediaBrowser.MediaItem> items) {
         for (MediaBrowser.MediaItem item : items) {
             addItem(item);
         }
@@ -126,7 +169,7 @@ public class MediaItemsAdapter extends BaseAdapter {
     /**
      * Clear adapter data.
      */
-    public void clear() {
+    public final void clear() {
         mAdapterData.clear();
     }
 
@@ -160,6 +203,64 @@ public class MediaItemsAdapter extends BaseAdapter {
         viewHolder.mNameView = (TextView) view.findViewById(R.id.name_view);
         viewHolder.mDescriptionView = (TextView) view.findViewById(R.id.description_view);
         viewHolder.mImageView = (ImageView) view.findViewById(R.id.img_view);
+        viewHolder.mFavoriteCheckView = (CheckBox) view.findViewById(R.id.favorite_check_view);
         return viewHolder;
+    }
+
+    /**
+     * An inner class that inherits from {@link android.os.Handler}
+     * and uses its {@link android.os.Handler#handleMessage(android.os.Message)}
+     * hook method to process Messages
+     * sent to it from the {@link OpenRadioService}.
+     */
+    private static class MessagesHandler extends Handler {
+
+        private static final String CLASS_NAME = MessagesHandler.class.getSimpleName();
+
+        /**
+         * Allows Activity to be garbage collected properly.
+         */
+        private Activity mActivity;
+
+        /**
+         * Class constructor constructs {@link #mActivity} as weak reference
+         * to the activity.
+         *
+         * @param activity The corresponding activity.
+         */
+        public MessagesHandler(final Activity activity) {
+            mActivity = activity;
+        }
+
+        @Override
+        public void handleMessage(final Message msg) {
+            super.handleMessage(msg);
+
+            final int what = msg.what;
+            //final Intent intent = (Intent) msg.obj;
+
+            switch (what) {
+                case OpenRadioService.MessagesHandler.MSG_GET_RADIO_STATION:
+                    final RadioStationVO radioStation
+                            = OpenRadioService.getRadioStationFromMessage(msg);
+                    if (radioStation == null) {
+                        break;
+                    }
+                    // Make Intent to pass MediaDescription to the DBService
+                    final Intent intent = DBService.makeUpdateFavoriteIntent(
+                            mActivity,
+                            radioStation,
+                            true,
+                            null
+                    );
+
+                    // Start the DBService.
+                    mActivity.startService(intent);
+                    break;
+                default:
+                    Log.w(CLASS_NAME, "Unknown message:" + what);
+                    break;
+            }
+        }
     }
 }
