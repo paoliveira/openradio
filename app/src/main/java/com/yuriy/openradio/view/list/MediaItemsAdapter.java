@@ -134,6 +134,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
                             final Intent intent = OpenRadioService.makeGetRadioStationIntent(
                                     mCurrentActivity,
                                     description,
+                                    isChecked,
                                     mMessagesHandler
                             );
                             // Send Intent to the OpenRadioService.
@@ -237,7 +238,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
             super.handleMessage(msg);
 
             final int what = msg.what;
-            //final Intent intent = (Intent) msg.obj;
+            final Intent incomeIntent = (Intent) msg.obj;
 
             switch (what) {
                 case OpenRadioService.MessagesHandler.MSG_GET_RADIO_STATION:
@@ -250,7 +251,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
                     final Intent intent = DBService.makeUpdateFavoriteIntent(
                             mActivity,
                             radioStation,
-                            true,
+                            OpenRadioService.getIsFavoriteFromMessage(msg),
                             null
                     );
 

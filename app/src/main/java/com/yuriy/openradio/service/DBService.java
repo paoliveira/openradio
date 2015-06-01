@@ -195,6 +195,8 @@ public final class DBService extends IntentService {
 
         if (isFavorite) {
             addFavorite(database, radioStation);
+        } else {
+            removeFavorite(database, radioStation);
         }
 
         closeDatabase(database);
@@ -228,6 +230,17 @@ public final class DBService extends IntentService {
         }
 
         Log.d(CLASS_NAME, "Favorite add result:" + result);
+    }
+
+    private void removeFavorite(final SQLiteDatabase database, final RadioStationVO radioStation) {
+        Log.d(CLASS_NAME, "Remove Favorite:" + radioStation);
+
+        final long result = database.delete(
+                DBHelper.FAVORITES_TABLE_NAME,
+                "id=" + String.valueOf(radioStation.getId()),
+                null
+        );
+        Log.d(CLASS_NAME, "Favorite remove result:" + result);
     }
 
     /**

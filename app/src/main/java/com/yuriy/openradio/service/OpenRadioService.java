@@ -103,6 +103,8 @@ public final class OpenRadioService
 
     private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
 
+    private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
+
     /**
      * Action to thumbs up a media item
      */
@@ -685,19 +687,22 @@ public final class OpenRadioService
     }
 
     /**
-     * Factory method to make intent to use for the request location procedure.
+     * Factory method to make {@link Intent} for the fetch {@link RadioStationVO}.
      *
      * @param context          Context of the callee.
      * @param mediaDescription {@link MediaDescription} of the {@link RadioStationVO}.
+     * @param isFavorite       Whether Radio station is Favorite or not.
      * @param handler          {@link Handler} object to use for the Messages exchanging.
      * @return {@link Intent}.
      */
     public static Intent makeGetRadioStationIntent(final Context context,
                                                    final MediaDescription mediaDescription,
+                                                   final boolean isFavorite,
                                                    final Handler handler) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
         intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
+        intent.putExtra(EXTRA_KEY_IS_FAVORITE, isFavorite);
         intent.putExtra(EXTRA_KEY_MESSAGES_HANDLER, new Messenger(handler));
         return intent;
     }
@@ -724,6 +729,41 @@ public final class OpenRadioService
             return null;
         }
         return radioStation;
+    }
+
+    /**
+     * Extract {@link #EXTRA_KEY_IS_FAVORITE} value from the {@link Message} that has been
+     * received from the {@link OpenRadioService} as a result of the {@link RadioStationVO}
+     * retrieving.
+     *
+     * @param message {@link Message} receiving from the {@link OpenRadioService}.
+     * @return True in case of the key exists and it's value is True, False otherwise.
+     */
+    public static boolean getIsFavoriteFromMessage(final Message message) {
+        boolean isFavorite = false;
+        if (message == null) {
+            return false;
+        }
+        final Bundle data = message.getData();
+        if (data == null) {
+            return false;
+        }
+        if (data.containsKey(EXTRA_KEY_IS_FAVORITE)) {
+            isFavorite = data.getBoolean(EXTRA_KEY_IS_FAVORITE, false);
+        };
+        return isFavorite;
+    }
+
+    /**
+     * Extract {@link #EXTRA_KEY_IS_FAVORITE} value from the {@link Intent}.
+     *
+     * @param intent {@link Intent}.
+     * @return True in case of the key exists and it's value is True, False otherwise.
+     */
+    public static boolean getIsFavoriteFromIntent(final Intent intent) {
+        return intent != null
+                && intent.hasExtra(EXTRA_KEY_IS_FAVORITE)
+                && intent.getBooleanExtra(EXTRA_KEY_IS_FAVORITE, false);
     }
 
     private static MediaDescription extractMediaDescription(final Intent intent) {
@@ -1828,19 +1868,21 @@ public final class OpenRadioService
             final Messenger messenger = (Messenger) intent.getExtras().get(
                     EXTRA_KEY_MESSAGES_HANDLER
             );
-            sendRadioStation(messenger, radioStation);
+            sendRadioStation(messenger, radioStation, getIsFavoriteFromIntent(intent));
         }
 
         /**
          * Send the RadioStation back to the callee via the Messenger.
          *
-         * @param messenger {@link android.os.Messenger}
-         * @param radioStation {@link RadioStationVO}
+         * @param messenger    {@link android.os.Messenger}.
+         * @param radioStation {@link RadioStationVO}.
+         * @param isFavorite   Whether Radio station is Favorite or not.
          */
         private void sendRadioStation(final Messenger messenger,
-                                      final RadioStationVO radioStation) {
+                                      final RadioStationVO radioStation,
+                                      final boolean isFavorite) {
             // Call factory method to create Message.
-            final Message message = makeReplyMessageWithRadioStation(radioStation);
+            final Message message = makeReplyMessageWithRadioStation(radioStation, isFavorite);
 
             try {
                 // Send RadioStation to back to the callee.
@@ -1855,9 +1897,11 @@ public final class OpenRadioService
          * A factory method that creates a Message to return to the
          * callee with the {@link RadioStationVO}.
          *
-         * @param radioStation Instance of the {@link RadioStationVO}
+         * @param radioStation Instance of the {@link RadioStationVO}.
+         * @param isFavorite   Whether Radio station is Favorite or not.
          */
-        private Message makeReplyMessageWithRadioStation(final RadioStationVO radioStation) {
+        private Message makeReplyMessageWithRadioStation(final RadioStationVO radioStation,
+                                                         final boolean isFavorite) {
             final Message message = Message.obtain();
 
             // Return the result to indicate whether the retrieved action was
@@ -1870,6 +1914,7 @@ public final class OpenRadioService
 
             // Put Radio Station into the data.
             data.putSerializable(EXTRA_KEY_RADIO_STATION, radioStation);
+            data.putBoolean(EXTRA_KEY_IS_FAVORITE, isFavorite);
             message.setData(data);
             return message;
         }
