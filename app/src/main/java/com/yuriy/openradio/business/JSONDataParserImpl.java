@@ -17,7 +17,10 @@
 package com.yuriy.openradio.business;
 
 import android.content.Context;
+import android.media.MediaDescription;
 import android.media.MediaMetadata;
+import android.net.Uri;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.yuriy.openradio.R;
@@ -131,6 +134,40 @@ public class JSONDataParserImpl implements DataParser {
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)
                 //.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
                 //.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
+                .build();
+    }
+
+    /**
+     *  Build {@link android.media.MediaDescription} from provided
+     * {@link com.yuriy.openradio.api.RadioStationVO}.
+     *
+     * @param context      Context of the callee.
+     * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
+     * @return {@link android.media.MediaDescription}
+     */
+    public static MediaDescription buildMediaDescriptionFromRadioStation(final Context context,
+                                                                         final RadioStationVO radioStation) {
+        String iconUrl = "android.resource://" +
+                context.getPackageName() + "/drawable/radio_station_alpha_bg";
+        if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
+                && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
+            iconUrl = radioStation.getImageUrl();
+        }
+
+        final String title = radioStation.getName();
+        final String country = radioStation.getCountry();
+        final String genre = radioStation.getGenre();
+        final String id = String.valueOf(radioStation.getId());
+
+        Log.d(CLASS_NAME, "Media Description for " + radioStation);
+
+        return new MediaDescription.Builder()
+                .setDescription(genre)
+                .setMediaId(id)
+                .setTitle(title)
+                .setSubtitle(country)
+                .setExtras(new Bundle())
+                .setIconUri(Uri.parse(iconUrl))
                 .build();
     }
 

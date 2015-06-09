@@ -30,15 +30,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.service.DBService;
+import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.MediaItemHelper;
 
 import java.util.List;
 
@@ -73,7 +73,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
         mCurrentActivity = activity;
         mImageFetcher = imageFetcher;
         // Initialize the Messages Handler.
-        mMessagesHandler = new MessagesHandler(mCurrentActivity);
+        mMessagesHandler = new MessagesHandler(mCurrentActivity, this);
     }
 
     @Override
@@ -120,18 +120,23 @@ public final class MediaItemsAdapter extends BaseAdapter {
         }
 
         if (mediaItem.isPlayable()) {
+            mViewHolder.mFavoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
+
             mViewHolder.mFavoriteCheckView.setVisibility(View.VISIBLE);
 
-            mViewHolder.mFavoriteCheckView.setOnCheckedChangeListener(
-                    new CompoundButton.OnCheckedChangeListener() {
+            mViewHolder.mFavoriteCheckView.setOnClickListener(
+
+                    new View.OnClickListener() {
 
                         @Override
-                        public void onCheckedChanged(final CompoundButton buttonView,
-                                                     final boolean isChecked) {
+                        public void onClick(final View view) {
+                            boolean isChecked = ((CheckBox) view).isChecked();
+
+                            MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
                             // Make Intent to get RadioStation object associated with the
                             // Media Description
-                            final Intent intent = OpenRadioService.makeGetRadioStationIntent(
+                            final Intent intent = OpenRadioService.makeUpdateFavoriteIntent(
                                     mCurrentActivity,
                                     description,
                                     isChecked,
@@ -208,20 +213,33 @@ public final class MediaItemsAdapter extends BaseAdapter {
         return viewHolder;
     }
 
+    private void updateFavorite(final int position, final boolean isFavorite) {
+        if (mAdapterData == null) {
+            return;
+        }
+        MediaItemHelper.updateFavoriteField(mAdapterData.getItem(position), isFavorite);
+        notifyDataSetChanged();
+    }
+
     /**
      * An inner class that inherits from {@link android.os.Handler}
      * and uses its {@link android.os.Handler#handleMessage(android.os.Message)}
      * hook method to process Messages
      * sent to it from the {@link OpenRadioService}.
      */
-    private static class MessagesHandler extends Handler {
+    public static class MessagesHandler extends Handler {
 
         private static final String CLASS_NAME = MessagesHandler.class.getSimpleName();
 
         /**
          * Allows Activity to be garbage collected properly.
          */
-        private Activity mActivity;
+        private final Activity mActivity;
+
+        /**
+         * Allows Media Items Adapter to be garbage collected properly.
+         */
+        private final MediaItemsAdapter mMediaItemsAdapter;
 
         /**
          * Class constructor constructs {@link #mActivity} as weak reference
@@ -229,8 +247,9 @@ public final class MediaItemsAdapter extends BaseAdapter {
          *
          * @param activity The corresponding activity.
          */
-        public MessagesHandler(final Activity activity) {
+        public MessagesHandler(final Activity activity, final MediaItemsAdapter mediaItemsAdapter) {
             mActivity = activity;
+            mMediaItemsAdapter = mediaItemsAdapter;
         }
 
         @Override
@@ -238,25 +257,27 @@ public final class MediaItemsAdapter extends BaseAdapter {
             super.handleMessage(msg);
 
             final int what = msg.what;
-            final Intent incomeIntent = (Intent) msg.obj;
+            //final Intent incomeIntent = (Intent) msg.obj;
 
             switch (what) {
-                case OpenRadioService.MessagesHandler.MSG_GET_RADIO_STATION:
+                case OpenRadioService.MSG_GET_RADIO_STATION:
                     final RadioStationVO radioStation
                             = OpenRadioService.getRadioStationFromMessage(msg);
                     if (radioStation == null) {
                         break;
                     }
-                    // Make Intent to pass MediaDescription to the DBService
-                    final Intent intent = DBService.makeUpdateFavoriteIntent(
-                            mActivity,
-                            radioStation,
-                            OpenRadioService.getIsFavoriteFromMessage(msg),
-                            null
-                    );
 
-                    // Start the DBService.
-                    mActivity.startService(intent);
+                    final boolean isFavorite = OpenRadioService.getIsFavoriteFromMessage(msg);
+                    if (isFavorite) {
+                        FavoritesStorage.addToFavorites(
+                                radioStation, mActivity.getApplicationContext()
+                        );
+                    } else {
+                        FavoritesStorage.removeFromFavorites(
+                                radioStation, mActivity.getApplicationContext()
+                        );
+                    }
+
                     break;
                 default:
                     Log.w(CLASS_NAME, "Unknown message:" + what);

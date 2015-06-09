@@ -27,7 +27,7 @@ package com.yuriy.openradio.utils;
  * Utility class to help on queue related tasks.
  * Media IDs used on browseable items of MediaBrowser.
  */
-public class MediaIDHelper {
+public final class MediaIDHelper {
 
     public static final String MEDIA_ID_ROOT = "__ROOT__";
 

@@ -61,7 +61,7 @@ import java.util.Map;
 /**
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
-public class MainActivity extends FragmentActivity {
+public final class MainActivity extends FragmentActivity {
 
     /**
      * Tag string to use in logging message.
@@ -123,7 +123,7 @@ public class MainActivity extends FragmentActivity {
             = AppLocalBroadcastReceiver.getInstance();
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //Fabric.with(this, new Crashlytics());
@@ -215,14 +215,14 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
-    protected void onResume() {
+    protected final void onResume() {
         super.onResume();
 
         hideProgressBar();
     }
 
     @Override
-    protected void onDestroy() {
+    protected final void onDestroy() {
         super.onDestroy();
 
         // Unregister local receivers
@@ -232,14 +232,14 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public final boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public final boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -268,7 +268,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(final Bundle outState) {
+    protected final void onSaveInstanceState(final Bundle outState) {
 
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.list_view);
@@ -301,7 +301,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
-    public void onBackPressed() {
+    public final void onBackPressed() {
 
         hideNoDataMessage();
         hideProgressBar();
@@ -337,7 +337,7 @@ public class MainActivity extends FragmentActivity {
      * Start request location procedure. Despite the fact that whether user enable Location or not,
      * just request Location via Android API and return result via Broadcast event.
      */
-    public void processLocationCallback() {
+    public final void processLocationCallback() {
         startService(OpenRadioService.makeRequestLocationIntent(this));
     }
 

@@ -29,7 +29,7 @@ import java.io.Serializable;
  * {@link com.yuriy.openradio.api.RadioStationVO} is a value object that holds information
  * about concrete Radio Station.
  */
-public class RadioStationVO implements Serializable {
+public final class RadioStationVO implements Serializable {
 
     private int mId;
 
@@ -67,96 +67,138 @@ public class RadioStationVO implements Serializable {
      */
     private RadioStationVO() { }
 
-    public int getId() {
+    public final int getId() {
         return mId;
     }
 
-    public void setId(final int value) {
+    public final void setId(final int value) {
         mId = value;
     }
 
-    public int getStatus() {
+    public final int getStatus() {
         return mStatus;
     }
 
-    public void setStatus(final int value) {
+    public final void setStatus(final int value) {
         mStatus = value;
     }
 
-    public String getName() {
+    public final String getName() {
         return mName;
     }
 
-    public void setName(final String value) {
+    public final void setName(final String value) {
         mName = value;
     }
 
-    public String getStreamURL() {
+    public final String getStreamURL() {
         return mStreamURL;
     }
 
-    public void setStreamURL(final String value) {
+    public final void setStreamURL(final String value) {
         mStreamURL = value;
     }
 
-    public String getCountry() {
+    public final String getCountry() {
         return mCountry;
     }
 
-    public void setCountry(final String value) {
+    public final void setCountry(final String value) {
         mCountry = value;
     }
 
-    public String getBitRate() {
+    public final String getBitRate() {
         return mBitRate;
     }
 
-    public void setBitRate(final String value) {
+    public final void setBitRate(final String value) {
         mBitRate = value;
     }
 
-    public String getWebSite() {
+    public final String getWebSite() {
         return mWebSite;
     }
 
-    public void setWebSite(final String value) {
+    public final void setWebSite(final String value) {
         mWebSite = value;
     }
 
-    public String getGenre() {
+    public final String getGenre() {
         return mGenre;
     }
 
-    public void setGenre(final String value) {
+    public final void setGenre(final String value) {
         mGenre = value;
     }
 
-    public boolean getIsUpdated() {
+    public final boolean getIsUpdated() {
         return mIsUpdated;
     }
 
-    public void setIsUpdated(final boolean value) {
+    public final void setIsUpdated(final boolean value) {
         mIsUpdated = value;
     }
 
-    public String getImageUrl() {
+    public final String getImageUrl() {
         return mImageUrl;
     }
 
-    public void setImageUrl(final String value) {
+    public final void setImageUrl(final String value) {
         mImageUrl = value;
     }
 
-    public String getThumbUrl() {
+    public final String getThumbUrl() {
         return mThumbUrl;
     }
 
-    public void setThumbUrl(final String value) {
+    public final void setThumbUrl(final String value) {
         mThumbUrl = value;
     }
 
     @Override
-    public String toString() {
+    public final boolean equals(final Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+
+        final RadioStationVO that = (RadioStationVO) object;
+
+        if (mId != that.mId) return false;
+        if (mStatus != that.mStatus) return false;
+        if (mIsUpdated != that.mIsUpdated) return false;
+        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
+        if (mStreamURL != null ? !mStreamURL.equals(that.mStreamURL) : that.mStreamURL != null)
+            return false;
+        if (mWebSite != null ? !mWebSite.equals(that.mWebSite) : that.mWebSite != null)
+            return false;
+        if (mCountry != null ? !mCountry.equals(that.mCountry) : that.mCountry != null)
+            return false;
+        if (mBitRate != null ? !mBitRate.equals(that.mBitRate) : that.mBitRate != null)
+            return false;
+        if (mGenre != null ? !mGenre.equals(that.mGenre) : that.mGenre != null) return false;
+        if (mImageUrl != null ? !mImageUrl.equals(that.mImageUrl) : that.mImageUrl != null)
+            return false;
+        return !(mThumbUrl != null ? !mThumbUrl.equals(that.mThumbUrl) : that.mThumbUrl != null);
+
+    }
+
+    @Override
+    public final int hashCode() {
+        int result = mId;
+        result = 31 * result + mStatus;
+        result = 31 * result + (mName != null ? mName.hashCode() : 0);
+        result = 31 * result + (mStreamURL != null ? mStreamURL.hashCode() : 0);
+        result = 31 * result + (mWebSite != null ? mWebSite.hashCode() : 0);
+        result = 31 * result + (mCountry != null ? mCountry.hashCode() : 0);
+        result = 31 * result + (mBitRate != null ? mBitRate.hashCode() : 0);
+        result = 31 * result + (mGenre != null ? mGenre.hashCode() : 0);
+        result = 31 * result + (mImageUrl != null ? mImageUrl.hashCode() : 0);
+        result = 31 * result + (mThumbUrl != null ? mThumbUrl.hashCode() : 0);
+        result = 31 * result + (mIsUpdated ? 1 : 0);
+        return result;
+    }
+
+    @Override
+    public final String toString() {
         return "RadioStationVO{" +
                 "mId=" + mId +
                 ", mStatus=" + mStatus +

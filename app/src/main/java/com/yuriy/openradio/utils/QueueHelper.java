@@ -33,7 +33,7 @@ import java.util.List;
  * Date: 16.12.14
  * Time: 11:44
  */
-public class QueueHelper {
+public final class QueueHelper {
 
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 

@@ -58,6 +58,7 @@ import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
 
@@ -104,6 +105,11 @@ public final class OpenRadioService
     private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
 
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
+
+    /**
+     * Make the request to get {@link RadioStationVO} with the provided {@link MediaDescription}.
+     */
+    public static final int MSG_GET_RADIO_STATION = 100;
 
     /**
      * Action to thumbs up a media item
@@ -218,11 +224,6 @@ public final class OpenRadioService
     private MessagesHandler mMessagesHandler;
 
     /**
-     * Looper associated with the MessagesHandler's thread.
-     */
-    private volatile Looper mServiceLooper;
-
-    /**
      * Id of the current Category. It is used for example when back from an empty Category.
      */
     private String mCurrentCategory = "";
@@ -252,17 +253,31 @@ public final class OpenRadioService
         FOCUSED
     }
 
-    private final Handler mDelayedStopHandler = new Handler() {
+    private final Handler mDelayedStopHandler = new DelayedStopHandler(this);
+
+    private static class DelayedStopHandler extends Handler {
+
+        private final OpenRadioService mReference;
+
+        public DelayedStopHandler(final OpenRadioService reference) {
+            mReference = reference;
+        }
 
         @Override
-        public void handleMessage(Message msg) {
-            if ((mMediaPlayer != null && mMediaPlayer.isPlaying()) || mPlayOnFocusGain) {
+        public void handleMessage(final Message msg) {
+            if (mReference == null) {
+                return;
+            }
+            if ((mReference.mMediaPlayer != null && mReference.mMediaPlayer.isPlaying())
+                    || mReference.mPlayOnFocusGain) {
                 Log.d(CLASS_NAME, "Ignoring delayed stop since the media player is in use.");
                 return;
             }
             Log.d(CLASS_NAME, "Stopping service with delay handler.");
-            stopSelf();
-            mServiceStarted = false;
+
+            mReference.stopSelf();
+
+            mReference.mServiceStarted = false;
         }
     };
 
@@ -284,8 +299,7 @@ public final class OpenRadioService
         thread.start();
 
         // Get the HandlerThread's Looper and use it for our Handler.
-        mServiceLooper = thread.getLooper();
-        mMessagesHandler = new MessagesHandler(mServiceLooper);
+        mMessagesHandler = new MessagesHandler(thread.getLooper());
         mMessagesHandler.setReference(this);
 
         mLocationService.checkLocationEnable(this);
@@ -687,7 +701,7 @@ public final class OpenRadioService
     }
 
     /**
-     * Factory method to make {@link Intent} for the fetch {@link RadioStationVO}.
+     * Factory method to make {@link Intent} to update Favorite {@link RadioStationVO}.
      *
      * @param context          Context of the callee.
      * @param mediaDescription {@link MediaDescription} of the {@link RadioStationVO}.
@@ -695,10 +709,10 @@ public final class OpenRadioService
      * @param handler          {@link Handler} object to use for the Messages exchanging.
      * @return {@link Intent}.
      */
-    public static Intent makeGetRadioStationIntent(final Context context,
-                                                   final MediaDescription mediaDescription,
-                                                   final boolean isFavorite,
-                                                   final Handler handler) {
+    public static Intent makeUpdateFavoriteIntent(final Context context,
+                                                  final MediaDescription mediaDescription,
+                                                  final boolean isFavorite,
+                                                  final Handler handler) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
         intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
@@ -996,14 +1010,17 @@ public final class OpenRadioService
 
             radioStation.setGenre(genre);
 
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+            final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
                     getApplicationContext(),
                     radioStation
             );
-
-            final MediaDescription mediaDescription = track.getDescription();
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+
+            if (FavoritesStorage.isFavorite(radioStation, this)) {
+                MediaItemHelper.updateFavoriteField(mediaItem, true);
+            }
+
             mediaItems.add(mediaItem);
         }
 
@@ -1052,14 +1069,18 @@ public final class OpenRadioService
 
         for (RadioStationVO radioStation : radioStations) {
 
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+            final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
                     getApplicationContext(),
                     radioStation
             );
 
-            final MediaDescription mediaDescription = track.getDescription();
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+
+            if (FavoritesStorage.isFavorite(radioStation, this)) {
+                MediaItemHelper.updateFavoriteField(mediaItem, true);
+            }
+
             mediaItems.add(mediaItem);
         }
 
@@ -1093,13 +1114,10 @@ public final class OpenRadioService
             QueueHelper.updateRadioStation(radioStation, radioStations);
         }
 
-        MediaMetadata track;
-        track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+        final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
                 getApplicationContext(),
                 radioStation
         );
-
-        final MediaDescription mediaDescription = track.getDescription();
         final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                 mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
         mediaItems.add(mediaItem);
@@ -1589,11 +1607,16 @@ public final class OpenRadioService
                             return;
                         }
                         // Set appropriate "Favorite" icon on Custom action:
-                        String mediaId = currentMusic.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+                        final String mediaId = currentMusic.getString(
+                                MediaMetadata.METADATA_KEY_MEDIA_ID
+                        );
+                        final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                                mediaId, radioStations
+                        );
                         int favoriteIcon = R.drawable.ic_star_off;
-                        /*if (mMusicProvider.isFavorite(mediaId)) {
+                        if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
                             favoriteIcon = R.drawable.ic_star_on;
-                        }*/
+                        }
                         /*Log.d(
                                 CLASS_NAME,
                                 "UpdatePlaybackState, setting Favorite custom action of music ",
@@ -1776,15 +1799,38 @@ public final class OpenRadioService
             super.onCustomAction(action, extras);
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
-                Log.i(CLASS_NAME, "OnCustomAction: favorite for current track");
-                /*MediaMetadata track = getCurrentPlayingMusic();
-                if (track != null) {
-                    String musicId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-                    mMusicProvider.setFavorite(musicId, !mMusicProvider.isFavorite(musicId));
-                }*/
-                // playback state needs to be updated because the "Favorite" icon on the
-                // custom action will change to reflect the new favorite state.
-                updatePlaybackState(null);
+                getCurrentPlayingRadioStation(
+                        new RadioStationUpdateListener() {
+                            @Override
+                            public void onComplete(final MediaMetadata track) {
+
+                                if (track != null) {
+                                    final String mediaId = track.getString(
+                                            MediaMetadata.METADATA_KEY_MEDIA_ID
+                                    );
+                                    final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                                            mediaId, radioStations
+                                    );
+                                    final boolean isFavorite = FavoritesStorage.isFavorite(
+                                            radioStation, getApplicationContext()
+                                    );
+                                    if (isFavorite) {
+                                        FavoritesStorage.removeFromFavorites(
+                                                radioStation, getApplicationContext()
+                                        );
+                                    } else {
+                                        FavoritesStorage.addToFavorites(
+                                                radioStation, getApplicationContext()
+                                        );
+                                    }
+                                }
+
+                                // playback state needs to be updated because the "Favorite" icon on the
+                                // custom action will change to reflect the new favorite state.
+                                updatePlaybackState(null);
+                            }
+                        }
+                );
             } else {
                 Log.e(CLASS_NAME, "Unsupported action: " + action);
             }
@@ -1797,7 +1843,7 @@ public final class OpenRadioService
      * it from {@link #onStartCommand(Intent, int, int)} (android.content.Intent)} that indicate which
      * action to perform.
      */
-    public static final class MessagesHandler extends Handler {
+    private static final class MessagesHandler extends Handler {
 
         /**
          * String tag to use in the logging.
@@ -1808,11 +1854,6 @@ public final class OpenRadioService
          * Reference to the outer class (service).
          */
         private OpenRadioService mReference;
-
-        /**
-         * Make the request to get {@link RadioStationVO} with the provided {@link MediaDescription}.
-         */
-        public static final int MSG_GET_RADIO_STATION = 1;
 
         /**
          * Class constructor initializes the Looper.
@@ -1864,6 +1905,7 @@ public final class OpenRadioService
             final RadioStationVO radioStation = QueueHelper.getRadioStationById(
                     mediaDescription.getMediaId(), mReference.radioStations
             );
+
             // Extract the Messenger.
             final Messenger messenger = (Messenger) intent.getExtras().get(
                     EXTRA_KEY_MESSAGES_HANDLER

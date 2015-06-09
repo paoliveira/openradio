@@ -31,7 +31,7 @@ import java.util.Arrays;
  * Validates that the calling package is authorized to use this
  * {@link android.service.media.MediaBrowserService}.
  */
-public class PackageValidator {
+public final class PackageValidator {
 
     public static final String CLASS_NAME = PackageValidator.class.getSimpleName();
 

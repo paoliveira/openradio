@@ -37,8 +37,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:gravity="center_vertical"
+        android:checked="false"
+        android:layout_centerVertical="true"
         android:focusable="false"
-        android:focusableInTouchMode="false"/>
+        android:focusableInTouchMode="false"
+        android:button="@drawable/check_box_favorites"/>
 
 </RelativeLayout>
