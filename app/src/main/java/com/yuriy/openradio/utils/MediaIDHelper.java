@@ -37,6 +37,8 @@ public final class MediaIDHelper {
 
     public static final String MEDIA_ID_COUNTRIES_LIST = "__COUNTRIES_LIST__";
 
+    public static final String MEDIA_ID_FAVORITES_LIST = "__FAVORITES_LIST__";
+
     public static final String MEDIA_ID_PARENT_CATEGORIES = "__PARENT_CATEGORIES__";
 
     public static final String MEDIA_ID_CHILD_CATEGORIES = "__CHILD_CATEGORIES__";

@@ -52,5 +52,7 @@
     <string name="countries_list_title">All Countries</string>
     <string name="countries_list_sub_title">radio stations by countries</string>
     <string name="favorite">Favorite</string>
+    <string name="favorites_list_title">Favorites</string>
+    <string name="favorites_list_sub_title">favorites radio stations</string>
 
 </resources>

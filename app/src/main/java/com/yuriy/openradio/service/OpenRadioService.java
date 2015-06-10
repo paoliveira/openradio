@@ -460,6 +460,18 @@ public final class OpenRadioService
             } else {
                 result.sendResult(mediaItems);
             }
+
+            if (!FavoritesStorage.isFavoritesEmpty(getApplicationContext())) {
+                // Favorites list
+                mediaItems.add(new MediaBrowser.MediaItem(
+                        new MediaDescription.Builder()
+                                .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
+                                .setTitle(getString(R.string.favorites_list_title))
+                                .setIconUri(Uri.parse(iconUrl))
+                                .setSubtitle(getString(R.string.favorites_list_sub_title))
+                                .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                ));
+            }
         } else if (MediaIDHelper.MEDIA_ID_ALL_CATEGORIES.equals(parentId)) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
@@ -618,6 +630,30 @@ public final class OpenRadioService
                         }
                     }
             );
+        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)) {
+            // Use result.detach to allow calling result.sendResult from another thread:
+            result.detach();
+
+            final List<RadioStationVO> radioStations = FavoritesStorage.getAllFavorites(
+                    getApplicationContext()
+            );
+
+            for (RadioStationVO radioStation : radioStations) {
+
+                final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
+                        getApplicationContext(),
+                        radioStation
+                );
+                final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                        mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+
+                if (FavoritesStorage.isFavorite(radioStation, this)) {
+                    MediaItemHelper.updateFavoriteField(mediaItem, true);
+                }
+
+                mediaItems.add(mediaItem);
+            }
+            result.sendResult(mediaItems);
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);
             result.sendResult(mediaItems);

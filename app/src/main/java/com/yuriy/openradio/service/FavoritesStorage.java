@@ -18,10 +18,17 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.business.RadioStationDeserializer;
+import com.yuriy.openradio.business.RadioStationJSONDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONSerializer;
 import com.yuriy.openradio.business.RadioStationSerializer;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Yuriy Chernyshov
@@ -66,6 +73,42 @@ public final class FavoritesStorage {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.remove(String.valueOf(radioStation.getId()));
         editor.commit();
+    }
+
+    /**
+     * Return collection of the Favorite Radio Stations which are stored in the persistent storage.
+     *
+     * @param context Context of the callee.
+     * @return Collection of the Favorites Radio stations.
+     */
+    public static List<RadioStationVO> getAllFavorites(final Context context) {
+        final List<RadioStationVO> radioStations = new ArrayList<>();
+        final SharedPreferences sharedPreferences = getSharedPreferences(context);
+        final Map<String, ?> map = sharedPreferences.getAll();
+        final RadioStationDeserializer deserializer = new RadioStationJSONDeserializer();
+        RadioStationVO radioStation;
+        String value;
+        for (String key : map.keySet()) {
+            value = String.valueOf(map.get(key));
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            radioStation = deserializer.deserialize(value);
+            radioStations.add(radioStation);
+        }
+        return radioStations;
+    }
+
+    /**
+     * Determines whether Favorites collection is empty or not.
+     *
+     * @param context Context of the callee.
+     * @return True in case of the are Favorites in collection, False - otherwise.
+     */
+    public static boolean isFavoritesEmpty(final Context context) {
+        final SharedPreferences sharedPreferences = getSharedPreferences(context);
+        final Map<String, ?> map = sharedPreferences.getAll();
+        return map.isEmpty();
     }
 
     /**
