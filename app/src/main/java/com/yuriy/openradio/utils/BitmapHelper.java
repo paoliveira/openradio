@@ -153,19 +153,19 @@ public final class BitmapHelper {
     }
 
     /**
-     * Overlay Flag over Bitmap.
+     * Overlay one Bitmap over other Bitmap.
      *
-     * @param baseBitmap Bitmap to overlay with Flag.
-     * @param flagBitmap Flag Bitmap.
+     * @param baseBitmap Base Bitmap.
+     * @param topBitmap Bitmap that is use to overlay.
      * @return Overlay Bitmap.
      */
-    public static Bitmap overlayWithFlag(final Bitmap baseBitmap, final Bitmap flagBitmap) {
+    public static Bitmap overlayWithBitmap(final Bitmap baseBitmap, final Bitmap topBitmap) {
         // %
         final double scaleToUse = 60.0;
         final double scaledW = baseBitmap.getWidth() * scaleToUse / 100;
-        final double scaledH = flagBitmap.getHeight() * (Math.abs(scaledW / flagBitmap.getWidth()));
+        final double scaledH = topBitmap.getHeight() * (Math.abs(scaledW / topBitmap.getWidth()));
         final Bitmap scaledFlag = Bitmap.createScaledBitmap(
-                flagBitmap,
+                topBitmap,
                 (int) scaledW,
                 (int) scaledH,
                 false

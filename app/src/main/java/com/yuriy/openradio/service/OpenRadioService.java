@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.service;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -35,9 +34,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.os.Messenger;
 import android.os.PowerManager;
-import android.os.RemoteException;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
 import android.support.v4.content.LocalBroadcastManager;
@@ -49,9 +46,8 @@ import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.business.DataParser;
-import com.yuriy.openradio.business.FlagOverlay;
-import com.yuriy.openradio.business.FlagOverlayImpl;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -107,9 +103,9 @@ public final class OpenRadioService
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
 
     /**
-     * Make the request to get {@link RadioStationVO} with the provided {@link MediaDescription}.
+     * Reserved init value.
      */
-    public static final int MSG_GET_RADIO_STATION = 100;
+    private static final int MSG_INIT = 100;
 
     /**
      * Action to thumbs up a media item
@@ -350,10 +346,32 @@ public final class OpenRadioService
                 }
             });
         } else if (command.equals(VALUE_NAME_GET_RADIO_STATION_COMMAND)) {
-            // Create a Message that will be sent to the MessagesHandler to
-            // retrieve a RadioStation based on a MediaDescription in the Intent.
-            final Message message = mMessagesHandler.makeGetRadioStationMessage(intent);
-            mMessagesHandler.sendMessage(message);
+            // Update Favorites Radio station: whether add it or remove it from the storage
+            final boolean isFavorite = getIsFavoriteFromIntent(intent);
+            final MediaDescription mediaDescription = extractMediaDescription(intent);
+            if (mediaDescription == null) {
+                return super.onStartCommand(intent, flags, startId);
+            }
+            final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                    mediaDescription.getMediaId(), radioStations
+            );
+            if (radioStation == null) {
+                if (!isFavorite) {
+                    FavoritesStorage.removeFromFavorites(
+                            mediaDescription.getMediaId(), getApplicationContext()
+                    );
+                }
+                return super.onStartCommand(intent, flags, startId);
+            }
+            if (isFavorite) {
+                FavoritesStorage.addToFavorites(
+                        radioStation, getApplicationContext()
+                );
+            } else {
+                FavoritesStorage.removeFromFavorites(
+                        String.valueOf(radioStation.getId()), getApplicationContext()
+                );
+            }
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -439,9 +457,13 @@ public final class OpenRadioService
             //If the Country code is known
             if (!countryCode.isEmpty()) {
 
+                final int identifier = getResources().getIdentifier(
+                        "flag_" + countryCode.toLowerCase(),
+                        "drawable", getPackageName()
+                );
                 // Overlay base image with the appropriate flag
-                final FlagOverlay flagOverlay = FlagOverlayImpl.getInstance();
-                final Bitmap bitmap = flagOverlay.getFlag(this, countryCode,
+                final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
+                final Bitmap bitmap = overlay.execute(this, identifier,
                         BitmapFactory.decodeResource(
                                 getResources(),
                                 R.drawable.ic_all_categories
@@ -463,11 +485,24 @@ public final class OpenRadioService
 
             if (!FavoritesStorage.isFavoritesEmpty(getApplicationContext())) {
                 // Favorites list
+
+                final int identifier = getResources().getIdentifier(
+                        "ic_favorites_on",
+                        "drawable", getPackageName()
+                );
+                // Overlay base image with the appropriate flag
+                final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
+                final Bitmap bitmap = overlay.execute(this, identifier,
+                        BitmapFactory.decodeResource(
+                                getResources(),
+                                R.drawable.ic_all_categories
+                        ));
+
                 mediaItems.add(new MediaBrowser.MediaItem(
                         new MediaDescription.Builder()
                                 .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
                                 .setTitle(getString(R.string.favorites_list_title))
-                                .setIconUri(Uri.parse(iconUrl))
+                                .setIconBitmap(bitmap)
                                 .setSubtitle(getString(R.string.favorites_list_sub_title))
                                 .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
                 ));
@@ -634,13 +669,17 @@ public final class OpenRadioService
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
 
-            final List<RadioStationVO> radioStations = FavoritesStorage.getAllFavorites(
+            final List<RadioStationVO> list = FavoritesStorage.getAllFavorites(
                     getApplicationContext()
             );
 
+            synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+                QueueHelper.copyCollection(radioStations, list);
+            }
+
             for (RadioStationVO radioStation : radioStations) {
 
-                final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
+                final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                         getApplicationContext(),
                         radioStation
                 );
@@ -742,18 +781,15 @@ public final class OpenRadioService
      * @param context          Context of the callee.
      * @param mediaDescription {@link MediaDescription} of the {@link RadioStationVO}.
      * @param isFavorite       Whether Radio station is Favorite or not.
-     * @param handler          {@link Handler} object to use for the Messages exchanging.
      * @return {@link Intent}.
      */
     public static Intent makeUpdateFavoriteIntent(final Context context,
                                                   final MediaDescription mediaDescription,
-                                                  final boolean isFavorite,
-                                                  final Handler handler) {
+                                                  final boolean isFavorite) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
         intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
         intent.putExtra(EXTRA_KEY_IS_FAVORITE, isFavorite);
-        intent.putExtra(EXTRA_KEY_MESSAGES_HANDLER, new Messenger(handler));
         return intent;
     }
 
@@ -915,7 +951,7 @@ public final class OpenRadioService
 
         String countryName;
         // Overlay base image with the appropriate flag
-        final FlagOverlay flagLoader = FlagOverlayImpl.getInstance();
+        final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
         Bitmap bitmap;
 
         for (final String countryCode : list) {
@@ -926,7 +962,12 @@ public final class OpenRadioService
                 countryName = "";
             }
 
-            bitmap = flagLoader.getFlag(this, countryCode,
+            final int identifier = getResources().getIdentifier(
+                    "flag_" + countryCode.toLowerCase(),
+                    "drawable", getPackageName()
+            );
+
+            bitmap = flagLoader.execute(this, identifier,
                     BitmapFactory.decodeResource(
                             getResources(),
                             R.drawable.ic_child_categories
@@ -1021,7 +1062,7 @@ public final class OpenRadioService
 
         if (list.isEmpty()) {
 
-            track = JSONDataParserImpl.buildMediaMetadataForEmptyCategory(
+            track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     getApplicationContext(),
                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
             );
@@ -1046,7 +1087,7 @@ public final class OpenRadioService
 
             radioStation.setGenre(genre);
 
-            final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
+            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     getApplicationContext(),
                     radioStation
             );
@@ -1084,7 +1125,7 @@ public final class OpenRadioService
 
         if (list.isEmpty()) {
 
-            track = JSONDataParserImpl.buildMediaMetadataForEmptyCategory(
+            track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     getApplicationContext(),
                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
             );
@@ -1105,7 +1146,7 @@ public final class OpenRadioService
 
         for (RadioStationVO radioStation : radioStations) {
 
-            final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
+            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     getApplicationContext(),
                     radioStation
             );
@@ -1150,7 +1191,7 @@ public final class OpenRadioService
             QueueHelper.updateRadioStation(radioStation, radioStations);
         }
 
-        final MediaDescription mediaDescription = JSONDataParserImpl.buildMediaDescriptionFromRadioStation(
+        final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                 getApplicationContext(),
                 radioStation
         );
@@ -1276,7 +1317,7 @@ public final class OpenRadioService
         }
 
         //Log.d(CLASS_NAME, "CurrentPlayingRadioStation for id=" + mediaId);
-        return JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+        return MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation
         );
@@ -1293,7 +1334,7 @@ public final class OpenRadioService
         final MediaSession.QueueItem queueItem = playingQueue.get(mCurrentIndexOnQueue);
         final String mediaId = queueItem.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
-        final MediaMetadata track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(
+        final MediaMetadata track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation
         );
@@ -1385,7 +1426,7 @@ public final class OpenRadioService
                         " PlayQueue.size=" + playingQueue.size());
                 return;
             }
-            final String source = track.getString(JSONDataParserImpl.CUSTOM_METADATA_TRACK_SOURCE);
+            final String source = track.getString(MediaItemHelper.CUSTOM_METADATA_TRACK_SOURCE);
             Log.d(CLASS_NAME, "Play Radio Station: current (" + mCurrentIndexOnQueue + ") in playingQueue. " +
                     " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
                     " source=" + source);
@@ -1847,12 +1888,19 @@ public final class OpenRadioService
                                     final RadioStationVO radioStation = QueueHelper.getRadioStationById(
                                             mediaId, radioStations
                                     );
+
+                                    if (radioStation == null) {
+                                        Log.w(CLASS_NAME, "OnCustomAction radioStation is null");
+                                        return;
+                                    }
+
                                     final boolean isFavorite = FavoritesStorage.isFavorite(
                                             radioStation, getApplicationContext()
                                     );
                                     if (isFavorite) {
                                         FavoritesStorage.removeFromFavorites(
-                                                radioStation, getApplicationContext()
+                                                String.valueOf(radioStation.getId()),
+                                                getApplicationContext()
                                         );
                                     } else {
                                         FavoritesStorage.addToFavorites(
@@ -1909,9 +1957,6 @@ public final class OpenRadioService
             final int what = message.what;
             final Intent intent = (Intent) message.obj;
             switch (what) {
-                case MSG_GET_RADIO_STATION:
-                    getRadioStationAndReply(intent);
-                    break;
                 default:
                     Log.w(CLASS_NAME, "Handle unknown msg:" + what);
             }
@@ -1923,91 +1968,6 @@ public final class OpenRadioService
          */
         public void setReference(final OpenRadioService value) {
             mReference = value;
-        }
-
-        /**
-         * Retrieves the designated {@link RadioStationVO} and reply
-         * via the {@link android.os.Messenger}
-         * sent with the {@link android.content.Intent}.
-         */
-        private void getRadioStationAndReply(final Intent intent) {
-            if (mReference == null) {
-                return;
-            }
-            final MediaDescription mediaDescription = extractMediaDescription(intent);
-            if (mediaDescription == null) {
-                return;
-            }
-            final RadioStationVO radioStation = QueueHelper.getRadioStationById(
-                    mediaDescription.getMediaId(), mReference.radioStations
-            );
-
-            // Extract the Messenger.
-            final Messenger messenger = (Messenger) intent.getExtras().get(
-                    EXTRA_KEY_MESSAGES_HANDLER
-            );
-            sendRadioStation(messenger, radioStation, getIsFavoriteFromIntent(intent));
-        }
-
-        /**
-         * Send the RadioStation back to the callee via the Messenger.
-         *
-         * @param messenger    {@link android.os.Messenger}.
-         * @param radioStation {@link RadioStationVO}.
-         * @param isFavorite   Whether Radio station is Favorite or not.
-         */
-        private void sendRadioStation(final Messenger messenger,
-                                      final RadioStationVO radioStation,
-                                      final boolean isFavorite) {
-            // Call factory method to create Message.
-            final Message message = makeReplyMessageWithRadioStation(radioStation, isFavorite);
-
-            try {
-                // Send RadioStation to back to the callee.
-                message.what = MSG_GET_RADIO_STATION;
-                messenger.send(message);
-            } catch (RemoteException e) {
-                Log.e(CLASS_NAME, "Exception while sending:" + e.getMessage());
-            }
-        }
-
-        /**
-         * A factory method that creates a Message to return to the
-         * callee with the {@link RadioStationVO}.
-         *
-         * @param radioStation Instance of the {@link RadioStationVO}.
-         * @param isFavorite   Whether Radio station is Favorite or not.
-         */
-        private Message makeReplyMessageWithRadioStation(final RadioStationVO radioStation,
-                                                         final boolean isFavorite) {
-            final Message message = Message.obtain();
-
-            // Return the result to indicate whether the retrieved action was
-            // succeeded or failed.
-            message.arg1 = radioStation == null
-                    ? Activity.RESULT_CANCELED
-                    : Activity.RESULT_OK;
-
-            final Bundle data = new Bundle();
-
-            // Put Radio Station into the data.
-            data.putSerializable(EXTRA_KEY_RADIO_STATION, radioStation);
-            data.putBoolean(EXTRA_KEY_IS_FAVORITE, isFavorite);
-            message.setData(data);
-            return message;
-        }
-
-        /**
-         * A factory method that creates a {@link android.os.Message} that contains
-         * information on the {@link RadioStationVO} to retrieve.
-         */
-        private Message makeGetRadioStationMessage(final Intent intent) {
-
-            final Message message = Message.obtain();
-            // Include Intent in Message to indicate which data to retrieve.
-            message.obj = intent;
-            message.what = MSG_GET_RADIO_STATION;
-            return message;
         }
     }
 }

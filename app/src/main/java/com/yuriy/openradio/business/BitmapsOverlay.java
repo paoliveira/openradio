@@ -21,7 +21,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapHelper;
 
@@ -31,47 +30,49 @@ import com.yuriy.openradio.utils.BitmapHelper;
  * On 5/2/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class FlagOverlayImpl implements FlagOverlay {
+public final class BitmapsOverlay {
 
     /**
      * Path to the directory with Flags, under app's folder.
      */
     private static final String FLAGS_DIR = "/img/flags";
 
-    private static final String CLASS_NAME = FlagOverlayImpl.class.getSimpleName();
+    private static final String CLASS_NAME = BitmapsOverlay.class.getSimpleName();
 
     /**
      * Private constructor.
      */
-    private FlagOverlayImpl() { }
+    private BitmapsOverlay() { }
 
     /**
-     * Factory method to make default instance of the {@link FlagOverlay}.
-     * @return Default instance of the {@link FlagOverlay}.
+     * Factory method to make default instance of the {@link BitmapsOverlay}.
+     * @return Default instance of the {@link BitmapsOverlay}.
      */
-    public static FlagOverlay getInstance() {
-        return new FlagOverlayImpl();
+    public static BitmapsOverlay getInstance() {
+        return new BitmapsOverlay();
     }
 
-    @Override
-    public final Bitmap getFlag(final Context context, final String countryCode,
+    /**
+     * Overlay the Bitmap with the Android's drawable resource that associated with the provided Id.
+     *
+     * @param context    Callee context.
+     * @param resourceId Id of the drawable resource that will be placed over the provided Bitmap.
+     * @param baseBitmap Bitmap that need to be overlay by the drawable resource.
+     * @return Bitmap as the result of the overlay.
+     */
+    public final Bitmap execute(final Context context, final int resourceId,
                                 final Bitmap baseBitmap) {
-        final int identifier = context.getResources().getIdentifier(
-                "flag_" + countryCode.toLowerCase(),
-                "drawable", context.getPackageName()
-        );
-
-        if (identifier == 0) {
-            Log.w(CLASS_NAME, "No flag found for the:" + countryCode);
+        if (resourceId == 0) {
+            Log.w(CLASS_NAME, "Invalid resource Id");
             return baseBitmap;
         }
 
-        final Bitmap flag = BitmapFactory.decodeResource(
+        final Bitmap overlayBitmap = BitmapFactory.decodeResource(
                 context.getResources(),
-                identifier
+                resourceId
         );
 
-        return BitmapHelper.overlayWithFlag(baseBitmap, flag);
+        return BitmapHelper.overlayWithBitmap(baseBitmap, overlayBitmap);
     }
 
     /**

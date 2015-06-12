@@ -18,7 +18,6 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.RadioStationDeserializer;
@@ -63,15 +62,16 @@ public final class FavoritesStorage {
     }
 
     /**
-     * Remove provided {@link RadioStationVO} from the Favorites preferences.
+     * Remove provided {@link RadioStationVO} from the Favorites preferences
+     * by the provided media Id.
      *
-     * @param radioStation {@link RadioStationVO} to remove from the Favorites.
-     * @param context      Context of the callee.
+     * @param mediaId Media Id of the {@link RadioStationVO}.
+     * @param context Context of the callee.
      */
-    public static synchronized void removeFromFavorites(final RadioStationVO radioStation,
+    public static synchronized void removeFromFavorites(final String mediaId,
                                                         final Context context) {
         final SharedPreferences.Editor editor = getEditor(context);
-        editor.remove(String.valueOf(radioStation.getId()));
+        editor.remove(mediaId);
         editor.commit();
     }
 

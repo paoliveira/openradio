@@ -22,7 +22,6 @@ import android.media.session.MediaSession;
 
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.business.JSONDataParserImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ public final class QueueHelper {
         MediaSession.QueueItem item;
         MediaMetadata track;
         for (RadioStationVO radioStation : radioStations) {
-            track = JSONDataParserImpl.buildMediaMetadataFromRadioStation(context, radioStation);
+            track = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
             item = new MediaSession.QueueItem(track.getDescription(), count++);
             queue.add(item);
         }
