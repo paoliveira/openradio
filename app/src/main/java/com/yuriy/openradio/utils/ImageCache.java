@@ -635,10 +635,7 @@ public class ImageCache {
      */
     @TargetApi(VERSION_CODES.GINGERBREAD)
     public static boolean isExternalStorageRemovable() {
-        if (Utils.hasGingerbread()) {
-            return Environment.isExternalStorageRemovable();
-        }
-        return true;
+        return !Utils.hasGingerbread() || Environment.isExternalStorageRemovable();
     }
 
     /**

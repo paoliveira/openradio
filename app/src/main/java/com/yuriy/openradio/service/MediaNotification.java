@@ -375,7 +375,7 @@ public class MediaNotification extends BroadcastReceiver {
             protected void onPostExecute(Bitmap bitmap) {
                 if (bitmap != null && mMetadata != null &&
                         mNotificationBuilder != null && mMetadata.getDescription() != null &&
-                        !source.equals(mMetadata.getDescription().getIconUri())) {
+                        !source.equals(mMetadata.getDescription().getIconUri().toString())) {
                     // If the media is still the same, update the notification:
                     Log.d(CLASS_NAME, "GetBitmapFromURLAsync: set bitmap to " + source);
                     mNotificationBuilder.setLargeIcon(bitmap);

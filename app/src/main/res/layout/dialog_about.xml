@@ -18,16 +18,16 @@
 
             <TextView
                 android:text="@string/about_author"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:textStyle="bold"
-                android:paddingRight="5dp"
+                android:paddingEnd="5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/about_author_link_view"
                 android:text="@string/about_author_name"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:textStyle="bold"
                 android:textColor="@color/blue_light_color"
                 android:layout_width="wrap_content"
@@ -43,16 +43,16 @@
 
             <TextView
                 android:text="@string/about_project_home_title"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:textStyle="bold"
-                android:paddingRight="5dp"
+                android:paddingEnd="5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
                 android:id="@+id/about_project_link_view"
                 android:text="@string/app_name"
-                android:layout_gravity="left"
+                android:layout_gravity="start"
                 android:textStyle="bold"
                 android:textColor="@color/blue_light_color"
                 android:layout_width="wrap_content"
@@ -63,26 +63,26 @@
         <TextView
             android:text="@string/about_project_home_desc"
             android:layout_marginBottom="15dp"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:text="@string/about_thanks_1"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:text="@string/about_thanks_1_title"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:text="@string/about_thanks_1_url"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:textStyle="bold"
             android:autoLink="web"
             android:layout_marginBottom="15dp"
@@ -91,20 +91,20 @@
 
         <TextView
             android:text="@string/about_thanks_2"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:text="@string/about_thanks_2_title"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:textStyle="bold"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <TextView
             android:text="@string/about_thanks_2_url"
-            android:layout_gravity="left"
+            android:layout_gravity="start"
             android:textStyle="bold"
             android:autoLink="web"
             android:layout_marginBottom="15dp"

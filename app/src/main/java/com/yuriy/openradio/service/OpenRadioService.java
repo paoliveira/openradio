@@ -32,7 +32,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -217,7 +216,7 @@ public final class OpenRadioService
     /**
      * Handler to handle incoming to the Serive messages.
      */
-    private MessagesHandler mMessagesHandler;
+    //private MessagesHandler mMessagesHandler;
 
     /**
      * Id of the current Category. It is used for example when back from an empty Category.
@@ -275,7 +274,7 @@ public final class OpenRadioService
 
             mReference.mServiceStarted = false;
         }
-    };
+    }
 
     @Override
     public final void onCreate() {
@@ -295,8 +294,8 @@ public final class OpenRadioService
         thread.start();
 
         // Get the HandlerThread's Looper and use it for our Handler.
-        mMessagesHandler = new MessagesHandler(thread.getLooper());
-        mMessagesHandler.setReference(this);
+        //mMessagesHandler = new MessagesHandler(thread.getLooper());
+        //mMessagesHandler.setReference(this);
 
         mLocationService.checkLocationEnable(this);
         mLocationService.requestCountryCodeLastKnown(this);
@@ -323,7 +322,7 @@ public final class OpenRadioService
         Log.i(CLASS_NAME, "On Start Command: " + intent);
 
         if (intent == null) {
-            return super.onStartCommand(intent, flags, startId);
+            return super.onStartCommand(null, flags, startId);
         }
 
         final Bundle bundle = intent.getExtras();
@@ -832,7 +831,7 @@ public final class OpenRadioService
         }
         if (data.containsKey(EXTRA_KEY_IS_FAVORITE)) {
             isFavorite = data.getBoolean(EXTRA_KEY_IS_FAVORITE, false);
-        };
+        }
         return isFavorite;
     }
 
@@ -1926,36 +1925,38 @@ public final class OpenRadioService
         }
     }
 
+    // Template for the future
+
     /**
      * An inner class that inherits from {@link android.os.Handler} and uses its
      * {@link #handleMessage(android.os.Message)} hook method to process Messages sent to
      * it from {@link #onStartCommand(Intent, int, int)} (android.content.Intent)} that indicate which
      * action to perform.
      */
-    private static final class MessagesHandler extends Handler {
+    /*private static final class MessagesHandler extends Handler {
 
-        /**
+        *//**
          * String tag to use in the logging.
-         */
+         *//*
         private static final String CLASS_NAME = MessagesHandler.class.getSimpleName();
 
-        /**
+        *//**
          * Reference to the outer class (service).
-         */
+         *//*
         private OpenRadioService mReference;
 
-        /**
+        *//**
          * Class constructor initializes the Looper.
          *
          * @param looper The Looper that we borrow from HandlerThread.
-         */
+         *//*
         public MessagesHandler(final Looper looper) {
             super(looper);
         }
 
-        /**
+        *//**
          * Hook method that process incoming commands.
-         */
+         *//*
         @Override
         public void handleMessage(final Message message) {
 
@@ -1967,12 +1968,12 @@ public final class OpenRadioService
             }
         }
 
-        /**
+        *//**
          * Set the reference to the outer class (service).
          * @param value Instance of the {@link OpenRadioService}
-         */
+         *//*
         public void setReference(final OpenRadioService value) {
             mReference = value;
         }
-    }
+    }*/
 }
