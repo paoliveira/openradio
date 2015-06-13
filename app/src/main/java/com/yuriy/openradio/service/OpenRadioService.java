@@ -357,9 +357,7 @@ public final class OpenRadioService
             );
             if (radioStation == null) {
                 if (!isFavorite) {
-                    FavoritesStorage.removeFromFavorites(
-                            mediaDescription.getMediaId(), getApplicationContext()
-                    );
+                    removeFromFavorites(mediaDescription.getMediaId());
                 }
                 return super.onStartCommand(intent, flags, startId);
             }
@@ -368,9 +366,7 @@ public final class OpenRadioService
                         radioStation, getApplicationContext()
                 );
             } else {
-                FavoritesStorage.removeFromFavorites(
-                        String.valueOf(radioStation.getId()), getApplicationContext()
-                );
+                removeFromFavorites(String.valueOf(radioStation.getId()));
             }
         }
 
@@ -1719,6 +1715,18 @@ public final class OpenRadioService
         return new APIServiceProviderImpl(dataParser);
     }
 
+    /**
+     * Remove {@link RadioStationVO} from the Favorites store by the provided Media Id.
+     *
+     * @param mediaId Media Id of the {@link RadioStationVO}.
+     */
+    private void removeFromFavorites(final String mediaId) {
+        FavoritesStorage.removeFromFavorites(
+                mediaId,
+                getApplicationContext()
+        );
+    }
+
     private final class MediaSessionCallback extends MediaSession.Callback {
 
         private final String CLASS_NAME = MediaSessionCallback.class.getSimpleName();
@@ -1898,10 +1906,7 @@ public final class OpenRadioService
                                             radioStation, getApplicationContext()
                                     );
                                     if (isFavorite) {
-                                        FavoritesStorage.removeFromFavorites(
-                                                String.valueOf(radioStation.getId()),
-                                                getApplicationContext()
-                                        );
+                                        removeFromFavorites(String.valueOf(radioStation.getId()));
                                     } else {
                                         FavoritesStorage.addToFavorites(
                                                 radioStation, getApplicationContext()
