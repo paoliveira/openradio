@@ -206,6 +206,7 @@ public class ImageCache {
                 File diskCacheDir = mCacheParams.diskCacheDir;
                 if (mCacheParams.diskCacheEnabled && diskCacheDir != null) {
                     if (!diskCacheDir.exists()) {
+                        //noinspection ResultOfMethodCallIgnored
                         diskCacheDir.mkdirs();
                     }
                     if (getUsableSpace(diskCacheDir) > mCacheParams.diskCacheSize) {

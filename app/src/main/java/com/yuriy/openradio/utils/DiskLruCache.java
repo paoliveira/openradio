@@ -330,6 +330,7 @@ public final class DiskLruCache implements Closeable {
         }
 
         // create a new empty cache
+        //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
         cache = new DiskLruCache(directory, appVersion, valueCount, maxSize);
         cache.rebuildJournal();
@@ -389,7 +390,8 @@ public final class DiskLruCache implements Closeable {
             entry.setLengths(copyOfRange(parts, 2, parts.length));
         } else if (parts[0].equals(DIRTY) && parts.length == 2) {
             entry.currentEditor = new Editor(entry);
-        } else if (parts[0].equals(READ) && parts.length == 2) {
+        } else //noinspection StatementWithEmptyBody
+            if (parts[0].equals(READ) && parts.length == 2) {
             // this work was already done by calling lruEntries.get()
         } else {
             throw new IOException("unexpected journal line: " + line);
@@ -448,6 +450,7 @@ public final class DiskLruCache implements Closeable {
         }
 
         writer.close();
+        //noinspection ResultOfMethodCallIgnored
         journalFileTmp.renameTo(journalFile);
         journalWriter = new BufferedWriter(new FileWriter(journalFile, true), IO_BUFFER_SIZE);
     }
@@ -583,6 +586,7 @@ public final class DiskLruCache implements Closeable {
             if (success) {
                 if (dirty.exists()) {
                     File clean = entry.getCleanFile(i);
+                    //noinspection ResultOfMethodCallIgnored
                     dirty.renameTo(clean);
                     long oldLength = entry.lengths[i];
                     long newLength = clean.length();

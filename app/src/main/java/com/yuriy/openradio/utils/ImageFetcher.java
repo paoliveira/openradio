@@ -88,6 +88,7 @@ public class ImageFetcher extends ImageResizer {
 
     private void initHttpDiskCache() {
         if (!mHttpCacheDir.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             mHttpCacheDir.mkdirs();
         }
         synchronized (mHttpDiskCacheLock) {
