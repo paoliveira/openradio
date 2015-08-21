@@ -36,6 +36,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.service.media.MediaBrowserService;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -332,6 +333,10 @@ public final class OpenRadioService
 
         final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
 
+        if (command == null || command.isEmpty()) {
+            return super.onStartCommand(intent, flags, startId);
+        }
+
         if (command.equals(VALUE_NAME_REQUEST_LOCATION_COMMAND)) {
             mLocationService.requestCountryCode(this, new LocationServiceListener() {
 
@@ -388,7 +393,7 @@ public final class OpenRadioService
     }
 
     @Override
-    public final BrowserRoot onGetRoot(final String clientPackageName, final int clientUid,
+    public final BrowserRoot onGetRoot(@NonNull final String clientPackageName, final int clientUid,
                                        final Bundle rootHints) {
         Log.d(CLASS_NAME, "OnGetRoot: clientPackageName=" + clientPackageName
                 + ", clientUid=" + clientUid + ", rootHints=" + rootHints);
@@ -410,8 +415,8 @@ public final class OpenRadioService
     }
 
     @Override
-    public final void onLoadChildren(final String parentId,
-                                     final Result<List<MediaBrowser.MediaItem>> result) {
+    public final void onLoadChildren(@NonNull final String parentId,
+                                     @NonNull final Result<List<MediaBrowser.MediaItem>> result) {
 
         Log.i(CLASS_NAME, "OnLoadChildren:" + parentId);
 
@@ -941,9 +946,6 @@ public final class OpenRadioService
             }
         });
 
-        final String iconUrl = "android.resource://" +
-                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
-
         String countryName;
         // Overlay base image with the appropriate flag
         final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
@@ -1327,6 +1329,7 @@ public final class OpenRadioService
         }
 
         final MediaSession.QueueItem queueItem = playingQueue.get(mCurrentIndexOnQueue);
+        // TODO : getDescription() can return null
         final String mediaId = queueItem.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, radioStations);
         final MediaMetadata track = MediaItemHelper.buildMediaMetadataFromRadioStation(
@@ -1334,7 +1337,7 @@ public final class OpenRadioService
                 radioStation
         );
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-        if (!mediaId.equals(trackId)) {
+        if (mediaId == null || trackId == null || !mediaId.equals(trackId)) {
             throw new IllegalStateException("track ID (" + trackId + ") " +
                     "should match mediaId (" + mediaId + ")");
         }
@@ -1879,7 +1882,7 @@ public final class OpenRadioService
         }
 
         @Override
-        public void onCustomAction(final String action, final Bundle extras) {
+        public void onCustomAction(@NonNull final String action, final Bundle extras) {
             super.onCustomAction(action, extras);
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
