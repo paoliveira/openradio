@@ -406,7 +406,9 @@ public final class AppUtils {
         final File file = new File(dirName + "/" + fileName);
 
         // http://stackoverflow.com/questions/11539657/open-failed-ebusy-device-or-resource-busy
+        //noinspection ResultOfMethodCallIgnored
         file.renameTo(file);
+        //noinspection ResultOfMethodCallIgnored
         file.delete();
 
         //Convert bitmap to byte array
@@ -454,6 +456,7 @@ public final class AppUtils {
         File file = new File(filePath);
         Log.d(CLASS_NAME, "Saving data to file '" + filePath + "', exists:" + file.exists());
         if (file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
         FileOutputStream mFileOutputStream = null;
@@ -498,9 +501,11 @@ public final class AppUtils {
     public static void createDirIfNeeded(final String path) {
         final File file = new File(path);
         if (file.exists() && !file.isDirectory()) {
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
         if (!file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
             file.mkdirs();
         }
     }

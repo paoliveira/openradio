@@ -70,6 +70,7 @@ android {
 }
 
 dependencies {
+    compile 'commons-io:commons-io:2.4'
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile('com.crashlytics.sdk.android:crashlytics:2.2.0@aar') {
         transitive = true;

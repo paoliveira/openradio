@@ -19,15 +19,14 @@ package com.yuriy.openradio.net;
 import android.net.Uri;
 import android.util.Log;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
+import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 /**
  * Created by Yuriy Chernyshov
@@ -51,42 +50,41 @@ public class HTTPDownloaderImpl implements Downloader {
     @Override
     public byte[] downloadDataFromUri(final Uri uri) {
         Log.i(CLASS_NAME, "Request URL:" + uri);
-        HttpGet request = null;
         byte[] response = new byte[0];
+
+        // TODO : Set everything in more compact way
+
+        URL url = null;
         try {
-            request = new HttpGet(uri.toString());
-        } catch (IllegalArgumentException e) {
-            Log.e(CLASS_NAME, "IllegalArgumentException error: " + e.getMessage());
+            url = new URL(uri.toString());
+        } catch (final MalformedURLException e) {
+            Log.e(CLASS_NAME, "Url exception: " + e.getMessage());
         }
 
-        if (request == null) {
+        if (url == null) {
             return response;
         }
 
-        final HttpClient httpClient = new DefaultHttpClient();
+        HttpURLConnection urlConnection = null;
         try {
-            final HttpResponse httpResponse = httpClient.execute(request);
-            int responseCode = httpResponse.getStatusLine().getStatusCode();
-            Log.d(CLASS_NAME, "Response code: " + responseCode);
-
-            if (responseCode == 200) {
-                final HttpEntity entity = httpResponse.getEntity();
-                if (entity != null) {
-                    try {
-                        response = EntityUtils.toByteArray(entity);
-                        return response;
-                    } catch (IOException e) {
-                        Log.e(CLASS_NAME, "EntityUtils error: " + e.getMessage());
-                    }
-                }
-            }
-        } catch (ClientProtocolException e) {
-            Log.e(CLASS_NAME, "ClientProtocolException: " + e.getMessage());
-        } catch (IOException e) {
-            Log.e(CLASS_NAME, "IOException: " + e.getMessage());
-        } catch (SecurityException e) {
-            Log.e(CLASS_NAME, "SecurityException error: " + e.getMessage());
+            urlConnection = (HttpURLConnection) url.openConnection();
+        } catch (final IOException e) {
+            Log.e(CLASS_NAME, "Http Url connection exception: " + e.getMessage());
         }
+
+        if (urlConnection == null) {
+            return response;
+        }
+
+        try {
+            final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
+            response = IOUtils.toByteArray(inputStream);
+        } catch (final IOException e) {
+            Log.e(CLASS_NAME, "Http Url connection getInputStream exception: " + e.getMessage());
+        } finally {
+            urlConnection.disconnect();
+        }
+
         return response;
     }
 }
