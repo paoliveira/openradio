@@ -24,6 +24,7 @@ import android.content.IntentFilter;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -166,10 +167,12 @@ public final class MainActivity extends FragmentActivity {
                 final MediaBrowser.MediaItem item
                         = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
 
-                if (item.isBrowsable() && item.getDescription().getTitle().equals(
-                        getString(R.string.category_empty))
-                        ) {
-                    return;
+                if (item.isBrowsable()) {
+                    if (item.getDescription().getTitle() != null
+                            && item.getDescription().getTitle()
+                                                    .equals(getString(R.string.category_empty))) {
+                        return;
+                    }
                 }
 
                 // Keep last selected position for the given category.
@@ -466,8 +469,8 @@ public final class MainActivity extends FragmentActivity {
             = new MediaBrowser.SubscriptionCallback() {
 
         @Override
-        public void onChildrenLoaded(final String parentId,
-                                     final List<MediaBrowser.MediaItem> children) {
+        public void onChildrenLoaded(@NonNull final String parentId,
+                                     @NonNull final List<MediaBrowser.MediaItem> children) {
             Log.i(CLASS_NAME, "On children loaded:" + parentId);
 
             hideProgressBar();
@@ -496,7 +499,7 @@ public final class MainActivity extends FragmentActivity {
         }
 
         @Override
-        public void onError(final String id) {
+        public void onError(@NonNull final String id) {
 
             hideProgressBar();
 
@@ -524,9 +527,9 @@ public final class MainActivity extends FragmentActivity {
             }
 
             // If session token is null - throw exception
-            if (mMediaBrowser.getSessionToken() == null) {
-                throw new IllegalArgumentException("No Session token");
-            }
+            //if (mMediaBrowser.getSessionToken() == null) {
+            //    throw new IllegalArgumentException("No Session token");
+            //}
 
             // Subscribe to the media item
             mMediaBrowser.subscribe(

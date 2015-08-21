@@ -24,6 +24,7 @@ import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -301,9 +302,9 @@ public class QueueActivity extends FragmentActivity {
             Log.d(CLASS_NAME, "On Connected: session token " + mMediaBrowser.getSessionToken());
 
             // If session token is null - throw exception
-            if (mMediaBrowser.getSessionToken() == null) {
-                throw new IllegalArgumentException("No Session token");
-            }
+            //if (mMediaBrowser.getSessionToken() == null) {
+            //    throw new IllegalArgumentException("No Session token");
+            //}
 
             // Initialize Media Controller
             mMediaController = new MediaController(
@@ -333,8 +334,18 @@ public class QueueActivity extends FragmentActivity {
                 if (mListFirstVisiblePosition == 0) {
                     final int queueSize = queue.size();
                     final String selectedMediaId = getSelectedMediaId(getIntent());
+                    MediaSession.QueueItem item;
+                    String mediaId;
                     for (int i = 0; i < queueSize; i++) {
-                        if (queue.get(i).getDescription().getMediaId().equals(selectedMediaId)) {
+                        item = queue.get(i);
+                        if (item == null) {
+                            continue;
+                        }
+                        mediaId = item.getDescription().getMediaId();
+                        if (mediaId == null) {
+                            continue;
+                        }
+                        if (mediaId.equals(selectedMediaId)) {
                             mListFirstVisiblePosition = i;
                             break;
                         }
@@ -379,10 +390,7 @@ public class QueueActivity extends FragmentActivity {
         }
 
         @Override
-        public void onPlaybackStateChanged(final PlaybackState state) {
-            if (state == null) {
-                return;
-            }
+        public void onPlaybackStateChanged(@NonNull final PlaybackState state) {
             Log.d(CLASS_NAME, "Received playback state change to state " + state.getState());
             mPlaybackState = state;
             QueueActivity.this.onPlaybackStateChanged(state);
