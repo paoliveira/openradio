@@ -38,9 +38,9 @@ public class ListAdapterData<T> implements Serializable {
     public ListAdapterData(Comparator<T> comparator) {
         if (comparator != null) {
             // TODO: Implement sorting algorithm here
-            mItems = new ArrayList<T>();
+            mItems = new ArrayList<>();
         } else {
-            mItems = new ArrayList<T>();
+            mItems = new ArrayList<>();
         }
     }
 

@@ -55,4 +55,8 @@
     <string name="favorites_list_title">Favorites</string>
     <string name="favorites_list_sub_title">favorites radio stations</string>
 
+    <!-- Version 1.5.1 -->
+
+    <string name="content_description_category_icon">Category Icon</string>
+
 </resources>

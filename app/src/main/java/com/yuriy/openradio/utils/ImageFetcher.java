@@ -225,15 +225,13 @@ public class ImageFetcher extends ImageResizer {
                                 (FileInputStream) snapshot.getInputStream(DISK_CACHE_INDEX);
                         fileDescriptor = fileInputStream.getFD();
                     }
-                } catch (IOException e) {
-                    Log.e(TAG, "processBitmap - " + e);
-                } catch (IllegalStateException e) {
+                } catch (IOException | IllegalStateException e) {
                     Log.e(TAG, "processBitmap - " + e);
                 } finally {
                     if (fileDescriptor == null && fileInputStream != null) {
                         try {
                             fileInputStream.close();
-                        } catch (IOException e) {}
+                        } catch (IOException ignored) {}
                     }
                 }
             }
