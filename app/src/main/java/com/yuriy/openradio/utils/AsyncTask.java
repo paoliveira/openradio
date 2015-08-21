@@ -215,7 +215,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
     /**
      * An {@link java.util.concurrent.Executor} that can be used to execute tasks in parallel.
      */
-    public static final Executor THREAD_POOL_EXECUTOR
+    private static final Executor THREAD_POOL_EXECUTOR
             = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE,
             TimeUnit.SECONDS, sPoolWorkQueue, sThreadFactory,
             new ThreadPoolExecutor.DiscardOldestPolicy());
@@ -224,7 +224,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * An {@link java.util.concurrent.Executor} that executes tasks one at a time in serial
      * order.  This serialization is global to a particular process.
      */
-    public static final Executor SERIAL_EXECUTOR = Utils.hasHoneycomb() ? new SerialExecutor() :
+    private static final Executor SERIAL_EXECUTOR = Utils.hasHoneycomb() ? new SerialExecutor() :
             Executors.newSingleThreadExecutor(sThreadFactory);
 
     public static final Executor DUAL_THREAD_EXECUTOR =
@@ -264,7 +264,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
             }
         }
 
-        protected synchronized void scheduleNext() {
+        synchronized void scheduleNext() {
             if ((mActive = mTasks.poll()) != null) {
                 THREAD_POOL_EXECUTOR.execute(mActive);
             }
@@ -379,7 +379,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * @see #onPostExecute
      * @see #doInBackground
      */
-    protected void onPreExecute() {
+    private void onPreExecute() {
     }
 
     /**
@@ -426,7 +426,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * @see #isCancelled()
      */
     @SuppressWarnings({"UnusedParameters"})
-    protected void onCancelled(Result result) {
+    void onCancelled(Result result) {
         onCancelled();
     }
 
@@ -442,7 +442,7 @@ public abstract class AsyncTask<Params, Progress, Result> {
      * @see #cancel(boolean)
      * @see #isCancelled()
      */
-    protected void onCancelled() {
+    private void onCancelled() {
     }
 
     /**

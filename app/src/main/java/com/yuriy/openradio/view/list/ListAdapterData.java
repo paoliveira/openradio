@@ -27,7 +27,7 @@ import java.util.List;
  * On 11/29/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class ListAdapterData<T> implements Serializable {
+class ListAdapterData<T> implements Serializable {
 
     private final List<T> mItems;
 

@@ -35,8 +35,8 @@ import java.io.FileDescriptor;
  */
 public class ImageResizer extends ImageWorker {
     private static final String TAG = "ImageResizer";
-    protected int mImageWidth;
-    protected int mImageHeight;
+    int mImageWidth;
+    int mImageHeight;
 
     /**
      * Initialize providing a single target image size (used for both width and height);
@@ -45,7 +45,7 @@ public class ImageResizer extends ImageWorker {
      * @param imageWidth
      * @param imageHeight
      */
-    public ImageResizer(Context context, int imageWidth, int imageHeight) {
+    ImageResizer(Context context, int imageWidth, int imageHeight) {
         super(context);
         setImageSize(imageWidth, imageHeight);
     }
@@ -56,7 +56,7 @@ public class ImageResizer extends ImageWorker {
      * @param context
      * @param imageSize
      */
-    public ImageResizer(Context context, int imageSize) {
+    ImageResizer(Context context, int imageSize) {
         super(context);
         setImageSize(imageSize);
     }
@@ -67,7 +67,7 @@ public class ImageResizer extends ImageWorker {
      * @param width
      * @param height
      */
-    public void setImageSize(int width, int height) {
+    private void setImageSize(int width, int height) {
         mImageWidth = width;
         mImageHeight = height;
     }
@@ -77,7 +77,7 @@ public class ImageResizer extends ImageWorker {
      *
      * @param size
      */
-    public void setImageSize(int size) {
+    private void setImageSize(int size) {
         setImageSize(size, size);
     }
 
@@ -112,8 +112,8 @@ public class ImageResizer extends ImageWorker {
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
      *         that are equal to or greater than the requested width and height
      */
-    public static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
-            int reqWidth, int reqHeight, ImageCache cache) {
+    private static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
+                                                          int reqWidth, int reqHeight, ImageCache cache) {
 
         // BEGIN_INCLUDE (read_bitmap_dimensions)
         // First decode with inJustDecodeBounds=true to check dimensions
@@ -228,8 +228,8 @@ public class ImageResizer extends ImageWorker {
      * @param reqHeight The requested height of the resulting bitmap
      * @return The value to be used for inSampleSize
      */
-    public static int calculateInSampleSize(BitmapFactory.Options options,
-            int reqWidth, int reqHeight) {
+    private static int calculateInSampleSize(BitmapFactory.Options options,
+                                             int reqWidth, int reqHeight) {
         // BEGIN_INCLUDE (calculate_sample_size)
         // Raw height and width of image
         final int height = options.outHeight;

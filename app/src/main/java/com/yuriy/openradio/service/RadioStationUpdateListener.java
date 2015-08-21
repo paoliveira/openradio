@@ -29,7 +29,7 @@ import android.media.MediaMetadata;
  * {@link RadioStationUpdateListener} is an interface provided response for the Radio Station
  * update procedure.
  */
-public interface RadioStationUpdateListener {
+interface RadioStationUpdateListener {
 
     /**
      * Call this method when Radio Station has been updated.

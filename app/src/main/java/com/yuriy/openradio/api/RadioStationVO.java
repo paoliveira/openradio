@@ -162,22 +162,17 @@ public final class RadioStationVO implements Serializable {
 
         final RadioStationVO that = (RadioStationVO) object;
 
-        if (mId != that.mId) return false;
-        if (mStatus != that.mStatus) return false;
-        if (mIsUpdated != that.mIsUpdated) return false;
-        if (mName != null ? !mName.equals(that.mName) : that.mName != null) return false;
-        if (mStreamURL != null ? !mStreamURL.equals(that.mStreamURL) : that.mStreamURL != null)
-            return false;
-        if (mWebSite != null ? !mWebSite.equals(that.mWebSite) : that.mWebSite != null)
-            return false;
-        if (mCountry != null ? !mCountry.equals(that.mCountry) : that.mCountry != null)
-            return false;
-        if (mBitRate != null ? !mBitRate.equals(that.mBitRate) : that.mBitRate != null)
-            return false;
-        if (mGenre != null ? !mGenre.equals(that.mGenre) : that.mGenre != null) return false;
-        if (mImageUrl != null ? !mImageUrl.equals(that.mImageUrl) : that.mImageUrl != null)
-            return false;
-        return !(mThumbUrl != null ? !mThumbUrl.equals(that.mThumbUrl) : that.mThumbUrl != null);
+        return mId == that.mId
+                && mStatus == that.mStatus
+                && mIsUpdated == that.mIsUpdated
+                && !(mName != null ? !mName.equals(that.mName) : that.mName != null)
+                && !(mStreamURL != null ? !mStreamURL.equals(that.mStreamURL) : that.mStreamURL != null)
+                && !(mWebSite != null ? !mWebSite.equals(that.mWebSite) : that.mWebSite != null)
+                && !(mCountry != null ? !mCountry.equals(that.mCountry) : that.mCountry != null)
+                && !(mBitRate != null ? !mBitRate.equals(that.mBitRate) : that.mBitRate != null)
+                && !(mGenre != null ? !mGenre.equals(that.mGenre) : that.mGenre != null)
+                && !(mImageUrl != null ? !mImageUrl.equals(that.mImageUrl) : that.mImageUrl != null)
+                && !(mThumbUrl != null ? !mThumbUrl.equals(that.mThumbUrl) : that.mThumbUrl != null);
 
     }
 

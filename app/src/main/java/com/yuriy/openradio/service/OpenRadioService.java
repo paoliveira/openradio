@@ -126,12 +126,12 @@ public final class OpenRadioService
      * The volume we set the media player to when we lose audio focus,
      * but are allowed to reduce the volume instead of stopping playback.
      */
-    public static final float VOLUME_DUCK = 0.2f;
+    private static final float VOLUME_DUCK = 0.2f;
 
     /**
      * The volume we set the media player when we have audio focus.
      */
-    public static final float VOLUME_NORMAL = 1.0f;
+    private static final float VOLUME_NORMAL = 1.0f;
 
     /**
      * Player instance to play Radio stream.
@@ -846,7 +846,7 @@ public final class OpenRadioService
      * @param intent {@link Intent}.
      * @return True in case of the key exists and it's value is True, False otherwise.
      */
-    public static boolean getIsFavoriteFromIntent(final Intent intent) {
+    private static boolean getIsFavoriteFromIntent(final Intent intent) {
         return intent != null
                 && intent.hasExtra(EXTRA_KEY_IS_FAVORITE)
                 && intent.getBooleanExtra(EXTRA_KEY_IS_FAVORITE, false);
@@ -1618,7 +1618,7 @@ public final class OpenRadioService
     /**
      * Try to get the system audio focus.
      */
-    void tryToGetAudioFocus() {
+    private void tryToGetAudioFocus() {
         Log.d(CLASS_NAME, "Try To Get Audio Focus, current focus:" + mAudioFocus);
         if (mAudioFocus == AudioFocus.FOCUSED) {
             return;

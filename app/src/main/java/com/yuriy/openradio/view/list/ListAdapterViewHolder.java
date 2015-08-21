@@ -15,7 +15,7 @@ import android.widget.TextView;
  * {@link ListAdapterViewHolder} is a helper class to keep references for
  * the View elements of the single row in the List
  */
-public class ListAdapterViewHolder {
+class ListAdapterViewHolder {
 
     /**
      * Title text view.

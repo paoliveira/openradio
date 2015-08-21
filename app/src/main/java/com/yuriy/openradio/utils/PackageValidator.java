@@ -33,10 +33,10 @@ import java.util.Arrays;
  */
 public final class PackageValidator {
 
-    public static final String CLASS_NAME = PackageValidator.class.getSimpleName();
+    private static final String CLASS_NAME = PackageValidator.class.getSimpleName();
 
     // Replace with your package whitelist
-    static final byte[][] VALID_PUBLIC_SIGNATURES = new byte[][]{
+    private static final byte[][] VALID_PUBLIC_SIGNATURES = new byte[][]{
         // Android Auto release public key
         extractKey(
         "\060\202\003\275\060\202\002\245\240\003\002\001\002\002\011\000\307\217\236\113" +

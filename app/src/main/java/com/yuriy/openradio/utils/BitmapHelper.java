@@ -46,7 +46,7 @@ public final class BitmapHelper {
      * @param inputStream Input Stream that represents a Bitmap.
      * @return Scaled Bitmap.
      */
-    public static Bitmap scaleBitmap(final int scaleFactor, final InputStream inputStream) {
+    private static Bitmap scaleBitmap(final int scaleFactor, final InputStream inputStream) {
         // Get the dimensions of the bitmap
         final BitmapFactory.Options options = new BitmapFactory.Options();
 
@@ -65,8 +65,8 @@ public final class BitmapHelper {
      * @param inputStream Input Stream that represents a Bitmap.
      * @return Scale factor.
      */
-    public static int findScaleFactor(final int targetW, final int targetH,
-                                      final InputStream inputStream) {
+    private static int findScaleFactor(final int targetW, final int targetH,
+                                       final InputStream inputStream) {
         // Get the dimensions of the bitmap
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
@@ -112,7 +112,7 @@ public final class BitmapHelper {
      * @param bitmap_B Bitmap overlay.
      * @return Bitmap.
      */
-    public static Bitmap overlay(final Bitmap bitmap_A, final Bitmap bitmap_B) {
+    private static Bitmap overlay(final Bitmap bitmap_A, final Bitmap bitmap_B) {
         final Bitmap bitmap = Bitmap.createBitmap(
                 bitmap_A.getWidth(), bitmap_A.getHeight(), bitmap_A.getConfig()
         );

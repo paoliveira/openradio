@@ -56,10 +56,10 @@ public class MediaNotification extends BroadcastReceiver {
 
     private static final int NOTIFICATION_ID = 412;
 
-    public static final String ACTION_PAUSE = "com.yuriy.openradio.pause";
-    public static final String ACTION_PLAY = "com.yuriy.openradio.play";
-    public static final String ACTION_PREV = "com.yuriy.openradio.prev";
-    public static final String ACTION_NEXT = "com.yuriy.openradio.next";
+    private static final String ACTION_PAUSE = "com.yuriy.openradio.pause";
+    private static final String ACTION_PLAY = "com.yuriy.openradio.play";
+    private static final String ACTION_PREV = "com.yuriy.openradio.prev";
+    private static final String ACTION_NEXT = "com.yuriy.openradio.next";
 
     private static final int MAX_ALBUM_ART_CACHE_SIZE = 1024 * 1024;
 
@@ -112,7 +112,7 @@ public class MediaNotification extends BroadcastReceiver {
                 new Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT);
     }
 
-    protected int getNotificationColor() {
+    private int getNotificationColor() {
         int notificationColor = 0;
         String packageName = mService.getPackageName();
         try {
@@ -357,7 +357,7 @@ public class MediaNotification extends BroadcastReceiver {
         mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
-    public void fetchBitmapFromURLAsync(final String source) {
+    private void fetchBitmapFromURLAsync(final String source) {
         Log.d(CLASS_NAME, "getBitmapFromURLAsync: starting async task to fetch " + source);
         new AsyncTask<Void, Void, Bitmap>() {
             @Override

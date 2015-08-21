@@ -6,7 +6,7 @@ package com.yuriy.openradio.service;
  * On 4/27/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public interface LocationServiceListener {
+interface LocationServiceListener {
 
     void onCountryCodeLocated(final String countryCode);
 }

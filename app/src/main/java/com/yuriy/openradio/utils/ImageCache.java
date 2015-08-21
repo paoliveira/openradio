@@ -357,7 +357,7 @@ public class ImageCache {
      * @param options - BitmapFactory.Options with out* options populated
      * @return Bitmap that case be used for inBitmap
      */
-    protected Bitmap getBitmapFromReusableSet(BitmapFactory.Options options) {
+    Bitmap getBitmapFromReusableSet(BitmapFactory.Options options) {
         //BEGIN_INCLUDE(get_bitmap_from_reusable_set)
         Bitmap bitmap = null;
 
@@ -608,7 +608,7 @@ public class ImageCache {
      * @return size in bytes
      */
     @TargetApi(VERSION_CODES.KITKAT)
-    public static int getBitmapSize(BitmapDrawable value) {
+    private static int getBitmapSize(BitmapDrawable value) {
         Bitmap bitmap = value.getBitmap();
 
         // From KitKat onward use getAllocationByteCount() as allocated bytes can potentially be
@@ -632,7 +632,7 @@ public class ImageCache {
      *         otherwise.
      */
     @TargetApi(VERSION_CODES.GINGERBREAD)
-    public static boolean isExternalStorageRemovable() {
+    private static boolean isExternalStorageRemovable() {
         return !Utils.hasGingerbread() || Environment.isExternalStorageRemovable();
     }
 
@@ -643,7 +643,7 @@ public class ImageCache {
      * @return The external cache dir
      */
     @TargetApi(VERSION_CODES.FROYO)
-    public static File getExternalCacheDir(Context context) {
+    private static File getExternalCacheDir(Context context) {
         if (Utils.hasFroyo()) {
             return context.getExternalCacheDir();
         }

@@ -28,9 +28,9 @@ import com.yuriy.openradio.BuildConfig;
  * When the drawable is no longer being displayed or cached,
  * {@link android.graphics.Bitmap#recycle() recycle()} will be called on this drawable's bitmap.
  */
-public class RecyclingBitmapDrawable extends BitmapDrawable {
+class RecyclingBitmapDrawable extends BitmapDrawable {
 
-    static final String TAG = "CountingBitmapDrawable";
+    private static final String TAG = "CountingBitmapDrawable";
 
     private int mCacheRefCount = 0;
     private int mDisplayRefCount = 0;

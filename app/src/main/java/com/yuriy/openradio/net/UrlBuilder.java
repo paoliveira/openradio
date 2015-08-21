@@ -38,7 +38,7 @@ public class UrlBuilder {
     /**
      * Base URL for the API requests.
      */
-    protected static final String BASE_URL = "http://api.dirble.com/v2/";
+    private static final String BASE_URL = "http://api.dirble.com/v2/";
 
     /**
      * URL of the Geo Names service to obtain country's flag.

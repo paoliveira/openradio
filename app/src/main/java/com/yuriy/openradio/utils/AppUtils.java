@@ -448,7 +448,7 @@ public final class AppUtils {
      *
      * @return true in case of success, false - otherwise
      */
-    public static boolean saveDataToFile(byte[] data, String filePath) {
+    private static boolean saveDataToFile(byte[] data, String filePath) {
         if (data == null) {
             Log.w(CLASS_NAME, "Save data to file -> data is null, path:" + filePath);
             return false;
@@ -526,7 +526,7 @@ public final class AppUtils {
      * @return {@link java.io.File} object.
      */
     @TargetApi(8)
-    public static File getExternalFilesDirAPI8(final Context context, final String type) {
+    private static File getExternalFilesDirAPI8(final Context context, final String type) {
         return context.getExternalFilesDir(type);
     }
 

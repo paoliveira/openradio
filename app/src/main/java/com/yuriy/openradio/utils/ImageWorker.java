@@ -47,17 +47,17 @@ public abstract class ImageWorker {
     private Bitmap mLoadingBitmap;
     private boolean mFadeInBitmap = true;
     private boolean mExitTasksEarly = false;
-    protected boolean mPauseWork = false;
+    private boolean mPauseWork = false;
     private final Object mPauseWorkLock = new Object();
 
-    protected Resources mResources;
+    Resources mResources;
 
     private static final int MESSAGE_CLEAR = 0;
     private static final int MESSAGE_INIT_DISK_CACHE = 1;
     private static final int MESSAGE_FLUSH = 2;
     private static final int MESSAGE_CLOSE = 3;
 
-    protected ImageWorker(Context context) {
+    ImageWorker(Context context) {
         mResources = context.getResources();
     }
 
@@ -171,7 +171,7 @@ public abstract class ImageWorker {
     /**
      * @return The {@link ImageCache} object currently being used by this ImageWorker.
      */
-    protected ImageCache getImageCache() {
+    ImageCache getImageCache() {
         return mImageCache;
     }
 
@@ -196,7 +196,7 @@ public abstract class ImageWorker {
      * Returns false if the work in progress deals with the same data. The work is not
      * stopped in that case.
      */
-    public static boolean cancelPotentialWork(Object data, ImageView imageView) {
+    private static boolean cancelPotentialWork(Object data, ImageView imageView) {
         //BEGIN_INCLUDE(cancel_potential_work)
         final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
 
@@ -415,7 +415,7 @@ public abstract class ImageWorker {
      * {@link android.app.Activity#onPause()}), or there is a risk the
      * background thread will never finish.
      */
-    public void setPauseWork(boolean pauseWork) {
+    private void setPauseWork(boolean pauseWork) {
         synchronized (mPauseWorkLock) {
             mPauseWork = pauseWork;
             if (!mPauseWork) {
@@ -446,25 +446,25 @@ public abstract class ImageWorker {
         }
     }
 
-    protected void initDiskCacheInternal() {
+    void initDiskCacheInternal() {
         if (mImageCache != null) {
             mImageCache.initDiskCache();
         }
     }
 
-    protected void clearCacheInternal() {
+    void clearCacheInternal() {
         if (mImageCache != null) {
             mImageCache.clearCache();
         }
     }
 
-    protected void flushCacheInternal() {
+    void flushCacheInternal() {
         if (mImageCache != null) {
             mImageCache.flush();
         }
     }
 
-    protected void closeCacheInternal() {
+    void closeCacheInternal() {
         if (mImageCache != null) {
             mImageCache.close();
             mImageCache = null;

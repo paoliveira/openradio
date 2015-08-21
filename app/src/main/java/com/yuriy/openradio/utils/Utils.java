@@ -22,7 +22,7 @@ import android.os.Build.VERSION_CODES;
 /**
  * Class containing some static utility methods.
  */
-public class Utils {
+class Utils {
 
     private Utils() {}
 
