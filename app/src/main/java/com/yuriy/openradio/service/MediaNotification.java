@@ -36,6 +36,7 @@ import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.util.LruCache;
 
@@ -196,7 +197,7 @@ public class MediaNotification extends BroadcastReceiver {
      * (see {@link android.media.session.MediaController.Callback#onSessionDestroyed()})
      */
     private void updateSessionToken() {
-        MediaSession.Token freshToken = mService.getSessionToken();
+        final MediaSession.Token freshToken = mService.getSessionToken();
         if (mSessionToken == null || !mSessionToken.equals(freshToken)) {
             if (mController != null) {
                 mController.unregisterCallback(mCb);
@@ -211,8 +212,9 @@ public class MediaNotification extends BroadcastReceiver {
     }
 
     private final MediaController.Callback mCb = new MediaController.Callback() {
+
         @Override
-        public void onPlaybackStateChanged(PlaybackState state) {
+        public void onPlaybackStateChanged(@NonNull PlaybackState state) {
             mPlaybackState = state;
             Log.d(CLASS_NAME, "Received new playback state:" + state);
             updateNotificationPlaybackState();
@@ -373,9 +375,10 @@ public class MediaNotification extends BroadcastReceiver {
 
             @Override
             protected void onPostExecute(Bitmap bitmap) {
-                if (bitmap != null && mMetadata != null &&
-                        mNotificationBuilder != null && mMetadata.getDescription() != null &&
-                        !source.equals(mMetadata.getDescription().getIconUri().toString())) {
+                if (bitmap != null && mMetadata != null
+                        && mNotificationBuilder != null
+                        && mMetadata.getDescription().getIconUri() != null
+                        && !source.equals(mMetadata.getDescription().getIconUri().toString())) {
                     // If the media is still the same, update the notification:
                     Log.d(CLASS_NAME, "GetBitmapFromURLAsync: set bitmap to " + source);
                     mNotificationBuilder.setLargeIcon(bitmap);
