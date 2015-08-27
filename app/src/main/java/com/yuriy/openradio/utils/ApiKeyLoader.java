@@ -24,6 +24,7 @@ package com.yuriy.openradio.utils;
  */
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
 
@@ -42,12 +43,20 @@ import java.io.Writer;
 public final class ApiKeyLoader {
 
     /**
+     * Cashed value pf the Api key.
+     */
+    private static String sCashedKey = "";
+
+    /**
      * Load API key from the resources.
      *
      * @param context Context of the application.
      * @return API key.
      */
     public static String getApiKey(final Context context) {
+        if (!TextUtils.isEmpty(sCashedKey)) {
+            return sCashedKey;
+        }
         final InputStream stream = context.getResources().openRawResource(R.raw.api_key);
         final Writer writer = new StringWriter();
         final char[] buffer = new char[1024];
@@ -66,6 +75,7 @@ public final class ApiKeyLoader {
                 /* Ignore this exception */
             }
         }
-        return writer.toString();
+        sCashedKey = writer.toString();
+        return sCashedKey;
     }
 }

@@ -127,6 +127,19 @@ public class UrlBuilder {
     }
 
     /**
+     * Get Uri for the search by provided query.
+     *
+     * @param context Context of the application.
+     * @param query   Search query.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getSearchQuery(final Context context, final String query) {
+        return Uri.parse(
+                BASE_URL + "search/" + query + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
+    }
+
+    /**
      * Get Uri for the provided country flag of the small size for the usage in Geo Names service.
      *
      * @param countryCode Country code.

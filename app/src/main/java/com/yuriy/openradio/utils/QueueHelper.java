@@ -34,6 +34,7 @@ import java.util.List;
  */
 public final class QueueHelper {
 
+    @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
     public static List<MediaSession.QueueItem> getPlayingQueue(

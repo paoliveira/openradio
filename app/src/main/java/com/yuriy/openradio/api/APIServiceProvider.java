@@ -56,7 +56,7 @@ public interface APIServiceProvider {
     List<String> getCounties(final Downloader downloader, final Uri uri);
 
     /**
-     * Get a list of Radio Stations by the provided Uri.
+     * Get a list of Radio Stations by provided Uri.
      *
      * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
      * @param uri        {@link android.net.Uri} of the request.
