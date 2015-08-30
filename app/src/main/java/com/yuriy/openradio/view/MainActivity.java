@@ -37,7 +37,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
@@ -45,6 +44,8 @@ import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
+import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
 import java.io.Serializable;
@@ -52,8 +53,6 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.
@@ -130,7 +129,7 @@ public final class MainActivity extends FragmentActivity {
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Fabric.with(this, new Crashlytics());
+        //Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);
@@ -241,32 +240,43 @@ public final class MainActivity extends FragmentActivity {
     public final boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        //final SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        //final SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        //searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        //searchView.setIconifiedByDefault(false);
+
         return true;
     }
 
     @Override
-    public final boolean onOptionsItemSelected(MenuItem item) {
+    public final boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        final int id = item.getItemId();
+
+        // DialogFragment.show() will take care of adding the fragment
+        // in a transaction.  We also want to remove any currently showing
+        // dialog, so make our own transaction and take care of that here.
+        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        final Fragment fragmentByTag = getFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentTransaction.addToBackStack(null);
 
         if (id == R.id.action_about) {
-            // DialogFragment.show() will take care of adding the fragment
-            // in a transaction.  We also want to remove any currently showing
-            // dialog, so make our own transaction and take care of that here.
-            final FragmentTransaction fragmentTransaction = getFragmentManager()
-                    .beginTransaction();
-            final Fragment fragmentByTag = getFragmentManager()
-                    .findFragmentByTag(AboutDialog.DIALOG_TAG);
-            if (fragmentByTag != null) {
-                fragmentTransaction.remove(fragmentByTag);
-            }
-            fragmentTransaction.addToBackStack(null);
 
             // Show About Dialog
             final DialogFragment aboutDialog = AboutDialog.newInstance();
             aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
+            return true;
+        } else if (id == R.id.action_search) {
+
+            // Show Search Dialog
+            final DialogFragment searchDialog = SearchDialog.newInstance();
+            searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
             return true;
         }
 
@@ -345,6 +355,17 @@ public final class MainActivity extends FragmentActivity {
      */
     public final void processLocationCallback() {
         startService(OpenRadioService.makeRequestLocationIntent(this));
+    }
+
+    /**
+     * Process call back from the Search Dialog.
+     *
+     * @param queryString String to query for.
+     */
+    public void onSearchDialogClick(final String queryString) {
+        // Save search query string, retrieve it later in the service
+        Utils.setSearchQuery(queryString);
+        addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
     /**

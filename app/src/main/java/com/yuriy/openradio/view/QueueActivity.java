@@ -120,7 +120,7 @@ public class QueueActivity extends FragmentActivity {
     private ProgressBar mProgressBar;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         // Set content view

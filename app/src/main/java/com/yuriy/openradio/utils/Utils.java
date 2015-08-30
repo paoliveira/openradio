@@ -19,12 +19,21 @@ package com.yuriy.openradio.utils;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 
+import java.util.Set;
+
 /**
- * Class containing some static utility methods.
+ * Class containing static utility methods.
  */
-class Utils {
+public final class Utils {
 
     private Utils() {}
+
+    /**
+     * Holder for the Search query. Up to now I found it as quick solution to pass query
+     * from {@link com.yuriy.openradio.view.MainActivity} to the
+     * {@link com.yuriy.openradio.service.OpenRadioService}
+     */
+    private static StringBuilder sSearchQuery = new StringBuilder();
 
     public static boolean hasFroyo() {
         // Can use static final constants like FROYO, declared in later versions
@@ -50,5 +59,22 @@ class Utils {
 
     public static boolean hasKitKat() {
         return Build.VERSION.SDK_INT >= VERSION_CODES.KITKAT;
+    }
+
+    /**
+     * Save Search query string.
+     *
+     * @param searchQuery Search query string.
+     */
+    public static void setSearchQuery(final String searchQuery) {
+        sSearchQuery.setLength(0);
+        sSearchQuery.append(searchQuery);
+    }
+
+    /**
+     * @return Gets the Search query string.
+     */
+    public static String getSearchQuery() {
+        return sSearchQuery.toString();
     }
 }

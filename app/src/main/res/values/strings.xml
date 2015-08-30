@@ -59,5 +59,7 @@
 
     <string name="content_description_category_icon">Category Icon</string>
     <string name="no_search_results">No search results</string>
+    <string name="search_label">Search</string>
+    <string name="search_description">Type the word that you want to use as the search pattern</string>
 
 </resources>

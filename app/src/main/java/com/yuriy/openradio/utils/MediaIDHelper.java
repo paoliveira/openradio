@@ -25,7 +25,7 @@ package com.yuriy.openradio.utils;
 
 /**
  * Utility class to help on queue related tasks.
- * Media IDs used on browseable items of MediaBrowser.
+ * Media IDs used on browseable items of {@link android.media.browse.MediaBrowser}.
  */
 public final class MediaIDHelper {
 
@@ -45,4 +45,6 @@ public final class MediaIDHelper {
 
     public static final String MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
             = "__RADIO_STATIONS_IN_CATEGORY__";
+
+    public static final String MEDIA_ID_SEARCH_FROM_APP = "__SEARCH_FROM_APP__";
 }

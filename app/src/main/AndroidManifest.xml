@@ -39,6 +39,10 @@
 
         <activity android:name=".view.QueueActivity" />
 
+        <!-- Points to searchable activity so the whole app can invoke search. -->
+        <meta-data android:name="android.app.default_searchable"
+            android:value=".MainActivity" />
+
         <meta-data
             android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/ic_notification" />

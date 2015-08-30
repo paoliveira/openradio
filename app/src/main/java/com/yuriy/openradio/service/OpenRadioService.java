@@ -58,6 +58,7 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ public final class OpenRadioService
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName();
 
-    //private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
+    private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
 
@@ -407,11 +408,15 @@ public final class OpenRadioService
                     + clientPackageName);
             return null;
         }
-        //if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
-        // Optional: if your app needs to adapt ads, music library or anything else that
-        // needs to run differently when connected to the car, this is where you should handle
-        // it.
-        //}
+        //noinspection StatementWithEmptyBody
+        if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
+            // Optional: if your app needs to adapt ads, music library or anything else that
+            // needs to run differently when connected to the car, this is where you should handle
+            // it.
+            Log.i(CLASS_NAME, "Package name is Android Auto");
+        } else {
+            Log.i(CLASS_NAME, "Package name is not Android Auto");
+        }
         return new BrowserRoot(MediaIDHelper.MEDIA_ID_ROOT, null);
     }
 
@@ -427,6 +432,8 @@ public final class OpenRadioService
         final Downloader downloader = new HTTPDownloaderImpl();
         // Instantiate appropriate API service provider
         final APIServiceProvider serviceProvider = getServiceProvider();
+
+        // TODO: Refactor block below to Command pattern
 
         if (MediaIDHelper.MEDIA_ID_ROOT.equals(parentId)) {
 
@@ -694,6 +701,28 @@ public final class OpenRadioService
                 mediaItems.add(mediaItem);
             }
             result.sendResult(mediaItems);
+        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP)) {
+            // Use result.detach to allow calling result.sendResult from another thread:
+            result.detach();
+
+            mApiCallExecutor.submit(
+                    new Runnable() {
+
+                        @Override
+                        public void run() {
+
+                            // Load all categories into menu
+                            loadSearchedStations(
+                                    serviceProvider,
+                                    downloader,
+                                    // Get search query from the holder util
+                                    Utils.getSearchQuery(),
+                                    mediaItems,
+                                    result
+                            );
+                        }
+                    }
+            );
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);
             result.sendResult(mediaItems);
@@ -1084,6 +1113,67 @@ public final class OpenRadioService
         for (RadioStationVO radioStation : mRadioStations) {
 
             radioStation.setGenre(genre);
+
+            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
+                    getApplicationContext(),
+                    radioStation
+            );
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+
+            if (FavoritesStorage.isFavorite(radioStation, this)) {
+                MediaItemHelper.updateFavoriteField(mediaItem, true);
+            }
+
+            mediaItems.add(mediaItem);
+        }
+
+        result.sendResult(mediaItems);
+    }
+
+    /**
+     * Load Radio Stations from the Search query.
+     *
+     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
+     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
+     * @param queryString     Query string.
+     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
+     * @param result          Result of the loading.
+     */
+    private void loadSearchedStations(final APIServiceProvider serviceProvider,
+                                        final Downloader downloader,
+                                        final String queryString,
+                                        final List<MediaBrowser.MediaItem> mediaItems,
+                                        final Result<List<MediaBrowser.MediaItem>> result) {
+        final List<RadioStationVO> list = serviceProvider.getStations(
+                downloader,
+                UrlBuilder.getSearchQuery(getApplicationContext(), queryString)
+        );
+
+        //MediaMetadata track;
+
+        if (list.isEmpty()) {
+
+            /*track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                    getApplicationContext(),
+                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
+            );
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            mediaItems.add(mediaItem);
+            result.sendResult(mediaItems);*/
+
+            updatePlaybackState(getString(R.string.no_data_message));
+
+            return;
+        }
+
+        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            QueueHelper.copyCollection(mRadioStations, list);
+        }
+
+        for (RadioStationVO radioStation : mRadioStations) {
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     getApplicationContext(),
@@ -1932,64 +2022,67 @@ public final class OpenRadioService
         public void onPlayFromSearch(final String query, final Bundle extras) {
             super.onPlayFromSearch(query, extras);
 
-            synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-                mRadioStations.clear();
-                mPlayingQueue.clear();
-            }
-
-            Log.i(CLASS_NAME, "Search for:" + query);
-            if (TextUtils.isEmpty(query)) {
-                // A generic search like "Play music" sends an empty query
-                // and it's expected that we start playing something.
-                // TODO
-                return;
-            }
-
-            // Instantiate appropriate downloader (HTTP one)
-            final Downloader downloader = new HTTPDownloaderImpl();
-            // Instantiate appropriate API service provider
-            final APIServiceProvider serviceProvider = getServiceProvider();
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            final List<RadioStationVO> list = serviceProvider.getStations(
-                                    downloader,
-                                    UrlBuilder.getSearchQuery(getApplicationContext(), query)
-                            );
-
-                            if (list == null || list.isEmpty()) {
-                                // if nothing was found, we need to warn the user and stop playing
-                                handleStopRequest(getString(R.string.no_search_results));
-                                // TODO
-                                return;
-                            }
-
-                            Log.i(CLASS_NAME, "Found " + list.size() + " items");
-
-                            synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-                                QueueHelper.copyCollection(mRadioStations, list);
-
-                                QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
-                                                getApplicationContext(),
-                                                mRadioStations)
-                                );
-                            }
-
-                            mSession.setQueue(mPlayingQueue);
-
-                            // immediately start playing from the beginning of the search results
-                            mCurrentIndexOnQueue = 0;
-
-                            handlePlayRequest();
-                        }
-                    }
-            );
-
+            performSearch(query);
         }
+    }
+
+    private void performSearch(final String query) {
+        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            mRadioStations.clear();
+            mPlayingQueue.clear();
+        }
+
+        Log.i(CLASS_NAME, "Search for:" + query);
+        if (TextUtils.isEmpty(query)) {
+            // A generic search like "Play music" sends an empty query
+            // and it's expected that we start playing something.
+            // TODO
+            return;
+        }
+
+        // Instantiate appropriate downloader (HTTP one)
+        final Downloader downloader = new HTTPDownloaderImpl();
+        // Instantiate appropriate API service provider
+        final APIServiceProvider serviceProvider = getServiceProvider();
+
+        mApiCallExecutor.submit(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+
+                        final List<RadioStationVO> list = serviceProvider.getStations(
+                                downloader,
+                                UrlBuilder.getSearchQuery(getApplicationContext(), query)
+                        );
+
+                        if (list == null || list.isEmpty()) {
+                            // if nothing was found, we need to warn the user and stop playing
+                            handleStopRequest(getString(R.string.no_search_results));
+                            // TODO
+                            return;
+                        }
+
+                        Log.i(CLASS_NAME, "Found " + list.size() + " items");
+
+                        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+                            QueueHelper.copyCollection(mRadioStations, list);
+
+                            QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
+                                            getApplicationContext(),
+                                            mRadioStations)
+                            );
+                        }
+
+                        mSession.setQueue(mPlayingQueue);
+
+                        // immediately start playing from the beginning of the search results
+                        mCurrentIndexOnQueue = 0;
+
+                        handlePlayRequest();
+                    }
+                }
+        );
     }
 
     // Template for the future
