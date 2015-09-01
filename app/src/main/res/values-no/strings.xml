@@ -15,7 +15,7 @@
     <string name="no_network_connection_toast">Ingen nettverkstilkobling funnet</string>
     <string name="error_loading_media">Feil ved lasting av Media</string>
     <string name="about_thanks_1">Dette prosjektet er bruk Dirble API - en tjeneste som gir en liste over radiostasjoner som kringkaster sin live stream på internett:</string>
-    <string name="about_thanks_1_title">Dirble\'s API</string>
+    <string name="about_thanks_1_title">Dirble API</string>
     <string name="about_thanks_1_url">https://dirble.com/developer/api</string>
     <string name="about_thanks_2">Grafikken er levert av:</string>
     <string name="about_thanks_2_title">Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes</string>
@@ -27,7 +27,7 @@
     <string name="ok_label">OK</string>
     <string name="close_label">Lukk</string>
     <string name="no_data_message">Ingen data mottatt</string>
-    <string name="media_player_error">"Media Player feil"</string>
+    <string name="media_player_error">Media Player feil</string>
     <string name="can_not_play_station">Kan ikke spille Station</string>
     <string name="no_metadata">Ingen Metadata</string>
     <string name="can_not_skip">Kan ikke hoppe</string>
@@ -42,5 +42,9 @@
     <string name="favorite">Favoritt</string>
     <string name="favorites_list_title">Favoritter</string>
     <string name="favorites_list_sub_title">favoritter radiostasjoner</string>
+    <string name="content_description_category_icon">Kategori Ikon</string>
+    <string name="no_search_results">Ingen søkeresultater</string>
+    <string name="search_label">Søk</string>
+    <string name="search_description">Skriv inn ordet du vil bruke som søkemønster</string>
 
 </resources>

@@ -363,9 +363,37 @@ public final class MainActivity extends FragmentActivity {
      * @param queryString String to query for.
      */
     public void onSearchDialogClick(final String queryString) {
+        // Un-subscribe from previous Search
+        unsubscribeFromItem(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+
         // Save search query string, retrieve it later in the service
         Utils.setSearchQuery(queryString);
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+    }
+
+    /**
+     * Remove provided Media Id from the collection. Reconnect {@link MediaBrowser}.
+     *
+     * @param mediaItemId Media Id.
+     */
+    private void unsubscribeFromItem(final String mediaItemId) {
+        hideNoDataMessage();
+        hideProgressBar();
+
+        // Remove provided media item (and it's duplicates, if any)
+        for (int i = 0; i < mediaItemsStack.size(); i++) {
+            if (mediaItemsStack.get(i).equals(mediaItemId)) {
+                mediaItemsStack.remove(i);
+                i--;
+            }
+        }
+
+        // Un-subscribe from item
+        mMediaBrowser.unsubscribe(mediaItemId);
+
+        // Disconnect and connect back to media browser
+        mMediaBrowser.disconnect();
+        mMediaBrowser.connect();
     }
 
     /**

@@ -67,7 +67,7 @@ public final class Utils {
      * @param searchQuery Search query string.
      */
     public static void setSearchQuery(final String searchQuery) {
-        sSearchQuery.setLength(0);
+        clearSearchQuery();
         sSearchQuery.append(searchQuery);
     }
 
@@ -76,5 +76,12 @@ public final class Utils {
      */
     public static String getSearchQuery() {
         return sSearchQuery.toString();
+    }
+
+    /**
+     * Clear Search query string.
+     */
+    public static void clearSearchQuery() {
+        sSearchQuery.setLength(0);
     }
 }

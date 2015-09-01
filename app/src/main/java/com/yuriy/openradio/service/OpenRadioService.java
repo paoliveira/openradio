@@ -1141,30 +1141,21 @@ public final class OpenRadioService
      * @param result          Result of the loading.
      */
     private void loadSearchedStations(final APIServiceProvider serviceProvider,
-                                        final Downloader downloader,
-                                        final String queryString,
-                                        final List<MediaBrowser.MediaItem> mediaItems,
-                                        final Result<List<MediaBrowser.MediaItem>> result) {
+                                      final Downloader downloader,
+                                      final String queryString,
+                                      final List<MediaBrowser.MediaItem> mediaItems,
+                                      final Result<List<MediaBrowser.MediaItem>> result) {
         final List<RadioStationVO> list = serviceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchQuery(getApplicationContext(), queryString)
         );
 
-        //MediaMetadata track;
+        mediaItems.clear();
 
         if (list.isEmpty()) {
 
-            /*track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    getApplicationContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
-            );
-            final MediaDescription mediaDescription = track.getDescription();
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
-            mediaItems.add(mediaItem);
-            result.sendResult(mediaItems);*/
-
-            updatePlaybackState(getString(R.string.no_data_message));
+            result.sendResult(mediaItems);
+            updatePlaybackState(getString(R.string.no_search_results));
 
             return;
         }

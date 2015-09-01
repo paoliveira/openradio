@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Open Radio</string>
+    <string name="action_about">Über</string>
+    <string name="all_categories_title">Alle Kategorien</string>
+    <string name="all_categories_sub_title">radiosender aller Kategorien</string>
+    <string name="label_previous">Zurück</string>
+    <string name="label_next">Nächster</string>
+    <string name="label_pause">Pause</string>
+    <string name="label_play">Spielen</string>
+    <string name="skip_previous">Zum vorherigen</string>
+    <string name="skip_next">Zum nächsten</string>
+    <string name="play_pause">Wiedergabe und Pause</string>
+    <string name="no_network_connection_toast">Keine Netzwerkverbindung gefunden</string>
+    <string name="error_loading_media">Fehler beim Laden der Medien</string>
+    <string name="about_thanks_1">Dieses Projekt ist verwenden Sie die Dirble API - ein Service, der eine Liste der Radiostationen ihre Live-Stream über das Internet bietet:</string>
+    <string name="about_thanks_1_title">Dirble API</string>
+    <string name="about_thanks_1_url">https://dirble.com/developer/api</string>
+    <string name="about_thanks_2">Grafiken sind vorgesehen:</string>
+    <string name="about_thanks_2_title">Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes</string>
+    <string name="about_thanks_2_url">http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html</string>
+    <string name="about_author">Autor:</string>
+    <string name="about_author_name">Yuriy Chernyshov</string>
+    <string name="about_project_home_title">Projekthaus:</string>
+    <string name="about_project_home_desc">Wenn Sie Fragen, Anregungen, Kommentare, die die Anwendung verbessern können, haben - zögern Sie nicht, erstellen Sie eine Ausgabe auf der Registerkarte Fragen der Homepage des Projekts.</string>
+    <string name="ok_label">OK</string>
+    <string name="close_label">Schließen</string>
+    <string name="no_data_message">Keine Daten empfangen</string>
+    <string name="media_player_error">Media Player-Fehler</string>
+    <string name="can_not_play_station">Station nicht spielen</string>
+    <string name="no_metadata">Keine Metadaten</string>
+    <string name="can_not_skip">Kann nicht zu überspringen</string>
+    <string name="category_empty">Kategorie ist leer</string>
+    <string name="country_stations_title">Land Radiosender</string>
+    <string name="country_stations_sub_title">radiosender des Landes</string>
+    <string name="use_location_service_message">Location Service ist auf dem Gerät aktiviert.\nUm zusätzliche Merkmale der Open Radio (so dass Radiosender des aktuellen Standorts) please enable Location Service nutzen.</string>
+    <string name="location_service">Location Service</string>
+    <string name="enable_location_service_btn_label">Aktivieren  Location Service</string>
+    <string name="countries_list_title">Alle Länder</string>
+    <string name="countries_list_sub_title">radiosender nach Ländern</string>
+    <string name="favorite">Favorit</string>
+    <string name="favorites_list_title">Favoriten</string>
+    <string name="favorites_list_sub_title">favoriten-radiosender</string>
+    <string name="content_description_category_icon">Kategorie Icon</string>
+    <string name="no_search_results">Keine Suchergebnisse</string>
+    <string name="search_label">Suche</string>
+    <string name="search_description">Geben Sie das Wort, die Sie als Suchmuster verwenden möchten</string>
+
+</resources>
