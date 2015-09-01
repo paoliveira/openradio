@@ -18,8 +18,6 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -47,27 +45,30 @@ import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
-import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
+import com.yuriy.openradio.business.MediaItemAllCategories;
+import com.yuriy.openradio.business.MediaItemChildCategories;
+import com.yuriy.openradio.business.MediaItemCommand;
+import com.yuriy.openradio.business.MediaItemCountriesList;
+import com.yuriy.openradio.business.MediaItemFavoritesList;
+import com.yuriy.openradio.business.MediaItemParentCategories;
+import com.yuriy.openradio.business.MediaItemRoot;
+import com.yuriy.openradio.business.MediaItemSearchFromApp;
+import com.yuriy.openradio.business.MediaItemStationsInCategory;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
-import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
-import com.yuriy.openradio.utils.Utils;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -182,11 +183,6 @@ public final class OpenRadioService
     private ExecutorService mApiCallExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Collection of All Categories.
-     */
-    private final List<CategoryVO> mAllCategories = new ArrayList<>();
-
-    /**
      * Collection of the Child Categories.
      */
     private final List<CategoryVO> mChildCategories = new ArrayList<>();
@@ -253,6 +249,11 @@ public final class OpenRadioService
 
     private final Handler mDelayedStopHandler = new DelayedStopHandler(this);
 
+    /**
+     * Map of the Media Item commands that responsible for the Media Items List creation.
+     */
+    private final Map<String, MediaItemCommand> mMediaItemCommands = new HashMap<>();
+
     private static class DelayedStopHandler extends Handler {
 
         private final OpenRadioService mReference;
@@ -287,6 +288,16 @@ public final class OpenRadioService
 
         // Set application's context for the Preferences.
         AppPreferencesManager.setContext(this);
+
+        // Add Media Items implementations to the map
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES, new MediaItemAllCategories());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, new MediaItemParentCategories());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStationsInCategory());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP, new MediaItemSearchFromApp());
 
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't
@@ -433,294 +444,11 @@ public final class OpenRadioService
         // Instantiate appropriate API service provider
         final APIServiceProvider serviceProvider = getServiceProvider();
 
-        // TODO: Refactor block below to Command pattern
-
-        if (MediaIDHelper.MEDIA_ID_ROOT.equals(parentId)) {
-
-            final String iconUrl = "android.resource://" +
-                    getApplicationContext().getPackageName() + "/drawable/ic_all_categories";
-
-            // Worldwide Stations
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
-                            .setTitle(getString(R.string.all_categories_title))
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(getString(R.string.all_categories_sub_title))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
-
-            // All countries list
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
-                            .setTitle(getString(R.string.countries_list_title))
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(getString(R.string.country_stations_sub_title))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
-
-            // Country Stations
-            final String countryCode = mLocationService.getCountryCode();
-            //If the Country code is known
-            if (!countryCode.isEmpty()) {
-
-                final int identifier = getResources().getIdentifier(
-                        "flag_" + countryCode.toLowerCase(),
-                        "drawable", getPackageName()
-                );
-                // Overlay base image with the appropriate flag
-                final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-                final Bitmap bitmap = overlay.execute(this, identifier,
-                        BitmapFactory.decodeResource(
-                                getResources(),
-                                R.drawable.ic_all_categories
-                        ));
-                mediaItems.add(new MediaBrowser.MediaItem(
-                        new MediaDescription.Builder()
-                                .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
-                                .setTitle(getString(R.string.country_stations_title))
-                                .setIconBitmap(bitmap)
-                                .setSubtitle(getString(
-                                        R.string.country_stations_sub_title
-                                ))
-                                .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-                ));
-            }
-
-            if (!FavoritesStorage.isFavoritesEmpty(getApplicationContext())) {
-                // Favorites list
-
-                final int identifier = getResources().getIdentifier(
-                        "ic_favorites_on",
-                        "drawable", getPackageName()
-                );
-                // Overlay base image with the appropriate flag
-                final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-                final Bitmap bitmap = overlay.execute(this, identifier,
-                        BitmapFactory.decodeResource(
-                                getResources(),
-                                R.drawable.ic_all_categories
-                        ));
-
-                mediaItems.add(new MediaBrowser.MediaItem(
-                        new MediaDescription.Builder()
-                                .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
-                                .setTitle(getString(R.string.favorites_list_title))
-                                .setIconBitmap(bitmap)
-                                .setSubtitle(getString(R.string.favorites_list_sub_title))
-                                .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-                ));
-            }
-
-            result.sendResult(mediaItems);
-        } else if (MediaIDHelper.MEDIA_ID_ALL_CATEGORIES.equals(parentId)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load all categories into menu
-                            loadAllCategories(
-                                    serviceProvider,
-                                    downloader,
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
-            );
-        } else if (MediaIDHelper.MEDIA_ID_COUNTRIES_LIST.equals(parentId)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load all countries into menu
-                            loadAllCountries(
-                                    serviceProvider,
-                                    downloader,
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
-            );
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load all categories into menu
-                            loadCountryStations(
-                                    serviceProvider,
-                                    downloader,
-                                    mLocationService.getCountryCode(),
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
-            );
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            final String countryCode
-                    = parentId.replace(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, "");
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load all categories into menu
-                            loadCountryStations(
-                                    serviceProvider,
-                                    downloader,
-                                    countryCode,
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
-            );
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            final String primaryMenuId
-                    = parentId.replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
-
-            mCurrentCategory = primaryMenuId;
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load child categories into menu
-                            loadChildCategories(
-                                    serviceProvider,
-                                    downloader,
-                                    primaryMenuId,
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
-            );
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            final String childMenuId
-                    = parentId.replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load Radio Stations into menu
-                            loadStationsInCategory(
-                                    serviceProvider,
-                                    downloader,
-                                    childMenuId,
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    });
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            final String radioStationId
-                    = parentId.replace(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, "");
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load Radio Station
-                            loadStation(
-                                    serviceProvider,
-                                    downloader,
-                                    radioStationId,
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
-            );
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            final List<RadioStationVO> list = FavoritesStorage.getAllFavorites(
-                    getApplicationContext()
-            );
-
-            synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-                QueueHelper.copyCollection(mRadioStations, list);
-            }
-
-            for (RadioStationVO radioStation : mRadioStations) {
-
-                final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                        getApplicationContext(),
-                        radioStation
-                );
-                final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                        mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-
-                if (FavoritesStorage.isFavorite(radioStation, this)) {
-                    MediaItemHelper.updateFavoriteField(mediaItem, true);
-                }
-
-                mediaItems.add(mediaItem);
-            }
-            result.sendResult(mediaItems);
-        } else if (parentId.startsWith(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP)) {
-            // Use result.detach to allow calling result.sendResult from another thread:
-            result.detach();
-
-            mApiCallExecutor.submit(
-                    new Runnable() {
-
-                        @Override
-                        public void run() {
-
-                            // Load all categories into menu
-                            loadSearchedStations(
-                                    serviceProvider,
-                                    downloader,
-                                    // Get search query from the holder util
-                                    Utils.getSearchQuery(),
-                                    mediaItems,
-                                    result
-                            );
-                        }
-                    }
+        final MediaItemCommand command = mMediaItemCommands.get(parentId);
+        if (command != null) {
+            command.create(
+                    getApplicationContext(), mLocationService.getCountryCode(),
+                    downloader, serviceProvider, result, mediaItems
             );
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);
@@ -889,395 +617,6 @@ public final class OpenRadioService
             return new MediaDescription.Builder().build();
         }
         return intent.getParcelableExtra(EXTRA_KEY_MEDIA_DESCRIPTION);
-    }
-
-    /**
-     * Load All Categories into Menu.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadAllCategories(final APIServiceProvider serviceProvider,
-                                   final Downloader downloader,
-                                   final List<MediaBrowser.MediaItem> mediaItems,
-                                   final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<CategoryVO> list = serviceProvider.getCategories(downloader,
-                UrlBuilder.getAllCategoriesUrl(getApplicationContext()));
-
-        if (list.isEmpty()) {
-            updatePlaybackState(getString(R.string.no_data_message));
-            return;
-        }
-
-        Collections.sort(list, new Comparator<CategoryVO>() {
-
-            @Override
-            public int compare(CategoryVO lhs, CategoryVO rhs) {
-                return lhs.getTitle().compareTo(rhs.getTitle());
-            }
-        });
-
-        QueueHelper.copyCollection(mAllCategories, list);
-
-        final String iconUrl = "android.resource://" +
-                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
-
-        final Set<String> predefinedCategories = AppUtils.predefinedCategories();
-        for (CategoryVO category : mAllCategories) {
-
-            if (!predefinedCategories.contains(category.getTitle())) {
-                continue;
-            }
-
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES
-                                            + String.valueOf(category.getId())
-                            )
-                            .setTitle(category.getTitle())
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(category.getDescription())
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
-        }
-
-        result.sendResult(mediaItems);
-    }
-
-    /**
-     * Load All Countries into Menu.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadAllCountries(final APIServiceProvider serviceProvider,
-                                  final Downloader downloader,
-                                  final List<MediaBrowser.MediaItem> mediaItems,
-                                  final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<String> list = serviceProvider.getCounties(downloader,
-                UrlBuilder.getAllCountriesUrl(getApplicationContext()));
-
-        if (list.isEmpty()) {
-            updatePlaybackState(getString(R.string.no_data_message));
-            return;
-        }
-
-        Collections.sort(list, new Comparator<String>() {
-
-            @Override
-            public int compare(String lhs, String rhs) {
-                return lhs.compareTo(rhs);
-            }
-        });
-
-        String countryName;
-        // Overlay base image with the appropriate flag
-        final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
-        Bitmap bitmap;
-
-        for (final String countryCode : list) {
-
-            if (AppUtils.COUNTRY_CODE_TO_NAME.containsKey(countryCode)) {
-                countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
-            } else {
-                countryName = "";
-            }
-
-            final int identifier = getResources().getIdentifier(
-                    "flag_" + countryCode.toLowerCase(),
-                    "drawable", getPackageName()
-            );
-
-            bitmap = flagLoader.execute(this, identifier,
-                    BitmapFactory.decodeResource(
-                            getResources(),
-                            R.drawable.ic_child_categories
-                    )
-            );
-
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + countryCode
-                            )
-                            .setTitle(countryName)
-                            .setIconBitmap(bitmap)
-                            .setSubtitle(countryCode)
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
-        }
-
-        result.sendResult(mediaItems);
-    }
-
-    /**
-     * Load Child Categories into Menu.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param primaryItemId   Id of the primary menu item.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadChildCategories(final APIServiceProvider serviceProvider,
-                                     final Downloader downloader,
-                                     final String primaryItemId,
-                                     final List<MediaBrowser.MediaItem> mediaItems,
-                                     final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<CategoryVO> list = serviceProvider.getCategories(downloader,
-                UrlBuilder.getChildCategoriesUrl(getApplicationContext(), primaryItemId));
-
-        if (list.isEmpty()) {
-            updatePlaybackState(getString(R.string.no_data_message));
-            return;
-        }
-
-        Collections.sort(list, new Comparator<CategoryVO>() {
-
-            @Override
-            public int compare(CategoryVO lhs, CategoryVO rhs) {
-                return lhs.getTitle().compareTo(rhs.getTitle());
-            }
-        });
-
-        QueueHelper.copyCollection(mChildCategories, list);
-
-        final String iconUrl = "android.resource://" +
-                getApplicationContext().getPackageName() + "/drawable/ic_child_categories";
-
-        for (CategoryVO category : mChildCategories) {
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES
-                                            + String.valueOf(category.getId())
-                            )
-                            .setTitle(category.getTitle())
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(category.getDescription())
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-            ));
-        }
-
-        result.sendResult(mediaItems);
-    }
-
-    /**
-     * Load Radio Stations into Menu.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param categoryId      Id of the Category.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadStationsInCategory(final APIServiceProvider serviceProvider,
-                                        final Downloader downloader,
-                                        final String categoryId,
-                                        final List<MediaBrowser.MediaItem> mediaItems,
-                                        final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<RadioStationVO> list = serviceProvider.getStations(downloader,
-                UrlBuilder.getStationsInCategory(getApplicationContext(), categoryId));
-
-        MediaMetadata track;
-
-        if (list.isEmpty()) {
-
-            track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    getApplicationContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
-            );
-            final MediaDescription mediaDescription = track.getDescription();
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
-            mediaItems.add(mediaItem);
-            result.sendResult(mediaItems);
-
-            updatePlaybackState(getString(R.string.no_data_message));
-
-            return;
-        }
-
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mRadioStations, list);
-        }
-
-        final String genre = QueueHelper.getGenreNameById(categoryId, mChildCategories);
-
-        for (RadioStationVO radioStation : mRadioStations) {
-
-            radioStation.setGenre(genre);
-
-            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    getApplicationContext(),
-                    radioStation
-            );
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-
-            if (FavoritesStorage.isFavorite(radioStation, this)) {
-                MediaItemHelper.updateFavoriteField(mediaItem, true);
-            }
-
-            mediaItems.add(mediaItem);
-        }
-
-        result.sendResult(mediaItems);
-    }
-
-    /**
-     * Load Radio Stations from the Search query.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param queryString     Query string.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadSearchedStations(final APIServiceProvider serviceProvider,
-                                      final Downloader downloader,
-                                      final String queryString,
-                                      final List<MediaBrowser.MediaItem> mediaItems,
-                                      final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<RadioStationVO> list = serviceProvider.getStations(
-                downloader,
-                UrlBuilder.getSearchQuery(getApplicationContext(), queryString)
-        );
-
-        mediaItems.clear();
-
-        if (list.isEmpty()) {
-
-            result.sendResult(mediaItems);
-            updatePlaybackState(getString(R.string.no_search_results));
-
-            return;
-        }
-
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mRadioStations, list);
-        }
-
-        for (RadioStationVO radioStation : mRadioStations) {
-
-            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    getApplicationContext(),
-                    radioStation
-            );
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-
-            if (FavoritesStorage.isFavorite(radioStation, this)) {
-                MediaItemHelper.updateFavoriteField(mediaItem, true);
-            }
-
-            mediaItems.add(mediaItem);
-        }
-
-        result.sendResult(mediaItems);
-    }
-
-    /**
-     * Load Radio Stations of the provided Country into Menu.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param countryCode     Country code.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadCountryStations(final APIServiceProvider serviceProvider,
-                                     final Downloader downloader,
-                                     final String countryCode,
-                                     final List<MediaBrowser.MediaItem> mediaItems,
-                                     final Result<List<MediaBrowser.MediaItem>> result) {
-        final List<RadioStationVO> list = serviceProvider.getStations(downloader,
-                UrlBuilder.getStationsInCountry(getApplicationContext(), countryCode));
-
-        MediaMetadata track;
-
-        if (list.isEmpty()) {
-
-            track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    getApplicationContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
-            );
-            final MediaDescription mediaDescription = track.getDescription();
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
-            mediaItems.add(mediaItem);
-            result.sendResult(mediaItems);
-
-            updatePlaybackState(getString(R.string.no_data_message));
-
-            return;
-        }
-
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mRadioStations, list);
-        }
-
-        for (RadioStationVO radioStation : mRadioStations) {
-
-            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    getApplicationContext(),
-                    radioStation
-            );
-
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-
-            if (FavoritesStorage.isFavorite(radioStation, this)) {
-                MediaItemHelper.updateFavoriteField(mediaItem, true);
-            }
-
-            mediaItems.add(mediaItem);
-        }
-
-        result.sendResult(mediaItems);
-    }
-
-    /**
-     * Load Radio Station.
-     *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param radioStationId  Id of the Radio Station.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     */
-    private void loadStation(final APIServiceProvider serviceProvider,
-                             final Downloader downloader,
-                             final String radioStationId,
-                             final List<MediaBrowser.MediaItem> mediaItems,
-                             final Result<List<MediaBrowser.MediaItem>> result) {
-        final RadioStationVO radioStation
-                = serviceProvider.getStation(downloader,
-                UrlBuilder.getStation(getApplicationContext(), radioStationId));
-
-        if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
-            updatePlaybackState(getString(R.string.no_data_message));
-            return;
-        }
-
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.updateRadioStation(radioStation, mRadioStations);
-        }
-
-        final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                getApplicationContext(),
-                radioStation
-        );
-        final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-        mediaItems.add(mediaItem);
-
-        result.sendResult(mediaItems);
     }
 
     /**

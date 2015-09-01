@@ -35,7 +35,7 @@ import java.util.Map;
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-final class FavoritesStorage {
+public final class FavoritesStorage {
 
     /**
      * Private constructor

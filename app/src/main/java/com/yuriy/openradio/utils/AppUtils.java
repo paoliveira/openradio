@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Yuriy Chernyshov
@@ -47,6 +49,11 @@ import java.util.Set;
  * {@link AppUtils} is a helper class which holds various help-methods
  */
 public final class AppUtils {
+
+    /**
+     * Executor of the API requests.
+     */
+    public static final ExecutorService API_CALL_EXECUTOR = Executors.newSingleThreadExecutor();
 
     public static final Map<String, String> COUNTRY_CODE_TO_NAME = new HashMap<>();
 
