@@ -486,9 +486,6 @@ public final class OpenRadioService
                                 ))
                                 .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
                 ));
-                result.sendResult(mediaItems);
-            } else {
-                result.sendResult(mediaItems);
             }
 
             if (!FavoritesStorage.isFavoritesEmpty(getApplicationContext())) {
@@ -515,6 +512,8 @@ public final class OpenRadioService
                                 .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
                 ));
             }
+
+            result.sendResult(mediaItems);
         } else if (MediaIDHelper.MEDIA_ID_ALL_CATEGORIES.equals(parentId)) {
             // Use result.detach to allow calling result.sendResult from another thread:
             result.detach();
