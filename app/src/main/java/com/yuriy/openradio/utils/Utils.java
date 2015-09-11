@@ -61,6 +61,10 @@ public final class Utils {
         return Build.VERSION.SDK_INT >= VERSION_CODES.KITKAT;
     }
 
+    public static boolean isMinApiLevel23() {
+        return Build.VERSION.SDK_INT >= 23;
+    }
+
     /**
      * Save Search query string.
      *

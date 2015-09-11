@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.service;
 
+import android.Manifest;
 import android.content.Context;
 import android.location.Address;
 import android.location.Geocoder;
@@ -25,6 +26,8 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import com.yuriy.openradio.utils.PermissionChecker;
 
 import java.io.IOException;
 import java.util.List;
@@ -99,6 +102,11 @@ public class LocationService {
         final String locationProvider = LocationManager.NETWORK_PROVIDER;
         // Or use LocationManager.GPS_PROVIDER
 
+        if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            return;
+        }
+
+        @SuppressWarnings("ResourceType")
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
             Log.w(CLASS_NAME, "LastKnownLocation unavailable");
@@ -139,6 +147,12 @@ public class LocationService {
                     mCountryCode = "";
                 }
                 listener.onCountryCodeLocated(mCountryCode);
+
+                if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    return;
+                }
+
+                //noinspection ResourceType
                 locationManager.removeUpdates(this);
             }
 
@@ -158,7 +172,12 @@ public class LocationService {
             }
         };
 
+        if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            return;
+        }
+
         // Register the listener with the Location Manager to receive location updates
+        //noinspection ResourceType
         locationManager.requestLocationUpdates(
                 LocationManager.NETWORK_PROVIDER, 0, 0, locationListener
         );
