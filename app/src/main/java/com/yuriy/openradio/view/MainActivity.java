@@ -20,6 +20,7 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.IntentFilter;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
@@ -40,20 +41,24 @@ import android.widget.Toast;
 import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.PermissionStatusListener;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.PermissionChecker;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
 import java.io.Serializable;
+import java.lang.ref.WeakReference;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -128,6 +133,11 @@ public final class MainActivity extends FragmentActivity {
     private final AppLocalBroadcastReceiver mAppLocalBroadcastReceiver
             = AppLocalBroadcastReceiver.getInstance();
 
+    /**
+     * Listener of the Permissions status changes.
+     */
+    private PermissionStatusListener mPermissionStatusListener = new PermissionListener(this);
+
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -139,6 +149,9 @@ public final class MainActivity extends FragmentActivity {
 
         // Register local receivers.
         registerReceivers();
+
+        // Add listener for the permissions status
+        PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
 
         // Handles loading the  image in a background thread
         final ImageFetcher imageFetcher = ImageFetcherFactory.getSmallImageFetcher(this);
@@ -232,6 +245,8 @@ public final class MainActivity extends FragmentActivity {
     @Override
     protected final void onDestroy() {
         super.onDestroy();
+
+        PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
 
         // Unregister local receivers
         unregisterReceivers();
@@ -646,4 +661,39 @@ public final class MainActivity extends FragmentActivity {
             mMediaBrowser.connect();
         }
     };
+
+    /**
+     * Listener of the Permissions Status changes.
+     */
+    private static class PermissionListener implements PermissionStatusListener {
+
+        private final WeakReference<Context> mReference;
+        private final Map<String, Double> mMap = new ConcurrentHashMap<>();
+        private static final int DELTA = 2000;
+
+        public PermissionListener(final Context reference) {
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onPermissionRequired(final String permissionName) {
+            if (mReference.get() == null) {
+                return;
+            }
+
+            final double currentTime = System.currentTimeMillis();
+
+            if (mMap.containsKey(permissionName)) {
+                if (currentTime - mMap.get(permissionName) < DELTA) {
+                    return;
+                }
+            }
+
+            mMap.put(permissionName, currentTime);
+
+            mReference.get().startActivity(
+                    PermissionsDialogActivity.getIntent(mReference.get(), permissionName)
+            );
+        }
+    }
 }

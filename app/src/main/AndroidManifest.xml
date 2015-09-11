@@ -38,6 +38,7 @@
         </activity>
 
         <activity android:name=".view.QueueActivity" />
+        <activity android:name=".view.PermissionsDialogActivity" />
 
         <!-- Points to searchable activity so the whole app can invoke search. -->
         <meta-data android:name="android.app.default_searchable"
