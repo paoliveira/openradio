@@ -50,6 +50,7 @@ import com.yuriy.openradio.business.MediaItemAllCategories;
 import com.yuriy.openradio.business.MediaItemChildCategories;
 import com.yuriy.openradio.business.MediaItemCommand;
 import com.yuriy.openradio.business.MediaItemCountriesList;
+import com.yuriy.openradio.business.MediaItemCountryStations;
 import com.yuriy.openradio.business.MediaItemFavoritesList;
 import com.yuriy.openradio.business.MediaItemParentCategories;
 import com.yuriy.openradio.business.MediaItemRoot;
@@ -287,6 +288,7 @@ public final class OpenRadioService
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES, new MediaItemAllCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, new MediaItemParentCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStationsInCategory());
