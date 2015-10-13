@@ -42,7 +42,6 @@ import android.util.Log;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
@@ -55,6 +54,7 @@ import com.yuriy.openradio.business.MediaItemFavoritesList;
 import com.yuriy.openradio.business.MediaItemParentCategories;
 import com.yuriy.openradio.business.MediaItemRoot;
 import com.yuriy.openradio.business.MediaItemSearchFromApp;
+import com.yuriy.openradio.business.MediaItemShareObject;
 import com.yuriy.openradio.business.MediaItemStationsInCategory;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -184,11 +184,6 @@ public final class OpenRadioService
     private ExecutorService mApiCallExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Collection of the Child Categories.
-     */
-    private final List<CategoryVO> mChildCategories = new ArrayList<>();
-
-    /**
      * Collection of the Radio Stations.
      */
     private final List<RadioStationVO> mRadioStations = new ArrayList<>();
@@ -219,15 +214,13 @@ public final class OpenRadioService
     //private MessagesHandler mMessagesHandler;
 
     /**
-     * Id of the current Category. It is used for example when back from an empty Category.
-     */
-    private String mCurrentCategory = "";
-
-    /**
      * Service class to provide information about current location.
      */
     private final LocationService mLocationService = LocationService.getInstance();
 
+    /**
+     *
+     */
     private final MediaItemCommand.IUpdatePlaybackState mPlaybackStateListener = new PlaybackStateListener(this);
 
     private enum AudioFocus {
@@ -447,10 +440,14 @@ public final class OpenRadioService
 
         final MediaItemCommand command = mMediaItemCommands.get(parentId);
         if (command != null) {
+
+            final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();
+
             command.create(
                     getApplicationContext(), mLocationService.getCountryCode(),
                     downloader, serviceProvider, result, mediaItems,
-                    mPlaybackStateListener
+                    mPlaybackStateListener, parentId, mRadioStations,
+                    shareObject
             );
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);

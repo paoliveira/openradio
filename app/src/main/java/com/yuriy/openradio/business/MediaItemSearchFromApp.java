@@ -48,7 +48,9 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener) {
+                       final IUpdatePlaybackState playbackStateListener, final String parentId,
+                       @NonNull final List<RadioStationVO> radioStations,
+                       @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -68,7 +70,8 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                                 Utils.getSearchQuery(),
                                 mediaItems,
                                 result,
-                                playbackStateListener
+                                playbackStateListener,
+                                radioStations
                         );
                     }
                 }
@@ -90,7 +93,8 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                                       final String queryString,
                                       final List<MediaBrowser.MediaItem> mediaItems,
                                       final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                      final IUpdatePlaybackState playbackStateListener) {
+                                      final IUpdatePlaybackState playbackStateListener,
+                                      @NonNull final List<RadioStationVO> radioStations) {
         final List<RadioStationVO> list = serviceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchQuery(context, queryString)
@@ -109,10 +113,10 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mRadioStations, list);
+            QueueHelper.copyCollection(radioStations, list);
         }
 
-        for (RadioStationVO radioStation : mRadioStations) {
+        for (RadioStationVO radioStation : radioStations) {
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     context,

@@ -26,6 +26,7 @@ import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
@@ -48,7 +49,9 @@ public class MediaItemCountriesList implements MediaItemCommand {
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener) {
+                       final IUpdatePlaybackState playbackStateListener, final String parentId,
+                       @NonNull final List<RadioStationVO> radioStations,
+                       @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();

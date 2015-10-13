@@ -49,7 +49,10 @@ public class MediaItemCountryStations implements MediaItemCommand {
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener) {
+                       final IUpdatePlaybackState playbackStateListener,
+                       @NonNull final String parentId,
+                       @NonNull final List<RadioStationVO> radioStations,
+                       @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -68,7 +71,9 @@ public class MediaItemCountryStations implements MediaItemCommand {
                                 countryCode,
                                 mediaItems,
                                 result,
-                                playbackStateListener
+                                playbackStateListener,
+                                radioStations,
+                                shareObject
                         );
                     }
                 }
@@ -90,7 +95,9 @@ public class MediaItemCountryStations implements MediaItemCommand {
                                      final String countryCode,
                                      final List<MediaBrowser.MediaItem> mediaItems,
                                      final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                     final IUpdatePlaybackState playbackStateListener) {
+                                     final IUpdatePlaybackState playbackStateListener,
+                                     @NonNull final List<RadioStationVO> radioStations,
+                                     @NonNull final MediaItemShareObject shareObject) {
         final List<RadioStationVO> list = serviceProvider.getStations(downloader,
                 UrlBuilder.getStationsInCountry(context, countryCode));
 
@@ -100,7 +107,7 @@ public class MediaItemCountryStations implements MediaItemCommand {
 
             track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     context,
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + mCurrentCategory
+                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
             );
             final MediaDescription mediaDescription = track.getDescription();
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
@@ -116,10 +123,10 @@ public class MediaItemCountryStations implements MediaItemCommand {
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mRadioStations, list);
+            QueueHelper.copyCollection(radioStations, list);
         }
 
-        for (RadioStationVO radioStation : mRadioStations) {
+        for (RadioStationVO radioStation : radioStations) {
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     context,

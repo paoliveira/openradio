@@ -27,6 +27,7 @@ import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -46,7 +47,10 @@ public class MediaItemRoot implements MediaItemCommand {
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener) {
+                       final IUpdatePlaybackState playbackStateListener, final String parentId,
+                       final List<RadioStationVO> radioStations,
+                       @NonNull final MediaItemShareObject shareObject) {
+
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";
 

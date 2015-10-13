@@ -19,13 +19,11 @@ package com.yuriy.openradio.business;
 import android.content.Context;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
-import android.net.Uri;
 import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
@@ -34,8 +32,6 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -51,7 +47,10 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener) {
+                       final IUpdatePlaybackState playbackStateListener,
+                       @NonNull final String parentId,
+                       @NonNull final List<RadioStationVO> radioStations,
+                       @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -73,7 +72,8 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
                                 radioStationId,
                                 mediaItems,
                                 result,
-                                playbackStateListener
+                                playbackStateListener,
+                                radioStations
                         );
                     }
                 }
@@ -95,7 +95,8 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
                              final String radioStationId,
                              final List<MediaBrowser.MediaItem> mediaItems,
                              final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                             final IUpdatePlaybackState playbackStateListener) {
+                             final IUpdatePlaybackState playbackStateListener,
+                             @NonNull final List<RadioStationVO> radioStations) {
         final RadioStationVO radioStation
                 = serviceProvider.getStation(downloader,
                 UrlBuilder.getStation(context, radioStationId));
@@ -108,7 +109,7 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.updateRadioStation(radioStation, mRadioStations);
+            QueueHelper.updateRadioStation(radioStation, radioStations);
         }
 
         final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(

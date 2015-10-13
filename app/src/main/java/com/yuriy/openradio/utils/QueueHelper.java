@@ -19,6 +19,7 @@ package com.yuriy.openradio.utils;
 import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
+import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
@@ -114,7 +115,8 @@ public final class QueueHelper {
         return null;
     }
 
-    public static <T> void copyCollection(final List<T> destination, final List<T> source) {
+    public static <T> void copyCollection(@NonNull final List<T> destination,
+                                          @NonNull final List<T> source) {
         destination.clear();
         for (T sourceItem : source) {
             destination.add(sourceItem);

@@ -17,8 +17,6 @@
 package com.yuriy.openradio.business;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.net.Uri;
@@ -28,6 +26,7 @@ import android.support.annotation.NonNull;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.CategoryVO;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
@@ -51,7 +50,10 @@ public class MediaItemParentCategories implements MediaItemCommand {
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener) {
+                       final IUpdatePlaybackState playbackStateListener,
+                       @NonNull final String parentId,
+                       @NonNull final List<RadioStationVO> radioStations,
+                       @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -59,7 +61,7 @@ public class MediaItemParentCategories implements MediaItemCommand {
         final String primaryMenuId
                 = parentId.replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
 
-        mCurrentCategory = primaryMenuId;
+        shareObject.setCurrentCategory(primaryMenuId);
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -75,7 +77,8 @@ public class MediaItemParentCategories implements MediaItemCommand {
                                 primaryMenuId,
                                 mediaItems,
                                 result,
-                                playbackStateListener
+                                playbackStateListener,
+                                shareObject
                         );
                     }
                 }
@@ -97,7 +100,8 @@ public class MediaItemParentCategories implements MediaItemCommand {
                                      final String primaryItemId,
                                      final List<MediaBrowser.MediaItem> mediaItems,
                                      final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                     final IUpdatePlaybackState playbackStateListener) {
+                                     final IUpdatePlaybackState playbackStateListener,
+                                     @NonNull final MediaItemShareObject shareObject) {
         final List<CategoryVO> list = serviceProvider.getCategories(downloader,
                 UrlBuilder.getChildCategoriesUrl(context, primaryItemId));
 
@@ -114,12 +118,12 @@ public class MediaItemParentCategories implements MediaItemCommand {
             }
         });
 
-        QueueHelper.copyCollection(mChildCategories, list);
+        QueueHelper.copyCollection(shareObject.getChildCategories(), list);
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_child_categories";
 
-        for (CategoryVO category : mChildCategories) {
+        for (CategoryVO category : shareObject.getChildCategories()) {
             mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(

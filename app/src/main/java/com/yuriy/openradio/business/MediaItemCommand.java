@@ -22,6 +22,7 @@ import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.api.APIServiceProvider;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.Downloader;
 
 import java.util.List;
@@ -56,10 +57,16 @@ public interface MediaItemCommand {
      * @param serviceProvider
      * @param result
      * @param mediaItems
+     * @param playbackStateListener
+     * @param parentId
+     * @param radioStations
+     * @param shareObject
      */
     void create(final Context context, final String countryCode,
                 final Downloader downloader, final APIServiceProvider serviceProvider,
                 @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                 final List<MediaBrowser.MediaItem> mediaItems,
-                final IUpdatePlaybackState playbackStateListener);
+                final IUpdatePlaybackState playbackStateListener,
+                final String parentId, final List<RadioStationVO> radioStations,
+                @NonNull final MediaItemShareObject shareObject);
 }
