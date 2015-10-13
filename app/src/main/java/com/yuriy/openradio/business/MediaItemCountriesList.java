@@ -47,7 +47,8 @@ public class MediaItemCountriesList implements MediaItemCommand {
     public void create(final Context context, final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems) {
+                       final List<MediaBrowser.MediaItem> mediaItems,
+                       final IUpdatePlaybackState playbackStateListener) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -64,7 +65,8 @@ public class MediaItemCountriesList implements MediaItemCommand {
                                 serviceProvider,
                                 downloader,
                                 mediaItems,
-                                result
+                                result,
+                                playbackStateListener
                         );
                     }
                 }
@@ -83,12 +85,13 @@ public class MediaItemCountriesList implements MediaItemCommand {
                                   final APIServiceProvider serviceProvider,
                                   final Downloader downloader,
                                   final List<MediaBrowser.MediaItem> mediaItems,
-                                  final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result) {
+                                  final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
+                                  final IUpdatePlaybackState playbackStateListener) {
         final List<String> list = serviceProvider.getCounties(downloader,
                 UrlBuilder.getAllCountriesUrl(context));
 
-        if (list.isEmpty()) {
-            updatePlaybackState(context.getString(R.string.no_data_message));
+        if (list.isEmpty() && playbackStateListener != null) {
+            playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
             return;
         }
 

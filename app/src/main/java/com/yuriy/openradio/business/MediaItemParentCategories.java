@@ -50,7 +50,8 @@ public class MediaItemParentCategories implements MediaItemCommand {
     public void create(final Context context, final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems) {
+                       final List<MediaBrowser.MediaItem> mediaItems,
+                       final IUpdatePlaybackState playbackStateListener) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -73,7 +74,8 @@ public class MediaItemParentCategories implements MediaItemCommand {
                                 downloader,
                                 primaryMenuId,
                                 mediaItems,
-                                result
+                                result,
+                                playbackStateListener
                         );
                     }
                 }
@@ -94,12 +96,13 @@ public class MediaItemParentCategories implements MediaItemCommand {
                                      final Downloader downloader,
                                      final String primaryItemId,
                                      final List<MediaBrowser.MediaItem> mediaItems,
-                                     final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result) {
+                                     final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
+                                     final IUpdatePlaybackState playbackStateListener) {
         final List<CategoryVO> list = serviceProvider.getCategories(downloader,
                 UrlBuilder.getChildCategoriesUrl(context, primaryItemId));
 
-        if (list.isEmpty()) {
-            updatePlaybackState(context.getString(R.string.no_data_message));
+        if (list.isEmpty() && playbackStateListener != null) {
+            playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
             return;
         }
 

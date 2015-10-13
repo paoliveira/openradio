@@ -38,6 +38,18 @@ public interface MediaItemCommand {
 
     /**
      *
+     */
+    interface IUpdatePlaybackState {
+
+        /**
+         *
+         * @param error
+         */
+        void updatePlaybackState(final String error);
+    }
+
+    /**
+     *
      * @param context
      * @param countryCode
      * @param downloader
@@ -48,5 +60,6 @@ public interface MediaItemCommand {
     void create(final Context context, final String countryCode,
                 final Downloader downloader, final APIServiceProvider serviceProvider,
                 @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                final List<MediaBrowser.MediaItem> mediaItems);
+                final List<MediaBrowser.MediaItem> mediaItems,
+                final IUpdatePlaybackState playbackStateListener);
 }

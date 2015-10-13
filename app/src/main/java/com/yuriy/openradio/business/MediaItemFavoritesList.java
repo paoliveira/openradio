@@ -47,7 +47,8 @@ public class MediaItemFavoritesList implements MediaItemCommand {
     public void create(final Context context, final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems) {
+                       final List<MediaBrowser.MediaItem> mediaItems,
+                       final IUpdatePlaybackState playbackStateListener) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -56,7 +57,7 @@ public class MediaItemFavoritesList implements MediaItemCommand {
                 context
         );
 
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.copyCollection(mRadioStations, list);
         }
 

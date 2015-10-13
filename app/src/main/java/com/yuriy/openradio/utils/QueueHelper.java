@@ -34,6 +34,11 @@ import java.util.List;
  */
 public final class QueueHelper {
 
+    /**
+     * Monitor object which manages access to the radio stations collection.
+     */
+    public static final Object RADIO_STATIONS_MANAGING_LOCK = new Object();
+
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 

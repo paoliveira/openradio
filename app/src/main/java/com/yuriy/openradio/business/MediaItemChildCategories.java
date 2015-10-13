@@ -52,7 +52,8 @@ public class MediaItemChildCategories implements MediaItemCommand {
     public void create(final Context context, final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems) {
+                       final List<MediaBrowser.MediaItem> mediaItems,
+                       final IUpdatePlaybackState playbackStateListener) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -73,7 +74,8 @@ public class MediaItemChildCategories implements MediaItemCommand {
                                 downloader,
                                 childMenuId,
                                 mediaItems,
-                                result
+                                result,
+                                playbackStateListener
                         );
                     }
                 });
@@ -93,7 +95,8 @@ public class MediaItemChildCategories implements MediaItemCommand {
                                         final Downloader downloader,
                                         final String categoryId,
                                         final List<MediaBrowser.MediaItem> mediaItems,
-                                        final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result) {
+                                        final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
+                                        final IUpdatePlaybackState playbackStateListener) {
         final List<RadioStationVO> list = serviceProvider.getStations(downloader,
                 UrlBuilder.getStationsInCategory(context, categoryId));
 
@@ -111,12 +114,14 @@ public class MediaItemChildCategories implements MediaItemCommand {
             mediaItems.add(mediaItem);
             result.sendResult(mediaItems);
 
-            updatePlaybackState(context.getString(R.string.no_data_message));
+            if (playbackStateListener != null) {
+                playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+            }
 
             return;
         }
 
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.copyCollection(mRadioStations, list);
         }
 
@@ -133,7 +138,7 @@ public class MediaItemChildCategories implements MediaItemCommand {
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
 
-            if (FavoritesStorage.isFavorite(radioStation, this)) {
+            if (FavoritesStorage.isFavorite(radioStation, context)) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
 

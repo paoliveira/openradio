@@ -50,7 +50,8 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
     public void create(final Context context, final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems) {
+                       final List<MediaBrowser.MediaItem> mediaItems,
+                       final IUpdatePlaybackState playbackStateListener) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -66,12 +67,13 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
 
                         // Load Radio Station
                         loadStation(
-                                context
+                                context,
                                 serviceProvider,
                                 downloader,
                                 radioStationId,
                                 mediaItems,
-                                result
+                                result,
+                                playbackStateListener
                         );
                     }
                 }
@@ -92,17 +94,20 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
                              final Downloader downloader,
                              final String radioStationId,
                              final List<MediaBrowser.MediaItem> mediaItems,
-                             final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result) {
+                             final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
+                             final IUpdatePlaybackState playbackStateListener) {
         final RadioStationVO radioStation
                 = serviceProvider.getStation(downloader,
                 UrlBuilder.getStation(context, radioStationId));
 
         if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
-            updatePlaybackState(context.getString(R.string.no_data_message));
+            if (playbackStateListener != null) {
+                playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+            }
             return;
         }
 
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.updateRadioStation(radioStation, mRadioStations);
         }
 

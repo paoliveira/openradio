@@ -47,7 +47,8 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
     public void create(final Context context, final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems) {
+                       final List<MediaBrowser.MediaItem> mediaItems,
+                       final IUpdatePlaybackState playbackStateListener) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
@@ -66,7 +67,8 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                                 // Get search query from the holder util
                                 Utils.getSearchQuery(),
                                 mediaItems,
-                                result
+                                result,
+                                playbackStateListener
                         );
                     }
                 }
@@ -87,7 +89,8 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                                       final Downloader downloader,
                                       final String queryString,
                                       final List<MediaBrowser.MediaItem> mediaItems,
-                                      final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result) {
+                                      final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
+                                      final IUpdatePlaybackState playbackStateListener) {
         final List<RadioStationVO> list = serviceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchQuery(context, queryString)
@@ -98,12 +101,14 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
         if (list.isEmpty()) {
 
             result.sendResult(mediaItems);
-            updatePlaybackState(context.getString(R.string.no_search_results));
+            if (playbackStateListener != null) {
+                playbackStateListener.updatePlaybackState(context.getString(R.string.no_search_results));
+            }
 
             return;
         }
 
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.copyCollection(mRadioStations, list);
         }
 

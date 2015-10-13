@@ -65,6 +65,7 @@ import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -227,7 +228,7 @@ public final class OpenRadioService
      */
     private final LocationService mLocationService = LocationService.getInstance();
 
-    private static final Object RADIO_STATIONS_MANAGING_LOCK = new Object();
+    private final MediaItemCommand.IUpdatePlaybackState mPlaybackStateListener = new PlaybackStateListener(this);
 
     private enum AudioFocus {
 
@@ -448,7 +449,8 @@ public final class OpenRadioService
         if (command != null) {
             command.create(
                     getApplicationContext(), mLocationService.getCountryCode(),
-                    downloader, serviceProvider, result, mediaItems
+                    downloader, serviceProvider, result, mediaItems,
+                    mPlaybackStateListener
             );
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);
@@ -670,7 +672,7 @@ public final class OpenRadioService
         final String mediaId = item.getDescription().getMediaId();
 
         RadioStationVO radioStation;
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
         }
 
@@ -1212,7 +1214,7 @@ public final class OpenRadioService
                 return;
             }
 
-            synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+            synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
                 QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
                                 getApplicationContext(),
                                 mRadioStations)
@@ -1356,7 +1358,7 @@ public final class OpenRadioService
     }
 
     private void performSearch(final String query) {
-        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             mRadioStations.clear();
             mPlayingQueue.clear();
         }
@@ -1394,7 +1396,7 @@ public final class OpenRadioService
 
                         Log.i(CLASS_NAME, "Found " + list.size() + " items");
 
-                        synchronized (RADIO_STATIONS_MANAGING_LOCK) {
+                        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
                             QueueHelper.copyCollection(mRadioStations, list);
 
                             QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
@@ -1412,6 +1414,24 @@ public final class OpenRadioService
                     }
                 }
         );
+    }
+
+    private static final class PlaybackStateListener implements MediaItemCommand.IUpdatePlaybackState {
+
+        private final WeakReference<OpenRadioService> mReference;
+
+        public PlaybackStateListener(final OpenRadioService reference) {
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void updatePlaybackState(final String error) {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            service.updatePlaybackState(error);
+        }
     }
 
     // Template for the future
