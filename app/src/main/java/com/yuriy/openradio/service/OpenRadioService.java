@@ -440,7 +440,7 @@ public final class OpenRadioService
         // Instantiate appropriate API service provider
         final APIServiceProvider serviceProvider = getServiceProvider();
 
-        final MediaItemCommand command = mMediaItemCommands.get(parentId);
+        final MediaItemCommand command = mMediaItemCommands.get(MediaIDHelper.getId(parentId));
         if (command != null) {
 
             final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();

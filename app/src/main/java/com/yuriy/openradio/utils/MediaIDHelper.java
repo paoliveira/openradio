@@ -23,6 +23,8 @@ package com.yuriy.openradio.utils;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
+import android.text.TextUtils;
+
 /**
  * Utility class to help on queue related tasks.
  * Media IDs used on browseable items of {@link android.media.browse.MediaBrowser}.
@@ -47,4 +49,33 @@ public final class MediaIDHelper {
             = "__RADIO_STATIONS_IN_CATEGORY__";
 
     public static final String MEDIA_ID_SEARCH_FROM_APP = "__SEARCH_FROM_APP__";
+
+    /**
+     *
+     */
+    private static final String[] IDS = {
+            MEDIA_ID_ALL_CATEGORIES,
+            MEDIA_ID_CHILD_CATEGORIES,
+            MEDIA_ID_COUNTRIES_LIST,
+            MEDIA_ID_COUNTRY_STATIONS,
+            MEDIA_ID_FAVORITES_LIST,
+            MEDIA_ID_PARENT_CATEGORIES,
+            MEDIA_ID_RADIO_STATIONS_IN_CATEGORY,
+            MEDIA_ID_ROOT,
+            MEDIA_ID_SEARCH_FROM_APP
+    };
+
+    /**
+     *
+     * @param startsWith
+     * @return
+     */
+    public static String getId(final String startsWith) {
+        for (final String id : IDS) {
+            if (startsWith.startsWith(id) || startsWith.equals(id)) {
+                return id;
+            }
+        }
+        return null;
+    }
 }
