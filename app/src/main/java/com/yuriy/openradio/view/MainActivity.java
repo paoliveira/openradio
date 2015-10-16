@@ -353,12 +353,16 @@ public final class MainActivity extends FragmentActivity {
             return;
         }
 
-        // Pop up current media item
-        final String currentMediaId = mediaItemsStack.remove(mediaItemsStack.size() - 1);
+        final int location = mediaItemsStack.size() - 1;
+        if (location >= 0 && location < mediaItemsStack.size()) {
+            // Pop up current media item
+            final String currentMediaId = mediaItemsStack.remove(mediaItemsStack.size() - 1);
 
-        // Un-subscribe from all items
-        mMediaBrowser.unsubscribe(currentMediaId);
-        for (String mediaItemId : mediaItemsStack) {
+            // Un-subscribe from all items
+            mMediaBrowser.unsubscribe(currentMediaId);
+        }
+
+        for (final String mediaItemId : mediaItemsStack) {
             mMediaBrowser.unsubscribe(mediaItemId);
         }
 
