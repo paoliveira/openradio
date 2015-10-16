@@ -44,7 +44,7 @@ import java.util.List;
 public class MediaItemSearchFromApp implements MediaItemCommand {
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
@@ -63,7 +63,7 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
 
                         // Load all categories into menu
                         loadSearchedStations(
-                                context,
+                                shareObject.getContext(),
                                 serviceProvider,
                                 downloader,
                                 // Get search query from the holder util

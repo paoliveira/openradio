@@ -43,13 +43,15 @@ import java.util.List;
 public class MediaItemRoot implements MediaItemCommand {
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
                        final IUpdatePlaybackState playbackStateListener, final String parentId,
                        final List<RadioStationVO> radioStations,
                        @NonNull final MediaItemShareObject shareObject) {
+
+        final Context context = shareObject.getContext();
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";

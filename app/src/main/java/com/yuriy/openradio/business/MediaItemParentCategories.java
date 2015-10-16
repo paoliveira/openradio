@@ -46,7 +46,7 @@ import java.util.List;
 public class MediaItemParentCategories implements MediaItemCommand {
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
@@ -71,7 +71,7 @@ public class MediaItemParentCategories implements MediaItemCommand {
 
                         // Load child categories into menu
                         loadChildCategories(
-                                context,
+                                shareObject.getContext(),
                                 serviceProvider,
                                 downloader,
                                 primaryMenuId,

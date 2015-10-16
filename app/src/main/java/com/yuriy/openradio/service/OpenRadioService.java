@@ -444,9 +444,10 @@ public final class OpenRadioService
         if (command != null) {
 
             final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();
+            shareObject.setContext(getApplicationContext());
 
             command.create(
-                    getApplicationContext(), mLocationService.getCountryCode(),
+                    mLocationService.getCountryCode(),
                     downloader, serviceProvider, result, mediaItems,
                     mPlaybackStateListener, parentId, mRadioStations,
                     shareObject

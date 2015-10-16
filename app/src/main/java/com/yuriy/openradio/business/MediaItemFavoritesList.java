@@ -40,7 +40,7 @@ import java.util.List;
 public class MediaItemFavoritesList implements MediaItemCommand {
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
@@ -51,6 +51,8 @@ public class MediaItemFavoritesList implements MediaItemCommand {
 
         // Use result.detach to allow calling result.sendResult from another thread:
         result.detach();
+
+        final Context context = shareObject.getContext();
 
         final List<RadioStationVO> list = FavoritesStorage.getAllFavorites(
                 context

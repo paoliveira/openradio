@@ -45,7 +45,7 @@ import java.util.List;
 public class MediaItemCountryStations implements MediaItemCommand {
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
@@ -65,7 +65,7 @@ public class MediaItemCountryStations implements MediaItemCommand {
 
                         // Load all categories into menu
                         loadCountryStations(
-                                context,
+                                shareObject.getContext(),
                                 serviceProvider,
                                 downloader,
                                 countryCode,

@@ -51,7 +51,6 @@ public interface MediaItemCommand {
 
     /**
      *
-     * @param context
      * @param countryCode
      * @param downloader
      * @param serviceProvider
@@ -62,7 +61,7 @@ public interface MediaItemCommand {
      * @param radioStations
      * @param shareObject
      */
-    void create(final Context context, final String countryCode,
+    void create(final String countryCode,
                 final Downloader downloader, final APIServiceProvider serviceProvider,
                 @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                 final List<MediaBrowser.MediaItem> mediaItems,

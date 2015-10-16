@@ -16,6 +16,9 @@
 
 package com.yuriy.openradio.business;
 
+import android.content.Context;
+import android.support.annotation.NonNull;
+
 import com.yuriy.openradio.api.CategoryVO;
 
 import java.util.ArrayList;
@@ -46,6 +49,13 @@ public final class MediaItemShareObject {
     private String mCurrentCategory = "";
 
     /**
+     * Context of the application.
+     * TODO : must be final mandatory
+     */
+    @NonNull
+    private Context mContext;
+
+    /**
      * Private constructor.
      */
     private MediaItemShareObject() {
@@ -72,6 +82,23 @@ public final class MediaItemShareObject {
      */
     public void setCurrentCategory(final String value) {
         mCurrentCategory = value;
+    }
+
+    /**
+     * Gets the application's context.
+     * @return the Application's context.
+     */
+    @NonNull
+    public Context getContext() {
+        return mContext;
+    }
+
+    /**
+     * Sets the application's context.
+     * @param value The application's context.
+     */
+    public void setContext(@NonNull final Context value) {
+        mContext = value;
     }
 
     /**

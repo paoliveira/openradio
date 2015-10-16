@@ -43,7 +43,7 @@ import java.util.List;
 public class MediaItemStationsInCategory implements MediaItemCommand {
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
@@ -66,7 +66,7 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
 
                         // Load Radio Station
                         loadStation(
-                                context,
+                                shareObject.getContext(),
                                 serviceProvider,
                                 downloader,
                                 radioStationId,

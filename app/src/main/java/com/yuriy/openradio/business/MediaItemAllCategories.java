@@ -37,7 +37,7 @@ public class MediaItemAllCategories implements MediaItemCommand {
     private final List<CategoryVO> mAllCategories = new ArrayList<>();
 
     @Override
-    public void create(final Context context, final String countryCode,
+    public void create(final String countryCode,
                        final Downloader downloader, final APIServiceProvider serviceProvider,
                        final @NonNull MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
                        final List<MediaBrowser.MediaItem> mediaItems,
@@ -56,7 +56,7 @@ public class MediaItemAllCategories implements MediaItemCommand {
 
                         // Load all categories into menu
                         loadAllCategories(
-                                context,
+                                shareObject.getContext(),
                                 serviceProvider,
                                 downloader,
                                 mediaItems,
