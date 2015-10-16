@@ -1,17 +1,12 @@
 package com.yuriy.openradio.business;
 
-import android.content.Context;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.net.Uri;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.CategoryVO;
-import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -29,24 +24,19 @@ import java.util.Set;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemAllCategories} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of All Categories.
+ */
 public class MediaItemAllCategories implements MediaItemCommand {
 
-    /**
-     * Collection of All Categories.
-     */
-    private final List<CategoryVO> mAllCategories = new ArrayList<>();
-
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       final @NonNull MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener,
-                       final String parentId, final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
+        shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -55,14 +45,7 @@ public class MediaItemAllCategories implements MediaItemCommand {
                     public void run() {
 
                         // Load all categories into menu
-                        loadAllCategories(
-                                shareObject.getContext(),
-                                serviceProvider,
-                                downloader,
-                                mediaItems,
-                                result,
-                                playbackStateListener
-                        );
+                        loadAllCategories(playbackStateListener, shareObject);
                     }
                 }
         );
@@ -71,22 +54,20 @@ public class MediaItemAllCategories implements MediaItemCommand {
     /**
      * Load All Categories into Menu.
      *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
+     * @param playbackStateListener Listener of the Playback State changes.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command.
      */
-    private void loadAllCategories(final Context context,
-                                   final APIServiceProvider serviceProvider,
-                                   final Downloader downloader,
-                                   final List<MediaBrowser.MediaItem> mediaItems,
-                                   final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                   final IUpdatePlaybackState playbackStateListener) {
-        final List<CategoryVO> list = serviceProvider.getCategories(downloader,
-                UrlBuilder.getAllCategoriesUrl(context));
+    private void loadAllCategories(final IUpdatePlaybackState playbackStateListener,
+                                   @NonNull final MediaItemShareObject shareObject) {
+        final List<CategoryVO> list = shareObject.getServiceProvider().getCategories(
+                shareObject.getDownloader(),
+                UrlBuilder.getAllCategoriesUrl(shareObject.getContext()));
 
         if (list.isEmpty() && playbackStateListener != null) {
-            playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+            playbackStateListener.updatePlaybackState(
+                    shareObject.getContext().getString(R.string.no_data_message)
+            );
             return;
         }
 
@@ -98,19 +79,22 @@ public class MediaItemAllCategories implements MediaItemCommand {
             }
         });
 
-        QueueHelper.copyCollection(mAllCategories, list);
+        // Collection of All Categories.
+        // TODO : Probably this collection is redundant.
+        final List<CategoryVO> allCategories = new ArrayList<>();
+        QueueHelper.copyCollection(allCategories, list);
 
         final String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/ic_child_categories";
+                shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
         final Set<String> predefinedCategories = AppUtils.predefinedCategories();
-        for (CategoryVO category : mAllCategories) {
+        for (CategoryVO category : allCategories) {
 
             if (!predefinedCategories.contains(category.getTitle())) {
                 continue;
             }
 
-            mediaItems.add(new MediaBrowser.MediaItem(
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
                                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES
@@ -123,6 +107,6 @@ public class MediaItemAllCategories implements MediaItemCommand {
             ));
         }
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

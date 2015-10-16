@@ -16,17 +16,13 @@
 
 package com.yuriy.openradio.business;
 
-import android.content.Context;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
@@ -42,20 +38,19 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemCountryStations} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of the single Country.
+ */
 public class MediaItemCountryStations implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final String parentId,
-                       @NonNull final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
+        shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -64,17 +59,7 @@ public class MediaItemCountryStations implements MediaItemCommand {
                     public void run() {
 
                         // Load all categories into menu
-                        loadCountryStations(
-                                shareObject.getContext(),
-                                serviceProvider,
-                                downloader,
-                                countryCode,
-                                mediaItems,
-                                result,
-                                playbackStateListener,
-                                radioStations,
-                                shareObject
-                        );
+                        loadCountryStations(playbackStateListener, shareObject);
                     }
                 }
         );
@@ -83,66 +68,60 @@ public class MediaItemCountryStations implements MediaItemCommand {
     /**
      * Load Radio Stations of the provided Country into Menu.
      *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param countryCode     Country code.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
+     * @param playbackStateListener Listener of the Playback State changes.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command.
      */
-    private void loadCountryStations(final Context context,
-                                     final APIServiceProvider serviceProvider,
-                                     final Downloader downloader,
-                                     final String countryCode,
-                                     final List<MediaBrowser.MediaItem> mediaItems,
-                                     final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                     final IUpdatePlaybackState playbackStateListener,
-                                     @NonNull final List<RadioStationVO> radioStations,
+    private void loadCountryStations(final IUpdatePlaybackState playbackStateListener,
                                      @NonNull final MediaItemShareObject shareObject) {
-        final List<RadioStationVO> list = serviceProvider.getStations(downloader,
-                UrlBuilder.getStationsInCountry(context, countryCode));
-
-        MediaMetadata track;
+        final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
+                shareObject.getDownloader(),
+                UrlBuilder.getStationsInCountry(
+                        shareObject.getContext(), shareObject.getCountryCode()
+                ));
 
         if (list.isEmpty()) {
 
-            track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    context,
+            final MediaMetadata track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                    shareObject.getContext(),
                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
             );
             final MediaDescription mediaDescription = track.getDescription();
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
-            mediaItems.add(mediaItem);
-            result.sendResult(mediaItems);
+            shareObject.getMediaItems().add(mediaItem);
+            shareObject.getResult().sendResult(shareObject.getMediaItems());
 
             if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+                playbackStateListener.updatePlaybackState(
+                        shareObject.getContext().getString(R.string.no_data_message)
+                );
             }
 
             return;
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(radioStations, list);
+            QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
-        for (RadioStationVO radioStation : radioStations) {
+        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    context,
+                    shareObject.getContext(),
                     radioStation
             );
 
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
 
-            if (FavoritesStorage.isFavorite(radioStation, context)) {
+            if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
 
-            mediaItems.add(mediaItem);
+            shareObject.getMediaItems().add(mediaItem);
         }
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

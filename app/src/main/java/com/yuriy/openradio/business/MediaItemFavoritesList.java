@@ -19,12 +19,9 @@ package com.yuriy.openradio.business;
 import android.content.Context;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
-import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
@@ -37,20 +34,19 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemFavoritesList} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations from Favorites list.
+ */
 public class MediaItemFavoritesList implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final String parentId,
-                       @NonNull final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
+        shareObject.getResult().detach();
 
         final Context context = shareObject.getContext();
 
@@ -59,10 +55,10 @@ public class MediaItemFavoritesList implements MediaItemCommand {
         );
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(radioStations, list);
+            QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
-        for (RadioStationVO radioStation : radioStations) {
+        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     context,
@@ -75,10 +71,8 @@ public class MediaItemFavoritesList implements MediaItemCommand {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
 
-            mediaItems.add(mediaItem);
+            shareObject.getMediaItems().add(mediaItem);
         }
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
-
-
 }

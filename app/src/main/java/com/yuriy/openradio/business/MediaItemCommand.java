@@ -16,18 +16,7 @@
 
 package com.yuriy.openradio.business;
 
-import android.content.Context;
-import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
-
-import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Yuriy Chernyshov
@@ -38,34 +27,28 @@ import java.util.concurrent.Executors;
 public interface MediaItemCommand {
 
     /**
-     *
+     * {@link com.yuriy.openradio.business.MediaItemCommand.IUpdatePlaybackState} is an interface
+     * to provide callback when an error occur during command execution.
      */
     interface IUpdatePlaybackState {
 
         /**
+         * Callback when an error occur during command execution.
          *
-         * @param error
+         * @param error Description of an error.
          */
         void updatePlaybackState(final String error);
     }
 
     /**
+     * Common method to execute single, specific command.
      *
-     * @param countryCode
-     * @param downloader
-     * @param serviceProvider
-     * @param result
-     * @param mediaItems
-     * @param playbackStateListener
-     * @param parentId
-     * @param radioStations
-     * @param shareObject
+     * @param playbackStateListener Implementation of the
+     *                              {@link com.yuriy.openradio.business.MediaItemCommand.IUpdatePlaybackState}
+     *                              interface.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command.
      */
-    void create(final String countryCode,
-                final Downloader downloader, final APIServiceProvider serviceProvider,
-                @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                final List<MediaBrowser.MediaItem> mediaItems,
-                final IUpdatePlaybackState playbackStateListener,
-                final String parentId, final List<RadioStationVO> radioStations,
+    void create(final IUpdatePlaybackState playbackStateListener,
                 @NonNull final MediaItemShareObject shareObject);
 }

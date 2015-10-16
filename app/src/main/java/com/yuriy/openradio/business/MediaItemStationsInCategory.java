@@ -16,23 +16,17 @@
 
 package com.yuriy.openradio.business;
 
-import android.content.Context;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
-
-import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -40,23 +34,19 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemStationsInCategory} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of concrete Category.
+ */
 public class MediaItemStationsInCategory implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final String parentId,
-                       @NonNull final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
-
-        final String radioStationId
-                = parentId.replace(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, "");
+        shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -65,16 +55,7 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
                     public void run() {
 
                         // Load Radio Station
-                        loadStation(
-                                shareObject.getContext(),
-                                serviceProvider,
-                                downloader,
-                                radioStationId,
-                                mediaItems,
-                                result,
-                                playbackStateListener,
-                                radioStations
-                        );
+                        loadStation(playbackStateListener, shareObject);
                     }
                 }
         );
@@ -83,43 +64,40 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
     /**
      * Load Radio Station.
      *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param radioStationId  Id of the Radio Station.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
+     * @param playbackStateListener Listener of the Playback State changes.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command
      */
-    private void loadStation(final Context context,
-                             final APIServiceProvider serviceProvider,
-                             final Downloader downloader,
-                             final String radioStationId,
-                             final List<MediaBrowser.MediaItem> mediaItems,
-                             final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                             final IUpdatePlaybackState playbackStateListener,
-                             @NonNull final List<RadioStationVO> radioStations) {
-        final RadioStationVO radioStation
-                = serviceProvider.getStation(downloader,
-                UrlBuilder.getStation(context, radioStationId));
+    private void loadStation(final IUpdatePlaybackState playbackStateListener,
+                             @NonNull final MediaItemShareObject shareObject) {
+        final String radioStationId
+                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, "");
+
+        final RadioStationVO radioStation = shareObject.getServiceProvider().getStation(
+                shareObject.getDownloader(),
+                UrlBuilder.getStation(shareObject.getContext(), radioStationId));
 
         if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
             if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+                playbackStateListener.updatePlaybackState(
+                        shareObject.getContext().getString(R.string.no_data_message)
+                );
             }
             return;
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.updateRadioStation(radioStation, radioStations);
+            QueueHelper.updateRadioStation(radioStation, shareObject.getRadioStations());
         }
 
         final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                context,
+                shareObject.getContext(),
                 radioStation
         );
         final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                 mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-        mediaItems.add(mediaItem);
+        shareObject.getMediaItems().add(mediaItem);
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

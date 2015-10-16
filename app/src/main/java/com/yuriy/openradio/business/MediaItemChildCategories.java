@@ -16,17 +16,13 @@
 
 package com.yuriy.openradio.business;
 
-import android.content.Context;
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
@@ -42,22 +38,19 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of Child Category.
+ */
 public class MediaItemChildCategories implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final String parentId, final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
-
-        final String childMenuId
-                = parentId.replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
+        shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -66,17 +59,7 @@ public class MediaItemChildCategories implements MediaItemCommand {
                     public void run() {
 
                         // Load Radio Stations into menu
-                        loadStationsInCategory(
-                                shareObject.getContext(),
-                                serviceProvider,
-                                downloader,
-                                childMenuId,
-                                mediaItems,
-                                result,
-                                playbackStateListener,
-                                radioStations,
-                                shareObject
-                        );
+                        loadStationsInCategory(playbackStateListener, shareObject);
                     }
                 });
     }
@@ -84,74 +67,67 @@ public class MediaItemChildCategories implements MediaItemCommand {
     /**
      * Load Radio Stations into Menu.
      *
-     * @param context         Context of the callee.
-     * @param serviceProvider {@link APIServiceProvider}.
-     * @param downloader      {@link Downloader}.
-     * @param categoryId      Id of the Category.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
-     * @param playbackStateListener
-     * @param radioStations
+     * @param playbackStateListener Listener of the Playback State changes.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command.
      */
-    private void loadStationsInCategory(final Context context,
-                                        final APIServiceProvider serviceProvider,
-                                        final Downloader downloader,
-                                        final String categoryId,
-                                        final List<MediaBrowser.MediaItem> mediaItems,
-                                        final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                        final IUpdatePlaybackState playbackStateListener,
-                                        final List<RadioStationVO> radioStations,
+    private void loadStationsInCategory(final IUpdatePlaybackState playbackStateListener,
                                         @NonNull final MediaItemShareObject shareObject) {
-        final List<RadioStationVO> list = serviceProvider.getStations(downloader,
-                UrlBuilder.getStationsInCategory(context, categoryId));
 
-        MediaMetadata track;
+        final String childMenuId
+                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
+
+        final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
+                shareObject.getDownloader(),
+                UrlBuilder.getStationsInCategory(shareObject.getContext(), childMenuId));
 
         if (list.isEmpty()) {
 
-            track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    context,
+            final MediaMetadata track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                    shareObject.getContext(),
                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
             );
             final MediaDescription mediaDescription = track.getDescription();
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
-            mediaItems.add(mediaItem);
-            result.sendResult(mediaItems);
+            shareObject.getMediaItems().add(mediaItem);
+            shareObject.getResult().sendResult(shareObject.getMediaItems());
 
             if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+                playbackStateListener.updatePlaybackState(
+                        shareObject.getContext().getString(R.string.no_data_message)
+                );
             }
 
             return;
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(radioStations, list);
+            QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
         final String genre = QueueHelper.getGenreNameById(
-                categoryId, shareObject.getChildCategories()
+                shareObject.getParentId(), shareObject.getChildCategories()
         );
 
-        for (RadioStationVO radioStation : radioStations) {
+        for (RadioStationVO radioStation : shareObject.getRadioStations()) {
 
             radioStation.setGenre(genre);
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    context,
+                    shareObject.getContext(),
                     radioStation
             );
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
 
-            if (FavoritesStorage.isFavorite(radioStation, context)) {
+            if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
 
-            mediaItems.add(mediaItem);
+            shareObject.getMediaItems().add(mediaItem);
         }
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

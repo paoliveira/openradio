@@ -23,7 +23,12 @@ package com.yuriy.openradio.business;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
-
+/**
+ * {@link JSONDataParserImpl} is the implementation of {@link DataParser} that designed to parse
+ * input into JSON format.
+ *
+ * TODO : Currently holds only constants.
+ */
 public class JSONDataParserImpl implements DataParser {
 
     /**

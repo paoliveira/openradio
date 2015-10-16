@@ -16,18 +16,13 @@
 
 package com.yuriy.openradio.business;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -42,19 +37,19 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemCountriesList} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display list of all Countries.
+ */
 public class MediaItemCountriesList implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener, final String parentId,
-                       @NonNull final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
+        shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -63,14 +58,7 @@ public class MediaItemCountriesList implements MediaItemCommand {
                     public void run() {
 
                         // Load all countries into menu
-                        loadAllCountries(
-                                shareObject.getContext(),
-                                serviceProvider,
-                                downloader,
-                                mediaItems,
-                                result,
-                                playbackStateListener
-                        );
+                        loadAllCountries(playbackStateListener, shareObject);
                     }
                 }
         );
@@ -79,22 +67,21 @@ public class MediaItemCountriesList implements MediaItemCommand {
     /**
      * Load All Countries into Menu.
      *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
+     * @param playbackStateListener Listener of the Playback State changes.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command.
      */
-    private void loadAllCountries(final Context context,
-                                  final APIServiceProvider serviceProvider,
-                                  final Downloader downloader,
-                                  final List<MediaBrowser.MediaItem> mediaItems,
-                                  final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                  final IUpdatePlaybackState playbackStateListener) {
-        final List<String> list = serviceProvider.getCounties(downloader,
-                UrlBuilder.getAllCountriesUrl(context));
+    private void loadAllCountries(final IUpdatePlaybackState playbackStateListener,
+                                  @NonNull final MediaItemShareObject shareObject) {
+
+        final List<String> list = shareObject.getServiceProvider().getCounties(
+                shareObject.getDownloader(),
+                UrlBuilder.getAllCountriesUrl(shareObject.getContext()));
 
         if (list.isEmpty() && playbackStateListener != null) {
-            playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+            playbackStateListener.updatePlaybackState(
+                    shareObject.getContext().getString(R.string.no_data_message)
+            );
             return;
         }
 
@@ -119,19 +106,19 @@ public class MediaItemCountriesList implements MediaItemCommand {
                 countryName = "";
             }
 
-            final int identifier = context.getResources().getIdentifier(
+            final int identifier = shareObject.getContext().getResources().getIdentifier(
                     "flag_" + countryCode.toLowerCase(),
-                    "drawable", context.getPackageName()
+                    "drawable", shareObject.getContext().getPackageName()
             );
 
-            bitmap = flagLoader.execute(context, identifier,
+            bitmap = flagLoader.execute(shareObject.getContext(), identifier,
                     BitmapFactory.decodeResource(
-                            context.getResources(),
+                            shareObject.getContext().getResources(),
                             R.drawable.ic_child_categories
                     )
             );
 
-            mediaItems.add(new MediaBrowser.MediaItem(
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
                                     MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + countryCode
@@ -143,6 +130,6 @@ public class MediaItemCountriesList implements MediaItemCommand {
             ));
         }
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

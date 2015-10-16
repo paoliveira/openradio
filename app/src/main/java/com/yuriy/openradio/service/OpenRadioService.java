@@ -220,10 +220,13 @@ public final class OpenRadioService
     private final LocationService mLocationService = LocationService.getInstance();
 
     /**
-     *
+     * Listener of the Playback State changes.
      */
     private final MediaItemCommand.IUpdatePlaybackState mPlaybackStateListener = new PlaybackStateListener(this);
 
+    /**
+     *
+     */
     private enum AudioFocus {
 
         /**
@@ -445,13 +448,15 @@ public final class OpenRadioService
 
             final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();
             shareObject.setContext(getApplicationContext());
+            shareObject.setCountryCode(mLocationService.getCountryCode());
+            shareObject.setDownloader(downloader);
+            shareObject.setServiceProvider(serviceProvider);
+            shareObject.setResult(result);
+            shareObject.setMediaItems(mediaItems);
+            shareObject.setParentId(parentId);
+            shareObject.setRadioStations(mRadioStations);
 
-            command.create(
-                    mLocationService.getCountryCode(),
-                    downloader, serviceProvider, result, mediaItems,
-                    mPlaybackStateListener, parentId, mRadioStations,
-                    shareObject
-            );
+            command.create(mPlaybackStateListener, shareObject);
         } else {
             Log.w(CLASS_NAME, "Skipping unmatched parentId: " + parentId);
             result.sendResult(mediaItems);
@@ -1416,11 +1421,22 @@ public final class OpenRadioService
         );
     }
 
+    /**
+     * Listener class of the Playback State changes.
+     */
     private static final class PlaybackStateListener implements MediaItemCommand.IUpdatePlaybackState {
 
+        /**
+         * Reference to the outer class.
+         */
         private final WeakReference<OpenRadioService> mReference;
 
-        public PlaybackStateListener(final OpenRadioService reference) {
+        /**
+         * private constructor.
+         *
+         * @param reference Reference to the outer class.
+         */
+        private PlaybackStateListener(final OpenRadioService reference) {
             mReference = new WeakReference<>(reference);
         }
 

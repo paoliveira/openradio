@@ -16,18 +16,13 @@
 
 package com.yuriy.openradio.business;
 
-import android.content.Context;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.net.Uri;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.CategoryVO;
-import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -43,25 +38,19 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemParentCategories} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of Parent Categories.
+ */
 public class MediaItemParentCategories implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final String parentId,
-                       @NonNull final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         // Use result.detach to allow calling result.sendResult from another thread:
-        result.detach();
-
-        final String primaryMenuId
-                = parentId.replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
-
-        shareObject.setCurrentCategory(primaryMenuId);
+        shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 new Runnable() {
@@ -70,43 +59,35 @@ public class MediaItemParentCategories implements MediaItemCommand {
                     public void run() {
 
                         // Load child categories into menu
-                        loadChildCategories(
-                                shareObject.getContext(),
-                                serviceProvider,
-                                downloader,
-                                primaryMenuId,
-                                mediaItems,
-                                result,
-                                playbackStateListener,
-                                shareObject
-                        );
+                        loadChildCategories(playbackStateListener, shareObject);
                     }
                 }
         );
     }
 
     /**
-     * Load Child Categories into Menu.
+     * Load Parent Categories into Menu.
      *
-     * @param serviceProvider {@link com.yuriy.openradio.api.APIServiceProvider}
-     * @param downloader      {@link com.yuriy.openradio.net.Downloader}
-     * @param primaryItemId   Id of the primary menu item.
-     * @param mediaItems      Collections of {@link android.media.browse.MediaBrowser.MediaItem}s
-     * @param result          Result of the loading.
+     * @param playbackStateListener Listener of the Playback State changes.
+     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     *                              references needed to execute command.
      */
-    private void loadChildCategories(final Context context,
-                                     final APIServiceProvider serviceProvider,
-                                     final Downloader downloader,
-                                     final String primaryItemId,
-                                     final List<MediaBrowser.MediaItem> mediaItems,
-                                     final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                                     final IUpdatePlaybackState playbackStateListener,
+    private void loadChildCategories(final IUpdatePlaybackState playbackStateListener,
                                      @NonNull final MediaItemShareObject shareObject) {
-        final List<CategoryVO> list = serviceProvider.getCategories(downloader,
-                UrlBuilder.getChildCategoriesUrl(context, primaryItemId));
+
+        final String primaryMenuId
+                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
+
+        shareObject.setCurrentCategory(primaryMenuId);
+
+        final List<CategoryVO> list = shareObject.getServiceProvider().getCategories(
+                shareObject.getDownloader(),
+                UrlBuilder.getChildCategoriesUrl(shareObject.getContext(), primaryMenuId));
 
         if (list.isEmpty() && playbackStateListener != null) {
-            playbackStateListener.updatePlaybackState(context.getString(R.string.no_data_message));
+            playbackStateListener.updatePlaybackState(
+                    shareObject.getContext().getString(R.string.no_data_message)
+            );
             return;
         }
 
@@ -121,10 +102,10 @@ public class MediaItemParentCategories implements MediaItemCommand {
         QueueHelper.copyCollection(shareObject.getChildCategories(), list);
 
         final String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/ic_child_categories";
+                shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
-        for (CategoryVO category : shareObject.getChildCategories()) {
-            mediaItems.add(new MediaBrowser.MediaItem(
+        for (final CategoryVO category : shareObject.getChildCategories()) {
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
                                     MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES
@@ -137,6 +118,6 @@ public class MediaItemParentCategories implements MediaItemCommand {
             ));
         }
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

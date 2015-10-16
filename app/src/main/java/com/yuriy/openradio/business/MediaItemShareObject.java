@@ -17,9 +17,14 @@
 package com.yuriy.openradio.business;
 
 import android.content.Context;
+import android.media.browse.MediaBrowser;
+import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
+import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.CategoryVO;
+import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.net.Downloader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +59,45 @@ public final class MediaItemShareObject {
      */
     @NonNull
     private Context mContext;
+
+    /**
+     * String value of the Country Code.
+     */
+    private String mCountryCode;
+
+    /**
+     * TODO : must be final mandatory
+     */
+    @NonNull
+    private Downloader mDownloader;
+
+    /**
+     * TODO : must be final mandatory
+     */
+    @NonNull
+    private APIServiceProvider mServiceProvider;
+
+    /**
+     * TODO : must be final mandatory
+     */
+    @NonNull
+    private MediaBrowserService.Result<List<MediaBrowser.MediaItem>> mResult;
+
+    /**
+     * TODO : must be final mandatory
+     */
+    @NonNull
+    private List<MediaBrowser.MediaItem> mMediaItems;
+
+    /**
+     *
+     */
+    private String mParentId;
+
+    /**
+     *
+     */
+    private List<RadioStationVO> mRadioStations;
 
     /**
      * Private constructor.
@@ -99,6 +143,122 @@ public final class MediaItemShareObject {
      */
     public void setContext(@NonNull final Context value) {
         mContext = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getCountryCode() {
+        return mCountryCode;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setCountryCode(final String value) {
+        mCountryCode = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @NonNull
+    public Downloader getDownloader() {
+        return mDownloader;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setDownloader(@NonNull final Downloader value) {
+        this.mDownloader = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @NonNull
+    public APIServiceProvider getServiceProvider() {
+        return mServiceProvider;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setServiceProvider(@NonNull APIServiceProvider value) {
+        mServiceProvider = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @NonNull
+    public MediaBrowserService.Result<List<MediaBrowser.MediaItem>> getResult() {
+        return mResult;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setResult(@NonNull MediaBrowserService.Result<List<MediaBrowser.MediaItem>> value) {
+        mResult = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    @NonNull
+    public List<MediaBrowser.MediaItem> getMediaItems() {
+        return mMediaItems;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setMediaItems(@NonNull List<MediaBrowser.MediaItem> value) {
+        mMediaItems = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getParentId() {
+        return mParentId;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setParentId(final String value) {
+        mParentId = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public List<RadioStationVO> getRadioStations() {
+        return mRadioStations;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setRadioStations(final List<RadioStationVO> value) {
+        mRadioStations = value;
     }
 
     /**

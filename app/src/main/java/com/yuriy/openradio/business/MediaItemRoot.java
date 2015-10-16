@@ -22,17 +22,11 @@ import android.graphics.BitmapFactory;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.net.Uri;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.MediaIDHelper;
-
-import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -40,15 +34,15 @@ import java.util.List;
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * {@link MediaItemRoot} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display root menu items.
+ */
 public class MediaItemRoot implements MediaItemCommand {
 
     @Override
-    public void create(final String countryCode,
-                       final Downloader downloader, final APIServiceProvider serviceProvider,
-                       @NonNull final MediaBrowserService.Result<List<MediaBrowser.MediaItem>> result,
-                       final List<MediaBrowser.MediaItem> mediaItems,
-                       final IUpdatePlaybackState playbackStateListener, final String parentId,
-                       final List<RadioStationVO> radioStations,
+    public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
 
         final Context context = shareObject.getContext();
@@ -57,7 +51,7 @@ public class MediaItemRoot implements MediaItemCommand {
                 context.getPackageName() + "/drawable/ic_all_categories";
 
         // Worldwide Stations
-        mediaItems.add(new MediaBrowser.MediaItem(
+        shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                 new MediaDescription.Builder()
                         .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
                         .setTitle(context.getString(R.string.all_categories_title))
@@ -67,7 +61,7 @@ public class MediaItemRoot implements MediaItemCommand {
         ));
 
         // All countries list
-        mediaItems.add(new MediaBrowser.MediaItem(
+        shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                 new MediaDescription.Builder()
                         .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
                         .setTitle(context.getString(R.string.countries_list_title))
@@ -77,10 +71,10 @@ public class MediaItemRoot implements MediaItemCommand {
         ));
 
         //If the Country code is known
-        if (!countryCode.isEmpty()) {
+        if (!shareObject.getCountryCode().isEmpty()) {
 
             final int identifier = context.getResources().getIdentifier(
-                    "flag_" + countryCode.toLowerCase(),
+                    "flag_" + shareObject.getCountryCode().toLowerCase(),
                     "drawable", context.getPackageName()
             );
             // Overlay base image with the appropriate flag
@@ -90,7 +84,7 @@ public class MediaItemRoot implements MediaItemCommand {
                             context.getResources(),
                             R.drawable.ic_all_categories
                     ));
-            mediaItems.add(new MediaBrowser.MediaItem(
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
                             .setTitle(context.getString(R.string.country_stations_title))
@@ -117,7 +111,7 @@ public class MediaItemRoot implements MediaItemCommand {
                             R.drawable.ic_all_categories
                     ));
 
-            mediaItems.add(new MediaBrowser.MediaItem(
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
                             .setTitle(context.getString(R.string.favorites_list_title))
@@ -127,6 +121,6 @@ public class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        result.sendResult(mediaItems);
+        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }
