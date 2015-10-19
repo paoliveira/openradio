@@ -225,6 +225,11 @@ public final class OpenRadioService
     private final MediaItemCommand.IUpdatePlaybackState mPlaybackStateListener = new PlaybackStateListener(this);
 
     /**
+     * Flag that indicates whether application runs over normal Android or Auto version.
+     */
+    private boolean mIsAndroidAuto = false;
+
+    /**
      *
      */
     private enum AudioFocus {
@@ -290,6 +295,7 @@ public final class OpenRadioService
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES, new MediaItemAllCategories());
+        //mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_STATIONS, new MediaItemAllStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, new MediaItemParentCategories());
@@ -424,8 +430,10 @@ public final class OpenRadioService
             // needs to run differently when connected to the car, this is where you should handle
             // it.
             Log.i(CLASS_NAME, "Package name is Android Auto");
+            mIsAndroidAuto = true;
         } else {
             Log.i(CLASS_NAME, "Package name is not Android Auto");
+            mIsAndroidAuto = false;
         }
         return new BrowserRoot(MediaIDHelper.MEDIA_ID_ROOT, null);
     }
@@ -455,6 +463,7 @@ public final class OpenRadioService
             shareObject.setMediaItems(mediaItems);
             shareObject.setParentId(parentId);
             shareObject.setRadioStations(mRadioStations);
+            shareObject.setIsAndroidAuto(mIsAndroidAuto);
 
             command.create(mPlaybackStateListener, shareObject);
         } else {

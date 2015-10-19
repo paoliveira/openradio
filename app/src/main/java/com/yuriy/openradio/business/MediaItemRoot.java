@@ -50,25 +50,28 @@ public class MediaItemRoot implements MediaItemCommand {
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";
 
-        // Worldwide Stations
-        shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
-                new MediaDescription.Builder()
-                        .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
-                        .setTitle(context.getString(R.string.all_categories_title))
-                        .setIconUri(Uri.parse(iconUrl))
-                        .setSubtitle(context.getString(R.string.all_categories_sub_title))
-                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-        ));
+        // Do not show list of Worldwide Stations and all Countries for the Auto version
+        if (!shareObject.isIsAndroidAuto()) {
+            // Worldwide Stations
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+                    new MediaDescription.Builder()
+                            .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
+                            .setTitle(context.getString(R.string.all_categories_title))
+                            .setIconUri(Uri.parse(iconUrl))
+                            .setSubtitle(context.getString(R.string.all_categories_sub_title))
+                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+            ));
 
-        // All countries list
-        shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
-                new MediaDescription.Builder()
-                        .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
-                        .setTitle(context.getString(R.string.countries_list_title))
-                        .setIconUri(Uri.parse(iconUrl))
-                        .setSubtitle(context.getString(R.string.country_stations_sub_title))
-                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
-        ));
+            // All countries list
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+                    new MediaDescription.Builder()
+                            .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
+                            .setTitle(context.getString(R.string.countries_list_title))
+                            .setIconUri(Uri.parse(iconUrl))
+                            .setSubtitle(context.getString(R.string.country_stations_sub_title))
+                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+            ));
+        }
 
         //If the Country code is known
         if (!shareObject.getCountryCode().isEmpty()) {
@@ -96,7 +99,8 @@ public class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        if (!FavoritesStorage.isFavoritesEmpty(context)) {
+        // Show Favorites in auto mode anywhere. Don't do it if it is empty for a normal mode.
+        if (shareObject.isIsAndroidAuto() || !FavoritesStorage.isFavoritesEmpty(context)) {
             // Favorites list
 
             final int identifier = context.getResources().getIdentifier(

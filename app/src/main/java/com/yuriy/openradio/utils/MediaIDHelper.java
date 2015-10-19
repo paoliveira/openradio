@@ -50,6 +50,8 @@ public final class MediaIDHelper {
 
     public static final String MEDIA_ID_SEARCH_FROM_APP = "__SEARCH_FROM_APP__";
 
+    public static final String MEDIA_ID_ALL_STATIONS = "__ALL_STATIONS__";
+
     /**
      *
      */
@@ -62,7 +64,8 @@ public final class MediaIDHelper {
             MEDIA_ID_PARENT_CATEGORIES,
             MEDIA_ID_RADIO_STATIONS_IN_CATEGORY,
             MEDIA_ID_ROOT,
-            MEDIA_ID_SEARCH_FROM_APP
+            MEDIA_ID_SEARCH_FROM_APP,
+            MEDIA_ID_ALL_STATIONS
     };
 
     /**

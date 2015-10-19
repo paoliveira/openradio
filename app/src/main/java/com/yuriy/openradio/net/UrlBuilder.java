@@ -150,6 +150,19 @@ public class UrlBuilder {
     }
 
     /**
+     * Get Uri for list of all Radio Stations.
+     *
+     * @param context Context of the application.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getAllStations(final Context context, final int pageNumber,
+                                     final int numberPerPage) {
+        return Uri.parse(BASE_URL + "stations/?token=" + ApiKeyLoader.getApiKey(context)
+                + "&page=" + String.valueOf(pageNumber)
+                + "&per_page=" + String.valueOf(numberPerPage));
+    }
+
+    /**
      * Get Uri for the provided country flag and flag size for the usage in Geo Names service.
      *
      * @param countryCode Country code.

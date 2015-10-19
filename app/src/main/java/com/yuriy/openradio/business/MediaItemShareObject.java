@@ -100,6 +100,11 @@ public final class MediaItemShareObject {
     private List<RadioStationVO> mRadioStations;
 
     /**
+     * Flag that indicates whether application runs over normal Android or Auto version.
+     */
+    private boolean mIsAndroidAuto = false;
+
+    /**
      * Private constructor.
      */
     private MediaItemShareObject() {
@@ -259,6 +264,22 @@ public final class MediaItemShareObject {
      */
     public void setRadioStations(final List<RadioStationVO> value) {
         mRadioStations = value;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public boolean isIsAndroidAuto() {
+        return mIsAndroidAuto;
+    }
+
+    /**
+     *
+     * @param value
+     */
+    public void setIsAndroidAuto(boolean value) {
+        mIsAndroidAuto = value;
     }
 
     /**
