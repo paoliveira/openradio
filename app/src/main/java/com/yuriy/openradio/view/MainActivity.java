@@ -26,8 +26,10 @@ import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,7 +40,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
@@ -60,8 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.fabric.sdk.android.Fabric;
-
 /**
  * Created with Android Studio.
  * Author: Chernyshov Yuriy - Mobile Development
@@ -72,7 +71,7 @@ import io.fabric.sdk.android.Fabric;
 /**
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
-public final class MainActivity extends FragmentActivity {
+public final class MainActivity extends AppCompatActivity {
 
     /**
      * Tag string to use in logging message.
@@ -142,7 +141,7 @@ public final class MainActivity extends FragmentActivity {
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Fabric.with(this, new Crashlytics());
+        //Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);
@@ -185,7 +184,7 @@ public final class MainActivity extends FragmentActivity {
                 if (item.isBrowsable()) {
                     if (item.getDescription().getTitle() != null
                             && item.getDescription().getTitle()
-                                                    .equals(getString(R.string.category_empty))) {
+                            .equals(getString(R.string.category_empty))) {
                         return;
                     }
                 }
@@ -222,6 +221,18 @@ public final class MainActivity extends FragmentActivity {
                 }
             }
         });
+
+        final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
+        addBtn.setOnClickListener(
+                new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(final View view) {
+                        Snackbar.make(view, "Add Radio Station", Snackbar.LENGTH_SHORT)
+                                .show();
+                    }
+                }
+        );
 
         // Instantiate media browser
         mMediaBrowser = new MediaBrowser(
@@ -545,6 +556,13 @@ public final class MainActivity extends FragmentActivity {
             Log.i(CLASS_NAME, "On children loaded:" + parentId);
 
             hideProgressBar();
+
+            final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
+            if (parentId.equals(MediaIDHelper.MEDIA_ID_ROOT)) {
+                addBtn.setVisibility(View.VISIBLE);
+            } else {
+                addBtn.setVisibility(View.GONE);
+            }
 
             mBrowserAdapter.clear();
             mBrowserAdapter.notifyDataSetInvalidated();

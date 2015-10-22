@@ -17,7 +17,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="android:Theme.Material">
+    <style name="AppTheme" parent="Theme.AppCompat">
 
         <item name="android:colorPrimary">#FF3D434C</item>
         <item name="android:colorPrimaryDark">#FF3D434C</item>
