@@ -17,6 +17,7 @@
 package com.yuriy.openradio.utils;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -55,6 +56,9 @@ public final class AppUtils {
      */
     public static final ExecutorService API_CALL_EXECUTOR = Executors.newSingleThreadExecutor();
 
+    /**
+     * Map of the Countries Code and Name.
+     */
     public static final Map<String, String> COUNTRY_CODE_TO_NAME = new HashMap<>();
 
     /**
@@ -543,20 +547,23 @@ public final class AppUtils {
     }
 
     public static int getLongestScreenSize(FragmentActivity context) {
-        // Fetch screen height and width, to use as our max size when loading images as this
-        // activity runs full screen
         final DisplayMetrics displayMetrics = new DisplayMetrics();
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         final int height = displayMetrics.heightPixels;
         final int width = displayMetrics.widthPixels;
-
-        // For this sample we'll use half of the longest width to resize our images. As the
-        // image scaling ensures the image is larger than this, we should be left with a
-        // resolution that is appropriate for both portrait and landscape. For best image quality
-        // we shouldn't divide by 2, but this will use more memory and require a larger memory
-        // cache.
-        // TODO
-
         return height > width ? height : width;
+    }
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    public static int getShortestScreenSize(final Activity context) {
+        final DisplayMetrics displayMetrics = new DisplayMetrics();
+        context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        final int height = displayMetrics.heightPixels;
+        final int width = displayMetrics.widthPixels;
+        return height < width ? height : width;
     }
 }

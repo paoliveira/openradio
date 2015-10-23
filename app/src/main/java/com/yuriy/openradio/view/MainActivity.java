@@ -27,7 +27,6 @@ import android.media.session.MediaController;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -228,8 +227,10 @@ public final class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onClick(final View view) {
-                        Snackbar.make(view, "Add Radio Station", Snackbar.LENGTH_SHORT)
-                                .show();
+                        // Show Add Station Dialog
+                        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                        final DialogFragment addStationDialog = AddStationDialog.newInstance();
+                        addStationDialog.show(fragmentTransaction, AddStationDialog.DIALOG_TAG);
                     }
                 }
         );

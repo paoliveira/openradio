@@ -62,4 +62,9 @@
     <string name="search_label">Search</string>
     <string name="search_description">Type the word that you want to use as the search pattern</string>
 
+    <!-- Version 2.0 -->
+
+    <string name="add_station_dialog_title">Add Radio Station</string>
+    <string name="add_station_dialog_button_label">Add Radio Station</string>
+
 </resources>
