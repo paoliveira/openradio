@@ -62,10 +62,17 @@ public final class RadioStationVO implements Serializable {
     private boolean mIsUpdated;
 
     /**
+     * Flag indicate that Radio Station has been added locally to the phone storage.
+     */
+    private boolean mIsLocal;
+
+    /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private RadioStationVO() { }
+    private RadioStationVO() {
+        super();
+    }
 
     public final int getId() {
         return mId;
@@ -155,8 +162,16 @@ public final class RadioStationVO implements Serializable {
         mThumbUrl = value;
     }
 
+    public boolean isLocal() {
+        return mIsLocal;
+    }
+
+    public void setIsLocal(final boolean value) {
+        mIsLocal = value;
+    }
+
     @Override
-    public final boolean equals(final Object object) {
+    public boolean equals(final Object object) {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
 
@@ -165,35 +180,36 @@ public final class RadioStationVO implements Serializable {
         return mId == that.mId
                 && mStatus == that.mStatus
                 && mIsUpdated == that.mIsUpdated
-                && !(mName != null ? !mName.equals(that.mName) : that.mName != null)
-                && !(mStreamURL != null ? !mStreamURL.equals(that.mStreamURL) : that.mStreamURL != null)
-                && !(mWebSite != null ? !mWebSite.equals(that.mWebSite) : that.mWebSite != null)
-                && !(mCountry != null ? !mCountry.equals(that.mCountry) : that.mCountry != null)
-                && !(mBitRate != null ? !mBitRate.equals(that.mBitRate) : that.mBitRate != null)
-                && !(mGenre != null ? !mGenre.equals(that.mGenre) : that.mGenre != null)
-                && !(mImageUrl != null ? !mImageUrl.equals(that.mImageUrl) : that.mImageUrl != null)
-                && !(mThumbUrl != null ? !mThumbUrl.equals(that.mThumbUrl) : that.mThumbUrl != null);
-
+                && mIsLocal == that.mIsLocal
+                && mName.equals(that.mName)
+                && mStreamURL.equals(that.mStreamURL)
+                && mWebSite.equals(that.mWebSite)
+                && mCountry.equals(that.mCountry)
+                && mBitRate.equals(that.mBitRate)
+                && mGenre.equals(that.mGenre)
+                && mImageUrl.equals(that.mImageUrl)
+                && mThumbUrl.equals(that.mThumbUrl);
     }
 
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         int result = mId;
         result = 31 * result + mStatus;
-        result = 31 * result + (mName != null ? mName.hashCode() : 0);
-        result = 31 * result + (mStreamURL != null ? mStreamURL.hashCode() : 0);
-        result = 31 * result + (mWebSite != null ? mWebSite.hashCode() : 0);
-        result = 31 * result + (mCountry != null ? mCountry.hashCode() : 0);
-        result = 31 * result + (mBitRate != null ? mBitRate.hashCode() : 0);
-        result = 31 * result + (mGenre != null ? mGenre.hashCode() : 0);
-        result = 31 * result + (mImageUrl != null ? mImageUrl.hashCode() : 0);
-        result = 31 * result + (mThumbUrl != null ? mThumbUrl.hashCode() : 0);
+        result = 31 * result + mName.hashCode();
+        result = 31 * result + mStreamURL.hashCode();
+        result = 31 * result + mWebSite.hashCode();
+        result = 31 * result + mCountry.hashCode();
+        result = 31 * result + mBitRate.hashCode();
+        result = 31 * result + mGenre.hashCode();
+        result = 31 * result + mImageUrl.hashCode();
+        result = 31 * result + mThumbUrl.hashCode();
         result = 31 * result + (mIsUpdated ? 1 : 0);
+        result = 31 * result + (mIsLocal ? 1 : 0);
         return result;
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         return "RadioStationVO{" +
                 "mId=" + mId +
                 ", mStatus=" + mStatus +
@@ -206,6 +222,7 @@ public final class RadioStationVO implements Serializable {
                 ", mImageUrl='" + mImageUrl + '\'' +
                 ", mThumbUrl='" + mThumbUrl + '\'' +
                 ", mIsUpdated=" + mIsUpdated +
+                ", mIsLocal=" + mIsLocal +
                 '}';
     }
 

@@ -41,6 +41,9 @@ public final class MediaIDHelper {
 
     public static final String MEDIA_ID_FAVORITES_LIST = "__FAVORITES_LIST__";
 
+    public static final String MEDIA_ID_LOCAL_RADIO_STATIONS_LIST
+            = "__MEDIA_ID_LOCAL_RADIO_STATIONS_LIST__";
+
     public static final String MEDIA_ID_PARENT_CATEGORIES = "__PARENT_CATEGORIES__";
 
     public static final String MEDIA_ID_CHILD_CATEGORIES = "__CHILD_CATEGORIES__";
@@ -61,6 +64,7 @@ public final class MediaIDHelper {
             MEDIA_ID_COUNTRIES_LIST,
             MEDIA_ID_COUNTRY_STATIONS,
             MEDIA_ID_FAVORITES_LIST,
+            MEDIA_ID_LOCAL_RADIO_STATIONS_LIST,
             MEDIA_ID_PARENT_CATEGORIES,
             MEDIA_ID_RADIO_STATIONS_IN_CATEGORY,
             MEDIA_ID_ROOT,

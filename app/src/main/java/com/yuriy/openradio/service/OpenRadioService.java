@@ -46,17 +46,18 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
-import com.yuriy.openradio.business.MediaItemAllCategories;
-import com.yuriy.openradio.business.MediaItemChildCategories;
-import com.yuriy.openradio.business.MediaItemCommand;
-import com.yuriy.openradio.business.MediaItemCountriesList;
-import com.yuriy.openradio.business.MediaItemCountryStations;
-import com.yuriy.openradio.business.MediaItemFavoritesList;
-import com.yuriy.openradio.business.MediaItemParentCategories;
-import com.yuriy.openradio.business.MediaItemRoot;
-import com.yuriy.openradio.business.MediaItemSearchFromApp;
-import com.yuriy.openradio.business.MediaItemShareObject;
-import com.yuriy.openradio.business.MediaItemStationsInCategory;
+import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
+import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
+import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
+import com.yuriy.openradio.business.mediaitem.MediaItemCountriesList;
+import com.yuriy.openradio.business.mediaitem.MediaItemCountryStations;
+import com.yuriy.openradio.business.mediaitem.MediaItemFavoritesList;
+import com.yuriy.openradio.business.mediaitem.MediaItemLocalsList;
+import com.yuriy.openradio.business.mediaitem.MediaItemParentCategories;
+import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
+import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
+import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
+import com.yuriy.openradio.business.mediaitem.MediaItemStationsInCategory;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
@@ -322,6 +323,7 @@ public final class OpenRadioService
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStationsInCategory());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, new MediaItemLocalsList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP, new MediaItemSearchFromApp());
 
         // Create and start a background HandlerThread since by
@@ -375,66 +377,73 @@ public final class OpenRadioService
             return super.onStartCommand(intent, flags, startId);
         }
 
-        if (command.equals(VALUE_NAME_REQUEST_LOCATION_COMMAND)) {
-            mLocationService.requestCountryCode(this, new LocationServiceListener() {
+        switch (command) {
+            case VALUE_NAME_REQUEST_LOCATION_COMMAND:
+                mLocationService.requestCountryCode(this, new LocationServiceListener() {
 
-                @Override
-                public void onCountryCodeLocated(final String countryCode) {
-                    LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
-                            AppLocalBroadcastReceiver.createIntentLocationCountryCode(
-                                    countryCode
-                            )
-                    );
+                    @Override
+                    public void onCountryCodeLocated(final String countryCode) {
+                        LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
+                                AppLocalBroadcastReceiver.createIntentLocationCountryCode(
+                                        countryCode
+                                )
+                        );
+                    }
+                });
+                break;
+            case VALUE_NAME_GET_RADIO_STATION_COMMAND:
+                // Update Favorites Radio station: whether add it or remove it from the storage
+                final boolean isFavorite = getIsFavoriteFromIntent(intent);
+                final MediaDescription mediaDescription = extractMediaDescription(intent);
+                if (mediaDescription == null) {
+                    return super.onStartCommand(intent, flags, startId);
                 }
-            });
-        } else if (command.equals(VALUE_NAME_GET_RADIO_STATION_COMMAND)) {
-            // Update Favorites Radio station: whether add it or remove it from the storage
-            final boolean isFavorite = getIsFavoriteFromIntent(intent);
-            final MediaDescription mediaDescription = extractMediaDescription(intent);
-            if (mediaDescription == null) {
-                return super.onStartCommand(intent, flags, startId);
-            }
-            final RadioStationVO radioStation = QueueHelper.getRadioStationById(
-                    mediaDescription.getMediaId(), mRadioStations
-            );
-            if (radioStation == null) {
-                if (!isFavorite) {
-                    removeFromFavorites(mediaDescription.getMediaId());
-                }
-                return super.onStartCommand(intent, flags, startId);
-            }
-            if (isFavorite) {
-                FavoritesStorage.addToFavorites(
-                        radioStation, getApplicationContext()
+                final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                        mediaDescription.getMediaId(), mRadioStations
                 );
-            } else {
-                removeFromFavorites(String.valueOf(radioStation.getId()));
-            }
-        } else if (command.equals(VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND)) {
-            final String name = intent.getStringExtra(EXTRA_KEY_ADD_STATION_NAME);
-            final String url = intent.getStringExtra(EXTRA_KEY_ADD_STATION_STREAM_URL);
-            final String imageUrl = intent.getStringExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL);
-            final String genre = intent.getStringExtra(EXTRA_KEY_ADD_STATION_GENRE);
-            final String country = intent.getStringExtra(EXTRA_KEY_ADD_STATION_COUNTRY);
+                if (radioStation == null) {
+                    if (!isFavorite) {
+                        removeFromFavorites(mediaDescription.getMediaId());
+                    }
+                    return super.onStartCommand(intent, flags, startId);
+                }
+                if (isFavorite) {
+                    FavoritesStorage.addToFavorites(
+                            radioStation, getApplicationContext()
+                    );
+                } else {
+                    removeFromFavorites(String.valueOf(radioStation.getId()));
+                }
+                break;
+            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND:
+                final String name = intent.getStringExtra(EXTRA_KEY_ADD_STATION_NAME);
+                final String url = intent.getStringExtra(EXTRA_KEY_ADD_STATION_STREAM_URL);
+                final String imageUrl = intent.getStringExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL);
+                final String genre = intent.getStringExtra(EXTRA_KEY_ADD_STATION_GENRE);
+                final String country = intent.getStringExtra(EXTRA_KEY_ADD_STATION_COUNTRY);
 
-            if (!TextUtils.isEmpty(name)
-                    && !TextUtils.isEmpty(url)) {
-                final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
+                if (!TextUtils.isEmpty(name)
+                        && !TextUtils.isEmpty(url)) {
+                    final RadioStationVO radioStationLocal = RadioStationVO.makeDefaultInstance();
 
-                radioStation.setId(LocalRadioStationsStorage.getId(getApplicationContext()));
-                radioStation.setName(name);
-                radioStation.setStreamURL(url);
-                radioStation.setImageUrl(imageUrl);
-                radioStation.setThumbUrl(imageUrl);
-                radioStation.setGenre(genre);
-                radioStation.setCountry(country);
+                    radioStationLocal.setId(LocalRadioStationsStorage.getId(getApplicationContext()));
+                    radioStationLocal.setName(name);
+                    radioStationLocal.setStreamURL(url);
+                    radioStationLocal.setImageUrl(imageUrl);
+                    radioStationLocal.setThumbUrl(imageUrl);
+                    radioStationLocal.setGenre(genre);
+                    radioStationLocal.setCountry(country);
+                    radioStationLocal.setIsLocal(true);
 
-                LocalRadioStationsStorage.addToLocal(radioStation, getApplicationContext());
+                    LocalRadioStationsStorage.addToLocal(radioStationLocal, getApplicationContext());
 
-                Log.d(CLASS_NAME, "Add:" + radioStation);
-            } else {
-                Log.w(CLASS_NAME, "Can not add Station, Name or url are empty");
-            }
+                    Log.d(CLASS_NAME, "Add:" + radioStationLocal);
+                } else {
+                    Log.w(CLASS_NAME, "Can not add Station, Name or url are empty");
+                }
+                break;
+            default:
+                Log.w(CLASS_NAME, "Unknown command:" + command);
         }
 
         return super.onStartCommand(intent, flags, startId);

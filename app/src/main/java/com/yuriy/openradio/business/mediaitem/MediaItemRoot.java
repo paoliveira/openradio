@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -25,7 +25,9 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.MediaIDHelper;
 
 /**
@@ -121,6 +123,33 @@ public class MediaItemRoot implements MediaItemCommand {
                             .setTitle(context.getString(R.string.favorites_list_title))
                             .setIconBitmap(bitmap)
                             .setSubtitle(context.getString(R.string.favorites_list_sub_title))
+                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+            ));
+        }
+
+        // Show Local Radio Stations in auto mode anywhere.
+        // Don't do it if it is empty for a normal mode.
+        if (shareObject.isIsAndroidAuto() || !LocalRadioStationsStorage.isLocalsEmpty(context)) {
+            // Locals list
+
+            final int identifier = context.getResources().getIdentifier(
+                    "ic_local_stations",
+                    "drawable", context.getPackageName()
+            );
+            // Overlay base image with the appropriate flag
+            final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
+            final Bitmap bitmap = overlay.execute(context, identifier,
+                    BitmapFactory.decodeResource(
+                            context.getResources(),
+                            R.drawable.ic_all_categories
+                    ));
+
+            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+                    new MediaDescription.Builder()
+                            .setMediaId(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
+                            .setTitle(context.getString(R.string.local_radio_stations_list_title))
+                            .setIconBitmap(bitmap)
+                            .setSubtitle(context.getString(R.string.local_radio_stations_list_sub_title))
                             .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
             ));
         }

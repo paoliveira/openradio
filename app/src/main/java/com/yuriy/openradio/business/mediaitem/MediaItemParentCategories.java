@@ -1,4 +1,20 @@
-package com.yuriy.openradio.business;
+/*
+ * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.yuriy.openradio.business.mediaitem;
 
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
@@ -12,11 +28,9 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.QueueHelper;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Yuriy Chernyshov
@@ -26,10 +40,10 @@ import java.util.Set;
  */
 
 /**
- * {@link MediaItemAllCategories} is concrete implementation of the {@link MediaItemCommand} that
- * designed to prepare data to display radio stations of All Categories.
+ * {@link MediaItemParentCategories} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of Parent Categories.
  */
-public class MediaItemAllCategories implements MediaItemCommand {
+public class MediaItemParentCategories implements MediaItemCommand {
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -44,25 +58,31 @@ public class MediaItemAllCategories implements MediaItemCommand {
                     @Override
                     public void run() {
 
-                        // Load all categories into menu
-                        loadAllCategories(playbackStateListener, shareObject);
+                        // Load child categories into menu
+                        loadChildCategories(playbackStateListener, shareObject);
                     }
                 }
         );
     }
 
     /**
-     * Load All Categories into Menu.
+     * Load Parent Categories into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
      * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
      *                              references needed to execute command.
      */
-    private void loadAllCategories(final IUpdatePlaybackState playbackStateListener,
-                                   @NonNull final MediaItemShareObject shareObject) {
+    private void loadChildCategories(final IUpdatePlaybackState playbackStateListener,
+                                     @NonNull final MediaItemShareObject shareObject) {
+
+        final String primaryMenuId
+                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
+
+        shareObject.setCurrentCategory(primaryMenuId);
+
         final List<CategoryVO> list = shareObject.getServiceProvider().getCategories(
                 shareObject.getDownloader(),
-                UrlBuilder.getAllCategoriesUrl(shareObject.getContext()));
+                UrlBuilder.getChildCategoriesUrl(shareObject.getContext(), primaryMenuId));
 
         if (list.isEmpty() && playbackStateListener != null) {
             playbackStateListener.updatePlaybackState(
@@ -79,25 +99,16 @@ public class MediaItemAllCategories implements MediaItemCommand {
             }
         });
 
-        // Collection of All Categories.
-        // TODO : Probably this collection is redundant.
-        final List<CategoryVO> allCategories = new ArrayList<>();
-        QueueHelper.copyCollection(allCategories, list);
+        QueueHelper.copyCollection(shareObject.getChildCategories(), list);
 
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
-        final Set<String> predefinedCategories = AppUtils.predefinedCategories();
-        for (CategoryVO category : allCategories) {
-
-            if (!predefinedCategories.contains(category.getTitle())) {
-                continue;
-            }
-
+        for (final CategoryVO category : shareObject.getChildCategories()) {
             shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES
+                                    MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES
                                             + String.valueOf(category.getId())
                             )
                             .setTitle(category.getTitle())

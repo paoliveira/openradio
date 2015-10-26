@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.media.MediaDescription;
 import android.media.MediaMetadata;
@@ -40,10 +40,10 @@ import java.util.List;
  */
 
 /**
- * {@link MediaItemCountryStations} is concrete implementation of the {@link MediaItemCommand} that
- * designed to prepare data to display radio stations of the single Country.
+ * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of Child Category.
  */
-public class MediaItemCountryStations implements MediaItemCommand {
+public class MediaItemChildCategories implements MediaItemCommand {
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -58,27 +58,28 @@ public class MediaItemCountryStations implements MediaItemCommand {
                     @Override
                     public void run() {
 
-                        // Load all categories into menu
-                        loadCountryStations(playbackStateListener, shareObject);
+                        // Load Radio Stations into menu
+                        loadStationsInCategory(playbackStateListener, shareObject);
                     }
-                }
-        );
+                });
     }
 
     /**
-     * Load Radio Stations of the provided Country into Menu.
+     * Load Radio Stations into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
      * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
      *                              references needed to execute command.
      */
-    private void loadCountryStations(final IUpdatePlaybackState playbackStateListener,
-                                     @NonNull final MediaItemShareObject shareObject) {
+    private void loadStationsInCategory(final IUpdatePlaybackState playbackStateListener,
+                                        @NonNull final MediaItemShareObject shareObject) {
+
+        final String childMenuId
+                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
+
         final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                UrlBuilder.getStationsInCountry(
-                        shareObject.getContext(), shareObject.getCountryCode()
-                ));
+                UrlBuilder.getStationsInCategory(shareObject.getContext(), childMenuId));
 
         if (list.isEmpty()) {
 
@@ -105,13 +106,18 @@ public class MediaItemCountryStations implements MediaItemCommand {
             QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
-        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
+        final String genre = QueueHelper.getGenreNameById(
+                shareObject.getParentId(), shareObject.getChildCategories()
+        );
+
+        for (RadioStationVO radioStation : shareObject.getRadioStations()) {
+
+            radioStation.setGenre(genre);
 
             final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     shareObject.getContext(),
                     radioStation
             );
-
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
@@ -23,10 +23,13 @@ import android.support.annotation.NonNull;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.utils.Utils;
+
+import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -36,10 +39,10 @@ import com.yuriy.openradio.utils.QueueHelper;
  */
 
 /**
- * {@link MediaItemStationsInCategory} is concrete implementation of the {@link MediaItemCommand} that
- * designed to prepare data to display radio stations of concrete Category.
+ * {@link MediaItemSearchFromApp} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations from the search collection.
  */
-public class MediaItemStationsInCategory implements MediaItemCommand {
+public class MediaItemSearchFromApp implements MediaItemCommand {
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -54,49 +57,62 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
                     @Override
                     public void run() {
 
-                        // Load Radio Station
-                        loadStation(playbackStateListener, shareObject);
+                        // Load all categories into menu
+                        loadSearchedStations(playbackStateListener, shareObject);
                     }
                 }
         );
     }
 
     /**
-     * Load Radio Station.
+     * Load Radio Stations from the Search query.
      *
      * @param playbackStateListener Listener of the Playback State changes.
      * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
      *                              references needed to execute command
      */
-    private void loadStation(final IUpdatePlaybackState playbackStateListener,
-                             @NonNull final MediaItemShareObject shareObject) {
-        final String radioStationId
-                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, "");
-
-        final RadioStationVO radioStation = shareObject.getServiceProvider().getStation(
+    private void loadSearchedStations(final IUpdatePlaybackState playbackStateListener,
+                                      @NonNull final MediaItemShareObject shareObject) {
+        final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                UrlBuilder.getStation(shareObject.getContext(), radioStationId));
+                UrlBuilder.getSearchQuery(shareObject.getContext(),
+                // Get search query from the holder util
+                Utils.getSearchQuery())
+        );
 
-        if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
+        shareObject.getMediaItems().clear();
+
+        if (list.isEmpty()) {
+
+            shareObject.getResult().sendResult(shareObject.getMediaItems());
             if (playbackStateListener != null) {
                 playbackStateListener.updatePlaybackState(
-                        shareObject.getContext().getString(R.string.no_data_message)
+                        shareObject.getContext().getString(R.string.no_search_results)
                 );
             }
+
             return;
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.updateRadioStation(radioStation, shareObject.getRadioStations());
+            QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
-        final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                shareObject.getContext(),
-                radioStation
-        );
-        final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
-        shareObject.getMediaItems().add(mediaItem);
+        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
+
+            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
+                    shareObject.getContext(),
+                    radioStation
+            );
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+
+            if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
+                MediaItemHelper.updateFavoriteField(mediaItem, true);
+            }
+
+            shareObject.getMediaItems().add(mediaItem);
+        }
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());
     }

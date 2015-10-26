@@ -51,6 +51,7 @@ public final class RadioStationJSONSerializer implements RadioStationSerializer 
             jsonObject.put(RadioStationJSONHelper.KEY_STATUS, radioStation.getStatus());
             jsonObject.put(RadioStationJSONHelper.KEY_THUMB_URL, radioStation.getThumbUrl());
             jsonObject.put(RadioStationJSONHelper.KEY_WEB_SITE, radioStation.getWebSite());
+            jsonObject.put(RadioStationJSONHelper.KEY_IS_LOCAL, radioStation.isLocal());
         } catch (final JSONException e) {
             /* Ignore this exception */
         }

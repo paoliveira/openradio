@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -23,6 +23,7 @@ import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;

@@ -71,5 +71,7 @@
     <string name="location_label">Location</string>
     <string name="cant_read_folder">Folder can\'t be read!</string>
     <string name="select_label">Select</string>
+    <string name="local_radio_stations_list_title">Locals</string>
+    <string name="local_radio_stations_list_sub_title">locally added radio stations</string>
 
 </resources>

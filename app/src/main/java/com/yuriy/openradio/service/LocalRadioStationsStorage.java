@@ -125,7 +125,7 @@ public class LocalRadioStationsStorage extends AbstractStorage {
      * @return {@code true} in case of the are Local Radio Stations in collection,
      *         {@code false} - otherwise.
      */
-    public static boolean isFavoritesEmpty(final Context context) {
+    public static boolean isLocalsEmpty(final Context context) {
         return isEmpty(context, FILE_NAME);
     }
 }

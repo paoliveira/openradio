@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.media.MediaDescription;
 import android.media.MediaMetadata;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.support.annotation.NonNull;
 
@@ -27,7 +27,7 @@ import android.support.annotation.NonNull;
 public interface MediaItemCommand {
 
     /**
-     * {@link com.yuriy.openradio.business.MediaItemCommand.IUpdatePlaybackState} is an interface
+     * {@link MediaItemCommand.IUpdatePlaybackState} is an interface
      * to provide callback when an error occur during command execution.
      */
     interface IUpdatePlaybackState {
@@ -44,7 +44,7 @@ public interface MediaItemCommand {
      * Common method to execute single, specific command.
      *
      * @param playbackStateListener Implementation of the
-     *                              {@link com.yuriy.openradio.business.MediaItemCommand.IUpdatePlaybackState}
+     *                              {@link MediaItemCommand.IUpdatePlaybackState}
      *                              interface.
      * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
      *                              references needed to execute command.

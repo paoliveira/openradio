@@ -33,4 +33,6 @@ final class RadioStationJSONHelper {
     static final String KEY_IMG_URL = "ImgUrl";
 
     static final String KEY_THUMB_URL = "ThumbUrl";
+
+    static final String KEY_IS_LOCAL = "IsLocal";
 }

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.mediaitem;
 
 import android.media.MediaDescription;
+import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
 
@@ -25,9 +26,9 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
-import com.yuriy.openradio.utils.Utils;
 
 import java.util.List;
 
@@ -39,10 +40,10 @@ import java.util.List;
  */
 
 /**
- * {@link MediaItemSearchFromApp} is concrete implementation of the {@link MediaItemCommand} that
- * designed to prepare data to display radio stations from the search collection.
+ * {@link MediaItemCountryStations} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio stations of the single Country.
  */
-public class MediaItemSearchFromApp implements MediaItemCommand {
+public class MediaItemCountryStations implements MediaItemCommand {
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -58,36 +59,42 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                     public void run() {
 
                         // Load all categories into menu
-                        loadSearchedStations(playbackStateListener, shareObject);
+                        loadCountryStations(playbackStateListener, shareObject);
                     }
                 }
         );
     }
 
     /**
-     * Load Radio Stations from the Search query.
+     * Load Radio Stations of the provided Country into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
      * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
-     *                              references needed to execute command
+     *                              references needed to execute command.
      */
-    private void loadSearchedStations(final IUpdatePlaybackState playbackStateListener,
-                                      @NonNull final MediaItemShareObject shareObject) {
+    private void loadCountryStations(final IUpdatePlaybackState playbackStateListener,
+                                     @NonNull final MediaItemShareObject shareObject) {
         final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                UrlBuilder.getSearchQuery(shareObject.getContext(),
-                // Get search query from the holder util
-                Utils.getSearchQuery())
-        );
-
-        shareObject.getMediaItems().clear();
+                UrlBuilder.getStationsInCountry(
+                        shareObject.getContext(), shareObject.getCountryCode()
+                ));
 
         if (list.isEmpty()) {
 
+            final MediaMetadata track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                    shareObject.getContext(),
+                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
+            );
+            final MediaDescription mediaDescription = track.getDescription();
+            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
+                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            shareObject.getMediaItems().add(mediaItem);
             shareObject.getResult().sendResult(shareObject.getMediaItems());
+
             if (playbackStateListener != null) {
                 playbackStateListener.updatePlaybackState(
-                        shareObject.getContext().getString(R.string.no_search_results)
+                        shareObject.getContext().getString(R.string.no_data_message)
                 );
             }
 
@@ -104,6 +111,7 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                     shareObject.getContext(),
                     radioStation
             );
+
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
 
