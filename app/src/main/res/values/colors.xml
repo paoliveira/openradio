@@ -2,5 +2,8 @@
 <resources>
 
     <color name="blue_light_color">#33b5e5</color>
+    <color name="primary_color">#FF3D434C</color>
+    <color name="primary_dark_color">#FF3D434C</color>
+    <color name="accent_color">#FF448811</color>
 
 </resources>

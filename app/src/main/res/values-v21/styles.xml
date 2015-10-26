@@ -19,9 +19,9 @@
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat">
 
-        <item name="android:colorPrimary">#FF3D434C</item>
-        <item name="android:colorPrimaryDark">#FF3D434C</item>
-        <item name="android:colorAccent">#FF448811</item>
+        <item name="android:colorPrimary">@color/primary_color</item>
+        <item name="android:colorPrimaryDark">@color/primary_dark_color</item>
+        <item name="android:colorAccent">@color/accent_color</item>
 
     </style>
 

@@ -32,10 +32,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -59,7 +60,7 @@ public final class AppUtils {
     /**
      * Map of the Countries Code and Name.
      */
-    public static final Map<String, String> COUNTRY_CODE_TO_NAME = new HashMap<>();
+    public static final Map<String, String> COUNTRY_CODE_TO_NAME = new TreeMap<>();
 
     /**
      * http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
@@ -378,7 +379,7 @@ public final class AppUtils {
      * @return Collection of the categories.
      */
     public static Set<String> predefinedCategories() {
-        final Set<String> predefinedCategories = new HashSet<>();
+        final Set<String> predefinedCategories = new TreeSet<>();
         predefinedCategories.add("Classical");
         predefinedCategories.add("Country");
         predefinedCategories.add("Decades");

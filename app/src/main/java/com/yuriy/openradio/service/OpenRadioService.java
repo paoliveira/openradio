@@ -99,6 +99,9 @@ public final class OpenRadioService
     private static final String VALUE_NAME_GET_RADIO_STATION_COMMAND
             = "VALUE_NAME_GET_RADIO_STATION_COMMAND";
 
+    private static final String VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND
+            = "VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND";
+
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
     private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
@@ -106,6 +109,23 @@ public final class OpenRadioService
     private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
 
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
+
+    private static final String EXTRA_KEY_ADD_STATION_NAME = "EXTRA_KEY_ADD_STATION_NAME";
+
+    private static final String EXTRA_KEY_ADD_STATION_STREAM_URL
+            = "EXTRA_KEY_ADD_STATION_STREAM_URL";
+
+    private static final String EXTRA_KEY_ADD_STATION_IMAGE_URL
+            = "EXTRA_KEY_ADD_STATION_IMAGE_URL";
+
+    private static final String EXTRA_KEY_ADD_STATION_THUMB_URL
+            = "EXTRA_KEY_ADD_STATION_THUMB_URL";
+
+    private static final String EXTRA_KEY_ADD_STATION_GENRE
+            = "EXTRA_KEY_ADD_STATION_GENRE";
+
+    private static final String EXTRA_KEY_ADD_STATION_COUNTRY
+            = "EXTRA_KEY_ADD_STATION_COUNTRY";
 
     /**
      * Reserved init value.
@@ -390,6 +410,31 @@ public final class OpenRadioService
             } else {
                 removeFromFavorites(String.valueOf(radioStation.getId()));
             }
+        } else if (command.equals(VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND)) {
+            final String name = intent.getStringExtra(EXTRA_KEY_ADD_STATION_NAME);
+            final String url = intent.getStringExtra(EXTRA_KEY_ADD_STATION_STREAM_URL);
+            final String imageUrl = intent.getStringExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL);
+            final String genre = intent.getStringExtra(EXTRA_KEY_ADD_STATION_GENRE);
+            final String country = intent.getStringExtra(EXTRA_KEY_ADD_STATION_COUNTRY);
+
+            if (!TextUtils.isEmpty(name)
+                    && !TextUtils.isEmpty(url)) {
+                final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
+
+                radioStation.setId(LocalRadioStationsStorage.getId(getApplicationContext()));
+                radioStation.setName(name);
+                radioStation.setStreamURL(url);
+                radioStation.setImageUrl(imageUrl);
+                radioStation.setThumbUrl(imageUrl);
+                radioStation.setGenre(genre);
+                radioStation.setCountry(country);
+
+                LocalRadioStationsStorage.addToLocal(radioStation, getApplicationContext());
+
+                Log.d(CLASS_NAME, "Add:" + radioStation);
+            } else {
+                Log.w(CLASS_NAME, "Can not add Station, Name or url are empty");
+            }
         }
 
         return super.onStartCommand(intent, flags, startId);
@@ -545,6 +590,27 @@ public final class OpenRadioService
     public static Intent makeRequestLocationIntent(final Context context) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REQUEST_LOCATION_COMMAND);
+        return intent;
+    }
+
+    /**
+     * Factory method to make intent to create custom {@link RadioStationVO}.
+     *
+     * @param context Context of the callee.
+     * @return {@link Intent}.
+     */
+    public static Intent makeAddRadioStationIntent(final Context context,
+                                                   final String name, final String url,
+                                                   final String imageUrl, final String genre,
+                                                   final String country) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_NAME, name);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_STREAM_URL, url);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL, imageUrl);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_THUMB_URL, imageUrl);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_GENRE, genre);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_COUNTRY, country);
         return intent;
     }
 

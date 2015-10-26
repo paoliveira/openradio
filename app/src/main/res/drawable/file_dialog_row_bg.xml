@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <item
+        android:state_selected="true"
+        android:drawable="@color/blue_light_color"/>
+    <item
+        android:drawable="@color/primary_color" />
+</selector>

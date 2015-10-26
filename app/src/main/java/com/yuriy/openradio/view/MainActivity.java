@@ -40,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
@@ -389,6 +390,17 @@ public final class MainActivity extends AppCompatActivity {
      */
     public final void processLocationCallback() {
         startService(OpenRadioService.makeRequestLocationIntent(this));
+    }
+
+    /**
+     * Process user's input in order to generate custom {@link RadioStationVO}.
+     */
+    public final void processAddStationCallback(final String name, final String url,
+                                                final String imageUrl, final String genre,
+                                                final String country) {
+        startService(OpenRadioService.makeAddRadioStationIntent(
+                this, name, url, imageUrl, genre, country
+        ));
     }
 
     /**

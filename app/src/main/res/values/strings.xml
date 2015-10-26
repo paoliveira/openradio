@@ -66,5 +66,10 @@
 
     <string name="add_station_dialog_title">Add Radio Station</string>
     <string name="add_station_dialog_button_label">Add Radio Station</string>
+    <string name="cancel_label">Cancel</string>
+
+    <string name="location_label">Location</string>
+    <string name="cant_read_folder">Folder can\'t be read!</string>
+    <string name="select_label">Select</string>
 
 </resources>

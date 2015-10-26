@@ -32,7 +32,7 @@ import com.yuriy.openradio.R;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class SearchDialog extends DialogFragment {
+public final class SearchDialog extends DialogFragment {
 
     /**
      * Tag string to use in logging message.
@@ -68,7 +68,7 @@ public class SearchDialog extends DialogFragment {
                 new View.OnClickListener() {
 
                     @Override
-                    public void onClick(View v) {
+                    public void onClick(final View viewBtn) {
                         if (activity != null && searchEditView != null) {
                             activity.onSearchDialogClick(searchEditView.getText().toString().trim());
                         }

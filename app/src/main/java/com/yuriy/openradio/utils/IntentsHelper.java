@@ -30,6 +30,8 @@ public final class IntentsHelper {
 
     public static final int REQUEST_CODE_LOCATION_SETTINGS = 100;
 
+    public static final int REQUEST_CODE_FILE_SELECTED = 101;
+
     /**
      * Private constructor
      */

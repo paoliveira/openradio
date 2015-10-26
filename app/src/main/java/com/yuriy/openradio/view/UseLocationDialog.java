@@ -22,7 +22,7 @@ import com.yuriy.openradio.utils.IntentsHelper;
  * {@link UseLocationDialog} is a Dialog to inform user that there is a profit of using Location
  * service of the device.
  */
-public class UseLocationDialog extends BaseDialogFragment {
+public final class UseLocationDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in the debugging messages.
