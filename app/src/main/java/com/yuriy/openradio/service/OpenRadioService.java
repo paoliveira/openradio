@@ -505,12 +505,19 @@ public final class OpenRadioService
         // Instantiate appropriate API service provider
         final APIServiceProvider serviceProvider = getServiceProvider();
 
+        // If Parent Id contains Country Code - use it in the API.
+        String countryCode = MediaIDHelper.getCountryCode(parentId);
+        if (TextUtils.isEmpty(countryCode)) {
+            // If no Country Code founded - use device native one.
+            countryCode = mLocationService.getCountryCode();
+        }
+
         final MediaItemCommand command = mMediaItemCommands.get(MediaIDHelper.getId(parentId));
         if (command != null) {
 
             final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();
             shareObject.setContext(getApplicationContext());
-            shareObject.setCountryCode(mLocationService.getCountryCode());
+            shareObject.setCountryCode(countryCode);
             shareObject.setDownloader(downloader);
             shareObject.setServiceProvider(serviceProvider);
             shareObject.setResult(result);

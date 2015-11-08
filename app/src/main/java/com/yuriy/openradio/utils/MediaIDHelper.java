@@ -73,15 +73,43 @@ public final class MediaIDHelper {
     };
 
     /**
+     * Gets Id that is use to extract correct command implementation of the
+     * {@link com.yuriy.openradio.business.mediaitem.MediaItemCommand}.
      *
-     * @param startsWith
-     * @return
+     * @param value String pattern that represents loaded menu item.
+     *
+     * @return Extracted Id.
      */
-    public static String getId(final String startsWith) {
+    public static String getId(final String value) {
         for (final String id : IDS) {
-            if (startsWith.startsWith(id) || startsWith.equals(id)) {
+            if (value.startsWith(id) || value.equals(id)) {
+                if (!TextUtils.isEmpty(getCountryCode(value))) {
+                    return MEDIA_ID_COUNTRY_STATIONS;
+                }
                 return id;
             }
+        }
+        return null;
+    }
+
+    /**
+     * Checks whether provided category Id is belongs to the "Stations in the Country" Id.
+     * If {@code true} - extract Country Code and return it, in case of {@code false} - return null.
+     *
+     * @param value Category Id.
+     *
+     * @return The value of the Country Code, {@code null} - otherwise.
+     */
+    public static String getCountryCode(final String value) {
+        if (TextUtils.isEmpty(value)) {
+            return null;
+        }
+        if (!value.startsWith(MEDIA_ID_COUNTRIES_LIST) || value.equals(MEDIA_ID_COUNTRIES_LIST)) {
+            return null;
+        }
+        final String result = value.substring(value.length() - 2, value.length());
+        if (!TextUtils.isEmpty(value) && result.length() == 2) {
+            return result.toUpperCase();
         }
         return null;
     }

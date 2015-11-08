@@ -21,6 +21,7 @@ import android.graphics.BitmapFactory;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.BitmapsOverlay;
@@ -44,6 +45,11 @@ import java.util.List;
  * designed to prepare data to display list of all Countries.
  */
 public class MediaItemCountriesList implements MediaItemCommand {
+
+    /**
+     * String tag to use in the log message.
+     */
+    private static final String CLASS_NAME = MediaItemCountriesList.class.getSimpleName();
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -104,7 +110,9 @@ public class MediaItemCountriesList implements MediaItemCommand {
             if (AppUtils.COUNTRY_CODE_TO_NAME.containsKey(countryCode)) {
                 countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
             } else {
-                countryName = "";
+                // Add missing country to the Map of the existing ones.
+                Log.w(CLASS_NAME, "Missing country:" + countryCode);
+                continue;
             }
 
             final int identifier = shareObject.getContext().getResources().getIdentifier(
