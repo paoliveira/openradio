@@ -221,6 +221,30 @@ public final class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        // Set long click listener.
+        // Return true in order to prevent click event been invoked.
+        listView.setOnItemLongClickListener(
+                new AdapterView.OnItemLongClickListener() {
+
+                    @Override
+                    public boolean onItemLongClick(final AdapterView<?> parent, final View view,
+                                                   final int position, final long id) {
+
+                        final MediaBrowser.MediaItem item
+                                = (MediaBrowser.MediaItem) parent.getItemAtPosition(position);
+                        if (item == null) {
+                            return true;
+                        }
+
+                        // Show Remove Station Dialog
+                        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                        final DialogFragment removeStationDialog = RemoveStationDialog.newInstance();
+                        removeStationDialog.show(fragmentTransaction, RemoveStationDialog.DIALOG_TAG);
+
+                        return true;
+                    }
+                }
+        );
 
         final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
         addBtn.setOnClickListener(

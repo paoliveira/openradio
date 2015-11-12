@@ -51,9 +51,7 @@ public class MediaItemLocalsList implements MediaItemCommand {
 
         final Context context = shareObject.getContext();
 
-        final List<RadioStationVO> list = LocalRadioStationsStorage.getAllLocal(
-                context
-        );
+        final List<RadioStationVO> list = LocalRadioStationsStorage.getAllLocal(context);
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.copyCollection(shareObject.getRadioStations(), list);
@@ -70,6 +68,10 @@ public class MediaItemLocalsList implements MediaItemCommand {
 
             if (FavoritesStorage.isFavorite(radioStation, context)) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
+            }
+
+            if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
+                MediaItemHelper.updateLocalRadioStationField(mediaItem, true);
             }
 
             shareObject.getMediaItems().add(mediaItem);

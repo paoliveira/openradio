@@ -39,9 +39,12 @@ public final class MediaItemHelper {
 
     private static final String KEY_IS_FAVORITE = "KEY_IS_FAVORITE";
 
+    private static final String KEY_IS_LOCAL = "KEY_IS_LOCAL";
+
     public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
 
     /**
+     * Sets key that indicates Radio Station is in favorites.
      *
      * @param mediaItem  {@link android.media.browse.MediaBrowser.MediaItem}.
      * @param isFavorite Whether Item is in Favorites.
@@ -60,9 +63,28 @@ public final class MediaItemHelper {
     }
 
     /**
+     * Sets key that indicates Radio Station is in Local Radio Stations.
      *
+     * @param mediaItem  {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @param isLocal     Whether Item is in Local Radio Stations.
+     */
+    public static void updateLocalRadioStationField(final MediaBrowser.MediaItem mediaItem,
+                                                    final boolean isLocal) {
+        if (mediaItem == null) {
+            return;
+        }
+        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        if (bundle == null) {
+            return;
+        }
+        bundle.putBoolean(KEY_IS_LOCAL, isLocal);
+    }
+
+    /**
+     * Gets {@code true} if Item is Favorite, {@code false} - otherwise.
      * @param mediaItem {@link android.media.browse.MediaBrowser.MediaItem}.
-     * @return True is Item is Favorite, False - otherwise.
+     * @return {@code true} if Item is Favorite, {@code false} - otherwise.
      */
     public static boolean isFavoriteField(final MediaBrowser.MediaItem mediaItem) {
         if (mediaItem == null) {
@@ -71,6 +93,20 @@ public final class MediaItemHelper {
         final MediaDescription mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         return bundle != null && bundle.getBoolean(KEY_IS_FAVORITE, false);
+    }
+
+    /**
+     * Gets {@code true} if Item is Local Radio Station, {@code false} - otherwise.
+     * @param mediaItem {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @return {@code true} if Item is Favorite, {@code false} - otherwise.
+     */
+    public static boolean isLocalRadioStationField(final MediaBrowser.MediaItem mediaItem) {
+        if (mediaItem == null) {
+            return false;
+        }
+        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        return bundle != null && bundle.getBoolean(KEY_IS_LOCAL, false);
     }
 
     /**

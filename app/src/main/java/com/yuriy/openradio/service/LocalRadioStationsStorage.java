@@ -128,4 +128,16 @@ public class LocalRadioStationsStorage extends AbstractStorage {
     public static boolean isLocalsEmpty(final Context context) {
         return isEmpty(context, FILE_NAME);
     }
+
+    /**
+     * Check whether provided {@link RadioStationVO} is in Local Stations preferences.
+     *
+     * @param radioStation {@link RadioStationVO} to check in the Favorites.
+     * @param context      Context of the callee.
+     * @return True in case of success, False - otherwise.
+     */
+    public static boolean isLocalRadioStation(final RadioStationVO radioStation, final Context context) {
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
+        return sharedPreferences.contains(String.valueOf(radioStation.getId()));
+    }
 }
