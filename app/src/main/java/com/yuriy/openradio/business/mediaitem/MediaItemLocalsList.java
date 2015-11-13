@@ -66,10 +66,6 @@ public class MediaItemLocalsList implements MediaItemCommand {
             final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
                     mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
 
-            if (FavoritesStorage.isFavorite(radioStation, context)) {
-                MediaItemHelper.updateFavoriteField(mediaItem, true);
-            }
-
             if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
                 MediaItemHelper.updateLocalRadioStationField(mediaItem, true);
             }

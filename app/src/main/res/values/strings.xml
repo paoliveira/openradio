@@ -65,7 +65,7 @@
     <!-- Version 2.0 -->
 
     <string name="add_station_dialog_title">Add Radio Station</string>
-    <string name="add_station_dialog_button_label">Add Radio Station</string>
+    <string name="add_station_dialog_button_label">Add</string>
     <string name="cancel_label">Cancel</string>
 
     <string name="location_label">Location</string>
@@ -75,7 +75,7 @@
     <string name="local_radio_stations_list_sub_title">locally added radio stations</string>
 
     <string name="remove_station_dialog_title">Remove Radio Station</string>
-    <string name="remove_station_dialog_button_label">Remove Radio Station</string>
-    <string name="remove_station_dialog_main_text">You are going to remove Radio Station.\nAre You sure?</string>
+    <string name="remove_station_dialog_button_label">Remove</string>
+    <string name="remove_station_dialog_main_text">You are going to remove Radio Station:\n%s\nAre You sure?</string>
 
 </resources>

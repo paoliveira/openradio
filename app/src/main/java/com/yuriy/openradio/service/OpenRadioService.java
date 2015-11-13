@@ -103,6 +103,9 @@ public final class OpenRadioService
     private static final String VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND";
 
+    private static final String VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND
+            = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
+
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
     private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
@@ -127,6 +130,8 @@ public final class OpenRadioService
 
     private static final String EXTRA_KEY_ADD_STATION_COUNTRY
             = "EXTRA_KEY_ADD_STATION_COUNTRY";
+
+    private static final String EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID";
 
     /**
      * Reserved init value.
@@ -442,6 +447,15 @@ public final class OpenRadioService
                     Log.w(CLASS_NAME, "Can not add Station, Name or url are empty");
                 }
                 break;
+            case VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND:
+                final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
+                if (TextUtils.isEmpty(mediaId)) {
+                    Log.w(CLASS_NAME, "Can not remove Station, Media Id is empty");
+                    break;
+                }
+                LocalRadioStationsStorage.removeFromLocal(mediaId, getApplicationContext());
+                Log.d(CLASS_NAME, "Remove:" + mediaId);
+                break;
             default:
                 Log.w(CLASS_NAME, "Unknown command:" + command);
         }
@@ -613,6 +627,7 @@ public final class OpenRadioService
      * Factory method to make intent to create custom {@link RadioStationVO}.
      *
      * @param context Context of the callee.
+     *
      * @return {@link Intent}.
      */
     public static Intent makeAddRadioStationIntent(final Context context,
@@ -627,6 +642,21 @@ public final class OpenRadioService
         intent.putExtra(EXTRA_KEY_ADD_STATION_THUMB_URL, imageUrl);
         intent.putExtra(EXTRA_KEY_ADD_STATION_GENRE, genre);
         intent.putExtra(EXTRA_KEY_ADD_STATION_COUNTRY, country);
+        return intent;
+    }
+
+    /**
+     * Factory method to make intent to remove custom {@link RadioStationVO}.
+     *
+     * @param context Context of the callee.
+     * @param mediaId Medua Id of the Radio Station.
+     *
+     * @return {@link Intent}.
+     */
+    public static Intent makeRemoveRadioStationIntent(final Context context, final String mediaId) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND);
+        intent.putExtra(EXTRA_KEY_MEDIA_ID, mediaId);
         return intent;
     }
 

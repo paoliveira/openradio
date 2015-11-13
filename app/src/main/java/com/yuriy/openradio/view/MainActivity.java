@@ -49,6 +49,7 @@ import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PermissionChecker;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
@@ -236,10 +237,22 @@ public final class MainActivity extends AppCompatActivity {
                             return true;
                         }
 
+                        // If Item is not Local Radio Station - skipp farther processing
+                        if (!MediaItemHelper.isLocalRadioStationField(item)) {
+                            return true;
+                        }
+
+                        String name = "";
+                        if (item.getDescription().getTitle() != null) {
+                            name = item.getDescription().getTitle().toString();
+                        }
+
                         // Show Remove Station Dialog
-                        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                        final DialogFragment removeStationDialog = RemoveStationDialog.newInstance();
-                        removeStationDialog.show(fragmentTransaction, RemoveStationDialog.DIALOG_TAG);
+                        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        final DialogFragment dialog = RemoveStationDialog.newInstance(
+                                item.getMediaId(), name
+                        );
+                        dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
 
                         return true;
                     }
@@ -253,9 +266,9 @@ public final class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(final View view) {
                         // Show Add Station Dialog
-                        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                        final DialogFragment addStationDialog = AddStationDialog.newInstance();
-                        addStationDialog.show(fragmentTransaction, AddStationDialog.DIALOG_TAG);
+                        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                        final DialogFragment dialog = AddStationDialog.newInstance();
+                        dialog.show(transaction, AddStationDialog.DIALOG_TAG);
                     }
                 }
         );
@@ -425,6 +438,13 @@ public final class MainActivity extends AppCompatActivity {
         startService(OpenRadioService.makeAddRadioStationIntent(
                 this, name, url, imageUrl, genre, country
         ));
+    }
+
+    /**
+     * Process user's input in order to remove custom {@link RadioStationVO}.
+     */
+    public final void processRemoveStationCallback(final String mediaId) {
+        startService(OpenRadioService.makeRemoveRadioStationIntent(this, mediaId));
     }
 
     /**

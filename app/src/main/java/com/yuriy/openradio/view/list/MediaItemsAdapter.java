@@ -115,7 +115,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
             }
         }
 
-        if (mediaItem.isPlayable()) {
+        if (mediaItem.isPlayable() && !MediaItemHelper.isLocalRadioStationField(mediaItem)) {
             mViewHolder.mFavoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
 
             mViewHolder.mFavoriteCheckView.setVisibility(View.VISIBLE);
