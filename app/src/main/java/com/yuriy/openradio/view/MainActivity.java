@@ -138,6 +138,12 @@ public final class MainActivity extends AppCompatActivity {
      */
     private PermissionStatusListener mPermissionStatusListener = new PermissionListener(this);
 
+    /**
+     * Member field to keep reference to the Local broadcast receiver.
+     */
+    private LocalBroadcastReceiverCallback mLocalBroadcastReceiverCallback
+            = new LocalBroadcastReceiverCallback(this);
+
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -579,12 +585,13 @@ public final class MainActivity extends AppCompatActivity {
      */
     private void registerReceivers() {
 
-        mAppLocalBroadcastReceiver.registerListener(receiverCallback);
+        mAppLocalBroadcastReceiver.registerListener(mLocalBroadcastReceiverCallback);
 
         // Create filter and add actions
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationDisabled());
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationCountryCode());
+        intentFilter.addAction(AppLocalBroadcastReceiver.getActionInvalidateListView());
         // Register receiver
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mAppLocalBroadcastReceiver,
@@ -599,6 +606,18 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastReceiver.unregisterListener();
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mAppLocalBroadcastReceiver);
+    }
+
+    /**
+     * Invalidates main List View.
+     */
+    private void invalidateListView() {
+        if (mMediaBrowser == null) {
+            return;
+        }
+        // Disconnect and connect back to media browser
+        mMediaBrowser.disconnect();
+        mMediaBrowser.connect();
     }
 
     /**
@@ -713,14 +732,30 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Callback receiver of the local application's event.
      */
-    private final AppLocalBroadcastReceiverCallback receiverCallback
-            = new AppLocalBroadcastReceiverCallback() {
+    private static final class LocalBroadcastReceiverCallback implements AppLocalBroadcastReceiverCallback {
+
+        /**
+         * Member field to keep reference to the outer class.
+         */
+        private final WeakReference<MainActivity> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param reference The reference to the outer class.
+         */
+        private LocalBroadcastReceiverCallback(final MainActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
 
         @Override
         public void onLocationDisabled() {
-            Log.i(CLASS_NAME, "LocationDisabled");
-
             if (AppPreferencesManager.isLocationDialogShown()) {
+                return;
+            }
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
                 return;
             }
 
@@ -728,16 +763,29 @@ public final class MainActivity extends AppCompatActivity {
                     UseLocationDialog.class.getName()
             );
             useLocationServiceDialog.setCancelable(false);
-            useLocationServiceDialog.show(getFragmentManager(), UseLocationDialog.DIALOG_TAG);
+            useLocationServiceDialog.show(reference.getFragmentManager(), UseLocationDialog.DIALOG_TAG);
 
             AppPreferencesManager.setIsLocationDialogShown(true);
         }
 
         @Override
         public void onLocationCountryCode(final String countryCode) {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
             // Disconnect and connect back to media browser
-            mMediaBrowser.disconnect();
-            mMediaBrowser.connect();
+            reference.mMediaBrowser.disconnect();
+            reference.mMediaBrowser.connect();
+        }
+
+        @Override
+        public void onInvalidateListView() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            reference.invalidateListView();
         }
     };
 

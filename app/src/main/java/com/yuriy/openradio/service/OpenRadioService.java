@@ -442,6 +442,10 @@ public final class OpenRadioService
 
                     LocalRadioStationsStorage.addToLocal(radioStationLocal, getApplicationContext());
 
+                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
+                            AppLocalBroadcastReceiver.createIntentInvalidateListView()
+                    );
+
                     Log.d(CLASS_NAME, "Add:" + radioStationLocal);
                 } else {
                     Log.w(CLASS_NAME, "Can not add Station, Name or url are empty");
