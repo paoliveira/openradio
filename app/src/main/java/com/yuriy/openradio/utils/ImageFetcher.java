@@ -212,8 +212,7 @@ public class ImageFetcher extends ImageResizer {
                         }
                         DiskLruCache.Editor editor = mHttpDiskCache.edit(key);
                         if (editor != null) {
-                            if (downloadUrlToStream(data,
-                                    editor.newOutputStream(DISK_CACHE_INDEX))) {
+                            if (downloadUrlToStream(data, editor.newOutputStream(DISK_CACHE_INDEX))) {
                                 editor.commit();
                             } else {
                                 editor.abort();
@@ -269,9 +268,14 @@ public class ImageFetcher extends ImageResizer {
         BufferedInputStream in = null;
 
         try {
-            final URL url = new URL(urlString);
-            urlConnection = (HttpURLConnection) url.openConnection();
-            in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+            if (urlString.startsWith("/sdcard/")) {
+                in = new BufferedInputStream(new FileInputStream(new File(urlString)), IO_BUFFER_SIZE);
+            } else {
+                final URL url = new URL(urlString);
+                urlConnection = (HttpURLConnection) url.openConnection();
+                in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+            }
+
             out = new BufferedOutputStream(outputStream, IO_BUFFER_SIZE);
 
             int b;
