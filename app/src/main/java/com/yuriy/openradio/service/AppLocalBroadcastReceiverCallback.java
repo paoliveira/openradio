@@ -40,9 +40,4 @@ public interface AppLocalBroadcastReceiverCallback {
      * @param countryCode Country code.
      */
     void onLocationCountryCode(final String countryCode);
-
-    /**
-     * Dispatches when it is necessary to invalidate List View.
-     */
-    void onInvalidateListView();
 }

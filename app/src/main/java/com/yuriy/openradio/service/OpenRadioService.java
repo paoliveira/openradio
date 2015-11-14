@@ -442,9 +442,7 @@ public final class OpenRadioService
 
                     LocalRadioStationsStorage.addToLocal(radioStationLocal, getApplicationContext());
 
-                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
-                            AppLocalBroadcastReceiver.createIntentInvalidateListView()
-                    );
+                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
 
                     Log.d(CLASS_NAME, "Add:" + radioStationLocal);
                 } else {
@@ -458,6 +456,10 @@ public final class OpenRadioService
                     break;
                 }
                 LocalRadioStationsStorage.removeFromLocal(mediaId, getApplicationContext());
+                QueueHelper.removeRadioStation(mediaId, mRadioStations);
+
+                notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
+
                 Log.d(CLASS_NAME, "Remove:" + mediaId);
                 break;
             default:

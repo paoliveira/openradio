@@ -115,7 +115,16 @@ public class LocalRadioStationsStorage extends AbstractStorage {
      * @return Collection of the Local Radio Stations.
      */
     public static List<RadioStationVO> getAllLocal(final Context context) {
-        return getAll(context, FILE_NAME);
+        final List<RadioStationVO> list = getAll(context, FILE_NAME);
+        // Loop for the key that holds KEY for the next Local Radio Station
+        // and remove it from collection.
+        for (final RadioStationVO radioStation : list) {
+            if (radioStation.getId() == 0) {
+                list.remove(radioStation);
+                break;
+            }
+        }
+        return list;
     }
 
     /**

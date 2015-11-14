@@ -45,11 +45,6 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
     private static final String ACTION_LOCATION_COUNTRY_CODE = "ACTION_LOCATION_COUNTRY_CODE";
 
     /**
-     * Action name for the "Invalidate List View" on the mobile device.
-     */
-    private static final String ACTION_INVALIDATE_LIST_VIEW = "ACTION_INVALIDATE_LIST_VIEW";
-
-    /**
      * Key value for the Country Code in the Intent's bundles.
      */
     private static final String KEY_COUNTRY_CODE = "KEY_COUNTRY_CODE";
@@ -109,12 +104,6 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
                 mCallback.onLocationCountryCode(countryCode);
             }
         }
-
-        if (action.equals(ACTION_INVALIDATE_LIST_VIEW)) {
-            if (mCallback != null) {
-                mCallback.onInvalidateListView();
-            }
-        }
     }
 
     /**
@@ -132,24 +121,10 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
     }
 
     /**
-     * @return Name for the Invalidate List View action.
-     */
-    public static String getActionInvalidateListView() {
-        return ACTION_INVALIDATE_LIST_VIEW;
-    }
-
-    /**
      * @return Instance of the {@link Intent} that indicates about disabled Location Service.
      */
     public static Intent createIntentLocationDisabled() {
         return new Intent(ACTION_LOCATION_DISABLED);
-    }
-
-    /**
-     * @return Instance of the {@link Intent} that indicates about invalidate main List View.
-     */
-    public static Intent createIntentInvalidateListView() {
-        return new Intent(ACTION_INVALIDATE_LIST_VIEW);
     }
 
     /**

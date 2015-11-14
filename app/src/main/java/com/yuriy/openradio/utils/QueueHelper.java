@@ -135,6 +135,20 @@ public final class QueueHelper {
         }
     }
 
+    public static boolean removeRadioStation(final String mediaId,
+                                             final List<RadioStationVO> radioStations) {
+        for (final RadioStationVO radioStation : radioStations) {
+            if (radioStation == null) {
+                continue;
+            }
+            if (String.valueOf(radioStation.getId()).equals(mediaId)) {
+                radioStations.remove(radioStation);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static String getGenreNameById(final String genreId,
                                           final List<CategoryVO> categoriesList) {
         String genre = "";

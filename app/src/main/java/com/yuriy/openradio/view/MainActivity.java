@@ -591,7 +591,6 @@ public final class MainActivity extends AppCompatActivity {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationDisabled());
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationCountryCode());
-        intentFilter.addAction(AppLocalBroadcastReceiver.getActionInvalidateListView());
         // Register receiver
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mAppLocalBroadcastReceiver,
@@ -606,18 +605,6 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastReceiver.unregisterListener();
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mAppLocalBroadcastReceiver);
-    }
-
-    /**
-     * Invalidates main List View.
-     */
-    private void invalidateListView() {
-        if (mMediaBrowser == null) {
-            return;
-        }
-        // Disconnect and connect back to media browser
-        mMediaBrowser.disconnect();
-        mMediaBrowser.connect();
     }
 
     /**
@@ -777,15 +764,6 @@ public final class MainActivity extends AppCompatActivity {
             // Disconnect and connect back to media browser
             reference.mMediaBrowser.disconnect();
             reference.mMediaBrowser.connect();
-        }
-
-        @Override
-        public void onInvalidateListView() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.invalidateListView();
         }
     };
 

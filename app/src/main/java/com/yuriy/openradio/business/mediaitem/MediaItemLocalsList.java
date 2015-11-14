@@ -22,7 +22,6 @@ import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;

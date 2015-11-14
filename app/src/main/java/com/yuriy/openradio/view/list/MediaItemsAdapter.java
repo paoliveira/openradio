@@ -102,8 +102,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
             final Uri iconUri = description.getIconUri();
             if (mediaItem.isPlayable()) {
 
-                if (iconUri != null
-                        && iconUri.toString().startsWith("android")) {
+                if (iconUri != null && iconUri.toString().startsWith("android")) {
                     mViewHolder.mImageView.setImageURI(iconUri);
                 } else {
                     // Load the image asynchronously into the ImageView, this also takes care of
