@@ -78,4 +78,14 @@
     <string name="remove_station_dialog_button_label">Remove</string>
     <string name="remove_station_dialog_main_text">You are going to remove Radio Station:\n%s\nAre You sure?</string>
 
+    <string name="add_station_name_label">Name:</string>
+    <string name="add_station_name_hint">Radio Station name</string>
+    <string name="add_station_url_label">Stream URL:</string>
+    <string name="add_station_url_hint">Radio Station\'s stream URL</string>
+    <string name="add_station_image_label">Image:</string>
+    <string name="add_station_image_hint">Radio Station\'s image URL</string>
+    <string name="add_station_genre_label">Genre:</string>
+    <string name="add_station_country_label">Country:</string>
+    <string name="ellipsis">…</string>
+
 </resources>

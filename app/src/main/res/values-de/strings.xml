@@ -23,7 +23,7 @@
     <string name="about_author">Autor:</string>
     <string name="about_author_name">Yuriy Chernyshov</string>
     <string name="about_project_home_title">Projekthaus:</string>
-    <string name="about_project_home_desc">Wenn Sie Fragen, Anregungen, Kommentare, die die Anwendung verbessern können, haben - zögern Sie nicht, erstellen Sie eine Ausgabe auf der Registerkarte Fragen der Homepage des Projekts.</string>
+    <string name="about_project_home_desc">Wenn Sie Fragen, Anregungen, Kommentare, die Anwendung verbessern können, haben - zögern Sie nicht, erstellen Sie eine Ausgabe auf der Registerkarte Fragen der Homepage des Projekts.</string>
     <string name="ok_label">OK</string>
     <string name="close_label">Schließen</string>
     <string name="no_data_message">Keine Daten empfangen</string>
@@ -46,5 +46,25 @@
     <string name="no_search_results">Keine Suchergebnisse</string>
     <string name="search_label">Suche</string>
     <string name="search_description">Geben Sie das Wort, die Sie als Suchmuster verwenden möchten</string>
+    <string name="add_station_dialog_title">In Radio Station</string>
+    <string name="add_station_dialog_button_label">Hinzufügen</string>
+    <string name="cancel_label">Absagen</string>
+    <string name="location_label">Ort</string>
+    <string name="cant_read_folder">Ordner kann nicht gelesen werden!</string>
+    <string name="select_label">Auswählen</string>
+    <string name="local_radio_stations_list_title">Einheimische</string>
+    <string name="local_radio_stations_list_sub_title">Ort hinzugefügt Radiosender</string>
+    <string name="remove_station_dialog_title">Entfernen Radio Station</string>
+    <string name="remove_station_dialog_button_label">Entfernen.</string>
+    <string name="remove_station_dialog_main_text">You are going to remove Radio Station:\n%s\nBist du sicher?</string>
+    <string name="add_station_name_label">Name:</string>
+    <string name="add_station_name_hint">Radio Station name</string>
+    <string name="add_station_url_label">Stream URL:</string>
+    <string name="add_station_url_hint">Radio Station stream URL</string>
+    <string name="add_station_image_label">Image:</string>
+    <string name="add_station_image_hint">Radio Station image URL</string>
+    <string name="add_station_genre_label">Genre:</string>
+    <string name="add_station_country_label">Land:</string>
+    <string name="ellipsis">…</string>
 
 </resources>

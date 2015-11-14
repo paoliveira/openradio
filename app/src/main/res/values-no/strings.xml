@@ -46,5 +46,25 @@
     <string name="no_search_results">Ingen søkeresultater</string>
     <string name="search_label">Søk</string>
     <string name="search_description">Skriv inn ordet du vil bruke som søkemønster</string>
+    <string name="add_station_dialog_title">Legg Radio Station</string>
+    <string name="add_station_dialog_button_label">Legg</string>
+    <string name="cancel_label">Kansellere</string>
+    <string name="location_label">Sted</string>
+    <string name="cant_read_folder">Mappen kan ikke lese!</string>
+    <string name="select_label">Velge</string>
+    <string name="local_radio_stations_list_title">Lokalbefolkningen</string>
+    <string name="local_radio_stations_list_sub_title">lokalt lagt radiostasjoner</string>
+    <string name="remove_station_dialog_title">Fjern Radio Station</string>
+    <string name="remove_station_dialog_button_label">Fjerne</string>
+    <string name="remove_station_dialog_main_text">Du kommer til å fjerne Radio Station:\n%s\nEr du sikker?</string>
+    <string name="add_station_name_label">Navn:</string>
+    <string name="add_station_name_hint">Radio Station navn</string>
+    <string name="add_station_url_label">Stream URL:</string>
+    <string name="add_station_url_hint">Radio Station stream URL</string>
+    <string name="add_station_image_label">Image:</string>
+    <string name="add_station_image_hint">Radio Station image URL</string>
+    <string name="add_station_genre_label">Sjanger:</string>
+    <string name="add_station_country_label">Land:</string>
+    <string name="ellipsis">…</string>
 
 </resources>

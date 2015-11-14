@@ -15,13 +15,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:text="Name:"/>
+            android:text="@string/add_station_name_label"/>
 
         <EditText
             android:id="@+id/add_station_name_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Radio Station name"
+            android:hint="@string/add_station_name_hint"
             android:singleLine="true"
             android:layout_marginBottom="15dp"/>
 
@@ -29,23 +29,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:text="Stream URL:"/>
+            android:text="@string/add_station_url_label"/>
 
         <EditText
             android:id="@+id/add_station_stream_url_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Radio Station's stream URL"
+            android:hint="@string/add_station_url_hint"
             android:layout_marginBottom="15dp"
-            android:singleLine="true"
-
-            android:text="http://current.stream.publicradio.org/kcmp.mp3"/>
+            android:singleLine="true"/>
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:text="Image:"/>
+            android:text="@string/add_station_image_label"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -56,7 +54,7 @@
                 android:id="@+id/add_station_image_url_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Radio Station's image URL"
+                android:hint="@string/add_station_image_hint"
                 android:layout_marginBottom="15dp"
                 android:singleLine="true"
                 android:layout_weight="1"/>
@@ -66,7 +64,7 @@
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="..."/>
+                android:text="@string/ellipsis"/>
 
         </LinearLayout>
 
@@ -74,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:text="Genre:"/>
+            android:text="@string/add_station_genre_label"/>
 
         <Spinner
             android:id="@+id/add_station_genre_spin"
@@ -86,7 +84,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:text="Country:"/>
+            android:text="@string/add_station_country_label"/>
 
         <Spinner
             android:id="@+id/add_station_country_spin"
