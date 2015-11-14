@@ -311,15 +311,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public final boolean onCreateOptionsMenu(Menu menu) {
+    public final boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
-        //final SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        //final SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
-        //searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-        //searchView.setIconifiedByDefault(false);
-
         return true;
     }
 
