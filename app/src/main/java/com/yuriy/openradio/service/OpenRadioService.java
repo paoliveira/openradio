@@ -68,12 +68,17 @@ import com.yuriy.openradio.utils.QueueHelper;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import wseemann.media.Metadata;
 
 /**
  * Created by Yuriy Chernyshov
@@ -276,17 +281,66 @@ public final class OpenRadioService
         FOCUSED
     }
 
+    /**
+     *
+     */
     private final Handler mDelayedStopHandler = new DelayedStopHandler(this);
+
+    /**
+     *
+     */
+    private final Handler mMetadataRetrievalHandler = new MetadataRetrievalHandler(this);
 
     /**
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
     private final Map<String, MediaItemCommand> mMediaItemCommands = new HashMap<>();
 
-    private static class DelayedStopHandler extends Handler {
+    /**
+     *
+     */
+    private final RadioStationUpdateListener mRadioStationUpdateListener = new RSUpdateListener(this);
 
+    /**
+     *
+     */
+    private static class MetadataRetrievalHandler extends Handler {
+
+        /**
+         *
+         */
         private final OpenRadioService mReference;
 
+        /**
+         *
+         * @param reference
+         */
+        public MetadataRetrievalHandler(final OpenRadioService reference) {
+            mReference = reference;
+        }
+
+        @Override
+        public void handleMessage(final Message msg) {
+            super.handleMessage(msg);
+
+
+        }
+    }
+
+    /**
+     *
+     */
+    private static class DelayedStopHandler extends Handler {
+
+        /**
+         *
+         */
+        private final OpenRadioService mReference;
+
+        /**
+         *
+         * @param reference
+         */
         public DelayedStopHandler(final OpenRadioService reference) {
             mReference = reference;
         }
@@ -846,18 +900,14 @@ public final class OpenRadioService
                             radioStationCopy.setIsUpdated(true);
 
                             if (listener != null) {
-                                listener.onComplete(
-                                        buildMetadata(radioStationCopy)
-                                );
+                                listener.onComplete(buildMetadata(radioStationCopy));
                             }
                         }
                     }
             );
         } else {
             if (listener != null) {
-                listener.onComplete(
-                        buildMetadata(radioStationCopy)
-                );
+                listener.onComplete(buildMetadata(radioStationCopy));
             }
         }
     }
@@ -959,48 +1009,65 @@ public final class OpenRadioService
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing
-            getCurrentPlayingRadioStation(radioStationUpdateListener);
+            getCurrentPlayingRadioStation(mRadioStationUpdateListener);
         }
     }
 
     /**
      * Listener for the getting current playing Radio Station data event.
      */
-    private final RadioStationUpdateListener radioStationUpdateListener
-            = new RadioStationUpdateListener() {
+    private static final class RSUpdateListener implements RadioStationUpdateListener {
+
+        /**
+         *
+         */
+        private final WeakReference<OpenRadioService> mReference;
+
+        /**
+         *
+         * @param reference
+         */
+        public RSUpdateListener(OpenRadioService reference) {
+            mReference = new WeakReference<>(reference);
+        }
 
         @Override
         public void onComplete(final MediaMetadata track) {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                Log.e(CLASS_NAME, "RS Update can not proceed farther, service is null");
+                return;
+            }
             if (track == null) {
                 Log.e(CLASS_NAME, "Play Radio Station: ignoring request to play next song, " +
                         "because cannot find it." +
-                        " CurrentIndex=" + mCurrentIndexOnQueue + "." +
-                        " PlayQueue.size=" + mPlayingQueue.size());
+                        " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
+                        " PlayQueue.size=" + service.mPlayingQueue.size());
                 return;
             }
             final String source = track.getString(MediaItemHelper.CUSTOM_METADATA_TRACK_SOURCE);
-            Log.d(CLASS_NAME, "Play Radio Station: current (" + mCurrentIndexOnQueue + ") in mPlayingQueue. " +
+            Log.d(CLASS_NAME, "Play Radio Station: current (" + service.mCurrentIndexOnQueue + ") in mPlayingQueue. " +
                     " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
                     " source=" + source);
 
-            mState = PlaybackState.STATE_STOPPED;
+            service.mState = PlaybackState.STATE_STOPPED;
 
             // release everything except MediaPlayer
-            relaxResources(false);
+            service.relaxResources(false);
 
-            createMediaPlayerIfNeeded();
+            service.createMediaPlayerIfNeeded();
 
-            mState = PlaybackState.STATE_BUFFERING;
+            service.mState = PlaybackState.STATE_BUFFERING;
 
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            service.mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
             final Map<String, String> headers = new HashMap<>();
             headers.put("Connection", "keep-alive");
             headers.put("Keep-Alive", "timeout=2000");
 
             try {
-                mMediaPlayer.setDataSource(
-                        getApplicationContext(), Uri.parse(source), headers
+                service.mMediaPlayer.setDataSource(
+                        service.getApplicationContext(), Uri.parse(source), headers
                 );
 
                 // Starts preparing the media player in the background. When
@@ -1008,20 +1075,26 @@ public final class OpenRadioService
                 // the onPrepared() method on this class, since we set the
                 // listener to 'this'). Until the media player is prepared,
                 // we *cannot* call start() on it!
-                mMediaPlayer.prepareAsync();
+                service.mMediaPlayer.prepareAsync();
 
                 // If we are streaming from the internet, we want to hold a
                 // Wifi lock, which prevents the Wifi radio from going to
                 // sleep while the song is playing.
-                mWifiLock.acquire();
+                service.mWifiLock.acquire();
 
-                updatePlaybackState(null);
-                updateMetadata();
+                service.updatePlaybackState(null);
+                service.updateMetadata();
 
             } catch (IOException ex) {
                 Log.e(CLASS_NAME, "IOException playing song:" + ex.getMessage());
-                updatePlaybackState(getString(R.string.can_not_play_station));
+                service.updatePlaybackState(service.getString(R.string.can_not_play_station));
             }
+
+            service.startService(
+                    MetadataRetrievalService.getStartRetrievalIntent(
+                            service.getApplicationContext(), source
+                    )
+            );
         }
     };
 
@@ -1211,6 +1284,7 @@ public final class OpenRadioService
     private void handleStopRequest(final String withError) {
         Log.d(CLASS_NAME, "Handle stop request: state=" + mState + " error=" + withError);
 
+        startService(MetadataRetrievalService.getStopRetrievalIntent(getApplicationContext()));
         mState = PlaybackState.STATE_STOPPED;
 
         // let go of all resources...
@@ -1371,6 +1445,8 @@ public final class OpenRadioService
 
             // Play Radio Station
             handlePlayRequest();
+
+
         }
 
         @Override
