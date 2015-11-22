@@ -1,13 +1,17 @@
 package com.yuriy.openradio.service;
 
+import android.app.Activity;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
@@ -34,6 +38,8 @@ public final class MetadataRetrievalService extends Service {
     private static final String STOP_COMMAND = "STOP_COMMAND";
 
     private static final String KEY_URL = "URL";
+
+    private static final String KEY_MESSENGER = "MESSENGER";
 
     /**
      * Processes Messages sent to it from onStartCommand().
@@ -80,7 +86,7 @@ public final class MetadataRetrievalService extends Service {
         final String command = getCommandName(intent);
         Log.d(CLASS_NAME, "Command:" + command);
         if (TextUtils.equals(START_COMMAND, command)) {
-            handlingStartCommand(getUrl(intent));
+            handlingStartCommand(intent);
         }
         if (TextUtils.equals(STOP_COMMAND, command)) {
             handlingStopCommand();
@@ -95,10 +101,14 @@ public final class MetadataRetrievalService extends Service {
      * @param url
      * @return
      */
-    public static Intent getStartRetrievalIntent(final Context context, final String url) {
+    public static Intent getStartRetrievalIntent(final Context context, final Handler handler,
+                                                 final String url) {
         final Intent intent = new Intent(context, MetadataRetrievalService.class);
         intent.putExtra(COMMAND, START_COMMAND);
         intent.putExtra(KEY_URL, url);
+        if (handler != null) {
+            intent.putExtra(KEY_MESSENGER, new Messenger(handler));
+        }
         return intent;
     }
 
@@ -139,15 +149,12 @@ public final class MetadataRetrievalService extends Service {
 
     /**
      *
-     * @param url
+     * @param intent
      */
-    private void handlingStartCommand(final String url) {
-        if (TextUtils.isEmpty(url)) {
-            return;
-        }
+    private void handlingStartCommand(final Intent intent) {
         // Create a Message that will be sent to ServiceHandler to
         // retrieve a data based on the URL.
-        final Message message = mServiceHandler.makeStartMessage(url);
+        final Message message = mServiceHandler.makeStartMessage(intent);
 
         // Send the Message to ServiceHandler to ....
         mServiceHandler.sendMessage(message);
@@ -190,22 +197,7 @@ public final class MetadataRetrievalService extends Service {
             final ServiceHandler handler = mService.get();
             if (handler != null) {
                 final Metadata metadata = handler.mRetriever.getMetadata();
-
-                Log.d(CLASS_NAME, "Metadata:" + metadata);
-                //0  = {java.util.HashMap$HashMapEntry@4499} "StreamTitle" -> "ALKILADOS - ME IGNORAS"
-                //1  = {java.util.HashMap$HashMapEntry@4500} "audio_codec" -> "mp3"
-                //2  = {java.util.HashMap$HashMapEntry@4501} "chapter_count" -> "0"
-                //3  = {java.util.HashMap$HashMapEntry@4502} "duration" -> "0"
-                //4  = {java.util.HashMap$HashMapEntry@4503} "icy-url" -> "http://104radioactiva.com/"
-                //5  = {java.util.HashMap$HashMapEntry@4504} "icy-genre" -> "Alternative,Electronic,Latin,Pop,R&B/Urban,Reggae,Rock"
-                //6  = {java.util.HashMap$HashMapEntry@4505} "icy-name" -> "104RadioActiva"
-                //7  = {java.util.HashMap$HashMapEntry@4506} "icy_metadata" -> "StreamTitle='ALKILADOS - ME IGNORAS';StreamUrl='';"
-                //8  = {java.util.HashMap$HashMapEntry@4507} "icy-notice2" -> "SHOUTcast Distributed Network Audio Server/Linux v1.9.7<BR>"
-                //9  = {java.util.HashMap$HashMapEntry@4508} "StreamUrl" ->
-                //10 = {java.util.HashMap$HashMapEntry@4509} "filesize" -> "-38"
-                //11 = {java.util.HashMap$HashMapEntry@4510} "icy-notice1" -> "<BR>This stream requires <a href="http://www.winamp.com/">Winamp</a><BR>"
-                //12 = {java.util.HashMap$HashMapEntry@4511} "icy-br" -> "128"
-                //13 = {java.util.HashMap$HashMapEntry@4512} "icy-pub" -> "1"
+                handler.obtainAndSendMetadata(metadata);
 
                 handler.mHandler.postDelayed(this, ServiceHandler.DELAY);
             }
@@ -223,6 +215,8 @@ public final class MetadataRetrievalService extends Service {
 
         private final Runnable mRetrievalRunnable = new Retrieval(this);
 
+        private Messenger mMessenger;
+
         private static final int DELAY = 2000;
 
         private final FFmpegMediaMetadataRetriever mRetriever = new FFmpegMediaMetadataRetriever();
@@ -230,6 +224,10 @@ public final class MetadataRetrievalService extends Service {
         private static final int MSG_MAKE_START_REQUEST = 1;
 
         private static final int MSG_MAKE_STOP_REQUEST = 2;
+
+        private static final int MSG_MAKE_METADATA_RESPONSE = 3;
+
+        private static final String BUNDLE_KEY_STREAM_TITLE = "STREAM_TITLE";
 
         /**
          * Class constructor initializes the Looper.
@@ -258,15 +256,14 @@ public final class MetadataRetrievalService extends Service {
             if (message == null) {
                 return;
             }
+            final Intent intent = (Intent) message.obj;
+            // Extract the Messenger.
+            if (mMessenger == null) {
+                mMessenger = (Messenger) intent.getExtras().get(KEY_MESSENGER);
+            }
             switch (message.what) {
                 case MSG_MAKE_START_REQUEST:
-                    try {
-                        mRetriever.setDataSource(String.valueOf(message.obj));
-                        mHandler.removeCallbacks(mRetrievalRunnable);
-                        mHandler.post(mRetrievalRunnable);
-                    } catch (final Throwable throwable) {
-                        Log.e(CLASS_NAME, "Can not set data sources:" + throwable.getMessage());
-                    }
+                    processStartCommand(intent);
                     break;
                 case MSG_MAKE_STOP_REQUEST:
                     mRetriever.release();
@@ -278,16 +275,33 @@ public final class MetadataRetrievalService extends Service {
             }
         }
 
+        private void processStartCommand(final Intent intent) {
+            if (intent == null) {
+                Log.w(CLASS_NAME, "Can not start, Intent is null");
+            }
+            final String url = getUrl(intent);
+            if (TextUtils.isEmpty(url)) {
+                Log.w(CLASS_NAME, "Can not start, URL is null");
+                return;
+            }
+            try {
+                mRetriever.setDataSource(url);
+                mHandler.removeCallbacks(mRetrievalRunnable);
+                mHandler.post(mRetrievalRunnable);
+            } catch (final Throwable throwable) {
+                Log.e(CLASS_NAME, "Can not set data sources:" + throwable.getMessage());
+            }
+        }
+
         /**
          *
-         * @param url
+         * @param intent
          * @return
          */
-        private Message makeStartMessage(final String url) {
-
+        private Message makeStartMessage(final Intent intent) {
             final Message message = Message.obtain();
             // Include Intent in Message to ...
-            message.obj = url;
+            message.obj = intent;
             message.what = MSG_MAKE_START_REQUEST;
             return message;
         }
@@ -300,6 +314,86 @@ public final class MetadataRetrievalService extends Service {
             final Message message = Message.obtain();
             message.what = MSG_MAKE_STOP_REQUEST;
             return message;
+        }
+
+        /**
+         *
+         * @param metadata
+         */
+        private void obtainAndSendMetadata(final Metadata metadata) {
+            Log.d(CLASS_NAME, "Metadata:" + metadata);
+
+            if (metadata == null) {
+                return;
+            }
+            if (mMessenger == null) {
+                return;
+            }
+
+            //0  = {java.util.HashMap$HashMapEntry@4499} "StreamTitle" -> "ALKILADOS - ME IGNORAS"
+            //1  = {java.util.HashMap$HashMapEntry@4500} "audio_codec" -> "mp3"
+            //2  = {java.util.HashMap$HashMapEntry@4501} "chapter_count" -> "0"
+            //3  = {java.util.HashMap$HashMapEntry@4502} "duration" -> "0"
+            //4  = {java.util.HashMap$HashMapEntry@4503} "icy-url" -> "http://104radioactiva.com/"
+            //5  = {java.util.HashMap$HashMapEntry@4504} "icy-genre" -> "Alternative,Electronic,Latin,Pop,R&B/Urban,Reggae,Rock"
+            //6  = {java.util.HashMap$HashMapEntry@4505} "icy-name" -> "104RadioActiva"
+            //7  = {java.util.HashMap$HashMapEntry@4506} "icy_metadata" -> "StreamTitle='ALKILADOS - ME IGNORAS';StreamUrl='';"
+            //8  = {java.util.HashMap$HashMapEntry@4507} "icy-notice2" -> "SHOUTcast Distributed Network Audio Server/Linux v1.9.7<BR>"
+            //9  = {java.util.HashMap$HashMapEntry@4508} "StreamUrl" ->
+            //10 = {java.util.HashMap$HashMapEntry@4509} "filesize" -> "-38"
+            //11 = {java.util.HashMap$HashMapEntry@4510} "icy-notice1" -> "<BR>This stream requires <a href="http://www.winamp.com/">Winamp</a><BR>"
+            //12 = {java.util.HashMap$HashMapEntry@4511} "icy-br" -> "128"
+            //13 = {java.util.HashMap$HashMapEntry@4512} "icy-pub" -> "1"
+
+            // Call factory method to create Message.
+            final Message message = Message.obtain();
+
+            // Return the result to indicate whether the download
+            // succeeded or failed.
+            message.arg1 = Activity.RESULT_OK;
+
+            final Bundle data = new Bundle();
+
+            // Put Metadata in the bundle.
+            data.putString(BUNDLE_KEY_STREAM_TITLE, getStreamTitle(metadata));
+            message.setData(data);
+
+            try {
+                // Send offersVO to back to the DownloadActivity.
+                message.what = MSG_MAKE_METADATA_RESPONSE;
+                mMessenger.send(message);
+            } catch (final RemoteException e) {
+                Log.e(CLASS_NAME, "Exception while sending response:" + e.getMessage());
+            }
+        }
+
+        /**
+         *
+         * @param metadata
+         * @return
+         */
+        private String getStreamTitle(final Metadata metadata) {
+
+            // key:StreamTitle, val:FONSECA - ENTRE MI VIDA Y LA TUYA
+            // key:audio_codec, val:mp3
+            // key:chapter_count, val:0
+            // key:duration, val:0
+            // key:icy-url, val:http://104radioactiva.com/
+            // key:icy-genre, val:Alternative,Electronic,Latin,Pop,R&B/Urban,Reggae,Rock
+            // key:icy-name, val:104RadioActiva
+            // key:icy_metadata, val:StreamTitle='FONSECA - ENTRE MI VIDA Y LA TUYA';StreamUrl='';
+            // key:icy-notice2, val:SHOUTcast Distributed Network Audio Server/Linux v1.9.7<BR>
+            // key:StreamUrl, val:
+            // key:filesize, val:-38
+            // key:icy-notice1, val:<BR>This stream requires <a href="http://www.winamp.com/">Winamp</a><BR>
+            // key:icy-br, val:128
+            // key:icy-pub, val:1
+
+            //Log.d(CLASS_NAME, "Metadata:");
+            //for (final String key : metadata.getAll().keySet()) {
+            //    Log.d(CLASS_NAME, "  key:" + key + ", val:" + metadata.getAll().get(key));
+            //}
+            return metadata.getString("StreamTitle");
         }
     }
 }

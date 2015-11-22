@@ -1092,7 +1092,9 @@ public final class OpenRadioService
 
             service.startService(
                     MetadataRetrievalService.getStartRetrievalIntent(
-                            service.getApplicationContext(), source
+                            service.getApplicationContext(),
+                            service.mMetadataRetrievalHandler,
+                            source
                     )
             );
         }
