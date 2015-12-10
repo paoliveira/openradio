@@ -125,6 +125,31 @@ public final class MetadataRetrievalService extends Service {
 
     /**
      *
+     * @param message
+     * @return
+     */
+    public static boolean isMetadataResponse(final Message message) {
+        return message != null && message.what == ServiceHandler.MSG_MAKE_METADATA_RESPONSE;
+    }
+
+    /**
+     *
+     * @param message
+     * @return
+     */
+    public static String getStreamTitle(final Message message) {
+        if (message == null) {
+            return null;
+        }
+        final Bundle bundle = message.getData();
+        if (bundle == null) {
+            return null;
+        }
+        return bundle.getString(ServiceHandler.BUNDLE_KEY_STREAM_TITLE);
+    }
+
+    /**
+     *
      * @param intent
      * @return
      */
@@ -199,7 +224,7 @@ public final class MetadataRetrievalService extends Service {
                 final Metadata metadata = handler.mRetriever.getMetadata();
                 handler.obtainAndSendMetadata(metadata);
 
-                handler.mHandler.postDelayed(this, ServiceHandler.DELAY);
+                handler.mHandler.postDelayed(this, ServiceHandler.PERIOD);
             }
         }
     }
@@ -217,7 +242,10 @@ public final class MetadataRetrievalService extends Service {
 
         private Messenger mMessenger;
 
-        private static final int DELAY = 2000;
+        /**
+         * Period between metadata retrievals, in milliseconds.
+         */
+        private static final int PERIOD = 2000;
 
         private final FFmpegMediaMetadataRetriever mRetriever = new FFmpegMediaMetadataRetriever();
 
@@ -258,7 +286,7 @@ public final class MetadataRetrievalService extends Service {
             }
             final Intent intent = (Intent) message.obj;
             // Extract the Messenger.
-            if (mMessenger == null) {
+            if (mMessenger == null && intent != null) {
                 mMessenger = (Messenger) intent.getExtras().get(KEY_MESSENGER);
             }
             switch (message.what) {
