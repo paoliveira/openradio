@@ -38,6 +38,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.view.list.QueueAdapter;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -119,6 +120,11 @@ public class QueueActivity extends FragmentActivity {
      */
     private ProgressBar mProgressBar;
 
+    /**
+     * Listener of the media Controllers callbacks.
+     */
+    private MediaController.Callback mMediaSessionCallback = new MediaSessionCallback(this);
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,15 +136,15 @@ public class QueueActivity extends FragmentActivity {
 
         mSkipPrevious = (ImageButton) findViewById(R.id.skip_previous);
         mSkipPrevious.setEnabled(false);
-        mSkipPrevious.setOnClickListener(buttonListener);
+        mSkipPrevious.setOnClickListener(sButtonListener);
 
         mSkipNext = (ImageButton) findViewById(R.id.skip_next);
         mSkipNext.setEnabled(false);
-        mSkipNext.setOnClickListener(buttonListener);
+        mSkipNext.setOnClickListener(sButtonListener);
 
         mPlayPause = (ImageButton) findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
-        mPlayPause.setOnClickListener(buttonListener);
+        mPlayPause.setOnClickListener(sButtonListener);
 
         mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
 
@@ -183,7 +189,8 @@ public class QueueActivity extends FragmentActivity {
 
         // Initialize Media Browser
         mMediaBrowser = new MediaBrowser(
-                this, new ComponentName(this, OpenRadioService.class), connectionCallback, null
+                this, new ComponentName(this, OpenRadioService.class),
+                new MediaBrowserConnectionCallback(this), null
         );
 
         restoreState(savedInstanceState);
@@ -203,7 +210,7 @@ public class QueueActivity extends FragmentActivity {
         super.onPause();
 
         if (mMediaController != null) {
-            mMediaController.unregisterCallback(sessionCallback);
+            mMediaController.unregisterCallback(mMediaSessionCallback);
         }
 
         if (mMediaBrowser != null) {
@@ -292,124 +299,6 @@ public class QueueActivity extends FragmentActivity {
     }
 
     /**
-     * Callback object for the Media Browser connection events
-     */
-    private final MediaBrowser.ConnectionCallback connectionCallback
-            = new MediaBrowser.ConnectionCallback() {
-
-        @Override
-        public void onConnected() {
-            Log.d(CLASS_NAME, "On Connected: session token " + mMediaBrowser.getSessionToken());
-
-            // If session token is null - throw exception
-            //if (mMediaBrowser.getSessionToken() == null) {
-            //    throw new IllegalArgumentException("No Session token");
-            //}
-
-            // Initialize Media Controller
-            mMediaController = new MediaController(
-                    QueueActivity.this,
-                    mMediaBrowser.getSessionToken()
-            );
-
-            // Initialize Transport Controls
-            mTransportControls = mMediaController.getTransportControls();
-            // Register callbacks
-            mMediaController.registerCallback(sessionCallback);
-
-            // Set actual media controller
-            setMediaController(mMediaController);
-
-            // Get actual playback state
-            mPlaybackState = mMediaController.getPlaybackState();
-
-            // Update queue
-            final List<MediaSession.QueueItem> queue = mMediaController.getQueue();
-
-            if (queue != null) {
-
-                // If the ie no first visible position restored, try to get selected id from the
-                // bundles of the Intent.
-
-                if (mListFirstVisiblePosition == 0) {
-                    final int queueSize = queue.size();
-                    final String selectedMediaId = getSelectedMediaId(getIntent());
-                    MediaSession.QueueItem item;
-                    String mediaId;
-                    for (int i = 0; i < queueSize; i++) {
-                        item = queue.get(i);
-                        if (item == null) {
-                            continue;
-                        }
-                        mediaId = item.getDescription().getMediaId();
-                        if (mediaId == null) {
-                            continue;
-                        }
-                        if (mediaId.equals(selectedMediaId)) {
-                            mListFirstVisiblePosition = i;
-                            break;
-                        }
-                    }
-                }
-
-                mQueueAdapter.clear();
-                mQueueAdapter.notifyDataSetInvalidated();
-                mQueueAdapter.addAll(queue);
-                mQueueAdapter.notifyDataSetChanged();
-            }
-
-            // Change play state
-            onPlaybackStateChanged(mPlaybackState);
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            Log.w(CLASS_NAME, "On Connection Failed");
-        }
-
-        @Override
-        public void onConnectionSuspended() {
-            Log.w(CLASS_NAME, "On Connection Suspended");
-            mMediaController.unregisterCallback(sessionCallback);
-            mTransportControls = null;
-            mMediaController = null;
-            setMediaController(null);
-        }
-    };
-
-    /**
-     * Receive callbacks from the MediaController.
-     * Here we update our state such as which queue is being shown,
-     * the current title and description and the PlaybackState.
-     */
-    private final MediaController.Callback sessionCallback = new MediaController.Callback() {
-
-        @Override
-        public void onSessionDestroyed() {
-            Log.d(CLASS_NAME, "Session destroyed. Need to fetch a new Media Session");
-        }
-
-        @Override
-        public void onPlaybackStateChanged(@NonNull final PlaybackState state) {
-            Log.d(CLASS_NAME, "Received playback state change to state " + state.getState());
-            mPlaybackState = state;
-            QueueActivity.this.onPlaybackStateChanged(state);
-        }
-
-        @Override
-        public void onQueueChanged(List<MediaSession.QueueItem> queue) {
-            Log.d(CLASS_NAME, "On Queue Changed: " + queue);
-            if (queue == null) {
-                return;
-            }
-            mQueueAdapter.clear();
-            mQueueAdapter.notifyDataSetInvalidated();
-            mQueueAdapter.addAll(queue);
-            mQueueAdapter.notifyDataSetChanged();
-        }
-    };
-
-    /**
      * Process Playback state changed
      *
      * @param state Actual {@link android.media.session.PlaybackState}
@@ -496,13 +385,16 @@ public class QueueActivity extends FragmentActivity {
     /**
      * Control Buttons listeners
      */
-    private final View.OnClickListener buttonListener = new View.OnClickListener() {
+    private final View.OnClickListener sButtonListener = new SafeOnClickListener<QueueActivity>(this) {
 
         @Override
-        public void onClick(final View view) {
-
+        public void safeOnClick(final QueueActivity reference, final View view) {
+            if (reference == null) {
+                return;
+            }
             final int state
-                    = mPlaybackState == null ? PlaybackState.STATE_NONE : mPlaybackState.getState();
+                    = reference.mPlaybackState == null
+                    ? PlaybackState.STATE_NONE : reference.mPlaybackState.getState();
 
             switch (view.getId()) {
                 case R.id.play_pause:
@@ -510,17 +402,17 @@ public class QueueActivity extends FragmentActivity {
                     if (state == PlaybackState.STATE_PAUSED
                             || state == PlaybackState.STATE_STOPPED
                             || state == PlaybackState.STATE_NONE) {
-                        playMedia();
+                        reference.playMedia();
                     } else if (state == PlaybackState.STATE_PLAYING) {
-                        pauseMedia();
+                        reference.pauseMedia();
                     }
                     break;
                 case R.id.skip_previous:
                     Log.d(CLASS_NAME, "Start button pressed, in state " + state);
-                    skipToPrevious();
+                    reference.skipToPrevious();
                     break;
                 case R.id.skip_next:
-                    skipToNext();
+                    reference.skipToNext();
                     break;
             }
         }
@@ -573,5 +465,172 @@ public class QueueActivity extends FragmentActivity {
             return;
         }
         mTransportControls.stop();
+    }
+
+    /**
+     * Receive callbacks from the MediaController.
+     * Here we update our state such as which queue is being shown,
+     * the current title and description and the PlaybackState.
+     */
+    private static final class MediaSessionCallback extends MediaController.Callback {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<QueueActivity> mReference;
+
+        /**
+         * Constructor
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaSessionCallback(final QueueActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onSessionDestroyed() {
+            Log.d(CLASS_NAME, "Session destroyed. Need to fetch a new Media Session");
+        }
+
+        @Override
+        public void onPlaybackStateChanged(@NonNull final PlaybackState state) {
+            Log.d(CLASS_NAME, "Received playback state change to state " + state.getState());
+
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+            activity.mPlaybackState = state;
+            activity.onPlaybackStateChanged(state);
+        }
+
+        @Override
+        public void onQueueChanged(final List<MediaSession.QueueItem> queue) {
+            Log.d(CLASS_NAME, "On Queue Changed: " + queue);
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+            if (queue == null) {
+                return;
+            }
+            activity.mQueueAdapter.clear();
+            activity.mQueueAdapter.notifyDataSetInvalidated();
+            activity.mQueueAdapter.addAll(queue);
+            activity.mQueueAdapter.notifyDataSetChanged();
+        }
+    }
+
+    /**
+     * Callback object for the Media Browser connection events.
+     */
+    private static final class MediaBrowserConnectionCallback extends MediaBrowser.ConnectionCallback {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<QueueActivity> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaBrowserConnectionCallback(final QueueActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onConnected() {
+            Log.d(CLASS_NAME, "On Connected");
+
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            Log.d(CLASS_NAME, "Session token " + activity.mMediaBrowser.getSessionToken());
+
+            // If session token is null - throw exception
+            //if (mMediaBrowser.getSessionToken() == null) {
+            //    throw new IllegalArgumentException("No Session token");
+            //}
+
+            // Initialize Media Controller
+            activity.mMediaController = new MediaController(
+                    activity,
+                    activity.mMediaBrowser.getSessionToken()
+            );
+
+            // Initialize Transport Controls
+            activity.mTransportControls = activity.mMediaController.getTransportControls();
+            // Register callbacks
+            activity.mMediaController.registerCallback(activity.mMediaSessionCallback);
+
+            // Set actual media controller
+            activity.setMediaController(activity.mMediaController);
+
+            // Get actual playback state
+            activity.mPlaybackState = activity.mMediaController.getPlaybackState();
+
+            // Update queue
+            final List<MediaSession.QueueItem> queue = activity.mMediaController.getQueue();
+
+            if (queue != null) {
+
+                // If the ie no first visible position restored, try to get selected id from the
+                // bundles of the Intent.
+
+                if (activity.mListFirstVisiblePosition == 0) {
+                    final int queueSize = queue.size();
+                    final String selectedMediaId = getSelectedMediaId(activity.getIntent());
+                    MediaSession.QueueItem item;
+                    String mediaId;
+                    for (int i = 0; i < queueSize; i++) {
+                        item = queue.get(i);
+                        if (item == null) {
+                            continue;
+                        }
+                        mediaId = item.getDescription().getMediaId();
+                        if (mediaId == null) {
+                            continue;
+                        }
+                        if (mediaId.equals(selectedMediaId)) {
+                            activity.mListFirstVisiblePosition = i;
+                            break;
+                        }
+                    }
+                }
+
+                activity.mQueueAdapter.clear();
+                activity.mQueueAdapter.notifyDataSetInvalidated();
+                activity.mQueueAdapter.addAll(queue);
+                activity.mQueueAdapter.notifyDataSetChanged();
+            }
+
+            // Change play state
+            activity.onPlaybackStateChanged(activity.mPlaybackState);
+        }
+
+        @Override
+        public void onConnectionFailed() {
+            Log.w(CLASS_NAME, "On Connection Failed");
+        }
+
+        @Override
+        public void onConnectionSuspended() {
+            Log.w(CLASS_NAME, "On Connection Suspended");
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+            activity.mMediaController.unregisterCallback(activity.mMediaSessionCallback);
+            activity.mTransportControls = null;
+            activity.mMediaController = null;
+            activity.setMediaController(null);
+        }
     }
 }

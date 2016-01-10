@@ -144,8 +144,14 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Member field to keep reference to the Local broadcast receiver.
      */
-    private LocalBroadcastReceiverCallback mLocalBroadcastReceiverCallback
+    private final LocalBroadcastReceiverCallback mLocalBroadcastReceiverCallback
             = new LocalBroadcastReceiverCallback(this);
+
+    /**
+     * Listener for the Media Browser Subscription callback
+     */
+    private final MediaBrowser.SubscriptionCallback mMedSubscriptionCallback
+            = new MediaBrowserSubscriptionCallback(this);
 
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
@@ -286,7 +292,7 @@ public final class MainActivity extends AppCompatActivity {
         mMediaBrowser = new MediaBrowser(
                 this,
                 new ComponentName(this, OpenRadioService.class),
-                connectionCallback, null
+                new MediaBrowserConnectionCallback(this), null
         );
 
         restoreState(savedInstanceState);
@@ -499,7 +505,7 @@ public final class MainActivity extends AppCompatActivity {
 
         mediaItemsStack.add(mediaId);
 
-        mMediaBrowser.subscribe(mediaId, subscriptionCallback);
+        mMediaBrowser.subscribe(mediaId, mMedSubscriptionCallback);
     }
 
     /**
@@ -605,115 +611,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Callback object for the subscription events
-     */
-    private final MediaBrowser.SubscriptionCallback subscriptionCallback
-            = new MediaBrowser.SubscriptionCallback() {
-
-        @Override
-        public void onChildrenLoaded(@NonNull final String parentId,
-                                     @NonNull final List<MediaBrowser.MediaItem> children) {
-            Log.i(CLASS_NAME, "On children loaded:" + parentId);
-
-            hideProgressBar();
-
-            final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
-            if (parentId.equals(MediaIDHelper.MEDIA_ID_ROOT)) {
-                addBtn.setVisibility(View.VISIBLE);
-            } else {
-                addBtn.setVisibility(View.GONE);
-            }
-
-            mBrowserAdapter.clear();
-            mBrowserAdapter.notifyDataSetInvalidated();
-            for (MediaBrowser.MediaItem item : children) {
-                mBrowserAdapter.addItem(item);
-            }
-            mBrowserAdapter.notifyDataSetChanged();
-
-            if (children.isEmpty()) {
-                showNoDataMessage();
-            }
-
-            // Get list view reference from the inflated xml
-            final ListView listView = (ListView) findViewById(R.id.list_view);
-            if (listView == null) {
-                return;
-            }
-            if (!listPositionMap.containsKey(parentId)) {
-                return;
-            }
-            // Restore previous position for the given category
-            listView.setSelection(listPositionMap.get(parentId));
-        }
-
-        @Override
-        public void onError(@NonNull final String id) {
-
-            hideProgressBar();
-
-            Toast.makeText(
-                    MainActivity.this, R.string.error_loading_media, Toast.LENGTH_LONG
-            ).show();
-        }
-    };
-
-    /**
-     * Callback object for the Media Browser connection events
-     */
-    private final MediaBrowser.ConnectionCallback connectionCallback
-            = new MediaBrowser.ConnectionCallback() {
-
-        @Override
-        public void onConnected() {
-            super.onConnected();
-
-            Log.i(CLASS_NAME, "MediaBrowser connected, stack empty:" + mediaItemsStack.isEmpty());
-
-            // If stack is empty - assume that this is a start point
-            if (mediaItemsStack.isEmpty()) {
-                addMediaItemToStack(mMediaBrowser.getRoot());
-            }
-
-            // If session token is null - throw exception
-            //if (mMediaBrowser.getSessionToken() == null) {
-            //    throw new IllegalArgumentException("No Session token");
-            //}
-
-            // Subscribe to the media item
-            mMediaBrowser.subscribe(
-                    mediaItemsStack.get(mediaItemsStack.size() - 1),
-                    subscriptionCallback
-            );
-
-            // (Re)-Initialize media controller
-            final MediaController mediaController = new MediaController(
-                    MainActivity.this,
-                    mMediaBrowser.getSessionToken()
-            );
-
-            // Set actual controller
-            setMediaController(mediaController);
-        }
-
-        @Override
-        public void onConnectionSuspended() {
-            super.onConnectionSuspended();
-
-            Log.w(CLASS_NAME, "MediaBrowser connection suspended");
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            super.onConnectionFailed();
-
-            Log.w(CLASS_NAME, "MediaBrowser connection failed");
-
-            setMediaController(null);
-        }
-    };
-
-    /**
      * Callback receiver of the local application's event.
      */
     private static final class LocalBroadcastReceiverCallback implements AppLocalBroadcastReceiverCallback {
@@ -767,13 +664,14 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener of the Permissions Status changes.
      */
-    private static class PermissionListener implements PermissionStatusListener {
+    private static final class PermissionListener implements PermissionStatusListener {
 
         private final WeakReference<Context> mReference;
         private final Map<String, Double> mMap = new ConcurrentHashMap<>();
         private static final int DELTA = 2000;
 
         public PermissionListener(final Context reference) {
+            super();
             mReference = new WeakReference<>(reference);
         }
 
@@ -796,6 +694,154 @@ public final class MainActivity extends AppCompatActivity {
             mReference.get().startActivity(
                     PermissionsDialogActivity.getIntent(mReference.get(), permissionName)
             );
+        }
+    }
+
+    /**
+     * Callback object for the Media Browser connection events
+     */
+    private static final class MediaBrowserConnectionCallback extends MediaBrowser.ConnectionCallback {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<MainActivity> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaBrowserConnectionCallback(final MainActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onConnected() {
+            Log.d(CLASS_NAME, "On Connected");
+
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            Log.i(CLASS_NAME, "Stack empty:" + activity.mediaItemsStack.isEmpty());
+
+            // If stack is empty - assume that this is a start point
+            if (activity.mediaItemsStack.isEmpty()) {
+                activity.addMediaItemToStack(activity.mMediaBrowser.getRoot());
+            }
+
+            // If session token is null - throw exception
+            //if (mMediaBrowser.getSessionToken() == null) {
+            //    throw new IllegalArgumentException("No Session token");
+            //}
+
+            // Subscribe to the media item
+            activity.mMediaBrowser.subscribe(
+                    activity.mediaItemsStack.get(activity.mediaItemsStack.size() - 1),
+                    activity.mMedSubscriptionCallback
+            );
+
+            // (Re)-Initialize media controller
+            final MediaController mediaController = new MediaController(
+                    activity,
+                    activity.mMediaBrowser.getSessionToken()
+            );
+
+            // Set actual controller
+            activity.setMediaController(mediaController);
+        }
+
+        @Override
+        public void onConnectionFailed() {
+            Log.w(CLASS_NAME, "On Connection Failed");
+        }
+
+        @Override
+        public void onConnectionSuspended() {
+            Log.w(CLASS_NAME, "On Connection Suspended");
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            activity.setMediaController(null);
+        }
+    }
+
+    private static final class MediaBrowserSubscriptionCallback extends MediaBrowser.SubscriptionCallback {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<MainActivity> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaBrowserSubscriptionCallback(final MainActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onChildrenLoaded(@NonNull final String parentId,
+                                     @NonNull final List<MediaBrowser.MediaItem> children) {
+            Log.i(CLASS_NAME, "On children loaded:" + parentId);
+
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            activity.hideProgressBar();
+
+            final FloatingActionButton addBtn
+                    = (FloatingActionButton) activity.findViewById(R.id.add_station_btn);
+            if (parentId.equals(MediaIDHelper.MEDIA_ID_ROOT)) {
+                addBtn.setVisibility(View.VISIBLE);
+            } else {
+                addBtn.setVisibility(View.GONE);
+            }
+
+            activity.mBrowserAdapter.clear();
+            activity.mBrowserAdapter.notifyDataSetInvalidated();
+            for (final MediaBrowser.MediaItem item : children) {
+                activity.mBrowserAdapter.addItem(item);
+            }
+            activity.mBrowserAdapter.notifyDataSetChanged();
+
+            if (children.isEmpty()) {
+                activity.showNoDataMessage();
+            }
+
+            // Get list view reference from the inflated xml
+            final ListView listView = (ListView) activity.findViewById(R.id.list_view);
+            if (listView == null) {
+                return;
+            }
+            if (!activity.listPositionMap.containsKey(parentId)) {
+                return;
+            }
+            // Restore previous position for the given category
+            listView.setSelection(activity.listPositionMap.get(parentId));
+        }
+
+        @Override
+        public void onError(@NonNull final String id) {
+
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            activity.hideProgressBar();
+
+            Toast.makeText(activity, R.string.error_loading_media, Toast.LENGTH_LONG).show();
         }
     }
 }
