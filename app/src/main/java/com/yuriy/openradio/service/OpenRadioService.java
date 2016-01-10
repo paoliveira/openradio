@@ -65,7 +65,7 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
-import com.yuriy.openradio.view.SafeRunnable;
+import com.yuriy.openradio.business.SafeRunnable;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;

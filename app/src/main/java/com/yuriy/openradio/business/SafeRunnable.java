@@ -1,4 +1,4 @@
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.business;
 
 import android.view.View;
 
