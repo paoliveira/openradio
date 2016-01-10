@@ -65,6 +65,7 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.view.SafeRunnable;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -828,16 +829,18 @@ public final class OpenRadioService
         if (!radioStationCopy.getIsUpdated()) {
 
             mApiCallExecutor.submit(
-                    new Runnable() {
+                    new SafeRunnable<OpenRadioService>(this) {
 
                         @Override
-                        public void run() {
-
+                        public void safeRun(final OpenRadioService reference) {
+                            if (reference == null) {
+                                return;
+                            }
                             // Start download information about Radio Station
                             final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
                                     new HTTPDownloaderImpl(),
                                     UrlBuilder.getStation(
-                                            getApplicationContext(),
+                                            reference.getApplicationContext(),
                                             String.valueOf(radioStationCopy.getId())
                                     )
                             );
@@ -847,7 +850,7 @@ public final class OpenRadioService
 
                             if (listener != null) {
                                 listener.onComplete(
-                                        buildMetadata(radioStationCopy)
+                                        reference.buildMetadata(radioStationCopy)
                                 );
                             }
                         }
@@ -855,9 +858,7 @@ public final class OpenRadioService
             );
         } else {
             if (listener != null) {
-                listener.onComplete(
-                        buildMetadata(radioStationCopy)
-                );
+                listener.onComplete(buildMetadata(radioStationCopy));
             }
         }
     }
@@ -1140,13 +1141,15 @@ public final class OpenRadioService
     /**
      * Runnable for the Radio Station buffering timeout.
      */
-    private final Runnable radioStationTimeoutRunnable = new Runnable() {
+    private final Runnable radioStationTimeoutRunnable = new SafeRunnable<OpenRadioService>(this) {
 
         @Override
-        public void run() {
-
-            handleStopRequest(null);
-            handleStopRequest(getString(R.string.can_not_play_station));
+        public void safeRun(final OpenRadioService reference) {
+            if (reference == null) {
+                return;
+            }
+            reference.handleStopRequest(null);
+            reference.handleStopRequest(getString(R.string.can_not_play_station));
         }
     };
 
@@ -1503,25 +1506,27 @@ public final class OpenRadioService
             return;
         }
 
-        // Instantiate appropriate downloader (HTTP one)
-        final Downloader downloader = new HTTPDownloaderImpl();
-        // Instantiate appropriate API service provider
-        final APIServiceProvider serviceProvider = getServiceProvider();
-
         mApiCallExecutor.submit(
-                new Runnable() {
+                new SafeRunnable<OpenRadioService>(this) {
 
                     @Override
-                    public void run() {
+                    public void safeRun(final OpenRadioService reference) {
+                        if (reference == null) {
+                            return;
+                        }
+                        // Instantiate appropriate downloader (HTTP one)
+                        final Downloader downloader = new HTTPDownloaderImpl();
+                        // Instantiate appropriate API service provider
+                        final APIServiceProvider serviceProvider = getServiceProvider();
 
                         final List<RadioStationVO> list = serviceProvider.getStations(
                                 downloader,
-                                UrlBuilder.getSearchQuery(getApplicationContext(), query)
+                                UrlBuilder.getSearchQuery(reference.getApplicationContext(), query)
                         );
 
                         if (list == null || list.isEmpty()) {
                             // if nothing was found, we need to warn the user and stop playing
-                            handleStopRequest(getString(R.string.no_search_results));
+                            reference.handleStopRequest(reference.getString(R.string.no_search_results));
                             // TODO
                             return;
                         }
@@ -1529,20 +1534,20 @@ public final class OpenRadioService
                         Log.i(CLASS_NAME, "Found " + list.size() + " items");
 
                         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-                            QueueHelper.copyCollection(mRadioStations, list);
+                            QueueHelper.copyCollection(reference.mRadioStations, list);
 
                             QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
-                                            getApplicationContext(),
-                                            mRadioStations)
+                                            reference.getApplicationContext(),
+                                            reference.mRadioStations)
                             );
                         }
 
-                        mSession.setQueue(mPlayingQueue);
+                        reference.mSession.setQueue(reference.mPlayingQueue);
 
                         // immediately start playing from the beginning of the search results
-                        mCurrentIndexOnQueue = 0;
+                        reference.mCurrentIndexOnQueue = 0;
 
-                        handlePlayRequest();
+                        reference.handlePlayRequest();
                     }
                 }
         );
