@@ -124,18 +124,22 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
+     * Determines whether there is Metadata in the response Message.
      *
-     * @param message
-     * @return
+     * @param message Response Message.
+     *
+     * @return {@code true} if there is Metadata, {@code false} otherwise.
      */
     public static boolean isMetadataResponse(final Message message) {
         return message != null && message.what == ServiceHandler.MSG_MAKE_METADATA_RESPONSE;
     }
 
     /**
+     * Extracts Stream Title from the response message.
      *
-     * @param message
-     * @return
+     * @param message Response Message.
+     *
+     * @return Stream Title.
      */
     public static String getStreamTitle(final Message message) {
         if (message == null) {
@@ -220,12 +224,23 @@ public final class MetadataRetrievalService extends Service {
         @Override
         public void run() {
             final ServiceHandler handler = mService.get();
-            if (handler != null) {
-                final Metadata metadata = handler.mRetriever.getMetadata();
-                handler.obtainAndSendMetadata(metadata);
-
-                handler.mHandler.postDelayed(this, ServiceHandler.PERIOD);
+            if (handler == null) {
+                return;
             }
+            Metadata metadata = null;
+            final FFmpegMediaMetadataRetriever retriever = new FFmpegMediaMetadataRetriever();
+            try {
+                retriever.setDataSource(handler.mUrl);
+                metadata = retriever.getMetadata();
+            } catch (final Exception e) {
+                Log.e(CLASS_NAME, "Can not get Metadata:" + e.getMessage());
+            } finally {
+                retriever.release();
+            }
+
+            handler.obtainAndSendMetadata(metadata);
+
+            handler.mHandler.postDelayed(this, ServiceHandler.PERIOD);
         }
     }
 
@@ -245,7 +260,7 @@ public final class MetadataRetrievalService extends Service {
         /**
          * Period between metadata retrievals, in milliseconds.
          */
-        private static final int PERIOD = 2000;
+        private static final int PERIOD = 5000;
 
         private final FFmpegMediaMetadataRetriever mRetriever = new FFmpegMediaMetadataRetriever();
 
@@ -256,6 +271,10 @@ public final class MetadataRetrievalService extends Service {
         private static final int MSG_MAKE_METADATA_RESPONSE = 3;
 
         private static final String BUNDLE_KEY_STREAM_TITLE = "STREAM_TITLE";
+
+        private String mCurrentStreamTitle;
+
+        private String mUrl;
 
         /**
          * Class constructor initializes the Looper.
@@ -294,7 +313,7 @@ public final class MetadataRetrievalService extends Service {
                     processStartCommand(intent);
                     break;
                 case MSG_MAKE_STOP_REQUEST:
-                    mRetriever.release();
+                    //mRetriever.release();
                     mHandler.removeCallbacks(mRetrievalRunnable);
                     break;
                 default:
@@ -312,13 +331,9 @@ public final class MetadataRetrievalService extends Service {
                 Log.w(CLASS_NAME, "Can not start, URL is null");
                 return;
             }
-            try {
-                mRetriever.setDataSource(url);
-                mHandler.removeCallbacks(mRetrievalRunnable);
-                mHandler.post(mRetrievalRunnable);
-            } catch (final Throwable throwable) {
-                Log.e(CLASS_NAME, "Can not set data sources:" + throwable.getMessage());
-            }
+            mUrl = url;
+            mHandler.removeCallbacks(mRetrievalRunnable);
+            mHandler.post(mRetrievalRunnable);
         }
 
         /**
@@ -345,8 +360,9 @@ public final class MetadataRetrievalService extends Service {
         }
 
         /**
+         * Obtain a new Message instance from the global pool and add Metadata field to it.
          *
-         * @param metadata
+         * @param metadata Metadata obtained from the stream.
          */
         private void obtainAndSendMetadata(final Metadata metadata) {
             Log.d(CLASS_NAME, "Metadata:" + metadata);
@@ -354,6 +370,16 @@ public final class MetadataRetrievalService extends Service {
             if (metadata == null) {
                 return;
             }
+
+            // TODO : refactor this condition to the separate method
+            final String streamTitle = getStreamTitle(metadata);
+            Log.d(CLASS_NAME, "Stream Title:" + streamTitle);
+            if (TextUtils.equals(mCurrentStreamTitle, streamTitle)) {
+                Log.d(CLASS_NAME, "Metadata didn't changed");
+                return;
+            }
+            mCurrentStreamTitle = streamTitle;
+
             if (mMessenger == null) {
                 return;
             }
@@ -383,11 +409,11 @@ public final class MetadataRetrievalService extends Service {
             final Bundle data = new Bundle();
 
             // Put Metadata in the bundle.
-            data.putString(BUNDLE_KEY_STREAM_TITLE, getStreamTitle(metadata));
+            data.putString(BUNDLE_KEY_STREAM_TITLE, mCurrentStreamTitle);
             message.setData(data);
 
             try {
-                // Send offersVO to back to the DownloadActivity.
+                // Send Radio to back to the DownloadActivity.
                 message.what = MSG_MAKE_METADATA_RESPONSE;
                 mMessenger.send(message);
             } catch (final RemoteException e) {
@@ -396,9 +422,11 @@ public final class MetadataRetrievalService extends Service {
         }
 
         /**
+         * Extract Stream Title from the metadata.
          *
-         * @param metadata
-         * @return
+         * @param metadata Metadata obtained from the stream.
+         *
+         * @return The Stream Title.
          */
         private String getStreamTitle(final Metadata metadata) {
 

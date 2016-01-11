@@ -46,6 +46,7 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
+import com.yuriy.openradio.business.SafeRunnable;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
@@ -65,7 +66,6 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
-import com.yuriy.openradio.business.SafeRunnable;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -295,7 +295,8 @@ public final class OpenRadioService
     /**
      *
      */
-    private final RadioStationUpdateListener mRadioStationUpdateListener = new RSUpdateListener(this);
+    private final RadioStationUpdateListener mRadioStationUpdateListener
+            = new RadioStationUpdateListenerImpl(this);
 
     /**
      * Handler to receive messages from the {@link MetadataRetrievalService}.
@@ -320,10 +321,13 @@ public final class OpenRadioService
         public void handleMessage(final Message message) {
             super.handleMessage(message);
 
-            if (MetadataRetrievalService.isMetadataResponse(message)) {
-                final String streamTitle = MetadataRetrievalService.getStreamTitle(message);
-                Log.d(CLASS_NAME, "Stream title:" + streamTitle);
+            if (!MetadataRetrievalService.isMetadataResponse(message)) {
+                Log.w(CLASS_NAME, "No metadata in the response message");
+                return;
             }
+
+            final String streamTitle = MetadataRetrievalService.getStreamTitle(message);
+            Log.d(CLASS_NAME, "Stream title:" + streamTitle);
         }
     }
 
@@ -836,12 +840,36 @@ public final class OpenRadioService
     }
 
     /**
-     * Retrieve currently selected Radio Station. If the URl is not yet obtained via API the
-     * it will be retrieved as well, appropriate event will be dispatched via listener.
+     * Retrieve currently selected Radio Station.
+     *
+     * @return The currently selected Radio Station, or {@code null} if it is impossible to
+     *         determine it.
+     */
+    private RadioStationVO getCurrentPlayingRadioStation() {
+        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+            return null;
+        }
+        final MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        if (item == null) {
+            return null;
+        }
+        final String mediaId = item.getDescription().getMediaId();
+
+        RadioStationVO radioStation;
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+        }
+        return radioStation;
+    }
+
+    /**
+     * Retrieve currently selected Radio Station asynchronously.<br>
+     * If the URl is not yet obtained via API the it will be retrieved as well,
+     * appropriate event will be dispatched via listener.
      *
      * @param listener {@link RadioStationUpdateListener}
      */
-    private void getCurrentPlayingRadioStation(final RadioStationUpdateListener listener) {
+    private void getCurrentPlayingRadioStationAsync(final RadioStationUpdateListener listener) {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             if (listener != null) {
                 listener.onComplete(null);
@@ -1011,14 +1039,35 @@ public final class OpenRadioService
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing
-            getCurrentPlayingRadioStation(mRadioStationUpdateListener);
+            getCurrentPlayingRadioStationAsync(mRadioStationUpdateListener);
+        }
+
+        // Start Metadata retrieving service
+        startMetadataRetrieving();
+    }
+
+    /**
+     * Send command to the Retrieving service in order to start retrieve metadata.
+     */
+    private void startMetadataRetrieving() {
+        // get current Radio Station
+        final RadioStationVO currentRadioStation = getCurrentPlayingRadioStation();
+        // Only is there is known current Radio Station
+        if (currentRadioStation != null) {
+            startService(
+                    MetadataRetrievalService.getStartRetrievalIntent(
+                            getApplicationContext(),
+                            mMetadataRetrievalHandler,
+                            currentRadioStation.getStreamURL()
+                    )
+            );
         }
     }
 
     /**
      * Listener for the getting current playing Radio Station data event.
      */
-    private static final class RSUpdateListener implements RadioStationUpdateListener {
+    private static final class RadioStationUpdateListenerImpl implements RadioStationUpdateListener {
 
         /**
          *
@@ -1029,7 +1078,7 @@ public final class OpenRadioService
          *
          * @param reference
          */
-        public RSUpdateListener(OpenRadioService reference) {
+        public RadioStationUpdateListenerImpl(OpenRadioService reference) {
             mReference = new WeakReference<>(reference);
         }
 
@@ -1092,13 +1141,8 @@ public final class OpenRadioService
                 service.updatePlaybackState(service.getString(R.string.can_not_play_station));
             }
 
-            /*service.startService(
-                    MetadataRetrievalService.getStartRetrievalIntent(
-                            service.getApplicationContext(),
-                            service.mMetadataRetrievalHandler,
-                            source
-                    )
-            );*/
+            // Start Metadata retrieving service
+            service.startMetadataRetrieving();
         }
     };
 
@@ -1161,6 +1205,8 @@ public final class OpenRadioService
             giveUpAudioFocus();
         }
         updatePlaybackState(null);
+
+        startService(MetadataRetrievalService.getStopRetrievalIntent(getApplicationContext()));
     }
 
     /**
@@ -1306,7 +1352,7 @@ public final class OpenRadioService
     }
 
     private void setCustomAction(final PlaybackState.Builder stateBuilder) {
-        getCurrentPlayingRadioStation(
+        getCurrentPlayingRadioStationAsync(
                 new RadioStationUpdateListener() {
 
                     @Override
@@ -1573,7 +1619,7 @@ public final class OpenRadioService
             }
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
-                service.getCurrentPlayingRadioStation(
+                service.getCurrentPlayingRadioStationAsync(
                         new RadioStationUpdateListener() {
                             @Override
                             public void onComplete(final MediaMetadata track) {
