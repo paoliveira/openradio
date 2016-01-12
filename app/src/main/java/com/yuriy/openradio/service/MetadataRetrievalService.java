@@ -260,7 +260,7 @@ public final class MetadataRetrievalService extends Service {
         /**
          * Period between metadata retrievals, in milliseconds.
          */
-        private static final int PERIOD = 5000;
+        private static final int PERIOD = 2000;
 
         private final FFmpegMediaMetadataRetriever mRetriever = new FFmpegMediaMetadataRetriever();
 
@@ -367,10 +367,6 @@ public final class MetadataRetrievalService extends Service {
         private void obtainAndSendMetadata(final Metadata metadata) {
             Log.d(CLASS_NAME, "Metadata:" + metadata);
 
-            if (metadata == null) {
-                return;
-            }
-
             // TODO : refactor this condition to the separate method
             final String streamTitle = getStreamTitle(metadata);
             Log.d(CLASS_NAME, "Stream Title:" + streamTitle);
@@ -426,7 +422,7 @@ public final class MetadataRetrievalService extends Service {
          *
          * @param metadata Metadata obtained from the stream.
          *
-         * @return The Stream Title.
+         * @return The Stream Title or an empty string in case of it is impossible to get it.
          */
         private String getStreamTitle(final Metadata metadata) {
 
@@ -449,6 +445,9 @@ public final class MetadataRetrievalService extends Service {
             //for (final String key : metadata.getAll().keySet()) {
             //    Log.d(CLASS_NAME, "  key:" + key + ", val:" + metadata.getAll().get(key));
             //}
+            if (metadata == null) {
+                return "";
+            }
             return metadata.getString("StreamTitle");
         }
     }
