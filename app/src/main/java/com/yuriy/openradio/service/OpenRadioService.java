@@ -107,6 +107,9 @@ public final class OpenRadioService
     private static final String VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
 
+    private static final String VALUE_NAME_REQUEST_CURRENT_RADIO_STATION_ID
+            = "VALUE_NAME_REQUEST_CURRENT_RADIO_STATION_ID";
+
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
     private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
@@ -257,6 +260,11 @@ public final class OpenRadioService
     private boolean mIsAndroidAuto = false;
 
     /**
+     * Holds Title of the current Stream.
+     */
+    private String mCurrentStreamTitle = "";
+
+    /**
      *
      */
     private enum AudioFocus {
@@ -283,7 +291,7 @@ public final class OpenRadioService
     private final Handler mDelayedStopHandler = new DelayedStopHandler(this);
 
     /**
-     *
+     * Handler to manage messages from the Retrieval metadata service.
      */
     private final Handler mMetadataRetrievalHandler = new MetadataRetrievalHandler(this);
 
@@ -326,8 +334,14 @@ public final class OpenRadioService
                 return;
             }
 
-            final String streamTitle = MetadataRetrievalService.getStreamTitle(message);
-            Log.d(CLASS_NAME, "Stream title:" + streamTitle);
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+
+            service.mCurrentStreamTitle = MetadataRetrievalService.getStreamTitle(message);
+
+            service.updateMetadata();
         }
     }
 
@@ -688,6 +702,18 @@ public final class OpenRadioService
     }
 
     /**
+     * Factory method to make intent to retrieve Id of the currently selected Radio Station.
+     *
+     * @param context Context of the callee.
+     * @return {@link Intent}.
+     */
+    public static Intent makeGetCurrentItemIdIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REQUEST_LOCATION_COMMAND);
+        return intent;
+    }
+
+    /**
      * Factory method to make intent to create custom {@link RadioStationVO}.
      *
      * @param context Context of the callee.
@@ -968,14 +994,18 @@ public final class OpenRadioService
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
         final MediaMetadata track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
-                radioStation
+                radioStation,
+                mCurrentStreamTitle
         );
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
         if (mediaId == null || trackId == null || !mediaId.equals(trackId)) {
             throw new IllegalStateException("track ID (" + trackId + ") " +
                     "should match mediaId (" + mediaId + ")");
         }
-        Log.d(CLASS_NAME, "Updating metadata for MusicID= " + mediaId);
+        Log.d(
+                CLASS_NAME,
+                "Updating metadata for MusicId:" + mediaId + ", title:" + mCurrentStreamTitle
+        );
         mSession.setMetadata(track);
     }
 
@@ -1031,6 +1061,9 @@ public final class OpenRadioService
             mSession.setActive(true);
         }
 
+        // Start Metadata retrieving service
+        startMetadataRetrieving();
+
         // actually play the song
         if (mState == PlaybackState.STATE_PAUSED) {
             // If we're paused, just continue playback and restore the
@@ -1041,15 +1074,14 @@ public final class OpenRadioService
             // just go ahead to the new song and (re)start playing
             getCurrentPlayingRadioStationAsync(mRadioStationUpdateListener);
         }
-
-        // Start Metadata retrieving service
-        startMetadataRetrieving();
     }
 
     /**
      * Send command to the Retrieving service in order to start retrieve metadata.
      */
     private void startMetadataRetrieving() {
+        // Clear current stream title
+        mCurrentStreamTitle = "";
         // get current Radio Station
         final RadioStationVO currentRadioStation = getCurrentPlayingRadioStation();
         // Only is there is known current Radio Station

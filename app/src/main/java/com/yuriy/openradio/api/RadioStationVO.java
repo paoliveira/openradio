@@ -174,43 +174,21 @@ public final class RadioStationVO implements Serializable {
     public boolean equals(final Object object) {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
-
         final RadioStationVO that = (RadioStationVO) object;
-
         return mId == that.mId
-                && mStatus == that.mStatus
-                && mIsUpdated == that.mIsUpdated
-                && mIsLocal == that.mIsLocal
-                && mName.equals(that.mName)
-                && mStreamURL.equals(that.mStreamURL)
-                && mWebSite.equals(that.mWebSite)
-                && mCountry.equals(that.mCountry)
-                && mBitRate.equals(that.mBitRate)
-                && mGenre.equals(that.mGenre)
-                && mImageUrl.equals(that.mImageUrl)
-                && mThumbUrl.equals(that.mThumbUrl);
+                && !(mCountry != null ? !mCountry.equals(that.mCountry) : that.mCountry != null);
     }
 
     @Override
     public int hashCode() {
         int result = mId;
-        result = 31 * result + mStatus;
-        result = 31 * result + mName.hashCode();
-        result = 31 * result + mStreamURL.hashCode();
-        result = 31 * result + mWebSite.hashCode();
-        result = 31 * result + mCountry.hashCode();
-        result = 31 * result + mBitRate.hashCode();
-        result = 31 * result + mGenre.hashCode();
-        result = 31 * result + mImageUrl.hashCode();
-        result = 31 * result + mThumbUrl.hashCode();
-        result = 31 * result + (mIsUpdated ? 1 : 0);
-        result = 31 * result + (mIsLocal ? 1 : 0);
+        result = 31 * result + (mCountry != null ? mCountry.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "RadioStationVO{" +
+        return "RadioStationVO " + hashCode() + " " + Thread.currentThread().getName() + " {" +
                 "mId=" + mId +
                 ", mStatus=" + mStatus +
                 ", mName='" + mName + '\'' +

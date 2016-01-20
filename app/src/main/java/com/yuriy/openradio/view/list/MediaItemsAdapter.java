@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaDescription;
 import android.media.browse.MediaBrowser;
+import android.media.session.MediaSession;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
@@ -52,6 +54,11 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private Activity mCurrentActivity;
     private ImageFetcher mImageFetcher;
     private final ListAdapterData<MediaBrowser.MediaItem> mAdapterData = new ListAdapterData<>(null);
+
+    /**
+     * The currently selected / active Item Id.
+     */
+    private long mActiveItemId = MediaSession.QueueItem.UNKNOWN_ID;
 
     /**
      * Stores an instance of {@link com.yuriy.openradio.view.list.MediaItemsAdapter.MessagesHandler}.
@@ -85,6 +92,23 @@ public final class MediaItemsAdapter extends BaseAdapter {
     @Override
     public final long getItemId(final int position) {
         return position;
+    }
+
+    /**
+     * Set active Id from the items list.
+     * @param id Id of the Item.
+     */
+    public void setActiveItemId(final long id) {
+        mActiveItemId = id;
+    }
+
+    /**
+     * Returns the currently active Item Id.
+     *
+     * @return The currently active Item Id.
+     */
+    public long getActiveItemId() {
+        return mActiveItemId;
     }
 
     @Override
@@ -143,6 +167,16 @@ public final class MediaItemsAdapter extends BaseAdapter {
             );
         } else {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
+        }
+
+        if (position == getActiveItemId()) {
+            mViewHolder.mRootView.setBackgroundColor(
+                    mCurrentActivity.getResources().getColor(R.color.queue_item_selected_bg_color)
+            );
+        } else {
+            mViewHolder.mRootView.setBackgroundColor(
+                    mCurrentActivity.getResources().getColor(R.color.transparent_color)
+            );
         }
 
         return convertView;
@@ -204,6 +238,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
         viewHolder.mDescriptionView = (TextView) view.findViewById(R.id.description_view);
         viewHolder.mImageView = (ImageView) view.findViewById(R.id.img_view);
         viewHolder.mFavoriteCheckView = (CheckBox) view.findViewById(R.id.favorite_check_view);
+        viewHolder.mRootView = (RelativeLayout) view.findViewById(R.id.category_list_root_view);
         return viewHolder;
     }
 

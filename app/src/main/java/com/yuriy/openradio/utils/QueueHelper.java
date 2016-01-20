@@ -115,17 +115,22 @@ public final class QueueHelper {
         return null;
     }
 
+    /**
+     * Copying collection from source to destination.
+     *
+     * @param destination Destination collection.
+     * @param source      Source collection.
+     */
     public static <T> void copyCollection(@NonNull final List<T> destination,
                                           @NonNull final List<T> source) {
         destination.clear();
-        for (T sourceItem : source) {
-            destination.add(sourceItem);
-        }
+        destination.addAll(source);
     }
 
     public static void updateRadioStation(final RadioStationVO radioStationVO,
                                           final List<RadioStationVO> radioStationVOs) {
-        for (RadioStationVO radioStation : radioStationVOs) {
+        for (final RadioStationVO radioStation : radioStationVOs) {
+            // TODO : replace with equals()
             if (radioStationVO.getId() == radioStation.getId()) {
                 radioStation.setStreamURL(radioStationVO.getStreamURL());
                 radioStation.setBitRate(radioStationVO.getBitRate());

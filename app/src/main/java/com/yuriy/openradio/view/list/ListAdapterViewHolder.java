@@ -9,6 +9,7 @@ package com.yuriy.openradio.view.list;
 
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 /**
@@ -36,4 +37,9 @@ class ListAdapterViewHolder {
      *
      */
     public CheckBox mFavoriteCheckView;
+
+    /**
+     *
+     */
+    public RelativeLayout mRootView;
 }

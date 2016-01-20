@@ -24,11 +24,13 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
+import android.media.session.MediaSession;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -39,7 +41,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
@@ -62,8 +63,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.
@@ -153,6 +152,8 @@ public final class MainActivity extends AppCompatActivity {
     private final MediaBrowser.SubscriptionCallback mMedSubscriptionCallback
             = new MediaBrowserSubscriptionCallback(this);
 
+    private String mCurrentParentId = "";
+
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -192,7 +193,6 @@ public final class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
-
                 // Current selected media item
                 final MediaBrowser.MediaItem item
                         = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
@@ -207,6 +207,7 @@ public final class MainActivity extends AppCompatActivity {
 
                 // Keep last selected position for the given category.
                 // We will use it when back to this category
+                Log.d(CLASS_NAME, "Children:" + mediaItemsStack.get(mediaItemsStack.size() - 1) + " pos:" + position);
                 listPositionMap.put(mediaItemsStack.get(mediaItemsStack.size() - 1), position);
 
                 showProgressBar();
@@ -305,6 +306,11 @@ public final class MainActivity extends AppCompatActivity {
         super.onResume();
 
         hideProgressBar();
+
+        if (!TextUtils.isEmpty(mCurrentParentId)) {
+            final int position = listPositionMap.get(mCurrentParentId);
+            setSelectedItem(position);
+        }
     }
 
     @Override
@@ -384,11 +390,11 @@ public final class MainActivity extends AppCompatActivity {
 
         // Keep last selected position for the given category.
         // We will use it when back to this category. Only if collection is not empty.
-        if (!mediaItemsStack.isEmpty()) {
+        /*if (!mediaItemsStack.isEmpty()) {
             listPositionMap.put(
                     mediaItemsStack.get(mediaItemsStack.size() - 1), firstVisiblePosition
             );
-        }
+        }*/
 
         super.onSaveInstanceState(outState);
     }
@@ -578,9 +584,22 @@ public final class MainActivity extends AppCompatActivity {
         // Restore List's position
         final int listFirstVisiblePosition
                 = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
+        setSelectedItem(listFirstVisiblePosition);
+    }
+
+    private void setSelectedItem(final int position) {
+        Log.d(CLASS_NAME, "Set selected:" + position);
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.list_view);
-        listView.setSelection(listFirstVisiblePosition);
+        if (listView == null) {
+            return;
+        }
+
+        listView.setSelection(position);
+
+        mBrowserAdapter.notifyDataSetInvalidated();
+        mBrowserAdapter.setActiveItemId(position);
+        mBrowserAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -795,9 +814,11 @@ public final class MainActivity extends AppCompatActivity {
 
             final MainActivity activity = mReference.get();
             if (activity == null) {
+                Log.w(CLASS_NAME, "On children loaded -> activity ref is null");
                 return;
             }
 
+            activity.mCurrentParentId = parentId;
             activity.hideProgressBar();
 
             final FloatingActionButton addBtn
@@ -825,10 +846,15 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             if (!activity.listPositionMap.containsKey(parentId)) {
+                Log.d(CLASS_NAME, "No key");
+                activity.mBrowserAdapter.notifyDataSetInvalidated();
+                activity.mBrowserAdapter.setActiveItemId(MediaSession.QueueItem.UNKNOWN_ID);
+                activity.mBrowserAdapter.notifyDataSetInvalidated();
                 return;
             }
-            // Restore previous position for the given category
-            listView.setSelection(activity.listPositionMap.get(parentId));
+
+            final int position = activity.listPositionMap.get(parentId);
+            activity.setSelectedItem(position);
         }
 
         @Override

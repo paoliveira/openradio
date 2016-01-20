@@ -19,6 +19,7 @@ package com.yuriy.openradio.view;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
@@ -136,15 +137,15 @@ public class QueueActivity extends FragmentActivity {
 
         mSkipPrevious = (ImageButton) findViewById(R.id.skip_previous);
         mSkipPrevious.setEnabled(false);
-        mSkipPrevious.setOnClickListener(sButtonListener);
+        mSkipPrevious.setOnClickListener(buttonListener);
 
         mSkipNext = (ImageButton) findViewById(R.id.skip_next);
         mSkipNext.setEnabled(false);
-        mSkipNext.setOnClickListener(sButtonListener);
+        mSkipNext.setOnClickListener(buttonListener);
 
         mPlayPause = (ImageButton) findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
-        mPlayPause.setOnClickListener(sButtonListener);
+        mPlayPause.setOnClickListener(buttonListener);
 
         mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
 
@@ -167,6 +168,7 @@ public class QueueActivity extends FragmentActivity {
                                     final int position, final long id) {
                 final MediaSession.QueueItem item = mQueueAdapter.getItem(position);
                 mTransportControls.skipToQueueItem(item.getQueueId());
+                view.setSelected(true);
             }
         });
         listView.setOnScrollListener(
@@ -385,7 +387,7 @@ public class QueueActivity extends FragmentActivity {
     /**
      * Control Buttons listeners
      */
-    private final View.OnClickListener sButtonListener = new SafeOnClickListener<QueueActivity>(this) {
+    private final View.OnClickListener buttonListener = new SafeOnClickListener<QueueActivity>(this) {
 
         @Override
         public void safeOnClick(final QueueActivity reference, final View view) {
@@ -475,6 +477,11 @@ public class QueueActivity extends FragmentActivity {
     private static final class MediaSessionCallback extends MediaController.Callback {
 
         /**
+         * Tag string to use in logging message.
+         */
+        private static final String CLASS_NAME = MediaSessionCallback.class.getSimpleName();
+
+        /**
          * Weak reference to the outer activity.
          */
         private final WeakReference<QueueActivity> mReference;
@@ -518,6 +525,47 @@ public class QueueActivity extends FragmentActivity {
             }
             activity.mQueueAdapter.clear();
             activity.mQueueAdapter.notifyDataSetInvalidated();
+            activity.mQueueAdapter.addAll(queue);
+            activity.mQueueAdapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void onMetadataChanged(final MediaMetadata metadata) {
+            super.onMetadataChanged(metadata);
+
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            // Update queue
+            final List<MediaSession.QueueItem> queue = activity.mMediaController.getQueue();
+            if (queue == null) {
+                return;
+            }
+
+            final long activeQueueItemId = activity.mQueueAdapter.getActiveQueueItemId();
+            Log.d(CLASS_NAME, "Metadata changed:" + metadata + ", active id:" + activeQueueItemId);
+
+            activity.mQueueAdapter.notifyDataSetInvalidated();
+            activity.mQueueAdapter.clear();
+            final int queueSize = queue.size();
+            MediaSession.QueueItem item;
+            for (int i = 0; i < queueSize; i++) {
+                item = queue.get(i);
+                if (item == null) {
+                    continue;
+                }
+                // Get currently selected Radio Station
+                if (item.getQueueId() == activeQueueItemId) {
+                    final MediaSession.QueueItem newItem = new MediaSession.QueueItem(
+                            metadata.getDescription(), item.getQueueId()
+                    );
+                    queue.remove(item);
+                    queue.add(i, newItem);
+                    break;
+                }
+            }
             activity.mQueueAdapter.addAll(queue);
             activity.mQueueAdapter.notifyDataSetChanged();
         }

@@ -69,7 +69,9 @@ public final class MetadataRetrievalService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.i(CLASS_NAME, "Destroy");
 
+        mServiceHandler.removeCallbacksAndMessages(null);
         mServiceLooper.quitSafely();
     }
 
@@ -260,9 +262,7 @@ public final class MetadataRetrievalService extends Service {
         /**
          * Period between metadata retrievals, in milliseconds.
          */
-        private static final int PERIOD = 2000;
-
-        private final FFmpegMediaMetadataRetriever mRetriever = new FFmpegMediaMetadataRetriever();
+        private static final int PERIOD = 10000;
 
         private static final int MSG_MAKE_START_REQUEST = 1;
 
@@ -272,9 +272,13 @@ public final class MetadataRetrievalService extends Service {
 
         private static final String BUNDLE_KEY_STREAM_TITLE = "STREAM_TITLE";
 
+        private static final int MAX_COUNT = 3;
+
         private String mCurrentStreamTitle;
 
         private String mUrl;
+
+        private int mCounter = 0;
 
         /**
          * Class constructor initializes the Looper.
@@ -310,11 +314,14 @@ public final class MetadataRetrievalService extends Service {
             }
             switch (message.what) {
                 case MSG_MAKE_START_REQUEST:
+                    mCounter = 0;
                     processStartCommand(intent);
                     break;
                 case MSG_MAKE_STOP_REQUEST:
                     //mRetriever.release();
                     mHandler.removeCallbacks(mRetrievalRunnable);
+                    mHandler.removeCallbacksAndMessages(null);
+                    mLooper.quitSafely();
                     break;
                 default:
                     Log.w(CLASS_NAME, "Unknown command:" + message.what);
@@ -362,17 +369,19 @@ public final class MetadataRetrievalService extends Service {
         /**
          * Obtain a new Message instance from the global pool and add Metadata field to it.
          *
-         * @param metadata Metadata obtained from the stream.
          */
         private void obtainAndSendMetadata(final Metadata metadata) {
+
             Log.d(CLASS_NAME, "Metadata:" + metadata);
 
             // TODO : refactor this condition to the separate method
             final String streamTitle = getStreamTitle(metadata);
             Log.d(CLASS_NAME, "Stream Title:" + streamTitle);
             if (TextUtils.equals(mCurrentStreamTitle, streamTitle)) {
-                Log.d(CLASS_NAME, "Metadata didn't changed");
-                return;
+                Log.d(CLASS_NAME, "Metadata didn't changed, counter:" + mCounter);
+                if (mCounter++ > MAX_COUNT) {
+                    return;
+                }
             }
             mCurrentStreamTitle = streamTitle;
 
@@ -448,7 +457,12 @@ public final class MetadataRetrievalService extends Service {
             if (metadata == null) {
                 return "";
             }
-            return metadata.getString("StreamTitle");
+            try {
+                return metadata.getString("StreamTitle");
+            } catch (final Throwable throwable) {
+                Log.e(CLASS_NAME, "Can not extract title:" + throwable.getMessage());
+                return "";
+            }
         }
     }
 }

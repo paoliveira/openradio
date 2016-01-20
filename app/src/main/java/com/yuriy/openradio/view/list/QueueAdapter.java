@@ -17,6 +17,7 @@ package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
 import android.media.session.MediaSession;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +33,9 @@ import java.util.ArrayList;
  * A list adapter for items in a queue
  */
 public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
+
+    @SuppressWarnings("unused")
+    private static final String CLASS_NAME = QueueAdapter.class.getSimpleName();
 
     /**
      * The currently selected/active queue item Id.
@@ -53,10 +57,19 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
 
     /**
      * Set active ID from the items queue.
-     * @param id Id of the Ite.
+     * @param id Id of the Item.
      */
-    public void setActiveQueueItemId(long id) {
+    public void setActiveQueueItemId(final long id) {
         mActiveQueueItemId = id;
+    }
+
+    /**
+     * Returns the currently active queue Id.
+     *
+     * @return The currently active queue Id.
+     */
+    public long getActiveQueueItemId() {
+        return mActiveQueueItemId;
     }
 
     /**
@@ -67,7 +80,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, final ViewGroup parent) {
         ViewHolder holder;
 
         if (convertView == null) {
@@ -83,20 +96,27 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
         }
 
         final MediaSession.QueueItem item = getItem(position);
+        Log.d(CLASS_NAME, "Queue Item:" + item);
+
         holder.mTitleView.setText(item.getDescription().getTitle());
-        if (item.getDescription().getDescription() != null) {
-            holder.mDescriptionView.setText(item.getDescription().getDescription());
-        }
+        holder.mDescriptionView.setText(item.getDescription().getDescription());
 
         // If the itemId matches the active Id then use a different icon
         if (mActiveQueueItemId == item.getQueueId()) {
             mActivePosition = position;
             holder.mImageView.setImageDrawable(
                     getContext().getDrawable(R.drawable.ic_equalizer_white_24dp));
+            convertView.setBackgroundColor(
+                    getContext().getResources().getColor(R.color.queue_item_selected_bg_color)
+            );
         } else {
             holder.mImageView.setImageDrawable(
                     getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
+            convertView.setBackgroundColor(
+                    getContext().getResources().getColor(R.color.transparent_color)
+            );
         }
+
         return convertView;
     }
 
@@ -104,8 +124,13 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
      * Static class to hold UI controls references.
      */
     private static class ViewHolder {
-        ImageView mImageView;
-        TextView mTitleView;
-        TextView mDescriptionView;
+
+        private ViewHolder() {
+            super();
+        }
+
+        private ImageView mImageView;
+        private TextView mTitleView;
+        private TextView mDescriptionView;
     }
 }

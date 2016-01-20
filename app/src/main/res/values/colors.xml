@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="blue_light_color">#33b5e5</color>
+    <color name="blue_light_color">#FF33B5E5</color>
     <color name="primary_color">#FF3D434C</color>
     <color name="primary_dark_color">#FF3D434C</color>
     <color name="accent_color">#FF448811</color>
+    <color name="queue_item_selected_bg_color">#FF3C3B48</color>
+    <color name="transparent_color">#00000000</color>
 
 </resources>
