@@ -45,9 +45,22 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
     private static final String ACTION_LOCATION_COUNTRY_CODE = "ACTION_LOCATION_COUNTRY_CODE";
 
     /**
+     *
+     */
+    private static final String ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED
+            = "ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED";
+
+    /**
      * Key value for the Country Code in the Intent's bundles.
      */
     private static final String KEY_COUNTRY_CODE = "KEY_COUNTRY_CODE";
+
+    /**
+     *
+     */
+    private static final String KEY_CURRENT_INDEX_ON_QUEUE = "KEY_CURRENT_INDEX_ON_QUEUE";
+
+    private static final String KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE";
 
     /**
      * Callback listener of the various events.
@@ -104,6 +117,14 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
                 mCallback.onLocationCountryCode(countryCode);
             }
         }
+
+        if (action.equals(ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED)) {
+            final int currentIndex = intent.getIntExtra(KEY_CURRENT_INDEX_ON_QUEUE, 0);
+            final String currentMediaId = intent.getStringExtra(KEY_CURRENT_MEDIA_ID_ON_QUEUE);
+            if (mCallback != null) {
+                mCallback.onCurrentIndexOnQueueChanged(currentIndex, currentMediaId);
+            }
+        }
     }
 
     /**
@@ -118,6 +139,13 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
      */
     public static String getActionLocationCountryCode() {
         return ACTION_LOCATION_COUNTRY_CODE;
+    }
+
+    /**
+     * @return Name for the Current Index on Queue Changed action.
+     */
+    public static String getActionCurrentIndexOnQueueChanged() {
+        return ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED;
     }
 
     /**
@@ -136,6 +164,20 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
     public static Intent createIntentLocationCountryCode(final String countryCode) {
         final Intent intent = new Intent(ACTION_LOCATION_COUNTRY_CODE);
         intent.putExtra(KEY_COUNTRY_CODE, countryCode);
+        return intent;
+    }
+
+    /**
+     * @return Instance of the {@link Intent} that indicates Current Index of the queue item.
+     *
+     * @param currentIndex Index of the current selected item in the queue.
+     * @param mediaId
+     */
+    public static Intent createIntentCurrentIndexOnQueue(final int currentIndex,
+                                                         final String mediaId) {
+        final Intent intent = new Intent(ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED);
+        intent.putExtra(KEY_CURRENT_INDEX_ON_QUEUE, currentIndex);
+        intent.putExtra(KEY_CURRENT_MEDIA_ID_ON_QUEUE, mediaId);
         return intent;
     }
 

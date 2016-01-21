@@ -40,4 +40,11 @@ public interface AppLocalBroadcastReceiverCallback {
      * @param countryCode Country code.
      */
     void onLocationCountryCode(final String countryCode);
+
+    /**
+     *
+     * @param index
+     * @param mediaId
+     */
+    void onCurrentIndexOnQueueChanged(final int index, final String mediaId);
 }

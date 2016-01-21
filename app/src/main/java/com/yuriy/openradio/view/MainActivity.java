@@ -152,6 +152,9 @@ public final class MainActivity extends AppCompatActivity {
     private final MediaBrowser.SubscriptionCallback mMedSubscriptionCallback
             = new MediaBrowserSubscriptionCallback(this);
 
+    /**
+     *
+     */
     private String mCurrentParentId = "";
 
     @Override
@@ -307,7 +310,8 @@ public final class MainActivity extends AppCompatActivity {
 
         hideProgressBar();
 
-        if (!TextUtils.isEmpty(mCurrentParentId)) {
+        if (!TextUtils.isEmpty(mCurrentParentId)
+                && listPositionMap.containsKey(mCurrentParentId)) {
             final int position = listPositionMap.get(mCurrentParentId);
             setSelectedItem(position);
         }
@@ -596,6 +600,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         listView.setSelection(position);
+        listView.smoothScrollToPositionFromTop(position, 0);
 
         mBrowserAdapter.notifyDataSetInvalidated();
         mBrowserAdapter.setActiveItemId(position);
@@ -678,6 +683,14 @@ public final class MainActivity extends AppCompatActivity {
             reference.mMediaBrowser.disconnect();
             reference.mMediaBrowser.connect();
         }
+
+        @Override
+        public void onCurrentIndexOnQueueChanged(final int index, final String mediaId) {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+        }
     };
 
     /**
@@ -689,7 +702,7 @@ public final class MainActivity extends AppCompatActivity {
         private final Map<String, Double> mMap = new ConcurrentHashMap<>();
         private static final int DELTA = 2000;
 
-        public PermissionListener(final Context reference) {
+        private PermissionListener(final Context reference) {
             super();
             mReference = new WeakReference<>(reference);
         }

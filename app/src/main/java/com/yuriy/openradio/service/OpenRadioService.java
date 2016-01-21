@@ -637,6 +637,7 @@ public final class OpenRadioService
             if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
                 mCurrentIndexOnQueue = 0;
             }
+            dispatchCurrentIndexOnQueue(mCurrentIndexOnQueue);
             handlePlayRequest();
         } else {
             // If there is nothing to play, we stop and release the resources:
@@ -1603,6 +1604,7 @@ public final class OpenRadioService
             if (service.mCurrentIndexOnQueue >= service.mPlayingQueue.size()) {
                 service.mCurrentIndexOnQueue = 0;
             }
+            service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mPlayingQueue)) {
                 service.mState = PlaybackState.STATE_STOPPED;
                 service.handlePlayRequest();
@@ -1630,6 +1632,7 @@ public final class OpenRadioService
                 // first song.
                 service.mCurrentIndexOnQueue = 0;
             }
+            service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mPlayingQueue)) {
                 service.mState = PlaybackState.STATE_STOPPED;
                 service.handlePlayRequest();
@@ -1762,6 +1765,24 @@ public final class OpenRadioService
                         reference.handlePlayRequest();
                     }
                 }
+        );
+    }
+
+    /**
+     *
+     *
+     * @param index
+     */
+    private void dispatchCurrentIndexOnQueue(final int index) {
+        final MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        String mediaId = "";
+        if (item != null && item.getDescription() != null) {
+            mediaId = item.getDescription().getMediaId();
+        }
+        LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
+                AppLocalBroadcastReceiver.createIntentCurrentIndexOnQueue(
+                        index, mediaId
+                )
         );
     }
 
