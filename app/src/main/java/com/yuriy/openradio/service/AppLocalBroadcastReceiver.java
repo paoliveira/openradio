@@ -45,7 +45,8 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
     private static final String ACTION_LOCATION_COUNTRY_CODE = "ACTION_LOCATION_COUNTRY_CODE";
 
     /**
-     *
+     * Action name for the "Current index on queue" changed,
+     * when currently selected Radio Station was changed.
      */
     private static final String ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED
             = "ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED";
@@ -56,10 +57,13 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
     private static final String KEY_COUNTRY_CODE = "KEY_COUNTRY_CODE";
 
     /**
-     *
+     * Key value for the Currently selected index in the Intent's bundles.
      */
     private static final String KEY_CURRENT_INDEX_ON_QUEUE = "KEY_CURRENT_INDEX_ON_QUEUE";
 
+    /**
+     * Key value for the Currently selected Media Id in the Intent's bundles.
+     */
     private static final String KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE";
 
     /**

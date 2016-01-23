@@ -53,7 +53,6 @@ import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PermissionChecker;
-import com.yuriy.openradio.utils.QueueHelper;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
@@ -312,11 +311,18 @@ public final class MainActivity extends AppCompatActivity {
         super.onResume();
 
         hideProgressBar();
-
+        // Restore position for the Catalogue list.
         if (!TextUtils.isEmpty(mCurrentParentId)
                 && listPositionMap.containsKey(mCurrentParentId)) {
             final int position = listPositionMap.get(mCurrentParentId);
             setSelectedItem(position);
+        }
+        // Restore position for the Catalogue of the Playable items
+        if (!TextUtils.isEmpty(mCurrentMediaId)) {
+            final int position = mBrowserAdapter.getIndexForMediaId(mCurrentMediaId);
+            if (position != -1) {
+                setSelectedItem(position);
+            }
         }
     }
 
@@ -876,8 +882,16 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            final int position = activity.listPositionMap.get(parentId);
+            // Restore position for the Catalogue list
+            int position = activity.listPositionMap.get(parentId);
             activity.setSelectedItem(position);
+            // Restore position for the Catalogue of the Playable items
+            if (!TextUtils.isEmpty(activity.mCurrentMediaId)) {
+                position = activity.mBrowserAdapter.getIndexForMediaId(activity.mCurrentMediaId);
+                if (position != -1) {
+                    activity.setSelectedItem(position);
+                }
+            }
         }
 
         @Override
