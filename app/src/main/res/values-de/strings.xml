@@ -66,5 +66,8 @@
     <string name="add_station_genre_label">Genre:</string>
     <string name="add_station_country_label">Land:</string>
     <string name="ellipsis">…</string>
+    <string name="about_thanks_3">Stream Metadaten-Abruf Ein Service von:</string>
+    <string name="about_thanks_3_title">William Seemann</string>
+    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
 
 </resources>
