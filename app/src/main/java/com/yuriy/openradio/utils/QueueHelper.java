@@ -40,6 +40,8 @@ public final class QueueHelper {
      */
     public static final Object RADIO_STATIONS_MANAGING_LOCK = new Object();
 
+    public static final int UNKNOWN_INDEX = -1;
+
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
@@ -74,7 +76,7 @@ public final class QueueHelper {
             }
             index++;
         }
-        return -1;
+        return UNKNOWN_INDEX;
     }
 
     /**
@@ -93,7 +95,7 @@ public final class QueueHelper {
             }
             index++;
         }
-        return -1;
+        return UNKNOWN_INDEX;
     }
 
     public static boolean isIndexPlayable(final int index,

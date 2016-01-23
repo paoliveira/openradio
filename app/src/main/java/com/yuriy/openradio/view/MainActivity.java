@@ -53,6 +53,7 @@ import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PermissionChecker;
+import com.yuriy.openradio.utils.QueueHelper;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
@@ -156,6 +157,8 @@ public final class MainActivity extends AppCompatActivity {
      *
      */
     private String mCurrentParentId = "";
+
+    private String mCurrentMediaId = "";
 
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
@@ -618,6 +621,7 @@ public final class MainActivity extends AppCompatActivity {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationDisabled());
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationCountryCode());
+        intentFilter.addAction(AppLocalBroadcastReceiver.getActionCurrentIndexOnQueueChanged());
         // Register receiver
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 mAppLocalBroadcastReceiver,
@@ -689,6 +693,12 @@ public final class MainActivity extends AppCompatActivity {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
+            }
+            reference.mCurrentMediaId = mediaId;
+
+            final int position = reference.mBrowserAdapter.getIndexForMediaId(mediaId);
+            if (position != -1) {
+                reference.setSelectedItem(position);
             }
         }
     };

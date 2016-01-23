@@ -23,6 +23,7 @@ import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,6 +93,28 @@ public final class MediaItemsAdapter extends BaseAdapter {
     @Override
     public final long getItemId(final int position) {
         return position;
+    }
+
+    /**
+     * get index of the Item by provided Media Id.
+     *
+     * @param mediaId Media Id of the Radio Station.
+     *
+     * @return Index of the Radio Station in the adapter, or -1 if nothing founded.
+     */
+    public int getIndexForMediaId(final String mediaId) {
+        final int count = mAdapterData.getItemsCount();
+        MediaBrowser.MediaItem item;
+        for (int i = 0; i < count; i++) {
+            item = mAdapterData.getItem(i);
+            if (item == null) {
+                continue;
+            }
+            if (TextUtils.equals(item.getDescription().getMediaId(), mediaId)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**

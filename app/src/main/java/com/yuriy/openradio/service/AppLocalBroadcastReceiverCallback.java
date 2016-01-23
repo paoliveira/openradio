@@ -42,9 +42,10 @@ public interface AppLocalBroadcastReceiverCallback {
     void onLocationCountryCode(final String countryCode);
 
     /**
+     * Dispatches when Index of the current Radio station changed.
      *
-     * @param index
-     * @param mediaId
+     * @param index   Index of the Radio Station in the list.
+     * @param mediaId media Id of the current Radio Station.
      */
     void onCurrentIndexOnQueueChanged(final int index, final String mediaId);
 }

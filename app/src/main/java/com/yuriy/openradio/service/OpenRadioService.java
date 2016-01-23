@@ -1504,7 +1504,10 @@ public final class OpenRadioService
             if (!service.mPlayingQueue.isEmpty()) {
 
                 // set the current index on queue from the music Id:
-                service.mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(service.mPlayingQueue, id);
+                service.mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
+                        service.mPlayingQueue, id
+                );
+                service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
 
                 if (service.mCurrentIndexOnQueue == -1) {
                     return;
@@ -1769,9 +1772,9 @@ public final class OpenRadioService
     }
 
     /**
+     * Dispatch broad cast event about changes on current playing Radio Station.
      *
-     *
-     * @param index
+     * @param index Index of the Radio Station in the queue.
      */
     private void dispatchCurrentIndexOnQueue(final int index) {
         final MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
