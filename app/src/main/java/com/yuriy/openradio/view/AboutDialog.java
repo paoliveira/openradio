@@ -93,6 +93,16 @@ public class AboutDialog extends DialogFragment {
             }
         });
 
+        final TextView metadataRetrievalLink = (TextView) view.findViewById(R.id.about_thanks_3_url_view);
+        metadataRetrievalLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(IntentsHelper.makeUrlBrowsableIntent(
+                        getString(R.string.about_thanks_3_url)
+                ));
+            }
+        });
+
         final Button closeBtn = (Button) view.findViewById(R.id.about_dialog_close_btn_view);
         closeBtn.setOnClickListener(
                 new View.OnClickListener() {

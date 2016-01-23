@@ -27,6 +27,12 @@ import wseemann.media.Metadata;
  * On 11/18/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
+
+/**
+ * Service that provides ability to extract Metadata from the stream.
+ * It uses FFmpegMediaMetadataRetriever library provided by William Seemann:
+ * https://github.com/wseemann/FFmpegMediaMetadataRetriever
+ */
 public final class MetadataRetrievalService extends Service {
 
     private static final String CLASS_NAME = MetadataRetrievalService.class.getSimpleName();

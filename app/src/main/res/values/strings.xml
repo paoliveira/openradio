@@ -88,4 +88,10 @@
     <string name="add_station_country_label">Country:</string>
     <string name="ellipsis">…</string>
 
+    <!-- Version 2.1 -->
+
+    <string name="about_thanks_3">Stream Metadata retrieval service is provided by:</string>
+    <string name="about_thanks_3_title">William Seemann</string>
+    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
+
 </resources>
