@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2016 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
