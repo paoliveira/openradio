@@ -16,6 +16,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+
 import java.lang.ref.WeakReference;
 
 import wseemann.media.FFmpegMediaMetadataRetriever;
@@ -236,14 +239,26 @@ public final class MetadataRetrievalService extends Service {
                 return;
             }
             Metadata metadata = null;
-            final FFmpegMediaMetadataRetriever retriever = new FFmpegMediaMetadataRetriever();
+            FFmpegMediaMetadataRetriever retriever = null;
             try {
+                retriever = new FFmpegMediaMetadataRetriever();
                 retriever.setDataSource(handler.mUrl);
                 metadata = retriever.getMetadata();
-            } catch (final Exception e) {
-                Log.e(CLASS_NAME, "Can not get Metadata:" + e.getMessage());
+            } catch (final Throwable throwable) {
+                Log.e(CLASS_NAME, "Can not get Metadata:" + throwable.getMessage());
+                Answers.getInstance().logCustom(
+                        new CustomEvent("FFmpegMediaMetadataRetriever failed")
+                                .putCustomAttribute("Throwable", throwable.getMessage())
+                );
             } finally {
-                retriever.release();
+                if (retriever != null) {
+                    retriever.release();
+                }
+            }
+
+            // Lets stop farther execution
+            if (retriever == null) {
+                return;
             }
 
             handler.obtainAndSendMetadata(metadata);

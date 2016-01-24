@@ -21,7 +21,8 @@ android {
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 21
-        targetSdkVersion 23
+        // Workaround for the Fabric #29
+        targetSdkVersion 22
         versionCode code
         versionName "2.1"
     }
