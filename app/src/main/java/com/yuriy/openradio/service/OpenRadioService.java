@@ -29,7 +29,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -112,7 +111,7 @@ public final class OpenRadioService
 
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
-    private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
+    //private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
 
     private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
 
@@ -140,7 +139,7 @@ public final class OpenRadioService
     /**
      * Reserved init value.
      */
-    private static final int MSG_INIT = 100;
+    //private static final int MSG_INIT = 100;
 
     /**
      * Action to thumbs up a media item
@@ -406,10 +405,10 @@ public final class OpenRadioService
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't
         // want to block.
-        final HandlerThread thread = new HandlerThread(
-                OpenRadioService.class.getSimpleName() + "-MessagesThread"
-        );
-        thread.start();
+        //final HandlerThread thread = new HandlerThread(
+        //        OpenRadioService.class.getSimpleName() + "-MessagesThread"
+        //);
+        //thread.start();
 
         // Get the HandlerThread's Looper and use it for our Handler.
         //mMessagesHandler = new MessagesHandler(thread.getLooper());

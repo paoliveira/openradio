@@ -20,9 +20,11 @@ import android.media.MediaDescription;
 import android.media.MediaMetadata;
 import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.business.SafeRunnable;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
@@ -45,6 +47,8 @@ import java.util.List;
  */
 public class MediaItemCountryStations implements MediaItemCommand {
 
+    private static final String CLASS_NAME = MediaItemCountryStations.class.getSimpleName();
+
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
@@ -53,13 +57,16 @@ public class MediaItemCountryStations implements MediaItemCommand {
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
-                new Runnable() {
+                new SafeRunnable<MediaItemCountryStations>(this) {
 
                     @Override
-                    public void run() {
-
+                    public void safeRun(final MediaItemCountryStations reference) {
+                        if (reference == null) {
+                            Log.e(CLASS_NAME, "Reference is null");
+                            return;
+                        }
                         // Load all categories into menu
-                        loadCountryStations(playbackStateListener, shareObject);
+                        reference.loadCountryStations(playbackStateListener, shareObject);
                     }
                 }
         );

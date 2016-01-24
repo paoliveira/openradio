@@ -21,6 +21,7 @@ import com.crashlytics.android.answers.CustomEvent;
 
 import java.lang.ref.WeakReference;
 
+import io.fabric.sdk.android.Fabric;
 import wseemann.media.FFmpegMediaMetadataRetriever;
 import wseemann.media.Metadata;
 
@@ -246,10 +247,12 @@ public final class MetadataRetrievalService extends Service {
                 metadata = retriever.getMetadata();
             } catch (final Throwable throwable) {
                 Log.e(CLASS_NAME, "Can not get Metadata:" + throwable.getMessage());
-                Answers.getInstance().logCustom(
-                        new CustomEvent("FFmpegMediaMetadataRetriever failed")
-                                .putCustomAttribute("Throwable", throwable.getMessage())
-                );
+                if (Fabric.isInitialized()){
+                    Answers.getInstance().logCustom(
+                            new CustomEvent("FFmpegMediaMetadataRetriever failed")
+                                    .putCustomAttribute("Throwable", throwable.getMessage())
+                    );
+                }
             } finally {
                 if (retriever != null) {
                     retriever.release();

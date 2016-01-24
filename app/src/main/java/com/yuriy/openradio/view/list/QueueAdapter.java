@@ -17,7 +17,6 @@ package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
 import android.media.session.MediaSession;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,7 +95,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
         }
 
         final MediaSession.QueueItem item = getItem(position);
-        Log.d(CLASS_NAME, "Queue Item:" + item);
+        //Log.d(CLASS_NAME, "Queue Item:" + item);
 
         holder.mTitleView.setText(item.getDescription().getTitle());
         holder.mDescriptionView.setText(item.getDescription().getDescription());
