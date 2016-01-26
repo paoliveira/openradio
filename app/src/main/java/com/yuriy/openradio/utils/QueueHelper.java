@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
@@ -52,8 +53,12 @@ public final class QueueHelper {
         int count = 0;
         MediaSession.QueueItem item;
         MediaMetadata track;
-        for (RadioStationVO radioStation : radioStations) {
+        for (final RadioStationVO radioStation : radioStations) {
             track = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+            if (track == null) {
+                Log.w(CLASS_NAME, "Get playing queue warning, Radio Station is null");
+                continue;
+            }
             item = new MediaSession.QueueItem(track.getDescription(), count++);
             queue.add(item);
         }

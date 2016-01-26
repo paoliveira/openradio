@@ -996,11 +996,19 @@ public final class OpenRadioService
         // TODO : getDescription() can return null
         final String mediaId = queueItem.getDescription().getMediaId();
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+        if (radioStation == null) {
+            Log.w(CLASS_NAME, "Can not update Metadata - Radio Station is null");
+            return;
+        }
         final MediaMetadata track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation,
                 mCurrentStreamTitle
         );
+        if (track == null) {
+            Log.w(CLASS_NAME, "Can not update Metadata - MediaMetadata is null");
+            return;
+        }
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
         if (mediaId == null || trackId == null || !mediaId.equals(trackId)) {
             throw new IllegalStateException("track ID (" + trackId + ") " +

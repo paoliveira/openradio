@@ -174,6 +174,9 @@ public final class MediaItemHelper {
                                                                    final RadioStationVO radioStation,
                                                                    final String streamTitle) {
 
+        if (radioStation == null) {
+            return null;
+        }
         String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/radio_station_alpha_bg";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
