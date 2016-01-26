@@ -69,5 +69,11 @@
     <string name="about_thanks_3">Stream Metadata henting tjenesten er levert av:</string>
     <string name="about_thanks_3_title">William Seemann</string>
     <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
+    <string name="popular_stations_title">Populære Radiostasjoner</string>
+    <string name="popular_stations_sub_title">populære radiostasjoner</string>
+    <string name="recent_added_stations_title">Nylig lagt Stations</string>
+    <string name="recent_added_stations_sub_title">nylig lagt stations.</string>
+    <string name="recent_played_songs_title">Nylig spilte Sanger</string>
+    <string name="recent_played_songs_sub_title">nylig spilte sanger</string>
 
 </resources>

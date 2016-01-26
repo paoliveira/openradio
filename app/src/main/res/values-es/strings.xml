@@ -68,6 +68,12 @@
     <string name="ellipsis">…</string>
     <string name="about_thanks_3">Servicio de recuperación Corriente Metadatos es proporcionada por:</string>
     <string name="about_thanks_3_title">William Seemann</string>
-    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
+    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>4
+    <string name="popular_stations_title">Populares Estaciónes de Radio</string>
+    <string name="popular_stations_sub_title">populares estaciónes de radio</string>
+    <string name="recent_added_stations_title">Recientemente se agregó Estaciónes</string>
+    <string name="recent_added_stations_sub_title">recientemente se agregó estaciónes</string>
+    <string name="recent_played_songs_title">Recientemente Jugado Canciones</string>
+    <string name="recent_played_songs_sub_title">recientemente jugado canciones</string>
 
 </resources>

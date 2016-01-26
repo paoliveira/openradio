@@ -95,9 +95,9 @@
     <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
     <string name="popular_stations_title">Popular Radio Stations</string>
     <string name="popular_stations_sub_title">popular radio stations</string>
-    <string name="recent_added_stations_title">Recent Added Stations</string>
-    <string name="recent_added_stations_sub_title">recent added radio stations</string>
-    <string name="recent_played_songs_title">Recent Played Songs</string>
-    <string name="recent_played_songs_sub_title">recent played songs</string>
+    <string name="recent_added_stations_title">Recently Added Stations</string>
+    <string name="recent_added_stations_sub_title">recently added radio stations</string>
+    <string name="recent_played_songs_title">Recently Played Songs</string>
+    <string name="recent_played_songs_sub_title">recently played songs</string>
 
 </resources>
