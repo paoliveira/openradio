@@ -984,6 +984,10 @@ public final class OpenRadioService
         );
     }
 
+    /**
+     * Updates Metadata for the currently playing Radio Station. This method terminates without
+     * throwing exception if one of the stream parameters is invalid.
+     */
     private void updateMetadata() {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             Log.e(CLASS_NAME, "Can't retrieve current metadata.");
@@ -993,8 +997,19 @@ public final class OpenRadioService
         }
 
         final MediaSession.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
-        // TODO : getDescription() can return null
+        if (queueItem == null) {
+            Log.w(CLASS_NAME, "Can not update Metadata - QueueItem is null");
+            return;
+        }
+        if (queueItem.getDescription() == null) {
+            Log.w(CLASS_NAME, "Can not update Metadata - Description of the QueueItem is null");
+            return;
+        }
         final String mediaId = queueItem.getDescription().getMediaId();
+        if (TextUtils.isEmpty(mediaId)) {
+            Log.w(CLASS_NAME, "Can not update Metadata - MediaId is null");
+            return;
+        }
         final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
         if (radioStation == null) {
             Log.w(CLASS_NAME, "Can not update Metadata - Radio Station is null");
@@ -1010,9 +1025,9 @@ public final class OpenRadioService
             return;
         }
         final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
-        if (mediaId == null || trackId == null || !mediaId.equals(trackId)) {
-            throw new IllegalStateException("track ID (" + trackId + ") " +
-                    "should match mediaId (" + mediaId + ")");
+        if (!mediaId.equals(trackId)) {
+            Log.w(CLASS_NAME, "track ID '" + trackId + "' should match mediaId '" + mediaId + "'");
+            return;
         }
         Log.d(
                 CLASS_NAME,

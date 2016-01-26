@@ -110,7 +110,7 @@ public final class QueueHelper {
 
     public static RadioStationVO getRadioStationById(final String id,
                                                      final List<RadioStationVO> radioStations) {
-        for (RadioStationVO radioStation : radioStations) {
+        for (final RadioStationVO radioStation : radioStations) {
             if (radioStation == null) {
                 continue;
             }
@@ -118,7 +118,6 @@ public final class QueueHelper {
                 return radioStation;
             }
         }
-
         return null;
     }
 
