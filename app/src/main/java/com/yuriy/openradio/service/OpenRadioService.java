@@ -54,6 +54,8 @@ import com.yuriy.openradio.business.mediaitem.MediaItemCountryStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemFavoritesList;
 import com.yuriy.openradio.business.mediaitem.MediaItemLocalsList;
 import com.yuriy.openradio.business.mediaitem.MediaItemParentCategories;
+import com.yuriy.openradio.business.mediaitem.MediaItemPopularStations;
+import com.yuriy.openradio.business.mediaitem.MediaItemRecentlyAddedStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
 import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
 import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
@@ -401,6 +403,8 @@ public final class OpenRadioService
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, new MediaItemLocalsList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP, new MediaItemSearchFromApp());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_POPULAR_STATIONS, new MediaItemPopularStations());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RECENT_ADDED_STATIONS, new MediaItemRecentlyAddedStations());
 
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't

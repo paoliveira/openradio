@@ -49,6 +49,13 @@ public class MediaItemCountryStations implements MediaItemCommand {
 
     private static final String CLASS_NAME = MediaItemCountryStations.class.getSimpleName();
 
+    /**
+     * Default constructor.
+     */
+    public MediaItemCountryStations() {
+        super();
+    }
+
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {

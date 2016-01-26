@@ -30,6 +30,8 @@ import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.MediaIDHelper;
 
+import java.util.List;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -51,11 +53,32 @@ public class MediaItemRoot implements MediaItemCommand {
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";
+        final List<MediaBrowser.MediaItem> mediaItems = shareObject.getMediaItems();
+
+        // Recently added Radio Stations
+        mediaItems.add(new MediaBrowser.MediaItem(
+                new MediaDescription.Builder()
+                        .setMediaId(MediaIDHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
+                        .setTitle(context.getString(R.string.recent_added_stations_title))
+                        .setIconUri(Uri.parse(iconUrl))
+                        .setSubtitle(context.getString(R.string.recent_added_stations_sub_title))
+                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+        ));
+
+        // Popular Radio Stations
+        mediaItems.add(new MediaBrowser.MediaItem(
+                new MediaDescription.Builder()
+                        .setMediaId(MediaIDHelper.MEDIA_ID_POPULAR_STATIONS)
+                        .setTitle(context.getString(R.string.popular_stations_title))
+                        .setIconUri(Uri.parse(iconUrl))
+                        .setSubtitle(context.getString(R.string.popular_stations_sub_title))
+                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+        ));
 
         // Do not show list of Worldwide Stations and all Countries for the Auto version
-        if (!shareObject.isIsAndroidAuto()) {
+        if (!shareObject.isAndroidAuto()) {
             // Worldwide Stations
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+            mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
                             .setTitle(context.getString(R.string.all_categories_title))
@@ -65,7 +88,7 @@ public class MediaItemRoot implements MediaItemCommand {
             ));
 
             // All countries list
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+            mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
                             .setTitle(context.getString(R.string.countries_list_title))
@@ -75,8 +98,8 @@ public class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        //If the Country code is known
-        if (!shareObject.getCountryCode().isEmpty()) {
+        // If the Country code is known but not in Auto mode
+        if (!shareObject.isAndroidAuto() && !shareObject.getCountryCode().isEmpty()) {
 
             final int identifier = context.getResources().getIdentifier(
                     "flag_" + shareObject.getCountryCode().toLowerCase(),
@@ -89,7 +112,7 @@ public class MediaItemRoot implements MediaItemCommand {
                             context.getResources(),
                             R.drawable.ic_all_categories
                     ));
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+            mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
                             .setTitle(context.getString(R.string.country_stations_title))
@@ -101,8 +124,8 @@ public class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        // Show Favorites in auto mode anywhere. Don't do it if it is empty for a normal mode.
-        if (shareObject.isIsAndroidAuto() || !FavoritesStorage.isFavoritesEmpty(context)) {
+        // Show Favorites if they are exists.
+        if (!FavoritesStorage.isFavoritesEmpty(context)) {
             // Favorites list
 
             final int identifier = context.getResources().getIdentifier(
@@ -117,7 +140,7 @@ public class MediaItemRoot implements MediaItemCommand {
                             R.drawable.ic_all_categories
                     ));
 
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+            mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
                             .setTitle(context.getString(R.string.favorites_list_title))
@@ -127,9 +150,8 @@ public class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        // Show Local Radio Stations in auto mode anywhere.
-        // Don't do it if it is empty for a normal mode.
-        if (shareObject.isIsAndroidAuto() || !LocalRadioStationsStorage.isLocalsEmpty(context)) {
+        // Show Local Radio Stations if they are exists
+        if (!LocalRadioStationsStorage.isLocalsEmpty(context)) {
             // Locals list
 
             final int identifier = context.getResources().getIdentifier(
@@ -144,7 +166,7 @@ public class MediaItemRoot implements MediaItemCommand {
                             R.drawable.ic_all_categories
                     ));
 
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
+            mediaItems.add(new MediaBrowser.MediaItem(
                     new MediaDescription.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
                             .setTitle(context.getString(R.string.local_radio_stations_list_title))

@@ -114,6 +114,62 @@ public class UrlBuilder {
     }
 
     /**
+     * Get Uri for the list of the popular Radio Stations.
+     *
+     * @param context       Context of the application.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getPopularStations(final Context context) {
+        return Uri.parse(
+                BASE_URL + "stations/popular"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
+    }
+
+    /**
+     * Get Uri for the list of the popular Radio Stations.
+     *
+     * @param context       Context of the application.
+     * @param numberOfItems Number of items in one response.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getPopularStations(final Context context, final int numberOfItems) {
+        return Uri.parse(
+                BASE_URL + "stations/popular"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+                        + "&per_page=" + String.valueOf(numberOfItems)
+        );
+    }
+
+    /**
+     * Get Uri for the list of the recently added Radio Stations.
+     *
+     * @param context Context of the application.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getRecentlyAddedStations(final Context context) {
+        return Uri.parse(
+                BASE_URL + "stations/recent"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+        );
+    }
+
+    /**
+     * Get Uri for the list of the recently added Radio Stations.
+     *
+     * @param context       Context of the application.
+     * @param numberOfItems Number of items in one response.
+     * @return {@link android.net.Uri}
+     */
+    public static Uri getRecentlyAddedStations(final Context context, final int numberOfItems) {
+        return Uri.parse(
+                BASE_URL + "stations/recent"
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
+                        + "&per_page=" + String.valueOf(numberOfItems)
+        );
+    }
+
+    /**
      * Get Uri for the concrete Radio Station details.
      *
      * @param context    Context of the application.

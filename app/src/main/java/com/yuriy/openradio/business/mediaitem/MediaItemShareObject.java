@@ -270,7 +270,7 @@ public final class MediaItemShareObject {
      *
      * @return
      */
-    public boolean isIsAndroidAuto() {
+    public boolean isAndroidAuto() {
         return mIsAndroidAuto;
     }
 
