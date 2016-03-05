@@ -16,10 +16,10 @@
 
 package com.yuriy.openradio.business.mediaitem;
 
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.CategoryVO;
@@ -105,8 +105,8 @@ public class MediaItemParentCategories implements MediaItemCommand {
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
         for (final CategoryVO category : shareObject.getChildCategories()) {
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(
                                     MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES
                                             + String.valueOf(category.getId())
@@ -114,7 +114,7 @@ public class MediaItemParentCategories implements MediaItemCommand {
                             .setTitle(category.getTitle())
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 

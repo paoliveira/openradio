@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId "com.yuriy.openradio"
-        minSdkVersion 21
+        minSdkVersion 14
         // Workaround for the Fabric #29
         targetSdkVersion 22
         versionCode code
@@ -58,8 +58,9 @@ android {
 
 dependencies {
     compile 'commons-io:commons-io:2.4'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:appcompat-v7:23.2.0'
+    compile "com.android.support:support-v4:23.2.0"
+    compile 'com.android.support:design:23.2.0'
     compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.2'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
         transitive = true;

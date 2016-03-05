@@ -18,9 +18,9 @@ package com.yuriy.openradio.business.mediaitem;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.util.Log;
 
 import com.yuriy.openradio.R;
@@ -127,15 +127,15 @@ public class MediaItemCountriesList implements MediaItemCommand {
                     )
             );
 
-            shareObject.getMediaItems().add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(
                                     MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + countryCode
                             )
                             .setTitle(countryName)
                             .setIconBitmap(bitmap)
                             .setSubtitle(countryCode)
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 

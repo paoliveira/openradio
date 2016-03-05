@@ -17,9 +17,9 @@
 package com.yuriy.openradio.business.mediaitem;
 
 import android.content.Context;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.service.FavoritesStorage;
@@ -60,12 +60,12 @@ public class MediaItemFavoritesList implements MediaItemCommand {
 
         for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
 
-            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
+            final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     context,
                     radioStation
             );
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
 
             if (FavoritesStorage.isFavorite(radioStation, context)) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);

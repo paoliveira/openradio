@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.service;
 
-import android.media.MediaMetadata;
+import android.support.v4.media.MediaMetadataCompat;
 
 /**
  * Created by Yuriy Chernyshov
@@ -33,7 +33,7 @@ interface RadioStationUpdateListener {
 
     /**
      * Call this method when Radio Station has been updated.
-     * @param track {@link MediaMetadata} of the Radio Station.
+     * @param track {@link MediaMetadataCompat} of the Radio Station.
      */
-    void onComplete(final MediaMetadata track);
+    void onComplete(final MediaMetadataCompat track);
 }

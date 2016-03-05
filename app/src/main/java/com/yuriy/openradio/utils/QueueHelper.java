@@ -17,9 +17,9 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
-import android.media.MediaMetadata;
-import android.media.session.MediaSession;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 
 import com.yuriy.openradio.api.CategoryVO;
@@ -46,20 +46,20 @@ public final class QueueHelper {
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
-    public static List<MediaSession.QueueItem> getPlayingQueue(
+    public static List<MediaSessionCompat.QueueItem> getPlayingQueue(
             final Context context,
             final List<RadioStationVO> radioStations) {
-        final List<MediaSession.QueueItem> queue = new ArrayList<>();
+        final List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
         int count = 0;
-        MediaSession.QueueItem item;
-        MediaMetadata track;
+        MediaSessionCompat.QueueItem item;
+        MediaMetadataCompat track;
         for (final RadioStationVO radioStation : radioStations) {
             track = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
             if (track == null) {
                 Log.w(CLASS_NAME, "Get playing queue warning, Radio Station is null");
                 continue;
             }
-            item = new MediaSession.QueueItem(track.getDescription(), count++);
+            item = new MediaSessionCompat.QueueItem(track.getDescription(), count++);
             queue.add(item);
         }
         return queue;
@@ -72,10 +72,10 @@ public final class QueueHelper {
      * @param mediaId Id of the Radio Station.
      * @return Index of the Radio Station in the queue.
      */
-    public static int getRadioStationIndexOnQueue(final Iterable<MediaSession.QueueItem> queue,
+    public static int getRadioStationIndexOnQueue(final Iterable<MediaSessionCompat.QueueItem> queue,
                                                   final long mediaId) {
         int index = 0;
-        for (MediaSession.QueueItem item: queue) {
+        for (MediaSessionCompat.QueueItem item: queue) {
             if (mediaId == item.getQueueId()) {
                 return index;
             }
@@ -91,10 +91,10 @@ public final class QueueHelper {
      * @param mediaId Id of the Radio Station.
      * @return Index of the Radio Station in the queue.
      */
-    public static int getRadioStationIndexOnQueue(final Iterable<MediaSession.QueueItem> queue,
+    public static int getRadioStationIndexOnQueue(final Iterable<MediaSessionCompat.QueueItem> queue,
                                                   final String mediaId) {
         int index = 0;
-        for (MediaSession.QueueItem item: queue) {
+        for (MediaSessionCompat.QueueItem item: queue) {
             if (mediaId.equals(item.getDescription().getMediaId())) {
                 return index;
             }
@@ -104,7 +104,7 @@ public final class QueueHelper {
     }
 
     public static boolean isIndexPlayable(final int index,
-                                          final List<MediaSession.QueueItem> queue) {
+                                          final List<MediaSessionCompat.QueueItem> queue) {
         return (queue != null && index >= 0 && index < queue.size());
     }
 

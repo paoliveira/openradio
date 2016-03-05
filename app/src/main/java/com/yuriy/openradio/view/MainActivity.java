@@ -22,13 +22,14 @@ import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.session.MediaControllerCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -41,7 +42,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
@@ -65,8 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.fabric.sdk.android.Fabric;
-
 /**
  * Created with Android Studio.
  * Author: Chernyshov Yuriy - Mobile Development
@@ -89,7 +87,7 @@ public final class MainActivity extends AppCompatActivity {
      * This object is not thread-safe.
      * All calls should happen on the thread on which the browser was constructed.
      */
-    private MediaBrowser mMediaBrowser;
+    private MediaBrowserCompat mMediaBrowser;
 
     /**
      * Adapter for the representing media items in the list.
@@ -152,7 +150,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener for the Media Browser Subscription callback
      */
-    private final MediaBrowser.SubscriptionCallback mMedSubscriptionCallback
+    private final MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCallback
             = new MediaBrowserSubscriptionCallback(this);
 
     /**
@@ -166,7 +164,7 @@ public final class MainActivity extends AppCompatActivity {
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Fabric.with(this, new Crashlytics());
+        //Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);
@@ -202,8 +200,8 @@ public final class MainActivity extends AppCompatActivity {
             public void onItemClick(final AdapterView<?> parent, final View view,
                                     final int position, final long id) {
                 // Current selected media item
-                final MediaBrowser.MediaItem item
-                        = (MediaBrowser.MediaItem) mBrowserAdapter.getItem(position);
+                final MediaBrowserCompat.MediaItem item
+                        = (MediaBrowserCompat.MediaItem) mBrowserAdapter.getItem(position);
 
                 if (item.isBrowsable()) {
                     if (item.getDescription().getTitle() != null
@@ -227,7 +225,7 @@ public final class MainActivity extends AppCompatActivity {
                     addMediaItemToStack(mediaId);
                 } else if (item.isPlayable()) {
                     // Else - we play an item
-                    getMediaController().getTransportControls().playFromMediaId(
+                    getSupportMediaController().getTransportControls().playFromMediaId(
                             mediaId, null
                     );
 
@@ -255,8 +253,8 @@ public final class MainActivity extends AppCompatActivity {
                     public boolean onItemLongClick(final AdapterView<?> parent, final View view,
                                                    final int position, final long id) {
 
-                        final MediaBrowser.MediaItem item
-                                = (MediaBrowser.MediaItem) parent.getItemAtPosition(position);
+                        final MediaBrowserCompat.MediaItem item
+                                = (MediaBrowserCompat.MediaItem) parent.getItemAtPosition(position);
                         if (item == null) {
                             return true;
                         }
@@ -298,7 +296,7 @@ public final class MainActivity extends AppCompatActivity {
         );
 
         // Instantiate media browser
-        mMediaBrowser = new MediaBrowser(
+        mMediaBrowser = new MediaBrowserCompat(
                 this,
                 new ComponentName(this, OpenRadioService.class),
                 new MediaBrowserConnectionCallback(this), null
@@ -493,7 +491,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Remove provided Media Id from the collection. Reconnect {@link MediaBrowser}.
+     * Remove provided Media Id from the collection. Reconnect {@link MediaBrowserCompat}.
      *
      * @param mediaItemId Media Id.
      */
@@ -751,7 +749,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Callback object for the Media Browser connection events
      */
-    private static final class MediaBrowserConnectionCallback extends MediaBrowser.ConnectionCallback {
+    private static final class MediaBrowserConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
 
         /**
          * Weak reference to the outer activity.
@@ -796,13 +794,20 @@ public final class MainActivity extends AppCompatActivity {
             );
 
             // (Re)-Initialize media controller
-            final MediaController mediaController = new MediaController(
-                    activity,
-                    activity.mMediaBrowser.getSessionToken()
-            );
+            MediaControllerCompat mediaController = null;
+            try {
+                mediaController = new MediaControllerCompat(
+                        activity,
+                        activity.mMediaBrowser.getSessionToken()
+                );
+            } catch (final RemoteException e) {
+                Log.e(CLASS_NAME, "Can not init MediaController\n:" + Log.getStackTraceString(e));
+            }
 
             // Set actual controller
-            activity.setMediaController(mediaController);
+            if (mediaController != null) {
+                activity.setSupportMediaController(mediaController);
+            }
         }
 
         @Override
@@ -818,11 +823,11 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            activity.setMediaController(null);
+            activity.setSupportMediaController(null);
         }
     }
 
-    private static final class MediaBrowserSubscriptionCallback extends MediaBrowser.SubscriptionCallback {
+    private static final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
 
         /**
          * Weak reference to the outer activity.
@@ -841,7 +846,7 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onChildrenLoaded(@NonNull final String parentId,
-                                     @NonNull final List<MediaBrowser.MediaItem> children) {
+                                     @NonNull final List<MediaBrowserCompat.MediaItem> children) {
             Log.i(CLASS_NAME, "On children loaded:" + parentId);
 
             final MainActivity activity = mReference.get();
@@ -863,7 +868,7 @@ public final class MainActivity extends AppCompatActivity {
 
             activity.mBrowserAdapter.clear();
             activity.mBrowserAdapter.notifyDataSetInvalidated();
-            for (final MediaBrowser.MediaItem item : children) {
+            for (final MediaBrowserCompat.MediaItem item : children) {
                 activity.mBrowserAdapter.addItem(item);
             }
             activity.mBrowserAdapter.notifyDataSetChanged();
@@ -880,7 +885,7 @@ public final class MainActivity extends AppCompatActivity {
             if (!activity.listPositionMap.containsKey(parentId)) {
                 Log.d(CLASS_NAME, "No key");
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
-                activity.mBrowserAdapter.setActiveItemId(MediaSession.QueueItem.UNKNOWN_ID);
+                activity.mBrowserAdapter.setActiveItemId(MediaSessionCompat.QueueItem.UNKNOWN_ID);
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
                 return;
             }

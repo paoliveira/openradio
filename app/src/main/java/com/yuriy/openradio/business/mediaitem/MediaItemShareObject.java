@@ -17,9 +17,9 @@
 package com.yuriy.openradio.business.mediaitem;
 
 import android.content.Context;
-import android.media.browse.MediaBrowser;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.CategoryVO;
@@ -81,13 +81,13 @@ public final class MediaItemShareObject {
      * TODO : must be final mandatory
      */
     @NonNull
-    private MediaBrowserService.Result<List<MediaBrowser.MediaItem>> mResult;
+    private MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> mResult;
 
     /**
      * TODO : must be final mandatory
      */
     @NonNull
-    private List<MediaBrowser.MediaItem> mMediaItems;
+    private List<MediaBrowserCompat.MediaItem> mMediaItems;
 
     /**
      *
@@ -205,7 +205,7 @@ public final class MediaItemShareObject {
      * @return
      */
     @NonNull
-    public MediaBrowserService.Result<List<MediaBrowser.MediaItem>> getResult() {
+    public MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> getResult() {
         return mResult;
     }
 
@@ -213,7 +213,7 @@ public final class MediaItemShareObject {
      *
      * @param value
      */
-    public void setResult(@NonNull MediaBrowserService.Result<List<MediaBrowser.MediaItem>> value) {
+    public void setResult(@NonNull MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> value) {
         mResult = value;
     }
 
@@ -222,7 +222,7 @@ public final class MediaItemShareObject {
      * @return
      */
     @NonNull
-    public List<MediaBrowser.MediaItem> getMediaItems() {
+    public List<MediaBrowserCompat.MediaItem> getMediaItems() {
         return mMediaItems;
     }
 
@@ -230,7 +230,7 @@ public final class MediaItemShareObject {
      *
      * @param value
      */
-    public void setMediaItems(@NonNull List<MediaBrowser.MediaItem> value) {
+    public void setMediaItems(@NonNull List<MediaBrowserCompat.MediaItem> value) {
         mMediaItems = value;
     }
 

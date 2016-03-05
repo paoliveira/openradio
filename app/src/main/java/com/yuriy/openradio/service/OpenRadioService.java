@@ -16,15 +16,11 @@
 
 package com.yuriy.openradio.service;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.MediaDescription;
-import android.media.MediaMetadata;
 import android.media.MediaPlayer;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaSession;
-import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -32,9 +28,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.service.media.MediaBrowserService;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaBrowserServiceCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -45,6 +46,7 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
+import com.yuriy.openradio.business.RemoteControlReceiver;
 import com.yuriy.openradio.business.SafeRunnable;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
@@ -84,7 +86,7 @@ import java.util.concurrent.Executors;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 public final class OpenRadioService
-        extends MediaBrowserService
+        extends MediaBrowserServiceCompat
         implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener,
                    MediaPlayer.OnErrorListener,
                    AudioManager.OnAudioFocusChangeListener {
@@ -177,7 +179,7 @@ public final class OpenRadioService
     /**
      * Media Session
      */
-    private MediaSession mSession;
+    private MediaSessionCompat mSession;
 
     /**
      * Index of the current playing song.
@@ -187,12 +189,12 @@ public final class OpenRadioService
     /**
      * Queue of the Radio Stations in the Category
      */
-    private final List<MediaSession.QueueItem> mPlayingQueue = new ArrayList<>();
+    private final List<MediaSessionCompat.QueueItem> mPlayingQueue = new ArrayList<>();
 
     /**
      * Current local media player state
      */
-    private int mState = PlaybackState.STATE_NONE;
+    private int mState = PlaybackStateCompat.STATE_NONE;
 
     /**
      * Wifi lock that we hold when streaming files from the internet,
@@ -427,12 +429,14 @@ public final class OpenRadioService
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
+        final ComponentName mediaButtonReceiver = new ComponentName(this, RemoteControlReceiver.class);
+
         // Start a new MediaSession
-        mSession = new MediaSession(this, "OpenRadioService");
+        mSession = new MediaSessionCompat(this, "OpenRadioService", mediaButtonReceiver, null);
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback(this));
-        mSession.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS
-                | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
+        mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
+                | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
     }
@@ -474,7 +478,7 @@ public final class OpenRadioService
             case VALUE_NAME_GET_RADIO_STATION_COMMAND:
                 // Update Favorites Radio station: whether add it or remove it from the storage
                 final boolean isFavorite = getIsFavoriteFromIntent(intent);
-                final MediaDescription mediaDescription = extractMediaDescription(intent);
+                final MediaDescriptionCompat mediaDescription = extractMediaDescription(intent);
                 if (mediaDescription == null) {
                     return super.onStartCommand(intent, flags, startId);
                 }
@@ -589,11 +593,11 @@ public final class OpenRadioService
 
     @Override
     public final void onLoadChildren(@NonNull final String parentId,
-                                     @NonNull final Result<List<MediaBrowser.MediaItem>> result) {
+                                     @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
 
         Log.i(CLASS_NAME, "OnLoadChildren:" + parentId);
 
-        final List<MediaBrowser.MediaItem> mediaItems = new ArrayList<>();
+        final List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
         // Instantiate appropriate downloader (HTTP one)
         final Downloader downloader = new HTTPDownloaderImpl();
@@ -681,7 +685,7 @@ public final class OpenRadioService
 
             // If we are playing, we need to reset media player by calling configMediaPlayerState
             // with mAudioFocus properly set.
-            if (mState == PlaybackState.STATE_PLAYING && !canDuck) {
+            if (mState == PlaybackStateCompat.STATE_PLAYING && !canDuck) {
                 // If we don't have audio focus and can't duck, we save the information that
                 // we were playing, so that we can resume playback once we get the focus back.
                 mPlayOnFocusGain = true;
@@ -758,12 +762,12 @@ public final class OpenRadioService
      * Factory method to make {@link Intent} to update Favorite {@link RadioStationVO}.
      *
      * @param context          Context of the callee.
-     * @param mediaDescription {@link MediaDescription} of the {@link RadioStationVO}.
+     * @param mediaDescription {@link MediaDescriptionCompat} of the {@link RadioStationVO}.
      * @param isFavorite       Whether Radio station is Favorite or not.
      * @return {@link Intent}.
      */
     public static Intent makeUpdateFavoriteIntent(final Context context,
-                                                  final MediaDescription mediaDescription,
+                                                  final MediaDescriptionCompat mediaDescription,
                                                   final boolean isFavorite) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
@@ -831,12 +835,12 @@ public final class OpenRadioService
                 && intent.getBooleanExtra(EXTRA_KEY_IS_FAVORITE, false);
     }
 
-    private static MediaDescription extractMediaDescription(final Intent intent) {
+    private static MediaDescriptionCompat extractMediaDescription(final Intent intent) {
         if (intent == null) {
-            return new MediaDescription.Builder().build();
+            return new MediaDescriptionCompat.Builder().build();
         }
         if (!intent.hasExtra(EXTRA_KEY_MEDIA_DESCRIPTION)) {
-            return new MediaDescription.Builder().build();
+            return new MediaDescriptionCompat.Builder().build();
         }
         return intent.getParcelableExtra(EXTRA_KEY_MEDIA_DESCRIPTION);
     }
@@ -879,7 +883,7 @@ public final class OpenRadioService
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             return null;
         }
-        final MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
         if (item == null) {
             return null;
         }
@@ -906,7 +910,7 @@ public final class OpenRadioService
             }
             return;
         }
-        final MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
         if (item == null) {
             if (listener != null) {
                 listener.onComplete(null);
@@ -972,7 +976,7 @@ public final class OpenRadioService
         }
     }
 
-    private MediaMetadata buildMetadata(final RadioStationVO radioStation) {
+    private MediaMetadataCompat buildMetadata(final RadioStationVO radioStation) {
         if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
             updatePlaybackState(getString(R.string.no_data_message));
         }
@@ -991,12 +995,12 @@ public final class OpenRadioService
     private void updateMetadata() {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             Log.e(CLASS_NAME, "Can't retrieve current metadata.");
-            mState = PlaybackState.STATE_ERROR;
+            mState = PlaybackStateCompat.STATE_ERROR;
             updatePlaybackState(getString(R.string.no_metadata));
             return;
         }
 
-        final MediaSession.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
         if (queueItem == null) {
             Log.w(CLASS_NAME, "Can not update Metadata - QueueItem is null");
             return;
@@ -1015,7 +1019,7 @@ public final class OpenRadioService
             Log.w(CLASS_NAME, "Can not update Metadata - Radio Station is null");
             return;
         }
-        final MediaMetadata track = MediaItemHelper.buildMediaMetadataFromRadioStation(
+        final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation,
                 mCurrentStreamTitle
@@ -1024,7 +1028,7 @@ public final class OpenRadioService
             Log.w(CLASS_NAME, "Can not update Metadata - MediaMetadata is null");
             return;
         }
-        final String trackId = track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID);
+        final String trackId = track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
         if (!mediaId.equals(trackId)) {
             Log.w(CLASS_NAME, "track ID '" + trackId + "' should match mediaId '" + mediaId + "'");
             return;
@@ -1092,7 +1096,7 @@ public final class OpenRadioService
         startMetadataRetrieving();
 
         // actually play the song
-        if (mState == PlaybackState.STATE_PAUSED) {
+        if (mState == PlaybackStateCompat.STATE_PAUSED) {
             // If we're paused, just continue playback and restore the
             // 'foreground service' state.
             configMediaPlayerState();
@@ -1142,7 +1146,7 @@ public final class OpenRadioService
         }
 
         @Override
-        public void onComplete(final MediaMetadata track) {
+        public void onComplete(final MediaMetadataCompat track) {
             final OpenRadioService service = mReference.get();
             if (service == null) {
                 Log.e(CLASS_NAME, "RS Update can not proceed farther, service is null");
@@ -1157,17 +1161,17 @@ public final class OpenRadioService
             }
             final String source = track.getString(MediaItemHelper.CUSTOM_METADATA_TRACK_SOURCE);
             Log.d(CLASS_NAME, "Play Radio Station: current (" + service.mCurrentIndexOnQueue + ") in mPlayingQueue. " +
-                    " musicId=" + track.getString(MediaMetadata.METADATA_KEY_MEDIA_ID) +
+                    " musicId=" + track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
                     " source=" + source);
 
-            service.mState = PlaybackState.STATE_STOPPED;
+            service.mState = PlaybackStateCompat.STATE_STOPPED;
 
             // release everything except MediaPlayer
             service.relaxResources(false);
 
             service.createMediaPlayerIfNeeded();
 
-            service.mState = PlaybackState.STATE_BUFFERING;
+            service.mState = PlaybackStateCompat.STATE_BUFFERING;
 
             service.mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
@@ -1219,7 +1223,7 @@ public final class OpenRadioService
         Log.d(CLASS_NAME, "ConfigAndStartMediaPlayer. mAudioFocus=" + mAudioFocus);
         if (mAudioFocus == AudioFocus.NO_FOCUS_NO_DUCK) {
             // If we don't have audio focus and can't duck, we have to pause,
-            if (mState == PlaybackState.STATE_PLAYING) {
+            if (mState == PlaybackStateCompat.STATE_PLAYING) {
                 handlePauseRequest();
             }
         } else {
@@ -1240,7 +1244,7 @@ public final class OpenRadioService
                 }
                 mPlayOnFocusGain = false;
                 Log.d(CLASS_NAME, "ConfigAndStartMediaPlayer set state playing");
-                mState = PlaybackState.STATE_PLAYING;
+                mState = PlaybackStateCompat.STATE_PLAYING;
             }
         }
 
@@ -1253,9 +1257,9 @@ public final class OpenRadioService
     private void handlePauseRequest() {
         Log.d(CLASS_NAME, "HandlePauseRequest: mState=" + mState);
 
-        if (mState == PlaybackState.STATE_PLAYING) {
+        if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
-            mState = PlaybackState.STATE_PAUSED;
+            mState = PlaybackStateCompat.STATE_PAUSED;
             if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
             }
@@ -1277,7 +1281,7 @@ public final class OpenRadioService
         Log.d(CLASS_NAME, "UpdatePlaybackState, setting session playback state to " + mState);
 
         // Start timeout handler for the new Radio Station
-        if (mState == PlaybackState.STATE_BUFFERING) {
+        if (mState == PlaybackStateCompat.STATE_BUFFERING) {
             mRadioStationTimeoutHandler.postDelayed(
                     radioStationTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
             );
@@ -1286,13 +1290,13 @@ public final class OpenRadioService
             mRadioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
         }
 
-        long position = PlaybackState.PLAYBACK_POSITION_UNKNOWN;
+        long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
         if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             position = mMediaPlayer.getCurrentPosition();
         }
 
-        final PlaybackState.Builder stateBuilder
-                = new PlaybackState.Builder().setActions(getAvailableActions());
+        final PlaybackStateCompat.Builder stateBuilder
+                = new PlaybackStateCompat.Builder().setActions(getAvailableActions());
 
         setCustomAction(stateBuilder);
 
@@ -1301,20 +1305,20 @@ public final class OpenRadioService
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
             stateBuilder.setErrorMessage(error);
-            mState = PlaybackState.STATE_ERROR;
+            mState = PlaybackStateCompat.STATE_ERROR;
         }
         stateBuilder.setState(mState, position, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.
         if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
-            MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+            MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
             stateBuilder.setActiveQueueItemId(item.getQueueId());
         }
 
         mSession.setPlaybackState(stateBuilder.build());
 
         Log.d(CLASS_NAME, "UpdatePlaybackState, state:" + mState);
-        if (mState == PlaybackState.STATE_PLAYING || mState == PlaybackState.STATE_PAUSED) {
+        if (mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
             mMediaNotification.startNotification();
         }
     }
@@ -1335,20 +1339,20 @@ public final class OpenRadioService
     };
 
     private long getAvailableActions() {
-        long actions = PlaybackState.ACTION_PLAY
-                | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
-                | PlaybackState.ACTION_PLAY_FROM_SEARCH;
+        long actions = PlaybackStateCompat.ACTION_PLAY
+                | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
+                | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH;
         if (mPlayingQueue.isEmpty()) {
             return actions;
         }
-        if (mState == PlaybackState.STATE_PLAYING) {
-            actions |= PlaybackState.ACTION_PAUSE;
+        if (mState == PlaybackStateCompat.STATE_PLAYING) {
+            actions |= PlaybackStateCompat.ACTION_PAUSE;
         }
         if (mCurrentIndexOnQueue > 0) {
-            actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+            actions |= PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
         }
         if (mCurrentIndexOnQueue < mPlayingQueue.size() - 1) {
-            actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
+            actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
         }
         return actions;
     }
@@ -1396,7 +1400,7 @@ public final class OpenRadioService
         Log.d(CLASS_NAME, "Handle stop request: state=" + mState + " error=" + withError);
 
         startService(MetadataRetrievalService.getStopRetrievalIntent(getApplicationContext()));
-        mState = PlaybackState.STATE_STOPPED;
+        mState = PlaybackStateCompat.STATE_STOPPED;
 
         // let go of all resources...
         relaxResources(true);
@@ -1410,19 +1414,19 @@ public final class OpenRadioService
         mServiceStarted = false;
     }
 
-    private void setCustomAction(final PlaybackState.Builder stateBuilder) {
+    private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
         getCurrentPlayingRadioStationAsync(
                 new RadioStationUpdateListener() {
 
                     @Override
-                    public void onComplete(final MediaMetadata currentMusic) {
+                    public void onComplete(final MediaMetadataCompat currentMusic) {
 
                         if (currentMusic == null) {
                             return;
                         }
                         // Set appropriate "Favorite" icon on Custom action:
                         final String mediaId = currentMusic.getString(
-                                MediaMetadata.METADATA_KEY_MEDIA_ID
+                                MediaMetadataCompat.METADATA_KEY_MEDIA_ID
                         );
                         final RadioStationVO radioStation = QueueHelper.getRadioStationById(
                                 mediaId, mRadioStations
@@ -1471,7 +1475,7 @@ public final class OpenRadioService
     /**
      *
      */
-    private static final class MediaSessionCallback extends MediaSession.Callback {
+    private static final class MediaSessionCallback extends MediaSessionCompat.Callback {
 
         /**
          *
@@ -1523,8 +1527,8 @@ public final class OpenRadioService
                 return;
             }
 
-            if (service.mState == PlaybackState.STATE_PAUSED) {
-                service.mState = PlaybackState.STATE_STOPPED;
+            if (service.mState == PlaybackStateCompat.STATE_PAUSED) {
+                service.mState = PlaybackStateCompat.STATE_STOPPED;
             }
 
             if (!service.mPlayingQueue.isEmpty()) {
@@ -1555,8 +1559,8 @@ public final class OpenRadioService
                 return;
             }
 
-            if (service.mState == PlaybackState.STATE_PAUSED) {
-                service.mState = PlaybackState.STATE_STOPPED;
+            if (service.mState == PlaybackStateCompat.STATE_PAUSED) {
+                service.mState = PlaybackStateCompat.STATE_STOPPED;
             }
 
             if (mediaId.equals("-1")) {
@@ -1635,7 +1639,7 @@ public final class OpenRadioService
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mPlayingQueue)) {
-                service.mState = PlaybackState.STATE_STOPPED;
+                service.mState = PlaybackStateCompat.STATE_STOPPED;
                 service.handlePlayRequest();
             } else {
                 Log.e(CLASS_NAME, "skipToNext: cannot skip to next. next Index=" +
@@ -1663,7 +1667,7 @@ public final class OpenRadioService
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mPlayingQueue)) {
-                service.mState = PlaybackState.STATE_STOPPED;
+                service.mState = PlaybackStateCompat.STATE_STOPPED;
                 service.handlePlayRequest();
             } else {
                 Log.e(CLASS_NAME, "skipToPrevious: cannot skip to previous. previous Index=" +
@@ -1686,11 +1690,11 @@ public final class OpenRadioService
                 service.getCurrentPlayingRadioStationAsync(
                         new RadioStationUpdateListener() {
                             @Override
-                            public void onComplete(final MediaMetadata track) {
+                            public void onComplete(final MediaMetadataCompat track) {
 
                                 if (track != null) {
                                     final String mediaId = track.getString(
-                                            MediaMetadata.METADATA_KEY_MEDIA_ID
+                                            MediaMetadataCompat.METADATA_KEY_MEDIA_ID
                                     );
                                     final RadioStationVO radioStation = QueueHelper.getRadioStationById(
                                             mediaId, service.mRadioStations
@@ -1803,7 +1807,7 @@ public final class OpenRadioService
      * @param index Index of the Radio Station in the queue.
      */
     private void dispatchCurrentIndexOnQueue(final int index) {
-        final MediaSession.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
         String mediaId = "";
         if (item != null && item.getDescription() != null) {
             mediaId = item.getDescription().getMediaId();

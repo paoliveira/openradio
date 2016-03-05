@@ -19,10 +19,10 @@ package com.yuriy.openradio.business.mediaitem;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
 import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.BitmapsOverlay;
@@ -53,48 +53,48 @@ public class MediaItemRoot implements MediaItemCommand {
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";
-        final List<MediaBrowser.MediaItem> mediaItems = shareObject.getMediaItems();
+        final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
         // Recently added Radio Stations
-        mediaItems.add(new MediaBrowser.MediaItem(
-                new MediaDescription.Builder()
+        mediaItems.add(new MediaBrowserCompat.MediaItem(
+                new MediaDescriptionCompat.Builder()
                         .setMediaId(MediaIDHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
                         .setTitle(context.getString(R.string.recent_added_stations_title))
                         .setIconUri(Uri.parse(iconUrl))
                         .setSubtitle(context.getString(R.string.recent_added_stations_sub_title))
-                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
         ));
 
         // Popular Radio Stations
-        mediaItems.add(new MediaBrowser.MediaItem(
-                new MediaDescription.Builder()
+        mediaItems.add(new MediaBrowserCompat.MediaItem(
+                new MediaDescriptionCompat.Builder()
                         .setMediaId(MediaIDHelper.MEDIA_ID_POPULAR_STATIONS)
                         .setTitle(context.getString(R.string.popular_stations_title))
                         .setIconUri(Uri.parse(iconUrl))
                         .setSubtitle(context.getString(R.string.popular_stations_sub_title))
-                        .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
         ));
 
         // Do not show list of Worldwide Stations and all Countries for the Auto version
         if (!shareObject.isAndroidAuto()) {
             // Worldwide Stations
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES)
                             .setTitle(context.getString(R.string.all_categories_title))
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(context.getString(R.string.all_categories_sub_title))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
 
             // All countries list
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST)
                             .setTitle(context.getString(R.string.countries_list_title))
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(context.getString(R.string.country_stations_sub_title))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 
@@ -112,15 +112,15 @@ public class MediaItemRoot implements MediaItemCommand {
                             context.getResources(),
                             R.drawable.ic_all_categories
                     ));
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS)
                             .setTitle(context.getString(R.string.country_stations_title))
                             .setIconBitmap(bitmap)
                             .setSubtitle(context.getString(
                                     R.string.country_stations_sub_title
                             ))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 
@@ -140,13 +140,13 @@ public class MediaItemRoot implements MediaItemCommand {
                             R.drawable.ic_all_categories
                     ));
 
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
                             .setTitle(context.getString(R.string.favorites_list_title))
                             .setIconBitmap(bitmap)
                             .setSubtitle(context.getString(R.string.favorites_list_sub_title))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 
@@ -166,13 +166,13 @@ public class MediaItemRoot implements MediaItemCommand {
                             R.drawable.ic_all_categories
                     ));
 
-            mediaItems.add(new MediaBrowser.MediaItem(
-                    new MediaDescription.Builder()
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
                             .setTitle(context.getString(R.string.local_radio_stations_list_title))
                             .setIconBitmap(bitmap)
                             .setSubtitle(context.getString(R.string.local_radio_stations_list_sub_title))
-                            .build(), MediaBrowser.MediaItem.FLAG_BROWSABLE
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 

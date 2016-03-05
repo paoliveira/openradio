@@ -63,6 +63,12 @@
             android:name="com.crashlytics.ApiKey"
             android:value="3bba57c385bc4f6235b8e544ab5ed6d37745a00a" />
 
+        <receiver android:name=".business.RemoteControlReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

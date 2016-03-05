@@ -16,7 +16,7 @@
 package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
-import android.media.session.MediaSession;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 /**
  * A list adapter for items in a queue
  */
-public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
+public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
 
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueAdapter.class.getSimpleName();
@@ -39,7 +39,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
     /**
      * The currently selected/active queue item Id.
      */
-    private long mActiveQueueItemId = MediaSession.QueueItem.UNKNOWN_ID;
+    private long mActiveQueueItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
     /**
      * Position of the Active element.
@@ -51,7 +51,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
      * @param context Context.
      */
     public QueueAdapter(final Activity context) {
-        super(context, R.layout.media_list_item, new ArrayList<MediaSession.QueueItem>());
+        super(context, R.layout.media_list_item, new ArrayList<MediaSessionCompat.QueueItem>());
     }
 
     /**
@@ -94,7 +94,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        final MediaSession.QueueItem item = getItem(position);
+        final MediaSessionCompat.QueueItem item = getItem(position);
         //Log.d(CLASS_NAME, "Queue Item:" + item);
 
         holder.mTitleView.setText(item.getDescription().getTitle());
@@ -104,13 +104,13 @@ public class QueueAdapter extends ArrayAdapter<MediaSession.QueueItem> {
         if (mActiveQueueItemId == item.getQueueId()) {
             mActivePosition = position;
             holder.mImageView.setImageDrawable(
-                    getContext().getDrawable(R.drawable.ic_equalizer_white_24dp));
+                    getContext().getResources().getDrawable(R.drawable.ic_equalizer_white_24dp));
             convertView.setBackgroundColor(
                     getContext().getResources().getColor(R.color.queue_item_selected_bg_color)
             );
         } else {
             holder.mImageView.setImageDrawable(
-                    getContext().getDrawable(R.drawable.ic_play_arrow_white_24dp));
+                    getContext().getResources().getDrawable(R.drawable.ic_play_arrow_white_24dp));
             convertView.setBackgroundColor(
                     getContext().getResources().getColor(R.color.transparent_color)
             );

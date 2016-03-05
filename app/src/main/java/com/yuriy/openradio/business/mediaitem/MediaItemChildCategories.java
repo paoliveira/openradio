@@ -16,10 +16,10 @@
 
 package com.yuriy.openradio.business.mediaitem;
 
-import android.media.MediaDescription;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
 import android.support.annotation.NonNull;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
@@ -83,13 +83,13 @@ public class MediaItemChildCategories implements MediaItemCommand {
 
         if (list.isEmpty()) {
 
-            final MediaMetadata track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+            final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     shareObject.getContext(),
                     MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
             );
-            final MediaDescription mediaDescription = track.getDescription();
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_BROWSABLE);
+            final MediaDescriptionCompat mediaDescription = track.getDescription();
+            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
             shareObject.getMediaItems().add(mediaItem);
             shareObject.getResult().sendResult(shareObject.getMediaItems());
 
@@ -114,12 +114,12 @@ public class MediaItemChildCategories implements MediaItemCommand {
 
             radioStation.setGenre(genre);
 
-            final MediaDescription mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
+            final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     shareObject.getContext(),
                     radioStation
             );
-            final MediaBrowser.MediaItem mediaItem = new MediaBrowser.MediaItem(
-                    mediaDescription, MediaBrowser.MediaItem.FLAG_PLAYABLE);
+            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
 
             if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);

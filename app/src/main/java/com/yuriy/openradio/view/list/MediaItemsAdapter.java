@@ -18,11 +18,11 @@ package com.yuriy.openradio.view.list;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.media.MediaDescription;
-import android.media.browse.MediaBrowser;
-import android.media.session.MediaSession;
 import android.net.Uri;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -54,12 +54,12 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private ListAdapterViewHolder mViewHolder;
     private Activity mCurrentActivity;
     private ImageFetcher mImageFetcher;
-    private final ListAdapterData<MediaBrowser.MediaItem> mAdapterData = new ListAdapterData<>(null);
+    private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData = new ListAdapterData<>(null);
 
     /**
      * The currently selected / active Item Id.
      */
-    private long mActiveItemId = MediaSession.QueueItem.UNKNOWN_ID;
+    private long mActiveItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
     /**
      * Stores an instance of {@link com.yuriy.openradio.view.list.MediaItemsAdapter.MessagesHandler}.
@@ -104,7 +104,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      */
     public int getIndexForMediaId(final String mediaId) {
         final int count = mAdapterData.getItemsCount();
-        MediaBrowser.MediaItem item;
+        MediaBrowserCompat.MediaItem item;
         for (int i = 0; i < count; i++) {
             item = mAdapterData.getItem(i);
             if (item == null) {
@@ -136,8 +136,8 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
     @Override
     public final View getView(final int position, View convertView, final ViewGroup parent) {
-        final MediaBrowser.MediaItem mediaItem = (MediaBrowser.MediaItem) getItem(position);
-        final MediaDescription description = mediaItem.getDescription();
+        final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) getItem(position);
+        final MediaDescriptionCompat description = mediaItem.getDescription();
 
         convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
 
@@ -209,7 +209,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * Add {@link com.yuriy.openradio.api.CategoryVO} into the collection.
      * @param value {@link com.yuriy.openradio.api.CategoryVO}
      */
-    public final void addItem(final MediaBrowser.MediaItem value) {
+    public final void addItem(final MediaBrowserCompat.MediaItem value) {
         mAdapterData.addItem(value);
     }
 
@@ -217,8 +217,8 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * Add {@link com.yuriy.openradio.api.CategoryVO}s into the collection.
      * @param items Collection of the {@link com.yuriy.openradio.api.CategoryVO}
      */
-    public final void addItems(final List<MediaBrowser.MediaItem> items) {
-        for (MediaBrowser.MediaItem item : items) {
+    public final void addItems(final List<MediaBrowserCompat.MediaItem> items) {
+        for (MediaBrowserCompat.MediaItem item : items) {
             addItem(item);
         }
     }

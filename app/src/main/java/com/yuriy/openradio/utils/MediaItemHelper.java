@@ -17,11 +17,11 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
-import android.media.MediaDescription;
-import android.media.MediaMetadata;
-import android.media.browse.MediaBrowser;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -49,15 +49,15 @@ public final class MediaItemHelper {
     /**
      * Sets key that indicates Radio Station is in favorites.
      *
-     * @param mediaItem  {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @param mediaItem  {@link MediaBrowserCompat.MediaItem}.
      * @param isFavorite Whether Item is in Favorites.
      */
-    public static void updateFavoriteField(final MediaBrowser.MediaItem mediaItem,
+    public static void updateFavoriteField(final MediaBrowserCompat.MediaItem mediaItem,
                                            final boolean isFavorite) {
         if (mediaItem == null) {
             return;
         }
-        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         if (bundle == null) {
             return;
@@ -68,15 +68,15 @@ public final class MediaItemHelper {
     /**
      * Sets key that indicates Radio Station is in Local Radio Stations.
      *
-     * @param mediaItem  {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @param mediaItem  {@link MediaBrowserCompat.MediaItem}.
      * @param isLocal     Whether Item is in Local Radio Stations.
      */
-    public static void updateLocalRadioStationField(final MediaBrowser.MediaItem mediaItem,
+    public static void updateLocalRadioStationField(final MediaBrowserCompat.MediaItem mediaItem,
                                                     final boolean isLocal) {
         if (mediaItem == null) {
             return;
         }
-        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         if (bundle == null) {
             return;
@@ -87,15 +87,15 @@ public final class MediaItemHelper {
     /**
      *
      *
-     * @param mediaItem   {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @param mediaItem   {@link MediaBrowserCompat.MediaItem}.
      * @param streamTitle
      */
-    public static void updateCurrentStreamTitleField(final MediaBrowser.MediaItem mediaItem,
+    public static void updateCurrentStreamTitleField(final MediaBrowserCompat.MediaItem mediaItem,
                                                      final String streamTitle) {
         if (mediaItem == null) {
             return;
         }
-        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         if (bundle == null) {
             return;
@@ -105,28 +105,28 @@ public final class MediaItemHelper {
 
     /**
      * Gets {@code true} if Item is Favorite, {@code false} - otherwise.
-     * @param mediaItem {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @param mediaItem {@link MediaBrowserCompat.MediaItem}.
      * @return {@code true} if Item is Favorite, {@code false} - otherwise.
      */
-    public static boolean isFavoriteField(final MediaBrowser.MediaItem mediaItem) {
+    public static boolean isFavoriteField(final MediaBrowserCompat.MediaItem mediaItem) {
         if (mediaItem == null) {
             return false;
         }
-        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         return bundle != null && bundle.getBoolean(KEY_IS_FAVORITE, false);
     }
 
     /**
      * Gets {@code true} if Item is Local Radio Station, {@code false} - otherwise.
-     * @param mediaItem {@link android.media.browse.MediaBrowser.MediaItem}.
+     * @param mediaItem {@link MediaBrowserCompat.MediaItem}.
      * @return {@code true} if Item is Favorite, {@code false} - otherwise.
      */
-    public static boolean isLocalRadioStationField(final MediaBrowser.MediaItem mediaItem) {
+    public static boolean isLocalRadioStationField(final MediaBrowserCompat.MediaItem mediaItem) {
         if (mediaItem == null) {
             return false;
         }
-        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         return bundle != null && bundle.getBoolean(KEY_IS_LOCAL, false);
     }
@@ -134,11 +134,11 @@ public final class MediaItemHelper {
     /**
      *
      */
-    public static String getCurrentStreamTitleField(final MediaBrowser.MediaItem mediaItem) {
+    public static String getCurrentStreamTitleField(final MediaBrowserCompat.MediaItem mediaItem) {
         if (mediaItem == null) {
             return "";
         }
-        final MediaDescription mediaDescription = mediaItem.getDescription();
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         if (bundle == null) {
             return "";
@@ -155,7 +155,7 @@ public final class MediaItemHelper {
      *
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadata buildMediaMetadataFromRadioStation(final Context context,
+    public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
                                                                    final RadioStationVO radioStation) {
         return buildMediaMetadataFromRadioStation(context, radioStation, null);
     }
@@ -170,9 +170,9 @@ public final class MediaItemHelper {
      *
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadata buildMediaMetadataFromRadioStation(final Context context,
-                                                                   final RadioStationVO radioStation,
-                                                                   final String streamTitle) {
+    public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
+                                                                         final RadioStationVO radioStation,
+                                                                         final String streamTitle) {
 
         if (radioStation == null) {
             return null;
@@ -205,33 +205,33 @@ public final class MediaItemHelper {
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
-        return new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, id)
+        return new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
                         //.putString(MediaMetadata.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subTitle)
                         //.putLong(MediaMetadata.METADATA_KEY_DURATION, duration)
-                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
+                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
                         //.putString(MediaMetadata.METADATA_KEY_ALBUM_ART, radioStation.getThumbUrl())
-                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, subTitle)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST, subTitle)
-                .putString(MediaMetadata.METADATA_KEY_AUTHOR, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, subTitle)
                         //.putLong(MediaMetadata.METADATA_KEY_TRACK_NUMBER, trackNumber)
                         //.putLong(MediaMetadata.METADATA_KEY_NUM_TRACKS, totalTrackCount)
                 .build();
     }
 
     /**
-     *  Build {@link android.media.MediaDescription} from provided
+     *  Build {@link MediaDescriptionCompat} from provided
      * {@link com.yuriy.openradio.api.RadioStationVO}.
      *
      * @param context      Context of the callee.
      * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
-     * @return {@link android.media.MediaDescription}
+     * @return {@link MediaDescriptionCompat}
      */
-    public static MediaDescription buildMediaDescriptionFromRadioStation(final Context context,
+    public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final Context context,
                                                                          final RadioStationVO radioStation) {
         String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/radio_station_alpha_bg";
@@ -248,7 +248,7 @@ public final class MediaItemHelper {
 
         Log.d(CLASS_NAME, "Media Description for " + radioStation);
 
-        return new MediaDescription.Builder()
+        return new MediaDescriptionCompat.Builder()
                 .setDescription(genre)
                 .setMediaId(id)
                 .setTitle(title)
@@ -259,13 +259,13 @@ public final class MediaItemHelper {
     }
 
     /**
-     * Create {@link MediaMetadata} for the empty category.
+     * Create {@link MediaMetadataCompat} for the empty category.
      *
      * @param context Context of the callee.
-     * @return Object of the {@link MediaMetadata} type.
+     * @return Object of the {@link MediaMetadataCompat} type.
      */
-    public static MediaMetadata buildMediaMetadataForEmptyCategory(final Context context,
-                                                                   final String parentId) {
+    public static MediaMetadataCompat buildMediaMetadataForEmptyCategory(final Context context,
+                                                                         final String parentId) {
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_radio_station_empty";
@@ -279,13 +279,13 @@ public final class MediaItemHelper {
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
-        return new MediaMetadata.Builder()
-                .putString(MediaMetadata.METADATA_KEY_MEDIA_ID, parentId)
+        return new MediaMetadataCompat.Builder()
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, parentId)
                 .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
-                .putString(MediaMetadata.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadata.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadata.METADATA_KEY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .build();
     }
 }
