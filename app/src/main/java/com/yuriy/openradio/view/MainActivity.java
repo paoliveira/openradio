@@ -42,6 +42,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
@@ -64,6 +65,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.
@@ -164,7 +167,7 @@ public final class MainActivity extends AppCompatActivity {
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //Fabric.with(this, new Crashlytics());
+        Fabric.with(this, new Crashlytics());
 
         // Set content.
         setContentView(R.layout.activity_main);

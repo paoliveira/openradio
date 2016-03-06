@@ -8,7 +8,7 @@
 
     <ImageView
         android:id="@+id/img_view"
-        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
         android:src="@drawable/ic_child_categories"
         android:layout_width="@dimen/list_item_width"
         android:layout_height="@dimen/list_item_width"
@@ -20,23 +20,23 @@
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@+id/img_view"
-        android:layout_toStartOf="@+id/favorite_check_view"/>
+        android:layout_toRightOf="@+id/img_view"
+        android:layout_toLeftOf="@+id/favorite_check_view"/>
 
     <TextView
         android:id="@+id/description_view"
         android:textSize="18sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@+id/img_view"
+        android:layout_toRightOf="@+id/img_view"
         android:layout_below="@+id/name_view"
-        android:layout_toStartOf="@+id/favorite_check_view"/>
+        android:layout_toLeftOf="@+id/favorite_check_view"/>
 
     <CheckBox
         android:id="@+id/favorite_check_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:checked="false"
         android:layout_centerVertical="true"
         android:focusable="false"

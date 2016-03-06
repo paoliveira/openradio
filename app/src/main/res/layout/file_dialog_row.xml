@@ -9,9 +9,9 @@
         android:id="@+id/file_dialog_row_image"
         android:layout_width="wrap_content"
         android:layout_height="35dp"
-        android:layout_alignParentStart="true"
-        android:paddingEnd="5dp"
-        android:paddingStart="3dp" />
+        android:layout_alignParentLeft="true"
+        android:paddingRight="5dp"
+        android:paddingLeft="3dp" />
 
     <TextView
         android:id="@+id/file_dialog_row_text"
@@ -19,7 +19,7 @@
         android:layout_height="35dp"
         android:layout_alignBottom="@+id/file_dialog_row_image"
         android:layout_alignTop="@+id/file_dialog_row_image"
-        android:layout_toEndOf="@+id/file_dialog_row_image"
+        android:layout_toRightOf="@+id/file_dialog_row_image"
         android:gravity="center_vertical"
         android:text="@+id/file_dialog_row_text"
         android:textSize="23sp" />
