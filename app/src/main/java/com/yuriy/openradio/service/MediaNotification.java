@@ -121,7 +121,7 @@ public class MediaNotification extends BroadcastReceiver {
             packageContext.setTheme(applicationInfo.theme);
             Resources.Theme theme = packageContext.getTheme();
             TypedArray ta = theme.obtainStyledAttributes(
-                    new int[] {android.R.attr.colorPrimary});
+                    new int[] {android.support.v7.appcompat.R.attr.colorPrimary});
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (Exception e) {

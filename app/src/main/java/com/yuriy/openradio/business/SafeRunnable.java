@@ -1,7 +1,5 @@
 package com.yuriy.openradio.business;
 
-import android.view.View;
-
 import java.lang.ref.WeakReference;
 
 /**

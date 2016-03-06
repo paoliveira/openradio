@@ -79,10 +79,8 @@ public final class RemoveStationDialog extends DialogFragment {
 
         final View view = inflater.inflate(R.layout.dialog_remove_station, container, false);
         final FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
-                new FrameLayout.LayoutParams(
-                        (int) (AppUtils.getShortestScreenSize(getActivity()) * 0.8),
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+                (int) (AppUtils.getShortestScreenSize(getActivity()) * 0.8),
+                ViewGroup.LayoutParams.WRAP_CONTENT
         );
         final LinearLayout root = (LinearLayout) view.findViewById(R.id.remove_station_dialog_root);
         root.setLayoutParams(layoutParams);

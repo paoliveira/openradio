@@ -6,6 +6,11 @@ import android.content.Intent;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+
+import io.fabric.sdk.android.Fabric;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -24,6 +29,12 @@ public class RemoteControlReceiver extends BroadcastReceiver {
         final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
         final int keyCode = event.getKeyCode();
         Log.d(CLASS_NAME, "Key event:" + event);
+        if (Fabric.isInitialized()){
+            Answers.getInstance().logCustom(
+                    new CustomEvent("RemoteControlReceiver received")
+                            .putCustomAttribute("KeyCode", keyCode)
+            );
+        }
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
 

@@ -24,7 +24,7 @@ android {
         // Workaround for the Fabric #29
         targetSdkVersion 22
         versionCode code
-        versionName "2.1"
+        versionName "2.2"
     }
 
     buildTypes {

@@ -82,7 +82,7 @@ public final class MetadataRetrievalService extends Service {
         Log.i(CLASS_NAME, "Destroy");
 
         mServiceHandler.removeCallbacksAndMessages(null);
-        mServiceLooper.quitSafely();
+        mServiceLooper.quit();
     }
 
     @Nullable
@@ -345,7 +345,7 @@ public final class MetadataRetrievalService extends Service {
                     //mRetriever.release();
                     mHandler.removeCallbacks(mRetrievalRunnable);
                     mHandler.removeCallbacksAndMessages(null);
-                    mLooper.quitSafely();
+                    mLooper.quit();
                     break;
                 default:
                     Log.w(CLASS_NAME, "Unknown command:" + message.what);
