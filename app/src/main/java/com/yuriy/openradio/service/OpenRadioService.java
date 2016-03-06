@@ -1807,6 +1807,10 @@ public final class OpenRadioService
      * @param index Index of the Radio Station in the queue.
      */
     private void dispatchCurrentIndexOnQueue(final int index) {
+        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
+            Log.w(CLASS_NAME, "Can not dispatch curr index on queue");
+            return;
+        }
         final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
         String mediaId = "";
         if (item != null && item.getDescription() != null) {
