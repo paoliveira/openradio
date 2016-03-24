@@ -161,7 +161,22 @@ public final class MainActivity extends AppCompatActivity {
      */
     private String mCurrentParentId = "";
 
+    /**
+     *
+     */
     private String mCurrentMediaId = "";
+
+    /**
+     * Listener for the List view click event.
+     */
+    private final AdapterView.OnItemClickListener mOnItemClickListener
+            = new OnItemClickListener(this);
+
+    /**
+     * Listener for the List view long click event.
+     */
+    private final AdapterView.OnItemLongClickListener mOnItemLongClickListener
+            = new OnItemLongClickListener(this);
 
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
@@ -197,92 +212,10 @@ public final class MainActivity extends AppCompatActivity {
         // Set adapter
         listView.setAdapter(mBrowserAdapter);
         // Set click listener
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(final AdapterView<?> parent, final View view,
-                                    final int position, final long id) {
-                // Current selected media item
-                final MediaBrowserCompat.MediaItem item
-                        = (MediaBrowserCompat.MediaItem) mBrowserAdapter.getItem(position);
-
-                if (item.isBrowsable()) {
-                    if (item.getDescription().getTitle() != null
-                            && item.getDescription().getTitle()
-                            .equals(getString(R.string.category_empty))) {
-                        return;
-                    }
-                }
-
-                // Keep last selected position for the given category.
-                // We will use it when back to this category
-                Log.d(CLASS_NAME, "Children:" + mediaItemsStack.get(mediaItemsStack.size() - 1) + " pos:" + position);
-                listPositionMap.put(mediaItemsStack.get(mediaItemsStack.size() - 1), position);
-
-                showProgressBar();
-
-                final String mediaId = item.getMediaId();
-
-                // If it is browsable - then we navigate to the next category
-                if (item.isBrowsable()) {
-                    addMediaItemToStack(mediaId);
-                } else if (item.isPlayable()) {
-                    // Else - we play an item
-                    getSupportMediaController().getTransportControls().playFromMediaId(
-                            mediaId, null
-                    );
-
-                    // Call appropriate activity for the items playing
-                    runOnUiThread(
-                            new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    startActivity(
-                                            QueueActivity.makeIntent(MainActivity.this, mediaId)
-                                    );
-                                }
-                            }
-                    );
-                }
-            }
-        });
+        listView.setOnItemClickListener(mOnItemClickListener);
         // Set long click listener.
         // Return true in order to prevent click event been invoked.
-        listView.setOnItemLongClickListener(
-                new AdapterView.OnItemLongClickListener() {
-
-                    @Override
-                    public boolean onItemLongClick(final AdapterView<?> parent, final View view,
-                                                   final int position, final long id) {
-
-                        final MediaBrowserCompat.MediaItem item
-                                = (MediaBrowserCompat.MediaItem) parent.getItemAtPosition(position);
-                        if (item == null) {
-                            return true;
-                        }
-
-                        // If Item is not Local Radio Station - skipp farther processing
-                        if (!MediaItemHelper.isLocalRadioStationField(item)) {
-                            return true;
-                        }
-
-                        String name = "";
-                        if (item.getDescription().getTitle() != null) {
-                            name = item.getDescription().getTitle().toString();
-                        }
-
-                        // Show Remove Station Dialog
-                        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        final DialogFragment dialog = RemoveStationDialog.newInstance(
-                                item.getMediaId(), name
-                        );
-                        dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
-
-                        return true;
-                    }
-                }
-        );
+        listView.setOnItemLongClickListener(mOnItemLongClickListener);
 
         final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
         addBtn.setOnClickListener(
@@ -916,6 +849,132 @@ public final class MainActivity extends AppCompatActivity {
             activity.hideProgressBar();
 
             Toast.makeText(activity, R.string.error_loading_media, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Listener of the List Item click event.
+     */
+    private static final class OnItemClickListener implements AdapterView.OnItemClickListener {
+
+        /**
+         * Weak reference to the Main Activity.
+         */
+        private final WeakReference<MainActivity> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param mainActivity Reference to the Main Activity.
+         */
+        private OnItemClickListener(final MainActivity mainActivity) {
+            super();
+            mReference = new WeakReference<>(mainActivity);
+        }
+
+        @Override
+        public void onItemClick(final AdapterView<?> parent, final View view, final int position,
+                                final long id) {
+            final MainActivity mainActivity = mReference.get();
+            if (mainActivity == null) {
+                Log.w(CLASS_NAME, "OnItemClick return, reference to MainActivity is null");
+                return;
+            }
+            // Current selected media item
+            final MediaBrowserCompat.MediaItem item
+                    = (MediaBrowserCompat.MediaItem) mainActivity.mBrowserAdapter.getItem(position);
+
+            if (item.isBrowsable()) {
+                if (item.getDescription().getTitle() != null
+                        && item.getDescription().getTitle()
+                        .equals(mainActivity.getString(R.string.category_empty))) {
+                    return;
+                }
+            }
+
+            // Keep last selected position for the given category.
+            // We will use it when back to this category
+            final int mediaItemsStackSize = mainActivity.mediaItemsStack.size();
+            if (mediaItemsStackSize >= 1) {
+                final String children = mainActivity.mediaItemsStack.get(mediaItemsStackSize - 1);
+                Log.d(CLASS_NAME, "Children:" + children + " pos:" + position);
+                mainActivity.listPositionMap.put(children, position);
+            }
+
+            mainActivity.showProgressBar();
+
+            final String mediaId = item.getMediaId();
+
+            // If it is browsable - then we navigate to the next category
+            if (item.isBrowsable()) {
+                mainActivity.addMediaItemToStack(mediaId);
+            } else if (item.isPlayable()) {
+                // Else - we play an item
+                mainActivity.getSupportMediaController().getTransportControls().playFromMediaId(
+                        mediaId, null
+                );
+
+                // Call appropriate activity for the items playing
+                mainActivity.startActivity(
+                        QueueActivity.makeIntent(mainActivity, mediaId)
+                );
+            }
+        }
+    }
+
+    /**
+     * Listener of the List Item long click event.
+     */
+    private static final class OnItemLongClickListener implements AdapterView.OnItemLongClickListener {
+
+        /**
+         * Weak reference to the Main Activity.
+         */
+        private final WeakReference<MainActivity> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param mainActivity Reference to the Main Activity.
+         */
+        private OnItemLongClickListener(final MainActivity mainActivity) {
+            super();
+            mReference = new WeakReference<>(mainActivity);
+        }
+
+        @Override
+        public boolean onItemLongClick(final AdapterView<?> parent, final View view,
+                                       final int position, final long id) {
+            final MainActivity mainActivity = mReference.get();
+            if (mainActivity == null) {
+                Log.w(CLASS_NAME, "OnItemLongClick return, reference to MainActivity is null");
+                return true;
+            }
+
+            final MediaBrowserCompat.MediaItem item
+                    = (MediaBrowserCompat.MediaItem) parent.getItemAtPosition(position);
+            if (item == null) {
+                return true;
+            }
+
+            // If Item is not Local Radio Station - skipp farther processing
+            if (!MediaItemHelper.isLocalRadioStationField(item)) {
+                return true;
+            }
+
+            String name = "";
+            if (item.getDescription().getTitle() != null) {
+                name = item.getDescription().getTitle().toString();
+            }
+
+            // Show Remove Station Dialog
+            final FragmentTransaction transaction = mainActivity.getFragmentManager().beginTransaction();
+            final DialogFragment dialog = RemoveStationDialog.newInstance(
+                    item.getMediaId(), name
+            );
+            dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
+
+            return true;
         }
     }
 }
