@@ -346,6 +346,10 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                     continue;
                 }
 
+                if (stream.startsWith("htt://")) {
+                    stream = stream.replace("htt://", "http://");
+                }
+
                 streamVO.setBitrate(bitrate);
                 streamVO.setUrl(stream);
                 streamVO.setId(id);
