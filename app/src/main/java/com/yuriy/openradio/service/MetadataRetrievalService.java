@@ -23,7 +23,6 @@ import java.lang.ref.WeakReference;
 
 import io.fabric.sdk.android.Fabric;
 import wseemann.media.FFmpegMediaMetadataRetriever;
-import wseemann.media.Metadata;
 
 /**
  * Created by Yuriy Chernyshov
@@ -239,7 +238,7 @@ public final class MetadataRetrievalService extends Service {
             if (handler == null) {
                 return;
             }
-            Metadata metadata = null;
+            FFmpegMediaMetadataRetriever.Metadata metadata = null;
             FFmpegMediaMetadataRetriever retriever = null;
             try {
                 retriever = new FFmpegMediaMetadataRetriever();
@@ -394,7 +393,7 @@ public final class MetadataRetrievalService extends Service {
          * Obtain a new Message instance from the global pool and add Metadata field to it.
          *
          */
-        private void obtainAndSendMetadata(final Metadata metadata) {
+        private void obtainAndSendMetadata(final FFmpegMediaMetadataRetriever.Metadata metadata) {
 
             Log.d(CLASS_NAME, "Metadata:" + metadata);
 
@@ -457,7 +456,7 @@ public final class MetadataRetrievalService extends Service {
          *
          * @return The Stream Title or an empty string in case of it is impossible to get it.
          */
-        private String getStreamTitle(final Metadata metadata) {
+        private String getStreamTitle(final FFmpegMediaMetadataRetriever.Metadata metadata) {
 
             // key:StreamTitle, val:FONSECA - ENTRE MI VIDA Y LA TUYA
             // key:audio_codec, val:mp3
