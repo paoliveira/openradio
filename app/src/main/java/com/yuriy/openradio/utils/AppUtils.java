@@ -23,6 +23,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -32,7 +33,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -566,5 +566,28 @@ public final class AppUtils {
         final int height = displayMetrics.heightPixels;
         final int width = displayMetrics.widthPixels;
         return height < width ? height : width;
+    }
+
+    public static boolean externalStorageAvailable() {
+        boolean externalStorageAvailable;
+        boolean externalStorageWriteable;
+        final String state = Environment.getExternalStorageState();
+        switch (state) {
+            case Environment.MEDIA_MOUNTED:
+                // We can read and write the media
+                externalStorageAvailable = externalStorageWriteable = true;
+                break;
+            case Environment.MEDIA_MOUNTED_READ_ONLY:
+                // We can only read the media
+                externalStorageAvailable = true;
+                externalStorageWriteable = false;
+                break;
+            default:
+                // Something else is wrong. It may be one of many other states, but all we need
+                //  to know is we can neither read nor write
+                externalStorageAvailable = externalStorageWriteable = false;
+                break;
+        }
+        return externalStorageAvailable && externalStorageWriteable;
     }
 }

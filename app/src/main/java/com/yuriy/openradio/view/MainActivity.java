@@ -50,6 +50,7 @@ import com.yuriy.openradio.business.PermissionStatusListener;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -183,6 +184,8 @@ public final class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         Fabric.with(this, new Crashlytics());
+
+        AppLogger.initLogger(this);
 
         // Set content.
         setContentView(R.layout.activity_main);
