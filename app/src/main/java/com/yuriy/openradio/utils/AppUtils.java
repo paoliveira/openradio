@@ -25,6 +25,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
+import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
@@ -33,6 +34,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -321,7 +323,7 @@ public final class AppUtils {
         if (packageInfo != null) {
             return packageInfo.versionName;
         } else {
-            Log.w(CLASS_NAME, "Can't get application version");
+            AppLogger.w(CLASS_NAME + " Can't get application version");
             return "?";
         }
     }
@@ -337,7 +339,7 @@ public final class AppUtils {
         if (packageInfo != null) {
             return packageInfo.versionCode;
         } else {
-            Log.w(CLASS_NAME, "Can't get code version");
+            AppLogger.w(CLASS_NAME + " Can't get code version");
             return 0;
         }
     }
@@ -349,7 +351,7 @@ public final class AppUtils {
     private static PackageInfo getPackageInfo(final Context context) {
         final PackageManager packageManager = context.getPackageManager();
         if (packageManager == null) {
-            Log.w(CLASS_NAME, "Package manager is NULL");
+            AppLogger.w(CLASS_NAME + " Package manager is NULL");
             return null;
         }
         String packageName = "";
@@ -357,17 +359,17 @@ public final class AppUtils {
             packageName = context.getPackageName();
             return packageManager.getPackageInfo(packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e(CLASS_NAME, "Failed to find PackageInfo : " + packageName);
+            AppLogger.e(CLASS_NAME + " Failed to find PackageInfo : " + packageName);
             return null;
         } catch (RuntimeException e) {
             // To catch RuntimeException("Package manager has died") that can occur on some
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            Log.e(CLASS_NAME, "Package manager has died : " + packageName);
+            AppLogger.e(CLASS_NAME + " Package manager has died : " + packageName);
             return null;
         } catch (Throwable e) {
-            Log.e(CLASS_NAME, "Package manager has Throwable : " + e);
+            AppLogger.e(CLASS_NAME + " Package manager has Throwable : " + e);
             return null;
         }
     }
@@ -408,7 +410,7 @@ public final class AppUtils {
                                         final String fileName) {
 
         if (bitmap == null) {
-            Log.e(CLASS_NAME, "Save bitmap to file, bitmap is null");
+            AppLogger.e(CLASS_NAME + " Save bitmap to file, bitmap is null");
             return;
         }
         // Create directory if needed
@@ -462,11 +464,11 @@ public final class AppUtils {
      */
     private static boolean saveDataToFile(byte[] data, String filePath) {
         if (data == null) {
-            Log.w(CLASS_NAME, "Save data to file -> data is null, path:" + filePath);
+            AppLogger.w(CLASS_NAME + " Save data to file -> data is null, path:" + filePath);
             return false;
         }
         File file = new File(filePath);
-        Log.d(CLASS_NAME, "Saving data to file '" + filePath + "', exists:" + file.exists());
+        AppLogger.d(CLASS_NAME + " Saving data to file '" + filePath + "', exists:" + file.exists());
         if (file.exists()) {
             //noinspection ResultOfMethodCallIgnored
             file.delete();
@@ -479,7 +481,7 @@ public final class AppUtils {
 
             result = true;
         } catch (IOException e) {
-            Log.e(CLASS_NAME, "Save Data To File IOException", e);
+            AppLogger.e(CLASS_NAME + " Save Data To File IOException:\n" + Log.getStackTraceString(e));
         } finally {
             if (mFileOutputStream != null) {
                 try {
@@ -589,5 +591,54 @@ public final class AppUtils {
                 break;
         }
         return externalStorageAvailable && externalStorageWriteable;
+    }
+
+    public static String getApplicationVersionName(final Context context) {
+        final PackageInfo packageInfo = getPackageInfo(context);
+        if (packageInfo != null) {
+            return packageInfo.versionName;
+        } else {
+            AppLogger.w("Can't get application version");
+            return "?";
+        }
+    }
+
+    public static int getApplicationVersionCode(final Context context) {
+        final PackageInfo packageInfo = getPackageInfo(context);
+        if (packageInfo != null) {
+            return packageInfo.versionCode;
+        } else {
+            AppLogger.w("Can't get application code");
+            return 0;
+        }
+    }
+
+    /**
+     * Get ISO 3166-1 alpha-2 country code for this device (or null if not available).
+     *
+     * @param context Context reference to get the TelephonyManager instance from.
+     * @return country code or null
+     */
+    public static String getUserCountry(final Context context) {
+        try {
+            final TelephonyManager tm = (TelephonyManager) context.getSystemService(
+                    Context.TELEPHONY_SERVICE
+            );
+            final String simCountry = tm.getSimCountryIso();
+            if (simCountry != null && simCountry.length() == 2) {
+                // SIM country code is available
+                return simCountry.toLowerCase(Locale.US);
+            } else if (tm.getPhoneType() != TelephonyManager.PHONE_TYPE_CDMA) {
+                // device is not 3G (would be unreliable)
+                final String networkCountry = tm.getNetworkCountryIso();
+                if (networkCountry != null && networkCountry.length() == 2) {
+                    // network country code is available
+                    return networkCountry.toLowerCase(Locale.US);
+                }
+            }
+        } catch (final Exception e) {
+            AppLogger.e(CLASS_NAME + " get User country:" + e.getMessage());
+        }
+        return null;
     }
 }

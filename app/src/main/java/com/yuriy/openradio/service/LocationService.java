@@ -25,8 +25,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.PermissionChecker;
 
 import java.io.IOException;
@@ -109,7 +109,7 @@ public class LocationService {
         @SuppressWarnings("ResourceType")
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
-            Log.w(CLASS_NAME, "LastKnownLocation unavailable");
+            AppLogger.w(CLASS_NAME + " LastKnownLocation unavailable");
             return;
         }
 
@@ -121,7 +121,7 @@ public class LocationService {
             mCountryCode = "";
         }
 
-        Log.d(CLASS_NAME, "LastKnownLocation:" + mCountryCode);
+        AppLogger.d(CLASS_NAME + " LastKnownLocation:" + mCountryCode);
     }
 
     public void requestCountryCode(final Context context, final LocationServiceListener listener) {

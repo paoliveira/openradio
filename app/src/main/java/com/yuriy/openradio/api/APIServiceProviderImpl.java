@@ -17,11 +17,11 @@
 package com.yuriy.openradio.api;
 
 import android.net.Uri;
-import android.util.Log;
 
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.utils.AppLogger;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -77,7 +77,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         final List<CategoryVO> allCategories = new ArrayList<>();
 
         if (mDataParser == null) {
-            Log.w(CLASS_NAME, "Can not parse data, parser is null");
+            AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
             return allCategories;
         }
 
@@ -106,7 +106,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 allCategories.add(category);
 
             } catch (JSONException e) {
-                Log.e(CLASS_NAME, "Can not parse Radio Category:" + e.getMessage());
+                AppLogger.e(CLASS_NAME + " Can not parse Radio Category:" + e.getMessage());
             }
         }
 
@@ -119,7 +119,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         final List<String> allCountries = new ArrayList<>();
 
         if (mDataParser == null) {
-            Log.w(CLASS_NAME, "Can not parse data, parser is null");
+            AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
             return allCountries;
         }
 
@@ -135,7 +135,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                     allCountries.add(object.getString(JSONDataParserImpl.KEY_COUNTRY_CODE));
                 }
             } catch (JSONException e) {
-                Log.e(CLASS_NAME, "Can not parse Country name:" + e.getMessage());
+                AppLogger.e(CLASS_NAME + " Can not parse Country name:" + e.getMessage());
             }
         }
 
@@ -148,7 +148,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         final List<RadioStationVO> radioStations = new ArrayList<>();
 
         if (mDataParser == null) {
-            Log.w(CLASS_NAME, "Can not parse data, parser is null");
+            AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
             return radioStations;
         }
 
@@ -171,7 +171,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 radioStations.add(radioStation);
 
             } catch (JSONException e) {
-                Log.e(CLASS_NAME, "Can not parse Radio Station:" + e.getMessage());
+                AppLogger.e(CLASS_NAME + " Can not parse Radio Station:" + e.getMessage());
             }
         }
 
@@ -233,11 +233,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
         // Download response from the server
         final String response = new String(downloader.downloadDataFromUri(uri));
-        Log.i(CLASS_NAME, "Response:\n" + response);
+        AppLogger.i(CLASS_NAME + " Response:\n" + response);
 
         // Ignore empty response
         if (response.isEmpty()) {
-            Log.w(CLASS_NAME, "Can not parse data, response is empty");
+            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
             return radioStation;
         }
 
@@ -246,14 +246,14 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         try {
             object = new JSONObject(response);
         } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Can not convert response to JSON:" + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Can not convert response to JSON:" + e.getMessage());
             return radioStation;
         }
 
         try {
             updateRadioStation(radioStation, object);
         } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Can not parse Radio Station:" + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Can not parse Radio Station:" + e.getMessage());
         }
 
         return radioStation;
@@ -279,25 +279,25 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         // Check cache to avoid unnecessary API call
         if (RESPONSES_MAP.containsKey(uri.toString())) {
             // Return cached value
-            Log.i(CLASS_NAME, "Get response from the cache");
+            AppLogger.i(CLASS_NAME + " Get response from the cache");
             return RESPONSES_MAP.get(uri.toString());
         }
 
         // Download response from the server
         final String response = new String(downloader.downloadDataFromUri(uri));
-        //Log.i(CLASS_NAME, "URI:" + uri);
-        //Log.i(CLASS_NAME, "Response:\n" + response);
+        //AppLogger.i(CLASS_NAME + " URI:" + uri);
+        //AppLogger.i(CLASS_NAME + " Response:\n" + response);
 
         // Ignore empty response
         if (response.isEmpty()) {
-            Log.w(CLASS_NAME, "Can not parse data, response is empty");
+            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
             return array;
         }
 
         try {
             array = new JSONArray(response);
         } catch (JSONException e) {
-            Log.e(CLASS_NAME, "Can not get JSON array:" + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Can not get JSON array:" + e.getMessage());
         }
 
         // Cache result
@@ -357,12 +357,12 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 break;
 
             } catch (final JSONException e) {
-                Log.e(CLASS_NAME, "Can not parse Stream:" + e.getMessage());
+                AppLogger.e(CLASS_NAME + " Can not parse Stream:" + e.getMessage());
             }
         }
 
         if (streamVO.getUrl().isEmpty()) {
-            Log.w(CLASS_NAME, "Stream has not been selected from:" + jsonArray);
+            AppLogger.w(CLASS_NAME + " Stream has not been selected from:" + jsonArray);
         }
 
         return streamVO;

@@ -38,6 +38,7 @@ import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.view.list.QueueAdapter;
 
 import java.lang.ref.WeakReference;
@@ -307,7 +308,7 @@ public class QueueActivity extends FragmentActivity {
      * @param state Actual {@link android.media.session.PlaybackState}
      */
     private void onPlaybackStateChanged(final PlaybackStateCompat state) {
-        Log.d(CLASS_NAME, "On Playback State Changed " + state);
+        AppLogger.d(CLASS_NAME + " On Playback State Changed " + state);
         if (state == null) {
             hideProgressBar();
             stop();
@@ -369,7 +370,7 @@ public class QueueActivity extends FragmentActivity {
         listView.setSelection(mListFirstVisiblePosition);
 
         statusBuilder.append(" -- At position: ").append(state.getPosition());
-        Log.d(CLASS_NAME, statusBuilder.toString());
+        AppLogger.d(CLASS_NAME + " " + statusBuilder.toString());
 
         if (enablePlay) {
             mPlayPause.setImageDrawable(getResources().getDrawable(R.drawable.ic_play_arrow_white_24dp));
@@ -380,7 +381,7 @@ public class QueueActivity extends FragmentActivity {
         mSkipPrevious.setEnabled((state.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0);
         mSkipNext.setEnabled((state.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0);
 
-        Log.d(CLASS_NAME, "Queue From MediaController *** Title " +
+        AppLogger.d(CLASS_NAME + " Queue From MediaController *** Title " +
                 mMediaController.getQueueTitle() + "\n: Queue: " + mMediaController.getQueue() +
                 "\n Metadata " + mMediaController.getMetadata());
     }
@@ -401,7 +402,7 @@ public class QueueActivity extends FragmentActivity {
 
             switch (view.getId()) {
                 case R.id.play_pause:
-                    Log.d(CLASS_NAME, "Play button pressed, in state " + state);
+                    AppLogger.d(CLASS_NAME + " Play button pressed, in state " + state);
                     if (state == PlaybackStateCompat.STATE_PAUSED
                             || state == PlaybackStateCompat.STATE_STOPPED
                             || state == PlaybackStateCompat.STATE_NONE) {
@@ -411,7 +412,7 @@ public class QueueActivity extends FragmentActivity {
                     }
                     break;
                 case R.id.skip_previous:
-                    Log.d(CLASS_NAME, "Start button pressed, in state " + state);
+                    AppLogger.d(CLASS_NAME + " Start button pressed, in state " + state);
                     reference.skipToPrevious();
                     break;
                 case R.id.skip_next:
@@ -499,12 +500,12 @@ public class QueueActivity extends FragmentActivity {
 
         @Override
         public void onSessionDestroyed() {
-            Log.d(CLASS_NAME, "Session destroyed. Need to fetch a new Media Session");
+            AppLogger.d(CLASS_NAME + " Session destroyed. Need to fetch a new Media Session");
         }
 
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            Log.d(CLASS_NAME, "Received playback state change to state " + state.getState());
+            AppLogger.d(CLASS_NAME + " Received playback state change to state " + state.getState());
 
             final QueueActivity activity = mReference.get();
             if (activity == null) {
@@ -516,7 +517,7 @@ public class QueueActivity extends FragmentActivity {
 
         @Override
         public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            Log.d(CLASS_NAME, "On Queue Changed: " + queue);
+            AppLogger.d(CLASS_NAME + " On Queue Changed: " + queue);
             final QueueActivity activity = mReference.get();
             if (activity == null) {
                 return;
@@ -546,7 +547,7 @@ public class QueueActivity extends FragmentActivity {
             }
 
             final long activeQueueItemId = activity.mQueueAdapter.getActiveQueueItemId();
-            Log.d(CLASS_NAME, "Metadata changed:" + metadata + ", active id:" + activeQueueItemId);
+            AppLogger.d(CLASS_NAME + " Metadata changed:" + metadata + ", active id:" + activeQueueItemId);
 
             activity.mQueueAdapter.notifyDataSetInvalidated();
             activity.mQueueAdapter.clear();
@@ -594,14 +595,14 @@ public class QueueActivity extends FragmentActivity {
 
         @Override
         public void onConnected() {
-            Log.d(CLASS_NAME, "On Connected");
+            AppLogger.d(CLASS_NAME + " On Connected");
 
             final QueueActivity activity = mReference.get();
             if (activity == null) {
                 return;
             }
 
-            Log.d(CLASS_NAME, "Session token " + activity.mMediaBrowser.getSessionToken());
+            AppLogger.d(CLASS_NAME + " Session token " + activity.mMediaBrowser.getSessionToken());
 
             // If session token is null - throw exception
             //if (mMediaBrowser.getSessionToken() == null) {
@@ -615,7 +616,7 @@ public class QueueActivity extends FragmentActivity {
                         activity.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
-                Log.e(CLASS_NAME, "Can not init Media Controller:\n" + Log.getStackTraceString(e));
+                AppLogger.e(CLASS_NAME + " Can not init Media Controller:\n" + Log.getStackTraceString(e));
                 return;
             }
 
@@ -671,12 +672,12 @@ public class QueueActivity extends FragmentActivity {
 
         @Override
         public void onConnectionFailed() {
-            Log.w(CLASS_NAME, "On Connection Failed");
+            AppLogger.w(CLASS_NAME + " On Connection Failed");
         }
 
         @Override
         public void onConnectionSuspended() {
-            Log.w(CLASS_NAME, "On Connection Suspended");
+            AppLogger.w(CLASS_NAME + " On Connection Suspended");
             final QueueActivity activity = mReference.get();
             if (activity == null) {
                 return;

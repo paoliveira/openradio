@@ -14,10 +14,10 @@ import android.os.Messenger;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.yuriy.openradio.utils.AppLogger;
 
 import java.lang.ref.WeakReference;
 
@@ -78,7 +78,7 @@ public final class MetadataRetrievalService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i(CLASS_NAME, "Destroy");
+        AppLogger.i(CLASS_NAME + " Destroy");
 
         mServiceHandler.removeCallbacksAndMessages(null);
         mServiceLooper.quit();
@@ -93,9 +93,9 @@ public final class MetadataRetrievalService extends Service {
     @Override
     public int onStartCommand(final Intent intent, final int flags, final int startId) {
 
-        Log.d(CLASS_NAME, "OnStartCommand Intent:" + intent);
+        AppLogger.d(CLASS_NAME + " OnStartCommand Intent:" + intent);
         final String command = getCommandName(intent);
-        Log.d(CLASS_NAME, "Command:" + command);
+        AppLogger.d(CLASS_NAME + " Command:" + command);
         if (TextUtils.equals(START_COMMAND, command)) {
             handlingStartCommand(intent);
         }
@@ -245,7 +245,7 @@ public final class MetadataRetrievalService extends Service {
                 retriever.setDataSource(handler.mUrl);
                 metadata = retriever.getMetadata();
             } catch (final Throwable throwable) {
-                Log.e(CLASS_NAME, "Can not get Metadata:" + throwable.getMessage());
+                AppLogger.e(CLASS_NAME + " Can not get Metadata:" + throwable.getMessage());
                 if (Fabric.isInitialized()){
                     Answers.getInstance().logCustom(
                             new CustomEvent("FFmpegMediaMetadataRetriever failed")
@@ -326,7 +326,7 @@ public final class MetadataRetrievalService extends Service {
          */
         @Override
         public void handleMessage(final Message message) {
-            Log.d(CLASS_NAME, "Message:" + message);
+            AppLogger.d(CLASS_NAME + " Message:" + message);
             if (message == null) {
                 return;
             }
@@ -347,18 +347,18 @@ public final class MetadataRetrievalService extends Service {
                     mLooper.quit();
                     break;
                 default:
-                    Log.w(CLASS_NAME, "Unknown command:" + message.what);
+                    AppLogger.w(CLASS_NAME + " Unknown command:" + message.what);
                     break;
             }
         }
 
         private void processStartCommand(final Intent intent) {
             if (intent == null) {
-                Log.w(CLASS_NAME, "Can not start, Intent is null");
+                AppLogger.w(CLASS_NAME + " Can not start, Intent is null");
             }
             final String url = getUrl(intent);
             if (TextUtils.isEmpty(url)) {
-                Log.w(CLASS_NAME, "Can not start, URL is null");
+                AppLogger.w(CLASS_NAME + " Can not start, URL is null");
                 return;
             }
             mUrl = url;
@@ -395,13 +395,13 @@ public final class MetadataRetrievalService extends Service {
          */
         private void obtainAndSendMetadata(final FFmpegMediaMetadataRetriever.Metadata metadata) {
 
-            Log.d(CLASS_NAME, "Metadata:" + metadata);
+            AppLogger.d(CLASS_NAME + " Metadata:" + metadata);
 
             // TODO : refactor this condition to the separate method
             final String streamTitle = getStreamTitle(metadata);
-            Log.d(CLASS_NAME, "Stream Title:" + streamTitle);
+            AppLogger.d(CLASS_NAME + " Stream Title:" + streamTitle);
             if (TextUtils.equals(mCurrentStreamTitle, streamTitle)) {
-                Log.d(CLASS_NAME, "Metadata didn't changed, counter:" + mCounter);
+                AppLogger.d(CLASS_NAME + " Metadata didn't changed, counter:" + mCounter);
                 if (mCounter++ > MAX_COUNT) {
                     return;
                 }
@@ -445,7 +445,7 @@ public final class MetadataRetrievalService extends Service {
                 message.what = MSG_MAKE_METADATA_RESPONSE;
                 mMessenger.send(message);
             } catch (final RemoteException e) {
-                Log.e(CLASS_NAME, "Exception while sending response:" + e.getMessage());
+                AppLogger.e(CLASS_NAME + " Exception while sending response:" + e.getMessage());
             }
         }
 
@@ -473,9 +473,9 @@ public final class MetadataRetrievalService extends Service {
             // key:icy-br, val:128
             // key:icy-pub, val:1
 
-            //Log.d(CLASS_NAME, "Metadata:");
+            //AppLogger.d(CLASS_NAME + " Metadata:");
             //for (final String key : metadata.getAll().keySet()) {
-            //    Log.d(CLASS_NAME, "  key:" + key + ", val:" + metadata.getAll().get(key));
+            //    AppLogger.d(CLASS_NAME + "   key:" + key + ", val:" + metadata.getAll().get(key));
             //}
             if (metadata == null) {
                 return "";
@@ -483,7 +483,7 @@ public final class MetadataRetrievalService extends Service {
             try {
                 return metadata.getString("StreamTitle");
             } catch (final Throwable throwable) {
-                Log.e(CLASS_NAME, "Can not extract title:" + throwable.getMessage());
+                AppLogger.e(CLASS_NAME + " Can not extract title:" + throwable.getMessage());
                 return "";
             }
         }

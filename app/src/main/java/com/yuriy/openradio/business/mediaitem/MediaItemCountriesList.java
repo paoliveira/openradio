@@ -21,11 +21,11 @@ import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
-import android.util.Log;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 
@@ -111,7 +111,7 @@ public class MediaItemCountriesList implements MediaItemCommand {
                 countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
             } else {
                 // Add missing country to the Map of the existing ones.
-                Log.w(CLASS_NAME, "Missing country:" + countryCode);
+                AppLogger.w(CLASS_NAME + " Missing country:" + countryCode);
                 continue;
             }
 

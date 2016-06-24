@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 The "Driver Assistant" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
+ * Copyright 2016 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,17 +35,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class AppLogger {
+public final class AppLogger {
 
-    public static final String LOG_TAG = "DRIVER_ASSISTANT";
-    public static final String ERROR_LOG_PREFIX = "LOG_ERR: ";
-
-    private static final String LOG_FILENAME = "DriverAssistant.log";
+    private static final String LOG_TAG = "OPEN_RADIO";
+    private static final String LOG_FILENAME = "OpenRadio.log";
     private static final int MAX_BACKUP_INDEX = 3;
     private static final String MAX_FILE_SIZE = "750KB";
     private static final Logger logger = Logger.getLogger(AppLogger.class);
 
     private static String sInitLogsDirectory;
+
+    private AppLogger() {
+        super();
+    }
 
     public static void initLogger(final Context context) {
         initLogsDirectories(context);
@@ -54,7 +56,7 @@ public class AppLogger {
         final Layout layout = new PatternLayout("%d [%t] %-5p %m%n");
         try {
             logger.removeAllAppenders();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             AppLogger.e("Unable to remove logger appenders.");
         }
         try {
@@ -111,12 +113,14 @@ public class AppLogger {
         return getLogs(new File(sInitLogsDirectory));
     }
 
-    private static File[] getLogs(File directory) {
+    private static File[] getLogs(final File directory) {
         if (directory.isFile()) {
             throw new IllegalArgumentException("directory is not folder "
                     + directory.getAbsolutePath());
         }
         return directory.listFiles(new FilenameFilter() {
+
+            @Override
             public boolean accept(File dir, String name) {
                 if (name != null && name.toLowerCase().endsWith(".log")) {
                     return true;
@@ -131,79 +135,26 @@ public class AppLogger {
         });
     }
 
-    public static void e(String logMsg) {
-        e(logMsg, (Throwable) null);
+    public static void e(final String logMsg) {
+        logger.error(logMsg);
+        Log.e(LOG_TAG, logMsg);
     }
 
-    public static void w(String logMsg) {
-        w(logMsg, (Throwable) null);
+    public static void w(final String logMsg) {
+        logger.warn(logMsg);
+        Log.w(LOG_TAG, logMsg);
     }
 
-    public static void i(String logMsg) {
-        i(logMsg, (Throwable) null);
+    public static void i(final String logMsg) {
+        logger.info(logMsg);
+        Log.i(LOG_TAG, logMsg);
     }
 
-    public static void d(String logMsg) {
-        d(logMsg, (Throwable) null);
-    }
-
-    public static void e(String logPrefix, String logMsg) {
-        e(logPrefix + logMsg);
-    }
-
-    public static void w(String logPrefix, String logMsg) {
-        w(logPrefix + logMsg);
-    }
-
-    public static void i(String logPrefix, String logMsg) {
-        i(logPrefix + logMsg);
-    }
-
-    public static void d(String logPrefix, String logMsg) {
-        d(logPrefix + logMsg);
-    }
-
-    public static void e(String logMsg, Throwable t) {
-        logMsg = ERROR_LOG_PREFIX + logMsg;
-        if (t != null) {
-            logger.error(logMsg, t);
-            Log.e(LOG_TAG, logMsg, t);
-        } else {
-            logger.error(logMsg);
-            Log.e(LOG_TAG, logMsg);
-        }
-    }
-
-    public static void w(String logMsg, Throwable t) {
-        if (t != null) {
-            logger.warn(logMsg, t);
-            Log.w(LOG_TAG, logMsg, t);
-        } else {
-            logger.warn(logMsg);
-            Log.w(LOG_TAG, logMsg);
-        }
-    }
-
-    public static void i(String logMsg, Throwable t) {
-        if (t != null) {
-            logger.info(logMsg, t);
-            Log.i(LOG_TAG, logMsg, t);
-        } else {
-            logger.info(logMsg);
-            Log.i(LOG_TAG, logMsg);
-        }
-    }
-
-    public static void d(String logMsg, Throwable t) {
+    public static void d(final String logMsg) {
         if (!BuildConfig.DEBUG) {
             return;
         }
-        if (t != null) {
-            logger.debug(logMsg, t);
-            Log.d(LOG_TAG, logMsg, t);
-        } else {
-            logger.debug(logMsg);
-            Log.d(LOG_TAG, logMsg);
-        }
+        logger.debug(logMsg);
+        Log.d(LOG_TAG, logMsg);
     }
 }

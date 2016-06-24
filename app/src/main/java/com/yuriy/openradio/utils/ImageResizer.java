@@ -22,7 +22,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
-import android.util.Log;
 
 import com.yuriy.openradio.BuildConfig;
 
@@ -90,7 +89,7 @@ public class ImageResizer extends ImageWorker {
      */
     private Bitmap processBitmap(int resId) {
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "processBitmap - " + resId);
+            AppLogger.d(TAG + " processBitmap - " + resId);
         }
         return decodeSampledBitmapFromResource(mResources, resId, mImageWidth,
                 mImageHeight, getImageCache());

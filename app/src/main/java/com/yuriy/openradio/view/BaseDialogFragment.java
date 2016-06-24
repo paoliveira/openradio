@@ -20,10 +20,10 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.util.Log;
 import android.view.LayoutInflater;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppLogger;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -57,15 +57,15 @@ public class BaseDialogFragment extends DialogFragment {
             baseDialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor()
                     .newInstance();
         } catch (java.lang.InstantiationException e) {
-            Log.e(LOG_TAG, "New instance InstantiationException:" + e.getMessage());
+            AppLogger.e(LOG_TAG + " New instance InstantiationException:" + e.getMessage());
         } catch (IllegalAccessException e) {
-            Log.e(LOG_TAG, "New instance IllegalAccessException:" + e.getMessage());
+            AppLogger.e(LOG_TAG + " New instance IllegalAccessException:" + e.getMessage());
         } catch (InvocationTargetException e) {
-            Log.e(LOG_TAG, "New instance InvocationTargetException:" + e.getMessage());
+            AppLogger.e(LOG_TAG + " New instance InvocationTargetException:" + e.getMessage());
         } catch (NoSuchMethodException e) {
-            Log.e(LOG_TAG, "New instance NoSuchMethodException:" + e.getMessage());
+            AppLogger.e(LOG_TAG + " New instance NoSuchMethodException:" + e.getMessage());
         } catch (ClassNotFoundException e) {
-            Log.e(LOG_TAG, "New instance ClassNotFoundException:" + e.getMessage());
+            AppLogger.e(LOG_TAG + " New instance ClassNotFoundException:" + e.getMessage());
         }
         return baseDialogFragment;
     }

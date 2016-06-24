@@ -7,8 +7,6 @@ package com.yuriy.openradio.utils;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
-import android.util.Log;
-
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -91,7 +89,7 @@ public final class RadioStationChecker extends Thread {
     @Override
     public void run() {
         super.run();
-        Log.d(CLASS_NAME, "Check Stream Url:" + mUrl);
+        AppLogger.d(CLASS_NAME + " Check Stream Url:" + mUrl);
         try {
             mInitLatch.await(INIT_WAIT_TIME, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
@@ -107,7 +105,7 @@ public final class RadioStationChecker extends Thread {
             mUrlConnection.connect();
             final int responseCode = mUrlConnection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                Log.d(CLASS_NAME, "Stream Url OK:" + mUrlConnection.getResponseMessage()
+                AppLogger.d(CLASS_NAME + " Stream Url OK:" + mUrlConnection.getResponseMessage()
                         + " within " + (System.currentTimeMillis() - startTime) + " ms");
                 synchronized (MONITOR) {
                     mPassedUrls.add(mUrl);
@@ -115,7 +113,7 @@ public final class RadioStationChecker extends Thread {
                 clear();
             }
         } catch (final Throwable e) {
-            Log.e(CLASS_NAME, "Stream Url check failed:" + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Stream Url check failed:" + e.getMessage());
             clear();
         }
     }
@@ -157,7 +155,7 @@ public final class RadioStationChecker extends Thread {
 
         @Override
         public void run() {
-            Log.e(CLASS_NAME, "Stream Url check failed by timeout");
+            AppLogger.e(CLASS_NAME + " Stream Url check failed by timeout");
             final RadioStationChecker reference = mReference.get();
             if (reference == null) {
                 return;

@@ -17,7 +17,8 @@
 package com.yuriy.openradio.net;
 
 import android.net.Uri;
-import android.util.Log;
+
+import com.yuriy.openradio.utils.AppLogger;
 
 import org.apache.commons.io.IOUtils;
 
@@ -49,7 +50,7 @@ public class HTTPDownloaderImpl implements Downloader {
 
     @Override
     public byte[] downloadDataFromUri(final Uri uri) {
-        Log.i(CLASS_NAME, "Request URL:" + uri);
+        AppLogger.i(CLASS_NAME + " Request URL:" + uri);
         byte[] response = new byte[0];
 
         // TODO : Set everything in more compact way
@@ -58,7 +59,7 @@ public class HTTPDownloaderImpl implements Downloader {
         try {
             url = new URL(uri.toString());
         } catch (final MalformedURLException e) {
-            Log.e(CLASS_NAME, "Url exception: " + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Url exception: " + e.getMessage());
         }
 
         if (url == null) {
@@ -69,7 +70,7 @@ public class HTTPDownloaderImpl implements Downloader {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch (final IOException e) {
-            Log.e(CLASS_NAME, "Http Url connection exception: " + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Http Url connection exception: " + e.getMessage());
         }
 
         if (urlConnection == null) {
@@ -80,7 +81,7 @@ public class HTTPDownloaderImpl implements Downloader {
             final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             response = IOUtils.toByteArray(inputStream);
         } catch (final IOException e) {
-            Log.e(CLASS_NAME, "Http Url connection getInputStream exception: " + e.getMessage());
+            AppLogger.e(CLASS_NAME + " Http Url connection getInputStream exception: " + e.getMessage());
         } finally {
             urlConnection.disconnect();
         }

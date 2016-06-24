@@ -28,6 +28,7 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.SafeRunnable;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -71,7 +72,7 @@ public class MediaItemPopularStations implements MediaItemCommand {
                     @Override
                     public void safeRun(final MediaItemPopularStations reference) {
                         if (reference == null) {
-                            Log.e(CLASS_NAME, "Reference is null");
+                            AppLogger.e(CLASS_NAME + " Reference is null");
                             return;
                         }
                         // Load all categories into menu

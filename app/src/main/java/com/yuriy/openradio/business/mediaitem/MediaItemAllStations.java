@@ -26,6 +26,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -118,7 +119,7 @@ public class MediaItemAllStations implements MediaItemCommand {
             return;
         }
 
-        Log.d(CLASS_NAME, "Loaded " + list.size() + " stations");
+        AppLogger.d(CLASS_NAME + " Loaded " + list.size() + " stations");
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.copyCollection(shareObject.getRadioStations(), list);

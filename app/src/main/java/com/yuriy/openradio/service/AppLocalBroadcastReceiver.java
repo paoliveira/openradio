@@ -19,7 +19,8 @@ package com.yuriy.openradio.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
+
+import com.yuriy.openradio.utils.AppLogger;
 
 /**
  * Created by Yuriy Chernyshov
@@ -95,7 +96,7 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
-        Log.i(CLASS_NAME, "On receive:" + intent);
+        AppLogger.i(CLASS_NAME + " On receive:" + intent);
 
         if (intent == null) {
             return;

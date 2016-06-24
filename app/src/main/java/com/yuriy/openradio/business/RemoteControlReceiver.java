@@ -3,11 +3,11 @@ package com.yuriy.openradio.business;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.KeyEvent;
 
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
+import com.yuriy.openradio.utils.AppLogger;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -28,7 +28,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
         }
         final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
         final int keyCode = event.getKeyCode();
-        Log.d(CLASS_NAME, "Key event:" + event);
+        AppLogger.d(CLASS_NAME + " Key event:" + event);
         if (Fabric.isInitialized()){
             Answers.getInstance().logCustom(
                     new CustomEvent("RemoteControlReceiver received")
@@ -40,7 +40,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
 
                 break;
             default:
-                Log.w(CLASS_NAME, "Unhandled key code:" + keyCode);
+                AppLogger.w(CLASS_NAME + " Unhandled key code:" + keyCode);
                 break;
         }
     }

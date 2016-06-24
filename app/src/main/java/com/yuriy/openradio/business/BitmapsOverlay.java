@@ -19,8 +19,8 @@ package com.yuriy.openradio.business;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapHelper;
 
@@ -63,7 +63,7 @@ public final class BitmapsOverlay {
     public final Bitmap execute(final Context context, final int resourceId,
                                 final Bitmap baseBitmap) {
         if (resourceId == 0) {
-            Log.w(CLASS_NAME, "Invalid resource Id");
+            AppLogger.w(CLASS_NAME + " Invalid resource Id");
             return baseBitmap;
         }
 

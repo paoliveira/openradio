@@ -42,7 +42,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
@@ -66,8 +65,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.
@@ -182,10 +179,6 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Fabric.with(this, new Crashlytics());
-
-        AppLogger.initLogger(this);
 
         // Set content.
         setContentView(R.layout.activity_main);
@@ -460,7 +453,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param mediaId Id of the {@link android.view.MenuItem}
      */
     private void addMediaItemToStack(final String mediaId) {
-        Log.i(CLASS_NAME, "MediaItem Id added:" + mediaId);
+        AppLogger.i(CLASS_NAME + " MediaItem Id added:" + mediaId);
 
         mediaItemsStack.add(mediaId);
 
@@ -541,7 +534,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void setSelectedItem(final int position) {
-        Log.d(CLASS_NAME, "Set selected:" + position);
+        AppLogger.d(CLASS_NAME + " Set selected:" + position);
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.list_view);
         if (listView == null) {
@@ -707,14 +700,14 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onConnected() {
-            Log.d(CLASS_NAME, "On Connected");
+            AppLogger.d(CLASS_NAME + " On Connected");
 
             final MainActivity activity = mReference.get();
             if (activity == null) {
                 return;
             }
 
-            Log.i(CLASS_NAME, "Stack empty:" + activity.mediaItemsStack.isEmpty());
+            AppLogger.i(CLASS_NAME + " Stack empty:" + activity.mediaItemsStack.isEmpty());
 
             // If stack is empty - assume that this is a start point
             if (activity.mediaItemsStack.isEmpty()) {
@@ -740,7 +733,9 @@ public final class MainActivity extends AppCompatActivity {
                         activity.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
-                Log.e(CLASS_NAME, "Can not init MediaController\n:" + Log.getStackTraceString(e));
+                AppLogger.e(
+                        CLASS_NAME + " Can not init MediaController\n:" + Log.getStackTraceString(e)
+                );
             }
 
             // Set actual controller
@@ -751,12 +746,12 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onConnectionFailed() {
-            Log.w(CLASS_NAME, "On Connection Failed");
+            AppLogger.w(CLASS_NAME + " On Connection Failed");
         }
 
         @Override
         public void onConnectionSuspended() {
-            Log.w(CLASS_NAME, "On Connection Suspended");
+            AppLogger.w(CLASS_NAME + " On Connection Suspended");
             final MainActivity activity = mReference.get();
             if (activity == null) {
                 return;
@@ -786,11 +781,11 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void onChildrenLoaded(@NonNull final String parentId,
                                      @NonNull final List<MediaBrowserCompat.MediaItem> children) {
-            Log.i(CLASS_NAME, "On children loaded:" + parentId);
+            AppLogger.i(CLASS_NAME + " On children loaded:" + parentId);
 
             final MainActivity activity = mReference.get();
             if (activity == null) {
-                Log.w(CLASS_NAME, "On children loaded -> activity ref is null");
+                AppLogger.w(CLASS_NAME + " On children loaded -> activity ref is null");
                 return;
             }
 
@@ -822,7 +817,7 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             if (!activity.listPositionMap.containsKey(parentId)) {
-                Log.d(CLASS_NAME, "No key");
+                AppLogger.d(CLASS_NAME + " No key");
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
                 activity.mBrowserAdapter.setActiveItemId(MediaSessionCompat.QueueItem.UNKNOWN_ID);
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
@@ -880,7 +875,7 @@ public final class MainActivity extends AppCompatActivity {
                                 final long id) {
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
-                Log.w(CLASS_NAME, "OnItemClick return, reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + " OnItemClick return, reference to MainActivity is null");
                 return;
             }
             // Current selected media item
@@ -900,7 +895,7 @@ public final class MainActivity extends AppCompatActivity {
             final int mediaItemsStackSize = mainActivity.mediaItemsStack.size();
             if (mediaItemsStackSize >= 1) {
                 final String children = mainActivity.mediaItemsStack.get(mediaItemsStackSize - 1);
-                Log.d(CLASS_NAME, "Children:" + children + " pos:" + position);
+                AppLogger.d(CLASS_NAME + " Children:" + children + " pos:" + position);
                 mainActivity.listPositionMap.put(children, position);
             }
 
@@ -950,7 +945,7 @@ public final class MainActivity extends AppCompatActivity {
                                        final int position, final long id) {
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
-                Log.w(CLASS_NAME, "OnItemLongClick return, reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + " OnItemLongClick return, reference to MainActivity is null");
                 return true;
             }
 

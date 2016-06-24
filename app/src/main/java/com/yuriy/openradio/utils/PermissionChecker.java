@@ -20,7 +20,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.yuriy.openradio.business.PermissionStatusListener;
 
@@ -98,7 +97,7 @@ public final class PermissionChecker {
      */
     public static void addPermissionStatusListener(final PermissionStatusListener listener) {
         synchronized (PERMISSION_STATUS_LISTENERS) {
-            Log.i(LOG_TAG, "Add listener:" + listener);
+            AppLogger.i(LOG_TAG + " Add listener:" + listener);
             PERMISSION_STATUS_LISTENERS.add(new WeakReference<>(listener));
         }
     }
@@ -113,7 +112,7 @@ public final class PermissionChecker {
             for (WeakReference<PermissionStatusListener> reference : PERMISSION_STATUS_LISTENERS) {
                 final PermissionStatusListener statusListener = reference.get();
                 if (listener.equals(statusListener)) {
-                    Log.i(LOG_TAG, "Remove listener:" + listener);
+                    AppLogger.i(LOG_TAG + " Remove listener:" + listener);
                     PERMISSION_STATUS_LISTENERS.remove(reference);
                     return;
                 }
@@ -122,16 +121,16 @@ public final class PermissionChecker {
     }
 
     private static void dispatch(final String permissionName) {
-        Log.e(LOG_TAG, "'" + permissionName + "' not granted, "
+        AppLogger.e(LOG_TAG + " '" + permissionName + "' not granted, "
                 + PERMISSION_STATUS_LISTENERS.size() + " listeners");
         synchronized (PERMISSION_STATUS_LISTENERS) {
             for (WeakReference<PermissionStatusListener> reference : PERMISSION_STATUS_LISTENERS) {
                 final PermissionStatusListener callback = reference.get();
                 if (callback != null) {
-                    Log.i(LOG_TAG, "Dispatch to:" + callback);
+                    AppLogger.i(LOG_TAG + " Dispatch to:" + callback);
                     callback.onPermissionRequired(permissionName);
                 } else {
-                    Log.w(LOG_TAG, "Listener is null");
+                    AppLogger.w(LOG_TAG + " Listener is null");
                 }
             }
         }

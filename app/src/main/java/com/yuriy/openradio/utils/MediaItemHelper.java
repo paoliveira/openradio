@@ -23,7 +23,6 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
@@ -199,7 +198,7 @@ public final class MediaItemHelper {
             subTitle = artist;
         }
 
-        Log.d(CLASS_NAME, "Media Metadata for " + radioStation);
+        AppLogger.d(CLASS_NAME + " Media Metadata for " + radioStation);
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
@@ -246,7 +245,7 @@ public final class MediaItemHelper {
         final String id = String.valueOf(radioStation.getId());
         final Bundle bundle = new Bundle();
 
-        Log.d(CLASS_NAME, "Media Description for " + radioStation);
+        AppLogger.d(CLASS_NAME + " Media Description for " + radioStation);
 
         return new MediaDescriptionCompat.Builder()
                 .setDescription(genre)

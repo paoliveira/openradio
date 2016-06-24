@@ -20,7 +20,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Process;
 import android.util.Base64;
-import android.util.Log;
 
 import com.yuriy.openradio.BuildConfig;
 
@@ -168,7 +167,7 @@ public final class PackageValidator {
             // When your app is built in debug mode, any app is allowed to connect to it and browse
             // its media library. If you want to test the behavior of your app when it gets
             // released, either build a release version or remove this clause.
-            Log.i(CLASS_NAME, "Allowing caller '"
+            AppLogger.i(CLASS_NAME + " Allowing caller '"
                     + callingPackage + " because app was built in debug mode.");
             return true;
         }
@@ -178,32 +177,28 @@ public final class PackageValidator {
             packageInfo = packageManager.getPackageInfo(
                     callingPackage, PackageManager.GET_SIGNATURES);
         } catch (PackageManager.NameNotFoundException ignored) {
-            if (Log.isLoggable(CLASS_NAME, Log.DEBUG)) {
-                Log.d(CLASS_NAME, "Package manager can't find package " + callingPackage
+            AppLogger.w(CLASS_NAME + " Package manager can't find package " + callingPackage
                         + ", defaulting to false");
-            }
             return false;
         }
         if (packageInfo == null) {
-            Log.w(CLASS_NAME, "Package manager can't find package: " + callingPackage);
+            AppLogger.w(CLASS_NAME + " Package manager can't find package: " + callingPackage);
             return false;
         }
 
         if (packageInfo.signatures.length != 1) {
-            Log.w(CLASS_NAME, "Package has more than one signature.");
+            AppLogger.w(CLASS_NAME + " Package has more than one signature.");
             return false;
         }
         final byte[] signature = packageInfo.signatures[0].toByteArray();
 
-        for (byte[] validSignature : VALID_PUBLIC_SIGNATURES) {
+        for (final byte[] validSignature : VALID_PUBLIC_SIGNATURES) {
             if (Arrays.equals(validSignature, signature)) {
                 return true;
             }
         }
 
-        if (Log.isLoggable(CLASS_NAME, Log.VERBOSE)) {
-            Log.v(CLASS_NAME, "Signature not valid. Found: " + Base64.encodeToString(signature, 0));
-        }
+        AppLogger.w(CLASS_NAME + " Signature not valid. Found: " + Base64.encodeToString(signature, 0));
         return false;
     }
 

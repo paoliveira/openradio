@@ -26,7 +26,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.yuriy.openradio.BuildConfig;
@@ -185,7 +184,7 @@ public abstract class ImageWorker {
             bitmapWorkerTask.cancel(true);
             if (BuildConfig.DEBUG) {
                 final Object bitmapData = bitmapWorkerTask.mData;
-                Log.d(TAG, "cancelWork - cancelled work for " + bitmapData);
+                AppLogger.d(TAG + " cancelWork - cancelled work for " + bitmapData);
             }
         }
     }
@@ -205,7 +204,7 @@ public abstract class ImageWorker {
             if (bitmapData == null || !bitmapData.equals(data)) {
                 bitmapWorkerTask.cancel(true);
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "cancelPotentialWork - cancelled work for " + data);
+                    AppLogger.d(TAG + " cancelPotentialWork - cancelled work for " + data);
                 }
             } else {
                 // The same work is already in progress.
@@ -251,7 +250,7 @@ public abstract class ImageWorker {
         protected BitmapDrawable doInBackground(Void... params) {
             //BEGIN_INCLUDE(load_bitmap_in_background)
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "doInBackground - starting work");
+                AppLogger.d(TAG + " doInBackground - starting work");
             }
 
             final String dataString = String.valueOf(mData);
@@ -305,7 +304,7 @@ public abstract class ImageWorker {
             }
 
             if (BuildConfig.DEBUG) {
-                Log.d(TAG, "doInBackground - finished work");
+                AppLogger.d(TAG + " doInBackground - finished work");
             }
 
             return drawable;
@@ -326,7 +325,7 @@ public abstract class ImageWorker {
             final ImageView imageView = getAttachedImageView();
             if (value != null && imageView != null) {
                 if (BuildConfig.DEBUG) {
-                    Log.d(TAG, "onPostExecute - setting bitmap");
+                    AppLogger.d(TAG + " onPostExecute - setting bitmap");
                 }
                 setImageDrawable(imageView, value);
             }

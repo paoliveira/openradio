@@ -41,6 +41,7 @@ import android.util.Log;
 import android.util.LruCache;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
 
 import java.io.IOException;
@@ -78,7 +79,6 @@ public class MediaNotification extends BroadcastReceiver {
 
     private PendingIntent mPauseIntent, mPlayIntent, mPreviousIntent, mNextIntent;
 
-    private String mCurrentAlbumArt;
     private int mNotificationColor;
 
     private boolean mStarted = false;
@@ -173,7 +173,7 @@ public class MediaNotification extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         final String action = intent.getAction();
-        Log.d(CLASS_NAME, "Received intent with action " + action);
+        AppLogger.d(CLASS_NAME + " Received intent with action " + action);
         switch (action) {
             case ACTION_PAUSE:
                 mTransportControls.pause();
@@ -205,7 +205,7 @@ public class MediaNotification extends BroadcastReceiver {
             try {
                 mController = new MediaControllerCompat(mService, mSessionToken);
             } catch (final RemoteException e) {
-                Log.e(CLASS_NAME, "Can not update Session Token:\n" + Log.getStackTraceString(e));
+                AppLogger.e(CLASS_NAME + " Can not update Session Token:\n" + Log.getStackTraceString(e));
                 return;
             }
             mTransportControls = mController.getTransportControls();
@@ -220,27 +220,27 @@ public class MediaNotification extends BroadcastReceiver {
         @Override
         public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
             mPlaybackState = state;
-            Log.d(CLASS_NAME, "Received new playback state:" + state);
+            AppLogger.d(CLASS_NAME + " Received new playback state:" + state);
             updateNotificationPlaybackState();
         }
 
         @Override
         public void onMetadataChanged(MediaMetadataCompat metadata) {
             mMetadata = metadata;
-            Log.d(CLASS_NAME, "Received new metadata:" + metadata);
+            AppLogger.d(CLASS_NAME + " Received new metadata:" + metadata);
             updateNotificationMetadata();
         }
 
         @Override
         public void onSessionDestroyed() {
             super.onSessionDestroyed();
-            Log.d(CLASS_NAME, "Session was destroyed, resetting to the new session token");
+            AppLogger.d(CLASS_NAME + " Session was destroyed, resetting to the new session token");
             updateSessionToken();
         }
     };
 
     private void updateNotificationMetadata() {
-        Log.d(CLASS_NAME, "Update Notification Metadata : " + mMetadata);
+        AppLogger.d(CLASS_NAME + " Update Notification Metadata : " + mMetadata);
         if (mMetadata == null || mPlaybackState == null) {
             return;
         }
@@ -304,7 +304,7 @@ public class MediaNotification extends BroadcastReceiver {
     }
 
     private void updatePlayPauseAction() {
-        Log.d(CLASS_NAME, "updatePlayPauseAction");
+        AppLogger.d(CLASS_NAME + " updatePlayPauseAction");
         String label;
         int icon;
         PendingIntent intent;
@@ -327,18 +327,18 @@ public class MediaNotification extends BroadcastReceiver {
     }
 
     private void updateNotificationPlaybackState() {
-        Log.d(CLASS_NAME, "updateNotificationPlaybackState. mPlaybackState=" + mPlaybackState);
+        AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. mPlaybackState=" + mPlaybackState);
         if (mPlaybackState == null || !mStarted) {
-            Log.d(CLASS_NAME, "updateNotificationPlaybackState. cancelling notification!");
+            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. cancelling notification!");
             mService.stopForeground(true);
             return;
         }
         if (mNotificationBuilder == null) {
-            Log.d(CLASS_NAME, "updateNotificationPlaybackState. there is no notificationBuilder. Ignoring request to update state!");
+            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. there is no notificationBuilder. Ignoring request to update state!");
             return;
         }
         if (mPlaybackState.getPosition() >= 0) {
-            Log.d(CLASS_NAME, "updateNotificationPlaybackState. updating playback position to " +
+            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. updating playback position to " +
                     (System.currentTimeMillis() - mPlaybackState.getPosition()) / 1000 + " seconds");
             mNotificationBuilder
                     .setWhen(System.currentTimeMillis() - mPlaybackState.getPosition())
@@ -346,7 +346,7 @@ public class MediaNotification extends BroadcastReceiver {
                     .setUsesChronometer(true);
             mNotificationBuilder.setShowWhen(true);
         } else {
-            Log.d(CLASS_NAME, "updateNotificationPlaybackState. hiding playback position");
+            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. hiding playback position");
             mNotificationBuilder
                     .setWhen(0)
                     .setShowWhen(false)
@@ -362,7 +362,7 @@ public class MediaNotification extends BroadcastReceiver {
     }
 
     private void fetchBitmapFromURLAsync(final String source) {
-        Log.d(CLASS_NAME, "getBitmapFromURLAsync: starting async task to fetch " + source);
+        AppLogger.d(CLASS_NAME + " getBitmapFromURLAsync: starting async task to fetch " + source);
         new AsyncTask<Void, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(Void[] objects) {
@@ -372,7 +372,7 @@ public class MediaNotification extends BroadcastReceiver {
                             BitmapHelper.MEDIA_ART_BIG_WIDTH, BitmapHelper.MEDIA_ART_BIG_HEIGHT);
                     mAlbumArtCache.put(source, bitmap);
                 } catch (IOException e) {
-                    Log.e(CLASS_NAME, "GetBitmapFromURLAsync: " + e.getMessage());
+                    AppLogger.e(CLASS_NAME + " GetBitmapFromURLAsync: " + e.getMessage());
                 }
                 return bitmap;
             }
@@ -384,7 +384,7 @@ public class MediaNotification extends BroadcastReceiver {
                         && mMetadata.getDescription().getIconUri() != null
                         && !source.equals(mMetadata.getDescription().getIconUri().toString())) {
                     // If the media is still the same, update the notification:
-                    Log.d(CLASS_NAME, "GetBitmapFromURLAsync: set bitmap to " + source);
+                    AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + source);
                     mNotificationBuilder.setLargeIcon(bitmap);
                     mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
                 }
