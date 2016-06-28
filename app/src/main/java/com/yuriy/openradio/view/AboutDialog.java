@@ -72,10 +72,12 @@ public class AboutDialog extends DialogFragment {
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
 
-        getDialog().setTitle(getActivity().getString(R.string.app_name) + "    v." +
-                AppUtils.getApplicationVersion(getActivity()));
-
         final View view = inflater.inflate(R.layout.dialog_about, container, false);
+
+        final String titleText = getActivity().getString(R.string.app_name) + "    v." +
+                AppUtils.getApplicationVersion(getActivity());
+        final TextView title = (TextView) view.findViewById(R.id.dialog_about_title_view);
+        title.setText(titleText);
 
         final TextView authorLink = (TextView) view.findViewById(R.id.about_author_link_view);
         authorLink.setOnClickListener(new View.OnClickListener() {

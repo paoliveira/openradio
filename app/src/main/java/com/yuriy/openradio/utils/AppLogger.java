@@ -20,8 +20,6 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.yuriy.openradio.BuildConfig;
-
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -98,6 +96,17 @@ public final class AppLogger {
         };
     }
 
+    public static boolean deleteAllLogs(final Context context) {
+        final File[] files = getAllLogs(context);
+        boolean result = true;
+        for (final File file : files) {
+            if (!file.delete()) {
+                result = false;
+            }
+        }
+        return result;
+    }
+
     public static File[] getAllLogs(final Context context) {
         final List<File> logs = new ArrayList<>();
         final File[] logDirs = getLogsDirectories(context);
@@ -151,9 +160,6 @@ public final class AppLogger {
     }
 
     public static void d(final String logMsg) {
-        if (!BuildConfig.DEBUG) {
-            return;
-        }
         logger.debug(logMsg);
         Log.d(LOG_TAG, logMsg);
     }

@@ -43,6 +43,11 @@ public class AppPreferencesManager {
     private static final String PREFS_KEY_IS_LOCATION_DIALOG_SHOWN = "IS_LOCATION_DIALOG_SHOWN";
 
     /**
+     *
+     */
+    private static final String PREFS_KEY_ARE_LOGS_ENABLED = "IS_LOGS_ENABLED";
+
+    /**
      * Application's Context.
      */
     private static Context sContext;
@@ -74,6 +79,27 @@ public class AppPreferencesManager {
     public static void setIsLocationDialogShown(final boolean value) {
         final SharedPreferences.Editor editor = getEditor();
         editor.putBoolean(PREFS_KEY_IS_LOCATION_DIALOG_SHOWN, value);
+        editor.apply();
+    }
+
+    /**
+     * @return True if it is allowed to save logs into a file. False - otherwise.
+     */
+    public static boolean areLogsEnabled() {
+        return getSharedPreferences().getBoolean(
+                PREFS_KEY_ARE_LOGS_ENABLED,
+                false
+        );
+    }
+
+    /**
+     * Set True if it is allowed to save logs into a file. False - otherwise.
+     *
+     * @param value Boolean value.
+     */
+    public static void setAreLogsEnabled(final boolean value) {
+        final SharedPreferences.Editor editor = getEditor();
+        editor.putBoolean(PREFS_KEY_ARE_LOGS_ENABLED, value);
         editor.apply();
     }
 

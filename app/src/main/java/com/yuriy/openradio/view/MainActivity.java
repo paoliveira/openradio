@@ -307,6 +307,12 @@ public final class MainActivity extends AppCompatActivity {
             final DialogFragment searchDialog = SearchDialog.newInstance();
             searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
             return true;
+        } else if (id == R.id.action_settings) {
+
+            // Show Search Dialog
+            final DialogFragment settingsDialog = SettingsDialog.newInstance();
+            settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
