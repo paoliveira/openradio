@@ -17,8 +17,11 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.yuriy.openradio.R;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
@@ -27,11 +30,15 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public final class AppLogger {
 
@@ -104,6 +111,10 @@ public final class AppLogger {
                 result = false;
             }
         }
+        final File file = getLogsZipFile(context);
+        if (file.exists()) {
+            file.delete();
+        }
         return result;
     }
 
@@ -142,6 +153,75 @@ public final class AppLogger {
                 return false;
             }
         });
+    }
+
+    public static File getLogsZipFile(final Context context) {
+        return new File(getCurrentLogsDirectory(context) + "/logs.zip");
+    }
+
+    public static void zip(final Context context) throws IOException {
+        final File[] logs = getAllLogs(context);
+        final String currentLogsDir = getCurrentLogsDirectory(context);
+        final FileOutputStream fileOutputStream = new FileOutputStream(currentLogsDir + "/logs.zip");
+        final ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+        for (final File file : logs) {
+            if (!file.isDirectory()) {
+                zipFile(file, zipOutputStream);
+            }
+        }
+        zipOutputStream.closeEntry();
+        zipOutputStream.close();
+    }
+
+    private static void zipFile(final File inputFile,
+                                final ZipOutputStream zipOutputStream) throws IOException {
+
+        // A ZipEntry represents a file entry in the zip archive
+        // We name the ZipEntry after the original file's name
+        final ZipEntry zipEntry = new ZipEntry(inputFile.getName());
+        zipOutputStream.putNextEntry(zipEntry);
+
+        final FileInputStream fileInputStream = new FileInputStream(inputFile);
+        byte[] buf = new byte[1024];
+        int bytesRead;
+
+        // Read the input file by chucks of 1024 bytes
+        // and write the read bytes to the zip stream
+        while ((bytesRead = fileInputStream.read(buf)) > 0) {
+            zipOutputStream.write(buf, 0, bytesRead);
+        }
+
+        // close ZipEntry to store the stream to the file
+        zipOutputStream.closeEntry();
+
+        AppLogger.d("Regular file :" + inputFile.getCanonicalPath() + " is zipped to archive");
+    }
+
+    /**
+     * Return string with addition info about device, application name,
+     * and other.
+     *
+     * @return String with addition info (App name, version ...)
+     */
+    private static String getAdditionInfo(final Context context) {
+        final StringBuilder addInfo = new StringBuilder(1000);
+        addInfo.append("App name: ").append(context.getString(R.string.app_name)).append("\n");
+        addInfo.append("App version: ").append(AppUtils.getApplicationVersion(context)).append("\n");
+        addInfo.append("\n------- Device -----------\n");
+        addInfo.append("Brand: ").append(Build.BRAND).append("\n");
+        addInfo.append("Board: ").append(Build.BOARD).append("\n");
+        addInfo.append("Device: ").append(Build.DEVICE).append("\n");
+        addInfo.append("Model: ").append(Build.MODEL).append("\n");
+        addInfo.append("Id: ").append(Build.ID).append("\n");
+        addInfo.append("Product: ").append(Build.PRODUCT).append("\n");
+        addInfo.append("Display: ").append(Build.DISPLAY).append("\n");
+        addInfo.append("--------- Firmware ------------\n");
+        addInfo.append("SDK: ").append(Build.VERSION.SDK_INT).append("\n");
+        addInfo.append("Release: ").append(Build.VERSION.RELEASE).append("\n");
+        addInfo.append("Tags: ").append(Build.TAGS).append("\n");
+        addInfo.append("Incremental: ").append(Build.VERSION.INCREMENTAL).append("\n");
+        addInfo.append("-------------------------------\n\n");
+        return addInfo.toString();
     }
 
     public static void e(final String logMsg) {

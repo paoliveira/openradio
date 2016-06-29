@@ -17,7 +17,12 @@
 package com.yuriy.openradio.view;
 
 import android.app.DialogFragment;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +34,10 @@ import android.widget.Toast;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.AsyncTask;
+
+import java.io.IOException;
 
 /**
  * Created by Yuriy Chernyshov
@@ -39,14 +48,18 @@ import com.yuriy.openradio.utils.AppLogger;
 public class SettingsDialog extends DialogFragment {
 
     /**
-     * Tag string to use in logging message.
+     * Tag string mTo use in logging message.
      */
     private static final String CLASS_NAME = SettingsDialog.class.getSimpleName();
 
     /**
-     * Tag string to use in dialog transactions.
+     * Tag string mTo use in dialog transactions.
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
+
+    private static final String SUPPORT_MAIL = "chernyshov.yuriy@gmail.com";
+
+    private SendLogEmailTask mSendLogMailTask;
 
     /**
      * Create a new instance of {@link SettingsDialog}
@@ -101,6 +114,8 @@ public class SettingsDialog extends DialogFragment {
                                 ? "All logs deleted"
                                 : "Can not delete logs";
                         Toast.makeText(reference.getActivity(), message, Toast.LENGTH_LONG).show();
+
+                        AppLogger.initLogger(reference.getActivity());
                     }
                 }
         );
@@ -113,7 +128,12 @@ public class SettingsDialog extends DialogFragment {
 
                     @Override
                     public void safeOnClick(final SettingsDialog reference, final View view) {
-
+                        try {
+                            AppLogger.zip(reference.getActivity());
+                        } catch (final IOException e) {
+                            SafeToast.showAnyThread(reference.getActivity(), "Can not ZIP Logs");
+                        }
+                        reference.tryStartSendLogMailTask();
                     }
                 }
         );
@@ -132,5 +152,117 @@ public class SettingsDialog extends DialogFragment {
         clearLogsBtn.setEnabled(isEnable);
 
         AppPreferencesManager.setAreLogsEnabled(isEnable);
+    }
+
+    private synchronized void tryStartSendLogMailTask() {
+        //attempt of run task one more time
+        if (!checkRunningTasks()) {
+            AppLogger.w("Send Logs task is running, return");
+            return;
+        }
+        mSendLogMailTask = new SendLogEmailTask(getActivity());
+
+        final String subj = "Logs report Open Radio, " +
+                "v:" + AppUtils.getApplicationVersion(getActivity());
+        final String bodyHeader = "Archive with logs is in attachment.";
+        mSendLogMailTask.execute(new MailInfo(SUPPORT_MAIL, subj, bodyHeader));
+    }
+
+    private boolean checkRunningTasks() {
+        return !(mSendLogMailTask != null && mSendLogMailTask.getStatus() == AsyncTask.Status.RUNNING);
+    }
+
+    private static final class SendLogEmailTask extends AsyncTask<MailInfo, Void, Intent> {
+
+        private final Context mContext;
+
+        private SendLogEmailTask(final Context context) {
+            super();
+            mContext = context;
+        }
+
+        @Override
+        protected Intent doInBackground(final MailInfo... mailInfoArray) {
+            if (mailInfoArray == null) {
+                throw new NullPointerException("mailInfoArray");
+            }
+            if (mailInfoArray.length != 1) {
+                throw new IllegalArgumentException("mailInfo");
+            }
+            final MailInfo mailInfo = mailInfoArray[0];
+            if (mailInfo == null) {
+                throw new NullPointerException("mailInfo");
+            }
+
+            // Prepare mail intent
+            final Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mailInfo.getTo()});
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo.getSubj());
+            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo.getMailBody() + "\r\n" );
+            sendIntent .setType("vnd.android.cursor.dir/email");
+
+            try {
+                final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext));
+                sendIntent .putExtra(Intent.EXTRA_STREAM, path);
+            } catch (Exception e) {
+                AppLogger.e("Unable to upload the Log file:" + e.getMessage());
+                return null;
+            }
+
+            return sendIntent;
+        }
+
+        @Override
+        protected void onPostExecute(final Intent intent) {
+            super.onPostExecute(intent);
+
+            //dismissProgressDialog();
+            if (intent != null) {
+                try {
+                    mContext.startActivity(Intent.createChooser(intent, "Send mail:"));
+                } catch (ActivityNotFoundException e) {
+                    SafeToast.showAnyThread(
+                            mContext, mContext.getString(R.string.cant_start_activity)
+                    );
+                    AppLogger.e("Activity not found:" + e.getMessage());
+                }
+                AppLogger.i("Intent was send");
+            } else {
+                //showErrorDialog(context.getString(R.string.failed_to_upload_log_message));
+            }
+        }
+
+
+    }
+
+    private static final class MailInfo {
+
+        private String mTo;
+        private String mSubj;
+        private String mMailBody;
+
+        private MailInfo(final String to, final String subj, final String mailBody) {
+            super();
+
+            if (TextUtils.isEmpty(to)) {
+                throw new NullPointerException("Parameter 'To' can not be null or empty");
+            }
+
+            mTo = to;
+            mSubj = subj;
+            mMailBody = mailBody;
+        }
+
+        private String getTo() {
+            return mTo;
+        }
+
+        private String getSubj() {
+            return mSubj;
+        }
+
+        private String getMailBody() {
+            return mMailBody;
+        }
     }
 }
