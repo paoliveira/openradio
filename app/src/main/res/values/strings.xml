@@ -108,5 +108,7 @@
     <string name="clear_logs_label">Clear Logs</string>
     <string name="app_settings_title">Application Settings</string>
     <string name="cant_start_activity">Can not start Activity</string>
+    <string name="cant_send_logs">Can not send Logs</string>
+    <string name="send_logs_chooser_title">Send Logs by:</string>
 
 </resources>

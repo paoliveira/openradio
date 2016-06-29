@@ -17,11 +17,8 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
-
-import com.yuriy.openradio.R;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
@@ -49,6 +46,7 @@ public final class AppLogger {
     private static final Logger logger = Logger.getLogger(AppLogger.class);
 
     private static String sInitLogsDirectory;
+    private static boolean sIsLoggingEnabled;
 
     private AppLogger() {
         super();
@@ -73,6 +71,10 @@ public final class AppLogger {
             Log.e(LOG_TAG, "unable to create log file: " + fileName);
         }
         AppLogger.d("Current log stored to " + fileName);
+    }
+
+    public static void setIsLoggingEnabled(final boolean value) {
+        sIsLoggingEnabled = value;
     }
 
     private static void initLogsDirectories(final Context context) {
@@ -111,11 +113,12 @@ public final class AppLogger {
                 result = false;
             }
         }
-        final File file = getLogsZipFile(context);
-        if (file.exists()) {
-            file.delete();
-        }
         return result;
+    }
+
+    public static boolean deleteZipFile(final Context context) {
+        final File file = getLogsZipFile(context);
+        return file.exists() && file.delete();
     }
 
     public static File[] getAllLogs(final Context context) {
@@ -161,8 +164,7 @@ public final class AppLogger {
 
     public static void zip(final Context context) throws IOException {
         final File[] logs = getAllLogs(context);
-        final String currentLogsDir = getCurrentLogsDirectory(context);
-        final FileOutputStream fileOutputStream = new FileOutputStream(currentLogsDir + "/logs.zip");
+        final FileOutputStream fileOutputStream = new FileOutputStream(getLogsZipFile(context));
         final ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
         for (final File file : logs) {
             if (!file.isDirectory()) {
@@ -194,53 +196,34 @@ public final class AppLogger {
         // close ZipEntry to store the stream to the file
         zipOutputStream.closeEntry();
 
-        AppLogger.d("Regular file :" + inputFile.getCanonicalPath() + " is zipped to archive");
-    }
-
-    /**
-     * Return string with addition info about device, application name,
-     * and other.
-     *
-     * @return String with addition info (App name, version ...)
-     */
-    private static String getAdditionInfo(final Context context) {
-        final StringBuilder addInfo = new StringBuilder(1000);
-        addInfo.append("App name: ").append(context.getString(R.string.app_name)).append("\n");
-        addInfo.append("App version: ").append(AppUtils.getApplicationVersion(context)).append("\n");
-        addInfo.append("\n------- Device -----------\n");
-        addInfo.append("Brand: ").append(Build.BRAND).append("\n");
-        addInfo.append("Board: ").append(Build.BOARD).append("\n");
-        addInfo.append("Device: ").append(Build.DEVICE).append("\n");
-        addInfo.append("Model: ").append(Build.MODEL).append("\n");
-        addInfo.append("Id: ").append(Build.ID).append("\n");
-        addInfo.append("Product: ").append(Build.PRODUCT).append("\n");
-        addInfo.append("Display: ").append(Build.DISPLAY).append("\n");
-        addInfo.append("--------- Firmware ------------\n");
-        addInfo.append("SDK: ").append(Build.VERSION.SDK_INT).append("\n");
-        addInfo.append("Release: ").append(Build.VERSION.RELEASE).append("\n");
-        addInfo.append("Tags: ").append(Build.TAGS).append("\n");
-        addInfo.append("Incremental: ").append(Build.VERSION.INCREMENTAL).append("\n");
-        addInfo.append("-------------------------------\n\n");
-        return addInfo.toString();
+        AppLogger.d("Log file :" + inputFile.getCanonicalPath() + " is zipped to archive");
     }
 
     public static void e(final String logMsg) {
-        logger.error(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.error(logMsg);
+        }
         Log.e(LOG_TAG, logMsg);
     }
 
     public static void w(final String logMsg) {
-        logger.warn(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.warn(logMsg);
+        }
         Log.w(LOG_TAG, logMsg);
     }
 
     public static void i(final String logMsg) {
-        logger.info(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.info(logMsg);
+        }
         Log.i(LOG_TAG, logMsg);
     }
 
     public static void d(final String logMsg) {
-        logger.debug(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.debug(logMsg);
+        }
         Log.d(LOG_TAG, logMsg);
     }
 }

@@ -16,9 +16,9 @@
 
 package com.yuriy.openradio.view;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -56,6 +56,8 @@ public class SettingsDialog extends DialogFragment {
      * Tag string mTo use in dialog transactions.
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
+
+    private static final int LOGS_EMAIL_REQUEST_CODE = 1000;
 
     private static final String SUPPORT_MAIL = "chernyshov.yuriy@gmail.com";
 
@@ -109,6 +111,7 @@ public class SettingsDialog extends DialogFragment {
 
                     @Override
                     public void safeOnClick(final SettingsDialog reference, final View view) {
+                        AppLogger.deleteZipFile(reference.getActivity());
                         final boolean result = AppLogger.deleteAllLogs(reference.getActivity());
                         String message = result
                                 ? "All logs deleted"
@@ -128,12 +131,7 @@ public class SettingsDialog extends DialogFragment {
 
                     @Override
                     public void safeOnClick(final SettingsDialog reference, final View view) {
-                        try {
-                            AppLogger.zip(reference.getActivity());
-                        } catch (final IOException e) {
-                            SafeToast.showAnyThread(reference.getActivity(), "Can not ZIP Logs");
-                        }
-                        reference.tryStartSendLogMailTask();
+                        reference.sendLogMailTask();
                     }
                 }
         );
@@ -152,14 +150,24 @@ public class SettingsDialog extends DialogFragment {
         clearLogsBtn.setEnabled(isEnable);
 
         AppPreferencesManager.setAreLogsEnabled(isEnable);
+        AppLogger.setIsLoggingEnabled(isEnable);
     }
 
-    private synchronized void tryStartSendLogMailTask() {
+    private synchronized void sendLogMailTask() {
         //attempt of run task one more time
         if (!checkRunningTasks()) {
             AppLogger.w("Send Logs task is running, return");
             return;
         }
+
+        AppLogger.deleteZipFile(getActivity());
+        try {
+            AppLogger.zip(getActivity());
+        } catch (final IOException e) {
+            SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
+            return;
+        }
+
         mSendLogMailTask = new SendLogEmailTask(getActivity());
 
         final String subj = "Logs report Open Radio, " +
@@ -174,9 +182,9 @@ public class SettingsDialog extends DialogFragment {
 
     private static final class SendLogEmailTask extends AsyncTask<MailInfo, Void, Intent> {
 
-        private final Context mContext;
+        private final Activity mContext;
 
-        private SendLogEmailTask(final Context context) {
+        private SendLogEmailTask(final Activity context) {
             super();
             mContext = context;
         }
@@ -194,7 +202,7 @@ public class SettingsDialog extends DialogFragment {
                 throw new NullPointerException("mailInfo");
             }
 
-            // Prepare mail intent
+            // Prepare email intent
             final Intent sendIntent = new Intent(Intent.ACTION_SEND);
             sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mailInfo.getTo()});
             sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo.getSubj());
@@ -204,8 +212,8 @@ public class SettingsDialog extends DialogFragment {
             try {
                 final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext));
                 sendIntent .putExtra(Intent.EXTRA_STREAM, path);
-            } catch (Exception e) {
-                AppLogger.e("Unable to upload the Log file:" + e.getMessage());
+            } catch (final Exception e) {
+                AppLogger.e("Can not get logs zip file:" + e.getMessage());
                 return null;
             }
 
@@ -216,23 +224,26 @@ public class SettingsDialog extends DialogFragment {
         protected void onPostExecute(final Intent intent) {
             super.onPostExecute(intent);
 
-            //dismissProgressDialog();
             if (intent != null) {
                 try {
-                    mContext.startActivity(Intent.createChooser(intent, "Send mail:"));
-                } catch (ActivityNotFoundException e) {
+                    mContext.startActivityForResult(
+                            Intent.createChooser(
+                                    intent, mContext.getString(R.string.send_logs_chooser_title)
+                            ),
+                            LOGS_EMAIL_REQUEST_CODE
+                    );
+                } catch (final ActivityNotFoundException e) {
                     SafeToast.showAnyThread(
                             mContext, mContext.getString(R.string.cant_start_activity)
                     );
                     AppLogger.e("Activity not found:" + e.getMessage());
                 }
-                AppLogger.i("Intent was send");
             } else {
-                //showErrorDialog(context.getString(R.string.failed_to_upload_log_message));
+                SafeToast.showAnyThread(
+                        mContext, mContext.getString(R.string.cant_send_logs)
+                );
             }
         }
-
-
     }
 
     private static final class MailInfo {

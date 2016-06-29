@@ -42,7 +42,6 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.api.RadioStationVO;
-import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.RemoteControlReceiver;
@@ -389,9 +388,6 @@ public final class OpenRadioService
         super.onCreate();
 
         AppLogger.i(CLASS_NAME + " On Create");
-
-        // Set application's context for the Preferences.
-        AppPreferencesManager.setContext(this);
 
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
