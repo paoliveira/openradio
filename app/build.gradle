@@ -3,8 +3,8 @@ apply plugin: 'io.fabric'
 
 android {
 
-    compileSdkVersion 24
-    buildToolsVersion "24"
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
 
     def versionPropsFile = file('version.properties')
     def code = 1
@@ -59,9 +59,9 @@ android {
 dependencies {
     compile 'log4j:log4j:1.2.16'
     compile 'commons-io:commons-io:2.4'
-    compile 'com.android.support:appcompat-v7:24.0.0'
-    compile "com.android.support:support-v4:24.0.0"
-    compile 'com.android.support:design:24.0.0'
+    compile 'com.android.support:appcompat-v7:23.2.0'
+    compile "com.android.support:support-v4:23.2.0"
+    compile 'com.android.support:design:23.2.0'
     compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.10'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
         transitive = true;

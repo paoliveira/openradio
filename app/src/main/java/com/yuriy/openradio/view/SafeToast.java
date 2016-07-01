@@ -62,7 +62,6 @@ public final class SafeToast {
             AppLogger.w("Can not display Toast, Context is null");
             return;
         }
-        AppLogger.d("Message:" + text);
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
     }
 }

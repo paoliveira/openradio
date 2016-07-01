@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -167,6 +168,7 @@ public class SettingsDialog extends DialogFragment {
             AppLogger.zip(getActivity());
         } catch (final IOException e) {
             SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
+            AppLogger.e("Can not ZIP Logs:\n" + Log.getStackTraceString(e));
             return;
         }
 

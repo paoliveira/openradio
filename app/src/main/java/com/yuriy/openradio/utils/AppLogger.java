@@ -164,18 +164,22 @@ public final class AppLogger {
     }
 
     public static File getLogsZipFile(final Context context) {
-        return new File(getCurrentLogsDirectory(context) + "/logs.zip");
+        final String path = getCurrentLogsDirectory(context);
+        AppUtils.createDirIfNeeded(path);
+        return AppUtils.createFileIfNeeded(path + "/logs.zip");
     }
 
     public static File getLogcatFile(final Context context) {
-        return new File(getCurrentLogsDirectory(context) + "/logcat.txt");
+        final String path = getCurrentLogsDirectory(context);
+        AppUtils.createDirIfNeeded(path);
+        return AppUtils.createFileIfNeeded(path + "/logcat.txt");
     }
 
     public static void zip(final Context context) throws IOException {
 
         final File logcatFile = getLogcatFile(context);
         try {
-            Runtime.getRuntime().exec("logcat -f " + logcatFile.getAbsolutePath());
+            Runtime.getRuntime().exec("logcat -f " + logcatFile.getPath());
         } catch (final Exception e) {
             AppLogger.e("Can not create Logcat file:\n" + Log.getStackTraceString(e));
         }
