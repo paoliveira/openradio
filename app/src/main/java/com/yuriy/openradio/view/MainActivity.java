@@ -375,10 +375,10 @@ public final class MainActivity extends AppCompatActivity {
             // Pop up current media item
             final String currentMediaId = mediaItemsStack.remove(mediaItemsStack.size() - 1);
 
-            // Un-subscribe from all items
             mMediaBrowser.unsubscribe(currentMediaId);
         }
 
+        // Un-subscribe from all items
         for (final String mediaItemId : mediaItemsStack) {
             mMediaBrowser.unsubscribe(mediaItemId);
         }

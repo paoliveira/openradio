@@ -111,14 +111,16 @@ public class SettingsDialog extends DialogFragment {
 
                     @Override
                     public void safeOnClick(final SettingsDialog reference, final View view) {
-                        AppLogger.deleteZipFile(reference.getActivity());
-                        final boolean result = AppLogger.deleteAllLogs(reference.getActivity());
+                        final Activity activity = reference.getActivity();
+                        AppLogger.deleteZipFile(activity);
+                        AppLogger.deleteLogcatFile(activity);
+                        final boolean result = AppLogger.deleteAllLogs(activity);
                         String message = result
                                 ? "All logs deleted"
                                 : "Can not delete logs";
-                        Toast.makeText(reference.getActivity(), message, Toast.LENGTH_LONG).show();
+                        Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
 
-                        AppLogger.initLogger(reference.getActivity());
+                        AppLogger.initLogger(activity);
                     }
                 }
         );

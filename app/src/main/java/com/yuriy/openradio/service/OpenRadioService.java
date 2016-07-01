@@ -1298,6 +1298,7 @@ public final class OpenRadioService
 
         // If there is an error message, send it to the playback state:
         if (error != null) {
+            AppLogger.e(CLASS_NAME + " UpdatePlaybackState, error: " + error);
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
             stateBuilder.setErrorMessage(error);

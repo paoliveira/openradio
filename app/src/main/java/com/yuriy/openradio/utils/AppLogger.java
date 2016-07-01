@@ -121,6 +121,11 @@ public final class AppLogger {
         return file.exists() && file.delete();
     }
 
+    public static boolean deleteLogcatFile(final Context context) {
+        final File file = getLogcatFile(context);
+        return file.exists() && file.delete();
+    }
+
     public static File[] getAllLogs(final Context context) {
         final List<File> logs = new ArrayList<>();
         final File[] logDirs = getLogsDirectories(context);
@@ -162,10 +167,23 @@ public final class AppLogger {
         return new File(getCurrentLogsDirectory(context) + "/logs.zip");
     }
 
+    public static File getLogcatFile(final Context context) {
+        return new File(getCurrentLogsDirectory(context) + "/logcat.txt");
+    }
+
     public static void zip(final Context context) throws IOException {
+
+        final File logcatFile = getLogcatFile(context);
+        try {
+            Runtime.getRuntime().exec("logcat -f " + logcatFile.getAbsolutePath());
+        } catch (final Exception e) {
+            AppLogger.e("Can not create Logcat file:\n" + Log.getStackTraceString(e));
+        }
+
         final File[] logs = getAllLogs(context);
         final FileOutputStream fileOutputStream = new FileOutputStream(getLogsZipFile(context));
         final ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+        zipFile(logcatFile, zipOutputStream);
         for (final File file : logs) {
             if (!file.isDirectory()) {
                 zipFile(file, zipOutputStream);
