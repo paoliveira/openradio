@@ -100,4 +100,15 @@
     <string name="recent_played_songs_title">Recently Played Songs</string>
     <string name="recent_played_songs_sub_title">recently played songs</string>
 
+    <!-- Version 2.2 -->
+
+    <string name="action_settings">Settings</string>
+    <string name="enable_logs_label">Enable Logs\n(enables application to save logs in a file)</string>
+    <string name="send_logs_label">Send Logs</string>
+    <string name="clear_logs_label">Clear Logs</string>
+    <string name="app_settings_title">Application Settings</string>
+    <string name="cant_start_activity">Can not start Activity</string>
+    <string name="cant_send_logs">Can not send Logs</string>
+    <string name="send_logs_chooser_title">Send Logs by:</string>
+
 </resources>

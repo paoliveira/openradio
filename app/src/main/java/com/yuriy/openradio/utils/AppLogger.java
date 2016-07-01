@@ -20,8 +20,6 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.yuriy.openradio.BuildConfig;
-
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -29,11 +27,15 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public final class AppLogger {
 
@@ -44,6 +46,7 @@ public final class AppLogger {
     private static final Logger logger = Logger.getLogger(AppLogger.class);
 
     private static String sInitLogsDirectory;
+    private static boolean sIsLoggingEnabled;
 
     private AppLogger() {
         super();
@@ -68,6 +71,10 @@ public final class AppLogger {
             Log.e(LOG_TAG, "unable to create log file: " + fileName);
         }
         AppLogger.d("Current log stored to " + fileName);
+    }
+
+    public static void setIsLoggingEnabled(final boolean value) {
+        sIsLoggingEnabled = value;
     }
 
     private static void initLogsDirectories(final Context context) {
@@ -96,6 +103,27 @@ public final class AppLogger {
         return new File[]{
                 new File(sInitLogsDirectory)
         };
+    }
+
+    public static boolean deleteAllLogs(final Context context) {
+        final File[] files = getAllLogs(context);
+        boolean result = true;
+        for (final File file : files) {
+            if (!file.delete()) {
+                result = false;
+            }
+        }
+        return result;
+    }
+
+    public static boolean deleteZipFile(final Context context) {
+        final File file = getLogsZipFile(context);
+        return file.exists() && file.delete();
+    }
+
+    public static boolean deleteLogcatFile(final Context context) {
+        final File file = getLogcatFile(context);
+        return file.exists() && file.delete();
     }
 
     public static File[] getAllLogs(final Context context) {
@@ -135,26 +163,89 @@ public final class AppLogger {
         });
     }
 
+    public static File getLogsZipFile(final Context context) {
+        final String path = getCurrentLogsDirectory(context);
+        AppUtils.createDirIfNeeded(path);
+        return AppUtils.createFileIfNeeded(path + "/logs.zip");
+    }
+
+    public static File getLogcatFile(final Context context) {
+        final String path = getCurrentLogsDirectory(context);
+        AppUtils.createDirIfNeeded(path);
+        return AppUtils.createFileIfNeeded(path + "/logcat.txt");
+    }
+
+    public static void zip(final Context context) throws IOException {
+
+        final File logcatFile = getLogcatFile(context);
+        try {
+            Runtime.getRuntime().exec("logcat -f " + logcatFile.getPath());
+        } catch (final Exception e) {
+            AppLogger.e("Can not create Logcat file:\n" + Log.getStackTraceString(e));
+        }
+
+        final File[] logs = getAllLogs(context);
+        final FileOutputStream fileOutputStream = new FileOutputStream(getLogsZipFile(context));
+        final ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
+        zipFile(logcatFile, zipOutputStream);
+        for (final File file : logs) {
+            if (!file.isDirectory()) {
+                zipFile(file, zipOutputStream);
+            }
+        }
+        zipOutputStream.closeEntry();
+        zipOutputStream.close();
+    }
+
+    private static void zipFile(final File inputFile,
+                                final ZipOutputStream zipOutputStream) throws IOException {
+
+        // A ZipEntry represents a file entry in the zip archive
+        // We name the ZipEntry after the original file's name
+        final ZipEntry zipEntry = new ZipEntry(inputFile.getName());
+        zipOutputStream.putNextEntry(zipEntry);
+
+        final FileInputStream fileInputStream = new FileInputStream(inputFile);
+        byte[] buf = new byte[1024];
+        int bytesRead;
+
+        // Read the input file by chucks of 1024 bytes
+        // and write the read bytes to the zip stream
+        while ((bytesRead = fileInputStream.read(buf)) > 0) {
+            zipOutputStream.write(buf, 0, bytesRead);
+        }
+
+        // close ZipEntry to store the stream to the file
+        zipOutputStream.closeEntry();
+
+        AppLogger.d("Log file :" + inputFile.getCanonicalPath() + " is zipped to archive");
+    }
+
     public static void e(final String logMsg) {
-        logger.error(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.error(logMsg);
+        }
         Log.e(LOG_TAG, logMsg);
     }
 
     public static void w(final String logMsg) {
-        logger.warn(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.warn(logMsg);
+        }
         Log.w(LOG_TAG, logMsg);
     }
 
     public static void i(final String logMsg) {
-        logger.info(logMsg);
+        if (sIsLoggingEnabled) {
+            logger.info(logMsg);
+        }
         Log.i(LOG_TAG, logMsg);
     }
 
     public static void d(final String logMsg) {
-        if (!BuildConfig.DEBUG) {
-            return;
+        if (sIsLoggingEnabled) {
+            logger.debug(logMsg);
         }
-        logger.debug(logMsg);
         Log.d(LOG_TAG, logMsg);
     }
 }

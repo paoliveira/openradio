@@ -524,6 +524,21 @@ public final class AppUtils {
         }
     }
 
+    /**
+     *
+     * @param path
+     * @return
+     */
+    public static File createFileIfNeeded(final String path) {
+        final File file = new File(path);
+        try {
+            final boolean result = file.createNewFile();
+        } catch (final IOException e) {
+            AppLogger.e("Can not create new file:" + e.getMessage());
+        }
+        return file;
+    }
+
     public static boolean isFileExist(final String path) {
         final File file = new File(path);
         return file.exists() && !file.isDirectory();

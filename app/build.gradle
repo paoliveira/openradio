@@ -4,7 +4,7 @@ apply plugin: 'io.fabric'
 android {
 
     compileSdkVersion 23
-    buildToolsVersion "24"
+    buildToolsVersion "23.0.3"
 
     def versionPropsFile = file('version.properties')
     def code = 1
@@ -62,7 +62,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile "com.android.support:support-v4:23.2.0"
     compile 'com.android.support:design:23.2.0'
-    compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.6'
+    compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.10'
     compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
         transitive = true;
     }
