@@ -75,5 +75,13 @@
     <string name="recent_added_stations_sub_title">nylig lagt stations.</string>
     <string name="recent_played_songs_title">Nylig spilte Sanger</string>
     <string name="recent_played_songs_sub_title">nylig spilte sanger</string>
+    <string name="action_settings">Innstillinger</string>
+    <string name="enable_logs_label">Aktiver Logger\n(muliggjør program for å lagre logger i en fil)</string>
+    <string name="send_logs_label">Send Logger</string>
+    <string name="clear_logs_label">Klare Logger</string>
+    <string name="app_settings_title">Applikasjonsinnstillinger</string>
+    <string name="cant_start_activity">Kan ikke starte Aktivitet</string>
+    <string name="cant_send_logs">Kan ikke sende Logger</string>
+    <string name="send_logs_chooser_title">Send Logger etter:</string>
 
 </resources>

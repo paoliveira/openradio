@@ -75,5 +75,13 @@
     <string name="recent_added_stations_sub_title">vor kurzem hinzugefügt stationen</string>
     <string name="recent_played_songs_title">Vor kurzem gespielt Songs</string>
     <string name="recent_played_songs_sub_title">vor kurzem gespielt songs</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="enable_logs_label">Aktivieren Logs\n(ermöglicht Anwendungsprotokolle in einer Datei zu speichern)</string>
+    <string name="send_logs_label">Senden Logs</string>
+    <string name="clear_logs_label">Protokolle löschen</string>
+    <string name="app_settings_title">Anwendungseinstellungen</string>
+    <string name="cant_start_activity">Kann nicht Aktivität starten</string>
+    <string name="cant_send_logs">Kann nicht Logs senden</string>
+    <string name="send_logs_chooser_title">Senden Logs von:</string>
 
 </resources>
