@@ -1286,11 +1286,6 @@ public final class OpenRadioService
             mRadioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
         }
 
-        long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
-        if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-            position = mMediaPlayer.getCurrentPosition();
-        }
-
         final PlaybackStateCompat.Builder stateBuilder
                 = new PlaybackStateCompat.Builder().setActions(getAvailableActions());
 
@@ -1304,6 +1299,11 @@ public final class OpenRadioService
             stateBuilder.setErrorMessage(error);
             mState = PlaybackStateCompat.STATE_ERROR;
         }
+
+        long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
+        //if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+        //    position = mMediaPlayer.getCurrentPosition();
+        //}
         stateBuilder.setState(mState, position, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.

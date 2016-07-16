@@ -174,8 +174,9 @@ public class SettingsDialog extends DialogFragment {
 
         mSendLogMailTask = new SendLogEmailTask(getActivity());
 
-        final String subj = "Logs report Open Radio, " +
-                "v:" + AppUtils.getApplicationVersion(getActivity());
+        final String subj = "Logs report Open Radio, "
+                + "v:" + AppUtils.getApplicationVersion(getActivity())
+                + "." + AppUtils.getApplicationVersionCode(getActivity());
         final String bodyHeader = "Archive with logs is in attachment.";
         mSendLogMailTask.execute(new MailInfo(SUPPORT_MAIL, subj, bodyHeader));
     }

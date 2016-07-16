@@ -559,7 +559,7 @@ public class ImageCache {
      * @param uniqueName A unique directory name to append to the cache dir
      * @return The cache dir
      */
-    public static File getDiskCacheDir(Context context, String uniqueName) {
+    public static File getDiskCacheDir(final Context context, final String uniqueName) {
         // Check if media is mounted or storage is built-in, if so, try and use external cache dir
         // otherwise use internal cache dir
         final String cachePath =
@@ -643,12 +643,20 @@ public class ImageCache {
      * @return The external cache dir
      */
     @TargetApi(VERSION_CODES.FROYO)
-    private static File getExternalCacheDir(Context context) {
+    private static File getExternalCacheDir(final Context context) {
+        File file;
         if (Utils.hasFroyo()) {
-            return context.getExternalCacheDir();
+            file = context.getExternalCacheDir();
+            if (file != null) {
+                return file;
+            }
         }
 
-        // Before Froyo we need to construct the external cache dir ourselves
+        // In other case, we need to construct the external cache dir ourselves
+        return constructExternalCacheDir(context);
+    }
+
+    protected static File constructExternalCacheDir(final Context context) {
         final String cacheDir = "/Android/data/" + context.getPackageName() + "/cache/";
         return new File(Environment.getExternalStorageDirectory().getPath() + cacheDir);
     }
