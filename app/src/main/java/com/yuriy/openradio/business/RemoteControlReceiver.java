@@ -27,7 +27,7 @@ public class RemoteControlReceiver extends BroadcastReceiver {
             return;
         }
         final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-        final int keyCode = event.getKeyCode();
+        final int keyCode = event != null ? event.getKeyCode() : Integer.MIN_VALUE;
         AppLogger.d(CLASS_NAME + " Key event:" + event);
         if (Fabric.isInitialized()){
             Answers.getInstance().logCustom(
