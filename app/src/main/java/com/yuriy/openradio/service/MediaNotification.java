@@ -370,9 +370,14 @@ public class MediaNotification extends BroadcastReceiver {
                 try {
                     bitmap = BitmapHelper.fetchAndRescaleBitmap(source,
                             BitmapHelper.MEDIA_ART_BIG_WIDTH, BitmapHelper.MEDIA_ART_BIG_HEIGHT);
-                    mAlbumArtCache.put(source, bitmap);
                 } catch (IOException e) {
                     AppLogger.e(CLASS_NAME + " GetBitmapFromURLAsync: " + e.getMessage());
+                }
+                if (source != null && bitmap != null) {
+                    mAlbumArtCache.put(source, bitmap);
+                } else {
+                    AppLogger.e(CLASS_NAME + " Can not put data into AlbumArtCache, " +
+                            "key == null || value == null");
                 }
                 return bitmap;
             }
