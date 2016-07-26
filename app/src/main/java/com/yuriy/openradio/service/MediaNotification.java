@@ -37,6 +37,7 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.LruCache;
 
@@ -387,7 +388,7 @@ public class MediaNotification extends BroadcastReceiver {
                 if (bitmap != null && mMetadata != null
                         && mNotificationBuilder != null
                         && mMetadata.getDescription().getIconUri() != null
-                        && !source.equals(mMetadata.getDescription().getIconUri().toString())) {
+                        && !TextUtils.equals(source, mMetadata.getDescription().getIconUri().toString())) {
                     // If the media is still the same, update the notification:
                     AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + source);
                     mNotificationBuilder.setLargeIcon(bitmap);
