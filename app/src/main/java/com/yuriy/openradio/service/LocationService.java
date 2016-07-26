@@ -42,11 +42,15 @@ import java.util.Locale;
 public class LocationService {
 
     private static final String CLASS_NAME = LocationService.class.getSimpleName();
+    /**
+     * Default value of the Country Code.
+     */
+    private static final String COUNTRY_CODE_DEFAULT = "EN";
 
     /**
-     *
+     * Obtained value of the Country Code.
      */
-    private String mCountryCode = "";
+    private String mCountryCode = COUNTRY_CODE_DEFAULT;
 
     /**
      * Private constructor.
@@ -117,8 +121,8 @@ public class LocationService {
             mCountryCode = extractCountryCode(
                     context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
             );
-        } catch (IOException e) {
-            mCountryCode = "";
+        } catch (final IOException e) {
+            mCountryCode = COUNTRY_CODE_DEFAULT;
         }
 
         AppLogger.d(CLASS_NAME + " LastKnownLocation:" + mCountryCode);
@@ -144,7 +148,7 @@ public class LocationService {
                             context, location.getLatitude(), location.getLongitude()
                     );
                 } catch (IOException e) {
-                    mCountryCode = "";
+                    mCountryCode = COUNTRY_CODE_DEFAULT;
                 }
                 listener.onCountryCodeLocated(mCountryCode);
 
@@ -153,7 +157,11 @@ public class LocationService {
                 }
 
                 //noinspection ResourceType
-                locationManager.removeUpdates(this);
+                try {
+                    locationManager.removeUpdates(this);
+                } catch (final IllegalArgumentException e) {
+                    AppLogger.e("Can not removeUpdates:" + e.getMessage());
+                }
             }
 
             @Override
@@ -178,9 +186,15 @@ public class LocationService {
 
         // Register the listener with the Location Manager to receive location updates
         //noinspection ResourceType
-        locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER, 0, 0, locationListener
-        );
+        try {
+            locationManager.requestLocationUpdates(
+                    LocationManager.NETWORK_PROVIDER, 0, 0, locationListener
+            );
+        } catch (final Exception e) {
+            AppLogger.e("Can not requestLocationUpdates:" + e.getMessage());
+            mCountryCode = COUNTRY_CODE_DEFAULT;
+            listener.onCountryCodeLocated(mCountryCode);
+        }
     }
 
     private static String extractCountryCode(final Context context, final double latitude,
@@ -189,7 +203,7 @@ public class LocationService {
         final List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
 
         if (addresses == null || addresses.isEmpty()) {
-            return "";
+            return COUNTRY_CODE_DEFAULT;
         }
 
         return addresses.get(0).getCountryCode();
