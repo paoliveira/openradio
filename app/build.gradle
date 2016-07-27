@@ -63,7 +63,7 @@ dependencies {
     compile "com.android.support:support-v4:23.2.0"
     compile 'com.android.support:design:23.2.0'
     compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.10'
-    compile('com.crashlytics.sdk.android:crashlytics:2.5.5@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.1@aar') {
         transitive = true;
     }
 
