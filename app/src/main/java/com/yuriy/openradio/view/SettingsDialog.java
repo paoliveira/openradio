@@ -37,6 +37,7 @@ import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.AsyncTask;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.io.IOException;
 
@@ -169,6 +170,7 @@ public class SettingsDialog extends DialogFragment {
         } catch (final IOException e) {
             SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
             AppLogger.e("Can not ZIP Logs:\n" + Log.getStackTraceString(e));
+            CrashlyticsUtils.logException(e);
             return;
         }
 
@@ -219,6 +221,7 @@ public class SettingsDialog extends DialogFragment {
                 sendIntent .putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
                 AppLogger.e("Can not get logs zip file:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
                 return null;
             }
 
@@ -242,6 +245,7 @@ public class SettingsDialog extends DialogFragment {
                             mContext, mContext.getString(R.string.cant_start_activity)
                     );
                     AppLogger.e("Activity not found:" + e.getMessage());
+                    CrashlyticsUtils.logException(e);
                 }
             } else {
                 SafeToast.showAnyThread(

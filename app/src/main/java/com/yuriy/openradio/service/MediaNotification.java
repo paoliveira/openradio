@@ -44,6 +44,7 @@ import android.util.LruCache;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.io.IOException;
 
@@ -125,8 +126,9 @@ public class MediaNotification extends BroadcastReceiver {
                     new int[] {android.support.v7.appcompat.R.attr.colorPrimary});
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
+            CrashlyticsUtils.logException(e);
         }
         return notificationColor;
     }
@@ -165,7 +167,7 @@ public class MediaNotification extends BroadcastReceiver {
         try {
             mNotificationManager.cancel(NOTIFICATION_ID);
             mService.unregisterReceiver(this);
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             // ignore if the receiver is not registered.
         }
         mService.stopForeground(true);
@@ -207,6 +209,7 @@ public class MediaNotification extends BroadcastReceiver {
                 mController = new MediaControllerCompat(mService, mSessionToken);
             } catch (final RemoteException e) {
                 AppLogger.e(CLASS_NAME + " Can not update Session Token:\n" + Log.getStackTraceString(e));
+                CrashlyticsUtils.logException(e);
                 return;
             }
             mTransportControls = mController.getTransportControls();
@@ -371,8 +374,9 @@ public class MediaNotification extends BroadcastReceiver {
                 try {
                     bitmap = BitmapHelper.fetchAndRescaleBitmap(source,
                             BitmapHelper.MEDIA_ART_BIG_WIDTH, BitmapHelper.MEDIA_ART_BIG_HEIGHT);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     AppLogger.e(CLASS_NAME + " GetBitmapFromURLAsync: " + e.getMessage());
+                    CrashlyticsUtils.logException(e);
                 }
                 if (source != null && bitmap != null) {
                     mAlbumArtCache.put(source, bitmap);

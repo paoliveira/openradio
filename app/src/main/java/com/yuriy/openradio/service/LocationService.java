@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.PermissionChecker;
 
 import java.io.IOException;
@@ -147,7 +148,7 @@ public class LocationService {
                     mCountryCode = extractCountryCode(
                             context, location.getLatitude(), location.getLongitude()
                     );
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     mCountryCode = COUNTRY_CODE_DEFAULT;
                 }
                 listener.onCountryCodeLocated(mCountryCode);
@@ -161,6 +162,7 @@ public class LocationService {
                     locationManager.removeUpdates(this);
                 } catch (final IllegalArgumentException e) {
                     AppLogger.e("Can not removeUpdates:" + e.getMessage());
+                    CrashlyticsUtils.logException(e);
                 }
             }
 
@@ -192,6 +194,8 @@ public class LocationService {
             );
         } catch (final Exception e) {
             AppLogger.e("Can not requestLocationUpdates:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
+
             mCountryCode = COUNTRY_CODE_DEFAULT;
             listener.onCountryCodeLocated(mCountryCode);
         }

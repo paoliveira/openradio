@@ -19,6 +19,7 @@ package com.yuriy.openradio.net;
 import android.net.Uri;
 
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import org.apache.commons.io.IOUtils;
 
@@ -60,6 +61,7 @@ public class HTTPDownloaderImpl implements Downloader {
             url = new URL(uri.toString());
         } catch (final MalformedURLException e) {
             AppLogger.e(CLASS_NAME + " Url exception: " + e.getMessage());
+            CrashlyticsUtils.logException(e);
         }
 
         if (url == null) {
@@ -71,6 +73,7 @@ public class HTTPDownloaderImpl implements Downloader {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch (final IOException e) {
             AppLogger.e(CLASS_NAME + " Http Url connection exception: " + e.getMessage());
+            CrashlyticsUtils.logException(e);
         }
 
         if (urlConnection == null) {
@@ -82,6 +85,7 @@ public class HTTPDownloaderImpl implements Downloader {
             response = IOUtils.toByteArray(inputStream);
         } catch (final IOException e) {
             AppLogger.e(CLASS_NAME + " Http Url connection getInputStream exception: " + e.getMessage());
+            CrashlyticsUtils.logException(e);
         } finally {
             urlConnection.disconnect();
         }

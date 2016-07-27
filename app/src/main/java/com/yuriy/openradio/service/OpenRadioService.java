@@ -64,6 +64,7 @@ import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
@@ -1195,8 +1196,9 @@ public final class OpenRadioService
                 service.updatePlaybackState(null);
                 service.updateMetadata();
 
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 AppLogger.e(CLASS_NAME + " IOException playing song:" + ex.getMessage());
+                CrashlyticsUtils.logException(ex);
                 service.updatePlaybackState(service.getString(R.string.can_not_play_station));
             }
 

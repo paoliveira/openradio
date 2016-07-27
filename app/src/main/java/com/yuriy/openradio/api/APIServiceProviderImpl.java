@@ -22,6 +22,7 @@ import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -107,6 +108,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
             } catch (JSONException e) {
                 AppLogger.e(CLASS_NAME + " Can not parse Radio Category:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
             }
         }
 
@@ -136,6 +138,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 }
             } catch (JSONException e) {
                 AppLogger.e(CLASS_NAME + " Can not parse Country name:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
             }
         }
 
@@ -172,6 +175,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
             } catch (JSONException e) {
                 AppLogger.e(CLASS_NAME + " Can not parse Radio Station:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
             }
         }
 
@@ -247,6 +251,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             object = new JSONObject(response);
         } catch (JSONException e) {
             AppLogger.e(CLASS_NAME + " Can not convert response to JSON:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
             return radioStation;
         }
 
@@ -254,6 +259,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             updateRadioStation(radioStation, object);
         } catch (JSONException e) {
             AppLogger.e(CLASS_NAME + " Can not parse Radio Station:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
         }
 
         return radioStation;
@@ -298,6 +304,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             array = new JSONArray(response);
         } catch (JSONException e) {
             AppLogger.e(CLASS_NAME + " Can not get JSON array:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
         }
 
         // Cache result
@@ -358,6 +365,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
             } catch (final JSONException e) {
                 AppLogger.e(CLASS_NAME + " Can not parse Stream:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
             }
         }
 

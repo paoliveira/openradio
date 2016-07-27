@@ -18,6 +18,7 @@ import android.text.TextUtils;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.lang.ref.WeakReference;
 
@@ -244,8 +245,9 @@ public final class MetadataRetrievalService extends Service {
                 retriever = new FFmpegMediaMetadataRetriever();
                 retriever.setDataSource(handler.mUrl);
                 metadata = retriever.getMetadata();
-            } catch (final Throwable throwable) {
+            } catch (final Exception throwable) {
                 AppLogger.e(CLASS_NAME + " Can not get Metadata:" + throwable.getMessage());
+                CrashlyticsUtils.logException(throwable);
                 if (Fabric.isInitialized()){
                     Answers.getInstance().logCustom(
                             new CustomEvent("FFmpegMediaMetadataRetriever failed")
@@ -446,6 +448,7 @@ public final class MetadataRetrievalService extends Service {
                 mMessenger.send(message);
             } catch (final RemoteException e) {
                 AppLogger.e(CLASS_NAME + " Exception while sending response:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
             }
         }
 
@@ -482,8 +485,9 @@ public final class MetadataRetrievalService extends Service {
             }
             try {
                 return metadata.getString("StreamTitle");
-            } catch (final Throwable throwable) {
-                AppLogger.e(CLASS_NAME + " Can not extract title:" + throwable.getMessage());
+            } catch (final Exception e) {
+                AppLogger.e(CLASS_NAME + " Can not extract title:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
                 return "";
             }
         }

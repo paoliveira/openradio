@@ -118,6 +118,7 @@ public class ImageFetcher extends ImageResizer {
                     }
                 } catch (IOException e) {
                     AppLogger.e(TAG + " clearCacheInternal - " + e);
+                    CrashlyticsUtils.logException(e);
                 }
                 mHttpDiskCache = null;
                 mHttpDiskCacheStarting = true;
@@ -138,6 +139,7 @@ public class ImageFetcher extends ImageResizer {
                     }
                 } catch (IOException e) {
                     AppLogger.e(TAG + " flush - " + e);
+                    CrashlyticsUtils.logException(e);
                 }
             }
         }
@@ -158,6 +160,7 @@ public class ImageFetcher extends ImageResizer {
                     }
                 } catch (IOException e) {
                     AppLogger.e(TAG + " closeCacheInternal - " + e);
+                    CrashlyticsUtils.logException(e);
                 }
             }
         }
@@ -226,6 +229,7 @@ public class ImageFetcher extends ImageResizer {
                     }
                 } catch (IOException | IllegalStateException e) {
                     AppLogger.e(TAG + " processBitmap - " + e);
+                    CrashlyticsUtils.logException(e);
                 } finally {
                     if (fileDescriptor == null && fileInputStream != null) {
                         try {
@@ -284,6 +288,7 @@ public class ImageFetcher extends ImageResizer {
             return true;
         } catch (final IOException e) {
             AppLogger.e(TAG + " Error in downloadBitmap - " + e);
+            CrashlyticsUtils.logException(e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();

@@ -302,6 +302,7 @@ public final class AppUtils {
             return bout.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();
+            CrashlyticsUtils.logException(e);
         } finally {
             try {
                 is.close();
@@ -360,6 +361,7 @@ public final class AppUtils {
             return packageManager.getPackageInfo(packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
             AppLogger.e(CLASS_NAME + " Failed to find PackageInfo : " + packageName);
+            CrashlyticsUtils.logException(e);
             return null;
         } catch (RuntimeException e) {
             // To catch RuntimeException("Package manager has died") that can occur on some
@@ -367,6 +369,7 @@ public final class AppUtils {
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
             AppLogger.e(CLASS_NAME + " Package manager has died : " + packageName);
+            CrashlyticsUtils.logException(e);
             return null;
         } catch (Throwable e) {
             AppLogger.e(CLASS_NAME + " Package manager has Throwable : " + e);
@@ -437,6 +440,7 @@ public final class AppUtils {
             fileOutputStream.write(byteArray);
         } catch (IOException e) {
             e.printStackTrace();
+            CrashlyticsUtils.logException(e);
         } finally {
             try {
                 byteArrayOutputStream.flush();
@@ -482,12 +486,14 @@ public final class AppUtils {
             result = true;
         } catch (IOException e) {
             AppLogger.e(CLASS_NAME + " Save Data To File IOException:\n" + Log.getStackTraceString(e));
+            CrashlyticsUtils.logException(e);
         } finally {
             if (mFileOutputStream != null) {
                 try {
                     mFileOutputStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
+                    CrashlyticsUtils.logException(e);
                 }
             }
         }
@@ -535,6 +541,7 @@ public final class AppUtils {
             final boolean result = file.createNewFile();
         } catch (final IOException e) {
             AppLogger.e("Can not create new file:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
         }
         return file;
     }
@@ -653,6 +660,7 @@ public final class AppUtils {
             }
         } catch (final Exception e) {
             AppLogger.e(CLASS_NAME + " get User country:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
         }
         return null;
     }

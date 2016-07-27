@@ -112,8 +112,9 @@ public final class RadioStationChecker extends Thread {
                 }
                 clear();
             }
-        } catch (final Throwable e) {
+        } catch (final Exception e) {
             AppLogger.e(CLASS_NAME + " Stream Url check failed:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
             clear();
         }
     }

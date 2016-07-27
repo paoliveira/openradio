@@ -50,6 +50,7 @@ import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -761,6 +762,7 @@ public final class MainActivity extends AppCompatActivity {
                 AppLogger.e(
                         CLASS_NAME + " Can not init MediaController\n:" + Log.getStackTraceString(e)
                 );
+                CrashlyticsUtils.logException(e);
             }
 
             // Set actual controller

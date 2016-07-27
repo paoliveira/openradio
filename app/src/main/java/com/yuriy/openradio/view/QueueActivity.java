@@ -39,6 +39,7 @@ import android.widget.ProgressBar;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.view.list.QueueAdapter;
 
 import java.lang.ref.WeakReference;
@@ -617,6 +618,7 @@ public class QueueActivity extends FragmentActivity {
                 );
             } catch (final RemoteException e) {
                 AppLogger.e(CLASS_NAME + " Can not init Media Controller:\n" + Log.getStackTraceString(e));
+                CrashlyticsUtils.logException(e);
                 return;
             }
 

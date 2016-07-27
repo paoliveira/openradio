@@ -323,10 +323,13 @@ public abstract class AsyncTask<Params, Progress, Result> {
                     postResultIfNotInvoked(get());
                 } catch (InterruptedException e) {
                     AppLogger.w(LOG_TAG + ":\n" + Log.getStackTraceString(e));
+                    CrashlyticsUtils.logException(e);
                 } catch (ExecutionException e) {
-                    throw new RuntimeException("An error occured while executing doInBackground()",
+                    CrashlyticsUtils.logException(e);
+                    throw new RuntimeException("An error occur while executing doInBackground()",
                             e.getCause());
                 } catch (CancellationException e) {
+                    CrashlyticsUtils.logException(e);
                     postResultIfNotInvoked(null);
                 }
             }
