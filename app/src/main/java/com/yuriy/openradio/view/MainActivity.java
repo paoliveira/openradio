@@ -65,6 +65,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created with Android Studio.
@@ -176,6 +177,8 @@ public final class MainActivity extends AppCompatActivity {
     private final AdapterView.OnItemLongClickListener mOnItemLongClickListener
             = new OnItemLongClickListener(this);
 
+    private volatile AtomicBoolean mIsOnSaveInstancePassed = new AtomicBoolean(false);
+
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -197,6 +200,9 @@ public final class MainActivity extends AppCompatActivity {
 
         // Initialize progress bar
         mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_view);
+
+        // Set OnSaveInstanceState to false
+        mIsOnSaveInstancePassed.set(false);
 
         hideProgressBar();
 
@@ -243,7 +249,12 @@ public final class MainActivity extends AppCompatActivity {
     protected final void onResume() {
         super.onResume();
 
+        // Set OnSaveInstanceState to false
+        mIsOnSaveInstancePassed.set(false);
+
+        // Hide any progress bar
         hideProgressBar();
+
         // Restore position for the Catalogue list.
         if (!TextUtils.isEmpty(mCurrentParentId)
                 && listPositionMap.containsKey(mCurrentParentId)) {
@@ -320,6 +331,8 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected final void onSaveInstanceState(final Bundle outState) {
+        // Track OnSaveInstanceState passed
+        mIsOnSaveInstancePassed.set(true);
 
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.list_view);
@@ -588,6 +601,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     private static final class LocalBroadcastReceiverCallback implements AppLocalBroadcastReceiverCallback {
 
+        private static final String CLASS_NAME = LocalBroadcastReceiverCallback.class.getSimpleName();
         /**
          * Member field to keep reference to the outer class.
          */
@@ -610,6 +624,11 @@ public final class MainActivity extends AppCompatActivity {
             }
             final MainActivity reference = mReference.get();
             if (reference == null) {
+                return;
+            }
+
+            if (reference.mIsOnSaveInstancePassed.get()) {
+                AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
                 return;
             }
 
@@ -931,6 +950,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     private static final class OnItemLongClickListener implements AdapterView.OnItemLongClickListener {
 
+        private static final String CLASS_NAME = OnItemLongClickListener.class.getSimpleName();
         /**
          * Weak reference to the Main Activity.
          */
@@ -969,6 +989,11 @@ public final class MainActivity extends AppCompatActivity {
             String name = "";
             if (item.getDescription().getTitle() != null) {
                 name = item.getDescription().getTitle().toString();
+            }
+
+            if (mainActivity.mIsOnSaveInstancePassed.get()) {
+                AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
+                return true;
             }
 
             // Show Remove Station Dialog
