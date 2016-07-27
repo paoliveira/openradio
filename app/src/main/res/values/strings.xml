@@ -43,7 +43,7 @@
 
     <string name="country_stations_title">Country\'s Radio Stations</string>
     <string name="country_stations_sub_title">radio stations of the country</string>
-    <string name="use_location_service_message">Location Service is disabled on the device.\nIn order to use additional features of the Open Radio (such that Radio Stations of the current location) please enable Location Service.</string>
+    <string name="use_location_service_message">Location Service is disabled on the device.\nIn order to use additional features of the Open Radio (such that Radio Stations of the current location) it is necessary to enable Location Service.</string>
     <string name="location_service">Location Service</string>
     <string name="enable_location_service_btn_label">Enable Location Service</string>
 
