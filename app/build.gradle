@@ -4,7 +4,7 @@ apply plugin: 'io.fabric'
 android {
 
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    buildToolsVersion "24.0.1"
 
     def versionPropsFile = file('version.properties')
     def code = 1
