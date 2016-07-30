@@ -321,31 +321,30 @@ public abstract class AsyncTask<Params, Progress, Result> {
             protected void done() {
                 try {
                     postResultIfNotInvoked(get());
-                } catch (InterruptedException e) {
+                } catch (final InterruptedException e) {
                     AppLogger.w(LOG_TAG + ":\n" + Log.getStackTraceString(e));
                     CrashlyticsUtils.logException(e);
-                } catch (ExecutionException e) {
+                } catch (final ExecutionException e) {
                     CrashlyticsUtils.logException(e);
                     throw new RuntimeException("An error occur while executing doInBackground()",
                             e.getCause());
-                } catch (CancellationException e) {
-                    CrashlyticsUtils.logException(e);
+                } catch (final CancellationException e) {
                     postResultIfNotInvoked(null);
                 }
             }
         };
     }
 
-    private void postResultIfNotInvoked(Result result) {
+    private void postResultIfNotInvoked(final Result result) {
         final boolean wasTaskInvoked = mTaskInvoked.get();
         if (!wasTaskInvoked) {
             postResult(result);
         }
     }
 
-    private Result postResult(Result result) {
+    private Result postResult(final Result result) {
         @SuppressWarnings("unchecked")
-        Message message = sHandler.obtainMessage(MESSAGE_POST_RESULT,
+        final Message message = sHandler.obtainMessage(MESSAGE_POST_RESULT,
                 new AsyncTaskResult<>(this, result));
         message.sendToTarget();
         return result;
