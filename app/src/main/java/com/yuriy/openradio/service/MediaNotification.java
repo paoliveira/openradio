@@ -47,6 +47,7 @@ import com.yuriy.openradio.utils.BitmapHelper;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 
 /**
  * Keeps track of a notification and updates it automatically for a given
@@ -302,7 +303,7 @@ public class MediaNotification extends BroadcastReceiver {
         updateNotificationPlaybackState();
 
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
-        if (fetchArtUrl != null) {
+        if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
     }
@@ -367,38 +368,82 @@ public class MediaNotification extends BroadcastReceiver {
 
     private void fetchBitmapFromURLAsync(final String source) {
         AppLogger.d(CLASS_NAME + " getBitmapFromURLAsync: starting async task to fetch " + source);
-        new AsyncTask<Void, Void, Bitmap>() {
-            @Override
-            protected Bitmap doInBackground(Void[] objects) {
-                Bitmap bitmap = null;
-                try {
-                    bitmap = BitmapHelper.fetchAndRescaleBitmap(source,
-                            BitmapHelper.MEDIA_ART_BIG_WIDTH, BitmapHelper.MEDIA_ART_BIG_HEIGHT);
-                } catch (final IOException e) {
-                    AppLogger.e(CLASS_NAME + " GetBitmapFromURLAsync: " + e.getMessage());
-                    CrashlyticsUtils.logException(e);
-                }
-                if (source != null && bitmap != null) {
-                    mAlbumArtCache.put(source, bitmap);
-                } else {
-                    AppLogger.e(CLASS_NAME + " Can not put data into AlbumArtCache, " +
-                            "key == null || value == null");
-                }
-                return bitmap;
+        final AsyncTask<Void, Void, Bitmap> task = new FetchBitmapAsyncTask(this, source);
+        task.execute();
+    }
+
+    /**
+     * async task to fetch Bitmap from provided URL.
+     */
+    private static final class FetchBitmapAsyncTask extends AsyncTask<Void, Void, Bitmap> {
+
+        /**
+         * Reference to the enclosing class.
+         */
+        private final WeakReference<MediaNotification> mReference;
+
+        /**
+         * Resource URL.
+         */
+        private final String mSource;
+
+        /**
+         * Main constructor.
+         *
+         * @param mediaNotification Reference to the enclosing class.
+         * @param source            URL of the resource.
+         */
+        private FetchBitmapAsyncTask(final MediaNotification mediaNotification,
+                                     final String source) {
+            super();
+            mReference = new WeakReference<>(mediaNotification);
+            mSource = source;
+        }
+
+        @Override
+        protected Bitmap doInBackground(final Void... params) {
+            final MediaNotification reference = mReference.get();
+            if (reference == null) {
+                return  null;
             }
 
-            @Override
-            protected void onPostExecute(Bitmap bitmap) {
-                if (bitmap != null && mMetadata != null
-                        && mNotificationBuilder != null
-                        && mMetadata.getDescription().getIconUri() != null
-                        && !TextUtils.equals(source, mMetadata.getDescription().getIconUri().toString())) {
-                    // If the media is still the same, update the notification:
-                    AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + source);
-                    mNotificationBuilder.setLargeIcon(bitmap);
-                    mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
-                }
+            Bitmap bitmap = null;
+            try {
+                bitmap = BitmapHelper.fetchAndRescaleBitmap(
+                        mSource,
+                        BitmapHelper.MEDIA_ART_BIG_WIDTH,
+                        BitmapHelper.MEDIA_ART_BIG_HEIGHT
+                );
+            } catch (final IOException e) {
+                AppLogger.e(CLASS_NAME + " GetBitmapFromURLAsync: " + e.getMessage());
+                CrashlyticsUtils.logException(e);
             }
-        }.execute();
+            if (mSource != null && bitmap != null) {
+                reference.mAlbumArtCache.put(mSource, bitmap);
+            } else {
+                AppLogger.e(CLASS_NAME + " Can not put data into AlbumArtCache, " +
+                        "key == null || value == null");
+            }
+            return bitmap;
+        }
+
+        @Override
+        protected void onPostExecute(final Bitmap bitmap) {
+            final MediaNotification reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            if (bitmap != null && reference.mMetadata != null
+                    && reference.mNotificationBuilder != null
+                    && reference.mMetadata.getDescription().getIconUri() != null
+                    && !TextUtils.equals(mSource, reference.mMetadata.getDescription().getIconUri().toString())) {
+                // If the media is still the same, update the notification:
+                AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + mSource);
+                reference.mNotificationBuilder.setLargeIcon(bitmap);
+                reference.mNotificationManager.notify(
+                        NOTIFICATION_ID, reference.mNotificationBuilder.build()
+                );
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.text.TextUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -172,5 +173,17 @@ public final class BitmapHelper {
         );
 
         return overlay(baseBitmap, scaledFlag);
+    }
+
+    /**
+     *
+     * @param url
+     * @return
+     */
+    public static boolean isUrlLocalResource(final String url) {
+        if (TextUtils.isEmpty(url)) {
+            return false;
+        }
+        return url.startsWith("android.resource");
     }
 }
