@@ -15,14 +15,11 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.lang.ref.WeakReference;
 
-import io.fabric.sdk.android.Fabric;
 import wseemann.media.FFmpegMediaMetadataRetriever;
 
 /**
@@ -245,15 +242,9 @@ public final class MetadataRetrievalService extends Service {
                 retriever = new FFmpegMediaMetadataRetriever();
                 retriever.setDataSource(handler.mUrl);
                 metadata = retriever.getMetadata();
-            } catch (final Exception throwable) {
-                AppLogger.e(CLASS_NAME + " Can not get Metadata:" + throwable.getMessage());
-                CrashlyticsUtils.logException(throwable);
-                if (Fabric.isInitialized()){
-                    Answers.getInstance().logCustom(
-                            new CustomEvent("FFmpegMediaMetadataRetriever failed")
-                                    .putCustomAttribute("Throwable", throwable.getMessage())
-                    );
-                }
+            } catch (final Exception exception) {
+                AppLogger.e(CLASS_NAME + " Can not get Metadata:" + exception.getMessage());
+                CrashlyticsUtils.logException(exception);
             } finally {
                 if (retriever != null) {
                     retriever.release();
@@ -265,7 +256,9 @@ public final class MetadataRetrievalService extends Service {
                 return;
             }
 
-            handler.obtainAndSendMetadata(metadata);
+            if (metadata != null) {
+                handler.obtainAndSendMetadata(metadata);
+            }
 
             handler.mHandler.postDelayed(this, ServiceHandler.PERIOD);
         }
