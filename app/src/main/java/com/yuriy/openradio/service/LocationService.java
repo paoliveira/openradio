@@ -46,7 +46,7 @@ public class LocationService {
     /**
      * Default value of the Country Code.
      */
-    private static final String COUNTRY_CODE_DEFAULT = "EN";
+    private static final String COUNTRY_CODE_DEFAULT = "CA";
 
     /**
      * Obtained value of the Country Code.
