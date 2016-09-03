@@ -17,6 +17,7 @@
 package com.yuriy.openradio.api;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
@@ -340,7 +341,16 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 }
 
                 if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
-                    bitrate = object.getInt(JSONDataParserImpl.KEY_BIT_RATE);
+                    final Object bitrateObj = object.get(JSONDataParserImpl.KEY_BIT_RATE);
+                    if (bitrateObj instanceof Integer) {
+                        bitrate = object.getInt(JSONDataParserImpl.KEY_BIT_RATE);
+                    }
+                    if (bitrateObj instanceof String) {
+                        final String bitrateStr = String.valueOf(bitrateObj);
+                        if (!TextUtils.isEmpty(bitrateStr) && TextUtils.isDigitsOnly(bitrateStr)) {
+                            bitrate = Integer.valueOf(bitrateStr);
+                        }
+                    }
                 }
                 if (object.has(JSONDataParserImpl.KEY_STREAM)) {
                     stream = object.getString(JSONDataParserImpl.KEY_STREAM);
@@ -363,7 +373,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
                 break;
 
-            } catch (final JSONException e) {
+            } catch (final Exception e) {
                 AppLogger.e(CLASS_NAME + " Can not parse Stream:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }

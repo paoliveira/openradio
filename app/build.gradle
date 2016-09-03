@@ -3,8 +3,8 @@ apply plugin: 'io.fabric'
 
 android {
 
-    compileSdkVersion 23
-    buildToolsVersion "24.0.1"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.2"
 
     def versionPropsFile = file('version.properties')
     def code = 1
@@ -21,8 +21,8 @@ android {
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 14
-        // Workaround for the Fabric #29
-        targetSdkVersion 22
+        // Workaround for the Fabric #29 - was version 22
+        targetSdkVersion 24
         versionCode code
         versionName "2.2"
     }
@@ -57,13 +57,12 @@ android {
 }
 
 dependencies {
-    compile 'log4j:log4j:1.2.16'
-    compile 'commons-io:commons-io:2.4'
-    compile 'com.android.support:appcompat-v7:23.2.0'
-    compile "com.android.support:support-v4:23.2.0"
-    compile 'com.android.support:design:23.2.0'
+    compile 'log4j:log4j:1.2.17'
+    compile 'com.android.support:appcompat-v7:24.2.0'
+    compile "com.android.support:support-v4:24.2.0"
+    compile 'com.android.support:design:24.2.0'
     compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.11'
-    compile('com.crashlytics.sdk.android:crashlytics:2.6.1@aar') {
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.2@aar') {
         transitive = true;
     }
 
@@ -74,7 +73,6 @@ dependencies {
 }
 
 tasks.whenTaskAdded { task ->
-    //println "TASK:" + task.name
     if (task.name.equals("assembleRelease")) {
         println "Add Assemble Release Task. Prepare vars for next release ..."
         task.dependsOn getAndIncrementVersionCode
