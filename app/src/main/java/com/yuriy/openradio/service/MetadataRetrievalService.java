@@ -243,8 +243,15 @@ public final class MetadataRetrievalService extends Service {
                 retriever.setDataSource(handler.mUrl);
                 metadata = retriever.getMetadata();
             } catch (final Exception exception) {
-                AppLogger.e(CLASS_NAME + " Can not get Metadata:" + exception.getMessage());
-                CrashlyticsUtils.logException(exception);
+                AppLogger.e(
+                        CLASS_NAME + " Can not get Metadata for '" + handler.mUrl + "' url, " +
+                                "reason:" + exception.getMessage()
+                );
+                CrashlyticsUtils.logException(
+                        new Exception(
+                                "Can not get Metadata for '" + handler.mUrl + "' url", exception
+                        )
+                );
             } finally {
                 if (retriever != null) {
                     retriever.release();
@@ -267,7 +274,7 @@ public final class MetadataRetrievalService extends Service {
     /**
      *
      */
-    public final class ServiceHandler extends Handler {
+    private final class ServiceHandler extends Handler {
 
         private final Handler mHandler;
 
@@ -290,6 +297,8 @@ public final class MetadataRetrievalService extends Service {
 
         private static final String BUNDLE_KEY_STREAM_TITLE = "STREAM_TITLE";
 
+        private static final String METADATA_KEY_STREAM_TITLE = "StreamTitle";
+
         private static final int MAX_COUNT = 3;
 
         private String mCurrentStreamTitle;
@@ -303,7 +312,7 @@ public final class MetadataRetrievalService extends Service {
          *
          * @param looper The Looper that we borrow from HandlerThread.
          */
-        public ServiceHandler(final Looper looper) {
+        private ServiceHandler(final Looper looper) {
             super(looper);
 
             final HandlerThread thread = new HandlerThread(
@@ -477,12 +486,14 @@ public final class MetadataRetrievalService extends Service {
                 return "";
             }
             try {
-                return metadata.getString("StreamTitle");
+                if (metadata.has(METADATA_KEY_STREAM_TITLE)) {
+                    return metadata.getString(METADATA_KEY_STREAM_TITLE);
+                }
             } catch (final Exception e) {
                 AppLogger.e(CLASS_NAME + " Can not extract title:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
-                return "";
             }
+            return "";
         }
     }
 }
