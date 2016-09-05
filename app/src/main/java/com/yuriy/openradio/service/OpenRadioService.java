@@ -1729,6 +1729,7 @@ public final class OpenRadioService
 
         @Override
         public void onPlayFromSearch(final String query, final Bundle extras) {
+            AppLogger.i(CLASS_NAME + " OnPlayFromSearch:" + query + ", extras:" + extras.toString());
             super.onPlayFromSearch(query, extras);
 
             final OpenRadioService service = mService.get();
@@ -1740,16 +1741,15 @@ public final class OpenRadioService
     }
 
     private void performSearch(final String query) {
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            mRadioStations.clear();
-            mPlayingQueue.clear();
-        }
-
         AppLogger.i(CLASS_NAME + " Search for:" + query);
+
+        handleStopRequest(null);
+
         if (TextUtils.isEmpty(query)) {
             // A generic search like "Play music" sends an empty query
             // and it's expected that we start playing something.
             // TODO
+            handleStopRequest(getString(R.string.no_search_results));
             return;
         }
 
@@ -1776,6 +1776,11 @@ public final class OpenRadioService
                             reference.handleStopRequest(reference.getString(R.string.no_search_results));
                             // TODO
                             return;
+                        }
+
+                        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+                            reference.mRadioStations.clear();
+                            reference.mPlayingQueue.clear();
                         }
 
                         AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
