@@ -38,15 +38,9 @@ public final class SafeToast {
         } else {
             final Handler handler = new Handler(Looper.getMainLooper());
             // We are NOT in UI thread, so scheduling task in handler
-            handler.post(new Runnable() {
-
-                @Override
-                public void run() {
-                    // Remove this Runnable from the queue
-                    handler.removeCallbacks(this);
-                    // Show Toast
-                    showToastUIThread(context, text);
-                }
+            handler.post(() -> {
+                // Show Toast
+                showToastUIThread(context, text);
             });
         }
     }

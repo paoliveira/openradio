@@ -45,7 +45,6 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.RemoteControlReceiver;
-import com.yuriy.openradio.business.SafeRunnable;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
@@ -460,17 +459,14 @@ public final class OpenRadioService
 
         switch (command) {
             case VALUE_NAME_REQUEST_LOCATION_COMMAND:
-                mLocationService.requestCountryCode(this, new LocationServiceListener() {
-
-                    @Override
-                    public void onCountryCodeLocated(final String countryCode) {
-                        LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
+                mLocationService.requestCountryCode(
+                        this,
+                        countryCode -> LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
                                 AppLocalBroadcastReceiver.createIntentLocationCountryCode(
                                         countryCode
                                 )
-                        );
-                    }
-                });
+                        )
+                );
                 break;
             case VALUE_NAME_GET_RADIO_STATION_COMMAND:
                 // Update Favorites Radio station: whether add it or remove it from the storage
@@ -941,28 +937,21 @@ public final class OpenRadioService
         if (!radioStationCopy.getIsUpdated()) {
 
             mApiCallExecutor.submit(
-                    new SafeRunnable<OpenRadioService>(this) {
+                    () -> {
+                        // Start download information about Radio Station
+                        final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
+                                new HTTPDownloaderImpl(),
+                                UrlBuilder.getStation(
+                                        getApplicationContext(),
+                                        String.valueOf(radioStationCopy.getId())
+                                )
+                        );
+                        radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
+                        radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
+                        radioStationCopy.setIsUpdated(true);
 
-                        @Override
-                        public void safeRun(final OpenRadioService reference) {
-                            if (reference == null) {
-                                return;
-                            }
-                            // Start download information about Radio Station
-                            final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
-                                    new HTTPDownloaderImpl(),
-                                    UrlBuilder.getStation(
-                                            reference.getApplicationContext(),
-                                            String.valueOf(radioStationCopy.getId())
-                                    )
-                            );
-                            radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
-                            radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
-                            radioStationCopy.setIsUpdated(true);
-
-                            if (listener != null) {
-                                listener.onComplete(buildMetadata(radioStationCopy));
-                            }
+                        if (listener != null) {
+                            listener.onComplete(buildMetadata(radioStationCopy));
                         }
                     }
             );
@@ -1325,16 +1314,9 @@ public final class OpenRadioService
     /**
      * Runnable for the Radio Station buffering timeout.
      */
-    private final Runnable radioStationTimeoutRunnable = new SafeRunnable<OpenRadioService>(this) {
-
-        @Override
-        public void safeRun(final OpenRadioService reference) {
-            if (reference == null) {
-                return;
-            }
-            reference.handleStopRequest(null);
-            reference.handleStopRequest(getString(R.string.can_not_play_station));
-        }
+    private final Runnable radioStationTimeoutRunnable = () -> {
+        handleStopRequest(null);
+        handleStopRequest(getString(R.string.can_not_play_station));
     };
 
     private long getAvailableActions() {
@@ -1415,36 +1397,32 @@ public final class OpenRadioService
 
     private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
         getCurrentPlayingRadioStationAsync(
-                new RadioStationUpdateListener() {
+                currentMusic -> {
 
-                    @Override
-                    public void onComplete(final MediaMetadataCompat currentMusic) {
-
-                        if (currentMusic == null) {
-                            return;
-                        }
-                        // Set appropriate "Favorite" icon on Custom action:
-                        final String mediaId = currentMusic.getString(
-                                MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-                        );
-                        final RadioStationVO radioStation = QueueHelper.getRadioStationById(
-                                mediaId, mRadioStations
-                        );
-                        int favoriteIcon = R.drawable.ic_star_off;
-                        if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
-                            favoriteIcon = R.drawable.ic_star_on;
-                        }
-                        /*AppLogger.d(
-                                CLASS_NAME,
-                                "UpdatePlaybackState, setting Favorite custom action of music ",
-                                mediaId, " current favorite=" + mMusicProvider.isFavorite(mediaId)
-                        );*/
-                        stateBuilder.addCustomAction(
-                                CUSTOM_ACTION_THUMBS_UP,
-                                getString(R.string.favorite),
-                                favoriteIcon
-                        );
+                    if (currentMusic == null) {
+                        return;
                     }
+                    // Set appropriate "Favorite" icon on Custom action:
+                    final String mediaId = currentMusic.getString(
+                            MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+                    );
+                    final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                            mediaId, mRadioStations
+                    );
+                    int favoriteIcon = R.drawable.ic_star_off;
+                    if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
+                        favoriteIcon = R.drawable.ic_star_on;
+                    }
+                    /*AppLogger.d(
+                            CLASS_NAME,
+                            "UpdatePlaybackState, setting Favorite custom action of music ",
+                            mediaId, " current favorite=" + mMusicProvider.isFavorite(mediaId)
+                    );*/
+                    stateBuilder.addCustomAction(
+                            CUSTOM_ACTION_THUMBS_UP,
+                            getString(R.string.favorite),
+                            favoriteIcon
+                    );
                 }
         );
     }
@@ -1687,39 +1665,36 @@ public final class OpenRadioService
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 service.getCurrentPlayingRadioStationAsync(
-                        new RadioStationUpdateListener() {
-                            @Override
-                            public void onComplete(final MediaMetadataCompat track) {
+                        track -> {
 
-                                if (track != null) {
-                                    final String mediaId = track.getString(
-                                            MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-                                    );
-                                    final RadioStationVO radioStation = QueueHelper.getRadioStationById(
-                                            mediaId, service.mRadioStations
-                                    );
+                            if (track != null) {
+                                final String mediaId = track.getString(
+                                        MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+                                );
+                                final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                                        mediaId, service.mRadioStations
+                                );
 
-                                    if (radioStation == null) {
-                                        AppLogger.w(CLASS_NAME + " OnCustomAction radioStation is null");
-                                        return;
-                                    }
-
-                                    final boolean isFavorite = FavoritesStorage.isFavorite(
-                                            radioStation, service.getApplicationContext()
-                                    );
-                                    if (isFavorite) {
-                                        service.removeFromFavorites(String.valueOf(radioStation.getId()));
-                                    } else {
-                                        FavoritesStorage.addToFavorites(
-                                                radioStation, service.getApplicationContext()
-                                        );
-                                    }
+                                if (radioStation == null) {
+                                    AppLogger.w(CLASS_NAME + " OnCustomAction radioStation is null");
+                                    return;
                                 }
 
-                                // playback state needs to be updated because the "Favorite" icon on the
-                                // custom action will change to reflect the new favorite state.
-                                service.updatePlaybackState(null);
+                                final boolean isFavorite = FavoritesStorage.isFavorite(
+                                        radioStation, service.getApplicationContext()
+                                );
+                                if (isFavorite) {
+                                    service.removeFromFavorites(String.valueOf(radioStation.getId()));
+                                } else {
+                                    FavoritesStorage.addToFavorites(
+                                            radioStation, service.getApplicationContext()
+                                    );
+                                }
                             }
+
+                            // playback state needs to be updated because the "Favorite" icon on the
+                            // custom action will change to reflect the new favorite state.
+                            service.updatePlaybackState(null);
                         }
                 );
             } else {
@@ -1754,53 +1729,46 @@ public final class OpenRadioService
         }
 
         mApiCallExecutor.submit(
-                new SafeRunnable<OpenRadioService>(this) {
+                () -> {
+                    // Instantiate appropriate downloader (HTTP one)
+                    final Downloader downloader = new HTTPDownloaderImpl();
+                    // Instantiate appropriate API service provider
+                    final APIServiceProvider serviceProvider = getServiceProvider();
 
-                    @Override
-                    public void safeRun(final OpenRadioService reference) {
-                        if (reference == null) {
-                            return;
-                        }
-                        // Instantiate appropriate downloader (HTTP one)
-                        final Downloader downloader = new HTTPDownloaderImpl();
-                        // Instantiate appropriate API service provider
-                        final APIServiceProvider serviceProvider = getServiceProvider();
+                    final List<RadioStationVO> list = serviceProvider.getStations(
+                            downloader,
+                            UrlBuilder.getSearchQuery(getApplicationContext(), query)
+                    );
 
-                        final List<RadioStationVO> list = serviceProvider.getStations(
-                                downloader,
-                                UrlBuilder.getSearchQuery(reference.getApplicationContext(), query)
-                        );
-
-                        if (list == null || list.isEmpty()) {
-                            // if nothing was found, we need to warn the user and stop playing
-                            reference.handleStopRequest(reference.getString(R.string.no_search_results));
-                            // TODO
-                            return;
-                        }
-
-                        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-                            reference.mRadioStations.clear();
-                            reference.mPlayingQueue.clear();
-                        }
-
-                        AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
-
-                        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-                            QueueHelper.copyCollection(reference.mRadioStations, list);
-
-                            QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
-                                            reference.getApplicationContext(),
-                                            reference.mRadioStations)
-                            );
-                        }
-
-                        reference.mSession.setQueue(reference.mPlayingQueue);
-
-                        // immediately start playing from the beginning of the search results
-                        reference.mCurrentIndexOnQueue = 0;
-
-                        reference.handlePlayRequest();
+                    if (list == null || list.isEmpty()) {
+                        // if nothing was found, we need to warn the user and stop playing
+                        handleStopRequest(getString(R.string.no_search_results));
+                        // TODO
+                        return;
                     }
+
+                    synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+                        mRadioStations.clear();
+                        mPlayingQueue.clear();
+                    }
+
+                    AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
+
+                    synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+                        QueueHelper.copyCollection(mRadioStations, list);
+
+                        QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
+                                        getApplicationContext(),
+                                        mRadioStations)
+                        );
+                    }
+
+                    mSession.setQueue(mPlayingQueue);
+
+                    // immediately start playing from the beginning of the search results
+                    mCurrentIndexOnQueue = 0;
+
+                    handlePlayRequest();
                 }
         );
     }

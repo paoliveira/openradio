@@ -115,45 +115,29 @@ public final class AddStationDialog extends DialogFragment {
 
         final Button imageUrlBtn = (Button) view.findViewById(R.id.add_station_image_browse_btn);
         imageUrlBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View viewBtn) {
-                        // show Choose File dialog
-                        startActivityForResult(
-                                FileDialog.makeIntentToOpenFile(getActivity()),
-                                IntentsHelper.REQUEST_CODE_FILE_SELECTED
-                        );
-                    }
+                viewBtn -> {
+                    // show Choose File dialog
+                    startActivityForResult(
+                            FileDialog.makeIntentToOpenFile(getActivity()),
+                            IntentsHelper.REQUEST_CODE_FILE_SELECTED
+                    );
                 }
         );
 
         final Button addBtn = (Button) view.findViewById(R.id.add_station_dialog_add_btn_view);
         addBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View viewBtn) {
-                        processInput(
-                                nameEdit.getText().toString(),
-                                urlEdit.getText().toString(),
-                                mImageUrlEdit.getText().toString(),
-                                String.valueOf(genresSpinner.getSelectedItem()),
-                                String.valueOf(countriesSpinner.getSelectedItem())
-                        );
-                    }
-                }
+                viewBtn -> processInput(
+                        nameEdit.getText().toString(),
+                        urlEdit.getText().toString(),
+                        mImageUrlEdit.getText().toString(),
+                        String.valueOf(genresSpinner.getSelectedItem()),
+                        String.valueOf(countriesSpinner.getSelectedItem())
+                )
         );
 
         final Button cancelBtn = (Button) view.findViewById(R.id.add_station_dialog_cancel_btn_view);
         cancelBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View viewBtn) {
-                        getDialog().dismiss();
-                    }
-                }
+                viewBtn -> getDialog().dismiss()
         );
 
         return view;

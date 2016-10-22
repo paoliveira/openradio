@@ -21,7 +21,6 @@ import android.os.Build;
 
 import com.crashlytics.android.Crashlytics;
 import com.yuriy.openradio.business.AppPreferencesManager;
-import com.yuriy.openradio.business.SafeRunnable;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 
@@ -50,17 +49,13 @@ public final class MainApp extends Application {
         AppPreferencesManager.setContext(this);
 
         final Thread thread = new Thread(
-                new SafeRunnable<MainApp>(this) {
+                () -> {
+                    final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled();
+                    AppLogger.initLogger(getApplicationContext());
+                    AppLogger.setIsLoggingEnabled(isLoggingEnabled);
+                    printFirstLogMessage();
 
-                    @Override
-                    public void safeRun(MainApp reference) {
-                        final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled();
-                        AppLogger.initLogger(reference);
-                        AppLogger.setIsLoggingEnabled(isLoggingEnabled);
-                        printFirstLogMessage();
-
-                        Fabric.with(reference, new Crashlytics());
-                    }
+                    Fabric.with(getApplicationContext(), new Crashlytics());
                 }
         );
         thread.start();

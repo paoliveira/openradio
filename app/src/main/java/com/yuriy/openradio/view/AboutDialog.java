@@ -80,40 +80,24 @@ public class AboutDialog extends DialogFragment {
         title.setText(titleText);
 
         final TextView authorLink = (TextView) view.findViewById(R.id.about_author_link_view);
-        authorLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(IntentsHelper.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL));
-            }
-        });
+        authorLink.setOnClickListener(
+                v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL))
+        );
 
         final TextView projectHomeLink = (TextView) view.findViewById(R.id.about_project_link_view);
-        projectHomeLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(IntentsHelper.makeUrlBrowsableIntent(PROJECT_HOME_URL));
-            }
-        });
+        projectHomeLink.setOnClickListener(
+                v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(PROJECT_HOME_URL))
+        );
 
         final TextView metadataRetrievalLink = (TextView) view.findViewById(R.id.about_thanks_3_url_view);
-        metadataRetrievalLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(IntentsHelper.makeUrlBrowsableIntent(
-                        getString(R.string.about_thanks_3_url)
-                ));
-            }
-        });
+        metadataRetrievalLink.setOnClickListener(
+                v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(
+                getString(R.string.about_thanks_3_url)
+        )));
 
         final Button closeBtn = (Button) view.findViewById(R.id.about_dialog_close_btn_view);
         closeBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        getDialog().dismiss();
-                    }
-                }
+                v -> getDialog().dismiss()
         );
 
         return view;

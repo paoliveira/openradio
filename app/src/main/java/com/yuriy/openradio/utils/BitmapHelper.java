@@ -181,9 +181,6 @@ public final class BitmapHelper {
      * @return
      */
     public static boolean isUrlLocalResource(final String url) {
-        if (TextUtils.isEmpty(url)) {
-            return false;
-        }
-        return url.startsWith("android.resource");
+        return !TextUtils.isEmpty(url) && url.startsWith("android.resource");
     }
 }

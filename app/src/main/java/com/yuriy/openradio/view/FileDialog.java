@@ -19,12 +19,10 @@ package com.yuriy.openradio.view;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ListView;
@@ -115,17 +113,13 @@ public final class FileDialog extends ListActivity {
 
         mSelectButton = (Button) findViewById(R.id.file_dialog_select_btn);
         mSelectButton.setEnabled(false);
-        mSelectButton.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(final View view) {
-                if (mSelectedFile == null) {
-                    return;
-                }
-                intent.putExtra(RESULT_PATH, mSelectedFile.getPath());
-                setResult(RESULT_OK, intent);
-                finish();
+        mSelectButton.setOnClickListener(view -> {
+            if (mSelectedFile == null) {
+                return;
             }
+            intent.putExtra(RESULT_PATH, mSelectedFile.getPath());
+            setResult(RESULT_OK, intent);
+            finish();
         });
 
         getDir("/sdcard");
@@ -243,12 +237,8 @@ public final class FileDialog extends ListActivity {
         if (!file.canRead()) {
             new AlertDialog.Builder(this).setIcon(R.drawable.icon)
                     .setTitle("[" + file.getName() + "] " + getText(R.string.cant_read_folder))
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    .setPositiveButton("OK", (dialog, which) -> {
 
-                        @Override
-                        public void onClick(final DialogInterface dialog, final int which) {
-
-                        }
                     }).show();
         }
 

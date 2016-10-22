@@ -51,7 +51,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
      * @param context Context.
      */
     public QueueAdapter(final Activity context) {
-        super(context, R.layout.media_list_item, new ArrayList<MediaSessionCompat.QueueItem>());
+        super(context, R.layout.media_list_item, new ArrayList<>());
     }
 
     /**

@@ -168,24 +168,20 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
             mViewHolder.mFavoriteCheckView.setOnClickListener(
 
-                    new View.OnClickListener() {
+                    view -> {
+                        boolean isChecked = ((CheckBox) view).isChecked();
 
-                        @Override
-                        public void onClick(final View view) {
-                            boolean isChecked = ((CheckBox) view).isChecked();
+                        MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
-                            MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
-
-                            // Make Intent to update Favorite RadioStation object associated with
-                            // the Media Description
-                            final Intent intent = OpenRadioService.makeUpdateFavoriteIntent(
-                                    mCurrentActivity,
-                                    description,
-                                    isChecked
-                            );
-                            // Send Intent to the OpenRadioService.
-                            mCurrentActivity.startService(intent);
-                        }
+                        // Make Intent to update Favorite RadioStation object associated with
+                        // the Media Description
+                        final Intent intent = OpenRadioService.makeUpdateFavoriteIntent(
+                                mCurrentActivity,
+                                description,
+                                isChecked
+                        );
+                        // Send Intent to the OpenRadioService.
+                        mCurrentActivity.startService(intent);
                     }
             );
         } else {

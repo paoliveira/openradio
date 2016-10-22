@@ -65,15 +65,11 @@ public final class SearchDialog extends DialogFragment {
         final EditText searchEditView = (EditText) view.findViewById(R.id.search_dialog_edit_txt_view);
         final Button searchBtn = (Button) view.findViewById(R.id.search_dialog_btn_view);
         searchBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View viewBtn) {
-                        if (activity != null && searchEditView != null) {
-                            activity.onSearchDialogClick(searchEditView.getText().toString().trim());
-                        }
-                        getDialog().dismiss();
+                viewBtn -> {
+                    if (activity != null && searchEditView != null) {
+                        activity.onSearchDialogClick(searchEditView.getText().toString().trim());
                     }
+                    getDialog().dismiss();
                 }
         );
 

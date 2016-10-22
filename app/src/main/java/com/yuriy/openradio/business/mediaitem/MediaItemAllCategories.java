@@ -14,7 +14,6 @@ import com.yuriy.openradio.utils.QueueHelper;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -39,14 +38,9 @@ public class MediaItemAllCategories implements MediaItemCommand {
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        // Load all categories into menu
-                        loadAllCategories(playbackStateListener, shareObject);
-                    }
+                () -> {
+                    // Load all categories into menu
+                    loadAllCategories(playbackStateListener, shareObject);
                 }
         );
     }
@@ -71,13 +65,7 @@ public class MediaItemAllCategories implements MediaItemCommand {
             return;
         }
 
-        Collections.sort(list, new Comparator<CategoryVO>() {
-
-            @Override
-            public int compare(CategoryVO lhs, CategoryVO rhs) {
-                return lhs.getTitle().compareTo(rhs.getTitle());
-            }
-        });
+        Collections.sort(list, (lhs, rhs) -> lhs.getTitle().compareTo(rhs.getTitle()));
 
         // Collection of All Categories.
         // TODO : Probably this collection is redundant.

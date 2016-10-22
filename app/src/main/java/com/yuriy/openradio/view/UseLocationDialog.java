@@ -42,15 +42,9 @@ public final class UseLocationDialog extends BaseDialogFragment {
         final Button enableLocationServiceBtn
                 = (Button) view.findViewById(R.id.uld_enable_location_service_btn_view);
         enableLocationServiceBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View v) {
-                        startActivityForResult(
-                                IntentsHelper.makeOpenLocationSettingsIntent(),
-                                IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS);
-                    }
-                }
+                v -> startActivityForResult(
+                        IntentsHelper.makeOpenLocationSettingsIntent(),
+                        IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS)
         );
 
         final AlertDialog.Builder builder = createAlertDialogWithOkButton(getActivity());

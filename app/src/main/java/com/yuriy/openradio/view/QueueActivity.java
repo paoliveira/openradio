@@ -31,7 +31,6 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -164,15 +163,10 @@ public class QueueActivity extends FragmentActivity {
         // Set focusable
         listView.setFocusable(true);
         // Set listeners
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(final AdapterView<?> parent, final View view,
-                                    final int position, final long id) {
-                final MediaSessionCompat.QueueItem item = mQueueAdapter.getItem(position);
-                mTransportControls.skipToQueueItem(item.getQueueId());
-                view.setSelected(true);
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            final MediaSessionCompat.QueueItem item = mQueueAdapter.getItem(position);
+            mTransportControls.skipToQueueItem(item.getQueueId());
+            view.setSelected(true);
         });
         listView.setOnScrollListener(
                 new AbsListView.OnScrollListener() {
@@ -390,36 +384,29 @@ public class QueueActivity extends FragmentActivity {
     /**
      * Control Buttons listeners
      */
-    private final View.OnClickListener buttonListener = new SafeOnClickListener<QueueActivity>(this) {
+    private final View.OnClickListener buttonListener = view -> {
+        final int state
+                = mPlaybackState == null
+                ? PlaybackStateCompat.STATE_NONE : mPlaybackState.getState();
 
-        @Override
-        public void safeOnClick(final QueueActivity reference, final View view) {
-            if (reference == null) {
-                return;
-            }
-            final int state
-                    = reference.mPlaybackState == null
-                    ? PlaybackStateCompat.STATE_NONE : reference.mPlaybackState.getState();
-
-            switch (view.getId()) {
-                case R.id.play_pause:
-                    AppLogger.d(CLASS_NAME + " Play button pressed, in state " + state);
-                    if (state == PlaybackStateCompat.STATE_PAUSED
-                            || state == PlaybackStateCompat.STATE_STOPPED
-                            || state == PlaybackStateCompat.STATE_NONE) {
-                        reference.playMedia();
-                    } else if (state == PlaybackStateCompat.STATE_PLAYING) {
-                        reference.pauseMedia();
-                    }
-                    break;
-                case R.id.skip_previous:
-                    AppLogger.d(CLASS_NAME + " Start button pressed, in state " + state);
-                    reference.skipToPrevious();
-                    break;
-                case R.id.skip_next:
-                    reference.skipToNext();
-                    break;
-            }
+        switch (view.getId()) {
+            case R.id.play_pause:
+                AppLogger.d(CLASS_NAME + " Play button pressed, in state " + state);
+                if (state == PlaybackStateCompat.STATE_PAUSED
+                        || state == PlaybackStateCompat.STATE_STOPPED
+                        || state == PlaybackStateCompat.STATE_NONE) {
+                    playMedia();
+                } else if (state == PlaybackStateCompat.STATE_PLAYING) {
+                    pauseMedia();
+                }
+                break;
+            case R.id.skip_previous:
+                AppLogger.d(CLASS_NAME + " Start button pressed, in state " + state);
+                skipToPrevious();
+                break;
+            case R.id.skip_next:
+                skipToNext();
+                break;
         }
     };
 

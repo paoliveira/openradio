@@ -252,13 +252,11 @@ public abstract class AsyncTask<Params, Progress, Result> {
         Runnable mActive;
 
         public synchronized void execute(@NonNull final Runnable r) {
-            mTasks.offer(new Runnable() {
-                public void run() {
-                    try {
-                        r.run();
-                    } finally {
-                        scheduleNext();
-                    }
+            mTasks.offer(() -> {
+                try {
+                    r.run();
+                } finally {
+                    scheduleNext();
                 }
             });
             if (mActive == null) {

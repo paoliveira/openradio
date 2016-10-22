@@ -93,25 +93,15 @@ public final class RemoveStationDialog extends DialogFragment {
 
         final Button removeBtn = (Button) view.findViewById(R.id.remove_station_dialog_add_btn_view);
         removeBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View viewBtn) {
-                        ((MainActivity) getActivity()).processRemoveStationCallback(mediaId);
-                        getDialog().dismiss();
-                    }
+                viewBtn -> {
+                    ((MainActivity) getActivity()).processRemoveStationCallback(mediaId);
+                    getDialog().dismiss();
                 }
         );
 
         final Button cancelBtn = (Button) view.findViewById(R.id.remove_station_dialog_cancel_btn_view);
         cancelBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View viewBtn) {
-                        getDialog().dismiss();
-                    }
-                }
+                viewBtn -> getDialog().dismiss()
         );
 
         return view;

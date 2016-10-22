@@ -95,13 +95,9 @@ public class SettingsDialog extends DialogFragment {
         logsEnableCheckView.setChecked(areLogsEnabled);
         processEnableCheckView(areLogsEnabled);
         logsEnableCheckView.setOnClickListener(
-                new SafeOnClickListener<SettingsDialog>(this) {
-
-                    @Override
-                    public void safeOnClick(final SettingsDialog reference, final View view) {
-                        final boolean checked = ((CheckBox) view).isChecked();
-                        reference.processEnableCheckView(checked);
-                    }
+                view1 -> {
+                    final boolean checked = ((CheckBox) view1).isChecked();
+                    processEnableCheckView(checked);
                 }
         );
 
@@ -109,21 +105,17 @@ public class SettingsDialog extends DialogFragment {
                 = (Button) view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
         clearLogsBtn.setOnClickListener(
 
-                new SafeOnClickListener<SettingsDialog>(this) {
+                view12 -> {
+                    final Activity activity = getActivity();
+                    AppLogger.deleteZipFile(activity);
+                    AppLogger.deleteLogcatFile(activity);
+                    final boolean result = AppLogger.deleteAllLogs(activity);
+                    String message = result
+                            ? "All logs deleted"
+                            : "Can not delete logs";
+                    Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
 
-                    @Override
-                    public void safeOnClick(final SettingsDialog reference, final View view) {
-                        final Activity activity = reference.getActivity();
-                        AppLogger.deleteZipFile(activity);
-                        AppLogger.deleteLogcatFile(activity);
-                        final boolean result = AppLogger.deleteAllLogs(activity);
-                        String message = result
-                                ? "All logs deleted"
-                                : "Can not delete logs";
-                        Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
-
-                        AppLogger.initLogger(activity);
-                    }
+                    AppLogger.initLogger(activity);
                 }
         );
 
@@ -131,13 +123,7 @@ public class SettingsDialog extends DialogFragment {
                 = (Button) view.findViewById(R.id.settings_dialog_send_logs_btn_view);
         sendLogsBtn.setOnClickListener(
 
-                new SafeOnClickListener<SettingsDialog>(this) {
-
-                    @Override
-                    public void safeOnClick(final SettingsDialog reference, final View view) {
-                        reference.sendLogMailTask();
-                    }
-                }
+                view13 -> sendLogMailTask()
         );
     }
 

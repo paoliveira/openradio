@@ -84,11 +84,7 @@ public class BaseDialogFragment extends DialogFragment {
      */
     protected static AlertDialog.Builder createAlertDialogWithCancelButton(final Context context) {
         final AlertDialog.Builder builder = createAlertDialog(context);
-        builder.setNegativeButton(R.string.close_label, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton(R.string.close_label, (dialog, id) -> dialog.cancel());
         return builder;
     }
 
@@ -100,11 +96,7 @@ public class BaseDialogFragment extends DialogFragment {
      */
     protected static AlertDialog.Builder createAlertDialogWithOkButton(final Context context) {
         final AlertDialog.Builder builder = createAlertDialog(context);
-        builder.setPositiveButton(R.string.ok_label, new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
+        builder.setPositiveButton(R.string.ok_label, (dialog, id) -> dialog.cancel());
         return builder;
     }
 

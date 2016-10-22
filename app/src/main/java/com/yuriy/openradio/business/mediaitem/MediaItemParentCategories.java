@@ -29,7 +29,6 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.QueueHelper;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -53,14 +52,9 @@ public class MediaItemParentCategories implements MediaItemCommand {
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        // Load child categories into menu
-                        loadChildCategories(playbackStateListener, shareObject);
-                    }
+                () -> {
+                    // Load child categories into menu
+                    loadChildCategories(playbackStateListener, shareObject);
                 }
         );
     }
@@ -91,13 +85,7 @@ public class MediaItemParentCategories implements MediaItemCommand {
             return;
         }
 
-        Collections.sort(list, new Comparator<CategoryVO>() {
-
-            @Override
-            public int compare(CategoryVO lhs, CategoryVO rhs) {
-                return lhs.getTitle().compareTo(rhs.getTitle());
-            }
-        });
+        Collections.sort(list, (lhs, rhs) -> lhs.getTitle().compareTo(rhs.getTitle()));
 
         QueueHelper.copyCollection(shareObject.getChildCategories(), list);
 

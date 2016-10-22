@@ -222,15 +222,11 @@ public final class MainActivity extends AppCompatActivity {
 
         final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
         addBtn.setOnClickListener(
-                new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(final View view) {
-                        // Show Add Station Dialog
-                        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                        final DialogFragment dialog = AddStationDialog.newInstance();
-                        dialog.show(transaction, AddStationDialog.DIALOG_TAG);
-                    }
+                view -> {
+                    // Show Add Station Dialog
+                    final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    final DialogFragment dialog = AddStationDialog.newInstance();
+                    dialog.show(transaction, AddStationDialog.DIALOG_TAG);
                 }
         );
 
@@ -542,9 +538,7 @@ public final class MainActivity extends AppCompatActivity {
                 = (List<String>) savedInstanceState.getSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK);
         if (mediaItemsStackRestored != null) {
             mediaItemsStack.clear();
-            for (String item : mediaItemsStackRestored) {
-                mediaItemsStack.add(item);
-            }
+            mediaItemsStack.addAll(mediaItemsStackRestored);
         }
 
         // Restore List's position
@@ -666,7 +660,7 @@ public final class MainActivity extends AppCompatActivity {
                 reference.setSelectedItem(position);
             }
         }
-    };
+    }
 
     /**
      * Listener of the Permissions Status changes.

@@ -49,14 +49,9 @@ public class MediaItemStationsInCategory implements MediaItemCommand {
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        // Load Radio Station
-                        loadStation(playbackStateListener, shareObject);
-                    }
+                () -> {
+                    // Load Radio Station
+                    loadStation(playbackStateListener, shareObject);
                 }
         );
     }

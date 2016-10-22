@@ -61,14 +61,9 @@ public class MediaItemAllStations implements MediaItemCommand {
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        // Load all categories into menu
-                        loadAllStations(playbackStateListener, shareObject);
-                    }
+                () -> {
+                    // Load all categories into menu
+                    loadAllStations(playbackStateListener, shareObject);
                 }
         );
     }

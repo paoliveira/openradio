@@ -30,7 +30,6 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -59,14 +58,9 @@ public class MediaItemCountriesList implements MediaItemCommand {
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-
-                        // Load all countries into menu
-                        loadAllCountries(playbackStateListener, shareObject);
-                    }
+                () -> {
+                    // Load all countries into menu
+                    loadAllCountries(playbackStateListener, shareObject);
                 }
         );
     }
@@ -92,13 +86,7 @@ public class MediaItemCountriesList implements MediaItemCommand {
             return;
         }
 
-        Collections.sort(list, new Comparator<String>() {
-
-            @Override
-            public int compare(String lhs, String rhs) {
-                return lhs.compareTo(rhs);
-            }
-        });
+        Collections.sort(list, String::compareTo);
 
         String countryName;
         // Overlay base image with the appropriate flag

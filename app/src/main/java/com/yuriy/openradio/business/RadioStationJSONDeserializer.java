@@ -60,12 +60,6 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
     }
 
     private boolean getBooleanValue(final JSONObject jsonObject, final String key) throws JSONException {
-        if (jsonObject == null) {
-            return false;
-        }
-        if (jsonObject.has(key)) {
-            return jsonObject.getBoolean(key);
-        }
-        return false;
+        return jsonObject != null && jsonObject.has(key) && jsonObject.getBoolean(key);
     }
 }
