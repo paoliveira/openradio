@@ -1788,7 +1788,7 @@ public final class OpenRadioService
         if (item != null && item.getDescription() != null) {
             mediaId = item.getDescription().getMediaId();
         }
-        LocalBroadcastManager.getInstance(OpenRadioService.this).sendBroadcast(
+        LocalBroadcastManager.getInstance(this.getApplicationContext()).sendBroadcast(
                 AppLocalBroadcastReceiver.createIntentCurrentIndexOnQueue(
                         index, mediaId
                 )

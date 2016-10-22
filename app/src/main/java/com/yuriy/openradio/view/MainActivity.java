@@ -749,7 +749,7 @@ public final class MainActivity extends AppCompatActivity {
             MediaControllerCompat mediaController = null;
             try {
                 mediaController = new MediaControllerCompat(
-                        activity,
+                        activity.getApplicationContext(),
                         activity.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
@@ -867,7 +867,10 @@ public final class MainActivity extends AppCompatActivity {
 
             activity.hideProgressBar();
 
-            Toast.makeText(activity, R.string.error_loading_media, Toast.LENGTH_LONG).show();
+            Toast.makeText(
+                    activity.getApplicationContext(),
+                    R.string.error_loading_media, Toast.LENGTH_LONG
+            ).show();
         }
     }
 

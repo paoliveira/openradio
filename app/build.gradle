@@ -42,13 +42,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
-//        assembleRelease {
-//            doLast {
-//                // Post release actions, prepare variables for the next release
-//                tasks.getAndIncrementVersionCode.execute()
-//            }
-//        }
-
         /*
         applicationVariants.all { variant ->
             def f = variant.outputFile
@@ -82,8 +75,9 @@ dependencies {
 
 tasks.whenTaskAdded { task ->
     if (task.name.equals("assembleRelease")) {
-        println "Add Assemble Release Task. Prepare vars for next release ..."
-        task.dependsOn getAndIncrementVersionCode
+        task.doLast() {
+            tasks.getAndIncrementVersionCode.execute()
+        }
     }
 }
 
