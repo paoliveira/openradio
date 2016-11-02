@@ -23,6 +23,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.api.CountryVO;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
@@ -30,6 +31,7 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -43,7 +45,7 @@ import java.util.List;
  * {@link MediaItemCountriesList} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display list of all Countries.
  */
-public class MediaItemCountriesList implements MediaItemCommand {
+public final class MediaItemCountriesList implements MediaItemCommand {
 
     /**
      * String tag to use in the log message.
@@ -75,7 +77,7 @@ public class MediaItemCountriesList implements MediaItemCommand {
     private void loadAllCountries(final IUpdatePlaybackState playbackStateListener,
                                   @NonNull final MediaItemShareObject shareObject) {
 
-        final List<String> list = shareObject.getServiceProvider().getCounties(
+        final List<CountryVO> list = shareObject.getServiceProvider().getCounties(
                 shareObject.getDownloader(),
                 UrlBuilder.getAllCountriesUrl(shareObject.getContext()));
 
@@ -86,25 +88,24 @@ public class MediaItemCountriesList implements MediaItemCommand {
             return;
         }
 
-        Collections.sort(list, String::compareTo);
+        final Comparator<CountryVO> comparator = (c1, c2) -> c1.getName().compareTo(c2.getName());
+        Collections.sort(list, comparator);
 
-        String countryName;
         // Overlay base image with the appropriate flag
         final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
         Bitmap bitmap;
+        int identifier;
 
-        for (final String countryCode : list) {
+        for (final CountryVO countryVO : list) {
 
-            if (AppUtils.COUNTRY_CODE_TO_NAME.containsKey(countryCode)) {
-                countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
-            } else {
+            if (!AppUtils.COUNTRY_CODE_TO_NAME.containsKey(countryVO.getCode())) {
                 // Add missing country to the Map of the existing ones.
-                AppLogger.w(CLASS_NAME + " Missing country:" + countryCode);
+                AppLogger.w(CLASS_NAME + " Missing country:" + countryVO);
                 continue;
             }
 
-            final int identifier = shareObject.getContext().getResources().getIdentifier(
-                    "flag_" + countryCode.toLowerCase(),
+            identifier = shareObject.getContext().getResources().getIdentifier(
+                    "flag_" + countryVO.getCode().toLowerCase(),
                     "drawable", shareObject.getContext().getPackageName()
             );
 
@@ -118,11 +119,11 @@ public class MediaItemCountriesList implements MediaItemCommand {
             shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
                             .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + countryCode
+                                    MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + countryVO.getCode()
                             )
-                            .setTitle(countryName)
+                            .setTitle(countryVO.getName())
                             .setIconBitmap(bitmap)
-                            .setSubtitle(countryCode)
+                            .setSubtitle(countryVO.getCode())
                             .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }

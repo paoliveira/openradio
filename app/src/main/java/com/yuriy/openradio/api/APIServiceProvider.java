@@ -53,7 +53,7 @@ public interface APIServiceProvider {
      *
      * @return Collection of the Countries
      */
-    List<String> getCounties(final Downloader downloader, final Uri uri);
+    List<CountryVO> getCounties(final Downloader downloader, final Uri uri);
 
     /**
      * Get a list of Radio Stations by provided Uri.

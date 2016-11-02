@@ -117,9 +117,9 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<String> getCounties(Downloader downloader, Uri uri) {
+    public List<CountryVO> getCounties(final Downloader downloader, final Uri uri) {
 
-        final List<String> allCountries = new ArrayList<>();
+        final List<CountryVO> allCountries = new ArrayList<>();
 
         if (mDataParser == null) {
             AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
@@ -129,16 +129,30 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         final JSONArray array = downloadJSONArray(downloader, uri);
 
         JSONObject object;
+        String countryName;
+        String countryCode;
 
         for (int i = 0; i < array.length(); i++) {
             try {
                 object = (JSONObject) array.get(i);
 
-                if (object.has(JSONDataParserImpl.KEY_COUNTRY_CODE)) {
-                    allCountries.add(object.getString(JSONDataParserImpl.KEY_COUNTRY_CODE));
+                if (object.has(JSONDataParserImpl.KEY_COUNTRY_CODE)
+                        && object.has(JSONDataParserImpl.KEY_NAME)) {
+                    countryName = object.getString(JSONDataParserImpl.KEY_NAME);
+                    countryCode = object.getString(JSONDataParserImpl.KEY_COUNTRY_CODE);
+
+                    if (TextUtils.isEmpty(countryName) || TextUtils.isEmpty(countryCode)) {
+                        AppLogger.w(
+                                CLASS_NAME + " Can not parse Country name and or Code, " +
+                                        "one or both values are not valid"
+                        );
+                        continue;
+                    }
+
+                    allCountries.add(new CountryVO(countryName, countryCode));
                 }
-            } catch (JSONException e) {
-                AppLogger.e(CLASS_NAME + " Can not parse Country name:" + e.getMessage());
+            } catch (final JSONException e) {
+                AppLogger.e(CLASS_NAME + " Can not parse Country name and or Code:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
         }

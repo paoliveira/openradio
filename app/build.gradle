@@ -38,7 +38,7 @@ android {
     buildTypes {
 
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -62,7 +62,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile "com.android.support:support-v4:25.0.0"
     compile 'com.android.support:design:25.0.0'
-    compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.11'
+    compile 'com.github.wseemann:FFmpegMediaMetadataRetriever:1.0.12'
     compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {
         transitive = true;
     }

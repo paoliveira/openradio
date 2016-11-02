@@ -43,7 +43,7 @@ import java.util.List;
  * {@link MediaItemRoot} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display root menu items.
  */
-public class MediaItemRoot implements MediaItemCommand {
+public final class MediaItemRoot implements MediaItemCommand {
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
