@@ -83,5 +83,7 @@
     <string name="cant_start_activity">Kan ikke starte Aktivitet</string>
     <string name="cant_send_logs">Kan ikke sende Logger</string>
     <string name="send_logs_chooser_title">Send Logger etter:</string>
+    <string name="can_not_open_file">Kan ikke åpne fil</string>
+    <string name="storage_permission_not_granted">Lagring tillatelse ikke gis</string>
 
 </resources>

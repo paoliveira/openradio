@@ -271,12 +271,13 @@ public class ImageFetcher extends ImageResizer {
         BufferedInputStream in = null;
 
         try {
-            if (urlString.startsWith("/sdcard/")) {
-                in = new BufferedInputStream(new FileInputStream(new File(urlString)), IO_BUFFER_SIZE);
-            } else {
+            if (urlString.toLowerCase().startsWith("www")
+                    || urlString.toLowerCase().startsWith("http")) {
                 final URL url = new URL(urlString);
                 urlConnection = (HttpURLConnection) url.openConnection();
                 in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+            } else {
+                in = new BufferedInputStream(new FileInputStream(new File(urlString)), IO_BUFFER_SIZE);
             }
 
             out = new BufferedOutputStream(outputStream, IO_BUFFER_SIZE);

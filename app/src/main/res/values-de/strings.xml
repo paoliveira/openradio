@@ -83,5 +83,7 @@
     <string name="cant_start_activity">Kann nicht Aktivität starten</string>
     <string name="cant_send_logs">Kann nicht Logs senden</string>
     <string name="send_logs_chooser_title">Senden Logs von:</string>
+    <string name="can_not_open_file">Kann Datei nicht öffnen</string>
+    <string name="storage_permission_not_granted">Speicherberechtigung wird nicht gewährt</string>
 
 </resources>

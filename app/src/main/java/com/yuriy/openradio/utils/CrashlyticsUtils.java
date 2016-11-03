@@ -18,6 +18,8 @@ package com.yuriy.openradio.utils;
 
 import com.crashlytics.android.Crashlytics;
 
+import io.fabric.sdk.android.Fabric;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -43,9 +45,8 @@ public final class CrashlyticsUtils {
      * @param exception Exception.
      */
     public static void logException(final Exception exception) {
-        if (Crashlytics.getInstance() == null) {
-            return;
+        if (Fabric.isInitialized()) {
+            Crashlytics.logException(exception);
         }
-        Crashlytics.logException(exception);
     }
 }

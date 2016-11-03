@@ -16,9 +16,12 @@
 
 package com.yuriy.openradio.view;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -33,8 +36,11 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.ImageFilePath;
 import com.yuriy.openradio.utils.IntentsHelper;
+import com.yuriy.openradio.utils.PermissionChecker;
 
 import java.util.ArrayList;
 
@@ -116,11 +122,14 @@ public final class AddStationDialog extends DialogFragment {
         final Button imageUrlBtn = (Button) view.findViewById(R.id.add_station_image_browse_btn);
         imageUrlBtn.setOnClickListener(
                 viewBtn -> {
-                    // show Choose File dialog
-                    startActivityForResult(
-                            FileDialog.makeIntentToOpenFile(getActivity()),
-                            IntentsHelper.REQUEST_CODE_FILE_SELECTED
-                    );
+                    final Intent galleryIntent = new Intent();
+                    galleryIntent.setType("image/*");
+                    galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+
+                    // Chooser of filesystem options.
+                    final Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Image");
+
+                    startActivityForResult(chooserIntent , IntentsHelper.REQUEST_CODE_FILE_SELECTED);
                 }
         );
 
@@ -144,6 +153,22 @@ public final class AddStationDialog extends DialogFragment {
     }
 
     @Override
+    public void onActivityCreated(final Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        final Context applicationContext = getActivity().getApplicationContext();
+        if (!PermissionChecker.isGranted(
+                applicationContext,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                ) {
+            SafeToast.showAnyThread(
+                    applicationContext,
+                    applicationContext.getString(R.string.storage_permission_not_granted)
+            );
+        }
+    }
+
+    @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -151,11 +176,28 @@ public final class AddStationDialog extends DialogFragment {
             return;
         }
 
-        if (requestCode == IntentsHelper.REQUEST_CODE_FILE_SELECTED) {
-            final String filePath = FileDialog.getFilePath(data);
-            if (filePath != null) {
-                mImageUrlEdit.setText(filePath);
-            }
+        if (data == null) {
+            return;
+        }
+
+        switch(requestCode) {
+            case IntentsHelper.REQUEST_CODE_FILE_SELECTED:
+                final Uri selectedImageUri = data.getData();
+                final Context applicationContext = getActivity().getApplicationContext();
+                //MEDIA GALLERY
+                final String selectedImagePath = ImageFilePath.getPath(
+                        applicationContext, selectedImageUri
+                );
+                AppLogger.d("Image Path:" + selectedImagePath);
+                if (selectedImagePath != null) {
+                    mImageUrlEdit.setText(selectedImagePath);
+                } else {
+                    SafeToast.showAnyThread(
+                            applicationContext,
+                            applicationContext.getString(R.string.can_not_open_file)
+                    );
+                }
+                break;
         }
     }
 

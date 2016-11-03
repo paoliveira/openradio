@@ -83,5 +83,7 @@
     <string name="cant_start_activity">No se puede iniciar la Actividad</string>
     <string name="cant_send_logs">No se puede enviar Registros</string>
     <string name="send_logs_chooser_title">Enviar Registros por:</string>
+    <string name="can_not_open_file">No puede abrir el archivo</string>
+    <string name="storage_permission_not_granted">No se ha concedido permiso de almacenamiento</string>
 
 </resources>

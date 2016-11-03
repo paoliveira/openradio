@@ -142,7 +142,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener of the Permissions status changes.
      */
-    private PermissionStatusListener mPermissionStatusListener = new PermissionListener(this);
+    private final PermissionStatusListener mPermissionStatusListener = new PermissionListener(this);
 
     /**
      * Member field to keep reference to the Local broadcast receiver.

@@ -111,4 +111,8 @@
     <string name="cant_send_logs">Can not send Logs</string>
     <string name="send_logs_chooser_title">Send Logs by:</string>
 
+    <!-- Version 2.3 -->
+    <string name="can_not_open_file">Can not open File</string>
+    <string name="storage_permission_not_granted">Storage permission not granted</string>
+
 </resources>
