@@ -45,8 +45,9 @@ public final class CrashlyticsUtils {
      * @param exception Exception.
      */
     public static void logException(final Exception exception) {
-        if (Fabric.isInitialized()) {
-            Crashlytics.logException(exception);
+        if (Crashlytics.getInstance() == null) {
+            return;
         }
+        Crashlytics.logException(exception);
     }
 }
