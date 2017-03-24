@@ -17,11 +17,13 @@
 package com.yuriy.openradio.api;
 
 import android.net.Uri;
+import android.support.v4.util.Pair;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
 
@@ -29,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -57,6 +60,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
      * Cache of the API responses. It used in order to avoid API call amount on the server.
      */
     private static final Map<String, JSONArray> RESPONSES_MAP = new Hashtable<>();
+
+    /**
+     *
+     */
+    private static final String SEARCH_PARAMETER_KEY = "query";
 
     /**
      * Implementation of the {@link com.yuriy.openradio.business.DataParser} allows to
@@ -117,7 +125,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<CountryVO> getCounties(final Downloader downloader, final Uri uri) {
+    public List<CountryVO> getCountries(final Downloader downloader, final Uri uri) {
 
         final List<CountryVO> allCountries = new ArrayList<>();
 
@@ -162,6 +170,13 @@ public class APIServiceProviderImpl implements APIServiceProvider {
 
     @Override
     public List<RadioStationVO> getStations(final Downloader downloader, final Uri uri) {
+        return getStations(downloader, uri, new ArrayList<>());
+    }
+
+    @Override
+    public List<RadioStationVO> getStations(final Downloader downloader,
+                                            final Uri uri,
+                                            final List<Pair<String, String>> parameters) {
 
         final List<RadioStationVO> radioStations = new ArrayList<>();
 
@@ -170,7 +185,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             return radioStations;
         }
 
-        final JSONArray array = downloadJSONArray(downloader, uri);
+        final JSONArray array = downloadJSONArray(downloader, uri, parameters);
 
         JSONObject object;
         RadioStationVO radioStation;
@@ -290,22 +305,48 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     /**
      * Download data as {@link org.json.JSONArray}.
      *
-     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader}.
+     * @param downloader Implementation of the {@link Downloader}.
      * @param uri        Uri to download from.
      * @return {@link org.json.JSONArray}
      */
-    private JSONArray downloadJSONArray(final Downloader downloader, final Uri uri) {
+    private JSONArray downloadJSONArray(final Downloader downloader,
+                                        final Uri uri) {
+        return downloadJSONArray(downloader, uri, new ArrayList<>());
+    }
+
+    /**
+     * Download data as {@link org.json.JSONArray}.
+     *
+     * @param downloader Implementation of the {@link Downloader}.
+     * @param uri        Uri to download from.
+     * @param parameters List of parameters to attach to connection.
+     * @return {@link org.json.JSONArray}
+     */
+    private JSONArray downloadJSONArray(final Downloader downloader,
+                                        final Uri uri,
+                                        final List<Pair<String, String>> parameters) {
         JSONArray array = new JSONArray();
 
+        String responsesMapKey = uri.toString();
+        try {
+            responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
+        } catch (final UnsupportedEncodingException e) {
+            AppLogger.d("Can not create key for responses cache:" + e.getMessage());
+            CrashlyticsUtils.logException(e);
+
+            responsesMapKey = null;
+        }
+        //AppLogger.d("HTTP response cache key:" + responsesMapKey);
+
         // Check cache to avoid unnecessary API call
-        if (RESPONSES_MAP.containsKey(uri.toString())) {
+        if (!TextUtils.isEmpty(responsesMapKey) && RESPONSES_MAP.containsKey(responsesMapKey)) {
             // Return cached value
             AppLogger.i(CLASS_NAME + " Get response from the cache");
-            return RESPONSES_MAP.get(uri.toString());
+            return RESPONSES_MAP.get(responsesMapKey);
         }
 
         // Download response from the server
-        final String response = new String(downloader.downloadDataFromUri(uri));
+        final String response = new String(downloader.downloadDataFromUri(uri, parameters));
         //AppLogger.i(CLASS_NAME + " URI:" + uri);
         //AppLogger.i(CLASS_NAME + " Response:\n" + response);
 
@@ -323,7 +364,9 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         }
 
         // Cache result
-        RESPONSES_MAP.put(uri.toString(), array);
+        if (!TextUtils.isEmpty(responsesMapKey)) {
+            RESPONSES_MAP.put(responsesMapKey, array);
+        }
 
         return array;
     }
@@ -451,5 +494,17 @@ public class APIServiceProviderImpl implements APIServiceProvider {
                 }
             }
         }
+    }
+
+    /**
+     * Creates and returns list of the quesry search parameters to attach to http connection.
+     *
+     * @param searchQuery String to use as query.
+     * @return List of the query search parameters.
+     */
+    public static List<Pair<String, String>> getSearchQueryParameters(final String searchQuery) {
+        final List<Pair<String, String>> result = new ArrayList<>();
+        result.add(new Pair<>(SEARCH_PARAMETER_KEY, searchQuery));
+        return result;
     }
 }

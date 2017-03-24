@@ -420,7 +420,8 @@ public final class OpenRadioService
         mLocationService.requestCountryCodeLastKnown(this);
 
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
-        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
+        mWifiLock = ((WifiManager) getApplicationContext()
+                .getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "OpenRadio_lock");
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
@@ -1194,7 +1195,7 @@ public final class OpenRadioService
             // Start Metadata retrieving service
             service.startMetadataRetrieving();
         }
-    };
+    }
 
     /**
      * Reconfigures MediaPlayer according to audio focus settings and
@@ -1737,7 +1738,8 @@ public final class OpenRadioService
 
                     final List<RadioStationVO> list = serviceProvider.getStations(
                             downloader,
-                            UrlBuilder.getSearchQuery(getApplicationContext(), query)
+                            UrlBuilder.getSearchUrl(getApplicationContext()),
+                            APIServiceProviderImpl.getSearchQueryParameters(query)
                     );
 
                     if (list == null || list.isEmpty()) {

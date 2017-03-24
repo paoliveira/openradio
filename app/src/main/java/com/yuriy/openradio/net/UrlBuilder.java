@@ -174,7 +174,7 @@ public class UrlBuilder {
      *
      * @param context    Context of the application.
      * @param stationId  Id of the Radio Station.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getStation(final Context context, final String stationId) {
         return Uri.parse(
@@ -183,15 +183,14 @@ public class UrlBuilder {
     }
 
     /**
-     * Get Uri for the search by provided query.
+     * Get Uri for the search.
      *
      * @param context Context of the application.
-     * @param query   Search query.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}.
      */
-    public static Uri getSearchQuery(final Context context, final String query) {
+    public static Uri getSearchUrl(final Context context) {
         return Uri.parse(
-                BASE_URL + "search/" + query + "?token=" + ApiKeyLoader.getApiKey(context)
+                BASE_URL + "search/?token=" + ApiKeyLoader.getApiKey(context)
         );
     }
 

@@ -24,13 +24,14 @@ package com.yuriy.openradio.api;
  */
 
 import android.net.Uri;
+import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.net.Downloader;
 
 import java.util.List;
 
 /**
- * {@link com.yuriy.openradio.api.APIServiceProvider} is an interface which provide
+ * {@link APIServiceProvider} is an interface which provide
  * various methods of the Dirble's API.
  */
 public interface APIServiceProvider {
@@ -38,8 +39,8 @@ public interface APIServiceProvider {
     /**
      * Get a list of all categories.
      *
-     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
-     * @param uri        {@link android.net.Uri} of the request.
+     * @param downloader Implementation of the {@link Downloader} interface.
+     * @param uri        {@link Uri} of the request.
      *
      * @return Collection of the {@link com.yuriy.openradio.api.CategoryVO}s
      */
@@ -48,26 +49,38 @@ public interface APIServiceProvider {
     /**
      * Get a list of all countries.
      *
-     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
+     * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link android.net.Uri} of the request.
      *
      * @return Collection of the Countries
      */
-    List<CountryVO> getCounties(final Downloader downloader, final Uri uri);
+    List<CountryVO> getCountries(final Downloader downloader, final Uri uri);
 
     /**
      * Get a list of Radio Stations by provided Uri.
      *
-     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
+     * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link android.net.Uri} of the request.
      * @return collection of the Radio Stations.
      */
     List<RadioStationVO> getStations(final Downloader downloader, final Uri uri);
 
     /**
+     * Get a list of Radio Stations by provided Uri.
+     *
+     * @param downloader Implementation of the {@link Downloader} interface.
+     * @param uri        {@link Uri} of the request.
+     * @param parameters List of parameters to attach to url connection.
+     * @return collection of the Radio Stations.
+     */
+    List<RadioStationVO> getStations(final Downloader downloader,
+                                     final Uri uri,
+                                     final List<Pair<String, String>> parameters);
+
+    /**
      * Get a Radio Station.
      *
-     * @param downloader Implementation of the {@link com.yuriy.openradio.net.Downloader} interface.
+     * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link android.net.Uri} of the request.
      * @return Radio Station.
      */

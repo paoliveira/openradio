@@ -21,6 +21,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
@@ -70,9 +71,9 @@ public class MediaItemSearchFromApp implements MediaItemCommand {
                                       @NonNull final MediaItemShareObject shareObject) {
         final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                UrlBuilder.getSearchQuery(shareObject.getContext(),
-                // Get search query from the holder util
-                Utils.getSearchQuery())
+                UrlBuilder.getSearchUrl(shareObject.getContext()),
+                // Get search query from the holder util.
+                APIServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
         );
 
         shareObject.getMediaItems().clear();

@@ -17,18 +17,26 @@
 package com.yuriy.openradio.net;
 
 import android.net.Uri;
+import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -62,6 +70,11 @@ public class HTTPDownloaderImpl implements Downloader {
 
     @Override
     public byte[] downloadDataFromUri(final Uri uri) {
+        return downloadDataFromUri(uri, new ArrayList<>());
+    }
+
+    @Override
+    public byte[] downloadDataFromUri(final Uri uri, final List<Pair<String, String>> parameters) {
         AppLogger.i(CLASS_NAME + " Request URL:" + uri);
         byte[] response = new byte[0];
 
@@ -89,6 +102,46 @@ public class HTTPDownloaderImpl implements Downloader {
 
         if (urlConnection == null) {
             return response;
+        }
+
+        // If there are http request parameters:
+        if (!parameters.isEmpty()) {
+            boolean result = false;
+            // POSR method is required for parameters.
+            try {
+                urlConnection.setRequestMethod("POST");
+                result = true;
+            } catch (final ProtocolException e) {
+                AppLogger.e("Can not set POST method:" + e.getMessage());
+                CrashlyticsUtils.logException(e);
+            }
+
+            // If POST is supported:
+            if (result) {
+                OutputStream outputStream = null;
+                BufferedWriter writer = null;
+
+                try {
+                    outputStream = urlConnection.getOutputStream();
+                    writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                    writer.write(getPostParametersQuery(parameters));
+                    writer.flush();
+                } catch (final IOException e) {
+                    AppLogger.e(CLASS_NAME + " Can not add http parameters:" + e.getMessage());
+                    CrashlyticsUtils.logException(e);
+                } finally {
+                    try {
+                        if (writer != null) {
+                            writer.close();
+                        }
+                        if (outputStream != null) {
+                            outputStream.close();
+                        }
+                    } catch (final IOException e) {
+                    /* Ignore */
+                    }
+                }
+            }
         }
 
         try {
@@ -217,5 +270,31 @@ public class HTTPDownloaderImpl implements Downloader {
             count += n;
         }
         return count;
+    }
+
+    /**
+     * Creates and returns a query of htpp connection parameters.
+     *
+     * @param params List of the parameters (keys and values).
+     * @return String representation of query.
+     * @throws UnsupportedEncodingException
+     */
+    public static String getPostParametersQuery(final List<Pair<String, String>> params)
+            throws UnsupportedEncodingException {
+        final StringBuilder result = new StringBuilder();
+        boolean first = true;
+
+        for (final Pair<String, String> pair : params) {
+            if (first) {
+                first = false;
+            } else {
+                result.append("&");
+            }
+            result.append(URLEncoder.encode(pair.first, "UTF-8"));
+            result.append("=");
+            result.append(URLEncoder.encode(pair.second, "UTF-8"));
+        }
+
+        return result.toString();
     }
 }

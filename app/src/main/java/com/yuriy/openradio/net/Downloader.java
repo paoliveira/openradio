@@ -24,6 +24,9 @@ package com.yuriy.openradio.net;
  */
 
 import android.net.Uri;
+import android.support.v4.util.Pair;
+
+import java.util.List;
 
 /**
  * {@link com.yuriy.openradio.net.Downloader} is an interface provides method which allows to
@@ -39,4 +42,13 @@ public interface Downloader {
      * @return Downloaded data.
      */
     byte[] downloadDataFromUri(final Uri uri);
+
+    /**
+     * Method to download data from provided {@link android.net.Uri}.
+     *
+     * @param uri        Provided {@link android.net.Uri}.
+     * @param parameters List of parameters to attach to connection.
+     * @return Downloaded data.
+     */
+    byte[] downloadDataFromUri(final Uri uri, List<Pair<String, String>> parameters);
 }

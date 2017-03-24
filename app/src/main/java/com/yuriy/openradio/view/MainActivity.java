@@ -380,22 +380,27 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final int location = mediaItemsStack.size() - 1;
-        if (location >= 0 && location < mediaItemsStack.size()) {
-            // Pop up current media item
-            final String currentMediaId = mediaItemsStack.remove(mediaItemsStack.size() - 1);
-
+        int location = mediaItemsStack.size() - 1;
+        if (location >= 0) {
+            // Get current media item and un-subscribe.
+            final String currentMediaId = mediaItemsStack.remove(location);
             mMediaBrowser.unsubscribe(currentMediaId);
         }
 
-        // Un-subscribe from all items
+        // Un-subscribe from all items.
         for (final String mediaItemId : mediaItemsStack) {
             mMediaBrowser.unsubscribe(mediaItemId);
         }
 
-        // Disconnect and connect back to media browser
-        mMediaBrowser.disconnect();
-        mMediaBrowser.connect();
+        // Subscribe to the previous item.
+        location = mediaItemsStack.size() - 1;
+        if (location >= 0) {
+            final String previousMediaId = mediaItemsStack.get(location);
+            if (!TextUtils.isEmpty(previousMediaId)) {
+                AppLogger.d("Back to " + previousMediaId);
+                mMediaBrowser.subscribe(previousMediaId, mMedSubscriptionCallback);
+            }
+        }
     }
 
     /**
@@ -457,10 +462,6 @@ public final class MainActivity extends AppCompatActivity {
 
         // Un-subscribe from item
         mMediaBrowser.unsubscribe(mediaItemId);
-
-        // Disconnect and connect back to media browser
-        mMediaBrowser.disconnect();
-        mMediaBrowser.connect();
     }
 
     /**
@@ -470,8 +471,13 @@ public final class MainActivity extends AppCompatActivity {
      */
     private void addMediaItemToStack(final String mediaId) {
         AppLogger.i(CLASS_NAME + " MediaItem Id added:" + mediaId);
+        if (TextUtils.isEmpty(mediaId)) {
+            return;
+        }
 
-        mediaItemsStack.add(mediaId);
+        if (!mediaItemsStack.contains(mediaId)) {
+            mediaItemsStack.add(mediaId);
+        }
 
         mMediaBrowser.subscribe(mediaId, mMedSubscriptionCallback);
     }
@@ -832,11 +838,6 @@ public final class MainActivity extends AppCompatActivity {
                 activity.showNoDataMessage();
             }
 
-            // Get list view reference from the inflated xml
-            final ListView listView = (ListView) activity.findViewById(R.id.list_view);
-            if (listView == null) {
-                return;
-            }
             if (!activity.listPositionMap.containsKey(parentId)) {
                 AppLogger.d(CLASS_NAME + " No key");
                 activity.mBrowserAdapter.notifyDataSetInvalidated();

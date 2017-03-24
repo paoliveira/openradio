@@ -77,7 +77,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
     private void loadAllCountries(final IUpdatePlaybackState playbackStateListener,
                                   @NonNull final MediaItemShareObject shareObject) {
 
-        final List<CountryVO> list = shareObject.getServiceProvider().getCounties(
+        final List<CountryVO> list = shareObject.getServiceProvider().getCountries(
                 shareObject.getDownloader(),
                 UrlBuilder.getAllCountriesUrl(shareObject.getContext()));
 
