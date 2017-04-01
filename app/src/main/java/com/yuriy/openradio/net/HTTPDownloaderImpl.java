@@ -144,6 +144,20 @@ public class HTTPDownloaderImpl implements Downloader {
             }
         }
 
+        int responseCode = 0;
+        try {
+            responseCode = urlConnection.getResponseCode();
+        } catch (final IOException e) {
+            AppLogger.e(CLASS_NAME + " Http Url connection get response code exception: " + e.getMessage());
+            CrashlyticsUtils.logException(e);
+        }
+
+        AppLogger.d("Response code:" + responseCode);
+        if (responseCode < 200 || responseCode > 299) {
+            urlConnection.disconnect();
+            return response;
+        }
+
         try {
             final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             response = toByteArray(inputStream);
