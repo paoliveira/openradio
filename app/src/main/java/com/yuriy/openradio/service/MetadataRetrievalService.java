@@ -27,9 +27,7 @@ import wseemann.media.FFmpegMediaMetadataRetriever;
  * At Android Studio
  * On 11/18/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * Service that provides ability to extract Metadata from the stream.
  * It uses FFmpegMediaMetadataRetriever library provided by William Seemann:
  * https://github.com/wseemann/FFmpegMediaMetadataRetriever
@@ -226,7 +224,8 @@ public final class MetadataRetrievalService extends Service {
          *
          * @param service
          */
-        public Retrieval(final ServiceHandler service) {
+        private Retrieval(final ServiceHandler service) {
+            super();
             mService = new WeakReference<>(service);
         }
 

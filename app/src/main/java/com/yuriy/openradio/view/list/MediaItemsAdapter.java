@@ -38,8 +38,6 @@ import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
 
-import java.util.List;
-
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -62,11 +60,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private long mActiveItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
     /**
-     * Stores an instance of {@link com.yuriy.openradio.view.list.MediaItemsAdapter.MessagesHandler}.
-     */
-    //private Handler mMessagesHandler = null;
-
-    /**
      * Constructor.
      *
      * @param activity     current {@link android.app.Activity}
@@ -75,9 +68,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
     public MediaItemsAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
         mCurrentActivity = activity;
         mImageFetcher = imageFetcher;
-
-        // Initialize the Messages Handler.
-        //mMessagesHandler = new MessagesHandler(mCurrentActivity, this);
     }
 
     @Override
@@ -210,16 +200,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     /**
-     * Add {@link com.yuriy.openradio.api.CategoryVO}s into the collection.
-     * @param items Collection of the {@link com.yuriy.openradio.api.CategoryVO}
-     */
-    public final void addItems(final List<MediaBrowserCompat.MediaItem> items) {
-        for (MediaBrowserCompat.MediaItem item : items) {
-            addItem(item);
-        }
-    }
-
-    /**
      * Clear adapter data.
      */
     public final void clear() {
@@ -260,60 +240,4 @@ public final class MediaItemsAdapter extends BaseAdapter {
         viewHolder.mRootView = (RelativeLayout) view.findViewById(R.id.category_list_root_view);
         return viewHolder;
     }
-
-    private void updateFavorite(final int position, final boolean isFavorite) {
-        if (mAdapterData == null) {
-            return;
-        }
-        MediaItemHelper.updateFavoriteField(mAdapterData.getItem(position), isFavorite);
-        notifyDataSetChanged();
-    }
-
-    // Template for the future use
-
-    /**
-     * An inner class that inherits from {@link android.os.Handler}
-     * and uses its {@link android.os.Handler#handleMessage(android.os.Message)}
-     * hook method to process Messages
-     * sent to it from the {@link OpenRadioService}.
-     */
-    /*public static class MessagesHandler extends Handler {
-
-        private static final String CLASS_NAME = MessagesHandler.class.getSimpleName();
-
-        *//**
-         * Allows Activity to be garbage collected properly.
-         *//*
-        private final Activity mActivity;
-
-        *//**
-         * Allows Media Items Adapter to be garbage collected properly.
-         *//*
-        private final MediaItemsAdapter mMediaItemsAdapter;
-
-        *//**
-         * Class constructor constructs {@link #mActivity} as weak reference
-         * to the activity.
-         *
-         * @param activity The corresponding activity.
-         *//*
-        public MessagesHandler(final Activity activity, final MediaItemsAdapter mediaItemsAdapter) {
-            mActivity = activity;
-            mMediaItemsAdapter = mediaItemsAdapter;
-        }
-
-        @Override
-        public void handleMessage(final Message msg) {
-            super.handleMessage(msg);
-
-            final int what = msg.what;
-            //final Intent incomeIntent = (Intent) msg.obj;
-
-            switch (what) {
-                default:
-                    Log.w(CLASS_NAME, "Unknown message:" + what);
-                    break;
-            }
-        }
-    }*/
 }
