@@ -114,8 +114,6 @@ public final class OpenRadioService
 
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
-    //private static final String EXTRA_KEY_MESSAGES_HANDLER = "EXTRA_KEY_MESSAGES_HANDLER";
-
     private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
 
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
@@ -138,11 +136,6 @@ public final class OpenRadioService
             = "EXTRA_KEY_ADD_STATION_COUNTRY";
 
     private static final String EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID";
-
-    /**
-     * Reserved init value.
-     */
-    //private static final int MSG_INIT = 100;
 
     /**
      * Action to thumbs up a media item
@@ -240,11 +233,6 @@ public final class OpenRadioService
      * Handler to manage response for the Radio Station's stream.
      */
     private Handler mRadioStationTimeoutHandler = new Handler();
-
-    /**
-     * Handler to handle incoming to the Service messages.
-     */
-    //private MessagesHandler mMessagesHandler;
 
     /**
      * Service class to provide information about current location.
