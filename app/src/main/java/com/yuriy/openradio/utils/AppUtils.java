@@ -23,11 +23,17 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+
+import com.yuriy.openradio.R;
+import com.yuriy.openradio.view.SafeToast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -47,9 +53,7 @@ import java.util.concurrent.Executors;
  * At Android Studio
  * On 11/29/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link AppUtils} is a helper class which holds various help-methods
  */
 public final class AppUtils {
@@ -718,5 +722,25 @@ public final class AppUtils {
             CrashlyticsUtils.logException(e);
         }
         return null;
+    }
+
+    /**
+     * Simple network connection check.
+     *
+     * @param context Application context.
+     */
+    public static boolean isConnected(@NonNull final Context context) {
+        final ConnectivityManager connectivityManager =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        // TODO: Check connectivityManager for a null reference
+        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
+            SafeToast.showAnyThread(
+                    context,
+                    context.getString(R.string.no_network_connection_toast)
+            );
+            return false;
+        }
+        return true;
     }
 }

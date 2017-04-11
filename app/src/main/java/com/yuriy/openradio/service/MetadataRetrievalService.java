@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.lang.ref.WeakReference;
@@ -68,7 +69,7 @@ public final class MetadataRetrievalService extends Service {
 
         // Get the HandlerThread's Looper and use it for our Handler.
         mServiceLooper = thread.getLooper();
-        mServiceHandler = new ServiceHandler(mServiceLooper);
+        mServiceHandler = new ServiceHandler(mServiceLooper, getApplicationContext());
     }
 
     @Override
@@ -103,10 +104,11 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
+     * Factory method to create and return Intent to start this Service.
      *
-     * @param context
-     * @param url
-     * @return
+     * @param context Application context.
+     * @param url     URL to fetch metadata from.
+     * @return The Intent.
      */
     public static Intent getStartRetrievalIntent(final Context context, final Handler handler,
                                                  final String url) {
@@ -120,9 +122,10 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
+     * Factory method to create and return Intent to stop this Service.
      *
-     * @param context
-     * @return
+     * @param context Application context.
+     * @return The Intent.
      */
     public static Intent getStopRetrievalIntent(final Context context) {
         final Intent intent = new Intent(context, MetadataRetrievalService.class);
@@ -160,9 +163,10 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
+     * Extract name of the command from the provided Intent.
      *
-     * @param intent
-     * @return
+     * @param intent Intent to extract command name from.
+     * @return Name of the command of {@code null}.
      */
     private static String getCommandName(final Intent intent) {
         if (intent == null) {
@@ -172,9 +176,10 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
+     * Extract URL of the command from the provided Intent.
      *
-     * @param intent
-     * @return
+     * @param intent Intent to extract command name from.
+     * @return URL or {@code null}.
      */
     private static String getUrl(final Intent intent) {
         if (intent == null) {
@@ -184,8 +189,9 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
+     * Handles Start Command.
      *
-     * @param intent
+     * @param intent Incoming Intent.
      */
     private void handlingStartCommand(final Intent intent) {
         // Create a Message that will be sent to ServiceHandler to
@@ -197,7 +203,7 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
-     *
+     * Handles Stop Command.
      */
     private void handlingStopCommand() {
         // Create a Message that will be sent to ServiceHandler to stop retrieve a data.
@@ -211,21 +217,29 @@ public final class MetadataRetrievalService extends Service {
     }
 
     /**
-     *
+     * Class dedicated to handle metadata extraction.
      */
     private static final class Retrieval implements Runnable {
 
         /**
-         *
+         * Reference to enclosing class.
          */
         private final WeakReference<ServiceHandler> mService;
 
         /**
-         *
-         * @param service
+         * Application context.
          */
-        private Retrieval(final ServiceHandler service) {
+        private final Context mContext;
+
+        /**
+         * Main constructor.
+         *
+         * @param service Reference to enclosing class.
+         * @param context Application context.
+         */
+        private Retrieval(final ServiceHandler service, final Context context) {
             super();
+            mContext = context;
             mService = new WeakReference<>(service);
         }
 
@@ -235,6 +249,11 @@ public final class MetadataRetrievalService extends Service {
             if (handler == null) {
                 return;
             }
+
+            if (!AppUtils.isConnected(mContext)) {
+                return;
+            }
+
             FFmpegMediaMetadataRetriever.Metadata metadata = null;
             FFmpegMediaMetadataRetriever retriever = null;
             try {
@@ -279,7 +298,7 @@ public final class MetadataRetrievalService extends Service {
 
         private volatile Looper mLooper;
 
-        private final Runnable mRetrievalRunnable = new Retrieval(this);
+        private final Runnable mRetrievalRunnable;
 
         private Messenger mMessenger;
 
@@ -311,8 +330,10 @@ public final class MetadataRetrievalService extends Service {
          *
          * @param looper The Looper that we borrow from HandlerThread.
          */
-        private ServiceHandler(final Looper looper) {
+        private ServiceHandler(final Looper looper, final Context context) {
             super(looper);
+
+            mRetrievalRunnable = new Retrieval(this, context);
 
             final HandlerThread thread = new HandlerThread(
                     ServiceHandler.class.getSimpleName() + "-Thread"

@@ -3,6 +3,7 @@ package com.yuriy.openradio.view;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.yuriy.openradio.utils.AppLogger;
@@ -11,9 +12,7 @@ import com.yuriy.openradio.utils.AppLogger;
  * @author Yurii Chernyshov
  * @version 1.0
  * @since 2016-01-29
- */
-
-/**
+ *
  * Helper class to provide ability to display {@link Toast} from any Thread.
  */
 public final class SafeToast {
@@ -56,6 +55,11 @@ public final class SafeToast {
             AppLogger.w("Can not display Toast, Context is null");
             return;
         }
+        if (TextUtils.isEmpty(text)) {
+            AppLogger.w("Can not display Toast, Text is null or empty");
+            return;
+        }
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
+        AppLogger.e("Toast:" + text.toString());
     }
 }

@@ -21,10 +21,11 @@ import android.graphics.Bitmap;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
-import android.widget.Toast;
+import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.view.SafeToast;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -69,13 +70,13 @@ public class ImageFetcher extends ImageResizer {
      * @param context
      * @param imageSize
      */
-    public ImageFetcher(Context context, int imageSize) {
+    public ImageFetcher(final Context context, final int imageSize) {
         super(context, imageSize);
         init(context);
     }
 
-    private void init(Context context) {
-        checkConnection(context);
+    private void init(@NonNull final Context context) {
+        AppUtils.isConnected(context);
         mHttpCacheDir = ImageCache.getDiskCacheDir(context, HTTP_CACHE_DIR);
     }
 
@@ -163,21 +164,6 @@ public class ImageFetcher extends ImageResizer {
                     CrashlyticsUtils.logException(e);
                 }
             }
-        }
-    }
-
-    /**
-    * Simple network connection check.
-    *
-    * @param context
-    */
-    private void checkConnection(Context context) {
-        final ConnectivityManager cm =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        final NetworkInfo networkInfo = cm.getActiveNetworkInfo();
-        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
-            Toast.makeText(context, R.string.no_network_connection_toast, Toast.LENGTH_LONG).show();
-            AppLogger.e(TAG + " checkConnection - no connection found");
         }
     }
 
