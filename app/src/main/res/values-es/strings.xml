@@ -85,5 +85,8 @@
     <string name="send_logs_chooser_title">Enviar Registros por:</string>
     <string name="can_not_open_file">No puede abrir el archivo</string>
     <string name="storage_permission_not_granted">No se ha concedido permiso de almacenamiento</string>
+    <string name="about_exo_title">Reproducción es alimentado por:</string>
+    <string name="about_exo_text">ExoPlayer</string>
+    <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
 
 </resources>

@@ -85,5 +85,8 @@
     <string name="send_logs_chooser_title">Senden Logs von:</string>
     <string name="can_not_open_file">Kann Datei nicht öffnen</string>
     <string name="storage_permission_not_granted">Speicherberechtigung wird nicht gewährt</string>
+    <string name="about_exo_title">Die Wiedergabe erfolgt über:</string>
+    <string name="about_exo_text">ExoPlayer</string>
+    <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
 
 </resources>

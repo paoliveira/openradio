@@ -85,5 +85,8 @@
     <string name="send_logs_chooser_title">Send Logger etter:</string>
     <string name="can_not_open_file">Kan ikke åpne fil</string>
     <string name="storage_permission_not_granted">Lagring tillatelse ikke gis</string>
+    <string name="about_exo_title">Avspilling er drevet av:</string>
+    <string name="about_exo_text">ExoPlayer</string>
+    <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
 
 </resources>

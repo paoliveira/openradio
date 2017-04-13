@@ -89,12 +89,6 @@ public class AboutDialog extends DialogFragment {
                 v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(PROJECT_HOME_URL))
         );
 
-        final TextView metadataRetrievalLink = (TextView) view.findViewById(R.id.about_thanks_3_url_view);
-        metadataRetrievalLink.setOnClickListener(
-                v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(
-                getString(R.string.about_thanks_3_url)
-        )));
-
         final Button closeBtn = (Button) view.findViewById(R.id.about_dialog_close_btn_view);
         closeBtn.setOnClickListener(
                 v -> getDialog().dismiss()
