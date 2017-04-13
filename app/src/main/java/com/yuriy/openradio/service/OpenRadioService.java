@@ -20,8 +20,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -59,17 +57,16 @@ import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
 import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
 import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
 import com.yuriy.openradio.business.mediaitem.MediaItemStationsInCategory;
+import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,11 +81,8 @@ import java.util.concurrent.Executors;
  * On 12/13/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class OpenRadioService
-        extends MediaBrowserServiceCompat
-        implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener,
-                   MediaPlayer.OnErrorListener,
-                   AudioManager.OnAudioFocusChangeListener {
+public final class OpenRadioService extends MediaBrowserServiceCompat
+        implements AudioManager.OnAudioFocusChangeListener {
 
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName();
@@ -164,9 +158,14 @@ public final class OpenRadioService
     private static final float VOLUME_NORMAL = 1.0f;
 
     /**
-     * Player instance to play Radio stream.
+     * ExoPlayer's implementation to play Radio stream..
      */
-    private MediaPlayer mMediaPlayer;
+    private ExoPlayerOpenRadioImpl mExoPlayer;
+
+    /**
+     * Listener of the ExoPlayer's event.
+     */
+    private final ExoPlayerOpenRadioImpl.Listener mListener = new ExoPlayerListener(this);
 
     /**
      * Media Session
@@ -311,7 +310,8 @@ public final class OpenRadioService
          *
          * @param reference The reference to the {@link OpenRadioService}.
          */
-        public MetadataRetrievalHandler(final OpenRadioService reference) {
+        private MetadataRetrievalHandler(final OpenRadioService reference) {
+            super();
             mReference = new WeakReference<>(reference);
         }
 
@@ -341,15 +341,16 @@ public final class OpenRadioService
     private static class DelayedStopHandler extends Handler {
 
         /**
-         *
+         * Reference to enclosing class.
          */
         private final OpenRadioService mReference;
 
         /**
+         * Main constructor.
          *
-         * @param reference
+         * @param reference Reference to enclosing class.
          */
-        public DelayedStopHandler(final OpenRadioService reference) {
+        private DelayedStopHandler(final OpenRadioService reference) {
             mReference = reference;
         }
 
@@ -358,7 +359,7 @@ public final class OpenRadioService
             if (mReference == null) {
                 return;
             }
-            if ((mReference.mMediaPlayer != null && mReference.mMediaPlayer.isPlaying())
+            if ((mReference.mExoPlayer != null && mReference.mExoPlayer.isPlaying())
                     || mReference.mPlayOnFocusGain) {
                 AppLogger.d(CLASS_NAME + " Ignoring delayed stop since the media player is in use.");
                 return;
@@ -614,8 +615,7 @@ public final class OpenRadioService
         }
     }
 
-    @Override
-    public final void onCompletion(final MediaPlayer mediaPlayer) {
+    private void onCompletion() {
         AppLogger.i(CLASS_NAME + " On MediaPlayer completion");
 
         // The media player finished playing the current song, so we go ahead
@@ -634,15 +634,12 @@ public final class OpenRadioService
         }
     }
 
-    @Override
-    public final boolean onError(final MediaPlayer mediaPlayer, final int what, final int extra) {
-        AppLogger.e(CLASS_NAME + " MediaPlayer error: what=" + what + ", extra=" + extra);
+    private void onError(final String message) {
+        AppLogger.e(CLASS_NAME + " MediaPlayer error:" + message);
         handleStopRequest(getString(R.string.media_player_error));
-        return true; // true indicates we handled the error
     }
 
-    @Override
-    public final void onPrepared(final MediaPlayer mediaPlayer) {
+    private void onPrepared() {
         AppLogger.i(CLASS_NAME + " MediaPlayer prepared");
 
         // The media player is done preparing. That means we can start playing if we
@@ -833,25 +830,19 @@ public final class OpenRadioService
      * already exists.
      */
     private void createMediaPlayerIfNeeded() {
-        if (mMediaPlayer == null) {
+        if (mExoPlayer == null) {
             AppLogger.d(CLASS_NAME + " Create MediaPlayer");
 
-            mMediaPlayer = new MediaPlayer();
+            mExoPlayer = new ExoPlayerOpenRadioImpl(getApplicationContext(), mListener);
 
             // Make sure the media player will acquire a wake-lock while
             // playing. If we don't do that, the CPU might go to sleep while the
             // song is playing, causing playback to stop.
-            mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
-            // we want the media player to notify us when it's ready preparing,
-            // and when it's done playing:
-            mMediaPlayer.setOnPreparedListener(this);
-            mMediaPlayer.setOnCompletionListener(this);
-            mMediaPlayer.setOnErrorListener(this);
+            mExoPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         } else {
             AppLogger.d(CLASS_NAME + " Reset MediaPlayer");
 
-            mMediaPlayer.reset();
+            mExoPlayer.reset();
         }
     }
 
@@ -1032,10 +1023,9 @@ public final class OpenRadioService
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
 
         // stop and release the Media Player, if it's available
-        if (releaseMediaPlayer && mMediaPlayer != null) {
-            mMediaPlayer.reset();
-            mMediaPlayer.release();
-            mMediaPlayer = null;
+        if (releaseMediaPlayer && mExoPlayer != null) {
+            mExoPlayer.reset();
+            mExoPlayer = null;
         }
 
         // we can also release the Wifi lock, if we're holding it
@@ -1108,15 +1098,17 @@ public final class OpenRadioService
     private static final class RadioStationUpdateListenerImpl implements RadioStationUpdateListener {
 
         /**
-         *
+         * Reference to enclosing class.
          */
         private final WeakReference<OpenRadioService> mReference;
 
         /**
+         * Main constructor.
          *
-         * @param reference
+         * @param reference Reference to enclosing class.
          */
-        public RadioStationUpdateListenerImpl(OpenRadioService reference) {
+        private RadioStationUpdateListenerImpl(final OpenRadioService reference) {
+            super();
             mReference = new WeakReference<>(reference);
         }
 
@@ -1148,37 +1140,15 @@ public final class OpenRadioService
 
             service.mState = PlaybackStateCompat.STATE_BUFFERING;
 
-            service.mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            service.mExoPlayer.prepare();
 
-            final Map<String, String> headers = new HashMap<>();
-            headers.put("Connection", "keep-alive");
-            headers.put("Keep-Alive", "timeout=2000");
+            // If we are streaming from the internet, we want to hold a
+            // Wifi lock, which prevents the Wifi radio from going to
+            // sleep while the song is playing.
+            service.mWifiLock.acquire();
 
-            try {
-                service.mMediaPlayer.setDataSource(
-                        service.getApplicationContext(), Uri.parse(source), headers
-                );
-
-                // Starts preparing the media player in the background. When
-                // it's done, it will call our OnPreparedListener (that is,
-                // the onPrepared() method on this class, since we set the
-                // listener to 'this'). Until the media player is prepared,
-                // we *cannot* call start() on it!
-                service.mMediaPlayer.prepareAsync();
-
-                // If we are streaming from the internet, we want to hold a
-                // Wifi lock, which prevents the Wifi radio from going to
-                // sleep while the song is playing.
-                service.mWifiLock.acquire();
-
-                service.updatePlaybackState(null);
-                service.updateMetadata();
-
-            } catch (final IOException ex) {
-                AppLogger.e(CLASS_NAME + " IOException playing song:" + ex.getMessage());
-                CrashlyticsUtils.logException(ex);
-                service.updatePlaybackState(service.getString(R.string.can_not_play_station));
-            }
+            service.updatePlaybackState(null);
+            service.updateMetadata();
 
             // Start Metadata retrieving service
             service.startMetadataRetrieving();
@@ -1203,20 +1173,20 @@ public final class OpenRadioService
                 handlePauseRequest();
             }
         } else {
-            if (mMediaPlayer == null) {
+            if (mExoPlayer == null) {
                 return;
             }
             // we have audio focus:
             if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
-                mMediaPlayer.setVolume(VOLUME_DUCK, VOLUME_DUCK);     // we'll be relatively quiet
+                mExoPlayer.setVolume(VOLUME_DUCK);   // we'll be relatively quiet
             } else {
-                mMediaPlayer.setVolume(VOLUME_NORMAL, VOLUME_NORMAL); // we can be loud again
+                mExoPlayer.setVolume(VOLUME_NORMAL); // we can be loud again
             }
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
-                if (!mMediaPlayer.isPlaying()) {
+                if (!mExoPlayer.isPlaying()) {
                     AppLogger.d(CLASS_NAME + " ConfigAndStartMediaPlayer startMediaPlayer");
-                    mMediaPlayer.start();
+                    mExoPlayer.play();
                 }
                 mPlayOnFocusGain = false;
                 AppLogger.d(CLASS_NAME + " ConfigAndStartMediaPlayer set state playing");
@@ -1236,8 +1206,8 @@ public final class OpenRadioService
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
             mState = PlaybackStateCompat.STATE_PAUSED;
-            if (mMediaPlayer.isPlaying()) {
-                mMediaPlayer.pause();
+            if (mExoPlayer.isPlaying()) {
+                mExoPlayer.pause();
             }
             // while paused, retain the MediaPlayer but give up audio focus
             relaxResources(false);
@@ -1281,9 +1251,6 @@ public final class OpenRadioService
         }
 
         long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
-        //if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
-        //    position = mMediaPlayer.getCurrentPosition();
-        //}
         stateBuilder.setState(mState, position, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.
@@ -1449,15 +1416,16 @@ public final class OpenRadioService
         private final String CLASS_NAME = MediaSessionCallback.class.getSimpleName();
 
         /**
-         *
+         * Reference to the enclosing class.
          */
         private final WeakReference<OpenRadioService> mService;
 
         /**
+         * Main constructor.
          *
-         * @param service
+         * @param service Reference to the enclosing class.
          */
-        public MediaSessionCallback(OpenRadioService service) {
+        private MediaSessionCallback(OpenRadioService service) {
             mService = new WeakReference<>(service);
         }
 
@@ -1801,6 +1769,7 @@ public final class OpenRadioService
          * @param reference Reference to the outer class.
          */
         private PlaybackStateListener(final OpenRadioService reference) {
+            super();
             mReference = new WeakReference<>(reference);
         }
 
@@ -1814,55 +1783,43 @@ public final class OpenRadioService
         }
     }
 
-    // Template for the future
+    private static final class ExoPlayerListener implements ExoPlayerOpenRadioImpl.Listener {
 
-    /**
-     * An inner class that inherits from {@link android.os.Handler} and uses its
-     * {@link #handleMessage(android.os.Message)} hook method to process Messages sent to
-     * it from {@link #onStartCommand(Intent, int, int)} (android.content.Intent)} that indicate which
-     * action to perform.
-     */
-    /*private static final class MessagesHandler extends Handler {
+        /**
+         * Reference to the outer class.
+         */
+        private final WeakReference<OpenRadioService> mReference;
 
-        *//**
-         * String tag to use in the logging.
-         *//*
-        private static final String CLASS_NAME = MessagesHandler.class.getSimpleName();
-
-        *//**
-         * Reference to the outer class (service).
-         *//*
-        private OpenRadioService mReference;
-
-        *//**
-         * Class constructor initializes the Looper.
-         *
-         * @param looper The Looper that we borrow from HandlerThread.
-         *//*
-        public MessagesHandler(final Looper looper) {
-            super(looper);
+        private ExoPlayerListener(final OpenRadioService reference) {
+            super();
+            mReference = new WeakReference<>(reference);
         }
 
-        *//**
-         * Hook method that process incoming commands.
-         *//*
         @Override
-        public void handleMessage(final Message message) {
-
-            final int what = message.what;
-            final Intent intent = (Intent) message.obj;
-            switch (what) {
-                default:
-                    AppLogger.w(CLASS_NAME + " Handle unknown msg:" + what);
+        public final void onCompletion() {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
             }
+            service.onCompletion();
         }
 
-        *//**
-         * Set the reference to the outer class (service).
-         * @param value Instance of the {@link OpenRadioService}
-         *//*
-        public void setReference(final OpenRadioService value) {
-            mReference = value;
+        @Override
+        public final void onError(final String message) {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            service.onError(message);
         }
-    }*/
+
+        @Override
+        public void onPrepared() {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            service.onPrepared();
+        }
+    }
 }
