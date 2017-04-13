@@ -20,6 +20,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -36,6 +37,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
@@ -544,6 +546,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // In particular, always release the MediaSession to clean up resources
         // and notify associated MediaController(s).
         mSession.release();
+
+        if (mExoPlayer != null) {
+            mExoPlayer.release();
+            mExoPlayer = null;
+        }
     }
 
     @Override
@@ -634,8 +641,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
-    private void onError(final String message) {
-        AppLogger.e(CLASS_NAME + " MediaPlayer error:" + message);
+    private void onError(final ExoPlaybackException error) {
+        AppLogger.e(CLASS_NAME + " MediaPlayer error:" + error);
         handleStopRequest(getString(R.string.media_player_error));
     }
 
@@ -1024,7 +1031,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer && mExoPlayer != null) {
-            mExoPlayer.reset();
+            mExoPlayer.release();
             mExoPlayer = null;
         }
 
@@ -1140,7 +1147,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             service.mState = PlaybackStateCompat.STATE_BUFFERING;
 
-            service.mExoPlayer.prepare();
+            service.mExoPlayer.prepare(Uri.parse(source));
 
             // If we are streaming from the internet, we want to hold a
             // Wifi lock, which prevents the Wifi radio from going to
@@ -1805,12 +1812,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         @Override
-        public final void onError(final String message) {
+        public final void onError(final ExoPlaybackException error) {
             final OpenRadioService service = mReference.get();
             if (service == null) {
                 return;
             }
-            service.onError(message);
+            service.onError(error);
         }
 
         @Override
