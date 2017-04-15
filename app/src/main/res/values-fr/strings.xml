@@ -23,7 +23,7 @@
     <string name="about_author">Auteur:</string>
     <string name="about_author_name">Yuriy Chernyshov</string>
     <string name="about_project_home_title">Maison de projet:</string>
-    <string name="about_project_home_desc">Si vous avez des demandes, des suggestions, des commentaires susceptibles d\'améliorer la demande, n\'hésitez pas à créer un problème dans l'onglet Questions de la page d'accueil du projet.</string>
+    <string name="about_project_home_desc">Si vous avez des demandes, des suggestions, des commentaires susceptibles d\'améliorer la demande, n\'hésitez pas à créer un problème dans l\'onglet Questions de la page d\'accueil du projet.</string>
     <string name="ok_label">OK</string>
     <string name="close_label">Fermer</string>
     <string name="no_data_message">Aucune donnée recue</string>
@@ -34,7 +34,7 @@
     <string name="category_empty">La catégorie est vide</string>
     <string name="country_stations_title">Stations de radio du pays</string>
     <string name="country_stations_sub_title">stations de radio du pays</string>
-    <string name="use_location_service_message">Le service de localisation est désactivé sur l\'appareil.\nPour utiliser des fonctionnalités supplémentaires de la radio ouverte (telles que les stations de radio de l\'emplacement actuel), il est nécessaire d'activer le service de localisation.</string>
+    <string name="use_location_service_message">Le service de localisation est désactivé sur l\'appareil.\nPour utiliser des fonctionnalités supplémentaires de la radio ouverte (telles que les stations de radio de l\'emplacement actuel), il est nécessaire d\'activer le service de localisation.</string>
     <string name="location_service">Service de localisation</string>
     <string name="enable_location_service_btn_label">Activer le service de localisation</string>
     <string name="countries_list_title">Tous les pays</string>
