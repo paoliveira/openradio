@@ -49,13 +49,11 @@ import java.util.List;
  * Author: Chernyshov Yuriy - Mobile Development
  * Date: 19.12.14
  * Time: 15:13
+ *
+ * {@link QueueActivity} is a view which represents
+ * UI for the playing a queue of the radio stations.
  */
-
-/**
- * {@link QueueActivity} is the activity which represents
- * UI for the playing a queue of the radio stations
- */
-public class QueueActivity extends FragmentActivity {
+public final class QueueActivity extends FragmentActivity {
 
     /**
      * Tag string to use in logging message.
@@ -126,7 +124,12 @@ public class QueueActivity extends FragmentActivity {
     /**
      * Listener of the media Controllers callbacks.
      */
-    private MediaControllerCompat.Callback mMediaSessionCallback = new MediaSessionCallback(this);
+    private final MediaControllerCompat.Callback mMediaSessionCallback = new MediaSessionCallback(this);
+
+    /**
+     * Control Buttons listener.
+     */
+    private final View.OnClickListener mButtonListener = new ControlsClickListener(this);
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -139,15 +142,15 @@ public class QueueActivity extends FragmentActivity {
 
         mSkipPrevious = (ImageButton) findViewById(R.id.skip_previous);
         mSkipPrevious.setEnabled(false);
-        mSkipPrevious.setOnClickListener(buttonListener);
+        mSkipPrevious.setOnClickListener(mButtonListener);
 
         mSkipNext = (ImageButton) findViewById(R.id.skip_next);
         mSkipNext.setEnabled(false);
-        mSkipNext.setOnClickListener(buttonListener);
+        mSkipNext.setOnClickListener(mButtonListener);
 
         mPlayPause = (ImageButton) findViewById(R.id.play_pause);
         mPlayPause.setEnabled(true);
-        mPlayPause.setOnClickListener(buttonListener);
+        mPlayPause.setOnClickListener(mButtonListener);
 
         mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
 
@@ -165,22 +168,40 @@ public class QueueActivity extends FragmentActivity {
         // Set listeners
         listView.setOnItemClickListener((parent, view, position, id) -> {
             final MediaSessionCompat.QueueItem item = mQueueAdapter.getItem(position);
+            if (item == null) {
+                AppLogger.w(CLASS_NAME + " clicked item is null");
+                return;
+            }
+
+            mListFirstVisiblePosition = listView.getFirstVisiblePosition();
+            AppLogger.d(
+                    CLASS_NAME
+                            + " 1st visible pos (after click) is "
+                            + mListFirstVisiblePosition
+            );
+
             mTransportControls.skipToQueueItem(item.getQueueId());
             view.setSelected(true);
         });
         listView.setOnScrollListener(
                 new AbsListView.OnScrollListener() {
                     @Override
-                    public void onScrollStateChanged(AbsListView view, int scrollState) {
-                        if (scrollState == SCROLL_STATE_IDLE) {
+                    public void onScrollStateChanged(final AbsListView view, final int scrollState) {
+                        if (scrollState == SCROLL_STATE_IDLE
+                                || scrollState == SCROLL_STATE_TOUCH_SCROLL) {
                             return;
                         }
                         mListFirstVisiblePosition = listView.getFirstVisiblePosition();
+                        AppLogger.d(
+                                CLASS_NAME
+                                        + " 1st visible pos (after scroll) is "
+                                        + mListFirstVisiblePosition
+                        );
                     }
 
                     @Override
-                    public void onScroll(AbsListView view, int firstVisibleItem,
-                                         int visibleItemCount, int totalItemCount) {
+                    public void onScroll(final AbsListView view, final int firstVisibleItem,
+                                         final int visibleItemCount, final int totalItemCount) {
 
                     }
                 }
@@ -220,7 +241,7 @@ public class QueueActivity extends FragmentActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(final Bundle outState) {
 
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.queue_list_view);
@@ -274,6 +295,7 @@ public class QueueActivity extends FragmentActivity {
         }
         // Restore List's position
         mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
+        AppLogger.d(CLASS_NAME + " 1st visible pos (after restore) is " + mListFirstVisiblePosition);
     }
 
     /**
@@ -321,11 +343,6 @@ public class QueueActivity extends FragmentActivity {
                 hideProgressBar();
                 statusBuilder.append("playing");
                 enablePlay = false;
-
-                if (mListFirstVisiblePosition == 0) {
-                    mListFirstVisiblePosition = mQueueAdapter.getActivePosition();
-                }
-
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
                 statusBuilder.append("paused");
@@ -342,11 +359,6 @@ public class QueueActivity extends FragmentActivity {
             case PlaybackStateCompat.STATE_BUFFERING:
                 showProgressBar();
                 statusBuilder.append("buffering");
-
-                if (mListFirstVisiblePosition == 0) {
-                    mListFirstVisiblePosition = mQueueAdapter.getActivePosition();
-                }
-
                 break;
             case PlaybackStateCompat.STATE_NONE:
                 hideProgressBar();
@@ -382,35 +394,6 @@ public class QueueActivity extends FragmentActivity {
     }
 
     /**
-     * Control Buttons listeners
-     */
-    private final View.OnClickListener buttonListener = view -> {
-        final int state
-                = mPlaybackState == null
-                ? PlaybackStateCompat.STATE_NONE : mPlaybackState.getState();
-
-        switch (view.getId()) {
-            case R.id.play_pause:
-                AppLogger.d(CLASS_NAME + " Play button pressed, in state " + state);
-                if (state == PlaybackStateCompat.STATE_PAUSED
-                        || state == PlaybackStateCompat.STATE_STOPPED
-                        || state == PlaybackStateCompat.STATE_NONE) {
-                    playMedia();
-                } else if (state == PlaybackStateCompat.STATE_PLAYING) {
-                    pauseMedia();
-                }
-                break;
-            case R.id.skip_previous:
-                AppLogger.d(CLASS_NAME + " Start button pressed, in state " + state);
-                skipToPrevious();
-                break;
-            case R.id.skip_next:
-                skipToNext();
-                break;
-        }
-    };
-
-    /**
      * Play media handler
      */
     private void playMedia() {
@@ -434,8 +417,14 @@ public class QueueActivity extends FragmentActivity {
      * Skip to previous handler
      */
     private void skipToPrevious() {
-        if (mTransportControls != null) {
-            mTransportControls.skipToPrevious();
+        if (mTransportControls == null) {
+            return;
+        }
+        mTransportControls.skipToPrevious();
+
+        mListFirstVisiblePosition--;
+        if (mListFirstVisiblePosition < 0) {
+            mListFirstVisiblePosition = 0;
         }
     }
 
@@ -447,6 +436,11 @@ public class QueueActivity extends FragmentActivity {
             return;
         }
         mTransportControls.skipToNext();
+
+        mListFirstVisiblePosition++;
+        if (mListFirstVisiblePosition > mQueueAdapter.getCount()) {
+            mListFirstVisiblePosition = mQueueAdapter.getCount();
+        }
     }
 
     /**
@@ -625,7 +619,7 @@ public class QueueActivity extends FragmentActivity {
 
             if (queue != null) {
 
-                // If the ie no first visible position restored, try to get selected id from the
+                // If the is no first visible position restored, try to get selected id from the
                 // bundles of the Intent.
 
                 if (activity.mListFirstVisiblePosition == 0) {
@@ -644,6 +638,7 @@ public class QueueActivity extends FragmentActivity {
                         }
                         if (mediaId.equals(selectedMediaId)) {
                             activity.mListFirstVisiblePosition = i;
+                            AppLogger.d(CLASS_NAME + " 1st visible pos (after connected) is " + i);
                             break;
                         }
                     }
@@ -675,6 +670,60 @@ public class QueueActivity extends FragmentActivity {
             activity.mTransportControls = null;
             activity.mMediaController = null;
             activity.setSupportMediaController(null);
+        }
+    }
+
+    /**
+     * Listener for the media controls (previous, play|pause, next).
+     */
+    private static final class ControlsClickListener implements View.OnClickListener {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<QueueActivity> mReference;
+
+        /**
+         * Constructor
+         *
+         * @param reference Reference to the Activity.
+         */
+        private ControlsClickListener(final QueueActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onClick(final View view) {
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            final int state
+                    = activity.mPlaybackState == null
+                    ? PlaybackStateCompat.STATE_NONE : activity.mPlaybackState.getState();
+
+            switch (view.getId()) {
+                case R.id.play_pause:
+                    AppLogger.d(CLASS_NAME + " Play|Pause button pressed, state " + state);
+                    if (state == PlaybackStateCompat.STATE_PAUSED
+                            || state == PlaybackStateCompat.STATE_STOPPED
+                            || state == PlaybackStateCompat.STATE_NONE) {
+                        activity.playMedia();
+                    } else if (state == PlaybackStateCompat.STATE_PLAYING) {
+                        activity.pauseMedia();
+                    }
+                    break;
+                case R.id.skip_previous:
+                    AppLogger.d(CLASS_NAME + " Previous button pressed, state " + state);
+                    activity.skipToPrevious();
+                    break;
+                case R.id.skip_next:
+                    AppLogger.d(CLASS_NAME + " Next button pressed, state " + state);
+                    activity.skipToNext();
+                    break;
+            }
         }
     }
 }
