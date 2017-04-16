@@ -1,12 +1,5 @@
 package com.yuriy.openradio.utils;
 
-/**
- * Created by Yuriy Chernyshov
- * At Android Studio
- * On 1/25/16
- * E-Mail: chernyshov.yuriy@gmail.com
- */
-
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -17,6 +10,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Created by Yuriy Chernyshov
+ * At Android Studio
+ * On 1/25/16
+ * E-Mail: chernyshov.yuriy@gmail.com
+ *
  * Helper class to check whether Radio Station's stream URL is provide 200 OK response.
  */
 public final class RadioStationChecker extends Thread {
@@ -33,11 +31,11 @@ public final class RadioStationChecker extends Thread {
     /**
      * Time out for the stream to decide whether there is response or not.
      */
-    private static final int CHECK_TIME = 1000;
+    private static final int CHECK_TIME = 2000;
     /**
      * Waiting max time for the thread for the initialization.
      */
-    private static final int INIT_WAIT_TIME = 1000;
+    private static final int INIT_WAIT_TIME = 2000;
     /**
      * Radio Station that is uses to check.
      */
@@ -163,5 +161,5 @@ public final class RadioStationChecker extends Thread {
             }
             reference.clear();
         }
-    };
+    }
 }

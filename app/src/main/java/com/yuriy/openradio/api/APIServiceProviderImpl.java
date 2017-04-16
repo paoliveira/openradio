@@ -26,6 +26,7 @@ import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.RadioStationChecker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,15 +37,16 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link com.yuriy.openradio.api.APIServiceProviderImpl} is the implementation of the
  * {@link com.yuriy.openradio.api.APIServiceProvider} interface.
  */
@@ -62,7 +64,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
     private static final Map<String, JSONArray> RESPONSES_MAP = new Hashtable<>();
 
     /**
-     *
+     * Key for the search "key-value" pairs.
      */
     private static final String SEARCH_PARAMETER_KEY = "query";
 
@@ -209,11 +211,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
             }
         }
 
-        /**
-         * Begin workaround section against dead Radio Stations
-         */
+        //
+        // Begin workaround section against dead Radio Stations
+        //
 
-        /*Thread checker;
+        Thread checker;
         final CountDownLatch completeLatch = new CountDownLatch(radioStations.size());
         final CountDownLatch initLatch = new CountDownLatch(1);
         final Set<String> passedUrls = new TreeSet<>();
@@ -230,7 +232,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         try {
             completeLatch.await();
         } catch (final InterruptedException e) {
-            *//* Ignore *//*
+            /* Ignore */
         }
 
         // Clear "dead" Radio Stations
@@ -252,11 +254,11 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         // Clear references
         for (int i = 0; i < checkers.length; i++) {
             checkers[i] = null;
-        }*/
+        }
 
-        /**
-         * End workaround section against dead Radio Stations
-         */
+        //
+        // End workaround section against dead Radio Stations
+        //
 
         return radioStations;
     }
