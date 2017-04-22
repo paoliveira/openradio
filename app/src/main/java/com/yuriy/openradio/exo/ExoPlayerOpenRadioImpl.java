@@ -32,7 +32,6 @@ import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
@@ -317,16 +316,14 @@ public final class ExoPlayerOpenRadioImpl {
      * @return A new DataSource factory.
      */
     private DataSource.Factory buildDataSourceFactory(@NonNull final Context context) {
-        final int timeout = 2000;
+        final int timeOut = 2000;
         return new DefaultDataSourceFactory(
                 context,
                 null,
-                new DefaultHttpDataSourceFactory(
+                new IcyHttpDataSourceFactory(
                         Util.getUserAgent(context, "OpenRadio"),
-                        null,
-                        timeout,
-                        timeout,
-                        true
+                        (metadata) -> AppLogger.d("Metadata map: " + metadata),
+                        timeOut
                 )
         );
     }

@@ -246,7 +246,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
     }
 
     try {
-      inputStream = connection.getInputStream();
+      inputStream = getInputStream(connection);
     } catch (IOException e) {
       closeConnectionQuietly();
       throw new HttpDataSourceException(e, dataSpec, HttpDataSourceException.TYPE_OPEN);
@@ -258,6 +258,14 @@ public class DefaultHttpDataSource implements HttpDataSource {
     }
 
     return bytesToRead;
+  }
+
+  /**
+   * Gets the input stream from the connection.
+   *
+   */
+  protected InputStream getInputStream(final HttpURLConnection connection ) throws IOException {
+    return connection.getInputStream();
   }
 
   @Override
