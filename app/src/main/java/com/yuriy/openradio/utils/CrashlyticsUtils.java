@@ -25,9 +25,7 @@ import io.fabric.sdk.android.Fabric;
  * At Android Studio
  * On 7/26/16
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  *  A helper class designed to assist with API Crashlytics provided.
  */
 public final class CrashlyticsUtils {

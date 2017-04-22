@@ -23,6 +23,7 @@ package com.yuriy.openradio.exo;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -159,6 +160,7 @@ final class IcyInputStream extends FilterInputStream {
             metadataString = new String(mBuffer, 0, size, mCharacterEncoding);
         } catch (final Exception e) {
             AppLogger.e(CLASS_NAME + " Cannot convert bytes to String:" + e);
+            CrashlyticsUtils.logException(e);
             return;
         }
 
