@@ -152,8 +152,9 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Main constructor.
      *
-     * @param context  Application context.
-     * @param listener Listener for the wrapper's events.
+     * @param context                Application context.
+     * @param listener               Listener for the wrapper's events.
+     * @param icyInputStreamListener ICY listener for the stream events.
      */
     public ExoPlayerOpenRadioImpl(@NonNull final Context context,
                                   @NonNull final Listener listener,
