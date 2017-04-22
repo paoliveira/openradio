@@ -251,11 +251,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private boolean mIsAndroidAuto = false;
 
     /**
-     * Holds Title of the current Stream.
-     */
-    private String mCurrentStreamTitle = "";
-
-    /**
      *
      */
     private enum AudioFocus {
@@ -804,8 +799,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         if (TextUtils.isEmpty(streamTitle)) {
                             return;
                         }
-                        mCurrentStreamTitle = streamTitle;
-                        updateMetadata();
+                        updateMetadata(streamTitle);
                     }
             );
 
@@ -932,7 +926,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Updates Metadata for the currently playing Radio Station. This method terminates without
      * throwing exception if one of the stream parameters is invalid.
      */
-    private void updateMetadata() {
+    private void updateMetadata(final String streamTitle) {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             AppLogger.e(CLASS_NAME + " Can't retrieve current metadata.");
             mState = PlaybackStateCompat.STATE_ERROR;
@@ -962,7 +956,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation,
-                mCurrentStreamTitle
+                streamTitle
         );
         if (track == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaMetadata is null");
@@ -975,7 +969,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         AppLogger.d(
                 CLASS_NAME +
-                " Updating metadata for MusicId:" + mediaId + ", title:" + mCurrentStreamTitle
+                " Updating metadata for MusicId:" + mediaId + ", title:" + streamTitle
         );
         mSession.setMetadata(track);
     }
@@ -1099,7 +1093,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.mWifiLock.acquire();
 
             service.updatePlaybackState(null);
-            service.updateMetadata();
         }
     }
 
