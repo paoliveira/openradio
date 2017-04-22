@@ -156,7 +156,8 @@ public final class ExoPlayerOpenRadioImpl {
      * @param listener Listener for the wrapper's events.
      */
     public ExoPlayerOpenRadioImpl(@NonNull final Context context,
-                                  @NonNull final Listener listener) {
+                                  @NonNull final Listener listener,
+                                  @NonNull final IcyInputStreamListener icyInputStreamListener) {
         super();
 
         mMainHandler = new Handler();
@@ -165,7 +166,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         final MappingTrackSelector trackSelector = new DefaultTrackSelector();
         mEventLogger = new EventLogger(trackSelector);
-        mMediaDataSourceFactory = buildDataSourceFactory(context);
+        mMediaDataSourceFactory = buildDataSourceFactory(context, icyInputStreamListener);
 
         final List<Renderer> renderersList = new ArrayList<>();
         buildRenderers(context, mMainHandler, renderersList);
@@ -331,14 +332,15 @@ public final class ExoPlayerOpenRadioImpl {
      *
      * @return A new DataSource factory.
      */
-    private DataSource.Factory buildDataSourceFactory(@NonNull final Context context) {
+    private DataSource.Factory buildDataSourceFactory(@NonNull final Context context,
+                                                      @NonNull final IcyInputStreamListener icyInputStreamListener) {
         final int timeOut = 2000;
         return new DefaultDataSourceFactory(
                 context,
                 null,
                 new IcyHttpDataSourceFactory(
                         Util.getUserAgent(context, "OpenRadio"),
-                        (metadata) -> AppLogger.d("Metadata map: " + metadata),
+                        icyInputStreamListener,
                         timeOut
                 )
         );

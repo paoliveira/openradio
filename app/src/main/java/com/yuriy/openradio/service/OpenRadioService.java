@@ -282,11 +282,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private final Handler mDelayedStopHandler = new DelayedStopHandler(this);
 
     /**
-     * Handler to manage messages from the Retrieval metadata service.
-     */
-    private final Handler mMetadataRetrievalHandler = new MetadataRetrievalHandler(this);
-
-    /**
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
     private final Map<String, MediaItemCommand> mMediaItemCommands = new HashMap<>();
@@ -296,46 +291,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private final RadioStationUpdateListener mRadioStationUpdateListener
             = new RadioStationUpdateListenerImpl(this);
-
-    /**
-     * Handler to receive messages from the {@link MetadataRetrievalService}.
-     */
-    private static class MetadataRetrievalHandler extends Handler {
-
-        /**
-         * The reference to the {@link OpenRadioService}.
-         */
-        private final WeakReference<OpenRadioService> mReference;
-
-        /**
-         * Constructor.
-         *
-         * @param reference The reference to the {@link OpenRadioService}.
-         */
-        private MetadataRetrievalHandler(final OpenRadioService reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void handleMessage(final Message message) {
-            super.handleMessage(message);
-
-            if (!MetadataRetrievalService.isMetadataResponse(message)) {
-                AppLogger.w(CLASS_NAME + " No metadata in the response message");
-                return;
-            }
-
-            final OpenRadioService service = mReference.get();
-            if (service == null) {
-                return;
-            }
-
-            service.mCurrentStreamTitle = MetadataRetrievalService.getStreamTitle(message);
-
-            service.updateMetadata();
-        }
-    }
 
     /**
      *
@@ -840,7 +795,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mExoPlayer == null) {
             AppLogger.d(CLASS_NAME + " Create MediaPlayer");
 
-            mExoPlayer = new ExoPlayerOpenRadioImpl(getApplicationContext(), mListener);
+            mExoPlayer = new ExoPlayerOpenRadioImpl(
+                    getApplicationContext(),
+                    mListener,
+                    metadata -> {
+                        AppLogger.d("Metadata map:" + metadata);
+                        final String streamTitle = metadata.get("StreamTitle");
+                        if (TextUtils.isEmpty(streamTitle)) {
+                            return;
+                        }
+                        mCurrentStreamTitle = streamTitle;
+                        updateMetadata();
+                    }
+            );
 
             // Make sure the media player will acquire a wake-lock while
             // playing. If we don't do that, the CPU might go to sleep while the
@@ -1064,9 +1031,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mSession.setActive(true);
         }
 
-        // Start Metadata retrieving service
-        startMetadataRetrieving();
-
         // actually play the song
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             // If we're paused, just continue playback and restore the
@@ -1076,26 +1040,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing
             getCurrentPlayingRadioStationAsync(mRadioStationUpdateListener);
-        }
-    }
-
-    /**
-     * Send command to the Retrieving service in order to start retrieve metadata.
-     */
-    private void startMetadataRetrieving() {
-        // Clear current stream title
-        mCurrentStreamTitle = "";
-        // get current Radio Station
-        final RadioStationVO currentRadioStation = getCurrentPlayingRadioStation();
-        // Only is there is known current Radio Station
-        if (currentRadioStation != null) {
-            startService(
-                    MetadataRetrievalService.getStartRetrievalIntent(
-                            getApplicationContext(),
-                            mMetadataRetrievalHandler,
-                            currentRadioStation.getStreamURL()
-                    )
-            );
         }
     }
 
@@ -1156,9 +1100,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             service.updatePlaybackState(null);
             service.updateMetadata();
-
-            // Start Metadata retrieving service
-            service.startMetadataRetrieving();
         }
     }
 
@@ -1221,8 +1162,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             giveUpAudioFocus();
         }
         updatePlaybackState(null);
-
-        startService(MetadataRetrievalService.getStopRetrievalIntent(getApplicationContext()));
     }
 
     /**
@@ -1343,7 +1282,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handleStopRequest(final String withError) {
         AppLogger.d(CLASS_NAME + " Handle stop request: state=" + mState + " error=" + withError);
 
-        startService(MetadataRetrievalService.getStopRetrievalIntent(getApplicationContext()));
         mState = PlaybackStateCompat.STATE_STOPPED;
 
         // let go of all resources...

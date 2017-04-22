@@ -21,7 +21,7 @@ import java.util.Map;
 /**
  * Callback from player to GUI.
  */
-interface IcyInputStreamListener {
+public interface IcyInputStreamListener {
 
     /**
      * This method is called when the stream receives a metadata information.
