@@ -26,13 +26,18 @@ import org.json.JSONObject;
  * At Android Studio
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link RadioStationJSONSerializer} is implementation of the {@link RadioStationSerializer}
  * interface that serialize {@link RadioStationVO} into JSON's String.
  */
 public final class RadioStationJSONSerializer implements RadioStationSerializer {
+
+    /**
+     * Default constructor.
+     */
+    public RadioStationJSONSerializer() {
+        super();
+    }
 
     @Override
     public final String serialize(final RadioStationVO radioStation) {

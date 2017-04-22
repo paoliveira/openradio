@@ -21,9 +21,7 @@ package com.yuriy.openradio.business;
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link JSONDataParserImpl} is the implementation of {@link DataParser} that designed to parse
  * input into JSON format.
  *

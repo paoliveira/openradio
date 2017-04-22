@@ -33,7 +33,7 @@ import java.util.TreeMap;
 /**
  * This is an InputStream which allows to fetch Icecast/Shoutcast metadata from.
  */
-public final class IcyInputStream extends FilterInputStream {
+final class IcyInputStream extends FilterInputStream {
 
     private static final String CLASS_NAME = IcyInputStream.class.getSimpleName();
 
@@ -79,7 +79,7 @@ public final class IcyInputStream extends FilterInputStream {
      * @param characterEncoding      The encoding used for metadata strings - may be null,
      *                               default is UTF-8.
      */
-    public IcyInputStream(final InputStream inputStream,
+    IcyInputStream(final InputStream inputStream,
                           final int period,
                           final IcyInputStreamListener icyInputStreamListener,
                           final String characterEncoding) {

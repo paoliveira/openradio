@@ -23,9 +23,7 @@ import com.yuriy.openradio.api.RadioStationVO;
  * At Android Studio
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link RadioStationSerializer} is an interface that provides common method to serialize
  * {@link RadioStationVO}.
  */

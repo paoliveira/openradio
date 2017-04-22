@@ -24,9 +24,7 @@ import android.content.SharedPreferences;
  * At Android Studio
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link AppPreferencesManager} is a class that provides access and manage of the
  * Application's Shared Preferences.
  */
