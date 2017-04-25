@@ -193,7 +193,7 @@ public final class MediaItemHelper {
         //final int totalTrackCount = radioStation.getInt(JSON_TOTAL_TRACK_COUNT);
         //final int duration = radioStation.getInt(JSON_DURATION) * 1000; // ms
         final String id = String.valueOf(radioStation.getId());
-        String subTitle = streamTitle;
+        String subTitle = TextUtils.isEmpty(streamTitle) ? radioStation.getCountry() : streamTitle;
         if (TextUtils.isEmpty(subTitle)) {
             subTitle = artist;
         }

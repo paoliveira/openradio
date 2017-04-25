@@ -223,27 +223,27 @@ public final class AppLogger {
         if (sIsLoggingEnabled) {
             logger.error(logMsg);
         }
-        Log.e(LOG_TAG, logMsg);
+        Log.e(LOG_TAG, "Thread:" + Thread.currentThread().getName() + " " + logMsg);
     }
 
     public static void w(final String logMsg) {
         if (sIsLoggingEnabled) {
             logger.warn(logMsg);
         }
-        Log.w(LOG_TAG, logMsg);
+        Log.w(LOG_TAG, "Thread:" + Thread.currentThread().getName() + " " + logMsg);
     }
 
     public static void i(final String logMsg) {
         if (sIsLoggingEnabled) {
             logger.info(logMsg);
         }
-        Log.i(LOG_TAG, logMsg);
+        Log.i(LOG_TAG, "Thread:" + Thread.currentThread().getName() + " " + logMsg);
     }
 
     public static void d(final String logMsg) {
         if (sIsLoggingEnabled) {
             logger.debug(logMsg);
         }
-        Log.d(LOG_TAG, logMsg);
+        Log.d(LOG_TAG, "Thread:" + Thread.currentThread().getName() + " " + logMsg);
     }
 }

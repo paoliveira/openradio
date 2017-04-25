@@ -97,7 +97,7 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Instance of the ExoPlayer.
      */
-    private final ExoPlayer mPlayer;
+    private final ExoPlayer mExoPlayer;
 
     /**
      * Handler for the ExoPlayer to handle events.
@@ -183,8 +183,8 @@ public final class ExoPlayerOpenRadioImpl {
         }
         mAudioRendererCount = audioRendererCount;
 
-        mPlayer = new ExoPlayerImpl(mRenderers, trackSelector, new DefaultLoadControl());
-        mPlayer.addListener(mComponentListener);
+        mExoPlayer = new ExoPlayerImpl(mRenderers, trackSelector, new DefaultLoadControl());
+        mExoPlayer.addListener(mComponentListener);
     }
 
     /**
@@ -201,8 +201,8 @@ public final class ExoPlayerOpenRadioImpl {
                 mMainHandler, mEventLogger
         );
 
-        mPlayer.prepare(mMediaSource);
-        mPlayer.setPlayWhenReady(true);
+        mExoPlayer.prepare(mMediaSource);
+        mExoPlayer.setPlayWhenReady(true);
 
         stayAwake(true);
     }
@@ -224,7 +224,7 @@ public final class ExoPlayerOpenRadioImpl {
                 );
             }
         }
-        mPlayer.sendMessages(messages);
+        mExoPlayer.sendMessages(messages);
     }
 
     /**
@@ -240,8 +240,8 @@ public final class ExoPlayerOpenRadioImpl {
      */
     public void pause() {
         AppLogger.d(LOG_TAG + " pause");
-        mPlayer.stop();
-        mPlayer.setPlayWhenReady(false);
+        mExoPlayer.stop();
+        mExoPlayer.setPlayWhenReady(false);
 
         stayAwake(false);
     }
@@ -252,7 +252,7 @@ public final class ExoPlayerOpenRadioImpl {
      * @return {@code true} in case of current stream is playing, {@code false} otherwise.
      */
     public boolean isPlaying() {
-        final boolean isPlaying = (mPlayer != null && mPlayer.getPlayWhenReady());
+        final boolean isPlaying = (mExoPlayer != null && mExoPlayer.getPlayWhenReady());
         AppLogger.d(LOG_TAG + " is playing:" + isPlaying);
         return isPlaying;
     }
@@ -263,7 +263,7 @@ public final class ExoPlayerOpenRadioImpl {
     public void reset() {
         AppLogger.d(LOG_TAG + " reset");
         stayAwake(false);
-        mPlayer.stop();
+        mExoPlayer.stop();
         mMediaSource.releaseSource();
     }
 
@@ -272,7 +272,7 @@ public final class ExoPlayerOpenRadioImpl {
      */
     public void release() {
         reset();
-        mPlayer.release();
+        mExoPlayer.release();
     }
 
     /**
@@ -365,7 +365,7 @@ public final class ExoPlayerOpenRadioImpl {
     public void setWakeMode(final Context context, int mode) {
         boolean washeld = false;
 
-        /* Disable persistant wakelocks in media mPlayer based on property */
+        /* Disable persistant wakelocks in media ExoPlayer based on property */
 //        if (SystemProperties.getBoolean("audio.offload.ignore_setawake", false) == true) {
 //            Log.w(TAG, "IGNORING setWakeMode " + mode);
 //            return;

@@ -215,7 +215,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         // Begin workaround section against dead Radio Stations
         //
 
-        Thread checker;
+        /*Thread checker;
         final CountDownLatch completeLatch = new CountDownLatch(radioStations.size());
         final CountDownLatch initLatch = new CountDownLatch(1);
         final Set<String> passedUrls = new TreeSet<>();
@@ -232,7 +232,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         try {
             completeLatch.await();
         } catch (final InterruptedException e) {
-            /* Ignore */
+            *//* Ignore *//*
         }
 
         // Clear "dead" Radio Stations
@@ -254,7 +254,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         // Clear references
         for (int i = 0; i < checkers.length; i++) {
             checkers[i] = null;
-        }
+        }*/
 
         //
         // End workaround section against dead Radio Stations

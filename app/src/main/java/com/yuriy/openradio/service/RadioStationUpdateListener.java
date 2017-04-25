@@ -23,9 +23,7 @@ import android.support.v4.media.MediaMetadataCompat;
  * At Android Studio
  * On 5/8/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link RadioStationUpdateListener} is an interface provided response for the Radio Station
  * update procedure.
  */

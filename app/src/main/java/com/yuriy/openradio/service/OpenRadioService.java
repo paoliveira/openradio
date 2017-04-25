@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
@@ -485,22 +486,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     @Override
     public final void onDestroy() {
+        AppLogger.d(CLASS_NAME + " On Destroy");
         super.onDestroy();
 
-        AppLogger.d(CLASS_NAME + " On Destroy");
-
-        // Service is being killed, so make sure we release our resources
-        handleStopRequest(null);
-
-        mDelayedStopHandler.removeCallbacksAndMessages(null);
-        // In particular, always release the MediaSession to clean up resources
-        // and notify associated MediaController(s).
-        mSession.release();
-
-        if (mExoPlayer != null) {
-            mExoPlayer.release();
-            mExoPlayer = null;
-        }
+        stopService();
     }
 
     @Override
@@ -573,7 +562,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void onCompletion() {
-        AppLogger.i(CLASS_NAME + " On MediaPlayer completion");
+        AppLogger.i(CLASS_NAME + " On ExoPlayer completion");
 
         // The media player finished playing the current song, so we go ahead
         // and start the next.
@@ -592,12 +581,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void onError(final ExoPlaybackException error) {
-        AppLogger.e(CLASS_NAME + " MediaPlayer error:" + error);
+        AppLogger.e(CLASS_NAME + " ExoPlayer error:" + error);
         handleStopRequest(getString(R.string.media_player_error));
     }
 
     private void onPrepared() {
-        AppLogger.i(CLASS_NAME + " MediaPlayer prepared");
+        AppLogger.i(CLASS_NAME + " ExoPlayer prepared");
 
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
@@ -759,6 +748,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         return isFavorite;
     }
 
+    private void stopService() {
+        AppLogger.d(CLASS_NAME + " stop Service");
+        // Service is being killed, so make sure we release our resources
+        handleStopRequest(null);
+
+        mDelayedStopHandler.removeCallbacksAndMessages(null);
+        // In particular, always release the MediaSession to clean up resources
+        // and notify associated MediaController(s).
+        mSession.release();
+
+        if (mExoPlayer != null) {
+            mExoPlayer.release();
+            mExoPlayer = null;
+        }
+    }
+
     /**
      * Extract {@link #EXTRA_KEY_IS_FAVORITE} value from the {@link Intent}.
      *
@@ -788,16 +793,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void createMediaPlayerIfNeeded() {
         if (mExoPlayer == null) {
-            AppLogger.d(CLASS_NAME + " Create MediaPlayer");
+            AppLogger.d(CLASS_NAME + " Create ExoPlayer");
 
             mExoPlayer = new ExoPlayerOpenRadioImpl(
                     getApplicationContext(),
                     mListener,
                     metadata -> {
                         AppLogger.d("Metadata map:" + metadata);
-                        final String streamTitle = metadata.get("StreamTitle");
+                        String streamTitle = metadata.get("StreamTitle");
                         if (TextUtils.isEmpty(streamTitle)) {
-                            return;
+                            streamTitle = "";
                         }
                         updateMetadata(streamTitle);
                     }
@@ -807,8 +812,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // playing. If we don't do that, the CPU might go to sleep while the
             // song is playing, causing playback to stop.
             mExoPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+
+            AppLogger.d(CLASS_NAME + " ExoPlayer prepared");
         } else {
-            AppLogger.d(CLASS_NAME + " Reset MediaPlayer");
+            AppLogger.d(CLASS_NAME + " Reset ExoPlayer");
 
             mExoPlayer.reset();
         }
@@ -928,7 +935,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void updateMetadata(final String streamTitle) {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
-            AppLogger.e(CLASS_NAME + " Can't retrieve current metadata.");
+            AppLogger.e(CLASS_NAME + " Can't retrieve current metadata, curIndx:" + mCurrentIndexOnQueue + " queueSize:" + mPlayingQueue.size());
             mState = PlaybackStateCompat.STATE_ERROR;
             updatePlaybackState(getString(R.string.no_metadata));
             return;
@@ -976,7 +983,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     /**
      * Releases resources used by the service for playback. This includes the
-     * "foreground service" status, the wake locks and possibly the MediaPlayer.
+     * "foreground service" status, the wake locks and possibly the ExoPlayer.
      *
      * @param releaseMediaPlayer Indicates whether the Media Player should also
      *                           be released or not
@@ -1078,7 +1085,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             service.mState = PlaybackStateCompat.STATE_STOPPED;
 
-            // release everything except MediaPlayer
+            // release everything except ExoPlayer
             service.relaxResources(false);
 
             service.createMediaPlayerIfNeeded();
@@ -1097,11 +1104,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Reconfigures MediaPlayer according to audio focus settings and
-     * starts/restarts it. This method starts/restarts the MediaPlayer
+     * Reconfigures ExoPlayer according to audio focus settings and
+     * starts/restarts it. This method starts/restarts the ExoPlayer
      * respecting the current audio focus state. So if we have focus, it will
      * play normally; if we don't have focus, it will either leave the
-     * MediaPlayer paused or set it to a low volume, depending on what is
+     * ExoPlayer paused or set it to a low volume, depending on what is
      * allowed by the current focus settings. This method assumes mPlayer !=
      * null, so if you are calling it, you have to do so from a context where
      * you are sure this is the case.
@@ -1150,7 +1157,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (mExoPlayer.isPlaying()) {
                 mExoPlayer.pause();
             }
-            // while paused, retain the MediaPlayer but give up audio focus
+            // while paused, retain the ExoPlayer but give up audio focus
             relaxResources(false);
             giveUpAudioFocus();
         }
@@ -1664,7 +1671,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     // immediately start playing from the beginning of the search results
                     mCurrentIndexOnQueue = 0;
 
-                    handlePlayRequest();
+                    final Handler uiHandler = new Handler(Looper.getMainLooper());
+                    uiHandler.post(
+                            this::handlePlayRequest
+                    );
                 }
         );
     }
