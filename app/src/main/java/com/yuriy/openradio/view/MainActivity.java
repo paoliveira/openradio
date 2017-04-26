@@ -73,9 +73,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Author: Chernyshov Yuriy - Mobile Development
  * Date: 19.12.14
  * Time: 15:13
- */
-
-/**
+ *
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
 public final class MainActivity extends AppCompatActivity {
@@ -620,11 +618,11 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onLocationDisabled() {
-            if (AppPreferencesManager.isLocationDialogShown()) {
-                return;
-            }
             final MainActivity reference = mReference.get();
             if (reference == null) {
+                return;
+            }
+            if (AppPreferencesManager.isLocationDialogShown(reference.getApplicationContext())) {
                 return;
             }
 
@@ -639,7 +637,7 @@ public final class MainActivity extends AppCompatActivity {
             useLocationServiceDialog.setCancelable(false);
             useLocationServiceDialog.show(reference.getFragmentManager(), UseLocationDialog.DIALOG_TAG);
 
-            AppPreferencesManager.setIsLocationDialogShown(true);
+            AppPreferencesManager.setLocationDialogShown(reference.getApplicationContext(), true);
         }
 
         @Override
@@ -829,9 +827,7 @@ public final class MainActivity extends AppCompatActivity {
 
             activity.mBrowserAdapter.clear();
             activity.mBrowserAdapter.notifyDataSetInvalidated();
-            for (final MediaBrowserCompat.MediaItem item : children) {
-                activity.mBrowserAdapter.addItem(item);
-            }
+            activity.mBrowserAdapter.addAll(children);
             activity.mBrowserAdapter.notifyDataSetChanged();
 
             if (children.isEmpty()) {

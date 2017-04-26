@@ -16,8 +16,11 @@
 
 package com.yuriy.openradio.view.list;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -27,57 +30,62 @@ import java.util.List;
  * On 11/29/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class ListAdapterData<T> implements Serializable {
+final class ListAdapterData<T> implements Serializable {
 
+    /**
+     * Collection of the data items.
+     */
     private final List<T> mItems;
 
     /**
-     * Constructor
-     * @param comparator {@link java.util.Comparator} to implement sorting
+     * {@link java.util.Comparator} to implement sorting.
      */
-    public ListAdapterData(Comparator<T> comparator) {
-        if (comparator != null) {
-            // TODO: Implement sorting algorithm here
-            mItems = new ArrayList<>();
-        } else {
-            mItems = new ArrayList<>();
-        }
+    @NonNull
+    private final Comparator<T> mComparator;
+
+    /**
+     * Main constructor.
+     *
+     * @param comparator {@link java.util.Comparator} to implement sorting.
+     */
+    ListAdapterData(@NonNull final Comparator<T> comparator) {
+        super();
+        mComparator = comparator;
+        mItems = new ArrayList<>();
+        Collections.sort(mItems, mComparator);
     }
 
     /**
-     * Add item to the adapter
-     * @param item item
+     * Add items to the adapter.
+     *
+     * @param items The items to add to collection.
      */
-    public void addItem(T item) {
-        mItems.add(item);
+    public void addAll(final List<T> items) {
+        mItems.addAll(items);
+        Collections.sort(mItems, mComparator);
     }
 
     /**
-     * Get item at the specified position
-     * @param position position of the item
-     * @return item at the specified position
+     * Get item at the specified position.
+     *
+     * @param position The position of the item.
+     * @return item at the specified position.
      */
-    public T getItem(int position) {
+    public T getItem(final int position) {
         return mItems.get(position);
     }
 
     /**
-     * @return an array of the items
-     */
-    public List<T> getItems() {
-        return mItems;
-    }
-
-    /**
-     * Get the count of the items in the collection
-     * @return count of the items in the collection
+     * Get the count of the items in the collection.
+     *
+     * @return The count of the items in the collection.
      */
     public int getItemsCount() {
         return mItems.size();
     }
 
     /**
-     * Clear collection of items
+     * Clear collection of items.
      */
     public void clear() {
         mItems.clear();

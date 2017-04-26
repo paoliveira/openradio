@@ -18,6 +18,7 @@ package com.yuriy.openradio.business;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 /**
  * Created by Yuriy Chernyshov
@@ -28,7 +29,7 @@ import android.content.SharedPreferences;
  * {@link AppPreferencesManager} is a class that provides access and manage of the
  * Application's Shared Preferences.
  */
-public class AppPreferencesManager {
+public final class AppPreferencesManager {
 
     /**
      * Name of the Preferences.
@@ -46,24 +47,17 @@ public class AppPreferencesManager {
     private static final String PREFS_KEY_ARE_LOGS_ENABLED = "IS_LOGS_ENABLED";
 
     /**
-     * Application's Context.
+     * Default constructor.
      */
-    private static Context sContext;
-
-    /**
-     * Set Application's context.
-     *
-     * @param context Application's context.
-     */
-    public static void setContext(Context context) {
-        sContext = context;
+    private AppPreferencesManager() {
+        super();
     }
 
     /**
      * @return True if "Enable Location service" dialog has been shown. False - otherwise.
      */
-    public static boolean isLocationDialogShown() {
-        return getSharedPreferences().getBoolean(
+    public static boolean isLocationDialogShown(@NonNull final Context context) {
+        return getSharedPreferences(context).getBoolean(
                 PREFS_KEY_IS_LOCATION_DIALOG_SHOWN,
                 false
         );
@@ -74,8 +68,9 @@ public class AppPreferencesManager {
      *
      * @param value Boolean value.
      */
-    public static void setIsLocationDialogShown(final boolean value) {
-        final SharedPreferences.Editor editor = getEditor();
+    public static void setLocationDialogShown(@NonNull final Context context,
+                                              final boolean value) {
+        final SharedPreferences.Editor editor = getEditor(context);
         editor.putBoolean(PREFS_KEY_IS_LOCATION_DIALOG_SHOWN, value);
         editor.apply();
     }
@@ -83,8 +78,8 @@ public class AppPreferencesManager {
     /**
      * @return True if it is allowed to save logs into a file. False - otherwise.
      */
-    public static boolean areLogsEnabled() {
-        return getSharedPreferences().getBoolean(
+    public static boolean areLogsEnabled(@NonNull final Context context) {
+        return getSharedPreferences(context).getBoolean(
                 PREFS_KEY_ARE_LOGS_ENABLED,
                 false
         );
@@ -95,8 +90,9 @@ public class AppPreferencesManager {
      *
      * @param value Boolean value.
      */
-    public static void setAreLogsEnabled(final boolean value) {
-        final SharedPreferences.Editor editor = getEditor();
+    public static void setLogsEnabled(@NonNull final Context context,
+                                      final boolean value) {
+        final SharedPreferences.Editor editor = getEditor(context);
         editor.putBoolean(PREFS_KEY_ARE_LOGS_ENABLED, value);
         editor.apply();
     }
@@ -104,14 +100,14 @@ public class AppPreferencesManager {
     /**
      * @return {@link android.content.SharedPreferences.Editor}
      */
-    private static SharedPreferences.Editor getEditor() {
-        return getSharedPreferences().edit();
+    private static SharedPreferences.Editor getEditor(@NonNull final Context context) {
+        return getSharedPreferences(context).edit();
     }
 
     /**
      * @return {@link android.content.SharedPreferences} of the Application
      */
-    private static SharedPreferences getSharedPreferences() {
-        return sContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+    private static SharedPreferences getSharedPreferences(@NonNull final Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 }

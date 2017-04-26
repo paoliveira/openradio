@@ -89,7 +89,9 @@ public class SettingsDialog extends DialogFragment {
         final TextView title = (TextView) view.findViewById(R.id.dialog_settings_title_view);
         title.setText(titleText);
 
-        final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled();
+        final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(
+                getActivity().getApplicationContext()
+        );
         final CheckBox logsEnableCheckView =
                 (CheckBox) view.findViewById(R.id.settings_dialog_enable_logs_check_view);
         logsEnableCheckView.setChecked(areLogsEnabled);
@@ -139,7 +141,7 @@ public class SettingsDialog extends DialogFragment {
         sendLogsBtn.setEnabled(isEnable);
         clearLogsBtn.setEnabled(isEnable);
 
-        AppPreferencesManager.setAreLogsEnabled(isEnable);
+        AppPreferencesManager.setLogsEnabled(getActivity().getApplicationContext(), isEnable);
         AppLogger.setIsLoggingEnabled(isEnable);
     }
 

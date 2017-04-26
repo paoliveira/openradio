@@ -33,13 +33,18 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemFavoritesList} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations from Favorites list.
  */
-public class MediaItemFavoritesList implements MediaItemCommand {
+public final class MediaItemFavoritesList implements MediaItemCommand {
+
+    /**
+     * Default constructor.
+     */
+    public MediaItemFavoritesList() {
+        super();
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -70,6 +75,7 @@ public class MediaItemFavoritesList implements MediaItemCommand {
             if (FavoritesStorage.isFavorite(radioStation, context)) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
+            MediaItemHelper.updateSortIdField(mediaItem, radioStation.getSortId());
 
             shareObject.getMediaItems().add(mediaItem);
         }

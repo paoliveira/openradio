@@ -41,9 +41,18 @@ public final class MediaItemHelper {
 
     private static final String KEY_IS_LOCAL = "KEY_IS_LOCAL";
 
+    private static final String KEY_SORT_ID = "KEY_SORT_ID";
+
     private static final String KEY_CURRENT_STREAM_TITLE = "CURRENT_STREAM_TITLE";
 
     public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
+
+    /**
+     * Default constructor.
+     */
+    private MediaItemHelper() {
+        super();
+    }
 
     /**
      * Sets key that indicates Radio Station is in favorites.
@@ -81,6 +90,19 @@ public final class MediaItemHelper {
             return;
         }
         bundle.putBoolean(KEY_IS_LOCAL, isLocal);
+    }
+
+    public static void updateSortIdField(final MediaBrowserCompat.MediaItem mediaItem,
+                                         final int sortId) {
+        if (mediaItem == null) {
+            return;
+        }
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        if (bundle == null) {
+            return;
+        }
+        bundle.putInt(KEY_SORT_ID, sortId);
     }
 
     /**
@@ -128,6 +150,18 @@ public final class MediaItemHelper {
         final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
         final Bundle bundle = mediaDescription.getExtras();
         return bundle != null && bundle.getBoolean(KEY_IS_LOCAL, false);
+    }
+
+    public static int getSortIdField(final MediaBrowserCompat.MediaItem mediaItem) {
+        if (mediaItem == null) {
+            return -1;
+        }
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        if (bundle != null) {
+            return bundle.getInt(KEY_SORT_ID, -1);
+        }
+        return -1;
     }
 
     /**

@@ -81,7 +81,7 @@ public abstract class AbstractStorage {
         final RadioStationDeserializer deserializer = new RadioStationJSONDeserializer();
         RadioStationVO radioStation;
         String value;
-        for (String key : map.keySet()) {
+        for (final String key : map.keySet()) {
             value = String.valueOf(map.get(key));
             if (value == null || value.isEmpty()) {
                 continue;

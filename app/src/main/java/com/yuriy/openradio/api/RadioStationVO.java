@@ -16,20 +16,20 @@
 
 package com.yuriy.openradio.api;
 
+import java.io.Serializable;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 12/16/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-import java.io.Serializable;
-
-/**
+ *
  * {@link com.yuriy.openradio.api.RadioStationVO} is a value object that holds information
  * about concrete Radio Station.
  */
 public final class RadioStationVO implements Serializable {
+
+    public static final int SORT_ID_UNSET = -1;
 
     private int mId;
 
@@ -65,6 +65,8 @@ public final class RadioStationVO implements Serializable {
      * Flag indicate that Radio Station has been added locally to the phone storage.
      */
     private boolean mIsLocal;
+
+    private int mSortId = SORT_ID_UNSET;
 
     /**
      * Private constructor.
@@ -170,6 +172,14 @@ public final class RadioStationVO implements Serializable {
         mIsLocal = value;
     }
 
+    public int getSortId() {
+        return mSortId;
+    }
+
+    public void setSortId(final int value) {
+        mSortId = value;
+    }
+
     @Override
     public boolean equals(final Object object) {
         if (this == object) return true;
@@ -188,19 +198,20 @@ public final class RadioStationVO implements Serializable {
 
     @Override
     public String toString() {
-        return "RadioStationVO " + hashCode() + " " + Thread.currentThread().getName() + " {" +
-                "mId=" + mId +
-                ", mStatus=" + mStatus +
-                ", mName='" + mName + '\'' +
-                ", mStreamURL='" + mStreamURL + '\'' +
-                ", mWebSite='" + mWebSite + '\'' +
-                ", mCountry='" + mCountry + '\'' +
-                ", mBitRate='" + mBitRate + '\'' +
-                ", mGenre='" + mGenre + '\'' +
-                ", mImageUrl='" + mImageUrl + '\'' +
-                ", mThumbUrl='" + mThumbUrl + '\'' +
-                ", mIsUpdated=" + mIsUpdated +
-                ", mIsLocal=" + mIsLocal +
+        return "RadioStationVO " + hashCode() + " {" +
+                "id=" + mId +
+                ", status=" + mStatus +
+                ", name='" + mName + '\'' +
+                ", streamURL='" + mStreamURL + '\'' +
+                ", webSite='" + mWebSite + '\'' +
+                ", country='" + mCountry + '\'' +
+                ", bitRate='" + mBitRate + '\'' +
+                ", genre='" + mGenre + '\'' +
+                ", imageUrl='" + mImageUrl + '\'' +
+                ", thumbUrl='" + mThumbUrl + '\'' +
+                ", isUpdated=" + mIsUpdated + '\'' +
+                ", isLocal=" + mIsLocal + '\'' +
+                ", sortId=" + mSortId +
                 '}';
     }
 

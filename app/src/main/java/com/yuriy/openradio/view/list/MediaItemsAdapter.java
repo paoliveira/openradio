@@ -35,8 +35,12 @@ import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
+
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -52,7 +56,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private ListAdapterViewHolder mViewHolder;
     private Activity mCurrentActivity;
     private ImageFetcher mImageFetcher;
-    private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData = new ListAdapterData<>(null);
+    private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
 
     /**
      * The currently selected / active Item Id.
@@ -60,12 +64,19 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private long mActiveItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
     /**
-     * Constructor.
+     * Main constructor.
      *
      * @param activity     current {@link android.app.Activity}
      * @param imageFetcher {@link ImageFetcher} instance
      */
     public MediaItemsAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
+        mAdapterData = new ListAdapterData<>(
+                (o1, o2) -> {
+                    AppLogger.d("Item1:" + MediaItemHelper.getSortIdField(o1));
+                    AppLogger.d("Item2:" + MediaItemHelper.getSortIdField(o2));
+                    return 0;
+                }
+        );
         mCurrentActivity = activity;
         mImageFetcher = imageFetcher;
     }
@@ -192,11 +203,11 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     /**
-     * Add {@link com.yuriy.openradio.api.CategoryVO} into the collection.
-     * @param value {@link com.yuriy.openradio.api.CategoryVO}
+     * Add {@link android.support.v4.media.MediaBrowserCompat.MediaItem}s into the collection.
+     * @param value {@link android.support.v4.media.MediaBrowserCompat.MediaItem}s.
      */
-    public final void addItem(final MediaBrowserCompat.MediaItem value) {
-        mAdapterData.addItem(value);
+    public final void addAll(final List<MediaBrowserCompat.MediaItem> value) {
+        mAdapterData.addAll(value);
     }
 
     /**

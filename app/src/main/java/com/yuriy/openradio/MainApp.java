@@ -45,12 +45,11 @@ public final class MainApp extends Application {
     public final void onCreate() {
         super.onCreate();
 
-        // Set application's context for the Preferences.
-        AppPreferencesManager.setContext(this);
-
         final Thread thread = new Thread(
                 () -> {
-                    final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled();
+                    final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled(
+                            getApplicationContext()
+                    );
                     AppLogger.initLogger(getApplicationContext());
                     AppLogger.setIsLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage();
