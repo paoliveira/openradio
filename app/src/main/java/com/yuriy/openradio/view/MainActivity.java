@@ -156,12 +156,12 @@ public final class MainActivity extends AppCompatActivity {
             = new MediaBrowserSubscriptionCallback(this);
 
     /**
-     *
+     * ID of the parent of current item (whether it is directory or Radio Station).
      */
     private String mCurrentParentId = "";
 
     /**
-     *
+     * ID of the parent of current item (whether it is directory or Radio Station).
      */
     private String mCurrentMediaId = "";
 
@@ -177,12 +177,37 @@ public final class MainActivity extends AppCompatActivity {
     private final AdapterView.OnItemLongClickListener mOnItemLongClickListener
             = new OnItemLongClickListener(this);
 
+    /**
+     * Guardian field to prevent UI operation after save instance passed.
+     */
     private volatile AtomicBoolean mIsOnSaveInstancePassed = new AtomicBoolean(false);
 
-    private boolean mSortable = false;
+    /**
+     * Filed to prevent touch actions when item is not under drag.
+     */
+    private boolean mDragSortable = false;
+
+    /**
+     * Current dragging item.
+     */
     public MediaBrowserCompat.MediaItem mDragMediaItem;
+
+    /**
+     * Currently active item when drag started.
+     */
+    private MediaBrowserCompat.MediaItem mStartDragSelectedItem;
+
+    /**
+     * Drag and drop position.
+     */
     private int mDropPosition = -1;
-    private int mStartDragPosition = -1;
+
+    /**
+     * Default constructor.
+     */
+    public MainActivity() {
+        super();
+    }
 
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
@@ -223,10 +248,10 @@ public final class MainActivity extends AppCompatActivity {
         // Set long click listener.
         // Return true in order to prevent click event been invoked.
         listView.setOnItemLongClickListener(mOnItemLongClickListener);
-        //
+        // Set touch listener.
         listView.setOnTouchListener(
                 (v, event) -> {
-                    if (!mSortable) {
+                    if (!mDragSortable) {
                         return false;
                     }
                     switch (event.getAction()) {
@@ -259,6 +284,7 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
+        // Handle Add Radio Station button.
         final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
         addBtn.setOnClickListener(
                 view -> {
@@ -482,24 +508,44 @@ public final class MainActivity extends AppCompatActivity {
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
-    public void startDrag(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
-        mStartDragPosition = position;
+    /**
+     * Handle event of the list view item start drag.
+     *
+     * @param mediaItem Media Item associated with the start drag event.
+     */
+    public void startDrag(final MediaBrowserCompat.MediaItem mediaItem) {
         mDropPosition = -1;
-        mSortable = true;
+        mDragSortable = true;
         mDragMediaItem = mediaItem;
+        final int activeItemId = mBrowserAdapter.getActiveItemId();
+        if (activeItemId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
+            mStartDragSelectedItem = mBrowserAdapter.getItem(activeItemId);
+        }
         mBrowserAdapter.notifyDataSetChanged();
     }
 
+    /**
+     * Handle event of the list view item stop drag.
+     */
     private void stopDrag() {
-        if (mStartDragPosition == mBrowserAdapter.getActiveItemId()) {
-            setSelectedItem(mDropPosition);
-        }
-        if (mDropPosition == mBrowserAdapter.getActiveItemId()) {
-            setSelectedItem(mStartDragPosition);
+        if (mStartDragSelectedItem != null) {
+            final int itemsNumber = mBrowserAdapter.getCount();
+            MediaBrowserCompat.MediaItem mediaItem;
+            for (int i = 0; i < itemsNumber; ++i) {
+                mediaItem = mBrowserAdapter.getItem(i);
+                if (mediaItem == null) {
+                    continue;
+                }
+                if (TextUtils.equals(mediaItem.getMediaId(), mStartDragSelectedItem.getMediaId())) {
+                    setSelectedItem(i);
+                    break;
+                }
+            }
         }
         mDropPosition = -1;
-        mSortable = false;
+        mDragSortable = false;
         mDragMediaItem = null;
+        mStartDragSelectedItem = null;
         mBrowserAdapter.notifyDataSetChanged();
     }
 
@@ -832,7 +878,7 @@ public final class MainActivity extends AppCompatActivity {
 
             // Set actual controller
             if (mediaController != null) {
-                activity.setSupportMediaController(mediaController);
+                MediaControllerCompat.setMediaController(activity, mediaController);
             }
         }
 
@@ -849,7 +895,7 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            activity.setSupportMediaController(null);
+            MediaControllerCompat.setMediaController(activity, null);
         }
     }
 
@@ -967,8 +1013,7 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             // Current selected media item
-            final MediaBrowserCompat.MediaItem item
-                    = (MediaBrowserCompat.MediaItem) mainActivity.mBrowserAdapter.getItem(position);
+            final MediaBrowserCompat.MediaItem item = mainActivity.mBrowserAdapter.getItem(position);
 
             if (item.isBrowsable()) {
                 if (item.getDescription().getTitle() != null
@@ -996,9 +1041,10 @@ public final class MainActivity extends AppCompatActivity {
                 mainActivity.addMediaItemToStack(mediaId);
             } else if (item.isPlayable()) {
                 // Else - we play an item
-                mainActivity.getSupportMediaController().getTransportControls().playFromMediaId(
-                        mediaId, null
-                );
+                MediaControllerCompat
+                        .getMediaController(mainActivity)
+                        .getTransportControls()
+                        .playFromMediaId(mediaId, null);
 
                 // Call appropriate activity for the items playing
                 mainActivity.startActivity(

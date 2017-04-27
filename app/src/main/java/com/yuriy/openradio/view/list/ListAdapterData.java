@@ -66,17 +66,19 @@ final class ListAdapterData<T> implements Serializable {
     }
 
     /**
+     * Add provided item to the specified position.
      *
-     * @param position
-     * @param item
+     * @param position Position to add item at.
+     * @param item     Item to add.
      */
     public void addAt(final int position, final T item) {
         mItems.add(position, item);
     }
 
     /**
+     * Remove provided item from collection.
      *
-     * @param item
+     * @param item Item to be removed.
      */
     public void remove(final T item) {
         mItems.remove(item);

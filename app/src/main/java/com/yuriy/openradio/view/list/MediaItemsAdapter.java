@@ -60,7 +60,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     /**
      * The currently selected / active Item Id.
      */
-    private long mActiveItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID;
+    private int mActiveItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
     /**
      * Main constructor.
@@ -69,6 +69,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * @param imageFetcher {@link ImageFetcher} instance
      */
     public MediaItemsAdapter(final MainActivity activity, final ImageFetcher imageFetcher) {
+        super();
         mAdapterData = new ListAdapterData<>(
                 (o1, o2) -> {
                     AppLogger.d("Item1:" + MediaItemHelper.getSortIdField(o1));
@@ -86,7 +87,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     @Override
-    public final Object getItem(final int position) {
+    public final MediaBrowserCompat.MediaItem getItem(final int position) {
         return mAdapterData.getItem(position);
     }
 
@@ -121,7 +122,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * Set active Id from the items list.
      * @param id Id of the Item.
      */
-    public void setActiveItemId(final long id) {
+    public void setActiveItemId(final int id) {
         mActiveItemId = id;
     }
 
@@ -130,13 +131,13 @@ public final class MediaItemsAdapter extends BaseAdapter {
      *
      * @return The currently active Item Id.
      */
-    public long getActiveItemId() {
+    public int getActiveItemId() {
         return mActiveItemId;
     }
 
     @Override
     public final View getView(final int position, View convertView, final ViewGroup parent) {
-        final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) getItem(position);
+        final MediaBrowserCompat.MediaItem mediaItem = getItem(position);
         final MediaDescriptionCompat description = mediaItem.getDescription();
 
         convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
@@ -163,7 +164,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         mViewHolder.mImageView.setOnTouchListener((view, motionEvent) -> {
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                mCurrentActivity.startDrag(position, mediaItem);
+                mCurrentActivity.startDrag(mediaItem);
                 return true;
             }
             return false;
@@ -218,10 +219,21 @@ public final class MediaItemsAdapter extends BaseAdapter {
         mAdapterData.addAll(value);
     }
 
+    /**
+     * Add {@link android.support.v4.media.MediaBrowserCompat.MediaItem} into the collection
+     * at specified position.
+     *
+     * @param position  Position to add.
+     * @param mediaItem {@link android.support.v4.media.MediaBrowserCompat.MediaItem} to add.
+     */
     public final void addAt(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
         mAdapterData.addAt(position, mediaItem);
     }
 
+    /**
+     * 
+     * @param mediaItem
+     */
     public final void remove(final MediaBrowserCompat.MediaItem mediaItem) {
         mAdapterData.remove(mediaItem);
     }
