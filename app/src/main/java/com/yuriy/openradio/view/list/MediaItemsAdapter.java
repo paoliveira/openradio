@@ -16,15 +16,14 @@
 
 package com.yuriy.openradio.view.list;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -38,8 +37,8 @@ import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
+import com.yuriy.openradio.view.MainActivity;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -54,7 +53,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName();
 
     private ListAdapterViewHolder mViewHolder;
-    private Activity mCurrentActivity;
+    private MainActivity mCurrentActivity;
     private ImageFetcher mImageFetcher;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
 
@@ -69,7 +68,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * @param activity     current {@link android.app.Activity}
      * @param imageFetcher {@link ImageFetcher} instance
      */
-    public MediaItemsAdapter(final FragmentActivity activity, final ImageFetcher imageFetcher) {
+    public MediaItemsAdapter(final MainActivity activity, final ImageFetcher imageFetcher) {
         mAdapterData = new ListAdapterData<>(
                 (o1, o2) -> {
                     AppLogger.d("Item1:" + MediaItemHelper.getSortIdField(o1));
@@ -162,6 +161,14 @@ public final class MediaItemsAdapter extends BaseAdapter {
             }
         }
 
+        mViewHolder.mImageView.setOnTouchListener((view, motionEvent) -> {
+            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                mCurrentActivity.startDrag(mediaItem);
+                return true;
+            }
+            return false;
+        });
+
         if (mediaItem.isPlayable() && !MediaItemHelper.isLocalRadioStationField(mediaItem)) {
             mViewHolder.mFavoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
 
@@ -189,7 +196,8 @@ public final class MediaItemsAdapter extends BaseAdapter {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
         }
 
-        if (position == getActiveItemId()) {
+        if (position == getActiveItemId()
+                || (mCurrentActivity.mDragMediaItem != null && mCurrentActivity.mDragMediaItem == mediaItem)) {
             mViewHolder.mRootView.setBackgroundColor(
                     mCurrentActivity.getResources().getColor(R.color.queue_item_selected_bg_color)
             );
@@ -208,6 +216,14 @@ public final class MediaItemsAdapter extends BaseAdapter {
      */
     public final void addAll(final List<MediaBrowserCompat.MediaItem> value) {
         mAdapterData.addAll(value);
+    }
+
+    public final void addAt(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
+        mAdapterData.addAt(position, mediaItem);
+    }
+
+    public final void remove(final MediaBrowserCompat.MediaItem mediaItem) {
+        mAdapterData.remove(mediaItem);
     }
 
     /**

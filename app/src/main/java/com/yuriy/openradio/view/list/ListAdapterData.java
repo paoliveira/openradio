@@ -66,6 +66,23 @@ final class ListAdapterData<T> implements Serializable {
     }
 
     /**
+     *
+     * @param position
+     * @param item
+     */
+    public void addAt(final int position, final T item) {
+        mItems.add(position, item);
+    }
+
+    /**
+     *
+     * @param item
+     */
+    public void remove(final T item) {
+        mItems.remove(item);
+    }
+
+    /**
      * Get item at the specified position.
      *
      * @param position The position of the item.

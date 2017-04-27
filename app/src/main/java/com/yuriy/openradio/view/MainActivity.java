@@ -35,6 +35,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -178,6 +179,10 @@ public final class MainActivity extends AppCompatActivity {
 
     private volatile AtomicBoolean mIsOnSaveInstancePassed = new AtomicBoolean(false);
 
+    private boolean mSortable = false;
+    public MediaBrowserCompat.MediaItem mDragMediaItem;
+    private int mPosition = -1;
+
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -217,6 +222,41 @@ public final class MainActivity extends AppCompatActivity {
         // Set long click listener.
         // Return true in order to prevent click event been invoked.
         listView.setOnItemLongClickListener(mOnItemLongClickListener);
+        //
+        listView.setOnTouchListener(
+                (v, event) -> {
+                    if (!mSortable) {
+                        return false;
+                    }
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN: {
+                            break;
+                        }
+                        case MotionEvent.ACTION_MOVE: {
+                            final int position = listView.pointToPosition(
+                                    (int) event.getX(), (int) event.getY()
+                            );
+                            if (position < 0) {
+                                break;
+                            }
+                            if (position != mPosition) {
+                                mPosition = position;
+                                mBrowserAdapter.remove(mDragMediaItem);
+                                mBrowserAdapter.addAt(mPosition, mDragMediaItem);
+                                mBrowserAdapter.notifyDataSetChanged();
+                            }
+                            return true;
+                        }
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
+                        case MotionEvent.ACTION_OUTSIDE: {
+                            stopDrag();
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+        );
 
         final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
         addBtn.setOnClickListener(
@@ -439,6 +479,20 @@ public final class MainActivity extends AppCompatActivity {
         // Save search query string, retrieve it later in the service
         Utils.setSearchQuery(queryString);
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+    }
+
+    public void startDrag(final MediaBrowserCompat.MediaItem mediaItem) {
+        mPosition = -1;
+        mSortable = true;
+        mDragMediaItem = mediaItem;
+        mBrowserAdapter.notifyDataSetChanged();
+    }
+
+    private void stopDrag() {
+        mPosition = -1;
+        mSortable = false;
+        mDragMediaItem = null;
+        mBrowserAdapter.notifyDataSetChanged();
     }
 
     /**
