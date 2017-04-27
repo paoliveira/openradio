@@ -181,7 +181,8 @@ public final class MainActivity extends AppCompatActivity {
 
     private boolean mSortable = false;
     public MediaBrowserCompat.MediaItem mDragMediaItem;
-    private int mPosition = -1;
+    private int mDropPosition = -1;
+    private int mStartDragPosition = -1;
 
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
@@ -239,10 +240,10 @@ public final class MainActivity extends AppCompatActivity {
                             if (position < 0) {
                                 break;
                             }
-                            if (position != mPosition) {
-                                mPosition = position;
+                            if (position != mDropPosition) {
+                                mDropPosition = position;
                                 mBrowserAdapter.remove(mDragMediaItem);
-                                mBrowserAdapter.addAt(mPosition, mDragMediaItem);
+                                mBrowserAdapter.addAt(mDropPosition, mDragMediaItem);
                                 mBrowserAdapter.notifyDataSetChanged();
                             }
                             return true;
@@ -481,15 +482,22 @@ public final class MainActivity extends AppCompatActivity {
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
-    public void startDrag(final MediaBrowserCompat.MediaItem mediaItem) {
-        mPosition = -1;
+    public void startDrag(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
+        mStartDragPosition = position;
+        mDropPosition = -1;
         mSortable = true;
         mDragMediaItem = mediaItem;
         mBrowserAdapter.notifyDataSetChanged();
     }
 
     private void stopDrag() {
-        mPosition = -1;
+        if (mStartDragPosition == mBrowserAdapter.getActiveItemId()) {
+            setSelectedItem(mDropPosition);
+        }
+        if (mDropPosition == mBrowserAdapter.getActiveItemId()) {
+            setSelectedItem(mStartDragPosition);
+        }
+        mDropPosition = -1;
         mSortable = false;
         mDragMediaItem = null;
         mBrowserAdapter.notifyDataSetChanged();
@@ -605,6 +613,11 @@ public final class MainActivity extends AppCompatActivity {
         setSelectedItem(listFirstVisiblePosition);
     }
 
+    /**
+     * Sets the item on the provided index as selected.
+     *
+     * @param position Position of the item in the list.
+     */
     private void setSelectedItem(final int position) {
         AppLogger.d(CLASS_NAME + " Set selected:" + position);
         // Get list view reference from the inflated xml

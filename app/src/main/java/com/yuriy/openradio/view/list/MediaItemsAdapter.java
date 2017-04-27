@@ -163,7 +163,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         mViewHolder.mImageView.setOnTouchListener((view, motionEvent) -> {
             if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                mCurrentActivity.startDrag(mediaItem);
+                mCurrentActivity.startDrag(position, mediaItem);
                 return true;
             }
             return false;
