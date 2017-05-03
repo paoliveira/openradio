@@ -106,14 +106,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
 
-    private static final String VALUE_NAME_REQUEST_CURRENT_RADIO_STATION_ID
-            = "VALUE_NAME_REQUEST_CURRENT_RADIO_STATION_ID";
-
     private static final String VALUE_NAME_UPDATE_SORT_IDS = "VALUE_NAME_UPDATE_SORT_IDS";
 
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
-
-    private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
 
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
 
@@ -655,18 +650,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Factory method to make intent to retrieve Id of the currently selected Radio Station.
-     *
-     * @param context Context of the callee.
-     * @return {@link Intent}.
-     */
-    public static Intent makeGetCurrentItemIdIntent(final Context context) {
-        final Intent intent = new Intent(context, OpenRadioService.class);
-        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REQUEST_LOCATION_COMMAND);
-        return intent;
-    }
-
-    /**
      * Factory method to make intent to create custom {@link RadioStationVO}.
      *
      * @param context Context of the callee.
@@ -741,53 +724,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
         intent.putExtra(EXTRA_KEY_IS_FAVORITE, isFavorite);
         return intent;
-    }
-
-    /**
-     * Extract {@link RadioStationVO} from the {@link Message} that has been received from the
-     * {@link OpenRadioService} as a result of the {@link RadioStationVO} retrieving.
-     *
-     * @param message {@link Message} receiving from the {@link OpenRadioService}.
-     * @return {@link RadioStationVO} object or null in case of any error.
-     */
-    public static RadioStationVO getRadioStationFromMessage(final Message message) {
-        if (message == null) {
-            return null;
-        }
-        final Bundle data = message.getData();
-        if (data == null) {
-            return null;
-        }
-        final RadioStationVO radioStation = (RadioStationVO) data.getSerializable(
-                EXTRA_KEY_RADIO_STATION
-        );
-        if (radioStation == null) {
-            return null;
-        }
-        return radioStation;
-    }
-
-    /**
-     * Extract {@link #EXTRA_KEY_IS_FAVORITE} value from the {@link Message} that has been
-     * received from the {@link OpenRadioService} as a result of the {@link RadioStationVO}
-     * retrieving.
-     *
-     * @param message {@link Message} receiving from the {@link OpenRadioService}.
-     * @return True in case of the key exists and it's value is True, False otherwise.
-     */
-    public static boolean getIsFavoriteFromMessage(final Message message) {
-        boolean isFavorite = false;
-        if (message == null) {
-            return false;
-        }
-        final Bundle data = message.getData();
-        if (data == null) {
-            return false;
-        }
-        if (data.containsKey(EXTRA_KEY_IS_FAVORITE)) {
-            isFavorite = data.getBoolean(EXTRA_KEY_IS_FAVORITE, false);
-        }
-        return isFavorite;
     }
 
     /**
@@ -885,29 +821,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             mExoPlayer.reset();
         }
-    }
-
-    /**
-     * Retrieve currently selected Radio Station.
-     *
-     * @return The currently selected Radio Station, or {@code null} if it is impossible to
-     *         determine it.
-     */
-    private RadioStationVO getCurrentPlayingRadioStation() {
-        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
-            return null;
-        }
-        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
-        if (item == null) {
-            return null;
-        }
-        final String mediaId = item.getDescription().getMediaId();
-
-        RadioStationVO radioStation;
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
-        }
-        return radioStation;
     }
 
     /**
@@ -1258,7 +1171,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.e(CLASS_NAME + " UpdatePlaybackState, error: " + error);
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
-            stateBuilder.setErrorMessage(error);
+            // TODO: Provide proper error code
+            stateBuilder.setErrorMessage(0, error);
             mState = PlaybackStateCompat.STATE_ERROR;
         }
 
@@ -1395,7 +1309,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * @return Implementation of the {@link com.yuriy.openradio.api.APIServiceProvider} interface.
+     * @return Implementation of the {@link APIServiceProvider} interface.
      */
     private static APIServiceProvider getServiceProvider() {
         // Instantiate appropriate parser (JSON one)
