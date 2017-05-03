@@ -55,6 +55,7 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
             radioStation.setThumbUrl(getStringValue(jsonObject, RadioStationJSONHelper.KEY_THUMB_URL));
             radioStation.setWebSite(getStringValue(jsonObject, RadioStationJSONHelper.KEY_WEB_SITE));
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJSONHelper.KEY_IS_LOCAL));
+            radioStation.setSortId(getIntValue(jsonObject, RadioStationJSONHelper.KEY_SORT_ID, -1));
         } catch (final JSONException e) {
             /* Ignore this exception */
         }
@@ -73,13 +74,18 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
     }
 
     private int getIntValue(final JSONObject jsonObject, final String key) throws JSONException {
+        return getIntValue(jsonObject, key, 0);
+    }
+
+    private int getIntValue(final JSONObject jsonObject,
+                            final String key, final int defaultValue) throws JSONException {
         if (jsonObject == null) {
-            return 0;
+            return defaultValue;
         }
         if (jsonObject.has(key)) {
             return jsonObject.getInt(key);
         }
-        return 0;
+        return defaultValue;
     }
 
     private boolean getBooleanValue(final JSONObject jsonObject, final String key) throws JSONException {

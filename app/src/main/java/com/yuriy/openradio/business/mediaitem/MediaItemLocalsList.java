@@ -33,13 +33,18 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemLocalsList} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations from Locals list.
  */
-public class MediaItemLocalsList implements MediaItemCommand {
+public final class MediaItemLocalsList implements MediaItemCommand {
+
+    /**
+     * Default constructor.
+     */
+    public MediaItemLocalsList() {
+        super();
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -68,6 +73,7 @@ public class MediaItemLocalsList implements MediaItemCommand {
             if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
                 MediaItemHelper.updateLocalRadioStationField(mediaItem, true);
             }
+            MediaItemHelper.updateSortIdField(mediaItem, radioStation.getSortId());
 
             shareObject.getMediaItems().add(mediaItem);
         }

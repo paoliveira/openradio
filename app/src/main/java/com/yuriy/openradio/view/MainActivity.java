@@ -183,11 +183,6 @@ public final class MainActivity extends AppCompatActivity {
     private volatile AtomicBoolean mIsOnSaveInstancePassed = new AtomicBoolean(false);
 
     /**
-     * Filed to prevent touch actions when item is not under drag.
-     */
-    private boolean mDragSortable = false;
-
-    /**
      * Current dragging item.
      */
     public MediaBrowserCompat.MediaItem mDragMediaItem;
@@ -201,6 +196,11 @@ public final class MainActivity extends AppCompatActivity {
      * Drag and drop position.
      */
     private int mDropPosition = -1;
+
+    /**
+     * Drag start position.
+     */
+    private int mDragStartPosition = -1;
 
     /**
      * Default constructor.
@@ -248,32 +248,37 @@ public final class MainActivity extends AppCompatActivity {
         // Set long click listener.
         // Return true in order to prevent click event been invoked.
         listView.setOnItemLongClickListener(mOnItemLongClickListener);
+
+        final int[] positionOnDown = new int[1];
         // Set touch listener.
         listView.setOnTouchListener(
                 (v, event) -> {
-                    if (!mDragSortable) {
+                    final int position = listView.pointToPosition(
+                            (int) event.getX(), (int) event.getY()
+                    );
+                    if (position < 0) {
                         return false;
                     }
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN: {
+                            positionOnDown[0] = position;
+                            startDrag(position, mBrowserAdapter.getItem(position));
                             break;
                         }
                         case MotionEvent.ACTION_MOVE: {
-                            final int position = listView.pointToPosition(
-                                    (int) event.getX(), (int) event.getY()
-                            );
                             if (position < 0) {
                                 break;
                             }
                             if (position != mDropPosition) {
                                 mDropPosition = position;
-                                mBrowserAdapter.remove(mDragMediaItem);
-                                mBrowserAdapter.addAt(mDropPosition, mDragMediaItem);
-                                mBrowserAdapter.notifyDataSetChanged();
+                                handleDragChangedEvent();
                             }
                             return true;
                         }
                         case MotionEvent.ACTION_UP:
+                            if (positionOnDown[0] == position) {
+                                return false;
+                            }
                         case MotionEvent.ACTION_CANCEL:
                         case MotionEvent.ACTION_OUTSIDE: {
                             stopDrag();
@@ -513,9 +518,9 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param mediaItem Media Item associated with the start drag event.
      */
-    public void startDrag(final MediaBrowserCompat.MediaItem mediaItem) {
+    private void startDrag(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
         mDropPosition = -1;
-        mDragSortable = true;
+        mDragStartPosition = position;
         mDragMediaItem = mediaItem;
         final int activeItemId = mBrowserAdapter.getActiveItemId();
         if (activeItemId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
@@ -528,8 +533,8 @@ public final class MainActivity extends AppCompatActivity {
      * Handle event of the list view item stop drag.
      */
     private void stopDrag() {
+        final int itemsNumber = mBrowserAdapter.getCount();
         if (mStartDragSelectedItem != null) {
-            final int itemsNumber = mBrowserAdapter.getCount();
             MediaBrowserCompat.MediaItem mediaItem;
             for (int i = 0; i < itemsNumber; ++i) {
                 mediaItem = mBrowserAdapter.getItem(i);
@@ -543,9 +548,37 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
         mDropPosition = -1;
-        mDragSortable = false;
+        mDragStartPosition = -1;
         mDragMediaItem = null;
         mStartDragSelectedItem = null;
+        mBrowserAdapter.notifyDataSetChanged();
+
+        MediaBrowserCompat.MediaItem mediaItem;
+        final String[] mediaIds = new String[itemsNumber];
+        final int[] positions = new int[itemsNumber];
+        for (int i = 0; i < itemsNumber; ++i) {
+            mediaItem = mBrowserAdapter.getItem(i);
+            MediaItemHelper.updateSortIdField(mediaItem, i);
+            mediaIds[i] = mediaItem.getMediaId();
+            positions[i] = i;
+        }
+
+        startService(
+                OpenRadioService.makeUpdateSortIdsIntent(
+                        getApplicationContext(),
+                        mediaIds,
+                        positions,
+                        mCurrentParentId
+                )
+        );
+    }
+
+    /**
+     *
+     */
+    private void handleDragChangedEvent() {
+        mBrowserAdapter.remove(mDragMediaItem);
+        mBrowserAdapter.addAt(mDropPosition, mDragMediaItem);
         mBrowserAdapter.notifyDataSetChanged();
     }
 
@@ -706,6 +739,53 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastReceiver.unregisterListener();
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mAppLocalBroadcastReceiver);
+    }
+
+    /**
+     *
+     * @param position
+     */
+    private void handleOnItemClick(final int position) {
+        AppLogger.d("OnClick");
+        // Current selected media item
+        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
+
+        if (item.isBrowsable()) {
+            if (item.getDescription().getTitle() != null
+                    && item.getDescription().getTitle()
+                    .equals(getString(R.string.category_empty))) {
+                return;
+            }
+        }
+
+        // Keep last selected position for the given category.
+        // We will use it when back to this category
+        final int mediaItemsStackSize = mediaItemsStack.size();
+        if (mediaItemsStackSize >= 1) {
+            final String children = mediaItemsStack.get(mediaItemsStackSize - 1);
+            AppLogger.d(CLASS_NAME + " Children:" + children + " pos:" + position);
+            listPositionMap.put(children, position);
+        }
+
+        showProgressBar();
+
+        final String mediaId = item.getMediaId();
+
+        // If it is browsable - then we navigate to the next category
+        if (item.isBrowsable()) {
+            addMediaItemToStack(mediaId);
+        } else if (item.isPlayable()) {
+            // Else - we play an item
+            MediaControllerCompat
+                    .getMediaController(this)
+                    .getTransportControls()
+                    .playFromMediaId(mediaId, null);
+
+            // Call appropriate activity for the items playing
+            startActivity(
+                    QueueActivity.makeIntent(getApplicationContext(), mediaId)
+            );
+        }
     }
 
     /**
@@ -1012,45 +1092,7 @@ public final class MainActivity extends AppCompatActivity {
                 AppLogger.w(CLASS_NAME + " OnItemClick return, reference to MainActivity is null");
                 return;
             }
-            // Current selected media item
-            final MediaBrowserCompat.MediaItem item = mainActivity.mBrowserAdapter.getItem(position);
-
-            if (item.isBrowsable()) {
-                if (item.getDescription().getTitle() != null
-                        && item.getDescription().getTitle()
-                        .equals(mainActivity.getString(R.string.category_empty))) {
-                    return;
-                }
-            }
-
-            // Keep last selected position for the given category.
-            // We will use it when back to this category
-            final int mediaItemsStackSize = mainActivity.mediaItemsStack.size();
-            if (mediaItemsStackSize >= 1) {
-                final String children = mainActivity.mediaItemsStack.get(mediaItemsStackSize - 1);
-                AppLogger.d(CLASS_NAME + " Children:" + children + " pos:" + position);
-                mainActivity.listPositionMap.put(children, position);
-            }
-
-            mainActivity.showProgressBar();
-
-            final String mediaId = item.getMediaId();
-
-            // If it is browsable - then we navigate to the next category
-            if (item.isBrowsable()) {
-                mainActivity.addMediaItemToStack(mediaId);
-            } else if (item.isPlayable()) {
-                // Else - we play an item
-                MediaControllerCompat
-                        .getMediaController(mainActivity)
-                        .getTransportControls()
-                        .playFromMediaId(mediaId, null);
-
-                // Call appropriate activity for the items playing
-                mainActivity.startActivity(
-                        QueueActivity.makeIntent(mainActivity, mediaId)
-                );
-            }
+            mainActivity.handleOnItemClick(position);
         }
     }
 

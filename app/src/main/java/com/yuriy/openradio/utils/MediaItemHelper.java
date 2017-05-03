@@ -92,6 +92,11 @@ public final class MediaItemHelper {
         bundle.putBoolean(KEY_IS_LOCAL, isLocal);
     }
 
+    /**
+     *
+     * @param mediaItem
+     * @param sortId
+     */
     public static void updateSortIdField(final MediaBrowserCompat.MediaItem mediaItem,
                                          final int sortId) {
         if (mediaItem == null) {

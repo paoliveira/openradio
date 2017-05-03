@@ -23,7 +23,6 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -34,7 +33,6 @@ import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
-import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.MainActivity;
@@ -72,8 +70,14 @@ public final class MediaItemsAdapter extends BaseAdapter {
         super();
         mAdapterData = new ListAdapterData<>(
                 (o1, o2) -> {
-                    AppLogger.d("Item1:" + MediaItemHelper.getSortIdField(o1));
-                    AppLogger.d("Item2:" + MediaItemHelper.getSortIdField(o2));
+                    final int sortId1 = MediaItemHelper.getSortIdField(o1);
+                    final int sortId2 = MediaItemHelper.getSortIdField(o2);
+                    if (sortId2 > sortId1) {
+                        return -1;
+                    }
+                    if (sortId2 < sortId1) {
+                        return 1;
+                    }
                     return 0;
                 }
         );
@@ -162,14 +166,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
             }
         }
 
-        mViewHolder.mImageView.setOnTouchListener((view, motionEvent) -> {
-            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                mCurrentActivity.startDrag(mediaItem);
-                return true;
-            }
-            return false;
-        });
-
         if (mediaItem.isPlayable() && !MediaItemHelper.isLocalRadioStationField(mediaItem)) {
             mViewHolder.mFavoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
 
@@ -184,7 +180,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
                         // Make Intent to update Favorite RadioStation object associated with
                         // the Media Description
-                        final Intent intent = OpenRadioService.makeUpdateFavoriteIntent(
+                        final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
                                 mCurrentActivity,
                                 description,
                                 isChecked

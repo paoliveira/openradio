@@ -18,6 +18,7 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.RadioStationDeserializer;
@@ -38,6 +39,13 @@ import java.util.Map;
 public abstract class AbstractStorage {
 
     /**
+     * Default constructor.
+     */
+    public AbstractStorage() {
+        super();
+    }
+
+    /**
      * Add provided {@link RadioStationVO} to the storage.
      *
      * @param radioStation {@link RadioStationVO} to add to the storage.
@@ -46,10 +54,18 @@ public abstract class AbstractStorage {
      */
     protected static synchronized void add(final RadioStationVO radioStation,
                                            final Context context, final String name) {
-        final RadioStationSerializer serializer = new RadioStationJSONSerializer();
-        final SharedPreferences.Editor editor = getEditor(context, name);
-        editor.putString(String.valueOf(radioStation.getId()), serializer.serialize(radioStation));
-        editor.commit();
+        final List<RadioStationVO> all = getAll(context, name);
+        int maxSortId = -1;
+        for (final RadioStationVO radioStationLocal : all) {
+            if (radioStationLocal.getSortId() > maxSortId) {
+                maxSortId = radioStationLocal.getSortId();
+            }
+        }
+        if (radioStation.getSortId() == -1) {
+            radioStation.setSortId(maxSortId + 1);
+        }
+
+        addInternal(radioStation, context, name);
     }
 
     /**
@@ -74,6 +90,7 @@ public abstract class AbstractStorage {
      *
      * @return Collection of the Radio Stations.
      */
+    @NonNull
     protected static List<RadioStationVO> getAll(final Context context, final String name) {
         final List<RadioStationVO> radioStations = new ArrayList<>();
         final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
@@ -81,6 +98,8 @@ public abstract class AbstractStorage {
         final RadioStationDeserializer deserializer = new RadioStationJSONDeserializer();
         RadioStationVO radioStation;
         String value;
+        int counter = 0;
+        Boolean isListSorted = null;
         for (final String key : map.keySet()) {
             value = String.valueOf(map.get(key));
             if (value == null || value.isEmpty()) {
@@ -88,6 +107,18 @@ public abstract class AbstractStorage {
             }
             radioStation = deserializer.deserialize(value);
             radioStations.add(radioStation);
+
+            // This is solution for the new functionality - drag and drop in order to sort
+            // Assume that if there is undefined sort id then user runs application with
+            // new feature with Radio Stations already in Favorites.
+            // Just assign another incremental value.
+            if (isListSorted == null) {
+                isListSorted = radioStation.getSortId() != -1;
+            }
+            if (!isListSorted) {
+                radioStation.setSortId(counter++);
+                addInternal(radioStation, context, name);
+            }
         }
         return radioStations;
     }
@@ -130,5 +161,20 @@ public abstract class AbstractStorage {
      */
     protected static SharedPreferences.Editor getEditor(final Context context, final String name) {
         return getSharedPreferences(context, name).edit();
+    }
+
+    /**
+     * Add provided {@link RadioStationVO} to the storage.
+     *
+     * @param radioStation {@link RadioStationVO} to add to the storage.
+     * @param context      Context of the callee.
+     * @param name         Name of the file for the preferences.
+     */
+    private static synchronized void addInternal(final RadioStationVO radioStation,
+                                                 final Context context, final String name) {
+        final RadioStationSerializer serializer = new RadioStationJSONSerializer();
+        final SharedPreferences.Editor editor = getEditor(context, name);
+        editor.putString(String.valueOf(radioStation.getId()), serializer.serialize(radioStation));
+        editor.commit();
     }
 }

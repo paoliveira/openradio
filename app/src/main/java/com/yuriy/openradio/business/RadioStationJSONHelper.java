@@ -51,4 +51,6 @@ final class RadioStationJSONHelper {
     static final String KEY_THUMB_URL = "ThumbUrl";
 
     static final String KEY_IS_LOCAL = "IsLocal";
+
+    static final String KEY_SORT_ID = "SortId";
 }

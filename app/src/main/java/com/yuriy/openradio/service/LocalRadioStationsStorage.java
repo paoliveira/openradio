@@ -29,7 +29,7 @@ import java.util.List;
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class LocalRadioStationsStorage extends AbstractStorage {
+public final class LocalRadioStationsStorage extends AbstractStorage {
 
     /**
      * Private constructor

@@ -109,6 +109,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String VALUE_NAME_REQUEST_CURRENT_RADIO_STATION_ID
             = "VALUE_NAME_REQUEST_CURRENT_RADIO_STATION_ID";
 
+    private static final String VALUE_NAME_UPDATE_SORT_IDS = "VALUE_NAME_UPDATE_SORT_IDS";
+
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
     private static final String EXTRA_KEY_RADIO_STATION = "EXTRA_KEY_RADIO_STATION";
@@ -133,6 +135,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             = "EXTRA_KEY_ADD_STATION_COUNTRY";
 
     private static final String EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID";
+
+    private static final String EXTRA_KEY_MEDIA_IDS = "EXTRA_KEY_MEDIA_IDS";
+
+    private static final String EXTRA_KEY_SORT_IDS = "EXTRA_KEY_SORT_IDS";
 
     /**
      * Action to thumbs up a media item
@@ -464,7 +470,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     AppLogger.w(CLASS_NAME + " Can not add Station, Name or url are empty");
                 }
                 break;
-            case VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND:
+            case VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND: {
                 final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
                 if (TextUtils.isEmpty(mediaId)) {
                     AppLogger.w(CLASS_NAME + " Can not remove Station, Media Id is empty");
@@ -476,6 +482,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
 
                 AppLogger.d(CLASS_NAME + " Remove:" + mediaId);
+                break;
+            }
+            case VALUE_NAME_UPDATE_SORT_IDS:
+                final String[] mediaIds = intent.getStringArrayExtra(EXTRA_KEY_MEDIA_IDS);
+                final int[] sortIds = intent.getIntArrayExtra(EXTRA_KEY_SORT_IDS);
+                final String categoryMediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
+                if (mediaIds == null || sortIds == null) {
+                    break;
+                }
+                // TODO: Optimize this algorithm, could be done in single iteration
+                int counter = 0;
+                for (final String mediaId : mediaIds) {
+                    updateSortId(mediaId, sortIds[counter++], categoryMediaId);
+                }
                 break;
             default:
                 AppLogger.w(CLASS_NAME + " Unknown command:" + command);
@@ -669,10 +689,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Factory method to make intent to remove custom {@link RadioStationVO}.
+     * Factory method to make Intent to remove custom {@link RadioStationVO}.
      *
      * @param context Context of the callee.
-     * @param mediaId Medua Id of the Radio Station.
+     * @param mediaId Media Id of the Radio Station.
      *
      * @return {@link Intent}.
      */
@@ -684,16 +704,38 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Factory method to make {@link Intent} to update Favorite {@link RadioStationVO}.
+     * Factory method to make Intent to update Sort Ids of the Radio Stations.
+     *
+     * @param context          Application context.
+     * @param mediaIds         Array of the Media Ids (of the Radio Stations).
+     * @param sortIds          Array of the corresponded Sort Ids.
+     * @param mCategoryMediaId ID of the current category
+     *                         ({@link MediaIDHelper#MEDIA_ID_FAVORITES_LIST, etc ...}).
+     * @return {@link Intent}.
+     */
+    public static Intent makeUpdateSortIdsIntent(final Context context,
+                                                 final String[] mediaIds,
+                                                 final int[] sortIds,
+                                                 final String mCategoryMediaId) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_UPDATE_SORT_IDS);
+        intent.putExtra(EXTRA_KEY_MEDIA_IDS, mediaIds);
+        intent.putExtra(EXTRA_KEY_SORT_IDS, sortIds);
+        intent.putExtra(EXTRA_KEY_MEDIA_ID, mCategoryMediaId);
+        return intent;
+    }
+
+    /**
+     * Factory method to make {@link Intent} to update whether {@link RadioStationVO} is Favorite.
      *
      * @param context          Context of the callee.
      * @param mediaDescription {@link MediaDescriptionCompat} of the {@link RadioStationVO}.
      * @param isFavorite       Whether Radio station is Favorite or not.
      * @return {@link Intent}.
      */
-    public static Intent makeUpdateFavoriteIntent(final Context context,
-                                                  final MediaDescriptionCompat mediaDescription,
-                                                  final boolean isFavorite) {
+    public static Intent makeUpdateIsFavoriteIntent(final Context context,
+                                                    final MediaDescriptionCompat mediaDescription,
+                                                    final boolean isFavorite) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
         intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
@@ -746,6 +788,30 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             isFavorite = data.getBoolean(EXTRA_KEY_IS_FAVORITE, false);
         }
         return isFavorite;
+    }
+
+    /**
+     * Updates Radio Station with the Sort Id by the given Media Id.
+     *
+     * @param mediaId Media Id of the Radio Station.
+     * @param sortId  Sort Id to update to.
+     */
+    private void updateSortId(final String mediaId, final int sortId, final String categoryMediaId) {
+        RadioStationVO radioStation;
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+            if (radioStation != null) {
+                radioStation.setSortId(sortId);
+            }
+        }
+        if (radioStation != null) {
+            // This call just overrides existing Radio Station in the storage.
+            if (TextUtils.equals(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
+                FavoritesStorage.addToFavorites(radioStation, getApplicationContext());
+            } else if (TextUtils.equals(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
+                LocalRadioStationsStorage.addToLocal(radioStation, getApplicationContext());
+            }
+        }
     }
 
     private void stopService() {
