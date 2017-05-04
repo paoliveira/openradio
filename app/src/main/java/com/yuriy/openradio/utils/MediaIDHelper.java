@@ -129,4 +129,9 @@ public final class MediaIDHelper {
         }
         return null;
     }
+
+    public static boolean isMediaIdSortable(final String categoryMediaId) {
+        return MEDIA_ID_FAVORITES_LIST.equals(categoryMediaId)
+                || MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(categoryMediaId);
+    }
 }

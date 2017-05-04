@@ -23,6 +23,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -172,10 +173,9 @@ public final class MainActivity extends AppCompatActivity {
             = new OnItemClickListener(this);
 
     /**
-     * Listener for the List view long click event.
+     * Listener for the List touch event.
      */
-    private final AdapterView.OnItemLongClickListener mOnItemLongClickListener
-            = new OnItemLongClickListener(this);
+    private final AdapterView.OnTouchListener mOnTouchListener = new OnTouchListener(this);
 
     /**
      * Guardian field to prevent UI operation after save instance passed.
@@ -196,11 +196,6 @@ public final class MainActivity extends AppCompatActivity {
      * Drag and drop position.
      */
     private int mDropPosition = -1;
-
-    /**
-     * Drag start position.
-     */
-    private int mDragStartPosition = -1;
 
     /**
      * Default constructor.
@@ -245,49 +240,8 @@ public final class MainActivity extends AppCompatActivity {
         listView.setAdapter(mBrowserAdapter);
         // Set click listener
         listView.setOnItemClickListener(mOnItemClickListener);
-        // Set long click listener.
-        // Return true in order to prevent click event been invoked.
-        listView.setOnItemLongClickListener(mOnItemLongClickListener);
-
-        final int[] positionOnDown = new int[1];
         // Set touch listener.
-        listView.setOnTouchListener(
-                (v, event) -> {
-                    final int position = listView.pointToPosition(
-                            (int) event.getX(), (int) event.getY()
-                    );
-                    if (position < 0) {
-                        return false;
-                    }
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN: {
-                            positionOnDown[0] = position;
-                            startDrag(position, mBrowserAdapter.getItem(position));
-                            break;
-                        }
-                        case MotionEvent.ACTION_MOVE: {
-                            if (position < 0) {
-                                break;
-                            }
-                            if (position != mDropPosition) {
-                                mDropPosition = position;
-                                handleDragChangedEvent();
-                            }
-                            return true;
-                        }
-                        case MotionEvent.ACTION_UP:
-                            if (positionOnDown[0] == position) {
-                                return false;
-                            }
-                        case MotionEvent.ACTION_CANCEL:
-                        case MotionEvent.ACTION_OUTSIDE: {
-                            stopDrag();
-                            return true;
-                        }
-                    }
-                    return false;
-                }
-        );
+        listView.setOnTouchListener(mOnTouchListener);
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
@@ -518,9 +472,8 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param mediaItem Media Item associated with the start drag event.
      */
-    private void startDrag(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
+    private void startDrag(final MediaBrowserCompat.MediaItem mediaItem) {
         mDropPosition = -1;
-        mDragStartPosition = position;
         mDragMediaItem = mediaItem;
         final int activeItemId = mBrowserAdapter.getActiveItemId();
         if (activeItemId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
@@ -548,7 +501,6 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
         mDropPosition = -1;
-        mDragStartPosition = -1;
         mDragMediaItem = null;
         mStartDragSelectedItem = null;
         mBrowserAdapter.notifyDataSetChanged();
@@ -746,7 +698,6 @@ public final class MainActivity extends AppCompatActivity {
      * @param position
      */
     private void handleOnItemClick(final int position) {
-        AppLogger.d("OnClick");
         // Current selected media item
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
 
@@ -786,6 +737,39 @@ public final class MainActivity extends AppCompatActivity {
                     QueueActivity.makeIntent(getApplicationContext(), mediaId)
             );
         }
+    }
+
+    /**
+     *
+     * @param position
+     */
+    private void onItemLongClick(final int position) {
+        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
+        if (item == null) {
+            return;
+        }
+
+        // If Item is not Local Radio Station - skipp farther processing
+        if (!MediaItemHelper.isLocalRadioStationField(item)) {
+            return;
+        }
+
+        String name = "";
+        if (item.getDescription().getTitle() != null) {
+            name = item.getDescription().getTitle().toString();
+        }
+
+        if (mIsOnSaveInstancePassed.get()) {
+            AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
+            return;
+        }
+
+        // Show Remove Station Dialog
+        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        final DialogFragment dialog = RemoveStationDialog.newInstance(
+                item.getMediaId(), name
+        );
+        dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
     }
 
     /**
@@ -1096,65 +1080,126 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * Listener of the List Item long click event.
-     */
-    private static final class OnItemLongClickListener implements AdapterView.OnItemLongClickListener {
+    private static final class OnTouchListener implements AdapterView.OnTouchListener {
 
-        private static final String CLASS_NAME = OnItemLongClickListener.class.getSimpleName();
+        private static final int LONG_TOUCH_TIME = 1500;
         /**
          * Weak reference to the Main Activity.
          */
         private final WeakReference<MainActivity> mReference;
+
+        private final Handler mLongTouchHandler = new Handler();
+
+        private final Runnable mLongTouchRunnable = new LongTouchRunnable(this);
+
+        private int mPosition = -1;
+
+        private int mDownPosition = -1;
 
         /**
          * Constructor.
          *
          * @param mainActivity Reference to the Main Activity.
          */
-        private OnItemLongClickListener(final MainActivity mainActivity) {
+        private OnTouchListener(final MainActivity mainActivity) {
             super();
             mReference = new WeakReference<>(mainActivity);
         }
 
         @Override
-        public boolean onItemLongClick(final AdapterView<?> parent, final View view,
-                                       final int position, final long id) {
+        public boolean onTouch(final View listView, final MotionEvent event) {
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
-                AppLogger.w(CLASS_NAME + " OnItemLongClick return, reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + " OnItemTouch return, reference to MainActivity is null");
                 return true;
             }
 
-            final MediaBrowserCompat.MediaItem item
-                    = (MediaBrowserCompat.MediaItem) parent.getItemAtPosition(position);
-            if (item == null) {
-                return true;
+            // Do drag and drop sort only for Favorites and Local Radio Stations
+            if (!MediaIDHelper.isMediaIdSortable(mainActivity.mCurrentParentId))  {
+                return false;
             }
-
-            // If Item is not Local Radio Station - skipp farther processing
-            if (!MediaItemHelper.isLocalRadioStationField(item)) {
-                return true;
-            }
-
-            String name = "";
-            if (item.getDescription().getTitle() != null) {
-                name = item.getDescription().getTitle().toString();
-            }
-
-            if (mainActivity.mIsOnSaveInstancePassed.get()) {
-                AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
-                return true;
-            }
-
-            // Show Remove Station Dialog
-            final FragmentTransaction transaction = mainActivity.getFragmentManager().beginTransaction();
-            final DialogFragment dialog = RemoveStationDialog.newInstance(
-                    item.getMediaId(), name
+            mPosition = ((ListView)listView).pointToPosition(
+                    (int) event.getX(), (int) event.getY()
             );
-            dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
+            if (mPosition < 0) {
+                return false;
+            }
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN: {
+                    mDownPosition = mPosition;
+                    mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
+                    mLongTouchHandler.postDelayed(mLongTouchRunnable, LONG_TOUCH_TIME);
 
-            return true;
+                    mainActivity.startDrag(mainActivity.mBrowserAdapter.getItem(mPosition));
+                    break;
+                }
+                case MotionEvent.ACTION_MOVE: {
+                    if (mPosition < 0) {
+                        mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
+                        break;
+                    }
+                    if (mPosition != mDownPosition) {
+                        mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
+                    }
+                    if (mPosition != mainActivity.mDropPosition) {
+                        mainActivity.mDropPosition = mPosition;
+                        mainActivity.handleDragChangedEvent();
+                    }
+                    return true;
+                }
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                case MotionEvent.ACTION_OUTSIDE: {
+                    mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
+
+                    mainActivity.stopDrag();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         *
+         */
+        private void handleLongTouchEvent() {
+            mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
+            final MainActivity mainActivity = mReference.get();
+            if (mainActivity == null) {
+                AppLogger.w(CLASS_NAME + " OnLongTouch return, reference to MainActivity is null");
+                return;
+            }
+
+            if (mPosition != -1) {
+                mainActivity.onItemLongClick(mPosition);
+            }
+        }
+
+        /**
+         *
+         */
+        private static final class LongTouchRunnable implements Runnable {
+
+            /**
+             * Weak reference to the Main Activity.
+             */
+            private final WeakReference<OnTouchListener> mReference;
+
+            /**
+             *
+             * @param reference
+             */
+            private LongTouchRunnable(final OnTouchListener reference) {
+                super();
+                mReference = new WeakReference<>(reference);
+            }
+
+            @Override
+            public void run() {
+                if (mReference.get() != null) {
+                    mReference.get().handleLongTouchEvent();
+                }
+            }
         }
     }
 }
