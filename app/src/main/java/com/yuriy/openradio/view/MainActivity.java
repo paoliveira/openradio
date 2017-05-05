@@ -23,7 +23,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -177,7 +176,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener for the List touch event.
      */
-    private final AdapterView.OnTouchListener mOnTouchListener = new OnTouchListener(this);
+    private final OnTouchListener mOnTouchListener = new OnTouchListener(this);
 
     /**
      * Guardian field to prevent UI operation after save instance passed.
@@ -346,7 +345,9 @@ public final class MainActivity extends AppCompatActivity {
                 mBrowserAdapter.notifyDataSetChanged();
                 break;
             case R.id.delete_radio_station_menu:
-
+                if (mOnTouchListener.mPosition != -1) {
+                    handleDeleteRadioStationMenu(mOnTouchListener.mPosition);
+                }
                 break;
         }
         return super.onContextItemSelected(item);
@@ -798,7 +799,7 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param position
      */
-    private void onItemLongClick(final int position) {
+    private void handleDeleteRadioStationMenu(final int position) {
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
         if (item == null) {
             return;
@@ -1140,15 +1141,10 @@ public final class MainActivity extends AppCompatActivity {
      */
     private static final class OnTouchListener implements AdapterView.OnTouchListener {
 
-        private static final int LONG_TOUCH_TIME = 1500;
         /**
          * Weak reference to the Main Activity.
          */
         private final WeakReference<MainActivity> mReference;
-
-        private final Handler mLongTouchHandler = new Handler();
-
-        private final Runnable mLongTouchRunnable = new LongTouchRunnable(this);
 
         private int mPosition = -1;
 
@@ -1166,6 +1162,10 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onTouch(final View listView, final MotionEvent event) {
+            mPosition = ((ListView)listView).pointToPosition(
+                    (int) event.getX(), (int) event.getY()
+            );
+
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
                 AppLogger.w(CLASS_NAME + " OnItemTouch return, reference to MainActivity is null");
@@ -1180,28 +1180,20 @@ public final class MainActivity extends AppCompatActivity {
             if (!MediaIDHelper.isMediaIdSortable(mainActivity.mCurrentParentId))  {
                 return false;
             }
-            mPosition = ((ListView)listView).pointToPosition(
-                    (int) event.getX(), (int) event.getY()
-            );
+
             if (mPosition < 0) {
                 return true;
             }
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {
                     mDownPosition = mPosition;
-                    mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
-                    mLongTouchHandler.postDelayed(mLongTouchRunnable, LONG_TOUCH_TIME);
 
                     mainActivity.startDrag(mainActivity.mBrowserAdapter.getItem(mPosition));
                     break;
                 }
                 case MotionEvent.ACTION_MOVE: {
                     if (mPosition < 0) {
-                        mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
                         break;
-                    }
-                    if (mPosition != mDownPosition) {
-                        mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
                     }
                     if (mPosition != mainActivity.mDropPosition) {
                         mainActivity.mDropPosition = mPosition;
@@ -1212,56 +1204,11 @@ public final class MainActivity extends AppCompatActivity {
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL:
                 case MotionEvent.ACTION_OUTSIDE: {
-                    mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
-
                     mainActivity.stopDrag();
                     return true;
                 }
             }
             return true;
-        }
-
-        /**
-         *
-         */
-        private void handleLongTouchEvent() {
-            mLongTouchHandler.removeCallbacks(mLongTouchRunnable);
-            final MainActivity mainActivity = mReference.get();
-            if (mainActivity == null) {
-                AppLogger.w(CLASS_NAME + " OnLongTouch return, reference to MainActivity is null");
-                return;
-            }
-
-            if (mPosition != -1) {
-                mainActivity.onItemLongClick(mPosition);
-            }
-        }
-
-        /**
-         *
-         */
-        private static final class LongTouchRunnable implements Runnable {
-
-            /**
-             * Weak reference to the Main Activity.
-             */
-            private final WeakReference<OnTouchListener> mReference;
-
-            /**
-             *
-             * @param reference
-             */
-            private LongTouchRunnable(final OnTouchListener reference) {
-                super();
-                mReference = new WeakReference<>(reference);
-            }
-
-            @Override
-            public void run() {
-                if (mReference.get() != null) {
-                    mReference.get().handleLongTouchEvent();
-                }
-            }
         }
     }
 }
