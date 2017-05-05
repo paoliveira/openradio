@@ -235,8 +235,9 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     /**
-     * 
-     * @param mediaItem
+     * Removes Media Item from the adapter.
+     *
+     * @param mediaItem Media Item to remove.
      */
     public final void remove(final MediaBrowserCompat.MediaItem mediaItem) {
         mAdapterData.remove(mediaItem);

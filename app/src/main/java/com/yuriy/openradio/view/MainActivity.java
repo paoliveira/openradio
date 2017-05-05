@@ -750,8 +750,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Handle a click event on the List View item.
      *
-     * @param position
+     * @param position Position of the clicked item.
      */
     private void handleOnItemClick(final int position) {
         // Current selected media item
@@ -770,7 +771,6 @@ public final class MainActivity extends AppCompatActivity {
         final int mediaItemsStackSize = mediaItemsStack.size();
         if (mediaItemsStackSize >= 1) {
             final String children = mediaItemsStack.get(mediaItemsStackSize - 1);
-            AppLogger.d(CLASS_NAME + " Children:" + children + " pos:" + position);
             listPositionMap.put(children, position);
         }
 
@@ -796,8 +796,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Handles action of the Radio Station deletion.
      *
-     * @param position
+     * @param position Position (in the List) of the Radio Station to be deleted.
      */
     private void handleDeleteRadioStationMenu(final int position) {
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
@@ -904,10 +905,18 @@ public final class MainActivity extends AppCompatActivity {
      */
     private static final class PermissionListener implements PermissionStatusListener {
 
+        /**
+         * Reference to the enclosing class.
+         */
         private final WeakReference<Context> mReference;
         private final Map<String, Double> mMap = new ConcurrentHashMap<>();
         private static final int DELTA = 2000;
 
+        /**
+         * Main constructor.
+         *
+         * @param reference Reference to the enclosing class.
+         */
         private PermissionListener(final Context reference) {
             super();
             mReference = new WeakReference<>(reference);
@@ -1137,7 +1146,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
+     * Touch listener for the List View.
      */
     private static final class OnTouchListener implements AdapterView.OnTouchListener {
 
@@ -1146,6 +1155,9 @@ public final class MainActivity extends AppCompatActivity {
          */
         private final WeakReference<MainActivity> mReference;
 
+        /**
+         * Position of the item under the touch event.
+         */
         private int mPosition = -1;
 
         /**
