@@ -1148,8 +1148,6 @@ public final class MainActivity extends AppCompatActivity {
 
         private int mPosition = -1;
 
-        private int mDownPosition = -1;
-
         /**
          * Constructor.
          *
@@ -1186,8 +1184,6 @@ public final class MainActivity extends AppCompatActivity {
             }
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {
-                    mDownPosition = mPosition;
-
                     mainActivity.startDrag(mainActivity.mBrowserAdapter.getItem(mPosition));
                     break;
                 }
