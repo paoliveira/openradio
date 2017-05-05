@@ -106,7 +106,7 @@ public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
             holder.mImageView.setImageDrawable(
                     getContext().getResources().getDrawable(R.drawable.ic_equalizer_white_24dp));
             convertView.setBackgroundColor(
-                    getContext().getResources().getColor(R.color.queue_item_selected_bg_color)
+                    getContext().getResources().getColor(R.color.list_item_selected_bg_color)
             );
         } else {
             holder.mImageView.setImageDrawable(

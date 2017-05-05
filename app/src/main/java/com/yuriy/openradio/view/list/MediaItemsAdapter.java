@@ -195,12 +195,20 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         if (position == getActiveItemId()
                 || (mCurrentActivity.mDragMediaItem != null && mCurrentActivity.mDragMediaItem == mediaItem)) {
+            int color = R.color.list_item_selected_bg_color;
+            if (mCurrentActivity.mIsSortMode) {
+                color = R.color.item_bg_color_selected_sort_mode;
+            }
             mViewHolder.mRootView.setBackgroundColor(
-                    mCurrentActivity.getResources().getColor(R.color.queue_item_selected_bg_color)
+                    mCurrentActivity.getResources().getColor(color)
             );
         } else {
+            int color = R.color.transparent_color;
+            if (mCurrentActivity.mIsSortMode) {
+                color = R.color.item_bg_color_sort_mode;
+            }
             mViewHolder.mRootView.setBackgroundColor(
-                    mCurrentActivity.getResources().getColor(R.color.transparent_color)
+                    mCurrentActivity.getResources().getColor(color)
             );
         }
 

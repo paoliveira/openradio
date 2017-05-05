@@ -34,7 +34,9 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -197,6 +199,8 @@ public final class MainActivity extends AppCompatActivity {
      */
     private int mDropPosition = -1;
 
+    public boolean mIsSortMode = false;
+
     /**
      * Default constructor.
      */
@@ -267,8 +271,25 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Get list view reference from the inflated xml
+        final ListView listView = (ListView) findViewById(R.id.list_view);
+        if (listView != null) {
+            unregisterForContextMenu(listView);
+        }
+    }
+
+    @Override
     protected final void onResume() {
         super.onResume();
+
+        // Get list view reference from the inflated xml
+        final ListView listView = (ListView) findViewById(R.id.list_view);
+        if (listView != null) {
+            registerForContextMenu(listView);
+        }
 
         // Set OnSaveInstanceState to false
         mIsOnSaveInstancePassed.set(false);
@@ -301,6 +322,34 @@ public final class MainActivity extends AppCompatActivity {
         unregisterReceivers();
         // Disconnect Media Browser
         mMediaBrowser.disconnect();
+    }
+
+    @Override
+    public void onCreateContextMenu(final ContextMenu menu,
+                                    final View v,
+                                    final ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        final MenuInflater inflater = getMenuInflater();
+        if (MediaIDHelper.MEDIA_ID_FAVORITES_LIST.equals(mCurrentParentId)) {
+            inflater.inflate(R.menu.context_menu_favorites_stations, menu);
+        } else if (MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(mCurrentParentId)) {
+            inflater.inflate(R.menu.context_menu_local_stations, menu);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(final MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.sort_radio_stations_menu:
+                mIsSortMode = true;
+                mBrowserAdapter.notifyDataSetChanged();
+                break;
+            case R.id.delete_radio_station_menu:
+
+                break;
+        }
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -387,6 +436,12 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     public final void onBackPressed() {
+
+        if (mIsSortMode) {
+            mIsSortMode = false;
+            mBrowserAdapter.notifyDataSetChanged();
+            return;
+        }
 
         hideNoDataMessage();
         hideProgressBar();
@@ -1080,6 +1135,9 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     *
+     */
     private static final class OnTouchListener implements AdapterView.OnTouchListener {
 
         private static final int LONG_TOUCH_TIME = 1500;
@@ -1111,7 +1169,11 @@ public final class MainActivity extends AppCompatActivity {
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
                 AppLogger.w(CLASS_NAME + " OnItemTouch return, reference to MainActivity is null");
-                return true;
+                return false;
+            }
+
+            if (!mainActivity.mIsSortMode) {
+                return false;
             }
 
             // Do drag and drop sort only for Favorites and Local Radio Stations
@@ -1122,7 +1184,7 @@ public final class MainActivity extends AppCompatActivity {
                     (int) event.getX(), (int) event.getY()
             );
             if (mPosition < 0) {
-                return false;
+                return true;
             }
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN: {
@@ -1156,7 +1218,7 @@ public final class MainActivity extends AppCompatActivity {
                     return true;
                 }
             }
-            return false;
+            return true;
         }
 
         /**

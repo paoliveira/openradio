@@ -122,4 +122,9 @@
     <string name="about_exo_text">ExoPlayer</string>
     <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
 
+    <!-- Version 2.5 -->
+
+    <string name="sort_radio_stations_menu_label">Sort Radio Stations</string>
+    <string name="delete_station_menu_label">Delete Radio Station</string>
+
 </resources>

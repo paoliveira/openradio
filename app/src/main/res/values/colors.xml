@@ -5,7 +5,9 @@
     <color name="primary_color">#FF3D434C</color>
     <color name="primary_dark_color">#FF3D434C</color>
     <color name="accent_color">#FF448811</color>
-    <color name="queue_item_selected_bg_color">#FF3C3B48</color>
+    <color name="list_item_selected_bg_color">#FF3C3B48</color>
     <color name="transparent_color">#00000000</color>
+    <color name="item_bg_color_sort_mode">#FF2E3735</color>
+    <color name="item_bg_color_selected_sort_mode">#FF3A4A47</color>
 
 </resources>
