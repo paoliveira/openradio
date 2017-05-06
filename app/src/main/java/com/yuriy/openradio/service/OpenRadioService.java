@@ -933,7 +933,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             updatePlaybackState(getString(R.string.no_data_message));
         }
 
-        //AppLogger.d(CLASS_NAME + " CurrentPlayingRadioStation for id=" + mediaId);
         return MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation

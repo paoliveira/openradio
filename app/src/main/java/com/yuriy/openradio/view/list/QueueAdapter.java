@@ -15,7 +15,8 @@
  */
 package com.yuriy.openradio.view.list;
 
-import android.app.Activity;
+import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,11 +28,13 @@ import android.widget.TextView;
 import com.yuriy.openradio.R;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * A list adapter for items in a queue
  */
-public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
+public final class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
 
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueAdapter.class.getSimpleName();
@@ -47,15 +50,26 @@ public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
     private int mActivePosition = 0;
 
     /**
+     * {@link java.util.Comparator} to implement sorting.
+     */
+    @NonNull
+    private final Comparator<MediaSessionCompat.QueueItem> mComparator;
+
+    /**
      * Constructor.
+     *
      * @param context Context.
      */
-    public QueueAdapter(final Activity context) {
+    public QueueAdapter(final Context context,
+                        @NonNull final Comparator<MediaSessionCompat.QueueItem> comparator) {
         super(context, R.layout.media_list_item, new ArrayList<>());
+
+        mComparator = comparator;
     }
 
     /**
      * Set active ID from the items queue.
+     *
      * @param id Id of the Item.
      */
     public void setActiveQueueItemId(final long id) {
@@ -79,7 +93,14 @@ public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
     }
 
     @Override
-    public View getView(final int position, View convertView, final ViewGroup parent) {
+    public void addAll(@NonNull final Collection<? extends MediaSessionCompat.QueueItem> collection) {
+        super.addAll(collection);
+        sort(mComparator);
+    }
+
+    @NonNull
+    @Override
+    public View getView(final int position, View convertView, @NonNull final ViewGroup parent) {
         ViewHolder holder;
 
         if (convertView == null) {
@@ -95,7 +116,6 @@ public class QueueAdapter extends ArrayAdapter<MediaSessionCompat.QueueItem> {
         }
 
         final MediaSessionCompat.QueueItem item = getItem(position);
-        //Log.d(CLASS_NAME, "Queue Item:" + item);
 
         holder.mTitleView.setText(item.getDescription().getTitle());
         holder.mDescriptionView.setText(item.getDescription().getDescription());

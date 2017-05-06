@@ -24,6 +24,7 @@ import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -39,6 +40,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.list.QueueAdapter;
 
 import java.lang.ref.WeakReference;
@@ -155,7 +157,20 @@ public final class QueueActivity extends FragmentActivity {
         mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
 
         // Initialize adapter
-        mQueueAdapter = new QueueAdapter(this);
+        mQueueAdapter = new QueueAdapter(
+                getApplicationContext(),
+                (o1, o2) -> {
+                    final int sortId1 = MediaItemHelper.getSortIdField(o1);
+                    final int sortId2 = MediaItemHelper.getSortIdField(o2);
+                    if (sortId2 > sortId1) {
+                        return -1;
+                    }
+                    if (sortId2 < sortId1) {
+                        return 1;
+                    }
+                    return 0;
+                }
+        );
 
         // Get list view reference from the inflated xml
         final ListView listView = (ListView) findViewById(R.id.queue_list_view);
@@ -209,7 +224,8 @@ public final class QueueActivity extends FragmentActivity {
 
         // Initialize Media Browser
         mMediaBrowser = new MediaBrowserCompat(
-                this, new ComponentName(this, OpenRadioService.class),
+                getApplicationContext(),
+                new ComponentName(getApplicationContext(), OpenRadioService.class),
                 new MediaBrowserConnectionCallback(this), null
         );
 
@@ -545,6 +561,14 @@ public final class QueueActivity extends FragmentActivity {
                     final MediaSessionCompat.QueueItem newItem = new MediaSessionCompat.QueueItem(
                             metadata.getDescription(), item.getQueueId()
                     );
+
+                    final MediaDescriptionCompat description = newItem.getDescription();
+                    Bundle extras = description.getExtras();
+                    if (extras == null) {
+                        extras = item.getDescription().getExtras();
+                        MediaItemHelper.updateExtras(description, extras);
+                    }
+
                     queue.remove(item);
                     queue.add(i, newItem);
                     break;
