@@ -63,16 +63,6 @@ public final class QueueActivity extends FragmentActivity {
     private static final String CLASS_NAME = QueueActivity.class.getSimpleName();
 
     /**
-     * Skip Next button
-     */
-    private ImageButton mSkipNext;
-
-    /**
-     * Skip Previous button
-     */
-    private ImageButton mSkipPrevious;
-
-    /**
      * Play - Pause button
      */
     private ImageButton mPlayPause;
@@ -133,6 +123,11 @@ public final class QueueActivity extends FragmentActivity {
      */
     private final View.OnClickListener mButtonListener = new ControlsClickListener(this);
 
+    /**
+     *
+     */
+    private ListView mListView;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -142,16 +137,13 @@ public final class QueueActivity extends FragmentActivity {
 
         // Assign listeners to the buttons
 
-        mSkipPrevious = (ImageButton) findViewById(R.id.skip_previous);
-        mSkipPrevious.setEnabled(false);
-        mSkipPrevious.setOnClickListener(mButtonListener);
+        final ImageButton skipPrevious = (ImageButton) findViewById(R.id.skip_previous);
+        skipPrevious.setOnClickListener(mButtonListener);
 
-        mSkipNext = (ImageButton) findViewById(R.id.skip_next);
-        mSkipNext.setEnabled(false);
-        mSkipNext.setOnClickListener(mButtonListener);
+        final ImageButton skipNext = (ImageButton) findViewById(R.id.skip_next);
+        skipNext.setOnClickListener(mButtonListener);
 
         mPlayPause = (ImageButton) findViewById(R.id.play_pause);
-        mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(mButtonListener);
 
         mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
@@ -173,32 +165,19 @@ public final class QueueActivity extends FragmentActivity {
         );
 
         // Get list view reference from the inflated xml
-        final ListView listView = (ListView) findViewById(R.id.queue_list_view);
+        mListView = (ListView) findViewById(R.id.queue_list_view);
         // Set List's choice mode
-        listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
+        mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         // Set adapter
-        listView.setAdapter(mQueueAdapter);
+        mListView.setAdapter(mQueueAdapter);
         // Set focusable
-        listView.setFocusable(true);
+        mListView.setFocusable(true);
         // Set listeners
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            final MediaSessionCompat.QueueItem item = mQueueAdapter.getItem(position);
-            if (item == null) {
-                AppLogger.w(CLASS_NAME + " clicked item is null");
-                return;
-            }
-
-            mListFirstVisiblePosition = listView.getFirstVisiblePosition();
-            AppLogger.d(
-                    CLASS_NAME
-                            + " 1st visible pos (after click) is "
-                            + mListFirstVisiblePosition
-            );
-
-            mTransportControls.skipToQueueItem(item.getQueueId());
+        mListView.setOnItemClickListener((parent, view, position, id) -> {
+            skipToQueueItem(position);
             view.setSelected(true);
         });
-        listView.setOnScrollListener(
+        mListView.setOnScrollListener(
                 new AbsListView.OnScrollListener() {
                     @Override
                     public void onScrollStateChanged(final AbsListView view, final int scrollState) {
@@ -206,7 +185,7 @@ public final class QueueActivity extends FragmentActivity {
                                 || scrollState == SCROLL_STATE_TOUCH_SCROLL) {
                             return;
                         }
-                        mListFirstVisiblePosition = listView.getFirstVisiblePosition();
+                        mListFirstVisiblePosition = mListView.getFirstVisiblePosition();
                         AppLogger.d(
                                 CLASS_NAME
                                         + " 1st visible pos (after scroll) is "
@@ -258,12 +237,10 @@ public final class QueueActivity extends FragmentActivity {
 
     @Override
     protected void onSaveInstanceState(final Bundle outState) {
-
-        // Get list view reference from the inflated xml
-        final ListView listView = (ListView) findViewById(R.id.queue_list_view);
-
         // Save first visible ID of the List
-        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, listView.getFirstVisiblePosition());
+        if (mListView != null) {
+            outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListView.getFirstVisiblePosition());
+        }
 
         super.onSaveInstanceState(outState);
     }
@@ -281,6 +258,23 @@ public final class QueueActivity extends FragmentActivity {
         final Intent intent = new Intent(context, QueueActivity.class);
         intent.putExtra(BUNDLE_ARG_SELECTED_MEDIA_ID, mediaId);
         return intent;
+    }
+
+    private void skipToQueueItem(final int position) {
+        final MediaSessionCompat.QueueItem item = mQueueAdapter.getItem(position);
+        if (item == null) {
+            AppLogger.w(CLASS_NAME + " clicked item is null");
+            return;
+        }
+
+        mListFirstVisiblePosition = mListView.getFirstVisiblePosition();
+        AppLogger.d(
+                CLASS_NAME
+                        + " 1st visible pos (after click) is "
+                        + mListFirstVisiblePosition
+        );
+
+        mTransportControls.skipToQueueItem(item.getQueueId());
     }
 
     /**
@@ -389,8 +383,7 @@ public final class QueueActivity extends FragmentActivity {
                 statusBuilder.append(mPlaybackState);
         }
 
-        final ListView listView = (ListView) findViewById(R.id.queue_list_view);
-        listView.setSelection(mListFirstVisiblePosition);
+        mListView.setSelection(mListFirstVisiblePosition);
 
         statusBuilder.append(" -- At position: ").append(state.getPosition());
         AppLogger.d(CLASS_NAME + " " + statusBuilder.toString());
@@ -400,9 +393,6 @@ public final class QueueActivity extends FragmentActivity {
         } else {
             mPlayPause.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_white_24dp));
         }
-
-        mSkipPrevious.setEnabled((state.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0);
-        mSkipNext.setEnabled((state.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0);
 
         AppLogger.d(CLASS_NAME + " Queue From MediaController *** Title " +
                 mMediaController.getQueueTitle() + "\n: Queue: " + mMediaController.getQueue() +
@@ -433,10 +423,10 @@ public final class QueueActivity extends FragmentActivity {
      * Skip to previous handler
      */
     private void skipToPrevious() {
-        if (mTransportControls == null) {
-            return;
+        final int position = mQueueAdapter.getActivePosition();
+        if (position > 0) {
+            skipToQueueItem(position - 1);
         }
-        mTransportControls.skipToPrevious();
 
         mListFirstVisiblePosition--;
         if (mListFirstVisiblePosition < 0) {
@@ -448,14 +438,15 @@ public final class QueueActivity extends FragmentActivity {
      * Skip to next handler
      */
     private void skipToNext() {
-        if (mTransportControls == null) {
-            return;
+        final int count = mQueueAdapter.getCount();
+        final int position = mQueueAdapter.getActivePosition();
+        if (position < count - 1) {
+            skipToQueueItem(position + 1);
         }
-        mTransportControls.skipToNext();
 
         mListFirstVisiblePosition++;
-        if (mListFirstVisiblePosition > mQueueAdapter.getCount()) {
-            mListFirstVisiblePosition = mQueueAdapter.getCount();
+        if (mListFirstVisiblePosition > count) {
+            mListFirstVisiblePosition = count;
         }
     }
 
@@ -618,7 +609,7 @@ public final class QueueActivity extends FragmentActivity {
             // Initialize Media Controller
             try {
                 activity.mMediaController = new MediaControllerCompat(
-                        activity,
+                        activity.getApplicationContext(),
                         activity.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
@@ -633,7 +624,7 @@ public final class QueueActivity extends FragmentActivity {
             activity.mMediaController.registerCallback(activity.mMediaSessionCallback);
 
             // Set actual media controller
-            activity.setSupportMediaController(activity.mMediaController);
+            MediaControllerCompat.setMediaController(activity, activity.mMediaController);
 
             // Get actual playback state
             activity.mPlaybackState = activity.mMediaController.getPlaybackState();
@@ -693,7 +684,7 @@ public final class QueueActivity extends FragmentActivity {
             activity.mMediaController.unregisterCallback(activity.mMediaSessionCallback);
             activity.mTransportControls = null;
             activity.mMediaController = null;
-            activity.setSupportMediaController(null);
+            MediaControllerCompat.setMediaController(activity, null);
         }
     }
 
