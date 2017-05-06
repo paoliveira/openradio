@@ -19,11 +19,13 @@ package com.yuriy.openradio.service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
@@ -253,7 +255,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private boolean mIsAndroidAuto = false;
 
     /**
-     *
+     * Indicates whether {@link #onBind(Intent)} has been called.
+     */
+    private boolean mIsBind;
+
+    /**
+     * Enumeration for the Audio Focus states.
      */
     private enum AudioFocus {
 
@@ -379,6 +386,31 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
+    }
+
+    @Override
+    public IBinder onBind(final Intent intent) {
+        AppLogger.i(CLASS_NAME + " On Bind: " + intent);
+        mIsBind = true;
+        return super.onBind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(final Intent intent) {
+        AppLogger.i(CLASS_NAME + " On Unbind: " + intent);
+        if (mIsBind) {
+            final Handler handler = new Handler();
+            handler.post(this::stopService);
+            mIsBind = false;
+        }
+        return super.onUnbind(intent);
+    }
+
+    @Override
+    public void onConfigurationChanged(final Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        AppLogger.i(CLASS_NAME + " On Config changed: " + newConfig);
     }
 
     @Override
