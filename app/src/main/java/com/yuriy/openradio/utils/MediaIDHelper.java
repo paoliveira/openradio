@@ -16,16 +16,14 @@
 
 package com.yuriy.openradio.utils;
 
+import android.text.TextUtils;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 12/14/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-import android.text.TextUtils;
-
-/**
+ *
  * Utility class to help on queue related tasks.
  * Media IDs used on browseable items of {@link android.media.browse.MediaBrowser}.
  */
@@ -131,9 +129,11 @@ public final class MediaIDHelper {
     }
 
     /**
+     * Returns whether or not current Catalog is sortable, for instance Favorites or
+     * Local Radio Stations.
      *
-     * @param categoryMediaId
-     * @return
+     * @param categoryMediaId Category Media Id.
+     * @return {@code true} in case of Catalog is sortable, {@code false} otherwise.
      */
     public static boolean isMediaIdSortable(final String categoryMediaId) {
         return MEDIA_ID_FAVORITES_LIST.equals(categoryMediaId)

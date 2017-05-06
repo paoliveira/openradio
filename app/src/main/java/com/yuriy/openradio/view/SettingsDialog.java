@@ -47,7 +47,7 @@ import java.io.IOException;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class SettingsDialog extends DialogFragment {
+public final class SettingsDialog extends DialogFragment {
 
     /**
      * Tag string mTo use in logging message.

@@ -1056,6 +1056,21 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            // In case of Catalog is sortable and user do not know about it - show
+            // help dialog to guide through functionality.
+            if (MediaIDHelper.isMediaIdSortable(parentId)) {
+                final boolean isSortDialogShown = AppPreferencesManager.isSortDialogShown(
+                        activity.getApplicationContext()
+                );
+                if (!isSortDialogShown) {
+                    final BaseDialogFragment featureSortDialog = BaseDialogFragment.newInstance(
+                            FeatureSortDialog.class.getName()
+                    );
+                    featureSortDialog.setCancelable(false);
+                    featureSortDialog.show(activity.getFragmentManager(), FeatureSortDialog.DIALOG_TAG);
+                }
+            }
+
             activity.mCurrentParentId = parentId;
             activity.hideProgressBar();
 

@@ -18,30 +18,28 @@ package com.yuriy.openradio.view;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.IntentsHelper;
+import com.yuriy.openradio.business.AppPreferencesManager;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
- * {@link UseLocationDialog} is a Dialog to inform user that there is a profit of using Location
- * service of the device.
+ * <p>
+ * {@link FeatureSortDialog} is a Dialog to inform user about how to use Sort feature.
  */
-public final class UseLocationDialog extends BaseDialogFragment {
+public final class FeatureSortDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in the debugging messages.
      */
-    private static final String LOG_TAG = UseLocationDialog.class.getSimpleName();
+    private static final String LOG_TAG = FeatureSortDialog.class.getSimpleName();
 
     /**
      * The tag for this fragment, as per {@link android.app.FragmentTransaction#add}.
@@ -50,29 +48,22 @@ public final class UseLocationDialog extends BaseDialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final View view = getInflater().inflate(R.layout.use_location_dialog,
-                (ViewGroup) getActivity().findViewById(R.id.use_location_dialog_root));
+        final View view = getInflater().inflate(R.layout.feature_sort_dialog,
+                (ViewGroup) getActivity().findViewById(R.id.feature_sort_dialog_root));
 
-        final Button enableLocationServiceBtn
-                = (Button) view.findViewById(R.id.uld_enable_location_service_btn_view);
-        enableLocationServiceBtn.setOnClickListener(
-                v -> startActivityForResult(
-                        IntentsHelper.makeOpenLocationSettingsIntent(),
-                        IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS)
+        final Button okBtn
+                = (Button) view.findViewById(R.id.feature_sort_ok_btn_view);
+        okBtn.setOnClickListener(v -> {
+                    AppPreferencesManager.setSortDialogShown(
+                            getActivity().getApplicationContext(), true
+                    );
+                    dismiss();
+                }
         );
 
         final AlertDialog.Builder builder = createAlertDialogWithOkButton(getActivity());
-        builder.setTitle(getActivity().getString(R.string.location_service));
+        builder.setTitle(getActivity().getString(R.string.feature_sort_title));
         builder.setView(view);
         return builder.create();
-    }
-
-    @Override
-    public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS) {
-            ((MainActivity) getActivity()).processLocationCallback();
-        }
     }
 }

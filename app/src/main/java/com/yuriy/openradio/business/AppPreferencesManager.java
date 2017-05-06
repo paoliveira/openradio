@@ -47,6 +47,11 @@ public final class AppPreferencesManager {
     private static final String PREFS_KEY_ARE_LOGS_ENABLED = "IS_LOGS_ENABLED";
 
     /**
+     *
+     */
+    private static final String PREFS_KEY_IS_SORT_DIALOG_SHOWN = "IS_SORT_DIALOG_SHOWN";
+
+    /**
      * Default constructor.
      */
     private AppPreferencesManager() {
@@ -94,6 +99,28 @@ public final class AppPreferencesManager {
                                       final boolean value) {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putBoolean(PREFS_KEY_ARE_LOGS_ENABLED, value);
+        editor.apply();
+    }
+
+    /**
+     * @return True if dialog about Sort feature was shown. False - otherwise.
+     */
+    public static boolean isSortDialogShown(@NonNull final Context context) {
+        return getSharedPreferences(context).getBoolean(
+                PREFS_KEY_IS_SORT_DIALOG_SHOWN,
+                false
+        );
+    }
+
+    /**
+     * Set True if dialog about Sort feature was shown. False - otherwise.
+     *
+     * @param value Boolean value.
+     */
+    public static void setSortDialogShown(@NonNull final Context context,
+                                          final boolean value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putBoolean(PREFS_KEY_IS_SORT_DIALOG_SHOWN, value);
         editor.apply();
     }
 

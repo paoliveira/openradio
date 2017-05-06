@@ -34,7 +34,7 @@ import com.yuriy.openradio.utils.IntentsHelper;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class AboutDialog extends DialogFragment {
+public final class AboutDialog extends DialogFragment {
 
     /**
      * Tag string to use in logging message.
