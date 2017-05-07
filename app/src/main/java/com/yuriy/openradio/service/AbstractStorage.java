@@ -19,12 +19,14 @@ package com.yuriy.openradio.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.RadioStationDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONSerializer;
 import com.yuriy.openradio.business.RadioStationSerializer;
+import com.yuriy.openradio.utils.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +38,12 @@ import java.util.Map;
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public abstract class AbstractStorage {
+abstract class AbstractStorage {
 
     /**
      * Default constructor.
      */
-    public AbstractStorage() {
+    AbstractStorage() {
         super();
     }
 
@@ -106,6 +108,14 @@ public abstract class AbstractStorage {
                 continue;
             }
             radioStation = deserializer.deserialize(value);
+
+            // This is not valid Radio Station. It can be happen in case of there is assigned ID
+            // but actual Radio Station is not created yet. Probably it is necessary to re-design
+            // functionality to avoid such scenario.
+            if (TextUtils.isEmpty(radioStation.getStreamURL())) {
+                continue;
+            }
+
             radioStations.add(radioStation);
 
             // This is solution for the new functionality - drag and drop in order to sort
