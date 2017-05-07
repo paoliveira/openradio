@@ -32,6 +32,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.MediaItemsComparator;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -68,19 +69,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      */
     public MediaItemsAdapter(final MainActivity activity, final ImageFetcher imageFetcher) {
         super();
-        mAdapterData = new ListAdapterData<>(
-                (o1, o2) -> {
-                    final int sortId1 = MediaItemHelper.getSortIdField(o1);
-                    final int sortId2 = MediaItemHelper.getSortIdField(o2);
-                    if (sortId2 > sortId1) {
-                        return -1;
-                    }
-                    if (sortId2 < sortId1) {
-                        return 1;
-                    }
-                    return 0;
-                }
-        );
+        mAdapterData = new ListAdapterData<>(new MediaItemsComparator());
         mCurrentActivity = activity;
         mImageFetcher = imageFetcher;
     }

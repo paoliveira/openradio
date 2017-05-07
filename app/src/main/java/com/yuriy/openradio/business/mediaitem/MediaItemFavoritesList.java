@@ -22,10 +22,12 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.business.MediaItemsComparator;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,6 +81,7 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
 
             shareObject.getMediaItems().add(mediaItem);
         }
+        Collections.sort(shareObject.getMediaItems(), new MediaItemsComparator());
         shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }
