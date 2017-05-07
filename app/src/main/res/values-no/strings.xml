@@ -88,5 +88,9 @@
     <string name="about_exo_title">Avspilling er drevet av:</string>
     <string name="about_exo_text">ExoPlayer</string>
     <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
+    <string name="sort_radio_stations_menu_label">Sorter Radiostasjoner</string>
+    <string name="delete_station_menu_label">Slett Radiostasjon</string>
+    <string name="feature_sort_title">Sorter Radiostasjoner</string>
+    <string name="feature_sort_text">Å gjøre radiostasjoner sortere:\n\n- lenge trykk på en hvilken som helst Radiostasjon\n- plukke ut \"Sorter Radiostasjoner\"\n- dra og slipp Radio Station for å sortere dem i ønsket rekkefølger\n- trykk på \"Tilbake\" knappen for å gå tilbake til normal modus</string>
 
 </resources>

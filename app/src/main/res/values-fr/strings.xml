@@ -88,5 +88,9 @@
     <string name="about_exo_title">La lecture est alimentée par:</string>
     <string name="about_exo_text">ExoPlayer</string>
     <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
+    <string name="sort_radio_stations_menu_label">Trier les Stations de Radio</string>
+    <string name="delete_station_menu_label">Supprimer la Station de Radio</string>
+    <string name="feature_sort_title">Trier les Stations de Radio</string>
+    <string name="feature_sort_text">Pour effectuer des stations de radio:\n\n- appuyez longuement sur n\'importe quelle Station de Radio\n- sélectionner \"Trier les Stations de Radio\"\n- faites glisser et déposez la Station de Radio pour les trier dans l\'ordre souhaité\n- appuyez sur le bouton \"Retour\" pour revenir au mode normal</string>
 
 </resources>

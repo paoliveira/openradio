@@ -127,6 +127,6 @@
     <string name="sort_radio_stations_menu_label">Sort Radio Stations</string>
     <string name="delete_station_menu_label">Delete Radio Station</string>
     <string name="feature_sort_title">Sort Radio Stations</string>
-    <string name="feature_sort_text">To do Radio Stations sort:\n\n-long press any Radio Station\n-select \"Sort Radio Stations\"\n-drag and drop Radio Station to sort them in desired order\n-press \"Back\" button to return to normal mode</string>
+    <string name="feature_sort_text">To do Radio Stations sort:\n\n- long press any Radio Station\n- select \"Sort Radio Stations\"\n- drag and drop Radio Station to sort them in desired order\n- press \"Back\" button to return to normal mode</string>
 
 </resources>

@@ -88,5 +88,9 @@
     <string name="about_exo_title">Die Wiedergabe erfolgt über:</string>
     <string name="about_exo_text">ExoPlayer</string>
     <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
+    <string name="sort_radio_stations_menu_label">Radiosender sortieren</string>
+    <string name="delete_station_menu_label">Radiosender löschen</string>
+    <string name="feature_sort_title">Radiosender sortieren</string>
+    <string name="feature_sort_text">Radiosender sortieren:\n\n- langes drücken eines Radiosenders\n- wählen \"Radiosender sortieren\"\n- per Drag und Drop Radio Station, um sie in der gewünschten Reihenfolge zu sortieren\n- drücken Sie die Taste \"Zurück\", um zum normalen Modus zurückzukehren</string>
 
 </resources>
