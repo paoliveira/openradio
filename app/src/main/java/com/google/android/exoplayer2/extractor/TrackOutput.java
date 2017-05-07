@@ -73,6 +73,6 @@ public interface TrackOutput {
    * @param encryptionKey The encryption key associated with the sample. May be null.
    */
   void sampleMetadata(long timeUs, @C.BufferFlags int flags, int size, int offset,
-                      byte[] encryptionKey);
+      byte[] encryptionKey);
 
 }

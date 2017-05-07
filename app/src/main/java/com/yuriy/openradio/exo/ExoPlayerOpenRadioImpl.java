@@ -29,6 +29,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerImpl;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
@@ -70,11 +71,6 @@ public final class ExoPlayerOpenRadioImpl {
      * Listener for the main public events.
      */
     public interface Listener {
-
-        /**
-         * Indicates that item finished play.
-         */
-        void onCompletion();
 
         /**
          * Indicates an error while consume stream.
@@ -527,6 +523,11 @@ public final class ExoPlayerOpenRadioImpl {
         @Override
         public void onPositionDiscontinuity() {
             //AppLogger.e(LOG_TAG + " onPositionDiscontinuity");
+        }
+
+        @Override
+        public void onPlaybackParametersChanged(final PlaybackParameters playbackParameters) {
+            //AppLogger.e(LOG_TAG + " onPlaybackParametersChanged");
         }
     }
 }

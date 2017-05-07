@@ -139,8 +139,8 @@ public final class DrmInitData implements Comparator<SchemeData>, Parcelable {
     dest.writeTypedArray(schemeDatas, 0);
   }
 
-  public static final Creator<DrmInitData> CREATOR =
-      new Creator<DrmInitData>() {
+  public static final Parcelable.Creator<DrmInitData> CREATOR =
+      new Parcelable.Creator<DrmInitData>() {
 
     @Override
     public DrmInitData createFromParcel(Parcel in) {
@@ -262,8 +262,8 @@ public final class DrmInitData implements Comparator<SchemeData>, Parcelable {
     }
 
     @SuppressWarnings("hiding")
-    public static final Creator<SchemeData> CREATOR =
-        new Creator<SchemeData>() {
+    public static final Parcelable.Creator<SchemeData> CREATOR =
+        new Parcelable.Creator<SchemeData>() {
 
       @Override
       public SchemeData createFromParcel(Parcel in) {

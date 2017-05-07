@@ -38,7 +38,7 @@ public interface LoadControl {
    * @param trackSelections The track selections that were made.
    */
   void onTracksSelected(Renderer[] renderers, TrackGroupArray trackGroups,
-                        TrackSelectionArray trackSelections);
+      TrackSelectionArray trackSelections);
 
   /**
    * Called by the player when stopped.

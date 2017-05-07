@@ -19,6 +19,7 @@ import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import com.google.android.exoplayer2.ExoPlayerImplInternal.PlaybackInfo;
 import com.google.android.exoplayer2.ExoPlayerImplInternal.SourceInfo;
@@ -37,7 +38,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 public final class ExoPlayerImpl implements ExoPlayer {
 
-  private static final String TAG = "ExoPlayerOpenRadioImpl";
+  private static final String TAG = "ExoPlayerImpl";
 
   private final Renderer[] renderers;
   private final TrackSelector trackSelector;
@@ -52,17 +53,20 @@ public final class ExoPlayerImpl implements ExoPlayer {
   private boolean playWhenReady;
   private int playbackState;
   private int pendingSeekAcks;
+  private int pendingPrepareAcks;
   private boolean isLoading;
   private Timeline timeline;
   private Object manifest;
   private TrackGroupArray trackGroups;
   private TrackSelectionArray trackSelections;
+  private PlaybackParameters playbackParameters;
 
   // Playback information when there is no pending seek/set source operation.
   private PlaybackInfo playbackInfo;
 
   // Playback information when there is a pending seek/set source operation.
   private int maskingWindowIndex;
+  private int maskingPeriodIndex;
   private long maskingWindowPositionMs;
 
   /**
@@ -74,7 +78,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
    */
   @SuppressLint("HandlerLeak")
   public ExoPlayerImpl(Renderer[] renderers, TrackSelector trackSelector, LoadControl loadControl) {
-    Log.i(TAG, "Init " + ExoPlayerLibraryInfo.VERSION + " [" + Util.DEVICE_DEBUG_INFO + "]");
+    Log.i(TAG, "Init " + ExoPlayerLibraryInfo.VERSION_SLASHY + " [" + Util.DEVICE_DEBUG_INFO + "]");
     Assertions.checkState(renderers.length > 0);
     this.renderers = Assertions.checkNotNull(renderers);
     this.trackSelector = Assertions.checkNotNull(trackSelector);
@@ -87,6 +91,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
     period = new Timeline.Period();
     trackGroups = TrackGroupArray.EMPTY;
     trackSelections = emptyTrackSelections;
+    playbackParameters = PlaybackParameters.DEFAULT;
     eventHandler = new Handler() {
       @Override
       public void handleMessage(Message msg) {
@@ -138,6 +143,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
         }
       }
     }
+    pendingPrepareAcks++;
     internalPlayer.prepare(mediaSource, resetPosition);
   }
 
@@ -184,6 +190,22 @@ public final class ExoPlayerImpl implements ExoPlayer {
     }
     pendingSeekAcks++;
     maskingWindowIndex = windowIndex;
+    if (timeline.isEmpty()) {
+      maskingPeriodIndex = 0;
+    } else {
+      timeline.getWindow(windowIndex, window);
+      long resolvedPositionMs =
+          positionMs == C.TIME_UNSET ? window.getDefaultPositionUs() : positionMs;
+      int periodIndex = window.firstPeriodIndex;
+      long periodPositionUs = window.getPositionInFirstPeriodUs() + C.msToUs(resolvedPositionMs);
+      long periodDurationUs = timeline.getPeriod(periodIndex, period).getDurationUs();
+      while (periodDurationUs != C.TIME_UNSET && periodPositionUs >= periodDurationUs
+          && periodIndex < window.lastPeriodIndex) {
+        periodPositionUs -= periodDurationUs;
+        periodDurationUs = timeline.getPeriod(++periodIndex, period).getDurationUs();
+      }
+      maskingPeriodIndex = periodIndex;
+    }
     if (positionMs == C.TIME_UNSET) {
       maskingWindowPositionMs = 0;
       internalPlayer.seekTo(timeline, windowIndex, C.TIME_UNSET);
@@ -194,6 +216,19 @@ public final class ExoPlayerImpl implements ExoPlayer {
         listener.onPositionDiscontinuity();
       }
     }
+  }
+
+  @Override
+  public void setPlaybackParameters(@Nullable PlaybackParameters playbackParameters) {
+    if (playbackParameters == null) {
+      playbackParameters = PlaybackParameters.DEFAULT;
+    }
+    internalPlayer.setPlaybackParameters(playbackParameters);
+  }
+
+  @Override
+  public PlaybackParameters getPlaybackParameters() {
+    return playbackParameters;
   }
 
   @Override
@@ -219,7 +254,11 @@ public final class ExoPlayerImpl implements ExoPlayer {
 
   @Override
   public int getCurrentPeriodIndex() {
-    return playbackInfo.periodIndex;
+    if (timeline.isEmpty() || pendingSeekAcks > 0) {
+      return maskingPeriodIndex;
+    } else {
+      return playbackInfo.periodIndex;
+    }
   }
 
   @Override
@@ -273,18 +312,12 @@ public final class ExoPlayerImpl implements ExoPlayer {
 
   @Override
   public boolean isCurrentWindowDynamic() {
-    if (timeline.isEmpty()) {
-      return false;
-    }
-    return timeline.getWindow(getCurrentWindowIndex(), window).isDynamic;
+    return !timeline.isEmpty() && timeline.getWindow(getCurrentWindowIndex(), window).isDynamic;
   }
 
   @Override
   public boolean isCurrentWindowSeekable() {
-    if (timeline.isEmpty()) {
-      return false;
-    }
-    return timeline.getWindow(getCurrentWindowIndex(), window).isSeekable;
+    return !timeline.isEmpty() && timeline.getWindow(getCurrentWindowIndex(), window).isSeekable;
   }
 
   @Override
@@ -320,6 +353,10 @@ public final class ExoPlayerImpl implements ExoPlayer {
   // Not private so it can be called from an inner class without going through a thunk method.
   /* package */ void handleEvent(Message msg) {
     switch (msg.what) {
+      case ExoPlayerImplInternal.MSG_PREPARE_ACK: {
+        pendingPrepareAcks--;
+        break;
+      }
       case ExoPlayerImplInternal.MSG_STATE_CHANGED: {
         playbackState = msg.arg1;
         for (EventListener listener : listeners) {
@@ -335,13 +372,15 @@ public final class ExoPlayerImpl implements ExoPlayer {
         break;
       }
       case ExoPlayerImplInternal.MSG_TRACKS_CHANGED: {
-        TrackSelectorResult trackSelectorResult = (TrackSelectorResult) msg.obj;
-        tracksSelected = true;
-        trackGroups = trackSelectorResult.groups;
-        trackSelections = trackSelectorResult.selections;
-        trackSelector.onSelectionActivated(trackSelectorResult.info);
-        for (EventListener listener : listeners) {
-          listener.onTracksChanged(trackGroups, trackSelections);
+        if (pendingPrepareAcks == 0) {
+          TrackSelectorResult trackSelectorResult = (TrackSelectorResult) msg.obj;
+          tracksSelected = true;
+          trackGroups = trackSelectorResult.groups;
+          trackSelections = trackSelectorResult.selections;
+          trackSelector.onSelectionActivated(trackSelectorResult.info);
+          for (EventListener listener : listeners) {
+            listener.onTracksChanged(trackGroups, trackSelections);
+          }
         }
         break;
       }
@@ -367,12 +406,24 @@ public final class ExoPlayerImpl implements ExoPlayer {
       }
       case ExoPlayerImplInternal.MSG_SOURCE_INFO_REFRESHED: {
         SourceInfo sourceInfo = (SourceInfo) msg.obj;
-        timeline = sourceInfo.timeline;
-        manifest = sourceInfo.manifest;
-        playbackInfo = sourceInfo.playbackInfo;
         pendingSeekAcks -= sourceInfo.seekAcks;
-        for (EventListener listener : listeners) {
-          listener.onTimelineChanged(timeline, manifest);
+        if (pendingPrepareAcks == 0) {
+          timeline = sourceInfo.timeline;
+          manifest = sourceInfo.manifest;
+          playbackInfo = sourceInfo.playbackInfo;
+          for (EventListener listener : listeners) {
+            listener.onTimelineChanged(timeline, manifest);
+          }
+        }
+        break;
+      }
+      case ExoPlayerImplInternal.MSG_PLAYBACK_PARAMETERS_CHANGED: {
+        PlaybackParameters playbackParameters = (PlaybackParameters) msg.obj;
+        if (!this.playbackParameters.equals(playbackParameters)) {
+          this.playbackParameters = playbackParameters;
+          for (EventListener listener : listeners) {
+            listener.onPlaybackParametersChanged(playbackParameters);
+          }
         }
         break;
       }
@@ -383,6 +434,8 @@ public final class ExoPlayerImpl implements ExoPlayer {
         }
         break;
       }
+      default:
+        throw new IllegalStateException();
     }
   }
 

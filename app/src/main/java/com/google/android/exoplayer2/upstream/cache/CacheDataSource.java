@@ -171,7 +171,7 @@ public final class CacheDataSource implements DataSource {
     try {
       uri = dataSpec.uri;
       flags = dataSpec.flags;
-      key = dataSpec.key != null ? dataSpec.key : uri.toString();
+      key = CacheUtil.getKey(dataSpec);
       readPosition = dataSpec.position;
       currentRequestIgnoresCache = (ignoreCacheOnError && seenCacheError)
           || (dataSpec.length == C.LENGTH_UNSET && ignoreCacheForUnsetLengthRequests);
@@ -181,6 +181,9 @@ public final class CacheDataSource implements DataSource {
         bytesRemaining = cache.getContentLength(key);
         if (bytesRemaining != C.LENGTH_UNSET) {
           bytesRemaining -= dataSpec.position;
+          if (bytesRemaining <= 0) {
+            throw new DataSourceException(DataSourceException.POSITION_OUT_OF_RANGE);
+          }
         }
       }
       openNextSource(true);

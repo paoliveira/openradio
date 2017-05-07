@@ -193,7 +193,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
       // TODO: For this to work correctly, the embedded streams must not discard anything from their
       // sample queues beyond the current read position of the primary stream.
       for (DefaultTrackOutput embeddedSampleQueue : embeddedSampleQueues) {
-        embeddedSampleQueue.skipToKeyframeBefore(positionUs);
+        embeddedSampleQueue.skipToKeyframeBefore(positionUs, true);
       }
     } else {
       // We failed, and need to restart.
@@ -251,8 +251,12 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
   }
 
   @Override
-  public void skipToKeyframeBefore(long timeUs) {
-    primarySampleQueue.skipToKeyframeBefore(timeUs);
+  public void skipData(long positionUs) {
+    if (loadingFinished && positionUs > primarySampleQueue.getLargestQueuedTimestampUs()) {
+      primarySampleQueue.skipAll();
+    } else {
+      primarySampleQueue.skipToKeyframeBefore(positionUs, true);
+    }
   }
 
   // Loader.Callback implementation.
@@ -448,8 +452,12 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
     }
 
     @Override
-    public void skipToKeyframeBefore(long timeUs) {
-      sampleQueue.skipToKeyframeBefore(timeUs);
+    public void skipData(long positionUs) {
+      if (loadingFinished && positionUs > sampleQueue.getLargestQueuedTimestampUs()) {
+        sampleQueue.skipAll();
+      } else {
+        sampleQueue.skipToKeyframeBefore(positionUs, true);
+      }
     }
 
     @Override

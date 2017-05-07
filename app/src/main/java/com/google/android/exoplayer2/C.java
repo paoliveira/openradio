@@ -20,6 +20,7 @@ import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.MediaCodec;
+import android.media.MediaFormat;
 import android.support.annotation.IntDef;
 import android.view.Surface;
 import com.google.android.exoplayer2.util.Util;
@@ -75,6 +76,21 @@ public final class C {
    * The name of the UTF-8 charset.
    */
   public static final String UTF8_NAME = "UTF-8";
+
+  /**
+   * The name of the UTF-16 charset.
+   */
+  public static final String UTF16_NAME = "UTF-16";
+
+  /**
+   * * The name of the serif font family.
+   */
+  public static final String SERIF_NAME = "serif";
+
+  /**
+   * * The name of the sans-serif font family.
+   */
+  public static final String SANS_SERIF_NAME = "sans-serif";
 
   /**
    * Crypto modes for a codec.
@@ -482,16 +498,7 @@ public final class C {
   /**
    * A type of a message that can be passed to an audio {@link Renderer} via
    * {@link ExoPlayer#sendMessages} or {@link ExoPlayer#blockingSendMessages}. The message object
-   * should be a {@link android.media.PlaybackParams}, or null, which will be used to configure the
-   * underlying {@link android.media.AudioTrack}. The message object should not be modified by the
-   * caller after it has been passed.
-   */
-  public static final int MSG_SET_PLAYBACK_PARAMS = 3;
-
-  /**
-   * A type of a message that can be passed to an audio {@link Renderer} via
-   * {@link ExoPlayer#sendMessages} or {@link ExoPlayer#blockingSendMessages}. The message object
-   * should be one of the integer stream types in {@link StreamType}, and will specify the stream
+   * should be one of the integer stream types in {@link C.StreamType}, and will specify the stream
    * type of the underlying {@link android.media.AudioTrack}. See also
    * {@link android.media.AudioTrack#AudioTrack(int, int, int, int, int, int)}. If the stream type
    * is not set, audio renderers use {@link #STREAM_TYPE_DEFAULT}.
@@ -500,17 +507,17 @@ public final class C {
    * introduce a brief gap in audio output. Note also that tracks in the same audio session must
    * share the same routing, so a new audio session id will be generated.
    */
-  public static final int MSG_SET_STREAM_TYPE = 4;
+  public static final int MSG_SET_STREAM_TYPE = 3;
 
   /**
    * The type of a message that can be passed to a {@link MediaCodec}-based video {@link Renderer}
    * via {@link ExoPlayer#sendMessages} or {@link ExoPlayer#blockingSendMessages}. The message
-   * object should be one of the integer scaling modes in {@link VideoScalingMode}.
+   * object should be one of the integer scaling modes in {@link C.VideoScalingMode}.
    * <p>
    * Note that the scaling mode only applies if the {@link Surface} targeted by the renderer is
    * owned by a {@link android.view.SurfaceView}.
    */
-  public static final int MSG_SET_SCALING_MODE = 5;
+  public static final int MSG_SET_SCALING_MODE = 4;
 
   /**
    * Applications or extensions may define custom {@code MSG_*} constants greater than or equal to
@@ -549,9 +556,79 @@ public final class C {
   public static final int STEREO_MODE_STEREO_MESH = 3;
 
   /**
+   * Video colorspaces.
+   */
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef({Format.NO_VALUE, COLOR_SPACE_BT709, COLOR_SPACE_BT601, COLOR_SPACE_BT2020})
+  public @interface ColorSpace {}
+  /**
+   * @see MediaFormat#COLOR_STANDARD_BT709
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_SPACE_BT709 = MediaFormat.COLOR_STANDARD_BT709;
+  /**
+   * @see MediaFormat#COLOR_STANDARD_BT601_PAL
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_SPACE_BT601 = MediaFormat.COLOR_STANDARD_BT601_PAL;
+  /**
+   * @see MediaFormat#COLOR_STANDARD_BT2020
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_SPACE_BT2020 = MediaFormat.COLOR_STANDARD_BT2020;
+
+  /**
+   * Video color transfer characteristics.
+   */
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef({Format.NO_VALUE, COLOR_TRANSFER_SDR, COLOR_TRANSFER_ST2084, COLOR_TRANSFER_HLG})
+  public @interface ColorTransfer {}
+  /**
+   * @see MediaFormat#COLOR_TRANSFER_SDR_VIDEO
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_TRANSFER_SDR = MediaFormat.COLOR_TRANSFER_SDR_VIDEO;
+  /**
+   * @see MediaFormat#COLOR_TRANSFER_ST2084
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_TRANSFER_ST2084 = MediaFormat.COLOR_TRANSFER_ST2084;
+  /**
+   * @see MediaFormat#COLOR_TRANSFER_HLG
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_TRANSFER_HLG = MediaFormat.COLOR_TRANSFER_HLG;
+
+  /**
+   * Video color range.
+   */
+  @Retention(RetentionPolicy.SOURCE)
+  @IntDef({Format.NO_VALUE, COLOR_RANGE_LIMITED, COLOR_RANGE_FULL})
+  public @interface ColorRange {}
+  /**
+   * @see MediaFormat#COLOR_RANGE_LIMITED
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_RANGE_LIMITED = MediaFormat.COLOR_RANGE_LIMITED;
+  /**
+   * @see MediaFormat#COLOR_RANGE_FULL
+   */
+  @SuppressWarnings("InlinedApi")
+  public static final int COLOR_RANGE_FULL = MediaFormat.COLOR_RANGE_FULL;
+
+  /**
    * Priority for media playback.
+   *
+   * <p>Larger values indicate higher priorities.
    */
   public static final int PRIORITY_PLAYBACK = 0;
+
+  /**
+   * Priority for media downloading.
+   *
+   * <p>Larger values indicate higher priorities.
+   */
+  public static final int PRIORITY_DOWNLOAD = PRIORITY_PLAYBACK - 1000;
 
   /**
    * Converts a time in microseconds to the corresponding time in milliseconds, preserving

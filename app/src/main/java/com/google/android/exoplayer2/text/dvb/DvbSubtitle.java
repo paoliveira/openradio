@@ -13,38 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.source;
+package com.google.android.exoplayer2.text.dvb;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.FormatHolder;
-import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
-import java.io.IOException;
+import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.text.Subtitle;
+import java.util.List;
 
 /**
- * An empty {@link SampleStream}.
+ * A representation of a DVB subtitle.
  */
-public final class EmptySampleStream implements SampleStream {
+/* package */ final class DvbSubtitle implements Subtitle {
 
-  @Override
-  public boolean isReady() {
-    return true;
+  private final List<Cue> cues;
+
+  public DvbSubtitle(List<Cue> cues) {
+    this.cues = cues;
   }
 
   @Override
-  public void maybeThrowError() throws IOException {
-    // Do nothing.
+  public int getNextEventTimeIndex(long timeUs) {
+    return C.INDEX_UNSET;
   }
 
   @Override
-  public int readData(FormatHolder formatHolder, DecoderInputBuffer buffer,
-      boolean formatRequired) {
-    buffer.setFlags(C.BUFFER_FLAG_END_OF_STREAM);
-    return C.RESULT_BUFFER_READ;
+  public int getEventTimeCount() {
+    return 1;
   }
 
   @Override
-  public void skipData(long positionUs) {
-    // Do nothing.
+  public long getEventTime(int index) {
+    return 0;
+  }
+
+  @Override
+  public List<Cue> getCues(long timeUs) {
+    return cues;
   }
 
 }

@@ -33,7 +33,7 @@ public final class ClippingMediaPeriod implements MediaPeriod, MediaPeriod.Callb
    */
   public final MediaPeriod mediaPeriod;
 
-  private Callback callback;
+  private MediaPeriod.Callback callback;
   private long startUs;
   private long endUs;
   private ClippingSampleStream[] sampleStreams;
@@ -68,7 +68,7 @@ public final class ClippingMediaPeriod implements MediaPeriod, MediaPeriod.Callb
   }
 
   @Override
-  public void prepare(Callback callback) {
+  public void prepare(MediaPeriod.Callback callback) {
     this.callback = callback;
     mediaPeriod.prepare(this);
   }
@@ -262,8 +262,8 @@ public final class ClippingMediaPeriod implements MediaPeriod, MediaPeriod.Callb
     }
 
     @Override
-    public void skipToKeyframeBefore(long timeUs) {
-      stream.skipToKeyframeBefore(startUs + timeUs);
+    public void skipData(long positionUs) {
+      stream.skipData(startUs + positionUs);
     }
 
   }

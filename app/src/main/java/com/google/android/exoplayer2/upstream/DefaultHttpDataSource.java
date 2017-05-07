@@ -87,7 +87,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link InvalidContentTypeException} is thrown from
+   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    */
   public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate) {
@@ -97,7 +97,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link InvalidContentTypeException} is thrown from
+   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    */
@@ -110,7 +110,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link InvalidContentTypeException} is thrown from
+   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    * @param connectTimeoutMillis The connection timeout, in milliseconds. A timeout of zero is
@@ -128,7 +128,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
   /**
    * @param userAgent The User-Agent string that should be used.
    * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link InvalidContentTypeException} is thrown from
+   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
    *     {@link #open(DataSpec)}.
    * @param listener An optional listener.
    * @param connectTimeoutMillis The connection timeout, in milliseconds. A timeout of zero is

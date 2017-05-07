@@ -64,7 +64,7 @@ public final class AudioCapabilities {
    * Constructs new audio capabilities based on a set of supported encodings and a maximum channel
    * count.
    *
-   * @param supportedEncodings Supported audio encodings from {@link AudioFormat}'s
+   * @param supportedEncodings Supported audio encodings from {@link android.media.AudioFormat}'s
    *     {@code ENCODING_*} constants.
    * @param maxChannelCount The maximum number of audio channels that can be played simultaneously.
    */
@@ -81,7 +81,7 @@ public final class AudioCapabilities {
   /**
    * Returns whether this device supports playback of the specified audio {@code encoding}.
    *
-   * @param encoding One of {@link AudioFormat}'s {@code ENCODING_*} constants.
+   * @param encoding One of {@link android.media.AudioFormat}'s {@code ENCODING_*} constants.
    * @return Whether this device supports playback the specified audio {@code encoding}.
    */
   public boolean supportsEncoding(int encoding) {

@@ -52,7 +52,7 @@ public interface AudioRendererEventListener {
    * @param initializationDurationMs The time taken to initialize the decoder in milliseconds.
    */
   void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs,
-                                 long initializationDurationMs);
+      long initializationDurationMs);
 
   /**
    * Called when the format of the media being consumed by the renderer changes.

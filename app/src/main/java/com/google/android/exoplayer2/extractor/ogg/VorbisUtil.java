@@ -50,7 +50,7 @@ import java.util.Arrays;
    * @see <a href="https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-630004.2.2">Vorbis
    *     spec/Identification header</a>
    * @param headerData a {@link ParsableByteArray} wrapping the header data.
-   * @return a {@link VorbisIdHeader} with meta data.
+   * @return a {@link VorbisUtil.VorbisIdHeader} with meta data.
    * @throws ParserException thrown if invalid capture pattern is detected.
    */
   public static VorbisIdHeader readVorbisIdentificationHeader(ParsableByteArray headerData)
@@ -83,7 +83,7 @@ import java.util.Arrays;
    * @see <a href="https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-640004.2.3">
    *     Vorbis spec/Comment header</a>
    * @param headerData a {@link ParsableByteArray} wrapping the header data.
-   * @return a {@link CommentHeader} with all the comments.
+   * @return a {@link VorbisUtil.CommentHeader} with all the comments.
    * @throws ParserException thrown if invalid capture pattern is detected.
    */
   public static CommentHeader readVorbisCommentHeader(ParsableByteArray headerData)

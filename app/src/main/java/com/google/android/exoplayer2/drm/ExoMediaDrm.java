@@ -25,12 +25,12 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Used to obtain keys for decrypting protected media streams. See {@link MediaDrm}.
+ * Used to obtain keys for decrypting protected media streams. See {@link android.media.MediaDrm}.
  */
 public interface ExoMediaDrm<T extends ExoMediaCrypto> {
 
   /**
-   * @see MediaDrm.OnEventListener
+   * @see android.media.MediaDrm.OnEventListener
    */
   interface OnEventListener<T extends ExoMediaCrypto> {
     /**
@@ -43,11 +43,11 @@ public interface ExoMediaDrm<T extends ExoMediaCrypto> {
      * @param data optional byte array of data that may be associated with the event
      */
     void onEvent(ExoMediaDrm<? extends T> mediaDrm, byte[] sessionId, int event, int extra,
-                 byte[] data);
+        byte[] data);
   }
 
   /**
-   * @see MediaDrm.KeyRequest
+   * @see android.media.MediaDrm.KeyRequest
    */
   interface KeyRequest {
     byte[] getData();
@@ -55,7 +55,7 @@ public interface ExoMediaDrm<T extends ExoMediaCrypto> {
   }
 
   /**
-   * @see MediaDrm.ProvisionRequest
+   * @see android.media.MediaDrm.ProvisionRequest
    */
   interface ProvisionRequest {
     byte[] getData();
@@ -81,7 +81,7 @@ public interface ExoMediaDrm<T extends ExoMediaCrypto> {
    * @see MediaDrm#getKeyRequest(byte[], byte[], String, int, HashMap)
    */
   KeyRequest getKeyRequest(byte[] scope, byte[] init, String mimeType, int keyType,
-                           HashMap<String, String> optionalParameters) throws NotProvisionedException;
+      HashMap<String, String> optionalParameters) throws NotProvisionedException;
 
   /**
    * @see MediaDrm#provideKeyResponse(byte[], byte[])

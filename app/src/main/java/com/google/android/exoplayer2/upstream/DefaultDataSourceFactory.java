@@ -26,7 +26,7 @@ public final class DefaultDataSourceFactory implements Factory {
 
   private final Context context;
   private final TransferListener<? super DataSource> listener;
-  private final Factory baseDataSourceFactory;
+  private final DataSource.Factory baseDataSourceFactory;
 
   /**
    * @param context A context.
@@ -54,7 +54,7 @@ public final class DefaultDataSourceFactory implements Factory {
    * @see DefaultDataSource#DefaultDataSource(Context, TransferListener, DataSource)
    */
   public DefaultDataSourceFactory(Context context, TransferListener<? super DataSource> listener,
-      Factory baseDataSourceFactory) {
+      DataSource.Factory baseDataSourceFactory) {
     this.context = context.getApplicationContext();
     this.listener = listener;
     this.baseDataSourceFactory = baseDataSourceFactory;

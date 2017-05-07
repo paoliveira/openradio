@@ -301,7 +301,7 @@ import java.io.IOException;
     boolean seekInsideBuffer = !isPendingReset();
     for (int i = 0; seekInsideBuffer && i < trackCount; i++) {
       if (trackEnabledStates[i]) {
-        seekInsideBuffer = sampleQueues.valueAt(i).skipToKeyframeBefore(positionUs);
+        seekInsideBuffer = sampleQueues.valueAt(i).skipToKeyframeBefore(positionUs, false);
       }
     }
     // If we failed to seek within the sample queues, we need to restart.
@@ -338,6 +338,15 @@ import java.io.IOException;
 
     return sampleQueues.valueAt(track).readData(formatHolder, buffer, formatRequired,
         loadingFinished, lastSeekPositionUs);
+  }
+
+  /* package */ void skipData(int track, long positionUs) {
+    DefaultTrackOutput sampleQueue = sampleQueues.valueAt(track);
+    if (loadingFinished && positionUs > sampleQueue.getLargestQueuedTimestampUs()) {
+      sampleQueue.skipAll();
+    } else {
+      sampleQueue.skipToKeyframeBefore(positionUs, true);
+    }
   }
 
   // Loader.Callback implementation.
@@ -565,8 +574,8 @@ import java.io.IOException;
     }
 
     @Override
-    public void skipToKeyframeBefore(long timeUs) {
-      sampleQueues.valueAt(track).skipToKeyframeBefore(timeUs);
+    public void skipData(long positionUs) {
+      ExtractorMediaPeriod.this.skipData(track, positionUs);
     }
 
   }
@@ -697,6 +706,9 @@ import java.io.IOException;
         return extractor;
       }
       for (Extractor extractor : extractors) {
+        if (extractor == null) {
+          continue;
+        }
         try {
           if (extractor.sniff(input)) {
             this.extractor = extractor;

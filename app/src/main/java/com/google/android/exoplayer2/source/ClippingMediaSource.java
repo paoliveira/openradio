@@ -35,7 +35,7 @@ public final class ClippingMediaSource implements MediaSource, MediaSource.Liste
   private final long endUs;
   private final ArrayList<ClippingMediaPeriod> mediaPeriods;
 
-  private Listener sourceListener;
+  private MediaSource.Listener sourceListener;
   private ClippingTimeline clippingTimeline;
 
   /**

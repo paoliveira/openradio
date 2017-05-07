@@ -608,6 +608,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
+    /**
+     * Method to handle stream playback completed.
+     */
     private void onCompletion() {
         AppLogger.i(CLASS_NAME + " On ExoPlayer completion");
 
@@ -1752,15 +1755,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         private ExoPlayerListener(final OpenRadioService reference) {
             super();
             mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public final void onCompletion() {
-            final OpenRadioService service = mReference.get();
-            if (service == null) {
-                return;
-            }
-            service.onCompletion();
         }
 
         @Override

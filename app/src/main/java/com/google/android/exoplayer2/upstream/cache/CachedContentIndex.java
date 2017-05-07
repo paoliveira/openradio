@@ -215,7 +215,7 @@ import javax.crypto.spec.SecretKeySpec;
 
   /**
    * Returns the content length for the given key if one set, or {@link
-   * C#LENGTH_UNSET} otherwise.
+   * com.google.android.exoplayer2.C#LENGTH_UNSET} otherwise.
    */
   public long getContentLength(String key) {
     CachedContent cachedContent = get(key);
@@ -343,7 +343,7 @@ import javax.crypto.spec.SecretKeySpec;
 
   /**
    * Returns an id which isn't used in the given array. If the maximum id in the array is smaller
-   * than {@link Integer#MAX_VALUE} it just returns the next bigger integer. Otherwise it
+   * than {@link java.lang.Integer#MAX_VALUE} it just returns the next bigger integer. Otherwise it
    * returns the smallest unused non-negative integer.
    */
   //@VisibleForTesting

@@ -15,7 +15,6 @@
  */
 package com.google.android.exoplayer2.audio;
 
-import android.media.PlaybackParams;
 import android.media.audiofx.Virtualizer;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,6 +25,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.FormatHolder;
+import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener.EventDispatcher;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
@@ -146,7 +146,7 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
     eventDispatcher = new EventDispatcher(eventHandler, eventListener);
     audioTrack = new AudioTrack(audioCapabilities, audioProcessors, new AudioTrackListener());
     formatHolder = new FormatHolder();
-    flagsOnlyBuffer = new DecoderInputBuffer(DecoderInputBuffer.BUFFER_REPLACEMENT_MODE_DISABLED);
+    flagsOnlyBuffer = DecoderInputBuffer.newFlagsOnlyInstance();
     decoderReinitializationState = REINITIALIZATION_STATE_NONE;
     audioTrackNeedsConfigure = true;
   }
@@ -435,6 +435,16 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
   }
 
   @Override
+  public PlaybackParameters setPlaybackParameters(PlaybackParameters playbackParameters) {
+    return audioTrack.setPlaybackParameters(playbackParameters);
+  }
+
+  @Override
+  public PlaybackParameters getPlaybackParameters() {
+    return audioTrack.getPlaybackParameters();
+  }
+
+  @Override
   protected void onEnabled(boolean joining) throws ExoPlaybackException {
     decoderCounters = new DecoderCounters();
     eventDispatcher.enabled(decoderCounters);
@@ -584,9 +594,6 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
     switch (messageType) {
       case C.MSG_SET_VOLUME:
         audioTrack.setVolume((Float) message);
-        break;
-      case C.MSG_SET_PLAYBACK_PARAMS:
-        audioTrack.setPlaybackParams((PlaybackParams) message);
         break;
       case C.MSG_SET_STREAM_TYPE:
         @C.StreamType int streamType = (Integer) message;

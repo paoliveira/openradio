@@ -102,7 +102,7 @@ public interface Renderer extends ExoPlayerComponent {
    * @throws ExoPlaybackException If an error occurs.
    */
   void enable(RendererConfiguration configuration, Format[] formats, SampleStream stream,
-              long positionUs, boolean joining, long offsetUs) throws ExoPlaybackException;
+      long positionUs, boolean joining, long offsetUs) throws ExoPlaybackException;
 
   /**
    * Starts the renderer, meaning that calls to {@link #render(long, long)} will cause media to be
