@@ -133,9 +133,13 @@ public final class MediaItemsAdapter extends BaseAdapter {
     @Override
     public final View getView(final int position, View convertView, final ViewGroup parent) {
         final MediaBrowserCompat.MediaItem mediaItem = getItem(position);
-        final MediaDescriptionCompat description = mediaItem.getDescription();
-
         convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
+
+        if (mediaItem == null) {
+            return convertView;
+        }
+
+        final MediaDescriptionCompat description = mediaItem.getDescription();
 
         mViewHolder.mNameView.setText(description.getTitle());
         mViewHolder.mDescriptionView.setText(description.getSubtitle());
