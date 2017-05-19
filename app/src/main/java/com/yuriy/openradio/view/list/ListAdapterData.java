@@ -17,6 +17,7 @@
 package com.yuriy.openradio.view.list;
 
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -88,9 +89,13 @@ final class ListAdapterData<T> implements Serializable {
      * Get item at the specified position.
      *
      * @param position The position of the item.
-     * @return item at the specified position.
+     * @return Item at the specified position or {@code null} if index is out of bounds.
      */
+    @Nullable
     public T getItem(final int position) {
+        if (position < 0 || position >= getItemsCount()) {
+            return null;
+        }
         return mItems.get(position);
     }
 

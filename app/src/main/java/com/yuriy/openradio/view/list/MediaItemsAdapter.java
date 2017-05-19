@@ -18,6 +18,7 @@ package com.yuriy.openradio.view.list;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -80,6 +81,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     @Override
+    @Nullable
     public final MediaBrowserCompat.MediaItem getItem(final int position) {
         return mAdapterData.getItem(position);
     }
