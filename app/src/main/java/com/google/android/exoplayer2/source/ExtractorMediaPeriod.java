@@ -706,9 +706,6 @@ import java.io.IOException;
         return extractor;
       }
       for (Extractor extractor : extractors) {
-        if (extractor == null) {
-          continue;
-        }
         try {
           if (extractor.sniff(input)) {
             this.extractor = extractor;
