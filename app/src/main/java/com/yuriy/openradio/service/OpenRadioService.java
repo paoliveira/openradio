@@ -608,28 +608,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
-    /**
-     * Method to handle stream playback completed.
-     */
-    private void onCompletion() {
-        AppLogger.i(CLASS_NAME + " On ExoPlayer completion");
-
-        // The media player finished playing the current song, so we go ahead
-        // and start the next.
-        if (!mPlayingQueue.isEmpty()) {
-            // In this sample, we restart the playing queue when it gets to the end:
-            mCurrentIndexOnQueue++;
-            if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
-                mCurrentIndexOnQueue = 0;
-            }
-            dispatchCurrentIndexOnQueue(mCurrentIndexOnQueue);
-            handlePlayRequest();
-        } else {
-            // If there is nothing to play, we stop and release the resources:
-            handleStopRequest(null);
-        }
-    }
-
     private void onError(final ExoPlaybackException error) {
         AppLogger.e(CLASS_NAME + " ExoPlayer error:" + error);
         handleStopRequest(getString(R.string.media_player_error));
@@ -1267,7 +1245,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN
         );
 
-        //AppLogger.d(CLASS_NAME + " Audio Focus result:" + result);
         if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
             return;
         }
