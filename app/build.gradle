@@ -2,10 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
-
     compileSdkVersion 26
     buildToolsVersion "26.0.0"
-
     def versionPropsFile = file('version.properties')
     def code = 1
     if (versionPropsFile.canRead()) {
@@ -15,9 +13,7 @@ android {
     } else {
         throw new GradleException("Could not read version.properties !")
     }
-
     println "Version code:" + code
-
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 14
@@ -34,11 +30,10 @@ android {
             targetCompatibility JavaVersion.VERSION_1_8
         }
     }
-
     buildTypes {
 
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
 
@@ -51,7 +46,6 @@ android {
         }
         */
     }
-
     lintOptions {
         abortOnError false
     }
@@ -65,7 +59,6 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
-
     androidTestCompile('com.google.dexmaker:dexmaker-mockito:1.2') {
         exclude group: 'org.hamcrest'
     }
