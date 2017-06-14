@@ -66,9 +66,6 @@
     <string name="add_station_genre_label">Genre:</string>
     <string name="add_station_country_label">Pays:</string>
     <string name="ellipsis">…</string>
-    <string name="about_thanks_3">Le service de récupération des métadonnées par courrier est fourni par:</string>
-    <string name="about_thanks_3_title">William Seemann</string>
-    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
     <string name="popular_stations_title">Stations de Radio populaires</string>
     <string name="popular_stations_sub_title">stations de radio populaires</string>
     <string name="recent_added_stations_title">Stations de Radio récemment ajoutées</string>

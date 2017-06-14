@@ -66,9 +66,6 @@
     <string name="add_station_genre_label">Žáner:</string>
     <string name="add_station_country_label">Krajina:</string>
     <string name="ellipsis">…</string>
-    <string name="about_thanks_3">Službu pre získávánie metadát streamu je poskytuje:</string>
-    <string name="about_thanks_3_title">William Seemann</string>
-    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
     <string name="popular_stations_title">Populárne rozhlasové stanice</string>
     <string name="popular_stations_sub_title">populárne rozhlasové stanice</string>
     <string name="recent_added_stations_title">Nedávno pridané stanice</string>

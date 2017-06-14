@@ -66,9 +66,6 @@
     <string name="add_station_genre_label">Género:</string>
     <string name="add_station_country_label">País:</string>
     <string name="ellipsis">…</string>
-    <string name="about_thanks_3">Servicio de recuperación Corriente Metadatos es proporcionada por:</string>
-    <string name="about_thanks_3_title">William Seemann</string>
-    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>4
     <string name="popular_stations_title">Populares Estaciónes de Radio</string>
     <string name="popular_stations_sub_title">populares estaciónes de radio</string>
     <string name="recent_added_stations_title">Recientemente se agregó Estaciónes</string>

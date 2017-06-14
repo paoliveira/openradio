@@ -90,9 +90,6 @@
 
     <!-- Version 2.1 -->
 
-    <string name="about_thanks_3">Stream Metadata retrieval service is provided by:</string>
-    <string name="about_thanks_3_title">William Seemann</string>
-    <string name="about_thanks_3_url">https://github.com/wseemann/FFmpegMediaMetadataRetriever</string>
     <string name="popular_stations_title">Popular Radio Stations</string>
     <string name="popular_stations_sub_title">popular radio stations</string>
     <string name="recent_added_stations_title">Recently Added Stations</string>
