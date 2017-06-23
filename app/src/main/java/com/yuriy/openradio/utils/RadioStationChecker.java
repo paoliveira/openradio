@@ -58,10 +58,6 @@ public final class RadioStationChecker extends Thread {
      * of the items to be used.
      */
     private final Set<String> mPassedUrls;
-    /**
-     * Url connection object.
-     */
-    private HttpURLConnection mUrlConnection;
 
     /**
      * Constructor.
@@ -94,40 +90,41 @@ public final class RadioStationChecker extends Thread {
                 /* Ignore */
         }
 
-        mTimer.schedule(new TimerTaskListener(this), CHECK_TIME);
-
+        HttpURLConnection urlConnection = null;
         try {
             final double startTime = System.currentTimeMillis();
             final URL url = new URL(mUrl);
-            mUrlConnection = (HttpURLConnection) url.openConnection();
-            mUrlConnection.connect();
-            final int responseCode = mUrlConnection.getResponseCode();
+            urlConnection = (HttpURLConnection) url.openConnection();
+
+            mTimer.schedule(new TimerTaskListener(this, urlConnection), CHECK_TIME);
+
+            urlConnection.connect();
+            final int responseCode = urlConnection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                AppLogger.d(CLASS_NAME + " Stream Url OK:" + mUrlConnection.getResponseMessage()
+                AppLogger.d(CLASS_NAME + " Stream Url OK:" + urlConnection.getResponseMessage()
                         + " within " + (System.currentTimeMillis() - startTime) + " ms");
                 synchronized (MONITOR) {
                     mPassedUrls.add(mUrl);
                 }
-                clear();
             }
         } catch (final Exception e) {
             AppLogger.e(CLASS_NAME + " Stream Url check failed:" + e.getMessage());
             CrashlyticsUtils.logException(e);
-            clear();
+        } finally {
+            clear(urlConnection);
         }
     }
 
     /**
      * Clear timer and disconnect connection.
      */
-    private synchronized void clear() {
-        if (mUrlConnection == null) {
+    private synchronized void clear(final HttpURLConnection urlConnection) {
+        if (urlConnection == null) {
             return;
         }
         mTimer.cancel();
         mTimer.purge();
-        mUrlConnection.disconnect();
-        mUrlConnection = null;
+        urlConnection.disconnect();
         mCompleteLatch.countDown();
     }
 
@@ -142,14 +139,18 @@ public final class RadioStationChecker extends Thread {
          */
         private final WeakReference<RadioStationChecker> mReference;
 
+        private HttpURLConnection mUrlConnection;
+
         /**
          * Constructor.
          *
          * @param reference The reference to the checker class.
          */
-        private TimerTaskListener(final RadioStationChecker reference) {
+        private TimerTaskListener(final RadioStationChecker reference,
+                                  final HttpURLConnection urlConnection) {
             super();
             mReference = new WeakReference<>(reference);
+            mUrlConnection = urlConnection;
         }
 
         @Override
@@ -159,7 +160,7 @@ public final class RadioStationChecker extends Thread {
             if (reference == null) {
                 return;
             }
-            reference.clear();
+            reference.clear(mUrlConnection);
         }
     }
 }

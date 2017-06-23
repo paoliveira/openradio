@@ -49,7 +49,7 @@ import java.util.List;
  * {@link com.yuriy.openradio.net.HTTPDownloaderImpl} allows to download data from the
  * resource over HTTP protocol.
  */
-public class HTTPDownloaderImpl implements Downloader {
+public final class HTTPDownloaderImpl implements Downloader {
 
     /**
      * Tag to use in logging message.
@@ -107,7 +107,7 @@ public class HTTPDownloaderImpl implements Downloader {
         // If there are http request parameters:
         if (!parameters.isEmpty()) {
             boolean result = false;
-            // POSR method is required for parameters.
+            // POST method is required for parameters.
             try {
                 urlConnection.setRequestMethod("POST");
                 result = true;

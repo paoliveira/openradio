@@ -302,15 +302,6 @@ public class DefaultHttpDataSource implements HttpDataSource {
   }
 
   /**
-   * Returns the current connection, or null if the source is not currently opened.
-   *
-   * @return The current open connection, or null.
-   */
-  protected final HttpURLConnection getConnection() {
-    return connection;
-  }
-
-  /**
    * Returns the number of bytes that have been skipped since the most recent call to
    * {@link #open(DataSpec)}.
    *

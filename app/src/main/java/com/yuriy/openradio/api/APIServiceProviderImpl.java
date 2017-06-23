@@ -50,7 +50,7 @@ import java.util.concurrent.CountDownLatch;
  * {@link com.yuriy.openradio.api.APIServiceProviderImpl} is the implementation of the
  * {@link com.yuriy.openradio.api.APIServiceProvider} interface.
  */
-public class APIServiceProviderImpl implements APIServiceProvider {
+public final class APIServiceProviderImpl implements APIServiceProvider {
 
     /**
      * Tag string to use in logging messages.
@@ -215,7 +215,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         // Begin workaround section against dead Radio Stations
         //
 
-        /*Thread checker;
+        Thread checker;
         final CountDownLatch completeLatch = new CountDownLatch(radioStations.size());
         final CountDownLatch initLatch = new CountDownLatch(1);
         final Set<String> passedUrls = new TreeSet<>();
@@ -232,7 +232,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         try {
             completeLatch.await();
         } catch (final InterruptedException e) {
-            *//* Ignore *//*
+            /* Ignore */
         }
 
         // Clear "dead" Radio Stations
@@ -254,7 +254,7 @@ public class APIServiceProviderImpl implements APIServiceProvider {
         // Clear references
         for (int i = 0; i < checkers.length; i++) {
             checkers[i] = null;
-        }*/
+        }
 
         //
         // End workaround section against dead Radio Stations
