@@ -571,7 +571,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public final void onLoadChildren(@NonNull final String parentId,
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
 
-        AppLogger.i(CLASS_NAME + " OnLoadChildren:" + parentId);
+        AppLogger.i(CLASS_NAME + " OnLoadChildren:" + parentId + ", res:" + result);
 
         final List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
@@ -926,7 +926,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void updateMetadata(final String streamTitle) {
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
-            AppLogger.e(CLASS_NAME + " Can't retrieve current metadata, curIndx:" + mCurrentIndexOnQueue + " queueSize:" + mPlayingQueue.size());
+            AppLogger.e(
+                    CLASS_NAME + " Can't retrieve current metadata, curIndx:"
+                            + mCurrentIndexOnQueue + " queueSize:" + mPlayingQueue.size()
+            );
             mState = PlaybackStateCompat.STATE_ERROR;
             updatePlaybackState(getString(R.string.no_metadata));
             return;
@@ -1070,9 +1073,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             final String source = track.getString(MediaItemHelper.CUSTOM_METADATA_TRACK_SOURCE);
-            AppLogger.d(CLASS_NAME + " Play Radio Station: current (" + service.mCurrentIndexOnQueue + ") in mPlayingQueue. " +
+            AppLogger.d(
+                    CLASS_NAME + " Play Radio Station: current (" + service.mCurrentIndexOnQueue
+                            + ") in mPlayingQueue. " +
                     " musicId=" + track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
-                    " source=" + source);
+                    " source=" + source
+            );
 
             service.mState = PlaybackStateCompat.STATE_STOPPED;
 
@@ -1461,6 +1467,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             if (service.mCurrentIndexOnQueue == -1) {
                 return;
+            }
+
+            // Save latest selected Radio Station.
+            // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
+            final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                    mediaId, service.mRadioStations
+            );
+            if (radioStation != null) {
+                LatestRadioStationStorage.save(radioStation, service.getApplicationContext());
             }
 
             // Play Radio Station

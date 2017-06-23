@@ -45,6 +45,12 @@ public final class QueueHelper {
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
+    /**
+     *
+     * @param context
+     * @param radioStations
+     * @return
+     */
     public static List<MediaSessionCompat.QueueItem> getPlayingQueue(
             final Context context,
             final List<RadioStationVO> radioStations) {
@@ -74,7 +80,7 @@ public final class QueueHelper {
     public static int getRadioStationIndexOnQueue(final Iterable<MediaSessionCompat.QueueItem> queue,
                                                   final long mediaId) {
         int index = 0;
-        for (MediaSessionCompat.QueueItem item: queue) {
+        for (MediaSessionCompat.QueueItem item : queue) {
             if (mediaId == item.getQueueId()) {
                 return index;
             }
@@ -93,7 +99,7 @@ public final class QueueHelper {
     public static int getRadioStationIndexOnQueue(final Iterable<MediaSessionCompat.QueueItem> queue,
                                                   final String mediaId) {
         int index = 0;
-        for (MediaSessionCompat.QueueItem item: queue) {
+        for (MediaSessionCompat.QueueItem item : queue) {
             if (mediaId.equals(item.getDescription().getMediaId())) {
                 return index;
             }
@@ -102,11 +108,23 @@ public final class QueueHelper {
         return UNKNOWN_INDEX;
     }
 
+    /**
+     *
+     * @param index
+     * @param queue
+     * @return
+     */
     public static boolean isIndexPlayable(final int index,
                                           final List<MediaSessionCompat.QueueItem> queue) {
         return (queue != null && index >= 0 && index < queue.size());
     }
 
+    /**
+     *
+     * @param id
+     * @param radioStations
+     * @return
+     */
     public static RadioStationVO getRadioStationById(final String id,
                                                      final List<RadioStationVO> radioStations) {
         for (final RadioStationVO radioStation : radioStations) {
@@ -121,6 +139,37 @@ public final class QueueHelper {
     }
 
     /**
+     * Safely add Radio Station to collection, skip execution if Radio Station is already
+     * in collection.
+     *
+     * @param radioStation  Radio Station to add to collection.
+     * @param radioStations Collection to add Radio Station into.
+     */
+    public static void addRadioStation(final RadioStationVO radioStation,
+                                       final List<RadioStationVO> radioStations) {
+        if (radioStation == null) {
+            return;
+        }
+        if (radioStations == null) {
+            return;
+        }
+
+        boolean contains = false;
+        for (final RadioStationVO radioStationInt : radioStations) {
+            if (radioStationInt == null) {
+                continue;
+            }
+            if (radioStationInt.getId() == radioStation.getId()) {
+                contains = true;
+                break;
+            }
+        }
+        if (!contains) {
+            radioStations.add(radioStation);
+        }
+    }
+
+    /**
      * Copying collection from source to destination.
      *
      * @param destination Destination collection.
@@ -132,6 +181,11 @@ public final class QueueHelper {
         destination.addAll(source);
     }
 
+    /**
+     *
+     * @param radioStationVO
+     * @param radioStationVOs
+     */
     public static void updateRadioStation(final RadioStationVO radioStationVO,
                                           final List<RadioStationVO> radioStationVOs) {
         for (final RadioStationVO radioStation : radioStationVOs) {
@@ -145,6 +199,12 @@ public final class QueueHelper {
         }
     }
 
+    /**
+     *
+     * @param mediaId
+     * @param radioStations
+     * @return
+     */
     public static boolean removeRadioStation(final String mediaId,
                                              final List<RadioStationVO> radioStations) {
         for (final RadioStationVO radioStation : radioStations) {
@@ -159,6 +219,12 @@ public final class QueueHelper {
         return false;
     }
 
+    /**
+     *
+     * @param genreId
+     * @param categoriesList
+     * @return
+     */
     public static String getGenreNameById(final String genreId,
                                           final List<CategoryVO> categoriesList) {
         String genre = "";

@@ -26,7 +26,6 @@ import com.yuriy.openradio.business.RadioStationDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONSerializer;
 import com.yuriy.openradio.business.RadioStationSerializer;
-import com.yuriy.openradio.utils.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +66,33 @@ abstract class AbstractStorage {
             radioStation.setSortId(maxSortId + 1);
         }
 
-        addInternal(radioStation, context, name);
+        addInternal(createKeyForRadioStation(radioStation), radioStation, context, name);
+    }
+
+    /**
+     * Add provided {@link RadioStationVO} to the storage.
+     *
+     * @param key          Key for the Radio Station.
+     * @param radioStation {@link RadioStationVO} to add to the storage.
+     * @param context      Context of the callee.
+     * @param name         Name of the file for the preferences.
+     */
+    protected static synchronized void add(@NonNull final String key,
+                                           @NonNull final RadioStationVO radioStation,
+                                           @NonNull final Context context,
+                                           @NonNull final String name) {
+        final List<RadioStationVO> all = getAll(context, name);
+        int maxSortId = -1;
+        for (final RadioStationVO radioStationLocal : all) {
+            if (radioStationLocal.getSortId() > maxSortId) {
+                maxSortId = radioStationLocal.getSortId();
+            }
+        }
+        if (radioStation.getSortId() == -1) {
+            radioStation.setSortId(maxSortId + 1);
+        }
+
+        addInternal(key, radioStation, context, name);
     }
 
     /**
@@ -89,11 +114,10 @@ abstract class AbstractStorage {
      *
      * @param context Context of the callee.
      * @param name    Name of the file for the preferences.
-     *
      * @return Collection of the Radio Stations.
      */
     @NonNull
-    protected static List<RadioStationVO> getAll(final Context context, final String name) {
+    static List<RadioStationVO> getAll(final Context context, final String name) {
         final List<RadioStationVO> radioStations = new ArrayList<>();
         final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
@@ -127,7 +151,7 @@ abstract class AbstractStorage {
             }
             if (!isListSorted) {
                 radioStation.setSortId(counter++);
-                addInternal(radioStation, context, name);
+                addInternal(createKeyForRadioStation(radioStation), radioStation, context, name);
             }
         }
         return radioStations;
@@ -138,7 +162,6 @@ abstract class AbstractStorage {
      *
      * @param context Context of the callee.
      * @param name    Name of the file for the preferences.
-     *
      * @return {@code true} in case of the are items in collection, {@code false} - otherwise.
      */
     protected static boolean isEmpty(final Context context, final String name) {
@@ -152,11 +175,10 @@ abstract class AbstractStorage {
      *
      * @param context Context of the callee.
      * @param name    Name of the file for the preferences.
-     *
      * @return An instance of the Shared Preferences.
      */
-    protected static SharedPreferences getSharedPreferences(final Context context,
-                                                            final String name) {
+    static SharedPreferences getSharedPreferences(final Context context,
+                                                  final String name) {
         return context.getSharedPreferences(name, Context.MODE_PRIVATE);
     }
 
@@ -166,25 +188,37 @@ abstract class AbstractStorage {
      *
      * @param context Context of the callee.
      * @param name    Name of the file for the preferences.
-     *
      * @return {@link android.content.SharedPreferences.Editor}.
      */
-    protected static SharedPreferences.Editor getEditor(final Context context, final String name) {
+    static SharedPreferences.Editor getEditor(final Context context, final String name) {
         return getSharedPreferences(context, name).edit();
     }
 
     /**
      * Add provided {@link RadioStationVO} to the storage.
      *
+     * @param key          Key for the Radio Station.
      * @param radioStation {@link RadioStationVO} to add to the storage.
      * @param context      Context of the callee.
      * @param name         Name of the file for the preferences.
      */
-    private static synchronized void addInternal(final RadioStationVO radioStation,
-                                                 final Context context, final String name) {
+    private static synchronized void addInternal(final String key,
+                                                 final RadioStationVO radioStation,
+                                                 final Context context,
+                                                 final String name) {
         final RadioStationSerializer serializer = new RadioStationJSONSerializer();
         final SharedPreferences.Editor editor = getEditor(context, name);
-        editor.putString(String.valueOf(radioStation.getId()), serializer.serialize(radioStation));
+        editor.putString(key, serializer.serialize(radioStation));
         editor.commit();
+    }
+
+    /**
+     * Creates a key for given Radio Station to use in storage.
+     *
+     * @param radioStation {@link RadioStationVO} to create key for.
+     * @return Key associated with Radio Station.
+     */
+    private static String createKeyForRadioStation(@NonNull final RadioStationVO radioStation) {
+        return String.valueOf(radioStation.getId());
     }
 }

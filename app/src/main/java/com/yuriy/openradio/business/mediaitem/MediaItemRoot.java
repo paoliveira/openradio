@@ -25,10 +25,13 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.service.LatestRadioStationStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.QueueHelper;
 
 import java.util.List;
 
@@ -37,9 +40,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemRoot} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display root menu items.
  */
@@ -54,6 +55,26 @@ public final class MediaItemRoot implements MediaItemCommand {
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
+
+        // If app is in Android Auto mode - display latest played Radio Station on top of Menu.
+        if (shareObject.isAndroidAuto()) {
+            final RadioStationVO latestRadioStation = LatestRadioStationStorage.load(
+                    shareObject.getContext()
+            );
+            if (latestRadioStation != null) {
+                // Add Radio Station to queue.
+                QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
+                // Add Radio Station to Menu
+                mediaItems.add(new MediaBrowserCompat.MediaItem(
+                        new MediaDescriptionCompat.Builder()
+                                .setMediaId(String.valueOf(latestRadioStation.getId()))
+                                .setTitle(latestRadioStation.getName())
+                                .setIconUri(Uri.parse(latestRadioStation.getImageUrl()))
+                                .setSubtitle(latestRadioStation.getCountry())
+                                .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                ));
+            }
+        }
 
         // Recently added Radio Stations
         mediaItems.add(new MediaBrowserCompat.MediaItem(
