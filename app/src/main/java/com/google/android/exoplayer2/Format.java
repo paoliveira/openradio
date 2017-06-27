@@ -24,6 +24,7 @@ import com.google.android.exoplayer2.drm.DrmInitData;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.ColorInfo;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -128,6 +129,10 @@ public final class Format implements Parcelable {
    * The projection data for 360/VR video, or null if not applicable.
    */
   public final byte[] projectionData;
+  /**
+   * The color metadata associated with the video, helps with accurate color reproduction.
+   */
+  public final ColorInfo colorInfo;
 
   // Audio specific.
 
@@ -185,6 +190,44 @@ public final class Format implements Parcelable {
 
   // Lazily initialized hashcode.
   private int hashCode;
+
+  // Video.
+
+  public static Format createVideoContainerFormat(String id, String containerMimeType,
+      String sampleMimeType, String codecs, int bitrate, int width, int height,
+      float frameRate, List<byte[]> initializationData, @C.SelectionFlags int selectionFlags) {
+    return new Format(id, containerMimeType, sampleMimeType, codecs, bitrate, NO_VALUE, width,
+        height, frameRate, NO_VALUE, NO_VALUE, null, NO_VALUE, null, NO_VALUE, NO_VALUE, NO_VALUE,
+        NO_VALUE, NO_VALUE, selectionFlags, null, NO_VALUE, OFFSET_SAMPLE_RELATIVE,
+        initializationData, null, null);
+  }
+
+  public static Format createVideoSampleFormat(String id, String sampleMimeType, String codecs,
+      int bitrate, int maxInputSize, int width, int height, float frameRate,
+      List<byte[]> initializationData, DrmInitData drmInitData) {
+    return createVideoSampleFormat(id, sampleMimeType, codecs, bitrate, maxInputSize, width,
+        height, frameRate, initializationData, NO_VALUE, NO_VALUE, drmInitData);
+  }
+
+  public static Format createVideoSampleFormat(String id, String sampleMimeType, String codecs,
+      int bitrate, int maxInputSize, int width, int height, float frameRate,
+      List<byte[]> initializationData, int rotationDegrees, float pixelWidthHeightRatio,
+      DrmInitData drmInitData) {
+    return createVideoSampleFormat(id, sampleMimeType, codecs, bitrate, maxInputSize, width,
+        height, frameRate, initializationData, rotationDegrees, pixelWidthHeightRatio, null,
+        NO_VALUE, null, drmInitData);
+  }
+
+  public static Format createVideoSampleFormat(String id, String sampleMimeType, String codecs,
+      int bitrate, int maxInputSize, int width, int height, float frameRate,
+      List<byte[]> initializationData, int rotationDegrees, float pixelWidthHeightRatio,
+      byte[] projectionData, @C.StereoMode int stereoMode, ColorInfo colorInfo,
+      DrmInitData drmInitData) {
+    return new Format(id, null, sampleMimeType, codecs, bitrate, maxInputSize, width, height,
+        frameRate, rotationDegrees, pixelWidthHeightRatio, projectionData, stereoMode,
+        colorInfo, NO_VALUE, NO_VALUE, NO_VALUE, NO_VALUE, NO_VALUE, 0, null, NO_VALUE,
+        OFFSET_SAMPLE_RELATIVE, initializationData, drmInitData, null);
+  }
 
   // Audio.
 
@@ -328,6 +371,7 @@ public final class Format implements Parcelable {
     this.pixelWidthHeightRatio = pixelWidthHeightRatio;
     this.projectionData = projectionData;
     this.stereoMode = stereoMode;
+    this.colorInfo = colorInfo;
     this.channelCount = channelCount;
     this.sampleRate = sampleRate;
     this.pcmEncoding = pcmEncoding;
@@ -359,6 +403,7 @@ public final class Format implements Parcelable {
     boolean hasProjectionData = in.readInt() != 0;
     projectionData = hasProjectionData ? in.createByteArray() : null;
     stereoMode = in.readInt();
+    colorInfo = in.readParcelable(ColorInfo.class.getClassLoader());
     channelCount = in.readInt();
     sampleRate = in.readInt();
     pcmEncoding = in.readInt();
@@ -476,6 +521,7 @@ public final class Format implements Parcelable {
     for (int i = 0; i < initializationData.size(); i++) {
       format.setByteBuffer("csd-" + i, ByteBuffer.wrap(initializationData.get(i)));
     }
+    maybeSetColorInfoV24(format, colorInfo);
     return format;
   }
 
@@ -532,6 +578,7 @@ public final class Format implements Parcelable {
         || !Util.areEqual(codecs, other.codecs)
         || !Util.areEqual(drmInitData, other.drmInitData)
         || !Util.areEqual(metadata, other.metadata)
+        || !Util.areEqual(colorInfo, other.colorInfo)
         || !Arrays.equals(projectionData, other.projectionData)
         || initializationData.size() != other.initializationData.size()) {
       return false;
@@ -542,6 +589,17 @@ public final class Format implements Parcelable {
       }
     }
     return true;
+  }
+
+  @TargetApi(24)
+  private static void maybeSetColorInfoV24(MediaFormat format, ColorInfo colorInfo) {
+    if (colorInfo == null) {
+      return;
+    }
+    maybeSetIntegerV16(format, MediaFormat.KEY_COLOR_TRANSFER, colorInfo.colorTransfer);
+    maybeSetIntegerV16(format, MediaFormat.KEY_COLOR_STANDARD, colorInfo.colorSpace);
+    maybeSetIntegerV16(format, MediaFormat.KEY_COLOR_RANGE, colorInfo.colorRange);
+    maybeSetByteBufferV16(format, MediaFormat.KEY_HDR_STATIC_INFO, colorInfo.hdrStaticInfo);
   }
 
   @TargetApi(16)
@@ -629,6 +687,7 @@ public final class Format implements Parcelable {
       dest.writeByteArray(projectionData);
     }
     dest.writeInt(stereoMode);
+    dest.writeParcelable(colorInfo, flags);
     dest.writeInt(channelCount);
     dest.writeInt(sampleRate);
     dest.writeInt(pcmEncoding);
@@ -660,11 +719,5 @@ public final class Format implements Parcelable {
     }
 
   };
-
-  private static final class ColorInfo {
-
-  }
-
-  ColorInfo colorInfo = new ColorInfo();
 
 }

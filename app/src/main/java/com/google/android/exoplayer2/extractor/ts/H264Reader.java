@@ -16,16 +16,16 @@
 package com.google.android.exoplayer2.extractor.ts;
 
 import android.util.SparseArray;
-
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.extractor.ExtractorOutput;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader.TrackIdGenerator;
+import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.NalUnitUtil;
 import com.google.android.exoplayer2.util.NalUnitUtil.SpsData;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.ParsableNalUnitBitArray;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -180,7 +180,9 @@ public final class H264Reader implements ElementaryStreamReader {
           initializationData.add(Arrays.copyOf(pps.nalData, pps.nalLength));
           NalUnitUtil.SpsData spsData = NalUnitUtil.parseSpsNalUnit(sps.nalData, 3, sps.nalLength);
           NalUnitUtil.PpsData ppsData = NalUnitUtil.parsePpsNalUnit(pps.nalData, 3, pps.nalLength);
-          output.format(null);
+          output.format(Format.createVideoSampleFormat(formatId, MimeTypes.VIDEO_H264, null,
+              Format.NO_VALUE, Format.NO_VALUE, spsData.width, spsData.height, Format.NO_VALUE,
+              initializationData, Format.NO_VALUE, spsData.pixelWidthAspectRatio, null));
           hasOutputFormat = true;
           sampleReader.putSps(spsData);
           sampleReader.putPps(ppsData);

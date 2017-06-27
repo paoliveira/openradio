@@ -49,8 +49,8 @@ final class IcyHttpDataSourceFactory implements DataSource.Factory {
      * @param timeOut                The connection timeout, in milliseconds.
      */
     IcyHttpDataSourceFactory(@NonNull final String userAgent,
-                                    @NonNull final IcyInputStreamListener icyInputStreamListener,
-                                    final int timeOut) {
+                             @NonNull final IcyInputStreamListener icyInputStreamListener,
+                             final int timeOut) {
         super();
         mUserAgent = userAgent;
         mIcyInputStreamListener = icyInputStreamListener;

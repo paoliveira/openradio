@@ -35,6 +35,7 @@ import android.widget.AbsListView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.OpenRadioService;
@@ -45,6 +46,7 @@ import com.yuriy.openradio.view.list.QueueAdapter;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created with Android Studio.
@@ -128,6 +130,11 @@ public final class QueueActivity extends FragmentActivity {
      */
     private ListView mListView;
 
+    /**
+     *
+     */
+    private TextView mBufferedTextView;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,16 +144,17 @@ public final class QueueActivity extends FragmentActivity {
 
         // Assign listeners to the buttons
 
-        final ImageButton skipPrevious = (ImageButton) findViewById(R.id.skip_previous);
+        final ImageButton skipPrevious = findViewById(R.id.skip_previous);
         skipPrevious.setOnClickListener(mButtonListener);
 
-        final ImageButton skipNext = (ImageButton) findViewById(R.id.skip_next);
+        final ImageButton skipNext = findViewById(R.id.skip_next);
         skipNext.setOnClickListener(mButtonListener);
 
-        mPlayPause = (ImageButton) findViewById(R.id.play_pause);
+        mPlayPause = findViewById(R.id.play_pause);
         mPlayPause.setOnClickListener(mButtonListener);
 
-        mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
+        mProgressBar = findViewById(R.id.queue_progress_bar_view);
+        mBufferedTextView = findViewById(R.id.buffered_text_view);
 
         // Initialize adapter
         mQueueAdapter = new QueueAdapter(
@@ -165,7 +173,7 @@ public final class QueueActivity extends FragmentActivity {
         );
 
         // Get list view reference from the inflated xml
-        mListView = (ListView) findViewById(R.id.queue_list_view);
+        mListView = findViewById(R.id.queue_list_view);
         // Set List's choice mode
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         // Set adapter
@@ -207,6 +215,8 @@ public final class QueueActivity extends FragmentActivity {
                 new ComponentName(getApplicationContext(), OpenRadioService.class),
                 new MediaBrowserConnectionCallback(this), null
         );
+
+        updateBufferedTime(0);
 
         restoreState(savedInstanceState);
     }
@@ -326,7 +336,7 @@ public final class QueueActivity extends FragmentActivity {
         if (mProgressBar == null) {
             return;
         }
-        mProgressBar.setVisibility(View.INVISIBLE);
+        mProgressBar.setVisibility(View.GONE);
     }
 
     /**
@@ -461,6 +471,28 @@ public final class QueueActivity extends FragmentActivity {
     }
 
     /**
+     * Updates buffered value of the currently playing radio station.
+     *
+     * @param value Buffered time in seconds.
+     */
+    private void updateBufferedTime(double value) {
+        if (mBufferedTextView == null) {
+            return;
+        }
+        if (value < 0) {
+            value = 0;
+        }
+
+        final double finalValue = value;
+        runOnUiThread(
+                () -> {
+                    mBufferedTextView.setVisibility(finalValue > 0 ? View.VISIBLE : View.GONE);
+                    mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %.2f sec", finalValue));
+                }
+        );
+    }
+
+    /**
      * Receive callbacks from the MediaController.
      * Here we update our state such as which queue is being shown,
      * the current title and description and the PlaybackState.
@@ -502,6 +534,9 @@ public final class QueueActivity extends FragmentActivity {
             }
             activity.mPlaybackState = state;
             activity.onPlaybackStateChanged(state);
+
+            final double bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000.0;
+            activity.updateBufferedTime(bufferedDuration);
         }
 
         @Override

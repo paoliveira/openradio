@@ -51,11 +51,16 @@ android {
     }
 }
 
+ext {
+    supportVersion = "26.0.0-beta2"
+    //supportVersion = "25.4.0"
+}
+
 dependencies {
     compile 'log4j:log4j:1.2.17'
-    compile 'com.android.support:appcompat-v7:26.0.0-beta2'
-    compile 'com.android.support:support-v4:26.0.0-beta2'
-    compile 'com.android.support:design:26.0.0-beta2'
+    compile "com.android.support:appcompat-v7:$supportVersion"
+    compile "com.android.support:support-v4:$supportVersion"
+    compile "com.android.support:design:$supportVersion"
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }

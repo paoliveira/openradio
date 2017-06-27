@@ -30,9 +30,19 @@ import java.net.HttpURLConnection;
 final class IcyDataSource extends DefaultHttpDataSource {
 
     /**
+     * Max number of read exceptions allowed.
+     */
+    private static final int MAX_EXCEPTION_COUNT = 2;
+
+    /**
      * Listener for the ICY stream events.
      */
     private final IcyInputStreamListener mListener;
+
+    /**
+     * Counter for the read exceptions.
+     */
+    private int mExceptionCounter = 0;
 
     /**
      * Main constructor.
@@ -43,15 +53,28 @@ final class IcyDataSource extends DefaultHttpDataSource {
      * @param listener             Listener for the ICY stream events.
      */
     IcyDataSource(final String userAgent,
-                         final int connectTimeoutMillis,
-                         final int readTimeoutMillis,
-                         final IcyInputStreamListener listener) {
+                  final int connectTimeoutMillis,
+                  final int readTimeoutMillis,
+                  final IcyInputStreamListener listener) {
         super(
                 userAgent, null, null,
                 connectTimeoutMillis, readTimeoutMillis, true, null
         );
         mListener = listener;
         setRequestProperty("Icy-Metadata", "1");
+    }
+
+    @Override
+    public int read(byte[] buffer, int offset, int readLength) throws HttpDataSourceException {
+        try {
+            return super.read(buffer, offset, readLength);
+        } catch (Exception e) {
+            AppLogger.e("IcyInputStream read error " + mExceptionCounter);
+            if (mExceptionCounter++ < MAX_EXCEPTION_COUNT) {
+                return 0;
+            }
+            return super.read(buffer, offset, readLength);
+        }
     }
 
     /**

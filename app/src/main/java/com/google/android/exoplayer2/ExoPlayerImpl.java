@@ -21,6 +21,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
 import com.google.android.exoplayer2.ExoPlayerImplInternal.PlaybackInfo;
 import com.google.android.exoplayer2.ExoPlayerImplInternal.SourceInfo;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -31,10 +32,11 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectorResult;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * An {@link ExoPlayer} implementation. Instances can be obtained from {@link ExoPlayerFactory}.
+ * An {@link ExoPlayer} implementation.
  */
 public final class ExoPlayerImpl implements ExoPlayer {
 
@@ -305,10 +307,10 @@ public final class ExoPlayerImpl implements ExoPlayer {
     if (timeline.isEmpty()) {
       return 0;
     }
-    long bufferedPosition = getBufferedPosition();
+    long position = getBufferedPosition();
     long duration = getDuration();
-    return (bufferedPosition == C.TIME_UNSET || duration == C.TIME_UNSET) ? 0
-        : (int) (duration == 0 ? 100 : (bufferedPosition * 100) / duration);
+    return position == C.TIME_UNSET || duration == C.TIME_UNSET ? 0
+        : (duration == 0 ? 100 : Util.constrainValue((int) ((position * 100) / duration), 0, 100));
   }
 
   @Override

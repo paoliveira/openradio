@@ -18,10 +18,12 @@ package com.google.android.exoplayer2.upstream;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Predicate;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -83,47 +85,6 @@ public class DefaultHttpDataSource implements HttpDataSource {
 
   private long bytesSkipped;
   private long bytesRead;
-
-  /**
-   * @param userAgent The User-Agent string that should be used.
-   * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
-   *     {@link #open(DataSpec)}.
-   */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate) {
-    this(userAgent, contentTypePredicate, null);
-  }
-
-  /**
-   * @param userAgent The User-Agent string that should be used.
-   * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
-   *     {@link #open(DataSpec)}.
-   * @param listener An optional listener.
-   */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-      TransferListener<? super DefaultHttpDataSource> listener) {
-    this(userAgent, contentTypePredicate, listener, DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS);
-  }
-
-  /**
-   * @param userAgent The User-Agent string that should be used.
-   * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-   *     predicate then a {@link HttpDataSource.InvalidContentTypeException} is thrown from
-   *     {@link #open(DataSpec)}.
-   * @param listener An optional listener.
-   * @param connectTimeoutMillis The connection timeout, in milliseconds. A timeout of zero is
-   *     interpreted as an infinite timeout.
-   * @param readTimeoutMillis The read timeout, in milliseconds. A timeout of zero is interpreted
-   *     as an infinite timeout.
-   */
-  public DefaultHttpDataSource(String userAgent, Predicate<String> contentTypePredicate,
-      TransferListener<? super DefaultHttpDataSource> listener, int connectTimeoutMillis,
-      int readTimeoutMillis) {
-    this(userAgent, contentTypePredicate, listener, connectTimeoutMillis, readTimeoutMillis, false,
-        null);
-  }
 
   /**
    * @param userAgent The User-Agent string that should be used.
@@ -299,6 +260,15 @@ public class DefaultHttpDataSource implements HttpDataSource {
         }
       }
     }
+  }
+
+  /**
+   * Returns the current connection, or null if the source is not currently opened.
+   *
+   * @return The current open connection, or null.
+   */
+  protected final HttpURLConnection getConnection() {
+    return connection;
   }
 
   /**

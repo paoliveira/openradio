@@ -15,7 +15,6 @@
  */
 package com.google.android.exoplayer2.extractor;
 
-import com.google.android.exoplayer2.extractor.mkv.MatroskaExtractor;
 import com.google.android.exoplayer2.extractor.mp3.Mp3Extractor;
 import com.google.android.exoplayer2.extractor.mp4.FragmentedMp4Extractor;
 import com.google.android.exoplayer2.extractor.mp4.Mp4Extractor;
@@ -28,6 +27,7 @@ import com.google.android.exoplayer2.extractor.ts.TsExtractor;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.extractor.wav.WavExtractor;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
+
 import java.lang.reflect.Constructor;
 
 /**
@@ -36,7 +36,6 @@ import java.lang.reflect.Constructor;
  * <ul>
  * <li>MP4, including M4A ({@link Mp4Extractor})</li>
  * <li>fMP4 ({@link FragmentedMp4Extractor})</li>
- * <li>Matroska and WebM ({@link MatroskaExtractor})</li>
  * <li>Ogg Vorbis/FLAC ({@link OggExtractor}</li>
  * <li>MP3 ({@link Mp3Extractor})</li>
  * <li>AAC ({@link AdtsExtractor})</li>
@@ -64,7 +63,6 @@ public final class DefaultExtractorsFactory implements ExtractorsFactory {
     FLAC_EXTRACTOR_CONSTRUCTOR = flacExtractorConstructor;
   }
 
-  private @MatroskaExtractor.Flags int matroskaFlags;
   private @FragmentedMp4Extractor.Flags int fragmentedMp4Flags;
   private @Mp3Extractor.Flags int mp3Flags;
   private @TsExtractor.Mode int tsMode;
@@ -72,19 +70,6 @@ public final class DefaultExtractorsFactory implements ExtractorsFactory {
 
   public DefaultExtractorsFactory() {
     tsMode = TsExtractor.MODE_SINGLE_PMT;
-  }
-
-  /**
-   * Sets flags for {@link MatroskaExtractor} instances created by the factory.
-   *
-   * @see MatroskaExtractor#MatroskaExtractor(int)
-   * @param flags The flags to use.
-   * @return The factory, for convenience.
-   */
-  public synchronized DefaultExtractorsFactory setMatroskaExtractorFlags(
-      @MatroskaExtractor.Flags int flags) {
-    this.matroskaFlags = flags;
-    return this;
   }
 
   /**
@@ -140,20 +125,19 @@ public final class DefaultExtractorsFactory implements ExtractorsFactory {
 
   @Override
   public synchronized Extractor[] createExtractors() {
-    Extractor[] extractors = new Extractor[FLAC_EXTRACTOR_CONSTRUCTOR == null ? 11 : 12];
-    extractors[0] = new MatroskaExtractor(matroskaFlags);
-    extractors[1] = new FragmentedMp4Extractor(fragmentedMp4Flags);
-    extractors[2] = new Mp4Extractor();
-    extractors[3] = new Mp3Extractor(mp3Flags);
-    extractors[4] = new AdtsExtractor();
-    extractors[5] = new Ac3Extractor();
-    extractors[6] = new TsExtractor(tsMode, tsFlags);
-    extractors[8] = new OggExtractor();
-    extractors[9] = new PsExtractor();
-    extractors[10] = new WavExtractor();
+    Extractor[] extractors = new Extractor[FLAC_EXTRACTOR_CONSTRUCTOR == null ? 9 : 10];
+    extractors[0] = new FragmentedMp4Extractor(fragmentedMp4Flags);
+    extractors[1] = new Mp4Extractor();
+    extractors[2] = new Mp3Extractor(mp3Flags);
+    extractors[3] = new AdtsExtractor();
+    extractors[4] = new Ac3Extractor();
+    extractors[5] = new TsExtractor(tsMode, tsFlags);
+    extractors[6] = new OggExtractor();
+    extractors[7] = new PsExtractor();
+    extractors[8] = new WavExtractor();
     if (FLAC_EXTRACTOR_CONSTRUCTOR != null) {
       try {
-        extractors[11] = FLAC_EXTRACTOR_CONSTRUCTOR.newInstance();
+        extractors[9] = FLAC_EXTRACTOR_CONSTRUCTOR.newInstance();
       } catch (Exception e) {
         // Should never happen.
         throw new IllegalStateException("Unexpected error creating FLAC extractor", e);

@@ -16,16 +16,16 @@
 package com.google.android.exoplayer2.extractor.ts;
 
 import android.util.Pair;
-
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.extractor.ExtractorOutput;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader.TrackIdGenerator;
+import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.NalUnitUtil;
 import com.google.android.exoplayer2.util.ParsableByteArray;
-
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Parses a continuous H262 byte stream and extracts individual frames.
@@ -199,7 +199,9 @@ public final class H262Reader implements ElementaryStreamReader {
         break;
     }
 
-    Format format = null;
+    Format format = Format.createVideoSampleFormat(formatId, MimeTypes.VIDEO_MPEG2, null,
+        Format.NO_VALUE, Format.NO_VALUE, width, height, Format.NO_VALUE,
+        Collections.singletonList(csdData), Format.NO_VALUE, pixelWidthHeightRatio, null);
 
     long frameDurationUs = 0;
     int frameRateCodeMinusOne = (csdData[7] & 0x0F) - 1;

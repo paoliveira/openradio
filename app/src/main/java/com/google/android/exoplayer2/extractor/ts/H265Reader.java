@@ -319,7 +319,9 @@ public final class H265Reader implements ElementaryStreamReader {
       }
     }
 
-    return null;
+    return Format.createVideoSampleFormat(formatId, MimeTypes.VIDEO_H265, null, Format.NO_VALUE,
+        Format.NO_VALUE, picWidthInLumaSamples, picHeightInLumaSamples, Format.NO_VALUE,
+        Collections.singletonList(csd), Format.NO_VALUE, pixelWidthHeightRatio, null);
   }
 
   /**

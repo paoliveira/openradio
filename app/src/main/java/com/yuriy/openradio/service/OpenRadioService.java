@@ -296,6 +296,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private final RadioStationUpdateListener mRadioStationUpdateListener
             = new RadioStationUpdateListenerImpl(this);
 
+    private long mPosition;
+
+    private long mBufferedPosition;
+
     /**
      *
      */
@@ -1096,7 +1100,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // sleep while the song is playing.
             service.mWifiLock.acquire();
 
-            service.updatePlaybackState(null);
+            service.updatePlaybackState();
         }
     }
 
@@ -1139,7 +1143,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
         }
 
-        updatePlaybackState(null);
+        updatePlaybackState();
     }
 
     /**
@@ -1158,13 +1162,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             relaxResources(false);
             giveUpAudioFocus();
         }
+        updatePlaybackState();
+    }
+
+    /**
+     * Update the current media player state, optionally showing an error message.
+     */
+    private void updatePlaybackState() {
         updatePlaybackState(null);
     }
 
     /**
      * Update the current media player state, optionally showing an error message.
      *
-     * @param error if not null, error message to present to the user.
+     * @param error Error message to present to the user.
      */
     private void updatePlaybackState(final String error) {
         AppLogger.d(CLASS_NAME + " UpdatePlaybackState, setting session playback state to " + mState);
@@ -1194,7 +1205,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mState = PlaybackStateCompat.STATE_ERROR;
         }
 
-        long position = PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN;
+        long position = mPosition;
+        stateBuilder.setBufferedPosition(mBufferedPosition);
         stateBuilder.setState(mState, position, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.
@@ -1602,7 +1614,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                             // playback state needs to be updated because the "Favorite" icon on the
                             // custom action will change to reflect the new favorite state.
-                            service.updatePlaybackState(null);
+                            service.updatePlaybackState();
                         }
                 );
             } else {
@@ -1737,6 +1749,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
+    /**
+     * Listener for Exo Player events.
+     */
     private static final class ExoPlayerListener implements ExoPlayerOpenRadioImpl.Listener {
 
         /**
@@ -1765,6 +1780,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             service.onPrepared();
+        }
+
+        @Override
+        public void onProgress(final long position, final long bufferedPosition, final long duration) {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            service.mPosition = position;
+            service.mBufferedPosition = bufferedPosition;
+            service.updatePlaybackState();
         }
     }
 }

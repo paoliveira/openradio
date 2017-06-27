@@ -29,6 +29,8 @@ import com.google.android.exoplayer2.util.CodecSpecificDataUtil;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.AvcConfig;
+import com.google.android.exoplayer2.video.HevcConfig;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -697,10 +699,19 @@ import java.util.List;
         Assertions.checkState(mimeType == null);
         mimeType = MimeTypes.VIDEO_H264;
         parent.setPosition(childStartPosition + Atom.HEADER_SIZE);
+        AvcConfig avcConfig = AvcConfig.parse(parent);
+        initializationData = avcConfig.initializationData;
+        out.nalUnitLengthFieldLength = avcConfig.nalUnitLengthFieldLength;
+        if (!pixelWidthHeightRatioFromPasp) {
+          pixelWidthHeightRatio = avcConfig.pixelWidthAspectRatio;
+        }
       } else if (childAtomType == Atom.TYPE_hvcC) {
         Assertions.checkState(mimeType == null);
         mimeType = MimeTypes.VIDEO_H265;
         parent.setPosition(childStartPosition + Atom.HEADER_SIZE);
+        HevcConfig hevcConfig = HevcConfig.parse(parent);
+        initializationData = hevcConfig.initializationData;
+        out.nalUnitLengthFieldLength = hevcConfig.nalUnitLengthFieldLength;
       } else if (childAtomType == Atom.TYPE_vpcC) {
         Assertions.checkState(mimeType == null);
         mimeType = (atomType == Atom.TYPE_vp08) ? MimeTypes.VIDEO_VP8 : MimeTypes.VIDEO_VP9;
@@ -749,7 +760,9 @@ import java.util.List;
       return;
     }
 
-    out.format = null;
+    out.format = Format.createVideoSampleFormat(Integer.toString(trackId), mimeType, null,
+        Format.NO_VALUE, Format.NO_VALUE, width, height, Format.NO_VALUE, initializationData,
+        rotationDegrees, pixelWidthHeightRatio, projectionData, stereoMode, null, drmInitData);
   }
 
   /**
