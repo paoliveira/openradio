@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.text.TextUtils;
 
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
@@ -131,7 +132,7 @@ public final class QueueHelper {
             if (radioStation == null) {
                 continue;
             }
-            if (String.valueOf(radioStation.getId()).equals(id)) {
+            if (TextUtils.equals(radioStation.getIdAsString(), id)) {
                 return radioStation;
             }
         }
@@ -211,7 +212,7 @@ public final class QueueHelper {
             if (radioStation == null) {
                 continue;
             }
-            if (String.valueOf(radioStation.getId()).equals(mediaId)) {
+            if (TextUtils.equals(radioStation.getIdAsString(), mediaId)) {
                 radioStations.remove(radioStation);
                 return true;
             }

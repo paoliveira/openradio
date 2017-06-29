@@ -181,7 +181,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Index of the current playing song.
      */
-    private int mCurrentIndexOnQueue;
+    private int mCurrentIndexOnQueue = -1;
 
     /**
      * Queue of the Radio Stations in the Category
@@ -301,6 +301,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private long mBufferedPosition;
 
     /**
+     * Interface to link command implementation and Open Radio service.
+     */
+    public interface RemotePlay {
+
+        /**
+         * Play from known Media Id.
+         *
+         * @param mediaId Media Id of the Radio Station.
+         */
+        void playFromMediaId(final String mediaId);
+    }
+
+    /**
      *
      */
     private static class DelayedStopHandler extends Handler {
@@ -369,6 +382,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Get the HandlerThread's Looper and use it for our Handler.
         //mMessagesHandler = new MessagesHandler(thread.getLooper());
         //mMessagesHandler.setReference(this);
+
+        mCurrentIndexOnQueue = -1;
 
         mLocationService.checkLocationEnable(this);
         mLocationService.requestCountryCodeLastKnown(this);
@@ -469,7 +484,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             radioStation, getApplicationContext()
                     );
                 } else {
-                    removeFromFavorites(String.valueOf(radioStation.getId()));
+                    removeFromFavorites(radioStation.getIdAsString());
                 }
                 break;
             case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND:
@@ -604,6 +619,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setParentId(parentId);
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
+            shareObject.setRemotePlay(this::handlePlayFromMediaId);
 
             command.create(mPlaybackStateListener, shareObject);
         } else {
@@ -894,7 +910,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                 new HTTPDownloaderImpl(),
                                 UrlBuilder.getStation(
                                         getApplicationContext(),
-                                        String.valueOf(radioStationCopy.getId())
+                                        radioStationCopy.getIdAsString()
                                 )
                         );
                         radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
@@ -1205,9 +1221,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mState = PlaybackStateCompat.STATE_ERROR;
         }
 
-        long position = mPosition;
         stateBuilder.setBufferedPosition(mBufferedPosition);
-        stateBuilder.setState(mState, position, 1.0f, SystemClock.elapsedRealtime());
+        stateBuilder.setState(mState, mPosition, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.
         if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
@@ -1303,6 +1318,64 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
         mServiceStarted = false;
+    }
+
+    /**
+     * Consume Radio Station by it's ID.
+     *
+     * @param mediaId ID of the Radio Station.
+     */
+    private void handlePlayFromMediaId(final String mediaId) {
+        if (mState == PlaybackStateCompat.STATE_PAUSED) {
+            mState = PlaybackStateCompat.STATE_STOPPED;
+        }
+
+        if (mediaId.equals("-1")) {
+            updatePlaybackState(getString(R.string.no_data_message));
+            return;
+        }
+
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
+                    getApplicationContext(),
+                    mRadioStations)
+            );
+        }
+
+        mSession.setQueue(mPlayingQueue);
+
+        final String queueTitle = "Queue Title";
+        mSession.setQueueTitle(queueTitle);
+
+        if (mPlayingQueue.isEmpty()) {
+            return;
+        }
+
+        final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
+                mPlayingQueue, mediaId
+        );
+        if (mCurrentIndexOnQueue == tempIndexOnQueue) {
+            return;
+        }
+
+        // Set the current index on queue from the Radio Station Id:
+        mCurrentIndexOnQueue = tempIndexOnQueue;
+
+        if (mCurrentIndexOnQueue == -1) {
+            return;
+        }
+
+        // Save latest selected Radio Station.
+        // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
+        final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                mediaId, mRadioStations
+        );
+        if (radioStation != null) {
+            LatestRadioStationStorage.save(radioStation, getApplicationContext());
+        }
+
+        // Play Radio Station
+        handlePlayRequest();
     }
 
     private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
@@ -1447,51 +1520,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
 
-            if (service.mState == PlaybackStateCompat.STATE_PAUSED) {
-                service.mState = PlaybackStateCompat.STATE_STOPPED;
-            }
-
-            if (mediaId.equals("-1")) {
-                service.updatePlaybackState(service.getString(R.string.no_data_message));
-                return;
-            }
-
-            synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-                QueueHelper.copyCollection(service.mPlayingQueue, QueueHelper.getPlayingQueue(
-                                service.getApplicationContext(),
-                                service.mRadioStations)
-                );
-            }
-
-            service.mSession.setQueue(service.mPlayingQueue);
-
-            final String queueTitle = "Queue Title";
-            service.mSession.setQueueTitle(queueTitle);
-
-            if (service.mPlayingQueue.isEmpty()) {
-                return;
-            }
-
-            // Set the current index on queue from the Radio Station Id:
-            service.mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-                    service.mPlayingQueue, mediaId
-            );
-
-            if (service.mCurrentIndexOnQueue == -1) {
-                return;
-            }
-
-            // Save latest selected Radio Station.
-            // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
-            final RadioStationVO radioStation = QueueHelper.getRadioStationById(
-                    mediaId, service.mRadioStations
-            );
-            if (radioStation != null) {
-                LatestRadioStationStorage.save(radioStation, service.getApplicationContext());
-            }
-
-            // Play Radio Station
-            service.handlePlayRequest();
+            service.handlePlayFromMediaId(mediaId);
         }
 
         @Override
@@ -1604,7 +1633,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                         radioStation, service.getApplicationContext()
                                 );
                                 if (isFavorite) {
-                                    service.removeFromFavorites(String.valueOf(radioStation.getId()));
+                                    service.removeFromFavorites(radioStation.getIdAsString());
                                 } else {
                                     FavoritesStorage.addToFavorites(
                                             radioStation, service.getApplicationContext()

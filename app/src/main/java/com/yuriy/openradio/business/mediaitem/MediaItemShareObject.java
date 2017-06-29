@@ -25,6 +25,7 @@ import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.CategoryVO;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.service.OpenRadioService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,11 +105,21 @@ public final class MediaItemShareObject {
      */
     private boolean mIsAndroidAuto = false;
 
+    private OpenRadioService.RemotePlay mRemotePlay;
+
     /**
      * Private constructor.
      */
     private MediaItemShareObject() {
         super();
+    }
+
+    public OpenRadioService.RemotePlay getRemotePlay() {
+        return mRemotePlay;
+    }
+
+    public void setRemotePlay(final OpenRadioService.RemotePlay value) {
+        this.mRemotePlay = value;
     }
 
     /**

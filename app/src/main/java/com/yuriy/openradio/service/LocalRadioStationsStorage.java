@@ -156,6 +156,6 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
      */
     public static boolean isLocalRadioStation(final RadioStationVO radioStation, final Context context) {
         final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
-        return sharedPreferences.contains(String.valueOf(radioStation.getId()));
+        return sharedPreferences.contains(radioStation.getIdAsString());
     }
 }

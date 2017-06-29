@@ -80,6 +80,10 @@ public final class RadioStationVO implements Serializable {
         return mId;
     }
 
+    public final String getIdAsString() {
+        return String.valueOf(mId);
+    }
+
     public final void setId(final int value) {
         mId = value;
     }

@@ -219,6 +219,6 @@ abstract class AbstractStorage {
      * @return Key associated with Radio Station.
      */
     private static String createKeyForRadioStation(@NonNull final RadioStationVO radioStation) {
-        return String.valueOf(radioStation.getId());
+        return radioStation.getIdAsString();
     }
 }

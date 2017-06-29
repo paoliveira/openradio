@@ -42,6 +42,8 @@ public final class MediaItemHelper {
 
     private static final String KEY_IS_FAVORITE = "KEY_IS_FAVORITE";
 
+    private static final String KEY_IS_LAST_PLAYED = "KEY_IS_LAST_PLAYED";
+
     private static final String KEY_IS_LOCAL = "KEY_IS_LOCAL";
 
     private static final String KEY_SORT_ID = "KEY_SORT_ID";
@@ -55,6 +57,25 @@ public final class MediaItemHelper {
      */
     private MediaItemHelper() {
         super();
+    }
+
+    /**
+     * Sets key that indicates Radio Station is in favorites.
+     *
+     * @param mediaItem   {@link MediaBrowserCompat.MediaItem}.
+     * @param isLastPlayed Whether Media Item is known last played.
+     */
+    public static void updateLastPlayedField(final MediaBrowserCompat.MediaItem mediaItem,
+                                             final boolean isLastPlayed) {
+        if (mediaItem == null) {
+            return;
+        }
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        if (bundle == null) {
+            return;
+        }
+        bundle.putBoolean(KEY_IS_LAST_PLAYED, isLastPlayed);
     }
 
     /**
@@ -127,6 +148,21 @@ public final class MediaItemHelper {
             return;
         }
         bundle.putString(KEY_CURRENT_STREAM_TITLE, streamTitle);
+    }
+
+    /**
+     * Gets {@code true} if Media Item is known last played, {@code false} - otherwise.
+     *
+     * @param mediaItem {@link MediaBrowserCompat.MediaItem}.
+     * @return {@code true} if Media Item is known last played, {@code false} - otherwise.
+     */
+    public static boolean isLastPlayedField(final MediaBrowserCompat.MediaItem mediaItem) {
+        if (mediaItem == null) {
+            return false;
+        }
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        return bundle != null && bundle.getBoolean(KEY_IS_LAST_PLAYED, false);
     }
 
     /**

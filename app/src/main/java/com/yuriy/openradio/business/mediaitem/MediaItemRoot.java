@@ -31,6 +31,7 @@ import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LatestRadioStationStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
 
 import java.util.List;
@@ -56,24 +57,23 @@ public final class MediaItemRoot implements MediaItemCommand {
                 context.getPackageName() + "/drawable/ic_all_categories";
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
-        // If app is in Android Auto mode - display latest played Radio Station on top of Menu.
-        if (shareObject.isAndroidAuto()) {
-            final RadioStationVO latestRadioStation = LatestRadioStationStorage.load(
-                    shareObject.getContext()
+        RadioStationVO latestRadioStation;
+        // Display latest played Radio Station on top of Menu.
+        latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
+        if (latestRadioStation != null) {
+            // Add Radio Station to queue.
+            QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
+            // Add Radio Station to Menu
+            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
+                            .setMediaId(latestRadioStation.getIdAsString())
+                            .setTitle(latestRadioStation.getName())
+                            .setIconUri(Uri.parse(latestRadioStation.getImageUrl()))
+                            .setSubtitle(latestRadioStation.getCountry())
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             );
-            if (latestRadioStation != null) {
-                // Add Radio Station to queue.
-                QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
-                // Add Radio Station to Menu
-                mediaItems.add(new MediaBrowserCompat.MediaItem(
-                        new MediaDescriptionCompat.Builder()
-                                .setMediaId(String.valueOf(latestRadioStation.getId()))
-                                .setTitle(latestRadioStation.getName())
-                                .setIconUri(Uri.parse(latestRadioStation.getImageUrl()))
-                                .setSubtitle(latestRadioStation.getCountry())
-                                .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-                ));
-            }
+            MediaItemHelper.updateLastPlayedField(mediaItem, true);
+            mediaItems.add(mediaItem);
         }
 
         // Recently added Radio Stations
@@ -198,5 +198,10 @@ public final class MediaItemRoot implements MediaItemCommand {
         }
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());
+
+        // If there is latest Radio Station (the one that played the last time Open Radio used) detected, play it.
+        if (latestRadioStation != null) {
+            shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString());
+        }
     }
 }

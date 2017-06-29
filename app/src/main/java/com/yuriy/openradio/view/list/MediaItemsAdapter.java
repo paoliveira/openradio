@@ -28,9 +28,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.MediaItemsComparator;
@@ -272,11 +269,11 @@ public final class MediaItemsAdapter extends BaseAdapter {
      */
     private ListAdapterViewHolder createViewHolder(final View view) {
         final ListAdapterViewHolder viewHolder = new ListAdapterViewHolder();
-        viewHolder.mNameView = (TextView) view.findViewById(R.id.name_view);
-        viewHolder.mDescriptionView = (TextView) view.findViewById(R.id.description_view);
-        viewHolder.mImageView = (ImageView) view.findViewById(R.id.img_view);
-        viewHolder.mFavoriteCheckView = (CheckBox) view.findViewById(R.id.favorite_check_view);
-        viewHolder.mRootView = (RelativeLayout) view.findViewById(R.id.category_list_root_view);
+        viewHolder.mNameView = view.findViewById(R.id.name_view);
+        viewHolder.mDescriptionView = view.findViewById(R.id.description_view);
+        viewHolder.mImageView = view.findViewById(R.id.img_view);
+        viewHolder.mFavoriteCheckView = view.findViewById(R.id.favorite_check_view);
+        viewHolder.mRootView = view.findViewById(R.id.category_list_root_view);
         return viewHolder;
     }
 }
