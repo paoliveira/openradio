@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -58,7 +59,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
         RadioStationVO latestRadioStation;
-        // Display latest played Radio Station on top of Menu.
+        // Get lat know Radio Station.
         latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
         if (latestRadioStation != null) {
             // Add Radio Station to queue.
@@ -67,13 +68,17 @@ public final class MediaItemRoot implements MediaItemCommand {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
                             .setMediaId(latestRadioStation.getIdAsString())
+                            .setExtras(new Bundle())
                             .setTitle(latestRadioStation.getName())
                             .setIconUri(Uri.parse(latestRadioStation.getImageUrl()))
                             .setSubtitle(latestRadioStation.getCountry())
                             .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             );
             MediaItemHelper.updateLastPlayedField(mediaItem, true);
-            mediaItems.add(mediaItem);
+            // In case of Android Auto, display latest played Radio Station on top of Menu.
+            if (shareObject.isAndroidAuto()) {
+                mediaItems.add(mediaItem);
+            }
         }
 
         // Recently added Radio Stations

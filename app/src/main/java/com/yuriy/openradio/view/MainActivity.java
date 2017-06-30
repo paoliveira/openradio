@@ -19,20 +19,20 @@ package com.yuriy.openradio.view;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,12 +48,13 @@ import android.widget.Toast;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.MediaResourceManagerListener;
+import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -85,13 +86,6 @@ public final class MainActivity extends AppCompatActivity {
      * Tag string to use in logging message.
      */
     private static final String CLASS_NAME = MainActivity.class.getSimpleName();
-
-    /**
-     * Browses media content offered by a link MediaBrowserService.
-     * This object is not thread-safe.
-     * All calls should happen on the thread on which the browser was constructed.
-     */
-    private MediaBrowserCompat mMediaBrowser;
 
     /**
      * Adapter for the representing media items in the list.
@@ -201,6 +195,14 @@ public final class MainActivity extends AppCompatActivity {
     public boolean mIsSortMode = false;
 
     /**
+     * Manager object that acts as interface between Media Resources and current Activity.
+     */
+    private final MediaResourcesManager mMediaResourcesManager = new MediaResourcesManager(
+            this,
+            new MediaResourceManagerListenerImpl(this)
+    );
+
+    /**
      * Default constructor.
      */
     public MainActivity() {
@@ -257,16 +259,11 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        // Instantiate media browser
-        mMediaBrowser = new MediaBrowserCompat(
-                this,
-                new ComponentName(this, OpenRadioService.class),
-                new MediaBrowserConnectionCallback(this), null
-        );
+        mMediaResourcesManager.create();
 
         restoreState(savedInstanceState);
 
-        mMediaBrowser.connect();
+        mMediaResourcesManager.connect();
     }
 
     @Override
@@ -320,7 +317,7 @@ public final class MainActivity extends AppCompatActivity {
         // Unregister local receivers
         unregisterReceivers();
         // Disconnect Media Browser
-        mMediaBrowser.disconnect();
+        mMediaResourcesManager.disconnect();
     }
 
     @Override
@@ -451,7 +448,7 @@ public final class MainActivity extends AppCompatActivity {
         if (mediaItemsStack.size() == 1) {
 
             // Un-subscribe from item
-            mMediaBrowser.unsubscribe(mediaItemsStack.remove(mediaItemsStack.size() - 1));
+            mMediaResourcesManager.unsubscribe(mediaItemsStack.remove(mediaItemsStack.size() - 1));
             // Clear stack
             mediaItemsStack.clear();
 
@@ -464,12 +461,12 @@ public final class MainActivity extends AppCompatActivity {
         if (location >= 0) {
             // Get current media item and un-subscribe.
             final String currentMediaId = mediaItemsStack.remove(location);
-            mMediaBrowser.unsubscribe(currentMediaId);
+            mMediaResourcesManager.unsubscribe(currentMediaId);
         }
 
         // Un-subscribe from all items.
         for (final String mediaItemId : mediaItemsStack) {
-            mMediaBrowser.unsubscribe(mediaItemId);
+            mMediaResourcesManager.unsubscribe(mediaItemId);
         }
 
         // Subscribe to the previous item.
@@ -478,7 +475,7 @@ public final class MainActivity extends AppCompatActivity {
             final String previousMediaId = mediaItemsStack.get(location);
             if (!TextUtils.isEmpty(previousMediaId)) {
                 AppLogger.d("Back to " + previousMediaId);
-                mMediaBrowser.subscribe(previousMediaId, mMedSubscriptionCallback);
+                mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
             }
         }
     }
@@ -608,7 +605,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         // Un-subscribe from item
-        mMediaBrowser.unsubscribe(mediaItemId);
+        mMediaResourcesManager.unsubscribe(mediaItemId);
     }
 
     /**
@@ -626,7 +623,7 @@ public final class MainActivity extends AppCompatActivity {
             mediaItemsStack.add(mediaId);
         }
 
-        mMediaBrowser.subscribe(mediaId, mMedSubscriptionCallback);
+        mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
     }
 
     /**
@@ -829,6 +826,19 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
     }
 
+    private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
+        final MediaDescriptionCompat description = metadata.getDescription();
+
+        final TextView nameView = findViewById(R.id.name_view);
+        if (nameView != null) {
+            nameView.setText(description.getTitle());
+        }
+        final TextView descriptionView = findViewById(R.id.description_view);
+        if (descriptionView != null) {
+            descriptionView.setText(description.getSubtitle());
+        }
+    }
+
     /**
      * Callback receiver of the local application's event.
      */
@@ -881,8 +891,8 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             // Disconnect and connect back to media browser
-            reference.mMediaBrowser.disconnect();
-            reference.mMediaBrowser.connect();
+            reference.mMediaResourcesManager.disconnect();
+            reference.mMediaResourcesManager.connect();
         }
 
         @Override
@@ -941,90 +951,6 @@ public final class MainActivity extends AppCompatActivity {
             mReference.get().startActivity(
                     PermissionsDialogActivity.getIntent(mReference.get(), permissionName)
             );
-        }
-    }
-
-    /**
-     * Callback object for the Media Browser connection events
-     */
-    private static final class MediaBrowserConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private final WeakReference<MainActivity> mReference;
-
-        /**
-         * Constructor.
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaBrowserConnectionCallback(final MainActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnected() {
-            AppLogger.d(CLASS_NAME + " On Connected");
-
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-
-            AppLogger.i(CLASS_NAME + " Stack empty:" + activity.mediaItemsStack.isEmpty());
-
-            // If stack is empty - assume that this is a start point
-            if (activity.mediaItemsStack.isEmpty()) {
-                activity.addMediaItemToStack(activity.mMediaBrowser.getRoot());
-            }
-
-            // If session token is null - throw exception
-            //if (mMediaBrowser.getSessionToken() == null) {
-            //    throw new IllegalArgumentException("No Session token");
-            //}
-
-            // Subscribe to the media item
-            activity.mMediaBrowser.subscribe(
-                    activity.mediaItemsStack.get(activity.mediaItemsStack.size() - 1),
-                    activity.mMedSubscriptionCallback
-            );
-
-            // (Re)-Initialize media controller
-            MediaControllerCompat mediaController = null;
-            try {
-                mediaController = new MediaControllerCompat(
-                        activity.getApplicationContext(),
-                        activity.mMediaBrowser.getSessionToken()
-                );
-            } catch (final RemoteException e) {
-                AppLogger.e(
-                        CLASS_NAME + " Can not init MediaController\n:" + Log.getStackTraceString(e)
-                );
-                CrashlyticsUtils.logException(e);
-            }
-
-            // Set actual controller
-            if (mediaController != null) {
-                MediaControllerCompat.setMediaController(activity, mediaController);
-            }
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            AppLogger.w(CLASS_NAME + " On Connection Failed");
-        }
-
-        @Override
-        public void onConnectionSuspended() {
-            AppLogger.w(CLASS_NAME + " On Connection Suspended");
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-
-            MediaControllerCompat.setMediaController(activity, null);
         }
     }
 
@@ -1231,6 +1157,73 @@ public final class MainActivity extends AppCompatActivity {
                 }
             }
             return true;
+        }
+    }
+
+    /**
+     * Listener for the Media Resources related events.
+     */
+    private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<MainActivity> mReference;
+
+        /**
+         * Constructor
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaResourceManagerListenerImpl(final MainActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                AppLogger.w(CLASS_NAME + " onConnected reference to MainActivity is null");
+                return;
+            }
+
+            AppLogger.i(CLASS_NAME + " Stack empty:" + activity.mediaItemsStack.isEmpty());
+
+            // If stack is empty - assume that this is a start point
+            if (activity.mediaItemsStack.isEmpty()) {
+                activity.addMediaItemToStack(activity.mMediaResourcesManager.getRoot());
+            }
+
+            // Subscribe to the media item
+            activity.mMediaResourcesManager.subscribe(
+                    activity.mediaItemsStack.get(activity.mediaItemsStack.size() - 1),
+                    activity.mMedSubscriptionCallback
+            );
+        }
+
+        @Override
+        public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
+
+        }
+
+        @Override
+        public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
+
+        }
+
+        @Override
+        public void onMetadataChanged(final MediaMetadataCompat metadata,
+                                      final List<MediaSessionCompat.QueueItem> queue) {
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                AppLogger.w(CLASS_NAME + " onMetadataChanged reference to MainActivity is null");
+                return;
+            }
+            if (metadata == null) {
+                return;
+            }
+            activity.handleMetadataChanged(metadata);
         }
     }
 }

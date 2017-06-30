@@ -16,20 +16,15 @@
 
 package com.yuriy.openradio.view;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ImageButton;
@@ -38,9 +33,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.business.MediaResourceManagerListener;
+import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.list.QueueAdapter;
 
@@ -57,7 +52,7 @@ import java.util.Locale;
  * {@link QueueActivity} is a view which represents
  * UI for the playing a queue of the radio stations.
  */
-public final class QueueActivity extends FragmentActivity {
+public final class QueueActivity extends AppCompatActivity {
 
     /**
      * Tag string to use in logging message.
@@ -68,21 +63,6 @@ public final class QueueActivity extends FragmentActivity {
      * Play - Pause button
      */
     private ImageButton mPlayPause;
-
-    /**
-     * Media Browser
-     */
-    private MediaBrowserCompat mMediaBrowser;
-
-    /**
-     * Transport controls of the Media Controller
-     */
-    private MediaControllerCompat.TransportControls mTransportControls;
-
-    /**
-     * Media Controller
-     */
-    private MediaControllerCompat mMediaController;
 
     /**
      * Playback state
@@ -116,11 +96,6 @@ public final class QueueActivity extends FragmentActivity {
     private ProgressBar mProgressBar;
 
     /**
-     * Listener of the media Controllers callbacks.
-     */
-    private final MediaControllerCompat.Callback mMediaSessionCallback = new MediaSessionCallback(this);
-
-    /**
      * Control Buttons listener.
      */
     private final View.OnClickListener mButtonListener = new ControlsClickListener(this);
@@ -134,6 +109,14 @@ public final class QueueActivity extends FragmentActivity {
      *
      */
     private TextView mBufferedTextView;
+
+    /**
+     * Manager object that acts as interface between Media Resources and current Activity.
+     */
+    private final MediaResourcesManager mMediaResourcesManager = new MediaResourcesManager(
+            this,
+            new MediaResourceManagerListenerImpl(this)
+    );
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -209,12 +192,7 @@ public final class QueueActivity extends FragmentActivity {
                 }
         );
 
-        // Initialize Media Browser
-        mMediaBrowser = new MediaBrowserCompat(
-                getApplicationContext(),
-                new ComponentName(getApplicationContext(), OpenRadioService.class),
-                new MediaBrowserConnectionCallback(this), null
-        );
+        mMediaResourcesManager.create();
 
         updateBufferedTime(0);
 
@@ -224,24 +202,13 @@ public final class QueueActivity extends FragmentActivity {
     @Override
     public void onResume() {
         super.onResume();
-
-        if (mMediaBrowser != null) {
-            mMediaBrowser.connect();
-        }
+        mMediaResourcesManager.connect();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
-        if (mMediaController != null) {
-            mMediaController.unregisterCallback(mMediaSessionCallback);
-        }
-
-        if (mMediaBrowser != null) {
-            mMediaBrowser.disconnect();
-        }
-
+        mMediaResourcesManager.disconnect();
         hideProgressBar();
     }
 
@@ -284,7 +251,7 @@ public final class QueueActivity extends FragmentActivity {
                         + mListFirstVisiblePosition
         );
 
-        mTransportControls.skipToQueueItem(item.getQueueId());
+        mMediaResourcesManager.transportControlsSkipToQueueItem(item.getQueueId());
     }
 
     /**
@@ -348,7 +315,7 @@ public final class QueueActivity extends FragmentActivity {
         AppLogger.d(CLASS_NAME + " On Playback State Changed " + state);
         if (state == null) {
             hideProgressBar();
-            stop();
+            mMediaResourcesManager.transportControlsStop();
             return;
         }
 
@@ -403,30 +370,6 @@ public final class QueueActivity extends FragmentActivity {
         } else {
             mPlayPause.setImageDrawable(getResources().getDrawable(R.drawable.ic_pause_white_24dp));
         }
-
-        AppLogger.d(CLASS_NAME + " Queue From MediaController *** Title " +
-                mMediaController.getQueueTitle() + "\n: Queue: " + mMediaController.getQueue() +
-                "\n Metadata " + mMediaController.getMetadata());
-    }
-
-    /**
-     * Play media handler
-     */
-    private void playMedia() {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.play();
-    }
-
-    /**
-     * Pause media handler
-     */
-    private void pauseMedia() {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.pause();
     }
 
     /**
@@ -461,16 +404,6 @@ public final class QueueActivity extends FragmentActivity {
     }
 
     /**
-     * Stop media handler
-     */
-    private void stop() {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.stop();
-    }
-
-    /**
      * Updates buffered value of the currently playing radio station.
      *
      * @param value Buffered time in seconds.
@@ -490,237 +423,6 @@ public final class QueueActivity extends FragmentActivity {
                     mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %.2f sec", finalValue));
                 }
         );
-    }
-
-    /**
-     * Receive callbacks from the MediaController.
-     * Here we update our state such as which queue is being shown,
-     * the current title and description and the PlaybackState.
-     */
-    private static final class MediaSessionCallback extends MediaControllerCompat.Callback {
-
-        /**
-         * Tag string to use in logging message.
-         */
-        private static final String CLASS_NAME = MediaSessionCallback.class.getSimpleName();
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private final WeakReference<QueueActivity> mReference;
-
-        /**
-         * Constructor
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaSessionCallback(final QueueActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onSessionDestroyed() {
-            AppLogger.d(CLASS_NAME + " Session destroyed. Need to fetch a new Media Session");
-        }
-
-        @Override
-        public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + " Received playback state change to state " + state.getState());
-
-            final QueueActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-            activity.mPlaybackState = state;
-            activity.onPlaybackStateChanged(state);
-
-            final double bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000.0;
-            activity.updateBufferedTime(bufferedDuration);
-        }
-
-        @Override
-        public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + " On Queue Changed: " + queue);
-            final QueueActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-            if (queue == null) {
-                return;
-            }
-            activity.mQueueAdapter.clear();
-            activity.mQueueAdapter.notifyDataSetInvalidated();
-            activity.mQueueAdapter.addAll(queue);
-            activity.mQueueAdapter.notifyDataSetChanged();
-        }
-
-        @Override
-        public void onMetadataChanged(final MediaMetadataCompat metadata) {
-            super.onMetadataChanged(metadata);
-
-            final QueueActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-
-            // Update queue
-            final List<MediaSessionCompat.QueueItem> queue = activity.mMediaController.getQueue();
-            if (queue == null) {
-                return;
-            }
-
-            final long activeQueueItemId = activity.mQueueAdapter.getActiveQueueItemId();
-            AppLogger.d(CLASS_NAME + " Metadata changed:" + metadata + ", active id:" + activeQueueItemId);
-
-            activity.mQueueAdapter.notifyDataSetInvalidated();
-            activity.mQueueAdapter.clear();
-            final int queueSize = queue.size();
-            MediaSessionCompat.QueueItem item;
-            for (int i = 0; i < queueSize; i++) {
-                item = queue.get(i);
-                if (item == null) {
-                    continue;
-                }
-                // Get currently selected Radio Station
-                if (item.getQueueId() == activeQueueItemId) {
-                    final MediaSessionCompat.QueueItem newItem = new MediaSessionCompat.QueueItem(
-                            metadata.getDescription(), item.getQueueId()
-                    );
-
-                    final MediaDescriptionCompat description = newItem.getDescription();
-                    Bundle extras = description.getExtras();
-                    if (extras == null) {
-                        extras = item.getDescription().getExtras();
-                        MediaItemHelper.updateExtras(description, extras);
-                    }
-
-                    queue.remove(item);
-                    queue.add(i, newItem);
-                    break;
-                }
-            }
-            activity.mQueueAdapter.addAll(queue);
-            activity.mQueueAdapter.notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * Callback object for the Media Browser connection events.
-     */
-    private static final class MediaBrowserConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private final WeakReference<QueueActivity> mReference;
-
-        /**
-         * Constructor.
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaBrowserConnectionCallback(final QueueActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnected() {
-            AppLogger.d(CLASS_NAME + " On Connected");
-
-            final QueueActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-
-            AppLogger.d(CLASS_NAME + " Session token " + activity.mMediaBrowser.getSessionToken());
-
-            // If session token is null - throw exception
-            //if (mMediaBrowser.getSessionToken() == null) {
-            //    throw new IllegalArgumentException("No Session token");
-            //}
-
-            // Initialize Media Controller
-            try {
-                activity.mMediaController = new MediaControllerCompat(
-                        activity.getApplicationContext(),
-                        activity.mMediaBrowser.getSessionToken()
-                );
-            } catch (final RemoteException e) {
-                AppLogger.e(CLASS_NAME + " Can not init Media Controller:\n" + Log.getStackTraceString(e));
-                CrashlyticsUtils.logException(e);
-                return;
-            }
-
-            // Initialize Transport Controls
-            activity.mTransportControls = activity.mMediaController.getTransportControls();
-            // Register callbacks
-            activity.mMediaController.registerCallback(activity.mMediaSessionCallback);
-
-            // Set actual media controller
-            MediaControllerCompat.setMediaController(activity, activity.mMediaController);
-
-            // Get actual playback state
-            activity.mPlaybackState = activity.mMediaController.getPlaybackState();
-
-            // Update queue
-            final List<MediaSessionCompat.QueueItem> queue = activity.mMediaController.getQueue();
-
-            if (queue != null) {
-
-                // If the is no first visible position restored, try to get selected id from the
-                // bundles of the Intent.
-
-                if (activity.mListFirstVisiblePosition == 0) {
-                    final int queueSize = queue.size();
-                    final String selectedMediaId = getSelectedMediaId(activity.getIntent());
-                    MediaSessionCompat.QueueItem item;
-                    String mediaId;
-                    for (int i = 0; i < queueSize; i++) {
-                        item = queue.get(i);
-                        if (item == null) {
-                            continue;
-                        }
-                        mediaId = item.getDescription().getMediaId();
-                        if (mediaId == null) {
-                            continue;
-                        }
-                        if (mediaId.equals(selectedMediaId)) {
-                            activity.mListFirstVisiblePosition = i;
-                            AppLogger.d(CLASS_NAME + " 1st visible pos (after connected) is " + i);
-                            break;
-                        }
-                    }
-                }
-
-                activity.mQueueAdapter.clear();
-                activity.mQueueAdapter.notifyDataSetInvalidated();
-                activity.mQueueAdapter.addAll(queue);
-                activity.mQueueAdapter.notifyDataSetChanged();
-            }
-
-            // Change play state
-            activity.onPlaybackStateChanged(activity.mPlaybackState);
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            AppLogger.w(CLASS_NAME + " On Connection Failed");
-        }
-
-        @Override
-        public void onConnectionSuspended() {
-            AppLogger.w(CLASS_NAME + " On Connection Suspended");
-            final QueueActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-            activity.mMediaController.unregisterCallback(activity.mMediaSessionCallback);
-            activity.mTransportControls = null;
-            activity.mMediaController = null;
-            MediaControllerCompat.setMediaController(activity, null);
-        }
     }
 
     /**
@@ -760,9 +462,9 @@ public final class QueueActivity extends FragmentActivity {
                     if (state == PlaybackStateCompat.STATE_PAUSED
                             || state == PlaybackStateCompat.STATE_STOPPED
                             || state == PlaybackStateCompat.STATE_NONE) {
-                        activity.playMedia();
+                        activity.mMediaResourcesManager.transportControlsPlay();
                     } else if (state == PlaybackStateCompat.STATE_PLAYING) {
-                        activity.pauseMedia();
+                        activity.mMediaResourcesManager.transportControlsPause();
                     }
                     break;
                 case R.id.skip_previous:
@@ -774,6 +476,145 @@ public final class QueueActivity extends FragmentActivity {
                     activity.skipToNext();
                     break;
             }
+        }
+    }
+
+    /**
+     * Listener for the Media Resources related events.
+     */
+    private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<QueueActivity> mReference;
+
+        /**
+         * Constructor
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaResourceManagerListenerImpl(final QueueActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onConnected(List<MediaSessionCompat.QueueItem> queue) {
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+
+            // Get actual playback state
+            activity.mPlaybackState = activity.mMediaResourcesManager.getPlaybackState();
+
+            if (queue != null) {
+
+                // If the is no first visible position restored, try to get selected id from the
+                // bundles of the Intent.
+
+                if (activity.mListFirstVisiblePosition == 0) {
+                    final int queueSize = queue.size();
+                    final String selectedMediaId = getSelectedMediaId(activity.getIntent());
+                    MediaSessionCompat.QueueItem item;
+                    String mediaId;
+                    for (int i = 0; i < queueSize; i++) {
+                        item = queue.get(i);
+                        if (item == null) {
+                            continue;
+                        }
+                        mediaId = item.getDescription().getMediaId();
+                        if (mediaId == null) {
+                            continue;
+                        }
+                        if (mediaId.equals(selectedMediaId)) {
+                            activity.mListFirstVisiblePosition = i;
+                            break;
+                        }
+                    }
+                }
+
+                activity.mQueueAdapter.clear();
+                activity.mQueueAdapter.notifyDataSetInvalidated();
+                activity.mQueueAdapter.addAll(queue);
+                activity.mQueueAdapter.notifyDataSetChanged();
+            }
+
+            // Change play state
+            activity.onPlaybackStateChanged(activity.mPlaybackState);
+        }
+
+        @Override
+        public void onPlaybackStateChanged(final @NonNull PlaybackStateCompat state) {
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+            activity.mPlaybackState = state;
+            activity.onPlaybackStateChanged(state);
+
+            final double bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000.0;
+            activity.updateBufferedTime(bufferedDuration);
+        }
+
+        @Override
+        public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+            if (queue == null) {
+                return;
+            }
+            activity.mQueueAdapter.clear();
+            activity.mQueueAdapter.notifyDataSetInvalidated();
+            activity.mQueueAdapter.addAll(queue);
+            activity.mQueueAdapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void onMetadataChanged(final MediaMetadataCompat metadata,
+                                      final List<MediaSessionCompat.QueueItem> queue) {
+            final QueueActivity activity = mReference.get();
+            if (activity == null) {
+                return;
+            }
+            if (queue == null) {
+                return;
+            }
+
+            final long activeQueueItemId = activity.mQueueAdapter.getActiveQueueItemId();
+
+            activity.mQueueAdapter.notifyDataSetInvalidated();
+            activity.mQueueAdapter.clear();
+            final int queueSize = queue.size();
+            MediaSessionCompat.QueueItem item;
+            for (int i = 0; i < queueSize; i++) {
+                item = queue.get(i);
+                if (item == null) {
+                    continue;
+                }
+                // Get currently selected Radio Station
+                if (item.getQueueId() == activeQueueItemId) {
+                    final MediaSessionCompat.QueueItem newItem = new MediaSessionCompat.QueueItem(
+                            metadata.getDescription(), item.getQueueId()
+                    );
+
+                    final MediaDescriptionCompat description = newItem.getDescription();
+                    Bundle extras = description.getExtras();
+                    if (extras == null) {
+                        extras = item.getDescription().getExtras();
+                        MediaItemHelper.updateExtras(description, extras);
+                    }
+
+                    queue.remove(item);
+                    queue.add(i, newItem);
+                    break;
+                }
+            }
+            activity.mQueueAdapter.addAll(queue);
+            activity.mQueueAdapter.notifyDataSetChanged();
         }
     }
 }
