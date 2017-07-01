@@ -89,5 +89,6 @@
     <string name="delete_station_menu_label">Odstrániť Rádiovú Stanicu</string>
     <string name="feature_sort_title">Radiť Rozhlasové Stanice</string>
     <string name="feature_sort_text">Ak chcete rozhlasové stanice triediť:\n\n- dlho stlačte ľubovoľnú stanicu\n- vybrať \"Radiť Rozhlasové Stanice\"\n- presuňte a pusťte rozhlasovú stanicu a zoradte ich v požadovanom poradí\n- stlačením tlačidla \"Späť\" sa vrátite do normálneho režimu</string>
+    <string name="enable_last_known_radio_station_label">Prehrať poslednú známu rozhlasovú stanicu\n(umožňuje aplikácii automaticky spustiť poslednú známu rozhlasovú stanicu)</string>
 
 </resources>

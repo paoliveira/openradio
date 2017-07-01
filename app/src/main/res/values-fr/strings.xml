@@ -89,5 +89,6 @@
     <string name="delete_station_menu_label">Supprimer la Station de Radio</string>
     <string name="feature_sort_title">Trier les Stations de Radio</string>
     <string name="feature_sort_text">Pour effectuer des stations de radio:\n\n- appuyez longuement sur n\'importe quelle Station de Radio\n- sélectionner \"Trier les Stations de Radio\"\n- faites glisser et déposez la Station de Radio pour les trier dans l\'ordre souhaité\n- appuyez sur le bouton \"Retour\" pour revenir au mode normal</string>
+    <string name="enable_last_known_radio_station_label">Jouez la dernière station de radio connue\n(permet à l\'application de lancer automatiquement la dernière station de radio connue)</string>
 
 </resources>

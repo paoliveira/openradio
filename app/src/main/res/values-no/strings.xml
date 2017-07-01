@@ -89,5 +89,6 @@
     <string name="delete_station_menu_label">Slett Radiostasjon</string>
     <string name="feature_sort_title">Sorter Radiostasjoner</string>
     <string name="feature_sort_text">Å gjøre radiostasjoner sortere:\n\n- lenge trykk på en hvilken som helst Radiostasjon\n- plukke ut \"Sorter Radiostasjoner\"\n- dra og slipp Radio Station for å sortere dem i ønsket rekkefølger\n- trykk på \"Tilbake\" knappen for å gå tilbake til normal modus</string>
+    <string name="enable_last_known_radio_station_label">Spill sist kjente radiostasjon\n(gjør at programmet automatisk kan starte den siste kjente radiostasjonen)</string>
 
 </resources>

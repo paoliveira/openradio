@@ -89,5 +89,6 @@
     <string name="delete_station_menu_label">Eliminar Estación de Radio</string>
     <string name="feature_sort_title">Ordenar Estaciones de Radio</string>
     <string name="feature_sort_text">Para hacer emisoras de radio ordenar:\n\n- prensa larga cualquier Estación de Radio\n- seleccionar \"Ordenar Estaciones de Radio\"\n- arrastrar y soltar Radio Station para ordenarlos en el orden deseado\n- pulse el botón \"Atrás\" para volver al modo normal</string>
+    <string name="enable_last_known_radio_station_label">Reproducir la última emisora de radio conocida \n(permite que la aplicación reproduzca la última estación de radio conocida al arrancar automáticamente)</string>
 
 </resources>

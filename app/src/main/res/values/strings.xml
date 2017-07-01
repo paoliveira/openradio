@@ -128,6 +128,6 @@
 
     <!-- Version 2.6 -->
 
-    <string name="enable_last_known_radio_station_label">Auto to play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
+    <string name="enable_last_known_radio_station_label">Play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
 
 </resources>

@@ -89,5 +89,6 @@
     <string name="delete_station_menu_label">Radiosender löschen</string>
     <string name="feature_sort_title">Radiosender sortieren</string>
     <string name="feature_sort_text">Radiosender sortieren:\n\n- langes drücken eines Radiosenders\n- wählen \"Radiosender sortieren\"\n- per Drag und Drop Radio Station, um sie in der gewünschten Reihenfolge zu sortieren\n- drücken Sie die Taste \"Zurück\", um zum normalen Modus zurückzukehren</string>
+    <string name="enable_last_known_radio_station_label">Spielen Sie die letzte bekannte Radiosender\n(ermöglicht die Anwendung, die letzte bekannte Radiosender automatisch zu starten)</string>
 
 </resources>
