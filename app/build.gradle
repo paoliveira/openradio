@@ -19,7 +19,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 26
         versionCode code
-        versionName "2.5"
+        versionName "2.6"
 
         jackOptions {
             enabled true
