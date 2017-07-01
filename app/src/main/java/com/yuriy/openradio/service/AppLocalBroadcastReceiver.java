@@ -28,7 +28,7 @@ import com.yuriy.openradio.utils.AppLogger;
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class AppLocalBroadcastReceiver extends BroadcastReceiver {
+public final class AppLocalBroadcastReceiver extends BroadcastReceiver {
 
     /**
      * Tag name to use in the logging.
@@ -176,7 +176,7 @@ public class AppLocalBroadcastReceiver extends BroadcastReceiver {
      * @return Instance of the {@link Intent} that indicates Current Index of the queue item.
      *
      * @param currentIndex Index of the current selected item in the queue.
-     * @param mediaId
+     * @param mediaId      Id of the Media Item.
      */
     public static Intent createIntentCurrentIndexOnQueue(final int currentIndex,
                                                          final String mediaId) {

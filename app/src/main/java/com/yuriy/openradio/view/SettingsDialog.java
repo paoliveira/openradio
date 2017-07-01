@@ -19,10 +19,11 @@ package com.yuriy.openradio.view;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -86,25 +87,35 @@ public final class SettingsDialog extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         final String titleText = getActivity().getString(R.string.app_settings_title);
-        final TextView title = (TextView) view.findViewById(R.id.dialog_settings_title_view);
+        final TextView title = view.findViewById(R.id.dialog_settings_title_view);
         title.setText(titleText);
 
-        final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(
-                getActivity().getApplicationContext()
+        final Context context = getActivity().getApplicationContext();
+
+        final boolean lastKnownRadioStationEnabled = AppPreferencesManager.lastKnownRadioStationEnabled(context);
+        final CheckBox lastKnownRadioStationEnableCheckView = view.findViewById(
+                R.id.settings_dialog_enable_last_known_radio_station_check_view
         );
-        final CheckBox logsEnableCheckView =
-                (CheckBox) view.findViewById(R.id.settings_dialog_enable_logs_check_view);
-        logsEnableCheckView.setChecked(areLogsEnabled);
-        processEnableCheckView(areLogsEnabled);
-        logsEnableCheckView.setOnClickListener(
+        lastKnownRadioStationEnableCheckView.setChecked(lastKnownRadioStationEnabled);
+        lastKnownRadioStationEnableCheckView.setOnClickListener(
                 view1 -> {
                     final boolean checked = ((CheckBox) view1).isChecked();
-                    processEnableCheckView(checked);
+                    AppPreferencesManager.lastKnownRadioStationEnabled(context, checked);
                 }
         );
 
-        final Button clearLogsBtn
-                = (Button) view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
+        final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(context);
+        final CheckBox logsEnableCheckView = view.findViewById(R.id.settings_dialog_enable_logs_check_view);
+        logsEnableCheckView.setChecked(areLogsEnabled);
+        processEnableCheckView(context, areLogsEnabled);
+        logsEnableCheckView.setOnClickListener(
+                view1 -> {
+                    final boolean checked = ((CheckBox) view1).isChecked();
+                    processEnableCheckView(context, checked);
+                }
+        );
+
+        final Button clearLogsBtn = view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
         clearLogsBtn.setOnClickListener(
 
                 view12 -> {
@@ -121,27 +132,23 @@ public final class SettingsDialog extends DialogFragment {
                 }
         );
 
-        final Button sendLogsBtn
-                = (Button) view.findViewById(R.id.settings_dialog_send_logs_btn_view);
+        final Button sendLogsBtn = view.findViewById(R.id.settings_dialog_send_logs_btn_view);
         sendLogsBtn.setOnClickListener(
-
                 view13 -> sendLogMailTask()
         );
     }
 
-    private void processEnableCheckView(final boolean isEnable) {
+    private void processEnableCheckView(final Context context, final boolean isEnable) {
         final View view = getView();
         if (view == null) {
             return;
         }
-        final Button sendLogsBtn
-                = (Button) view.findViewById(R.id.settings_dialog_send_logs_btn_view);
-        final Button clearLogsBtn
-                = (Button) view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
+        final Button sendLogsBtn = view.findViewById(R.id.settings_dialog_send_logs_btn_view);
+        final Button clearLogsBtn = view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
         sendLogsBtn.setEnabled(isEnable);
         clearLogsBtn.setEnabled(isEnable);
 
-        AppPreferencesManager.setLogsEnabled(getActivity().getApplicationContext(), isEnable);
+        AppPreferencesManager.setLogsEnabled(context, isEnable);
         AppLogger.setIsLoggingEnabled(isEnable);
     }
 
@@ -199,13 +206,13 @@ public final class SettingsDialog extends DialogFragment {
 
             // Prepare email intent
             final Intent sendIntent = new Intent(Intent.ACTION_SEND);
-            sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mailInfo.getTo()});
-            sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo.getSubj());
-            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo.getMailBody() + "\r\n" );
+            sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mailInfo.mTo});
+            sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo.mSubj);
+            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo.mMailBody + "\r\n" );
             sendIntent .setType("vnd.android.cursor.dir/email");
 
             try {
-                final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext));
+                final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext.getApplicationContext()));
                 sendIntent .putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
                 AppLogger.e("Can not get logs zip file:" + e.getMessage());
@@ -230,14 +237,14 @@ public final class SettingsDialog extends DialogFragment {
                     );
                 } catch (final ActivityNotFoundException e) {
                     SafeToast.showAnyThread(
-                            mContext, mContext.getString(R.string.cant_start_activity)
+                            mContext.getApplicationContext(), mContext.getString(R.string.cant_start_activity)
                     );
                     AppLogger.e("Activity not found:" + e.getMessage());
                     CrashlyticsUtils.logException(e);
                 }
             } else {
                 SafeToast.showAnyThread(
-                        mContext, mContext.getString(R.string.cant_send_logs)
+                        mContext.getApplicationContext(), mContext.getString(R.string.cant_send_logs)
                 );
             }
         }
@@ -245,32 +252,15 @@ public final class SettingsDialog extends DialogFragment {
 
     private static final class MailInfo {
 
-        private String mTo;
-        private String mSubj;
-        private String mMailBody;
+        private final String mTo;
+        private final String mSubj;
+        private final String mMailBody;
 
-        private MailInfo(final String to, final String subj, final String mailBody) {
+        private MailInfo(@NonNull final String to, @NonNull final String subj, @NonNull final String mailBody) {
             super();
-
-            if (TextUtils.isEmpty(to)) {
-                throw new NullPointerException("Parameter 'To' can not be null or empty");
-            }
-
             mTo = to;
             mSubj = subj;
             mMailBody = mailBody;
-        }
-
-        private String getTo() {
-            return mTo;
-        }
-
-        private String getSubj() {
-            return mSubj;
-        }
-
-        private String getMailBody() {
-            return mMailBody;
         }
     }
 }

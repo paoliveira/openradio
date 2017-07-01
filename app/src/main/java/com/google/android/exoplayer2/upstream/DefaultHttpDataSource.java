@@ -23,6 +23,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Predicate;
 import com.google.android.exoplayer2.util.Util;
+import com.yuriy.openradio.utils.AppLogger;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -114,6 +115,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
     this.readTimeoutMillis = readTimeoutMillis;
     this.allowCrossProtocolRedirects = allowCrossProtocolRedirects;
     this.defaultRequestProperties = defaultRequestProperties;
+    AppLogger.i("AllowCrossProtocolRedirects " + allowCrossProtocolRedirects);
   }
 
   @Override

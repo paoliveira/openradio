@@ -40,8 +40,11 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -53,7 +56,10 @@ import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
+import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.service.LatestRadioStationStorage;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.service.ScreenBroadcastReceiver;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
@@ -91,6 +97,11 @@ public final class MainActivity extends AppCompatActivity {
      * Adapter for the representing media items in the list.
      */
     private MediaItemsAdapter mBrowserAdapter;
+
+    /**
+     * Handles loading the  image in a background thread.
+     */
+    private ImageFetcher mImageFetcher;
 
     /**
      * Stack of the media items.
@@ -195,6 +206,11 @@ public final class MainActivity extends AppCompatActivity {
     public boolean mIsSortMode = false;
 
     /**
+     * Receiver for the Screen OF/ON events.
+     */
+    private final ScreenBroadcastReceiver mScreenBroadcastReceiver = new ScreenBroadcastReceiver();
+
+    /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
     private final MediaResourcesManager mMediaResourcesManager = new MediaResourcesManager(
@@ -223,10 +239,10 @@ public final class MainActivity extends AppCompatActivity {
         PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
 
         // Handles loading the  image in a background thread
-        final ImageFetcher imageFetcher = ImageFetcherFactory.getSmallImageFetcher(this);
+        mImageFetcher = ImageFetcherFactory.getSmallImageFetcher(this);
 
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(this, imageFetcher);
+        mBrowserAdapter = new MediaItemsAdapter(this, mImageFetcher);
 
         // Initialize progress bar
         mProgressBar = findViewById(R.id.progress_bar_view);
@@ -735,6 +751,8 @@ public final class MainActivity extends AppCompatActivity {
                 mAppLocalBroadcastReceiver,
                 intentFilter
         );
+
+        mScreenBroadcastReceiver.register(getApplicationContext());
     }
 
     /**
@@ -744,6 +762,8 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastReceiver.unregisterListener();
 
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mAppLocalBroadcastReceiver);
+
+        mScreenBroadcastReceiver.unregister(getApplicationContext());
     }
 
     /**
@@ -826,7 +846,25 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
     }
 
+    /**
+     * Handles event of Metadata updated.
+     * Updates UI related to the currently playing Radio Station.
+     *
+     * @param metadata Metadata related to currently playing Radio Station.
+     */
     private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
+        final RelativeLayout view = findViewById(R.id.last_played_item_view);
+        if (view == null) {
+            return;
+        }
+
+        final RadioStationVO latestRadioStation = LatestRadioStationStorage.load(getApplicationContext());
+        if (latestRadioStation == null) {
+            view.setVisibility(View.GONE);
+            return;
+        }
+        view.setVisibility(View.VISIBLE);
+
         final MediaDescriptionCompat description = metadata.getDescription();
 
         final TextView nameView = findViewById(R.id.name_view);
@@ -836,6 +874,22 @@ public final class MainActivity extends AppCompatActivity {
         final TextView descriptionView = findViewById(R.id.description_view);
         if (descriptionView != null) {
             descriptionView.setText(description.getSubtitle());
+        }
+        final ImageView imageView = findViewById(R.id.img_view);
+        if (imageView != null) {
+            MediaItemsAdapter.updateImage(description, true, imageView, mImageFetcher);
+        }
+        final CheckBox favoriteCheckView = findViewById(R.id.favorite_check_view);
+        if (favoriteCheckView != null) {
+            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), latestRadioStation),
+                    MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+            );
+            MediaItemHelper.updateFavoriteField(
+                    mediaItem,
+                    FavoritesStorage.isFavorite(latestRadioStation, getApplicationContext())
+            );
+            MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem,this);
         }
     }
 

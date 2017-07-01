@@ -16,9 +16,17 @@
         android:gravity="center"/>
 
     <CheckBox
+        android:id="@+id/settings_dialog_enable_last_known_radio_station_check_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:text="@string/enable_last_known_radio_station_label" />
+
+    <CheckBox
         android:id="@+id/settings_dialog_enable_logs_check_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
         android:text="@string/enable_logs_label" />
 
     <Button

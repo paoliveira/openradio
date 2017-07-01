@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.view.list;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -28,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.MediaItemsComparator;
@@ -140,47 +142,11 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         mViewHolder.mNameView.setText(description.getTitle());
         mViewHolder.mDescriptionView.setText(description.getSubtitle());
-        if (description.getIconBitmap() != null) {
-            mViewHolder.mImageView.setImageBitmap(description.getIconBitmap());
-        } else {
-            final Uri iconUri = description.getIconUri();
-            if (mediaItem.isPlayable()) {
 
-                if (iconUri != null && iconUri.toString().startsWith("android")) {
-                    mViewHolder.mImageView.setImageURI(iconUri);
-                } else {
-                    // Load the image asynchronously into the ImageView, this also takes care of
-                    // setting a placeholder image while the background thread runs
-                    mImageFetcher.loadImage(iconUri, mViewHolder.mImageView);
-                }
-            } else {
-                mViewHolder.mImageView.setImageURI(iconUri);
-            }
-        }
+        updateImage(description, mediaItem.isPlayable(), mViewHolder.mImageView, mImageFetcher);
 
         if (mediaItem.isPlayable() && !MediaItemHelper.isLocalRadioStationField(mediaItem)) {
-            mViewHolder.mFavoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
-
-            mViewHolder.mFavoriteCheckView.setVisibility(View.VISIBLE);
-
-            mViewHolder.mFavoriteCheckView.setOnClickListener(
-
-                    view -> {
-                        boolean isChecked = ((CheckBox) view).isChecked();
-
-                        MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
-
-                        // Make Intent to update Favorite RadioStation object associated with
-                        // the Media Description
-                        final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
-                                mCurrentActivity,
-                                description,
-                                isChecked
-                        );
-                        // Send Intent to the OpenRadioService.
-                        mCurrentActivity.startService(intent);
-                    }
-            );
+            handleFavoriteAction(mViewHolder.mFavoriteCheckView, description, mediaItem, mCurrentActivity);
         } else {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
         }
@@ -275,5 +241,66 @@ public final class MediaItemsAdapter extends BaseAdapter {
         viewHolder.mFavoriteCheckView = view.findViewById(R.id.favorite_check_view);
         viewHolder.mRootView = view.findViewById(R.id.category_list_root_view);
         return viewHolder;
+    }
+
+    /**
+     * Updates an image of the Media Item.
+     *
+     * @param description  Media Description of the Media Item.
+     * @param isPlayable   Is Media Item playable (whether it is Radio Station or Folder).
+     * @param imageView    Image View to apply image to.
+     * @param imageFetcher Fetcher object to download image in background thread.
+     */
+    public static void updateImage(final MediaDescriptionCompat description, final boolean isPlayable,
+                                   final ImageView imageView, final ImageFetcher imageFetcher) {
+        if (description.getIconBitmap() != null) {
+            imageView.setImageBitmap(description.getIconBitmap());
+        } else {
+            final Uri iconUri = description.getIconUri();
+            if (isPlayable) {
+
+                if (iconUri != null && iconUri.toString().startsWith("android")) {
+                    imageView.setImageURI(iconUri);
+                } else {
+                    // Load the image asynchronously into the ImageView, this also takes care of
+                    // setting a placeholder image while the background thread runs
+                    imageFetcher.loadImage(iconUri, imageView);
+                }
+            } else {
+                imageView.setImageURI(iconUri);
+            }
+        }
+    }
+
+    /**
+     * Handle "Add | Remove to | from Favorites".
+     *
+     * @param favoriteCheckView Favorite check box view.
+     * @param description       Media aItem description.
+     * @param mediaItem         Media Item.
+     * @param activity          Current activity.
+     */
+    public static void handleFavoriteAction(final CheckBox favoriteCheckView, final MediaDescriptionCompat description,
+                                            final MediaBrowserCompat.MediaItem mediaItem, final Activity activity) {
+        favoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
+        favoriteCheckView.setVisibility(View.VISIBLE);
+        favoriteCheckView.setOnClickListener(
+
+                view -> {
+                    boolean isChecked = ((CheckBox) view).isChecked();
+
+                    MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
+
+                    // Make Intent to update Favorite RadioStation object associated with
+                    // the Media Description
+                    final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
+                            activity.getApplicationContext(),
+                            description,
+                            isChecked
+                    );
+                    // Send Intent to the OpenRadioService.
+                    activity.startService(intent);
+                }
+        );
     }
 }

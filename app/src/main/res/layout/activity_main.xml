@@ -8,7 +8,8 @@
 
     <include
         android:id="@+id/last_played_item_view"
-        layout="@layout/category_list_item"/>
+        layout="@layout/category_list_item"
+        android:visibility="gone"/>
 
     <View
         android:id="@+id/last_played_separator_item_view"

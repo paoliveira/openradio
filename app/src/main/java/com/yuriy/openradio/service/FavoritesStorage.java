@@ -95,6 +95,18 @@ public final class FavoritesStorage extends AbstractStorage {
      */
     public static boolean isFavorite(final RadioStationVO radioStation, final Context context) {
         final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
-        return sharedPreferences.contains(radioStation.getIdAsString());
+        if (sharedPreferences.contains(radioStation.getIdAsString())) {
+            return true;
+        }
+        final List<RadioStationVO> list = getAllFavorites(context);
+        for (final RadioStationVO station : list) {
+            if (station == null) {
+                continue;
+            }
+            if (station.getId() == radioStation.getId()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

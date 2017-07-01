@@ -20,7 +20,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -58,21 +57,18 @@ public final class MediaItemRoot implements MediaItemCommand {
                 context.getPackageName() + "/drawable/ic_all_categories";
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
-        RadioStationVO latestRadioStation;
         // Get lat know Radio Station.
-        latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
+        final RadioStationVO latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
         if (latestRadioStation != null) {
             // Add Radio Station to queue.
             QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
             // Add Radio Station to Menu
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(latestRadioStation.getIdAsString())
-                            .setExtras(new Bundle())
-                            .setTitle(latestRadioStation.getName())
-                            .setIconUri(Uri.parse(latestRadioStation.getImageUrl()))
-                            .setSubtitle(latestRadioStation.getCountry())
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(shareObject.getContext(), latestRadioStation),
+                    MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+            );
+            MediaItemHelper.updateFavoriteField(
+                    mediaItem, FavoritesStorage.isFavorite(latestRadioStation, shareObject.getContext())
             );
             MediaItemHelper.updateLastPlayedField(mediaItem, true);
             // In case of Android Auto, display latest played Radio Station on top of Menu.

@@ -49,6 +49,11 @@ public final class AppPreferencesManager {
     /**
      *
      */
+    private static final String PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED = "LAST_KNOWN_RADIO_STATION_ENABLED";
+
+    /**
+     *
+     */
     private static final String PREFS_KEY_IS_SORT_DIALOG_SHOWN = "IS_SORT_DIALOG_SHOWN";
 
     /**
@@ -95,10 +100,30 @@ public final class AppPreferencesManager {
      *
      * @param value Boolean value.
      */
-    public static void setLogsEnabled(@NonNull final Context context,
-                                      final boolean value) {
+    public static void setLogsEnabled(@NonNull final Context context, final boolean value) {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putBoolean(PREFS_KEY_ARE_LOGS_ENABLED, value);
+        editor.apply();
+    }
+
+    /**
+     * @return True if it is allowed to autoplay last known Radio Station on app start. False - otherwise.
+     */
+    public static boolean lastKnownRadioStationEnabled(@NonNull final Context context) {
+        return getSharedPreferences(context).getBoolean(
+                PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED,
+                true
+        );
+    }
+
+    /**
+     * Set True if it is allowed to autoplay last known Radio Station on app start. False - otherwise.
+     *
+     * @param value Boolean value.
+     */
+    public static void lastKnownRadioStationEnabled(@NonNull final Context context, final boolean value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putBoolean(PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED, value);
         editor.apply();
     }
 

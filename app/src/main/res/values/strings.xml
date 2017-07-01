@@ -126,4 +126,8 @@
     <string name="feature_sort_title">Sort Radio Stations</string>
     <string name="feature_sort_text">To do Radio Stations sort:\n\n- long press any Radio Station\n- select \"Sort Radio Stations\"\n- drag and drop Radio Station to sort them in desired order\n- press \"Back\" button to return to normal mode</string>
 
+    <!-- Version 2.6 -->
+
+    <string name="enable_last_known_radio_station_label">Auto to play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
+
 </resources>

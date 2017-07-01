@@ -20,6 +20,7 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 
 import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.business.AppPreferencesManager;
 
 import java.util.List;
 
@@ -66,6 +67,12 @@ public final class LatestRadioStationStorage extends AbstractStorage {
      */
     @Nullable
     public static RadioStationVO load(final Context context) {
+        // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
+        // exposed.
+        if (!AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
+            return null;
+        }
+
         final List<RadioStationVO> list = getAll(context, FILE_NAME);
         // There is only one Radio Station in collection.
         if (!list.isEmpty()) {
