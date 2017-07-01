@@ -894,6 +894,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
+        // Save latest selected Radio Station.
+        // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
+        LatestRadioStationStorage.save(radioStation, getApplicationContext());
+
         // If there is no detailed information about Radio Station - download it here and
         // update model.
 
@@ -1363,15 +1367,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         if (mCurrentIndexOnQueue == -1) {
             return;
-        }
-
-        // Save latest selected Radio Station.
-        // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
-        final RadioStationVO radioStation = QueueHelper.getRadioStationById(
-                mediaId, mRadioStations
-        );
-        if (radioStation != null) {
-            LatestRadioStationStorage.save(radioStation, getApplicationContext());
         }
 
         // Play Radio Station

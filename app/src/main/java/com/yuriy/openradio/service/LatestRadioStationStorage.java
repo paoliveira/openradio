@@ -55,7 +55,7 @@ public final class LatestRadioStationStorage extends AbstractStorage {
      * @param radioStation {@link RadioStationVO} to add as Latest Radio Station.
      * @param context      Context of the callee.
      */
-    public static void save(final RadioStationVO radioStation, final Context context) {
+    public static synchronized void save(final RadioStationVO radioStation, final Context context) {
         add(KEY, radioStation, context, FILE_NAME);
     }
 
@@ -66,7 +66,7 @@ public final class LatestRadioStationStorage extends AbstractStorage {
      * @return Collection of the Local Radio Stations.
      */
     @Nullable
-    public static RadioStationVO load(final Context context) {
+    public static synchronized RadioStationVO load(final Context context) {
         // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
         // exposed.
         if (!AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
