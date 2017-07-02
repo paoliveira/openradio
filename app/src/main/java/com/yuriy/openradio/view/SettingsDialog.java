@@ -87,13 +87,13 @@ public final class SettingsDialog extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         final String titleText = getActivity().getString(R.string.app_settings_title);
-        final TextView title = view.findViewById(R.id.dialog_settings_title_view);
+        final TextView title = (TextView) view.findViewById(R.id.dialog_settings_title_view);
         title.setText(titleText);
 
         final Context context = getActivity().getApplicationContext();
 
         final boolean lastKnownRadioStationEnabled = AppPreferencesManager.lastKnownRadioStationEnabled(context);
-        final CheckBox lastKnownRadioStationEnableCheckView = view.findViewById(
+        final CheckBox lastKnownRadioStationEnableCheckView = (CheckBox) view.findViewById(
                 R.id.settings_dialog_enable_last_known_radio_station_check_view
         );
         lastKnownRadioStationEnableCheckView.setChecked(lastKnownRadioStationEnabled);
@@ -105,7 +105,7 @@ public final class SettingsDialog extends DialogFragment {
         );
 
         final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(context);
-        final CheckBox logsEnableCheckView = view.findViewById(R.id.settings_dialog_enable_logs_check_view);
+        final CheckBox logsEnableCheckView = (CheckBox) view.findViewById(R.id.settings_dialog_enable_logs_check_view);
         logsEnableCheckView.setChecked(areLogsEnabled);
         processEnableCheckView(context, areLogsEnabled);
         logsEnableCheckView.setOnClickListener(
@@ -115,7 +115,7 @@ public final class SettingsDialog extends DialogFragment {
                 }
         );
 
-        final Button clearLogsBtn = view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
+        final Button clearLogsBtn = (Button) view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
         clearLogsBtn.setOnClickListener(
 
                 view12 -> {
@@ -132,7 +132,7 @@ public final class SettingsDialog extends DialogFragment {
                 }
         );
 
-        final Button sendLogsBtn = view.findViewById(R.id.settings_dialog_send_logs_btn_view);
+        final Button sendLogsBtn = (Button) view.findViewById(R.id.settings_dialog_send_logs_btn_view);
         sendLogsBtn.setOnClickListener(
                 view13 -> sendLogMailTask()
         );
@@ -143,8 +143,8 @@ public final class SettingsDialog extends DialogFragment {
         if (view == null) {
             return;
         }
-        final Button sendLogsBtn = view.findViewById(R.id.settings_dialog_send_logs_btn_view);
-        final Button clearLogsBtn = view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
+        final Button sendLogsBtn = (Button) view.findViewById(R.id.settings_dialog_send_logs_btn_view);
+        final Button clearLogsBtn = (Button) view.findViewById(R.id.settings_dialog_clear_logs_btn_view);
         sendLogsBtn.setEnabled(isEnable);
         clearLogsBtn.setEnabled(isEnable);
 
