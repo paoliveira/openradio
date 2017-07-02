@@ -390,24 +390,27 @@ public final class MainActivity extends AppCompatActivity {
         }
         fragmentTransaction.addToBackStack(null);
 
-        if (id == R.id.action_about) {
-
-            // Show About Dialog
-            final DialogFragment aboutDialog = AboutDialog.newInstance();
-            aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
-            return true;
-        } else if (id == R.id.action_search) {
-
-            // Show Search Dialog
-            final DialogFragment searchDialog = SearchDialog.newInstance();
-            searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
-            return true;
-        } else if (id == R.id.action_settings) {
-
-            // Show Search Dialog
-            final DialogFragment settingsDialog = SettingsDialog.newInstance();
-            settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
-            return true;
+        switch (id) {
+            case R.id.action_about:
+                // Show About Dialog
+                final DialogFragment aboutDialog = AboutDialog.newInstance();
+                aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
+                return true;
+            case R.id.action_search:
+                // Show Search Dialog
+                final DialogFragment searchDialog = SearchDialog.newInstance();
+                searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
+                return true;
+            case R.id.action_save_to_drive:
+                // Show Save to Google Drive Dialog
+                final DialogFragment saveToDriveDialog = SaveToGoogleDriveDialog.newInstance();
+                saveToDriveDialog.show(fragmentTransaction, SaveToGoogleDriveDialog.DIALOG_TAG);
+                return true;
+            case R.id.action_settings:
+                // Show Search Dialog
+                final DialogFragment settingsDialog = SettingsDialog.newInstance();
+                settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);

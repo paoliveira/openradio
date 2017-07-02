@@ -130,4 +130,8 @@
 
     <string name="enable_last_known_radio_station_label">Play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
 
+    <!-- Version 2.7 -->
+
+    <string name="action_save_to_drive">Save Radio Stations to Drive</string>
+
 </resources>
