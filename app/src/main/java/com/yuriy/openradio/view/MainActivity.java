@@ -20,6 +20,7 @@ import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -403,8 +404,10 @@ public final class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_save_to_drive:
                 // Show Save to Google Drive Dialog
-                final DialogFragment saveToDriveDialog = SaveToGoogleDriveDialog.newInstance();
-                saveToDriveDialog.show(fragmentTransaction, SaveToGoogleDriveDialog.DIALOG_TAG);
+                //final DialogFragment saveToDriveDialog = SaveToGoogleDriveDialog.newInstance();
+                //saveToDriveDialog.show(fragmentTransaction, SaveToGoogleDriveDialog.DIALOG_TAG);
+                final Intent intent = new Intent(getApplicationContext(), SaveToGoogleDriveActivity.class);
+                startActivity(intent);
                 return true;
             case R.id.action_settings:
                 // Show Search Dialog

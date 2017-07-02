@@ -62,8 +62,8 @@ public final class SearchDialog extends DialogFragment {
 
         final View view = inflater.inflate(R.layout.dialog_search, container, false);
         final MainActivity activity = (MainActivity) getActivity();
-        final EditText searchEditView = view.findViewById(R.id.search_dialog_edit_txt_view);
-        final Button searchBtn = view.findViewById(R.id.search_dialog_btn_view);
+        final EditText searchEditView = (EditText) view.findViewById(R.id.search_dialog_edit_txt_view);
+        final Button searchBtn = (Button) view.findViewById(R.id.search_dialog_btn_view);
         searchBtn.setOnClickListener(
                 viewBtn -> {
                     if (activity != null && searchEditView != null) {

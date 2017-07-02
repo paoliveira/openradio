@@ -17,14 +17,11 @@
 package com.yuriy.openradio.view;
 
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.support.v7.app.AppCompatActivity;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -38,17 +35,7 @@ import com.yuriy.openradio.utils.AppLogger;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class SaveToGoogleDriveDialog extends DialogFragment {
-
-    /**
-     * Tag string to use in logging message.
-     */
-    private static final String CLASS_NAME = SaveToGoogleDriveDialog.class.getSimpleName();
-
-    /**
-     * Tag string to use in dialog transactions.
-     */
-    public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
+public class SaveToGoogleDriveActivity extends AppCompatActivity {
 
     private static final int RESOLVE_CONNECTION_REQUEST_CODE = 300;
 
@@ -57,49 +44,39 @@ public final class SaveToGoogleDriveDialog extends DialogFragment {
      */
     private GoogleApiClient mGoogleApiClient;
 
-    /**
-     * Create a new instance of {@link SaveToGoogleDriveDialog}
-     */
-    @SuppressWarnings("all")
-    public static SaveToGoogleDriveDialog newInstance() {
-        final SaveToGoogleDriveDialog dialog = new SaveToGoogleDriveDialog();
-        // provide here an arguments, if any
-        return dialog;
+    public SaveToGoogleDriveActivity() {
+        super();
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-
-        getDialog().setTitle("Save to Google Drive");
-
-        final View view = inflater.inflate(R.layout.dialog_search, container, false);
-        final MainActivity activity = (MainActivity) getActivity();
+    protected void onCreate(final Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_save_to_google_drive);
 
         if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(activity.getApplicationContext())
+            mGoogleApiClient = new GoogleApiClient.Builder(getApplicationContext())
                     .addApi(Drive.API)
                     .addScope(Drive.SCOPE_FILE)
                     .addConnectionCallbacks(
                             new GoogleApiClient.ConnectionCallbacks() {
                                 @Override
                                 public void onConnected(@Nullable Bundle bundle) {
-                                    AppLogger.d("On Connected:" + bundle);
+                                    AppLogger.i("On Connected:" + bundle);
                                 }
 
                                 @Override
                                 public void onConnectionSuspended(int i) {
-                                    AppLogger.d("On Connection suspended:" + i);
+                                    AppLogger.i("On Connection suspended:" + i);
                                 }
                             }
                     )
                     .addOnConnectionFailedListener(
                             connectionResult -> {
-                                AppLogger.e("On Connection failed:" + connectionResult);
+                                AppLogger.i("On Connection failed:" + connectionResult);
                                 if (connectionResult.hasResolution()) {
                                     try {
                                         connectionResult.startResolutionForResult(
-                                                activity,
+                                                this,
                                                 RESOLVE_CONNECTION_REQUEST_CODE
                                         );
                                     } catch (IntentSender.SendIntentException e) {
@@ -108,7 +85,7 @@ public final class SaveToGoogleDriveDialog extends DialogFragment {
                                     }
                                 } else {
                                     GooglePlayServicesUtil.getErrorDialog(
-                                            connectionResult.getErrorCode(), activity, 0
+                                            connectionResult.getErrorCode(), this, 0
                                     ).show();
                                 }
                             }
@@ -116,28 +93,20 @@ public final class SaveToGoogleDriveDialog extends DialogFragment {
                     .build();
         }
         mGoogleApiClient.connect();
-
-        return view;
     }
-
-    @Override
-    public void onPause() {
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
-        super.onPause();
-    }
-
-
 
     @Override
     public void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        AppLogger.d("OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        AppLogger.i("OnActivityResult: request:" + requestCode + " result:" + resultCode);
         switch (requestCode) {
             case RESOLVE_CONNECTION_REQUEST_CODE:
                 if (resultCode == Activity.RESULT_OK) {
                     if (mGoogleApiClient != null) {
                         mGoogleApiClient.connect();
+                    }
+                } else {
+                    if (mGoogleApiClient != null) {
+                        AppLogger.i("Is connected:" + mGoogleApiClient.isConnected() + " " + mGoogleApiClient.isConnecting());
                     }
                 }
                 break;
