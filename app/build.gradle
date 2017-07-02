@@ -32,10 +32,10 @@ android {
     }
     buildTypes {
 
-        release {
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+//        release {
+//            minifyEnabled true
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+//        }
 
         /*
         applicationVariants.all { variant ->
@@ -52,7 +52,6 @@ android {
 }
 
 ext {
-//    supportVersion = "26.0.0-beta2"
     supportVersion = "25.4.0"
 }
 

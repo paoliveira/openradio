@@ -297,7 +297,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + " Received playback state change to state " + state.getState());
+            AppLogger.d(CLASS_NAME + " Received playback state change to state " + state);
             final MediaResourcesManager manager = mReference.get();
             if (manager == null) {
                 return;
