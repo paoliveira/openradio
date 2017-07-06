@@ -78,10 +78,6 @@
             </intent-filter>
         </receiver>
 
-        <activity
-            android:name=".view.SaveToGoogleDriveActivity"
-            android:label="@string/title_activity_save_to_google_drive">
-        </activity>
     </application>
 
 </manifest>

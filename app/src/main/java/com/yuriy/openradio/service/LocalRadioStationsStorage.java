@@ -109,6 +109,16 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
     }
 
     /**
+     * Return Local added Radio Stations which are stored in the persistent storage represented in a single String.
+     *
+     * @param context Context of the callee.
+     * @return Local added Radio Stations in a String representation.
+     */
+    public static String getAllLocalAsString(final Context context) {
+        return getAllAsString(context, FILE_NAME);
+    }
+
+    /**
      * Return collection of the Local Radio Stations which are stored in the persistent storage.
      *
      * @param context Context of the callee.

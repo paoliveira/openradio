@@ -2,6 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'yuriychernyshovdev'
+            keyPassword 'gEgLk5Z3NyXQW3B'
+            storeFile file('/home/yurii/dev/AndroidKeyStore/yuriy-chernyshov-dev.jks')
+            storePassword 'gEgLk5Z3NyXQW3B'
+        }
+    }
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
     def versionPropsFile = file('version.properties')
@@ -31,20 +39,16 @@ android {
         }
     }
     buildTypes {
-
 //        release {
 //            minifyEnabled true
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
 //        }
-
-        /*
-        applicationVariants.all { variant ->
-            def f = variant.outputFile
-            def fname = f.name.replace(".apk",
-                    "-${defaultConfig.versionName}.apk")
-            variant.outputFile = new File(f.parent, fname)
+        debug {
+            signingConfig signingConfigs.config
         }
-        */
+        release {
+            signingConfig signingConfigs.config
+        }
     }
     lintOptions {
         abortOnError false

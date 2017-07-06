@@ -77,6 +77,16 @@ public final class FavoritesStorage extends AbstractStorage {
     }
 
     /**
+     * Return Favorite Radio Stations which are stored in the persistent storage represented in a single String.
+     *
+     * @param context Context of the callee.
+     * @return Favorite Radio Stations in a String representation.
+     */
+    public static String getAllFavoritesAsString(final Context context) {
+        return getAllAsString(context, FILE_NAME);
+    }
+
+    /**
      * Determines whether Favorites collection is empty or not.
      *
      * @param context Context of the callee.

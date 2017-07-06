@@ -16,12 +16,14 @@
 
 package com.yuriy.openradio.view;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -49,9 +51,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.GoogleDriveManager;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
@@ -129,6 +133,8 @@ public final class MainActivity extends AppCompatActivity {
      * Key value for the first visible ID in the List for the store Bundle
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
+
+    private static final int RESOLVE_CONNECTION_REQUEST_CODE = 300;
 
     /**
      * Progress Bar view to indicate that data is loading.
@@ -212,12 +218,14 @@ public final class MainActivity extends AppCompatActivity {
     private final ScreenBroadcastReceiver mScreenBroadcastReceiver = new ScreenBroadcastReceiver();
 
     /**
+     *
+     */
+    private GoogleDriveManager mGoogleDriveManager;
+
+    /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
-    private final MediaResourcesManager mMediaResourcesManager = new MediaResourcesManager(
-            this,
-            new MediaResourceManagerListenerImpl(this)
-    );
+    private MediaResourcesManager mMediaResourcesManager;
 
     /**
      * Default constructor.
@@ -232,6 +240,15 @@ public final class MainActivity extends AppCompatActivity {
 
         // Set content.
         setContentView(R.layout.activity_main);
+
+        mGoogleDriveManager = new GoogleDriveManager(
+                getApplicationContext(), new GoogleDriveManagerListenerImpl(this)
+        );
+
+        mMediaResourcesManager = new MediaResourcesManager(
+                this,
+                new MediaResourceManagerListenerImpl(this)
+        );
 
         // Register local receivers.
         registerReceivers();
@@ -285,6 +302,9 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+
+        mGoogleDriveManager.disconnect();
+
         super.onPause();
 
         // Get list view reference from the inflated xml
@@ -404,10 +424,8 @@ public final class MainActivity extends AppCompatActivity {
                 return true;
             case R.id.action_save_to_drive:
                 // Show Save to Google Drive Dialog
-                //final DialogFragment saveToDriveDialog = SaveToGoogleDriveDialog.newInstance();
-                //saveToDriveDialog.show(fragmentTransaction, SaveToGoogleDriveDialog.DIALOG_TAG);
-                final Intent intent = new Intent(getApplicationContext(), SaveToGoogleDriveActivity.class);
-                startActivity(intent);
+                final DialogFragment saveToDriveDialog = GoogleDriveDialog.newInstance();
+                saveToDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
                 return true;
             case R.id.action_settings:
                 // Show Search Dialog
@@ -452,6 +470,18 @@ public final class MainActivity extends AppCompatActivity {
         }*/
 
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        AppLogger.d("OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        switch (requestCode) {
+            case RESOLVE_CONNECTION_REQUEST_CODE:
+                if (resultCode == Activity.RESULT_OK) {
+                    mGoogleDriveManager.connect();
+                }
+                break;
+        }
     }
 
     @Override
@@ -540,6 +570,36 @@ public final class MainActivity extends AppCompatActivity {
         // Save search query string, retrieve it later in the service
         Utils.setSearchQuery(queryString);
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+    }
+
+    /**
+     *
+     */
+    public void uploadRadioStationsToGoogleDrive() {
+        mGoogleDriveManager.uploadRadioStationsToGoogleDrive();
+    }
+
+    /**
+     *
+     */
+    public void downloadRadioStationsFromGoogleDrive() {
+        mGoogleDriveManager.downloadRadioStationsFromGoogleDrive();
+    }
+
+    /**
+     *
+     * @param connectionResult
+     */
+    private void requestGoogleDriveSignIn(@NonNull final ConnectionResult connectionResult) {
+        try {
+            connectionResult.startResolutionForResult(
+                    this,
+                    RESOLVE_CONNECTION_REQUEST_CODE
+            );
+        } catch (IntentSender.SendIntentException e) {
+            // Unable to resolve, message user appropriately
+            AppLogger.e("Google Drive unable to resolve failure:" + e);
+        }
     }
 
     /**
@@ -1284,6 +1344,43 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             activity.handleMetadataChanged(metadata);
+        }
+    }
+
+    private static final class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listener {
+
+        private final WeakReference<MainActivity> mReference;
+
+        private GoogleDriveManagerListenerImpl(final MainActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void handleConnectionFailed(@NonNull final ConnectionResult connectionResult) {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            reference.requestGoogleDriveSignIn(connectionResult);
+        }
+
+        @Override
+        public void showProgress() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            reference.runOnUiThread(reference::showProgressBar);
+        }
+
+        @Override
+        public void hideProgress() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            reference.runOnUiThread(reference::hideProgressBar);
         }
     }
 }

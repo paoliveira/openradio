@@ -26,6 +26,7 @@ import com.yuriy.openradio.business.RadioStationDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONSerializer;
 import com.yuriy.openradio.business.RadioStationSerializer;
+import com.yuriy.openradio.utils.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,10 @@ import java.util.Map;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 abstract class AbstractStorage {
+
+    private static final String KEY_VALUE_DELIMITER = "<:>";
+
+    private static final String KEY_VALUE_PAIR_DELIMITER = "<<::>>";
 
     /**
      * Default constructor.
@@ -107,6 +112,34 @@ abstract class AbstractStorage {
         final SharedPreferences.Editor editor = getEditor(context, name);
         editor.remove(mediaId);
         editor.commit();
+    }
+
+    /**
+     * Retrieves all data stored and returns as a String where Radio Station represented as String mapped to its key.
+     *
+     * @param context Context of the callee.
+     * @param name    Name of the file for the preferences.
+     * @return Stored data as String.
+     */
+    @NonNull
+    static String getAllAsString(final Context context, final String name) {
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
+        final Map<String, ?> map = sharedPreferences.getAll();
+        String value;
+        final StringBuilder builder = new StringBuilder();
+        for (final String key : map.keySet()) {
+            value = String.valueOf(map.get(key));
+            if (value == null || value.isEmpty()) {
+                continue;
+            }
+            builder.append(key).append(KEY_VALUE_DELIMITER).append(value).append(KEY_VALUE_PAIR_DELIMITER);
+        }
+        if (builder.length() >= KEY_VALUE_PAIR_DELIMITER.length()) {
+            builder.delete(builder.length() - KEY_VALUE_PAIR_DELIMITER.length(), builder.length());
+        }
+        final String result = builder.toString();
+        AppLogger.d(name + ", getAllAsString:" + result);
+        return result;
     }
 
     /**
