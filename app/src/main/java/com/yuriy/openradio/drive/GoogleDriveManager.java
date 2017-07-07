@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.drive;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -24,14 +24,12 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
-import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -99,7 +97,7 @@ public final class GoogleDriveManager {
      *
      */
     public void uploadRadioStationsToGoogleDrive() {
-        mListener.showProgress();
+        //mListener.showProgress();
         queueCommand(mContext, Command.UPLOAD_FILE);
     }
 
@@ -117,23 +115,29 @@ public final class GoogleDriveManager {
      */
     private void queueCommand(final Context context, final Command command) {
         final GoogleApiClient client = getGoogleApiClient(context);
-        if (!client.isConnected()) {
+        if (client.isConnecting()) {
+            addCommand(Command.UPLOAD_FILE);
+        } else if (!client.isConnected()) {
             addCommand(Command.UPLOAD_FILE);
             client.connect();
         } else {
             onConnected();
         }
-        if (client.isConnecting()) {
-            addCommand(Command.UPLOAD_FILE);
-        }
     }
 
     private void getRadioStationsAndUpload() {
-        // TODO:
         final String favorites = FavoritesStorage.getAllFavoritesAsString(mContext);
         final String locals = LocalRadioStationsStorage.getAllLocalAsString(mContext);
+        final GoogleDriveRequest request = new GoogleDriveRequest(mGoogleApiClient, GoogleDriveAPIType.CREATE_FOLDER);
 
-        mListener.hideProgress();
+        request.setRadioStationsFavorites(favorites);
+        request.setRadioStationsLocals(locals);
+
+        final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
+        final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder(true);
+
+        queryFolder.setNext(createFolder);
+        queryFolder.handleRequest(request);
     }
 
     private void downloadRadioStationsAndApply() {
