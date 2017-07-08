@@ -1,14 +1,13 @@
 package com.yuriy.openradio.drive;
 
-import android.support.annotation.NonNull;
-
-import com.google.android.gms.common.api.ResultCallbacks;
-import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveId;
-import com.google.android.gms.drive.DriveResource;
+import com.google.android.gms.drive.DriveApi;
+import com.google.android.gms.drive.Metadata;
+import com.google.android.gms.drive.MetadataBuffer;
 import com.yuriy.openradio.utils.AppLogger;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Chernyshov Yurii
@@ -31,30 +30,50 @@ public final class GoogleDriveQueryFolder extends GoogleDriveAPIChain {
 
     @Override
     protected void handleRequest(final GoogleDriveRequest request) {
-        AppLogger.d("Folder queried, pass execution farther");
 
-        //final DriveId folderId = DriveId.decodeFromString(request.getFolderName());
-        final DriveFolder folder = Drive.DriveApi.getAppFolder(request.getGoogleApiClient());
-        folder.getMetadata(request.getGoogleApiClient()).setResultCallback(
-                new ResultCallbacks<DriveResource.MetadataResult>() {
-                    @Override
-                    public void onSuccess(@NonNull DriveResource.MetadataResult metadataResult) {
-                        AppLogger.d("On Success:" + metadataResult);
-                    }
+        final Thread thread = new Thread(
+                () -> {
+                    Drive.DriveApi.requestSync(request.getGoogleApiClient()).await(3, TimeUnit.SECONDS);
 
-                    @Override
-                    public void onFailure(@NonNull Status status) {
-                        AppLogger.e("On Error:" + status);
+                    final PendingResult<DriveApi.MetadataBufferResult> result = Drive.DriveApi
+                            .getRootFolder(request.getGoogleApiClient())
+                            .listChildren(request.getGoogleApiClient());
+                    if (result != null) {
+                        result.setResultCallback(result1 -> handleResult(result1, request));
                     }
                 }
         );
-
-
-        handleNext(request);
+        thread.start();
     }
 
     @Override
     protected boolean isTerminator() {
         return mIsTerminator;
+    }
+
+    private void handleResult(final DriveApi.MetadataBufferResult result, final GoogleDriveRequest request) {
+        AppLogger.d("OnResult:" + result);
+        if (result == null) {
+            handleNext(request);
+            return;
+        }
+
+        final MetadataBuffer metadataBuffer = result.getMetadataBuffer();
+        if (metadataBuffer == null) {
+            handleNext(request);
+            return;
+        }
+
+        for (final Metadata metadata : metadataBuffer) {
+            AppLogger.d(
+                    " - metadata, title:" + metadata.getTitle()
+                            + ", trashed:" + metadata.isTrashed()
+                            + ", trashable:" + metadata.isTrashable()
+                            + ", explTrashed:" + metadata.isExplicitlyTrashed()
+            );
+        }
+
+        AppLogger.d("Folder queried, pass execution farther");
+        handleNext(request);
     }
 }
