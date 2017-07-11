@@ -50,6 +50,12 @@ public final class GoogleDriveManager {
         void hideProgress();
     }
 
+    private static final String FOLDER_NAME = "OPEN_RADIO";
+
+    private static final String FILE_NAME_FAVORITES = "RadioStationsFavorites.txt";
+
+    private static final String FILE_NAME_LOCALS = "RadioStationsLocals.txt";
+
     /**
      * Google API client.
      */
@@ -128,16 +134,24 @@ public final class GoogleDriveManager {
     private void getRadioStationsAndUpload() {
         final String favorites = FavoritesStorage.getAllFavoritesAsString(mContext);
         final String locals = LocalRadioStationsStorage.getAllLocalAsString(mContext);
-        final GoogleDriveRequest request = new GoogleDriveRequest(mGoogleApiClient, GoogleDriveAPIType.CREATE_FOLDER);
 
-        request.setRadioStationsFavorites(favorites);
-        request.setRadioStationsLocals(locals);
+        final GoogleDriveRequest request = new GoogleDriveRequest(
+                mGoogleApiClient, FOLDER_NAME, FILE_NAME_FAVORITES, favorites
+        );
+        final GoogleDriveResult result = new GoogleDriveResult();
 
         final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
-        final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder(true);
+        final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder();
+        final GoogleDriveAPIChain queryFile = new GoogleDriveQueryFile();
+        final GoogleDriveAPIChain deleteFile = new GoogleDriveDeleteFile();
+        final GoogleDriveAPIChain saveFile = new GoogleDriveSaveFile(true);
 
         queryFolder.setNext(createFolder);
-        queryFolder.handleRequest(request);
+        createFolder.setNext(queryFile);
+        queryFile.setNext(deleteFile);
+        deleteFile.setNext(saveFile);
+
+        queryFolder.handleRequest(request, result);
     }
 
     private void downloadRadioStationsAndApply() {

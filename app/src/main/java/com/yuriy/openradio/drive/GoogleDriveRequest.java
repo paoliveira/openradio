@@ -11,56 +11,36 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 public final class GoogleDriveRequest {
 
-    private static final String FOLDER_NAME = "OPEN_RADIO";
-    private static final String FILE_NAME_FAVORITES = "RadioStationsFavorites.txt";
-    private static final String FILE_NAME_LOCALS = "RadioStationsLocals.txt";
-
-    private final GoogleDriveAPIType mApiType;
-
-    private String mRadioStationsFavorites;
-    private String mRadioStationsLocals;
-
     private final GoogleApiClient mGoogleApiClient;
 
-    public GoogleDriveRequest(final GoogleApiClient googleApiClient, final GoogleDriveAPIType apiType) {
+    private final String mFolderName;
+
+    private final String mFileName;
+
+    private final String mData;
+
+    public GoogleDriveRequest(final GoogleApiClient googleApiClient, final String folderName, final String fileName,
+                              final String data) {
         super();
         mGoogleApiClient = googleApiClient;
-        mApiType = apiType;
+        mFolderName = folderName;
+        mFileName = fileName;
+        mData = data;
     }
 
     public GoogleApiClient getGoogleApiClient() {
         return mGoogleApiClient;
     }
 
-    public GoogleDriveAPIType getApiType() {
-        return mApiType;
-    }
-
     public String getFolderName() {
-        return FOLDER_NAME;
+        return mFolderName;
     }
 
-    public String getFileNameFavorites() {
-        return FILE_NAME_FAVORITES;
+    public String getFileName() {
+        return mFileName;
     }
 
-    public String getFileNameLocals() {
-        return FILE_NAME_LOCALS;
-    }
-
-    public String getRadioStationsFavorites() {
-        return mRadioStationsFavorites;
-    }
-
-    public void setRadioStationsFavorites(final String value) {
-        mRadioStationsFavorites = value;
-    }
-
-    public String getRadioStationsLocals() {
-        return mRadioStationsLocals;
-    }
-
-    public void setRadioStationsLocals(final String value) {
-        mRadioStationsLocals = value;
+    public String getData() {
+        return mData;
     }
 }

@@ -1,6 +1,5 @@
 package com.yuriy.openradio.drive;
 
-import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
 
@@ -10,28 +9,28 @@ import com.google.android.gms.drive.DriveId;
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-final class GoogleDriveQueryFolder extends GoogleDriveQueryDrive {
+final class GoogleDriveQueryFile extends GoogleDriveQueryDrive {
 
-    GoogleDriveQueryFolder() {
+    GoogleDriveQueryFile() {
         this(false);
     }
 
-    GoogleDriveQueryFolder(final boolean isTerminator) {
+    GoogleDriveQueryFile(final boolean isTerminator) {
         super(isTerminator);
     }
 
     @Override
     protected DriveFolder getDriveFolder(final GoogleDriveRequest request, final GoogleDriveResult result) {
-        return Drive.DriveApi.getRootFolder(request.getGoogleApiClient());
+        return result.getFolder();
     }
 
     @Override
     protected String getName(final GoogleDriveRequest request) {
-        return request.getFolderName();
+        return request.getFileName();
     }
 
     @Override
     protected void setResult(final GoogleDriveResult result, final DriveId driveId) {
-        result.setFolder(driveId.asDriveFolder());
+        result.setFile(driveId.asDriveFile());
     }
 }
