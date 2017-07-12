@@ -70,10 +70,11 @@ public final class GoogleDriveManager {
 
     private final Context mContext;
 
+    private final GoogleDriveRequest.Listener mGoogleRequestListener = new GoogleDriveRequestListenerImpl(this);
+
     private enum Command {
-        UPLOAD_FILE,
-        DOWNLOAD_FILE,
-        NONE
+        UPLOAD,
+        DOWNLOAD
     }
 
     /**
@@ -100,43 +101,64 @@ public final class GoogleDriveManager {
     }
 
     /**
-     *
+     * Upload Radio Stations to Google Drive.
      */
-    public void uploadRadioStationsToGoogleDrive() {
-        //mListener.showProgress();
-        queueCommand(mContext, Command.UPLOAD_FILE);
+    public void uploadRadioStations() {
+        mListener.showProgress();
+        queueCommand(mContext, Command.UPLOAD);
     }
 
     /**
      *
      */
-    public void downloadRadioStationsFromGoogleDrive() {
-        queueCommand(mContext, Command.DOWNLOAD_FILE);
+    public void downloadRadioStations() {
+        mListener.showProgress();
+        queueCommand(mContext, Command.DOWNLOAD);
     }
 
     /**
+     * Put a command to query.
      *
-     * @param context
-     * @param command
+     * @param context Context of the callee.
+     * @param command Command to put in queue.
      */
     private void queueCommand(final Context context, final Command command) {
         final GoogleApiClient client = getGoogleApiClient(context);
-        if (client.isConnecting()) {
-            addCommand(Command.UPLOAD_FILE);
-        } else if (!client.isConnected()) {
-            addCommand(Command.UPLOAD_FILE);
+        addCommand(command);
+        if (!client.isConnected()) {
             client.connect();
         } else {
-            onConnected();
+            if (!client.isConnecting()) {
+                onConnected();
+            }
         }
     }
 
+    /**
+     * Get data of all Radio Stations which are intended to upload and upload it.
+     */
     private void getRadioStationsAndUpload() {
         final String favorites = FavoritesStorage.getAllFavoritesAsString(mContext);
         final String locals = LocalRadioStationsStorage.getAllLocalAsString(mContext);
 
+        uploadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, favorites);
+        uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals);
+    }
+
+    private void downloadRadioStationsAndApply() {
+        // TODO:
+    }
+
+    /**
+     * Do actual upload of a single Radio Stations category.
+     *
+     * @param folderName Folder to upload to.
+     * @param fileName   File name to associated with Radio Stations data.
+     * @param data       Marshalled Radio Stations.
+     */
+    private void uploadInternal(final String folderName, final String fileName, final String data) {
         final GoogleDriveRequest request = new GoogleDriveRequest(
-                mGoogleApiClient, FOLDER_NAME, FILE_NAME_FAVORITES, favorites
+                mGoogleApiClient, folderName, fileName, data, mGoogleRequestListener
         );
         final GoogleDriveResult result = new GoogleDriveResult();
 
@@ -154,10 +176,6 @@ public final class GoogleDriveManager {
         queryFolder.handleRequest(request, result);
     }
 
-    private void downloadRadioStationsAndApply() {
-        // TODO:
-    }
-
     private synchronized void addCommand(final Command command) {
         mCommands.add(command);
     }
@@ -166,6 +184,11 @@ public final class GoogleDriveManager {
         mCommands.remove(command);
     }
 
+    /**
+     *
+     * @param context
+     * @return
+     */
     private synchronized GoogleApiClient getGoogleApiClient(final Context context) {
         if (mGoogleApiClient != null) {
             return mGoogleApiClient;
@@ -180,6 +203,9 @@ public final class GoogleDriveManager {
         return mGoogleApiClient;
     }
 
+    /**
+     *
+     */
     private void onConnected() {
         final Iterator<Command> iterator = mCommands.iterator();
         Command command;
@@ -188,10 +214,10 @@ public final class GoogleDriveManager {
             iterator.remove();
             removeCommand(command);
             switch (command) {
-                case UPLOAD_FILE:
+                case UPLOAD:
                     getRadioStationsAndUpload();
                     break;
-                case DOWNLOAD_FILE:
+                case DOWNLOAD:
                     downloadRadioStationsAndApply();
                     break;
             }
@@ -240,6 +266,32 @@ public final class GoogleDriveManager {
                 return;
             }
             manager.mListener.handleConnectionFailed(connectionResult);
+        }
+    }
+
+    private static final class GoogleDriveRequestListenerImpl implements GoogleDriveRequest.Listener {
+
+        private final WeakReference<GoogleDriveManager> mReference;
+
+        private GoogleDriveRequestListenerImpl(final GoogleDriveManager reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onComplete() {
+            AppLogger.e("On Google Drive completed");
+            final GoogleDriveManager manager = mReference.get();
+            if (manager == null) {
+                return;
+            }
+
+            manager.mListener.hideProgress();
+        }
+
+        @Override
+        public void onError() {
+
         }
     }
 }

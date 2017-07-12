@@ -11,6 +11,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 
 public final class GoogleDriveRequest {
 
+    public interface Listener {
+
+        void onComplete();
+
+        void onError();
+    }
+
     private final GoogleApiClient mGoogleApiClient;
 
     private final String mFolderName;
@@ -19,13 +26,16 @@ public final class GoogleDriveRequest {
 
     private final String mData;
 
+    private final Listener mListener;
+
     public GoogleDriveRequest(final GoogleApiClient googleApiClient, final String folderName, final String fileName,
-                              final String data) {
+                              final String data, final Listener listener) {
         super();
         mGoogleApiClient = googleApiClient;
         mFolderName = folderName;
         mFileName = fileName;
         mData = data;
+        mListener = listener;
     }
 
     public GoogleApiClient getGoogleApiClient() {
@@ -42,5 +52,9 @@ public final class GoogleDriveRequest {
 
     public String getData() {
         return mData;
+    }
+
+    public Listener getListener() {
+        return mListener;
     }
 }

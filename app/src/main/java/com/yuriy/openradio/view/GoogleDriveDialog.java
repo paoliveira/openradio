@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.view;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -23,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 
@@ -43,6 +45,8 @@ public final class GoogleDriveDialog extends DialogFragment {
      * Tag string to use in dialog transactions.
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
+
+    private ProgressBar mProgressBar;
 
     /**
      * Create a new instance of {@link GoogleDriveDialog}
@@ -71,5 +75,30 @@ public final class GoogleDriveDialog extends DialogFragment {
 
         final Button downloadFrom = (Button) view.findViewById(R.id.download_from_google_drive_btn);
         downloadFrom.setOnClickListener(v -> activity.downloadRadioStationsFromGoogleDrive());
+
+        mProgressBar = (ProgressBar)view.findViewById(R.id.upload_to_google_drive_progress);
+        hideProgress();
+    }
+
+    public void showProgress() {
+        if (mProgressBar == null) {
+            return;
+        }
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(() -> mProgressBar.setVisibility(View.VISIBLE));
+    }
+
+    public void hideProgress() {
+        if (mProgressBar == null) {
+            return;
+        }
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(() -> mProgressBar.setVisibility(View.GONE));
     }
 }

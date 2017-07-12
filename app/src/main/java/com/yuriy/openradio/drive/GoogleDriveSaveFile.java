@@ -64,7 +64,10 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
                                 result.getFolder()
                                         .createFile(request.getGoogleApiClient(), changeSet, driveContents)
                                         .setResultCallback(
-                                                driveFileResult -> AppLogger.d("File '" + request.getFileName() + "' saved: " + driveFileResult.getStatus().isSuccess())
+                                                driveFileResult -> {
+                                                    AppLogger.d("File '" + request.getFileName() + "' saved: " + driveFileResult.getStatus().isSuccess());
+                                                    request.getListener().onComplete();
+                                                }
                                         );
                             }
                     );

@@ -26,6 +26,7 @@ import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserCompat;
@@ -576,14 +577,14 @@ public final class MainActivity extends AppCompatActivity {
      *
      */
     public void uploadRadioStationsToGoogleDrive() {
-        mGoogleDriveManager.uploadRadioStationsToGoogleDrive();
+        mGoogleDriveManager.uploadRadioStations();
     }
 
     /**
      *
      */
     public void downloadRadioStationsFromGoogleDrive() {
-        mGoogleDriveManager.downloadRadioStationsFromGoogleDrive();
+        mGoogleDriveManager.downloadRadioStations();
     }
 
     /**
@@ -957,6 +958,15 @@ public final class MainActivity extends AppCompatActivity {
             );
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem,this);
         }
+    }
+
+    @Nullable
+    private GoogleDriveDialog getGoogleDriveDialog() {
+        final Fragment fragment = getFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        if (fragment instanceof GoogleDriveDialog) {
+            return (GoogleDriveDialog) fragment;
+        }
+        return null;
     }
 
     /**
@@ -1371,7 +1381,11 @@ public final class MainActivity extends AppCompatActivity {
             if (reference == null) {
                 return;
             }
-            reference.runOnUiThread(reference::showProgressBar);
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().showProgress();
+                }
+            });
         }
 
         @Override
@@ -1380,7 +1394,11 @@ public final class MainActivity extends AppCompatActivity {
             if (reference == null) {
                 return;
             }
-            reference.runOnUiThread(reference::hideProgressBar);
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().hideProgress();
+                }
+            });
         }
     }
 }
