@@ -104,7 +104,6 @@ public final class GoogleDriveManager {
      * Upload Radio Stations to Google Drive.
      */
     public void uploadRadioStations() {
-        mListener.showProgress();
         queueCommand(mContext, Command.UPLOAD);
     }
 
@@ -112,7 +111,6 @@ public final class GoogleDriveManager {
      *
      */
     public void downloadRadioStations() {
-        mListener.showProgress();
         queueCommand(mContext, Command.DOWNLOAD);
     }
 
@@ -279,6 +277,17 @@ public final class GoogleDriveManager {
         }
 
         @Override
+        public void onStart() {
+            AppLogger.e("On Google Drive started");
+            final GoogleDriveManager manager = mReference.get();
+            if (manager == null) {
+                return;
+            }
+
+            manager.mListener.showProgress();
+        }
+
+        @Override
         public void onComplete() {
             AppLogger.e("On Google Drive completed");
             final GoogleDriveManager manager = mReference.get();
@@ -291,7 +300,13 @@ public final class GoogleDriveManager {
 
         @Override
         public void onError() {
+            AppLogger.e("On Google Drive error");
+            final GoogleDriveManager manager = mReference.get();
+            if (manager == null) {
+                return;
+            }
 
+            manager.mListener.hideProgress();
         }
     }
 }
