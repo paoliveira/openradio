@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="15dp"
-        android:text="Upload Favorites and Local added Radio Stations to Google Drive"
+        android:text="Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!\nRecommend to Download first, manage them (Add / Remove / etc ...), then Upload."
         android:textStyle="bold" />
 
     <RelativeLayout
@@ -55,14 +55,28 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="15dp"
-        android:text="Download Favorites and Local added Radio Stations from Google Drive"
+        android:text="Download Favorites and Local added Radio Stations from Google Drive."
         android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/download_from_google_drive_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Download"
-        android:layout_gravity="center_horizontal"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/download_from_google_drive_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Download"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:layout_marginBottom="15dp"/>
+
+        <ProgressBar
+            android:id="@+id/download_to_google_drive_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"/>
+
+    </RelativeLayout>
 
 </LinearLayout>

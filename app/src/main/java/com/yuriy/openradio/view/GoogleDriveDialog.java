@@ -27,6 +27,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.drive.GoogleDriveManager;
 
 /**
  * Created by Yuriy Chernyshov
@@ -46,7 +47,9 @@ public final class GoogleDriveDialog extends DialogFragment {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    private ProgressBar mProgressBar;
+    private ProgressBar mProgressBarUpload;
+
+    private ProgressBar mProgressBarDownload;
 
     /**
      * Create a new instance of {@link GoogleDriveDialog}
@@ -76,29 +79,48 @@ public final class GoogleDriveDialog extends DialogFragment {
         final Button downloadFrom = (Button) view.findViewById(R.id.download_from_google_drive_btn);
         downloadFrom.setOnClickListener(v -> activity.downloadRadioStationsFromGoogleDrive());
 
-        mProgressBar = (ProgressBar)view.findViewById(R.id.upload_to_google_drive_progress);
-        hideProgress();
+        mProgressBarUpload = (ProgressBar)view.findViewById(R.id.upload_to_google_drive_progress);
+        mProgressBarDownload = (ProgressBar)view.findViewById(R.id.download_to_google_drive_progress);
+
+        hideProgress(GoogleDriveManager.Command.UPLOAD);
+        hideProgress(GoogleDriveManager.Command.DOWNLOAD);
     }
 
-    public void showProgress() {
-        if (mProgressBar == null) {
-            return;
-        }
+    public void showProgress(final GoogleDriveManager.Command command) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
         }
-        activity.runOnUiThread(() -> mProgressBar.setVisibility(View.VISIBLE));
+        switch (command) {
+            case UPLOAD:
+                if (mProgressBarUpload != null) {
+                    activity.runOnUiThread(() -> mProgressBarUpload.setVisibility(View.VISIBLE));
+                }
+                break;
+            case DOWNLOAD:
+                if (mProgressBarDownload != null) {
+                    activity.runOnUiThread(() -> mProgressBarDownload.setVisibility(View.VISIBLE));
+                }
+                break;
+        }
     }
 
-    public void hideProgress() {
-        if (mProgressBar == null) {
-            return;
-        }
+    public void hideProgress(final GoogleDriveManager.Command command) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
         }
-        activity.runOnUiThread(() -> mProgressBar.setVisibility(View.GONE));
+        switch (command) {
+            case UPLOAD:
+                if (mProgressBarUpload != null) {
+                    activity.runOnUiThread(() -> mProgressBarUpload.setVisibility(View.GONE));
+                }
+                break;
+            case DOWNLOAD:
+                if (mProgressBarDownload != null) {
+                    activity.runOnUiThread(() -> mProgressBarDownload.setVisibility(View.GONE));
+                }
+                break;
+        }
     }
 }

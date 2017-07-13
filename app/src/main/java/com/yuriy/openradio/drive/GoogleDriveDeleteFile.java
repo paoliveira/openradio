@@ -40,19 +40,21 @@ final class GoogleDriveDeleteFile extends GoogleDriveAPIChain {
         if (result.getFile() != null) {
             AppLogger.d("Delete file '" + name + "'");
 
-            result.getFile().delete(request.getGoogleApiClient()).setResultCallback(
-                    status -> {
-                        if (status.isSuccess()) {
-                            AppLogger.d("File '" + name + "' deleted, path execution farther");
+            result.getFile()
+                    .delete(request.getGoogleApiClient())
+                    .setResultCallback(
+                            status -> {
+                                if (status.isSuccess()) {
+                                    AppLogger.d("File '" + name + "' deleted, path execution farther");
 
-                            handleNext(request, result);
-                        } else {
-                            AppLogger.d("File '" + name + "' is not deleted");
+                                    handleNext(request, result);
+                                } else {
+                                    AppLogger.d("File '" + name + "' is not deleted");
 
-                            request.getListener().onError();
-                        }
-                    }
-            );
+                                    request.getListener().onError();
+                                }
+                            }
+                    );
         } else {
             AppLogger.d("File '" + name + "' not exists, nothing to delete, path execution farther");
 

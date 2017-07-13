@@ -62,6 +62,10 @@ abstract class GoogleDriveQueryDrive extends GoogleDriveAPIChain {
                             .listChildren(request.getGoogleApiClient());
                     if (pendingResult != null) {
                         pendingResult.setResultCallback(bufferResult -> handleResult(bufferResult, request, result));
+                    } else {
+                        AppLogger.e("Can not query resource '" + getName(request) + "', pending result is null");
+
+                        request.getListener().onError();
                     }
                 }
         );

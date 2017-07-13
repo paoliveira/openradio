@@ -50,6 +50,8 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
         Drive.DriveApi.newDriveContents(request.getGoogleApiClient()).setResultCallback(
                 driveContentsResult -> {
                     if (!driveContentsResult.getStatus().isSuccess()) {
+                        AppLogger.e("File '" + request.getFileName() + "' is not saved");
+                        request.getListener().onError();
                         return;
                     }
                     final DriveContents driveContents = driveContentsResult.getDriveContents();
@@ -93,7 +95,7 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
                                 AppLogger.d("File '" + name + "' saved");
                                 request.getListener().onComplete();
                             } else {
-                                AppLogger.d("File '" + name + "' is not saved");
+                                AppLogger.e("File '" + name + "' is not saved");
                                 request.getListener().onError();
                             }
                         }

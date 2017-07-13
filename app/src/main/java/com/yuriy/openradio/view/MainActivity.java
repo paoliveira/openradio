@@ -1376,29 +1376,31 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void showProgress() {
+        public void showProgress(final GoogleDriveManager.Command command) {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
             }
             reference.runOnUiThread(() -> {
                 if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().showProgress();
+                    reference.getGoogleDriveDialog().showProgress(command);
                 }
             });
         }
 
         @Override
-        public void hideProgress() {
+        public void hideProgress(final GoogleDriveManager.Command command) {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
             }
             reference.runOnUiThread(() -> {
                 if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideProgress();
+                    reference.getGoogleDriveDialog().hideProgress(command);
                 }
             });
+
+            SafeToast.showAnyThread(reference.getApplicationContext(), "Radio Stations are saved to Google Drive");
         }
     }
 }

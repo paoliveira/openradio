@@ -45,9 +45,9 @@ public final class GoogleDriveManager {
 
         void handleConnectionFailed(@NonNull final ConnectionResult connectionResult);
 
-        void showProgress();
+        void showProgress(final GoogleDriveManager.Command command);
 
-        void hideProgress();
+        void hideProgress(final GoogleDriveManager.Command command);
     }
 
     private static final String FOLDER_NAME = "OPEN_RADIO";
@@ -70,9 +70,7 @@ public final class GoogleDriveManager {
 
     private final Context mContext;
 
-    private final GoogleDriveRequest.Listener mGoogleRequestListener = new GoogleDriveRequestListenerImpl(this);
-
-    private enum Command {
+    public enum Command {
         UPLOAD,
         DOWNLOAD
     }
@@ -138,9 +136,13 @@ public final class GoogleDriveManager {
     private void getRadioStationsAndUpload() {
         final String favorites = FavoritesStorage.getAllFavoritesAsString(mContext);
         final String locals = LocalRadioStationsStorage.getAllLocalAsString(mContext);
+        final int numOfCompleteCallbacks = 2;
+        final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(
+                this, Command.UPLOAD, numOfCompleteCallbacks
+        );
 
-        uploadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, favorites);
-        uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals);
+        uploadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, favorites, listener);
+        uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals, listener);
     }
 
     private void downloadRadioStationsAndApply() {
@@ -153,10 +155,12 @@ public final class GoogleDriveManager {
      * @param folderName Folder to upload to.
      * @param fileName   File name to associated with Radio Stations data.
      * @param data       Marshalled Radio Stations.
+     * @param listener   Listener.
      */
-    private void uploadInternal(final String folderName, final String fileName, final String data) {
+    private void uploadInternal(final String folderName, final String fileName, final String data,
+                                final GoogleDriveRequest.Listener listener) {
         final GoogleDriveRequest request = new GoogleDriveRequest(
-                mGoogleApiClient, folderName, fileName, data, mGoogleRequestListener
+                mGoogleApiClient, folderName, fileName, data, listener
         );
         final GoogleDriveResult result = new GoogleDriveResult();
 
@@ -270,10 +274,17 @@ public final class GoogleDriveManager {
     private static final class GoogleDriveRequestListenerImpl implements GoogleDriveRequest.Listener {
 
         private final WeakReference<GoogleDriveManager> mReference;
+        private int mCompleteCounter = 0;
+        private final int mNumOfCallbacks;
+        private final Command mCommand;
 
-        private GoogleDriveRequestListenerImpl(final GoogleDriveManager reference) {
+        private GoogleDriveRequestListenerImpl(final GoogleDriveManager reference,
+                                               final Command command,
+                                               final int numOfCallbacks) {
             super();
             mReference = new WeakReference<>(reference);
+            mCommand = command;
+            mNumOfCallbacks = numOfCallbacks;
         }
 
         @Override
@@ -284,7 +295,7 @@ public final class GoogleDriveManager {
                 return;
             }
 
-            manager.mListener.showProgress();
+            manager.mListener.showProgress(mCommand);
         }
 
         @Override
@@ -295,7 +306,9 @@ public final class GoogleDriveManager {
                 return;
             }
 
-            manager.mListener.hideProgress();
+            if (++mCompleteCounter == mNumOfCallbacks) {
+                manager.mListener.hideProgress(mCommand);
+            }
         }
 
         @Override
@@ -306,7 +319,7 @@ public final class GoogleDriveManager {
                 return;
             }
 
-            manager.mListener.hideProgress();
+            manager.mListener.hideProgress(mCommand);
         }
     }
 }
