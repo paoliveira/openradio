@@ -93,7 +93,7 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
                         driveFileResult -> {
                             if (driveFileResult.getStatus().isSuccess()) {
                                 AppLogger.d("File '" + name + "' saved");
-                                request.getListener().onComplete();
+                                request.getListener().onUploadComplete();
                             } else {
                                 AppLogger.e("File '" + name + "' is not saved");
                                 request.getListener().onError();

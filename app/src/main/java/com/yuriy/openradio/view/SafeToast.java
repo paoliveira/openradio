@@ -60,6 +60,6 @@ public final class SafeToast {
             return;
         }
         Toast.makeText(context, text, Toast.LENGTH_LONG).show();
-        AppLogger.e("Toast:" + text.toString());
+        AppLogger.i("Toast:" + text.toString());
     }
 }

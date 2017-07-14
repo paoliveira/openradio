@@ -145,8 +145,17 @@ public final class GoogleDriveManager {
         uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals, listener);
     }
 
+    /**
+     *
+     */
     private void downloadRadioStationsAndApply() {
-        // TODO:
+        final int numOfCompleteCallbacks = 2;
+        final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(
+                this, Command.DOWNLOAD, numOfCompleteCallbacks
+        );
+
+        downloadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, listener);
+        downloadInternal(FOLDER_NAME, FILE_NAME_LOCALS, listener);
     }
 
     /**
@@ -174,6 +183,29 @@ public final class GoogleDriveManager {
         createFolder.setNext(queryFile);
         queryFile.setNext(deleteFile);
         deleteFile.setNext(saveFile);
+
+        queryFolder.handleRequest(request, result);
+    }
+
+    /**
+     *
+     * @param folderName
+     * @param fileName
+     * @param listener
+     */
+    private void downloadInternal(final String folderName, final String fileName,
+                                  final GoogleDriveRequest.Listener listener) {
+        final GoogleDriveRequest request = new GoogleDriveRequest(
+                mGoogleApiClient, folderName, fileName, null, listener
+        );
+        final GoogleDriveResult result = new GoogleDriveResult();
+
+        final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
+        final GoogleDriveAPIChain queryFile = new GoogleDriveQueryFile();
+        final GoogleDriveAPIChain readFile = new GoogleDriveReadFile(true);
+
+        queryFolder.setNext(queryFile);
+        queryFile.setNext(readFile);
 
         queryFolder.handleRequest(request, result);
     }
@@ -224,6 +256,15 @@ public final class GoogleDriveManager {
                     break;
             }
         }
+    }
+
+    /**
+     *
+     * @param data
+     * @param fileName
+     */
+    private void handleDownloadCompleted(final String data, final String fileName) {
+        AppLogger.d("OnDownloadCompleted file:" + fileName + " data:" + data);
     }
 
     private static final class ConnectionCallbackImpl implements GoogleApiClient.ConnectionCallbacks {
@@ -289,7 +330,7 @@ public final class GoogleDriveManager {
 
         @Override
         public void onStart() {
-            AppLogger.e("On Google Drive started");
+            AppLogger.d("On Google Drive started");
             final GoogleDriveManager manager = mReference.get();
             if (manager == null) {
                 return;
@@ -299,8 +340,8 @@ public final class GoogleDriveManager {
         }
 
         @Override
-        public void onComplete() {
-            AppLogger.e("On Google Drive completed");
+        public void onUploadComplete() {
+            AppLogger.d("On Google Drive upload completed");
             final GoogleDriveManager manager = mReference.get();
             if (manager == null) {
                 return;
@@ -308,6 +349,21 @@ public final class GoogleDriveManager {
 
             if (++mCompleteCounter == mNumOfCallbacks) {
                 manager.mListener.hideProgress(mCommand);
+            }
+        }
+
+        @Override
+        public void onDownloadComplete(final String data, final String fileName) {
+            AppLogger.d("On Google Drive download completed");
+            final GoogleDriveManager manager = mReference.get();
+            if (manager == null) {
+                return;
+            }
+
+            manager.mListener.hideProgress(mCommand);
+
+            if (data != null) {
+                manager.handleDownloadCompleted(data, fileName);
             }
         }
 

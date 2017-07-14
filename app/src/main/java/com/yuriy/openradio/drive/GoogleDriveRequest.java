@@ -31,7 +31,9 @@ public final class GoogleDriveRequest {
 
         void onStart();
 
-        void onComplete();
+        void onUploadComplete();
+
+        void onDownloadComplete(final String data, final String fileName);
 
         void onError();
     }

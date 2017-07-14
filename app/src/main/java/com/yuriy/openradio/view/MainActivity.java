@@ -1400,7 +1400,14 @@ public final class MainActivity extends AppCompatActivity {
                 }
             });
 
-            SafeToast.showAnyThread(reference.getApplicationContext(), "Radio Stations are saved to Google Drive");
+            switch (command) {
+                case UPLOAD:
+                    SafeToast.showAnyThread(reference.getApplicationContext(), "Radio Stations are saved to Google Drive");
+                    break;
+                case DOWNLOAD:
+                    SafeToast.showAnyThread(reference.getApplicationContext(), "Radio Stations are read from Google Drive");
+                    break;
+            }
         }
     }
 }

@@ -97,6 +97,7 @@ abstract class GoogleDriveQueryDrive extends GoogleDriveAPIChain {
 
             handleNext(request, result);
         }
+        metadataBuffer.release();
     }
 
     private DriveId getDriveId(final MetadataBuffer metadataBuffer, final String name) {
