@@ -659,7 +659,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // If we are playing, we need to reset media player by calling configMediaPlayerState
             // with mAudioFocus properly set.
             if (mState == PlaybackStateCompat.STATE_PLAYING && !canDuck) {
-                // If we don't have audio focus and can't duck, we save the information that
+                // If we don't have audio focus and can't duck, we addToLocals the information that
                 // we were playing, so that we can resume playback once we get the focus back.
                 mPlayOnFocusGain = true;
             }
@@ -896,7 +896,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Save latest selected Radio Station.
         // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
-        LatestRadioStationStorage.save(radioStation, getApplicationContext());
+        LatestRadioStationStorage.addToLocals(radioStation, getApplicationContext());
 
         // If there is no detailed information about Radio Station - download it here and
         // update model.

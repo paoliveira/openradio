@@ -55,7 +55,7 @@ public final class LatestRadioStationStorage extends AbstractStorage {
      * @param radioStation {@link RadioStationVO} to add as Latest Radio Station.
      * @param context      Context of the callee.
      */
-    public static synchronized void save(final RadioStationVO radioStation, final Context context) {
+    public static synchronized void addToLocals(final RadioStationVO radioStation, final Context context) {
         add(KEY, radioStation, context, FILE_NAME);
     }
 

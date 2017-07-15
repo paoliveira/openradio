@@ -48,7 +48,7 @@ public class ImageFetcherFactory {
      * Create {@link ImageFetcher} instance
      * @param context        {@link android.content.Context}
      * @param imageThumbSize desired size of the fetched image
-     * @param imageDir       directory to save images at
+     * @param imageDir       directory to addToLocals images at
      * @return {@link ImageFetcher} instance
      */
     private static ImageFetcher getImageFetcher(FragmentActivity context, int imageThumbSize,

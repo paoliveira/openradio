@@ -462,7 +462,7 @@ public final class AppUtils {
     }
 
     /**
-     * This method save provided Bitmap to the specified file.
+     * This method addToLocals provided Bitmap to the specified file.
      *
      * @param bitmap   Bitmap data.
      * @param dirName  Path to the directory.

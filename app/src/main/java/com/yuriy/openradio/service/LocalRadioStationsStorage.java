@@ -18,6 +18,7 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.api.RadioStationVO;
 
@@ -75,12 +76,12 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
     public static int getId(final Context context) {
         final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
         int id = sharedPreferences.getInt(KEY_ID, Integer.MAX_VALUE);
-        // If value is Integer MAX, means that this is the first call, initialize it and save.
+        // If value is Integer MAX, means that this is the first call, initialize it and addToLocals.
         if (id == Integer.MAX_VALUE) {
             setId(context, ID_INIT_VALUE);
             return ID_INIT_VALUE;
         }
-        // Increment previous value, save it and return it.
+        // Increment previous value, addToLocals it and return it.
         id = id + 1;
         setId(context, id);
         return id;
@@ -116,6 +117,14 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
      */
     public static String getAllLocalAsString(final Context context) {
         return getAllAsString(context, FILE_NAME);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @NonNull
+    public static List<RadioStationVO> getAllLocalsFromString(final String marshalledRadioStations) {
+        return getAllFromString(marshalledRadioStations);
     }
 
     /**

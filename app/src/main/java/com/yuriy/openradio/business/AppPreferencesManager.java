@@ -86,7 +86,7 @@ public final class AppPreferencesManager {
     }
 
     /**
-     * @return True if it is allowed to save logs into a file. False - otherwise.
+     * @return True if it is allowed to addToLocals logs into a file. False - otherwise.
      */
     public static boolean areLogsEnabled(@NonNull final Context context) {
         return getSharedPreferences(context).getBoolean(
@@ -96,7 +96,7 @@ public final class AppPreferencesManager {
     }
 
     /**
-     * Set True if it is allowed to save logs into a file. False - otherwise.
+     * Set True if it is allowed to addToLocals logs into a file. False - otherwise.
      *
      * @param value Boolean value.
      */

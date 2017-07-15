@@ -24,12 +24,15 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
+import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.service.LatestRadioStationStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -238,7 +241,7 @@ public final class GoogleDriveManager {
     }
 
     /**
-     *
+     * Handles event when Google Drive framework is connected.
      */
     private void onConnected() {
         final Iterator<Command> iterator = mCommands.iterator();
@@ -259,12 +262,27 @@ public final class GoogleDriveManager {
     }
 
     /**
+     * Demarshall String into List of Radio Stations and update storage of the application.
      *
-     * @param data
-     * @param fileName
+     * @param data     String representing list of Radio Stations.
+     * @param fileName Name of the file
      */
-    private void handleDownloadCompleted(final String data, final String fileName) {
+    private void handleDownloadCompleted(@NonNull final String data, @NonNull final String fileName) {
         AppLogger.d("OnDownloadCompleted file:" + fileName + " data:" + data);
+
+        if (FILE_NAME_FAVORITES.equals(fileName)) {
+            final List<RadioStationVO> list = FavoritesStorage.getAllFavoritesFromString(data);
+            for (final RadioStationVO radioStation : list) {
+                FavoritesStorage.addToFavorites(radioStation, mContext);
+            }
+        }
+
+        if (FILE_NAME_LOCALS.equals(fileName)) {
+            final List<RadioStationVO> list = LocalRadioStationsStorage.getAllLocalsFromString(data);
+            for (final RadioStationVO radioStation : list) {
+                LatestRadioStationStorage.addToLocals(radioStation, mContext);
+            }
+        }
     }
 
     private static final class ConnectionCallbackImpl implements GoogleApiClient.ConnectionCallbacks {

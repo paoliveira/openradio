@@ -18,6 +18,7 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.api.RadioStationVO;
 
@@ -42,6 +43,14 @@ public final class FavoritesStorage extends AbstractStorage {
      * Name of the file for the Favorite Preferences.
      */
     private static final String FILE_NAME = "FavoritesPreferences";
+
+    /**
+     * {@inheritDoc}
+     */
+    @NonNull
+    public static List<RadioStationVO> getAllFavoritesFromString(final String marshalledRadioStations) {
+        return getAllFromString(marshalledRadioStations);
+    }
 
     /**
      * Add provided {@link RadioStationVO} to the Favorites preferences.

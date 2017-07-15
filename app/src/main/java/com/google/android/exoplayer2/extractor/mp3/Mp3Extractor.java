@@ -66,7 +66,7 @@ public final class Mp3Extractor implements Extractor {
    */
   public static final int FLAG_ENABLE_CONSTANT_BITRATE_SEEKING = 1;
   /**
-   * Flag to disable parsing of ID3 metadata. Can be set to save memory if ID3 metadata is not
+   * Flag to disable parsing of ID3 metadata. Can be set to addToLocals memory if ID3 metadata is not
    * required.
    */
   public static final int FLAG_DISABLE_ID3_METADATA = 2;

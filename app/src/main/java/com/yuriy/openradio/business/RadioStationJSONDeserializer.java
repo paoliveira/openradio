@@ -17,6 +17,7 @@
 package com.yuriy.openradio.business;
 
 import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.utils.AppLogger;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,8 +57,9 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
             radioStation.setWebSite(getStringValue(jsonObject, RadioStationJSONHelper.KEY_WEB_SITE));
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJSONHelper.KEY_IS_LOCAL));
             radioStation.setSortId(getIntValue(jsonObject, RadioStationJSONHelper.KEY_SORT_ID, -1));
-        } catch (final JSONException e) {
+        } catch (final Throwable e) {
             /* Ignore this exception */
+            AppLogger.e("Error while demarshall RadioStation:" + e);
         }
         return radioStation;
     }

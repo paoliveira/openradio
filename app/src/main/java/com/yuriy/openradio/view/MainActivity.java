@@ -192,7 +192,7 @@ public final class MainActivity extends AppCompatActivity {
     private final OnTouchListener mOnTouchListener = new OnTouchListener(this);
 
     /**
-     * Guardian field to prevent UI operation after save instance passed.
+     * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private volatile AtomicBoolean mIsOnSaveInstancePassed = new AtomicBoolean(false);
 

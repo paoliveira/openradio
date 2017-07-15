@@ -143,6 +143,36 @@ abstract class AbstractStorage {
     }
 
     /**
+     * Demarshall string representation of the Radio Stations into the Java list of items.
+     *
+     * @param marshalledRadioStations String representation of the Radio Stations,
+     *                                obtained from the {@link #getAllAsString(Context, String)}
+     * @return List of Radio Stations.
+     */
+    @NonNull
+    static List<RadioStationVO> getAllFromString(final String marshalledRadioStations) {
+        final List<RadioStationVO> list = new ArrayList<>();
+        if (TextUtils.isEmpty(marshalledRadioStations)) {
+            return list;
+        }
+        final RadioStationDeserializer deserializer = new RadioStationJSONDeserializer();
+        final String[] radioStationsPairs = marshalledRadioStations.split(KEY_VALUE_PAIR_DELIMITER);
+        String[] radioStationKeyValue;
+        RadioStationVO radioStation;
+        for (final String radioStationString : radioStationsPairs) {
+            radioStationKeyValue = radioStationString.split(KEY_VALUE_DELIMITER);
+            if (radioStationKeyValue.length != 2) {
+                continue;
+            }
+            radioStation = deserializer.deserialize(radioStationKeyValue[1]);
+            if (radioStation != null) {
+                list.add(radioStation);
+            }
+        }
+        return list;
+    }
+
+    /**
      * Return collection of the Radio Stations which are stored in the persistent storage.
      *
      * @param context Context of the callee.
