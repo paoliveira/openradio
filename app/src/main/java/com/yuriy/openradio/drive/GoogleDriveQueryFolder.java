@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.drive;
 
+import android.support.annotation.Nullable;
+
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveFolder;
 import com.google.android.gms.drive.DriveId;
@@ -37,6 +39,7 @@ final class GoogleDriveQueryFolder extends GoogleDriveQueryDrive {
     }
 
     @Override
+    @Nullable
     protected DriveFolder getDriveFolder(final GoogleDriveRequest request, final GoogleDriveResult result) {
         return Drive.DriveApi.getRootFolder(request.getGoogleApiClient());
     }

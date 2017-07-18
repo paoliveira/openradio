@@ -16,7 +16,11 @@
 
 package com.yuriy.openradio.drive;
 
+import android.support.annotation.NonNull;
+
 import com.google.android.gms.common.api.GoogleApiClient;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Chernyshov Yurii
@@ -35,7 +39,7 @@ public final class GoogleDriveRequest {
 
         void onDownloadComplete(final String data, final String fileName);
 
-        void onError();
+        void onError(final GoogleDriveError error);
     }
 
     private final GoogleApiClient mGoogleApiClient;
@@ -47,6 +51,8 @@ public final class GoogleDriveRequest {
     private final String mData;
 
     private final Listener mListener;
+
+    private ExecutorService mExecutorService;
 
     public GoogleDriveRequest(final GoogleApiClient googleApiClient, final String folderName, final String fileName,
                               final String data, final Listener listener) {
@@ -76,5 +82,15 @@ public final class GoogleDriveRequest {
 
     public Listener getListener() {
         return mListener;
+    }
+
+    @NonNull
+    public ExecutorService getExecutorService() {
+        return mExecutorService;
+    }
+
+    @NonNull
+    public void setExecutorService(final ExecutorService value) {
+        mExecutorService = value;
     }
 }

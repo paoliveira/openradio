@@ -51,6 +51,8 @@ public final class GoogleDriveDialog extends DialogFragment {
 
     private ProgressBar mProgressBarDownload;
 
+    private ProgressBar mProgressBarTitle;
+
     /**
      * Create a new instance of {@link GoogleDriveDialog}
      */
@@ -81,9 +83,11 @@ public final class GoogleDriveDialog extends DialogFragment {
 
         mProgressBarUpload = (ProgressBar)view.findViewById(R.id.upload_to_google_drive_progress);
         mProgressBarDownload = (ProgressBar)view.findViewById(R.id.download_to_google_drive_progress);
+        mProgressBarTitle = (ProgressBar)view.findViewById(R.id.google_drive_title_progress);
 
         hideProgress(GoogleDriveManager.Command.UPLOAD);
         hideProgress(GoogleDriveManager.Command.DOWNLOAD);
+        hideTitleProgress();
     }
 
     public void showProgress(final GoogleDriveManager.Command command) {
@@ -122,5 +126,21 @@ public final class GoogleDriveDialog extends DialogFragment {
                 }
                 break;
         }
+    }
+
+    public void showTitleProgress() {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(() -> mProgressBarTitle.setVisibility(View.VISIBLE));
+    }
+
+    public void hideTitleProgress() {
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.runOnUiThread(() -> mProgressBarTitle.setVisibility(View.GONE));
     }
 }

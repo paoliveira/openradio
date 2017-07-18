@@ -54,22 +54,32 @@ abstract class GoogleDriveQueryDrive extends GoogleDriveAPIChain {
 
         request.getListener().onStart();
 
-        final Thread thread = new Thread(
-                () -> {
-                    requestSync(request.getGoogleApiClient());
+        requestSync(request.getGoogleApiClient());
 
-                    final PendingResult<DriveApi.MetadataBufferResult> pendingResult = getDriveFolder(request, result)
-                            .listChildren(request.getGoogleApiClient());
-                    if (pendingResult != null) {
-                        pendingResult.setResultCallback(bufferResult -> handleResult(bufferResult, request, result));
-                    } else {
-                        AppLogger.e("Can not query resource '" + getName(request) + "', pending result is null");
-
-                        request.getListener().onError();
-                    }
-                }
-        );
-        thread.start();
+        final DriveFolder driveFolder = getDriveFolder(request, result);
+        if (driveFolder == null) {
+            request.getListener().onError(
+                    new GoogleDriveError(
+                            "Can not query resource '" + getName(request) + "', drive folder is null"
+                    )
+            );
+            return;
+        }
+        final PendingResult<DriveApi.MetadataBufferResult> pendingResult = driveFolder
+                .listChildren(request.getGoogleApiClient());
+        if (pendingResult != null) {
+            pendingResult.setResultCallback(
+                    bufferResult -> request.getExecutorService().submit(
+                            () -> handleResult(bufferResult, request, result)
+                    )
+            );
+        } else {
+            request.getListener().onError(
+                    new GoogleDriveError(
+                            "Can not query resource '" + getName(request) + "', pending result is null"
+                    )
+            );
+        }
     }
 
     private void handleResult(final DriveApi.MetadataBufferResult bufferResult,

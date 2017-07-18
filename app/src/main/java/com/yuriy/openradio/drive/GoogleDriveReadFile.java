@@ -44,13 +44,23 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
     protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result) {
         AppLogger.d("Read file '" + request.getFileName() + "'");
 
-        final Thread thread = new Thread(
-                () -> result.getFile()
-                        .open(request.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
-                        .setResultCallback(
-                                driveContentsResult -> {
+        final DriveFile driveFile = result.getFile();
+        if (driveFile == null) {
+            request.getListener().onError(
+                    new GoogleDriveError("Error while get file '" + request.getFileName() + "'")
+            );
+            return;
+        }
+
+        driveFile
+                .open(request.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
+                .setResultCallback(
+                        driveContentsResult -> request.getExecutorService().submit(
+                                () -> {
                                     if (!driveContentsResult.getStatus().isSuccess()) {
-                                        // TODO:
+                                        request.getListener().onError(
+                                                new GoogleDriveError("Error while open file '" + request.getFileName() + "'")
+                                        );
                                         return;
                                     }
                                     final DriveContents driveContents = driveContentsResult.getDriveContents();
@@ -68,19 +78,22 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
                                                 request.getFileName()
                                         );
                                     } catch (final IOException e) {
-                                        // TODO:
+                                        request.getListener().onError(
+                                                new GoogleDriveError(
+                                                        "Error while download file '" + request.getFileName() + "'"
+                                                )
+                                        );
                                     } finally {
                                         try {
                                             reader.close();
                                         } catch (IOException e) {
-                                            /* Ignore */
+                                        /* Ignore */
                                         }
                                     }
 
                                     driveContents.discard(request.getGoogleApiClient());
                                 }
                         )
-        );
-        thread.start();
+                );
     }
 }

@@ -31,10 +31,11 @@ import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 
 import java.lang.ref.WeakReference;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Chernyshov Yurii
@@ -46,11 +47,19 @@ public final class GoogleDriveManager {
 
     public interface Listener {
 
+        void onConnect();
+
+        void onConnected();
+
+        void onConnectionFailed();
+
         void handleConnectionFailed(@NonNull final ConnectionResult connectionResult);
 
-        void showProgress(final GoogleDriveManager.Command command);
+        void onStart(final GoogleDriveManager.Command command);
 
-        void hideProgress(final GoogleDriveManager.Command command);
+        void onSuccess(final GoogleDriveManager.Command command);
+
+        void onError(final GoogleDriveManager.Command command, final GoogleDriveError error);
     }
 
     private static final String FOLDER_NAME = "OPEN_RADIO";
@@ -73,6 +82,8 @@ public final class GoogleDriveManager {
 
     private final Context mContext;
 
+    private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
+
     public enum Command {
         UPLOAD,
         DOWNLOAD
@@ -89,6 +100,10 @@ public final class GoogleDriveManager {
         mListener = listener;
     }
 
+    public void release() {
+        mExecutorService.shutdown();
+    }
+
     public void disconnect() {
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
@@ -98,6 +113,8 @@ public final class GoogleDriveManager {
     public void connect() {
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
+
+            mListener.onConnect();
         }
     }
 
@@ -128,7 +145,7 @@ public final class GoogleDriveManager {
             client.connect();
         } else {
             if (!client.isConnecting()) {
-                onConnected();
+                handleNextCommand();
             }
         }
     }
@@ -144,8 +161,12 @@ public final class GoogleDriveManager {
                 this, Command.UPLOAD, numOfCompleteCallbacks
         );
 
-        uploadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, favorites, listener);
-        uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals, listener);
+        mExecutorService.submit(
+                () -> {
+                    uploadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, favorites, listener);
+                    uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals, listener);
+                }
+        );
     }
 
     /**
@@ -157,8 +178,12 @@ public final class GoogleDriveManager {
                 this, Command.DOWNLOAD, numOfCompleteCallbacks
         );
 
-        downloadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, listener);
-        downloadInternal(FOLDER_NAME, FILE_NAME_LOCALS, listener);
+        mExecutorService.submit(
+                () -> {
+                    downloadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, listener);
+                    downloadInternal(FOLDER_NAME, FILE_NAME_LOCALS, listener);
+                }
+        );
     }
 
     /**
@@ -175,6 +200,8 @@ public final class GoogleDriveManager {
                 mGoogleApiClient, folderName, fileName, data, listener
         );
         final GoogleDriveResult result = new GoogleDriveResult();
+
+        request.setExecutorService(mExecutorService);
 
         final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
         final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder();
@@ -201,6 +228,9 @@ public final class GoogleDriveManager {
         final GoogleDriveRequest request = new GoogleDriveRequest(
                 mGoogleApiClient, folderName, fileName, null, listener
         );
+
+        request.setExecutorService(mExecutorService);
+
         final GoogleDriveResult result = new GoogleDriveResult();
 
         final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
@@ -213,12 +243,21 @@ public final class GoogleDriveManager {
         queryFolder.handleRequest(request, result);
     }
 
-    private synchronized void addCommand(final Command command) {
+    private void addCommand(final Command command) {
+        if (mCommands.contains(command)) {
+            return;
+        }
+
+        AppLogger.d("Add Command: " + command);
         mCommands.add(command);
     }
 
-    private synchronized void removeCommand(final Command command) {
+    private void removeCommand(final Command command) {
         mCommands.remove(command);
+    }
+
+    private Command removeCommand() {
+        return mCommands.remove();
     }
 
     /**
@@ -241,23 +280,21 @@ public final class GoogleDriveManager {
     }
 
     /**
-     * Handles event when Google Drive framework is connected.
+     * Handles next available command.
      */
-    private void onConnected() {
-        final Iterator<Command> iterator = mCommands.iterator();
-        Command command;
-        while (iterator.hasNext()) {
-            command = iterator.next();
-            iterator.remove();
-            removeCommand(command);
-            switch (command) {
-                case UPLOAD:
-                    getRadioStationsAndUpload();
-                    break;
-                case DOWNLOAD:
-                    downloadRadioStationsAndApply();
-                    break;
-            }
+    private void handleNextCommand() {
+        if (mCommands.isEmpty()) {
+            return;
+        }
+
+        final Command command = removeCommand();
+        switch (command) {
+            case UPLOAD:
+                getRadioStationsAndUpload();
+                break;
+            case DOWNLOAD:
+                downloadRadioStationsAndApply();
+                break;
         }
     }
 
@@ -301,12 +338,20 @@ public final class GoogleDriveManager {
             if (manager == null) {
                 return;
             }
-            manager.onConnected();
+            manager.handleNextCommand();
+
+            manager.mListener.onConnected();
         }
 
         @Override
         public void onConnectionSuspended(final int i) {
             AppLogger.d("On Connection suspended:" + i);
+
+            final GoogleDriveManager manager = mReference.get();
+            if (manager == null) {
+                return;
+            }
+            // TODO:
         }
     }
 
@@ -354,7 +399,7 @@ public final class GoogleDriveManager {
                 return;
             }
 
-            manager.mListener.showProgress(mCommand);
+            manager.mListener.onStart(mCommand);
         }
 
         @Override
@@ -365,8 +410,9 @@ public final class GoogleDriveManager {
                 return;
             }
 
+            manager.handleNextCommand();
             if (++mCompleteCounter == mNumOfCallbacks) {
-                manager.mListener.hideProgress(mCommand);
+                manager.mListener.onSuccess(mCommand);
             }
         }
 
@@ -378,7 +424,8 @@ public final class GoogleDriveManager {
                 return;
             }
 
-            manager.mListener.hideProgress(mCommand);
+            manager.handleNextCommand();
+            manager.mListener.onSuccess(mCommand);
 
             if (data != null) {
                 manager.handleDownloadCompleted(data, fileName);
@@ -386,14 +433,15 @@ public final class GoogleDriveManager {
         }
 
         @Override
-        public void onError() {
-            AppLogger.e("On Google Drive error");
+        public void onError(final GoogleDriveError error) {
+            AppLogger.e("On Google Drive error : " + error.toString());
             final GoogleDriveManager manager = mReference.get();
             if (manager == null) {
                 return;
             }
 
-            manager.mListener.hideProgress(mCommand);
+            manager.handleNextCommand();
+            manager.mListener.onError(mCommand, error);
         }
     }
 }

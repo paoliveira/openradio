@@ -56,10 +56,11 @@ import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.AppPreferencesManager;
-import com.yuriy.openradio.drive.GoogleDriveManager;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
+import com.yuriy.openradio.drive.GoogleDriveError;
+import com.yuriy.openradio.drive.GoogleDriveManager;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.FavoritesStorage;
@@ -356,6 +357,10 @@ public final class MainActivity extends AppCompatActivity {
         unregisterReceivers();
         // Disconnect Media Browser
         mMediaResourcesManager.disconnect();
+
+        if (mGoogleDriveManager != null) {
+            mGoogleDriveManager.release();
+        }
     }
 
     @Override
@@ -1373,10 +1378,16 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             reference.requestGoogleDriveSignIn(connectionResult);
+
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().hideTitleProgress();
+                }
+            });
         }
 
         @Override
-        public void showProgress(final GoogleDriveManager.Command command) {
+        public void onStart(final GoogleDriveManager.Command command) {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
@@ -1389,25 +1400,101 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void hideProgress(final GoogleDriveManager.Command command) {
+        public void onSuccess(final GoogleDriveManager.Command command) {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
             }
+            String message = null;
+            switch (command) {
+                case UPLOAD:
+                    message = "Radio Stations are saved to Google Drive";
+                    break;
+                case DOWNLOAD:
+                    message = "Radio Stations are read from Google Drive";
+                    break;
+            }
+            if (!TextUtils.isEmpty(message)) {
+                SafeToast.showAnyThread(reference.getApplication(), message);
+            }
+
             reference.runOnUiThread(() -> {
                 if (reference.getGoogleDriveDialog() != null) {
                     reference.getGoogleDriveDialog().hideProgress(command);
                 }
             });
+        }
 
+        @Override
+        public void onError(final GoogleDriveManager.Command command, final GoogleDriveError error) {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            String message = null;
             switch (command) {
                 case UPLOAD:
-                    SafeToast.showAnyThread(reference.getApplicationContext(), "Radio Stations are saved to Google Drive");
+                    message = "Error while save Radio Stations to Google Drive";
                     break;
                 case DOWNLOAD:
-                    SafeToast.showAnyThread(reference.getApplicationContext(), "Radio Stations are read from Google Drive");
+                    message = "Error while read Radio Stations from Google Drive";
                     break;
             }
+            if (!TextUtils.isEmpty(message)) {
+                SafeToast.showAnyThread(reference.getApplication(), message);
+            }
+
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().hideProgress(command);
+                }
+            });
+        }
+
+        @Override
+        public void onConnect() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().showTitleProgress();
+                }
+            });
+        }
+
+        @Override
+        public void onConnected() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().hideTitleProgress();
+                }
+            });
+        }
+
+        @Override
+        public void onConnectionFailed() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+
+            reference.runOnUiThread(() -> {
+                if (reference.getGoogleDriveDialog() != null) {
+                    reference.getGoogleDriveDialog().hideTitleProgress();
+                }
+            });
+
+            SafeToast.showAnyThread(
+                    reference.getApplicationContext(), "Error to connect to Google Drive"
+            );
         }
     }
 }

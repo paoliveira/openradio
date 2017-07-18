@@ -1025,6 +1025,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mWifiLock.isHeld()) {
             mWifiLock.release();
         }
+
+        mApiCallExecutor.shutdown();
     }
 
     /**

@@ -48,18 +48,18 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
 
         // create new contents resource
         Drive.DriveApi.newDriveContents(request.getGoogleApiClient()).setResultCallback(
-                driveContentsResult -> {
-                    if (!driveContentsResult.getStatus().isSuccess()) {
-                        AppLogger.e("File '" + request.getFileName() + "' is not saved");
-                        request.getListener().onError();
-                        return;
-                    }
-                    final DriveContents driveContents = driveContentsResult.getDriveContents();
-                    final Thread thread = new Thread(
-                            () -> handleSaveFile(driveContents, request, result)
-                    );
-                    thread.start();
-                }
+                driveContentsResult -> request.getExecutorService().submit(
+                        () -> {
+                            if (!driveContentsResult.getStatus().isSuccess()) {
+                                request.getListener().onError(new GoogleDriveError(
+                                        "File '" + request.getFileName() + "' is not saved"
+                                ));
+                                return;
+                            }
+                            final DriveContents driveContents = driveContentsResult.getDriveContents();
+                            handleSaveFile(driveContents, request, result);
+                        }
+                )
         );
     }
 
@@ -90,15 +90,18 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
         result.getFolder()
                 .createFile(request.getGoogleApiClient(), changeSet, driveContents)
                 .setResultCallback(
-                        driveFileResult -> {
-                            if (driveFileResult.getStatus().isSuccess()) {
-                                AppLogger.d("File '" + name + "' saved");
-                                request.getListener().onUploadComplete();
-                            } else {
-                                AppLogger.e("File '" + name + "' is not saved");
-                                request.getListener().onError();
-                            }
-                        }
+                        driveFileResult -> request.getExecutorService().submit(
+                                () -> {
+                                    if (driveFileResult.getStatus().isSuccess()) {
+                                        AppLogger.d("File '" + name + "' saved");
+                                        request.getListener().onUploadComplete();
+                                    } else {
+                                        request.getListener().onError(
+                                                new GoogleDriveError("File '" + name + "' is not saved")
+                                        );
+                                    }
+                                }
+                        )
                 );
     }
 }

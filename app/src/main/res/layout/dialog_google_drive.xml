@@ -6,21 +6,43 @@
     android:orientation="vertical"
     android:padding="15dp">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ProgressBar
+            android:id="@+id/google_drive_title_progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toLeftOf="@+id/google_drive_title"
+            android:layout_alignBottom="@id/google_drive_title"/>
+
+        <TextView
+            android:id="@+id/google_drive_title"
+            android:text="Google Drive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_centerHorizontal="true"/>
+
+    </RelativeLayout>
+
     <TextView
-        android:text="Google Drive"
-        android:layout_width="wrap_content"
+        android:text="Initial connection may take a long time."
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="35dp"
-        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_gravity="center_horizontal"/>
+        android:layout_marginBottom="35dp"
+        android:enabled="false"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="15dp"
-        android:text="Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!\nRecommend to Download first, manage them (Add / Remove / etc ...), then Upload."
+        android:text="Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!"
         android:textStyle="bold" />
 
     <RelativeLayout
