@@ -26,9 +26,11 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.service.FavoritesStorage;
-import com.yuriy.openradio.service.LatestRadioStationStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -62,11 +64,13 @@ public final class GoogleDriveManager {
         void onError(final GoogleDriveManager.Command command, final GoogleDriveError error);
     }
 
+    private static final String RADIO_STATION_CATEGORY_FAVORITES = "favorites";
+
+    private static final String RADIO_STATION_CATEGORY_LOCALS = "locals";
+
     private static final String FOLDER_NAME = "OPEN_RADIO";
 
-    private static final String FILE_NAME_FAVORITES = "RadioStationsFavorites.txt";
-
-    private static final String FILE_NAME_LOCALS = "RadioStationsLocals.txt";
+    private static final String FILE_NAME_RADIO_STATIONS = "RadioStations.txt";
 
     /**
      * Google API client.
@@ -156,16 +160,11 @@ public final class GoogleDriveManager {
     private void getRadioStationsAndUpload() {
         final String favorites = FavoritesStorage.getAllFavoritesAsString(mContext);
         final String locals = LocalRadioStationsStorage.getAllLocalAsString(mContext);
-        final int numOfCompleteCallbacks = 2;
-        final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(
-                this, Command.UPLOAD, numOfCompleteCallbacks
-        );
+        final String data = mergeRadioStationCategories(favorites, locals);
+        final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.UPLOAD);
 
         mExecutorService.submit(
-                () -> {
-                    uploadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, favorites, listener);
-                    uploadInternal(FOLDER_NAME, FILE_NAME_LOCALS, locals, listener);
-                }
+                () -> uploadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, data, listener)
         );
     }
 
@@ -173,16 +172,10 @@ public final class GoogleDriveManager {
      *
      */
     private void downloadRadioStationsAndApply() {
-        final int numOfCompleteCallbacks = 2;
-        final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(
-                this, Command.DOWNLOAD, numOfCompleteCallbacks
-        );
+        final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.DOWNLOAD);
 
         mExecutorService.submit(
-                () -> {
-                    downloadInternal(FOLDER_NAME, FILE_NAME_FAVORITES, listener);
-                    downloadInternal(FOLDER_NAME, FILE_NAME_LOCALS, listener);
-                }
+                () -> downloadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, listener)
         );
     }
 
@@ -307,19 +300,56 @@ public final class GoogleDriveManager {
     private void handleDownloadCompleted(@NonNull final String data, @NonNull final String fileName) {
         AppLogger.d("OnDownloadCompleted file:" + fileName + " data:" + data);
 
-        if (FILE_NAME_FAVORITES.equals(fileName)) {
-            final List<RadioStationVO> list = FavoritesStorage.getAllFavoritesFromString(data);
-            for (final RadioStationVO radioStation : list) {
+        if (FILE_NAME_RADIO_STATIONS.equals(fileName)) {
+            final String favorites = splitRadioStationCategories(data)[0];
+            final String locals = splitRadioStationCategories(data)[1];
+
+            final List<RadioStationVO> favoritesList = FavoritesStorage.getAllFavoritesFromString(favorites);
+            for (final RadioStationVO radioStation : favoritesList) {
                 FavoritesStorage.addToFavorites(radioStation, mContext);
             }
-        }
-
-        if (FILE_NAME_LOCALS.equals(fileName)) {
-            final List<RadioStationVO> list = LocalRadioStationsStorage.getAllLocalsFromString(data);
-            for (final RadioStationVO radioStation : list) {
-                LatestRadioStationStorage.addToLocals(radioStation, mContext);
+            final List<RadioStationVO> localsList = LocalRadioStationsStorage.getAllLocalsFromString(locals);
+            for (final RadioStationVO radioStation : localsList) {
+                LocalRadioStationsStorage.addToLocal(radioStation, mContext);
             }
         }
+    }
+
+    /**
+     *
+     * @param favorites
+     * @param locals
+     * @return
+     */
+    private String mergeRadioStationCategories(@NonNull final String favorites, @NonNull final String locals) {
+        final JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put(RADIO_STATION_CATEGORY_FAVORITES, favorites);
+            jsonObject.put(RADIO_STATION_CATEGORY_LOCALS, locals);
+        } catch (final JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonObject.toString();
+    }
+
+    /**
+     *
+     * @param data
+     * @return
+     */
+    private String[] splitRadioStationCategories(@NonNull final String data) {
+        final String[] categories = new String[]{"", ""};
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(data);
+        } catch (final JSONException e) {
+            e.printStackTrace();
+        }
+        if (jsonObject != null) {
+            categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, "");
+            categories[1] = jsonObject.optString(RADIO_STATION_CATEGORY_LOCALS, "");
+        }
+        return categories;
     }
 
     private static final class ConnectionCallbackImpl implements GoogleApiClient.ConnectionCallbacks {
@@ -378,17 +408,13 @@ public final class GoogleDriveManager {
     private static final class GoogleDriveRequestListenerImpl implements GoogleDriveRequest.Listener {
 
         private final WeakReference<GoogleDriveManager> mReference;
-        private int mCompleteCounter = 0;
-        private final int mNumOfCallbacks;
         private final Command mCommand;
 
         private GoogleDriveRequestListenerImpl(final GoogleDriveManager reference,
-                                               final Command command,
-                                               final int numOfCallbacks) {
+                                               final Command command) {
             super();
             mReference = new WeakReference<>(reference);
             mCommand = command;
-            mNumOfCallbacks = numOfCallbacks;
         }
 
         @Override
@@ -411,9 +437,7 @@ public final class GoogleDriveManager {
             }
 
             manager.handleNextCommand();
-            if (++mCompleteCounter == mNumOfCallbacks) {
-                manager.mListener.onSuccess(mCommand);
-            }
+            manager.mListener.onSuccess(mCommand);
         }
 
         @Override
@@ -445,3 +469,4 @@ public final class GoogleDriveManager {
         }
     }
 }
+

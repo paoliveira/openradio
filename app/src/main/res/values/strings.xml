@@ -132,7 +132,7 @@
 
     <!-- Version 2.7 -->
 
-    <string name="action_save_to_drive">Save Radio Stations to Drive</string>
-    <string name="title_activity_save_to_google_drive">SaveToGoogleDriveActivity</string>
+    <string name="action_google_drive">Google Drive</string>
+    <string name="title_activity_google_drive">GoogleDriveActivity</string>
 
 </resources>

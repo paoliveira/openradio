@@ -428,10 +428,10 @@ public final class MainActivity extends AppCompatActivity {
                 final DialogFragment searchDialog = SearchDialog.newInstance();
                 searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
                 return true;
-            case R.id.action_save_to_drive:
-                // Show Save to Google Drive Dialog
-                final DialogFragment saveToDriveDialog = GoogleDriveDialog.newInstance();
-                saveToDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
+            case R.id.action_google_drive:
+                // Show Google Drive Dialog
+                final DialogFragment googleDriveDialog = GoogleDriveDialog.newInstance();
+                googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
                 return true;
             case R.id.action_settings:
                 // Show Search Dialog
