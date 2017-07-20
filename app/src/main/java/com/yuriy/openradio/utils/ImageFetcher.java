@@ -18,14 +18,10 @@ package com.yuriy.openradio.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Build;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.BuildConfig;
-import com.yuriy.openradio.R;
-import com.yuriy.openradio.view.SafeToast;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -118,7 +114,6 @@ public class ImageFetcher extends ImageResizer {
                         AppLogger.d(TAG + " HTTP cache cleared");
                     }
                 } catch (IOException e) {
-                    AppLogger.e(TAG + " clearCacheInternal - " + e);
                     CrashlyticsUtils.logException(e);
                 }
                 mHttpDiskCache = null;
@@ -139,7 +134,6 @@ public class ImageFetcher extends ImageResizer {
                         AppLogger.d(TAG + " HTTP cache flushed");
                     }
                 } catch (IOException e) {
-                    AppLogger.e(TAG + " flush - " + e);
                     CrashlyticsUtils.logException(e);
                 }
             }
@@ -160,7 +154,6 @@ public class ImageFetcher extends ImageResizer {
                         }
                     }
                 } catch (IOException e) {
-                    AppLogger.e(TAG + " closeCacheInternal - " + e);
                     CrashlyticsUtils.logException(e);
                 }
             }
@@ -214,7 +207,6 @@ public class ImageFetcher extends ImageResizer {
                         fileDescriptor = fileInputStream.getFD();
                     }
                 } catch (IOException | IllegalStateException e) {
-                    AppLogger.e(TAG + " processBitmap - " + e);
                     CrashlyticsUtils.logException(e);
                 } finally {
                     if (fileDescriptor == null && fileInputStream != null) {
@@ -274,7 +266,6 @@ public class ImageFetcher extends ImageResizer {
             }
             return true;
         } catch (final IOException e) {
-            AppLogger.e(TAG + " Error in downloadBitmap - " + e);
             CrashlyticsUtils.logException(e);
         } finally {
             if (urlConnection != null) {

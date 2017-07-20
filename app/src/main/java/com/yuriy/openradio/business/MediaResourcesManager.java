@@ -25,7 +25,6 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
@@ -230,7 +229,6 @@ public final class MediaResourcesManager {
                         manager.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
-                AppLogger.e(CLASS_NAME + " Can not init Media Controller:\n" + Log.getStackTraceString(e));
                 CrashlyticsUtils.logException(e);
                 return;
             }

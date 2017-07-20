@@ -19,14 +19,10 @@ package com.yuriy.openradio.view;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.view.LayoutInflater;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.CrashlyticsUtils;
-
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Created with Android Studio.
@@ -57,20 +53,7 @@ public class BaseDialogFragment extends DialogFragment {
         try {
             baseDialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor()
                     .newInstance();
-        } catch (java.lang.InstantiationException e) {
-            AppLogger.e(LOG_TAG + " New instance InstantiationException:" + e.getMessage());
-            CrashlyticsUtils.logException(e);
-        } catch (IllegalAccessException e) {
-            AppLogger.e(LOG_TAG + " New instance IllegalAccessException:" + e.getMessage());
-            CrashlyticsUtils.logException(e);
-        } catch (InvocationTargetException e) {
-            AppLogger.e(LOG_TAG + " New instance InvocationTargetException:" + e.getMessage());
-            CrashlyticsUtils.logException(e);
-        } catch (NoSuchMethodException e) {
-            AppLogger.e(LOG_TAG + " New instance NoSuchMethodException:" + e.getMessage());
-            CrashlyticsUtils.logException(e);
-        } catch (ClassNotFoundException e) {
-            AppLogger.e(LOG_TAG + " New instance ClassNotFoundException:" + e.getMessage());
+        } catch (final Exception e) {
             CrashlyticsUtils.logException(e);
         }
         return baseDialogFragment;

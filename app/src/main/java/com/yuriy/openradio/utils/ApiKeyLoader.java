@@ -68,7 +68,6 @@ public final class ApiKeyLoader {
                 writer.write(buffer, 0, length);
             }
         } catch (IOException e) {
-            AppLogger.e("Can not get API key:" + Log.getStackTraceString(e));
             CrashlyticsUtils.logException(e);
         } finally {
             try {

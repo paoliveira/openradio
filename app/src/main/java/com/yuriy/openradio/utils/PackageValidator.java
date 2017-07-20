@@ -177,8 +177,6 @@ public final class PackageValidator {
             packageInfo = packageManager.getPackageInfo(
                     callingPackage, PackageManager.GET_SIGNATURES);
         } catch (PackageManager.NameNotFoundException e) {
-            AppLogger.w(CLASS_NAME + " Package manager can't find package " + callingPackage
-                        + ", defaulting to false");
             CrashlyticsUtils.logException(e);
             return false;
         }

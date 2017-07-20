@@ -159,7 +159,6 @@ final class IcyInputStream extends FilterInputStream {
         try {
             metadataString = new String(mBuffer, 0, size, mCharacterEncoding);
         } catch (final Exception e) {
-            AppLogger.e(CLASS_NAME + " Cannot convert bytes to String:" + e);
             CrashlyticsUtils.logException(e);
             return;
         }

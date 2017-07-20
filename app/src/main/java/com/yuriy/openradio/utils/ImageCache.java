@@ -217,7 +217,6 @@ public class ImageCache {
                             }
                         } catch (final IOException e) {
                             mCacheParams.diskCacheDir = null;
-                            AppLogger.e(TAG + " initDiskCache - " + e);
                             CrashlyticsUtils.logException(e);
                         }
                     }
@@ -269,7 +268,6 @@ public class ImageCache {
                         snapshot.getInputStream(DISK_CACHE_INDEX).close();
                     }
                 } catch (Exception e) {
-                    AppLogger.e(TAG + " addBitmapToCache - " + e);
                     CrashlyticsUtils.logException(e);
                 } finally {
                     try {
@@ -341,7 +339,6 @@ public class ImageCache {
                         }
                     }
                 } catch (final IOException e) {
-                    AppLogger.e(TAG + " getBitmapFromDiskCache - " + e);
                     CrashlyticsUtils.logException(e);
                 } finally {
                     try {
@@ -414,7 +411,6 @@ public class ImageCache {
                         AppLogger.d(TAG + " Disk cache cleared");
                     }
                 } catch (IOException e) {
-                    AppLogger.e(TAG + " clearCache - " + e);
                     CrashlyticsUtils.logException(e);
                 }
                 mDiskLruCache = null;
@@ -436,7 +432,6 @@ public class ImageCache {
                         AppLogger.d(TAG + " Disk cache flushed");
                     }
                 } catch (IOException e) {
-                    AppLogger.e(TAG + " flush - " + e);
                     CrashlyticsUtils.logException(e);
                 }
             }
@@ -459,7 +454,6 @@ public class ImageCache {
                         }
                     }
                 } catch (IOException e) {
-                    AppLogger.e(TAG + " close - " + e);
                     CrashlyticsUtils.logException(e);
                 }
             }

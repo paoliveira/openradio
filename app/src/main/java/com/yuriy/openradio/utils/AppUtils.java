@@ -30,7 +30,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.view.SafeToast;
@@ -360,7 +359,6 @@ public final class AppUtils {
 
             return bout.toByteArray();
         } catch (IOException e) {
-            e.printStackTrace();
             CrashlyticsUtils.logException(e);
         } finally {
             try {
@@ -419,7 +417,6 @@ public final class AppUtils {
             packageName = context.getPackageName();
             return packageManager.getPackageInfo(packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
-            AppLogger.e(CLASS_NAME + " Failed to find PackageInfo : " + packageName);
             CrashlyticsUtils.logException(e);
             return null;
         } catch (RuntimeException e) {
@@ -427,7 +424,6 @@ public final class AppUtils {
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            AppLogger.e(CLASS_NAME + " Package manager has died : " + packageName);
             CrashlyticsUtils.logException(e);
             return null;
         } catch (Throwable e) {
@@ -498,7 +494,6 @@ public final class AppUtils {
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(byteArray);
         } catch (IOException e) {
-            e.printStackTrace();
             CrashlyticsUtils.logException(e);
         } finally {
             try {
@@ -544,14 +539,12 @@ public final class AppUtils {
 
             result = true;
         } catch (IOException e) {
-            AppLogger.e(CLASS_NAME + " Save Data To File IOException:\n" + Log.getStackTraceString(e));
             CrashlyticsUtils.logException(e);
         } finally {
             if (mFileOutputStream != null) {
                 try {
                     mFileOutputStream.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
                     CrashlyticsUtils.logException(e);
                 }
             }
@@ -599,7 +592,6 @@ public final class AppUtils {
         try {
             final boolean result = file.createNewFile();
         } catch (final IOException e) {
-            AppLogger.e("Can not create new file:" + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
         return file;
@@ -718,7 +710,6 @@ public final class AppUtils {
                 }
             }
         } catch (final Exception e) {
-            AppLogger.e(CLASS_NAME + " get User country:" + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
         return null;

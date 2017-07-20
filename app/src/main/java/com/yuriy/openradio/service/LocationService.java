@@ -161,7 +161,6 @@ public class LocationService {
                 try {
                     locationManager.removeUpdates(this);
                 } catch (final IllegalArgumentException e) {
-                    AppLogger.e("Can not removeUpdates:" + e.getMessage());
                     CrashlyticsUtils.logException(e);
                 }
             }
@@ -193,7 +192,6 @@ public class LocationService {
                     LocationManager.NETWORK_PROVIDER, 0, 0, locationListener
             );
         } catch (final Exception e) {
-            AppLogger.e("Can not requestLocationUpdates:" + e.getMessage());
             CrashlyticsUtils.logException(e);
 
             mCountryCode = COUNTRY_CODE_DEFAULT;

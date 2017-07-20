@@ -28,6 +28,7 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.QueueHelper;
 
 import org.json.JSONException;
@@ -365,7 +366,7 @@ public final class GoogleDriveManager {
             jsonObject.put(RADIO_STATION_CATEGORY_FAVORITES, favorites);
             jsonObject.put(RADIO_STATION_CATEGORY_LOCALS, locals);
         } catch (final JSONException e) {
-            e.printStackTrace();
+            CrashlyticsUtils.logException(e);
         }
         return jsonObject.toString();
     }
@@ -381,7 +382,7 @@ public final class GoogleDriveManager {
         try {
             jsonObject = new JSONObject(data);
         } catch (final JSONException e) {
-            e.printStackTrace();
+            CrashlyticsUtils.logException(e);
         }
         if (jsonObject != null) {
             categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, "");

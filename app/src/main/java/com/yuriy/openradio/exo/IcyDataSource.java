@@ -90,7 +90,6 @@ final class IcyDataSource extends DefaultHttpDataSource {
             try {
                 period = Integer.parseInt(smetaint);
             } catch (final Exception e) {
-                AppLogger.e("The icy-metaint '" + smetaint + "' cannot be parsed: '" + e);
                 CrashlyticsUtils.logException(e);
             }
             if (period > 0) {

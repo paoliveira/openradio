@@ -84,7 +84,6 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             url = new URL(uri.toString());
         } catch (final MalformedURLException e) {
-            AppLogger.e(CLASS_NAME + " Url exception: " + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
 
@@ -96,7 +95,6 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch (final IOException e) {
-            AppLogger.e(CLASS_NAME + " Http Url connection exception: " + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
 
@@ -112,7 +110,6 @@ public final class HTTPDownloaderImpl implements Downloader {
                 urlConnection.setRequestMethod("POST");
                 result = true;
             } catch (final ProtocolException e) {
-                AppLogger.e("Can not set POST method:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
 
@@ -127,7 +124,6 @@ public final class HTTPDownloaderImpl implements Downloader {
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
                 } catch (final IOException e) {
-                    AppLogger.e(CLASS_NAME + " Can not add http parameters:" + e.getMessage());
                     CrashlyticsUtils.logException(e);
                 } finally {
                     try {
@@ -148,7 +144,6 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             responseCode = urlConnection.getResponseCode();
         } catch (final IOException e) {
-            AppLogger.e(CLASS_NAME + " Http Url connection get response code exception: " + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
 
@@ -162,7 +157,6 @@ public final class HTTPDownloaderImpl implements Downloader {
             final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             response = toByteArray(inputStream);
         } catch (final IOException e) {
-            AppLogger.e(CLASS_NAME + " Http Url connection getInputStream exception: " + e.getMessage());
             CrashlyticsUtils.logException(e);
         } finally {
             urlConnection.disconnect();

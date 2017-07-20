@@ -164,7 +164,6 @@ public final class SettingsDialog extends DialogFragment {
             AppLogger.zip(getActivity());
         } catch (final IOException e) {
             SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
-            AppLogger.e("Can not ZIP Logs:\n" + Log.getStackTraceString(e));
             CrashlyticsUtils.logException(e);
             return;
         }
@@ -215,7 +214,6 @@ public final class SettingsDialog extends DialogFragment {
                 final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext.getApplicationContext()));
                 sendIntent .putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
-                AppLogger.e("Can not get logs zip file:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
                 return null;
             }
@@ -239,7 +237,6 @@ public final class SettingsDialog extends DialogFragment {
                     SafeToast.showAnyThread(
                             mContext.getApplicationContext(), mContext.getString(R.string.cant_start_activity)
                     );
-                    AppLogger.e("Activity not found:" + e.getMessage());
                     CrashlyticsUtils.logException(e);
                 }
             } else {

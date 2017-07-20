@@ -118,7 +118,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                 allCategories.add(category);
 
             } catch (JSONException e) {
-                AppLogger.e(CLASS_NAME + " Can not parse Radio Category:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
         }
@@ -162,7 +161,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                     allCountries.add(new CountryVO(countryName, countryCode));
                 }
             } catch (final JSONException e) {
-                AppLogger.e(CLASS_NAME + " Can not parse Country name and or Code:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
         }
@@ -206,7 +204,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                 radioStations.add(radioStation);
 
             } catch (JSONException e) {
-                AppLogger.e(CLASS_NAME + " Can not parse Radio Station:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
         }
@@ -282,7 +279,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             object = new JSONObject(response);
         } catch (JSONException e) {
-            AppLogger.e(CLASS_NAME + " Can not convert response to JSON:" + e.getMessage());
             CrashlyticsUtils.logException(e);
             return radioStation;
         }
@@ -290,7 +286,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             updateRadioStation(radioStation, object);
         } catch (JSONException e) {
-            AppLogger.e(CLASS_NAME + " Can not parse Radio Station:" + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
 
@@ -333,7 +328,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
         } catch (final UnsupportedEncodingException e) {
-            AppLogger.d("Can not create key for responses cache:" + e.getMessage());
             CrashlyticsUtils.logException(e);
 
             responsesMapKey = null;
@@ -361,7 +355,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             array = new JSONArray(response);
         } catch (JSONException e) {
-            AppLogger.e(CLASS_NAME + " Can not get JSON array:" + e.getMessage());
             CrashlyticsUtils.logException(e);
         }
 
@@ -437,7 +430,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                 break;
 
             } catch (final Exception e) {
-                AppLogger.e(CLASS_NAME + " Can not parse Stream:" + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
         }

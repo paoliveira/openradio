@@ -38,7 +38,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.LruCache;
 
 import com.yuriy.openradio.R;
@@ -128,7 +127,6 @@ public class MediaNotification extends BroadcastReceiver {
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (final Exception e) {
-            e.printStackTrace();
             CrashlyticsUtils.logException(e);
         }
         return notificationColor;
@@ -209,7 +207,6 @@ public class MediaNotification extends BroadcastReceiver {
             try {
                 mController = new MediaControllerCompat(mService, mSessionToken);
             } catch (final RemoteException e) {
-                AppLogger.e(CLASS_NAME + " Can not update Session Token:\n" + Log.getStackTraceString(e));
                 CrashlyticsUtils.logException(e);
                 return;
             }
@@ -415,7 +412,6 @@ public class MediaNotification extends BroadcastReceiver {
                         BitmapHelper.MEDIA_ART_BIG_HEIGHT
                 );
             } catch (final IOException e) {
-                AppLogger.e(CLASS_NAME + " GetBitmapFromURLAsync: " + e.getMessage());
                 CrashlyticsUtils.logException(e);
             }
             if (mSource != null && bitmap != null) {

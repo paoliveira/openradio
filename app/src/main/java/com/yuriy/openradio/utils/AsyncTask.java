@@ -320,7 +320,6 @@ public abstract class AsyncTask<Params, Progress, Result> {
                 try {
                     postResultIfNotInvoked(get());
                 } catch (final InterruptedException e) {
-                    AppLogger.w(LOG_TAG + ":\n" + Log.getStackTraceString(e));
                     CrashlyticsUtils.logException(e);
                 } catch (final ExecutionException e) {
                     CrashlyticsUtils.logException(e);

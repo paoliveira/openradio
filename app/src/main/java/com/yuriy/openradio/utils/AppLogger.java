@@ -59,7 +59,6 @@ public final class AppLogger {
         try {
             logger.removeAllAppenders();
         } catch (final Exception e) {
-            AppLogger.e("Unable to remove logger appenders.");
             CrashlyticsUtils.logException(e);
         }
         try {
@@ -68,7 +67,6 @@ public final class AppLogger {
             appender.setMaxBackupIndex(MAX_BACKUP_INDEX);
             logger.addAppender(appender);
         } catch (final IOException e) {
-            Log.e(LOG_TAG, "unable to create log file: " + fileName);
             CrashlyticsUtils.logException(e);
         }
         AppLogger.d("Current log stored to " + fileName);
@@ -178,7 +176,6 @@ public final class AppLogger {
         try {
             Runtime.getRuntime().exec("logcat -f " + logcatFile.getPath());
         } catch (final Exception e) {
-            AppLogger.e("Can not create Logcat file:\n" + Log.getStackTraceString(e));
             CrashlyticsUtils.logException(e);
         }
 
