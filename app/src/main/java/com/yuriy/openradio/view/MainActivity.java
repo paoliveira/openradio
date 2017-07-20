@@ -1296,6 +1296,18 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Update List only if parent is Root or Favorites or Locals.
+     */
+    private void updateListAfterDownloadFromGoogleDrive() {
+        if (TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_ROOT)
+                || TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
+                || TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
+            mMediaResourcesManager.disconnect();
+            mMediaResourcesManager.connect();
+        }
+    }
+
+    /**
      * Listener for the Media Resources related events.
      */
     private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
@@ -1339,12 +1351,12 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-
+            AppLogger.d("Playback state changed to:" + state);
         }
 
         @Override
         public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-
+            AppLogger.d("Queue changed to:" + queue);
         }
 
         @Override
@@ -1372,12 +1384,18 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void handleConnectionFailed(@NonNull final ConnectionResult connectionResult) {
+        public void onConnectionFailed(@Nullable final ConnectionResult connectionResult) {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
             }
-            reference.requestGoogleDriveSignIn(connectionResult);
+            if (connectionResult != null) {
+                reference.requestGoogleDriveSignIn(connectionResult);
+            } else {
+                SafeToast.showAnyThread(
+                        reference.getApplicationContext(), "Error to connect to Google Drive"
+                );
+            }
 
             reference.runOnUiThread(() -> {
                 if (reference.getGoogleDriveDialog() != null) {
@@ -1412,6 +1430,7 @@ public final class MainActivity extends AppCompatActivity {
                     break;
                 case DOWNLOAD:
                     message = "Radio Stations are read from Google Drive";
+                    reference.updateListAfterDownloadFromGoogleDrive();
                     break;
             }
             if (!TextUtils.isEmpty(message)) {
@@ -1423,6 +1442,8 @@ public final class MainActivity extends AppCompatActivity {
                     reference.getGoogleDriveDialog().hideProgress(command);
                 }
             });
+
+
         }
 
         @Override
@@ -1477,24 +1498,6 @@ public final class MainActivity extends AppCompatActivity {
                     reference.getGoogleDriveDialog().hideTitleProgress();
                 }
             });
-        }
-
-        @Override
-        public void onConnectionFailed() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideTitleProgress();
-                }
-            });
-
-            SafeToast.showAnyThread(
-                    reference.getApplicationContext(), "Error to connect to Google Drive"
-            );
         }
     }
 }

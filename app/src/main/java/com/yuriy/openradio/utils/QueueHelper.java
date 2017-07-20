@@ -190,7 +190,6 @@ public final class QueueHelper {
     public static void updateRadioStation(final RadioStationVO radioStationVO,
                                           final List<RadioStationVO> radioStationVOs) {
         for (final RadioStationVO radioStation : radioStationVOs) {
-            // TODO : replace with equals()
             if (radioStationVO.getId() == radioStation.getId()) {
                 radioStation.setStreamURL(radioStationVO.getStreamURL());
                 radioStation.setBitRate(radioStationVO.getBitRate());
@@ -244,5 +243,23 @@ public final class QueueHelper {
         }
 
         return genre;
+    }
+
+    /**
+     * Merge Radio Stations from listB to listA.
+     *
+     * @param listA
+     * @param listB
+     */
+    public static void merge(final List<RadioStationVO> listA, final List<RadioStationVO> listB) {
+        if (listA == null || listB == null) {
+            return;
+        }
+        for (final RadioStationVO radioStation : listB) {
+            if (listA.contains(radioStation)) {
+                continue;
+            }
+            listA.add(radioStation);
+        }
     }
 }

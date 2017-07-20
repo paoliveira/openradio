@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.drive;
 
+import android.util.Base64;
+
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.MetadataChangeSet;
@@ -65,11 +67,11 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
 
     private void handleSaveFile(final DriveContents driveContents,
                                 final GoogleDriveRequest request, final GoogleDriveResult result) {
-        // write content to DriveContents
         final OutputStream outputStream = driveContents.getOutputStream();
         final Writer writer = new OutputStreamWriter(outputStream);
+        final String data = Base64.encodeToString(request.getData().getBytes(), Base64.DEFAULT);
         try {
-            writer.write(request.getData());
+            writer.write(data);
         } catch (final IOException e) {
             AppLogger.e("Can not open writer:" + e.getMessage());
         } finally {

@@ -57,7 +57,7 @@ public final class MediaItemLocalsList implements MediaItemCommand {
 
         final Context context = shareObject.getContext();
 
-        final List<RadioStationVO> list = LocalRadioStationsStorage.getAllLocal(context);
+        final List<RadioStationVO> list = LocalRadioStationsStorage.getAllLocals(context);
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.copyCollection(shareObject.getRadioStations(), list);

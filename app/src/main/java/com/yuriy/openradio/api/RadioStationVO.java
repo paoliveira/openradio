@@ -186,17 +186,21 @@ public final class RadioStationVO implements Serializable {
 
     @Override
     public boolean equals(final Object object) {
-        if (this == object) return true;
-        if (object == null || getClass() != object.getClass()) return false;
+        if (this == object) {
+            return true;
+        }
+        if (object == null || getClass() != object.getClass()) {
+            return false;
+        }
         final RadioStationVO that = (RadioStationVO) object;
-        return mId == that.mId
-                && !(mCountry != null ? !mCountry.equals(that.mCountry) : that.mCountry != null);
+        return mId == that.mId && mStreamURL.equals(that.mStreamURL);
+
     }
 
     @Override
     public int hashCode() {
         int result = mId;
-        result = 31 * result + (mCountry != null ? mCountry.hashCode() : 0);
+        result = 31 * result + mStreamURL.hashCode();
         return result;
     }
 

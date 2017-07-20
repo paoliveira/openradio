@@ -28,6 +28,7 @@ import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.QueueHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,20 +48,51 @@ import java.util.concurrent.Executors;
  */
 public final class GoogleDriveManager {
 
+    /**
+     * Listener for the Google Drive client events.
+     */
     public interface Listener {
 
+        /**
+         * Google Drive client start to connect.
+         */
         void onConnect();
 
+        /**
+         * Google Drive client connected.
+         */
         void onConnected();
 
-        void onConnectionFailed();
+        /**
+         * Google Drive client failed with {@link ConnectionResult}. Typically this is means to perform another
+         * actions based on the result, such as show Auth window or select user to associate with Google Drive client.
+         *
+         * @param connectionResult
+         */
+        void onConnectionFailed(final ConnectionResult connectionResult);
 
-        void handleConnectionFailed(@NonNull final ConnectionResult connectionResult);
-
+        /**
+         * Google Drive client start to perform command, such as {@link Command#UPLOAD} or {@link Command#DOWNLOAD}.
+         *
+         * @param command Command which is started.
+         */
         void onStart(final GoogleDriveManager.Command command);
 
+        /**
+         * Google Drive successfully completed to perform command,
+         * such as {@link Command#UPLOAD} or {@link Command#DOWNLOAD}.
+         *
+         * @param command Command which is completed.
+         */
         void onSuccess(final GoogleDriveManager.Command command);
 
+        /**
+         * Google Drive experiencing an error while perform command,
+         * such as {@link Command#UPLOAD} or {@link Command#DOWNLOAD}.
+         *
+         * @param command Command which experiencing an error.
+         * @param error   Error message describes a reason.
+         */
         void onError(final GoogleDriveManager.Command command, final GoogleDriveError error);
     }
 
@@ -88,15 +120,21 @@ public final class GoogleDriveManager {
 
     private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
 
+    /**
+     * Command to perform.
+     */
     public enum Command {
         UPLOAD,
         DOWNLOAD
     }
 
     /**
+     * Main constructor.
      *
+     * @param context  Context of the application.
+     * @param listener Listener for the Google Drive client events.
      */
-    public GoogleDriveManager(final Context context, final Listener listener) {
+    public GoogleDriveManager(@NonNull final Context context, @NonNull final Listener listener) {
         super();
 
         mContext = context;
@@ -245,10 +283,6 @@ public final class GoogleDriveManager {
         mCommands.add(command);
     }
 
-    private void removeCommand(final Command command) {
-        mCommands.remove(command);
-    }
-
     private Command removeCommand() {
         return mCommands.remove();
     }
@@ -301,14 +335,18 @@ public final class GoogleDriveManager {
         AppLogger.d("OnDownloadCompleted file:" + fileName + " data:" + data);
 
         if (FILE_NAME_RADIO_STATIONS.equals(fileName)) {
-            final String favorites = splitRadioStationCategories(data)[0];
-            final String locals = splitRadioStationCategories(data)[1];
+            final String favoritesRx = splitRadioStationCategories(data)[0];
+            final String localsRx = splitRadioStationCategories(data)[1];
 
-            final List<RadioStationVO> favoritesList = FavoritesStorage.getAllFavoritesFromString(favorites);
+            final List<RadioStationVO> favoritesList = FavoritesStorage.getAllFavorites(mContext);
+            final List<RadioStationVO> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(favoritesRx);
+            QueueHelper.merge(favoritesList, favoritesRxList);
             for (final RadioStationVO radioStation : favoritesList) {
                 FavoritesStorage.addToFavorites(radioStation, mContext);
             }
-            final List<RadioStationVO> localsList = LocalRadioStationsStorage.getAllLocalsFromString(locals);
+            final List<RadioStationVO> localsList = LocalRadioStationsStorage.getAllLocals(mContext);
+            final List<RadioStationVO> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(localsRx);
+            QueueHelper.merge(localsList, localsRxList);
             for (final RadioStationVO radioStation : localsList) {
                 LocalRadioStationsStorage.addToLocal(radioStation, mContext);
             }
@@ -381,7 +419,7 @@ public final class GoogleDriveManager {
             if (manager == null) {
                 return;
             }
-            // TODO:
+            manager.mListener.onConnectionFailed(null);
         }
     }
 
@@ -401,7 +439,7 @@ public final class GoogleDriveManager {
             if (manager == null) {
                 return;
             }
-            manager.mListener.handleConnectionFailed(connectionResult);
+            manager.mListener.onConnectionFailed(connectionResult);
         }
     }
 
@@ -449,11 +487,12 @@ public final class GoogleDriveManager {
             }
 
             manager.handleNextCommand();
-            manager.mListener.onSuccess(mCommand);
 
             if (data != null) {
                 manager.handleDownloadCompleted(data, fileName);
             }
+
+            manager.mListener.onSuccess(mCommand);
         }
 
         @Override

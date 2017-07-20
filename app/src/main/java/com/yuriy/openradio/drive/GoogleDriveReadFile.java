@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.drive;
 
+import android.util.Base64;
+
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.yuriy.openradio.utils.AppLogger;
@@ -73,8 +75,9 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
                                         while ((line = reader.readLine()) != null) {
                                             builder.append(line);
                                         }
+                                        final String data = new String(Base64.decode(builder.toString(), Base64.DEFAULT));
                                         request.getListener().onDownloadComplete(
-                                                builder.toString(),
+                                                data,
                                                 request.getFileName()
                                         );
                                     } catch (final IOException e) {
