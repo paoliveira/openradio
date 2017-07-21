@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Open Radio</string>
     <string name="action_about">O programe</string>
     <string name="all_categories_title">Všetky kategórie</string>
@@ -90,5 +89,16 @@
     <string name="feature_sort_title">Radiť Rozhlasové Stanice</string>
     <string name="feature_sort_text">Ak chcete rozhlasové stanice triediť:\n\n- dlho stlačte ľubovoľnú stanicu\n- vybrať \"Radiť Rozhlasové Stanice\"\n- presuňte a pusťte rozhlasovú stanicu a zoradte ich v požadovanom poradí\n- stlačením tlačidla \"Späť\" sa vrátite do normálneho režimu</string>
     <string name="enable_last_known_radio_station_label">Prehrať poslednú známu rozhlasovú stanicu\n(umožňuje aplikácii automaticky spustiť poslednú známu rozhlasovú stanicu)</string>
-
+    <string name="google_drive">Google Drive</string>
+    <string name="action_google_drive">Google Drive</string>
+    <string name="google_drive_init_warning">Počiatočné pripojenie môže trvať dlhšie.</string>
+    <string name="google_drive_upload_info">Odovzdajte obľúbené a miestne pridané rozhlasové stanice na Disk Google.\nPOZNÁMKA: Táto operácia prepíše predchádzajúce vysielané rozhlasové stanice!</string>
+    <string name="upload">Nahrať</string>
+    <string name="google_drive_download_info">Stiahnite si obľúbené a miestne pridané rozhlasové stanice z Google Drive.</string>
+    <string name="download">Stiahnuť</string>
+    <string name="google_drive_error_when_save">Pri ukladaní rozhlasových staníc do služby Google Drive došlo k chybe.</string>
+    <string name="google_drive_error_when_read">Chyba pri prečítaní rozhlasových staníc z Google Drive</string>
+    <string name="google_drive_data_saved">Rozhlasové stanice sú uložené na Google Drive</string>
+    <string name="google_drive_data_read">Rozhlasové stanice sa čítajú z Google Drive</string>
+    <string name="google_drive_conn_error">Chyba pri pripojení k Google Drive</string>
 </resources>

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Open Radio</string>
     <string name="action_about">Sur</string>
     <string name="all_categories_title">Toutes catégories</string>
-    <string name="all_categories_sub_title">stations de radio de toutes les catégories</string>
+    <string name="all_categories_sub_title">Stations de Radio de toutes les catégories</string>
     <string name="label_previous">Précédent</string>
     <string name="label_next">Prochain</string>
     <string name="label_pause">Pause</string>
@@ -14,7 +13,7 @@
     <string name="play_pause">Lecture ou pause</string>
     <string name="no_network_connection_toast">Aucune connexion réseau n\'a été trouvée</string>
     <string name="error_loading_media">Erreur Chargement du support</string>
-    <string name="about_thanks_1">Ce projet utilise l\'API Dirble - un service qui fournit une liste des stations de radio diffusant leur flux en direct sur Internet:</string>
+    <string name="about_thanks_1">Ce projet utilise l\'API Dirble - un service qui fournit une liste des Stations de Radio diffusant leur flux en direct sur Internet:</string>
     <string name="about_thanks_1_title">Dirble API</string>
     <string name="about_thanks_1_url">https://dirble.com/developer/api</string>
     <string name="about_thanks_2">Les graphiques sont fournis par:</string>
@@ -32,16 +31,16 @@
     <string name="no_metadata">Pas de métadonnées</string>
     <string name="can_not_skip">Impossible de sauter</string>
     <string name="category_empty">La catégorie est vide</string>
-    <string name="country_stations_title">Stations de radio du pays</string>
-    <string name="country_stations_sub_title">stations de radio du pays</string>
-    <string name="use_location_service_message">Le service de localisation est désactivé sur l\'appareil.\nPour utiliser des fonctionnalités supplémentaires de la radio ouverte (telles que les stations de radio de l\'emplacement actuel), il est nécessaire d\'activer le service de localisation.</string>
+    <string name="country_stations_title">Stations de Radio du pays</string>
+    <string name="country_stations_sub_title">Stations de Radio du pays</string>
+    <string name="use_location_service_message">Le service de localisation est désactivé sur l\'appareil.\nPour utiliser des fonctionnalités supplémentaires de la radio ouverte (telles que les Stations de Radio de l\'emplacement actuel), il est nécessaire d\'activer le service de localisation.</string>
     <string name="location_service">Service de localisation</string>
     <string name="enable_location_service_btn_label">Activer le service de localisation</string>
     <string name="countries_list_title">Tous les pays</string>
-    <string name="countries_list_sub_title">stations de radio par pays</string>
+    <string name="countries_list_sub_title">Stations de Radio par pays</string>
     <string name="favorite">Préféré</string>
     <string name="favorites_list_title">Favoris</string>
-    <string name="favorites_list_sub_title">stations de radio favorites</string>
+    <string name="favorites_list_sub_title">Stations de Radio favorites</string>
     <string name="content_description_category_icon">Icône catégorie</string>
     <string name="no_search_results">Aucun résultat trouvé</string>
     <string name="search_label">Chercher</string>
@@ -53,7 +52,7 @@
     <string name="cant_read_folder">Le dossier ne peut pas être lu!</string>
     <string name="select_label">Sélectionner</string>
     <string name="local_radio_stations_list_title">Des locaux</string>
-    <string name="local_radio_stations_list_sub_title">stations de radio ajoutées localement</string>
+    <string name="local_radio_stations_list_sub_title">Stations de Radio ajoutées localement</string>
     <string name="remove_station_dialog_title">Supprimer la Station de Radio</string>
     <string name="remove_station_dialog_button_label">Supprimer</string>
     <string name="remove_station_dialog_main_text">Vous allez supprimer la Station de Radio:\n%s\nÊtes-vous sûr?</string>
@@ -67,7 +66,7 @@
     <string name="add_station_country_label">Pays:</string>
     <string name="ellipsis">…</string>
     <string name="popular_stations_title">Stations de Radio populaires</string>
-    <string name="popular_stations_sub_title">stations de radio populaires</string>
+    <string name="popular_stations_sub_title">Stations de Radio populaires</string>
     <string name="recent_added_stations_title">Stations de Radio récemment ajoutées</string>
     <string name="recent_added_stations_sub_title">Stations de Radio récemment ajoutées</string>
     <string name="recent_played_songs_title">Chansons récemment jouées</string>
@@ -88,7 +87,18 @@
     <string name="sort_radio_stations_menu_label">Trier les Stations de Radio</string>
     <string name="delete_station_menu_label">Supprimer la Station de Radio</string>
     <string name="feature_sort_title">Trier les Stations de Radio</string>
-    <string name="feature_sort_text">Pour effectuer des stations de radio:\n\n- appuyez longuement sur n\'importe quelle Station de Radio\n- sélectionner \"Trier les Stations de Radio\"\n- faites glisser et déposez la Station de Radio pour les trier dans l\'ordre souhaité\n- appuyez sur le bouton \"Retour\" pour revenir au mode normal</string>
+    <string name="feature_sort_text">Pour effectuer des Stations de Radio:\n\n- appuyez longuement sur n\'importe quelle Station de Radio\n- sélectionner \"Trier les Stations de Radio\"\n- faites glisser et déposez la Station de Radio pour les trier dans l\'ordre souhaité\n- appuyez sur le bouton \"Retour\" pour revenir au mode normal</string>
     <string name="enable_last_known_radio_station_label">Jouez la dernière station de radio connue\n(permet à l\'application de lancer automatiquement la dernière station de radio connue)</string>
-
+    <string name="google_drive">Google Drive</string>
+    <string name="action_google_drive">Google Drive</string>
+    <string name="google_drive_init_warning">La connexion initiale peut prendre beaucoup de temps</string>
+    <string name="google_drive_upload_info">Téléchargez des favoris et des Stations de Radio locales ajoutées à Google Drive.\nREMARQUE: Cette opération écrasera les Stations de Radio téléchargées précédemment!</string>
+    <string name="upload">Télécharger vers</string>
+    <string name="google_drive_download_info">Téléchargez les favoris et les Stations de Radio locales ajoutées depuis Google Drive</string>
+    <string name="download">Télécharger à partir de</string>
+    <string name="google_drive_error_when_save">Erreur lors de l\'enregistrement des Stations de Radio sur Google Drive</string>
+    <string name="google_drive_error_when_read">Erreur lors de la lecture des Stations de Radio de Google Drive</string>
+    <string name="google_drive_data_saved">Les Stations de Radio sont enregistrées sur Google Drive</string>
+    <string name="google_drive_data_read">Les Stations de Radio sont lues depuis Google Drive</string>
+    <string name="google_drive_conn_error">Erreur lors de la connexion à Google Drive</string>
 </resources>

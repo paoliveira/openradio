@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Open Radio</string>
     <string name="action_about">Om</string>
     <string name="all_categories_title">Alle kategorier</string>
@@ -90,5 +89,16 @@
     <string name="feature_sort_title">Sorter Radiostasjoner</string>
     <string name="feature_sort_text">Å gjøre radiostasjoner sortere:\n\n- lenge trykk på en hvilken som helst Radiostasjon\n- plukke ut \"Sorter Radiostasjoner\"\n- dra og slipp Radio Station for å sortere dem i ønsket rekkefølger\n- trykk på \"Tilbake\" knappen for å gå tilbake til normal modus</string>
     <string name="enable_last_known_radio_station_label">Spill sist kjente radiostasjon\n(gjør at programmet automatisk kan starte den siste kjente radiostasjonen)</string>
-
+    <string name="google_drive">Google Drive</string>
+    <string name="action_google_drive">Google Drive</string>
+    <string name="google_drive_init_warning">Innledende tilkobling kan ta lang tid.</string>
+    <string name="google_drive_upload_info">Last opp Favoritter og Lokale lagt til radiostasjoner til Google Disk.\nMERK: Denne operasjonen vil overskrive radiostasjoner som er lastet opp tidligere!</string>
+    <string name="upload">Laste opp</string>
+    <string name="google_drive_download_info">Last ned Favoritter og Lokale lagt til radiostasjoner fra Google Drive.</string>
+    <string name="download">Nedlasting</string>
+    <string name="google_drive_error_when_save">Feil mens du lagrer radiostasjoner til Google Drive.</string>
+    <string name="google_drive_error_when_read">Feil mens du leser radiostasjoner fra Google Drive</string>
+    <string name="google_drive_data_saved">Radiostasjoner lagres i Google Drive</string>
+    <string name="google_drive_data_read">Radiostasjoner leses fra Google Drive</string>
+    <string name="google_drive_conn_error">Feil ved å koble til Google Drive</string>
 </resources>

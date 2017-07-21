@@ -43,10 +43,23 @@ public final class CrashlyticsUtils {
      * @param exception Exception.
      */
     public static void logException(final Exception exception) {
-        AppLogger.e("E:" + Log.getStackTraceString(exception));
+        AppLogger.e("Ex:" + Log.getStackTraceString(exception));
         if (Crashlytics.getInstance() == null) {
             return;
         }
         Crashlytics.logException(exception);
+    }
+
+    /**
+     * Logs error to the Fabric dashboard.
+     *
+     * @param errorMessage Message associated with error.
+     */
+    public static void logError(final String errorMessage) {
+        AppLogger.w("Er:" + errorMessage);
+        if (Crashlytics.getInstance() == null) {
+            return;
+        }
+        Crashlytics.log(errorMessage);
     }
 }

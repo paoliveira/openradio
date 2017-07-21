@@ -1393,7 +1393,7 @@ public final class MainActivity extends AppCompatActivity {
                 reference.requestGoogleDriveSignIn(connectionResult);
             } else {
                 SafeToast.showAnyThread(
-                        reference.getApplicationContext(), "Error to connect to Google Drive"
+                        reference.getApplicationContext(), reference.getString(R.string.google_drive_conn_error)
                 );
             }
 
@@ -1426,10 +1426,10 @@ public final class MainActivity extends AppCompatActivity {
             String message = null;
             switch (command) {
                 case UPLOAD:
-                    message = "Radio Stations are saved to Google Drive";
+                    message = reference.getString(R.string.google_drive_data_saved);
                     break;
                 case DOWNLOAD:
-                    message = "Radio Stations are read from Google Drive";
+                    message = reference.getString(R.string.google_drive_error_when_read);
                     reference.updateListAfterDownloadFromGoogleDrive();
                     break;
             }
@@ -1442,8 +1442,6 @@ public final class MainActivity extends AppCompatActivity {
                     reference.getGoogleDriveDialog().hideProgress(command);
                 }
             });
-
-
         }
 
         @Override
@@ -1455,10 +1453,10 @@ public final class MainActivity extends AppCompatActivity {
             String message = null;
             switch (command) {
                 case UPLOAD:
-                    message = "Error while save Radio Stations to Google Drive";
+                    message = reference.getString(R.string.google_drive_error_when_save);
                     break;
                 case DOWNLOAD:
-                    message = "Error while read Radio Stations from Google Drive";
+                    message = reference.getString(R.string.google_drive_error_when_read);
                     break;
             }
             if (!TextUtils.isEmpty(message)) {

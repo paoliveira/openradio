@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Open Radio</string>
     <string name="action_about">Über</string>
     <string name="all_categories_title">Alle Kategorien</string>
@@ -90,5 +89,16 @@
     <string name="feature_sort_title">Radiosender sortieren</string>
     <string name="feature_sort_text">Radiosender sortieren:\n\n- langes drücken eines Radiosenders\n- wählen \"Radiosender sortieren\"\n- per Drag und Drop Radio Station, um sie in der gewünschten Reihenfolge zu sortieren\n- drücken Sie die Taste \"Zurück\", um zum normalen Modus zurückzukehren</string>
     <string name="enable_last_known_radio_station_label">Spielen Sie die letzte bekannte Radiosender\n(ermöglicht die Anwendung, die letzte bekannte Radiosender automatisch zu starten)</string>
-
+    <string name="google_drive">Google Drive</string>
+    <string name="action_google_drive">Google Drive</string>
+    <string name="google_drive_init_warning">Die anfängliche Verbindung kann lange dauern</string>
+    <string name="google_drive_upload_info">Hochladen von Favoriten und lokal hinzugefügten Radiosender zu Google Drive.\nHINWEIS: Dieser Vorgang überschreibt die zuvor hochgeladenen Radiosender!</string>
+    <string name="upload">Hochladen</string>
+    <string name="google_drive_download_info">Download Favoriten und lokal hinzugefügte Radiosender von Google Drive</string>
+    <string name="download">Herunterladen</string>
+    <string name="google_drive_error_when_save">Fehler beim Speichern von Radiosender auf Google Drive</string>
+    <string name="google_drive_error_when_read">Fehler beim Lesen von Radiosendern von Google Drive</string>
+    <string name="google_drive_data_saved">Radiosender werden in Google Drive gespeichert</string>
+    <string name="google_drive_data_read">Radiosender werden von Google Drive gelesen</string>
+    <string name="google_drive_conn_error">Fehler beim Herstellen einer Verbindung zu Google Drive</string>
 </resources>

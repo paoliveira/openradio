@@ -19,7 +19,7 @@
 
         <TextView
             android:id="@+id/google_drive_title"
-            android:text="Google Drive"
+            android:text="@string/google_drive"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
@@ -30,7 +30,7 @@
     </RelativeLayout>
 
     <TextView
-        android:text="Initial connection may take a long time."
+        android:text="@string/google_drive_init_warning"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
@@ -42,7 +42,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="15dp"
-        android:text="Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!"
+        android:text="@string/google_drive_upload_info"
         android:textStyle="bold" />
 
     <RelativeLayout
@@ -53,7 +53,7 @@
             android:id="@+id/upload_to_google_drive_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Upload"
+            android:text="@string/upload"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_marginBottom="15dp"/>
@@ -77,7 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="15dp"
-        android:text="Download Favorites and Local added Radio Stations from Google Drive."
+        android:text="@string/google_drive_download_info"
         android:textStyle="bold" />
 
     <RelativeLayout
@@ -88,7 +88,7 @@
             android:id="@+id/download_from_google_drive_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Download"
+            android:text="@string/download"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:layout_marginBottom="15dp"/>

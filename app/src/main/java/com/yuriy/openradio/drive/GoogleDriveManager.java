@@ -68,7 +68,7 @@ public final class GoogleDriveManager {
          * Google Drive client failed with {@link ConnectionResult}. Typically this is means to perform another
          * actions based on the result, such as show Auth window or select user to associate with Google Drive client.
          *
-         * @param connectionResult
+         * @param connectionResult Result object of the failure.
          */
         void onConnectionFailed(final ConnectionResult connectionResult);
 
@@ -143,16 +143,25 @@ public final class GoogleDriveManager {
         mListener = listener;
     }
 
+    /**
+     * Release associated resources.
+     */
     public void release() {
         mExecutorService.shutdown();
     }
 
+    /**
+     * Disconnect Google Drive client.
+     */
     public void disconnect() {
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
         }
     }
 
+    /**
+     * Connect Google Drive client.
+     */
     public void connect() {
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
@@ -169,7 +178,7 @@ public final class GoogleDriveManager {
     }
 
     /**
-     *
+     * Download Radio Stations from Google Drive.
      */
     public void downloadRadioStations() {
         queueCommand(mContext, Command.DOWNLOAD);
@@ -208,7 +217,7 @@ public final class GoogleDriveManager {
     }
 
     /**
-     *
+     * Initiate download and provide a listener.
      */
     private void downloadRadioStationsAndApply() {
         final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.DOWNLOAD);
@@ -222,7 +231,7 @@ public final class GoogleDriveManager {
      * Do actual upload of a single Radio Stations category.
      *
      * @param folderName Folder to upload to.
-     * @param fileName   File name to associated with Radio Stations data.
+     * @param fileName   File name to associate with Radio Stations data.
      * @param data       Marshalled Radio Stations.
      * @param listener   Listener.
      */
@@ -250,10 +259,11 @@ public final class GoogleDriveManager {
     }
 
     /**
+     * Do actual downloading of the data stored on Google Drive.
      *
-     * @param folderName
-     * @param fileName
-     * @param listener
+     * @param folderName Name of the folder to download from.
+     * @param fileName   File name associated with Radio Stations data.
+     * @param listener   Listener of the download related events.
      */
     private void downloadInternal(final String folderName, final String fileName,
                                   final GoogleDriveRequest.Listener listener) {
@@ -275,23 +285,32 @@ public final class GoogleDriveManager {
         queryFolder.handleRequest(request, result);
     }
 
+    /**
+     * Add command to queue.
+     *
+     * @param command Command to add.
+     */
     private void addCommand(final Command command) {
         if (mCommands.contains(command)) {
             return;
         }
-
-        AppLogger.d("Add Command: " + command);
         mCommands.add(command);
     }
 
+    /**
+     * Remove command from the queue.
+     *
+     * @return Removed command.
+     */
     private Command removeCommand() {
         return mCommands.remove();
     }
 
     /**
+     * Returns instance to Google Drive client.
      *
-     * @param context
-     * @return
+     * @param context Context of application.
+     * @return Instance of the {@link GoogleApiClient}.
      */
     private synchronized GoogleApiClient getGoogleApiClient(final Context context) {
         if (mGoogleApiClient != null) {
@@ -355,10 +374,11 @@ public final class GoogleDriveManager {
     }
 
     /**
+     * Merge provided categories into the single data string.
      *
-     * @param favorites
-     * @param locals
-     * @return
+     * @param favorites Favorites Radio Stations as one single string.
+     * @param locals Locals Radio Stations as one single string.
+     * @return Data sting.
      */
     private String mergeRadioStationCategories(@NonNull final String favorites, @NonNull final String locals) {
         final JSONObject jsonObject = new JSONObject();
@@ -372,9 +392,10 @@ public final class GoogleDriveManager {
     }
 
     /**
+     * Split provided data string in to the Radio Station categories.
      *
-     * @param data
-     * @return
+     * @param data String data represent merged Radio Stations.
+     * @return Array of string each of which represent Radio Stations in category.
      */
     private String[] splitRadioStationCategories(@NonNull final String data) {
         final String[] categories = new String[]{"", ""};
@@ -498,7 +519,7 @@ public final class GoogleDriveManager {
 
         @Override
         public void onError(final GoogleDriveError error) {
-            AppLogger.e("On Google Drive error : " + error.toString());
+            CrashlyticsUtils.logError("GD:" + error.toString());
             final GoogleDriveManager manager = mReference.get();
             if (manager == null) {
                 return;

@@ -130,9 +130,19 @@
 
     <string name="enable_last_known_radio_station_label">Play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
 
-    <!-- Version 2.7 -->
+    <!-- Version 3.0 -->
 
+    <string name="google_drive">Google Drive</string>
     <string name="action_google_drive">Google Drive</string>
-    <string name="title_activity_google_drive">GoogleDriveActivity</string>
+    <string name="google_drive_init_warning">Initial connection may take a long time.</string>
+    <string name="google_drive_upload_info">Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!</string>
+    <string name="upload">Upload</string>
+    <string name="google_drive_download_info">Download Favorites and Local added Radio Stations from Google Drive.</string>
+    <string name="download">Download</string>
+    <string name="google_drive_error_when_save">Error while save Radio Stations to Google Drive</string>
+    <string name="google_drive_error_when_read">Error while read Radio Stations from Google Drive</string>
+    <string name="google_drive_data_saved">Radio Stations are saved to Google Drive</string>
+    <string name="google_drive_data_read">Radio Stations are read from Google Drive</string>
+    <string name="google_drive_conn_error">Error to connect to Google Drive</string>
 
 </resources>
