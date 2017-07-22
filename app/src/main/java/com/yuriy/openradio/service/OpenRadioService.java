@@ -67,6 +67,7 @@ import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.CrashlyticsUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
@@ -1389,15 +1390,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     final RadioStationVO radioStation = QueueHelper.getRadioStationById(
                             mediaId, mRadioStations
                     );
+                    if (radioStation == null) {
+                        final String msg = "Set custom action on null Radio Station. MediaId:" + mediaId
+                                + ". " + QueueHelper.queueToString(mRadioStations);
+                        CrashlyticsUtils.logException(new RuntimeException(msg));
+                        return;
+                    }
+
                     int favoriteIcon = R.drawable.ic_star_off;
                     if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
                         favoriteIcon = R.drawable.ic_star_on;
                     }
-                    /*AppLogger.d(
-                            CLASS_NAME,
-                            "UpdatePlaybackState, setting Favorite custom action of music ",
-                            mediaId, " current favorite=" + mMusicProvider.isFavorite(mediaId)
-                    );*/
                     stateBuilder.addCustomAction(
                             CUSTOM_ACTION_THUMBS_UP,
                             getString(R.string.favorite),

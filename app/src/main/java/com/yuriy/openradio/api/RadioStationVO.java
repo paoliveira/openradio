@@ -206,7 +206,7 @@ public final class RadioStationVO implements Serializable {
 
     @Override
     public String toString() {
-        return "RadioStationVO " + hashCode() + " {" +
+        return "RadioStation " + hashCode() + " {" +
                 "id=" + mId +
                 ", status=" + mStatus +
                 ", name='" + mName + '\'' +

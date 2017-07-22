@@ -18,6 +18,7 @@ package com.yuriy.openradio.utils;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
@@ -261,5 +262,28 @@ public final class QueueHelper {
             }
             listA.add(radioStation);
         }
+    }
+
+    /**
+     *
+     * @param list
+     * @return
+     */
+    @NonNull
+    public static String queueToString(@Nullable final List<RadioStationVO> list) {
+        final StringBuilder builder = new StringBuilder("RadioStations:{");
+        final String delimiter = ", ";
+        if (list == null) {
+            builder.append("null");
+        } else {
+            for (final RadioStationVO radioStation : list) {
+                builder.append(radioStation.toString()).append(delimiter);
+            }
+            if (builder.length() > delimiter.length()) {
+                builder.delete(builder.length() - delimiter.length(), builder.length());
+            }
+        }
+        builder.append("}");
+        return builder.toString();
     }
 }
