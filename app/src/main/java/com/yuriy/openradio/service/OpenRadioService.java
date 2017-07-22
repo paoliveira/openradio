@@ -1677,52 +1677,67 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        mApiCallExecutor.submit(
-                () -> {
-                    // Instantiate appropriate downloader (HTTP one)
-                    final Downloader downloader = new HTTPDownloaderImpl();
-                    // Instantiate appropriate API service provider
-                    final APIServiceProvider serviceProvider = getServiceProvider();
-
-                    final List<RadioStationVO> list = serviceProvider.getStations(
-                            downloader,
-                            UrlBuilder.getSearchUrl(getApplicationContext()),
-                            APIServiceProviderImpl.getSearchQueryParameters(query)
-                    );
-
-                    if (list == null || list.isEmpty()) {
-                        // if nothing was found, we need to warn the user and stop playing
-                        handleStopRequest(getString(R.string.no_search_results));
-                        // TODO
-                        return;
+        if (!mApiCallExecutor.isShutdown() && !mApiCallExecutor.isTerminated()) {
+            mApiCallExecutor.submit(
+                    () -> {
+                        try {
+                            executePerformSearch(query);
+                        } catch (final Exception e) {
+                            CrashlyticsUtils.logException(e);
+                        }
                     }
+            );
+        }
+    }
 
-                    synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-                        mRadioStations.clear();
-                        mPlayingQueue.clear();
-                    }
+    /**
+     * Execute actual search.
+     *
+     * @param query Search query.
+     */
+    private void executePerformSearch(final String query) {
+        // Instantiate appropriate downloader (HTTP one)
+        final Downloader downloader = new HTTPDownloaderImpl();
+        // Instantiate appropriate API service provider
+        final APIServiceProvider serviceProvider = getServiceProvider();
 
-                    AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
+        final List<RadioStationVO> list = serviceProvider.getStations(
+                downloader,
+                UrlBuilder.getSearchUrl(getApplicationContext()),
+                APIServiceProviderImpl.getSearchQueryParameters(query)
+        );
 
-                    synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-                        QueueHelper.copyCollection(mRadioStations, list);
+        if (list == null || list.isEmpty()) {
+            // if nothing was found, we need to warn the user and stop playing
+            handleStopRequest(getString(R.string.no_search_results));
+            // TODO
+            return;
+        }
 
-                        QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
-                                        getApplicationContext(),
-                                        mRadioStations)
-                        );
-                    }
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            mRadioStations.clear();
+            mPlayingQueue.clear();
+        }
 
-                    mSession.setQueue(mPlayingQueue);
+        AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
 
-                    // immediately start playing from the beginning of the search results
-                    mCurrentIndexOnQueue = 0;
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            QueueHelper.copyCollection(mRadioStations, list);
 
-                    final Handler uiHandler = new Handler(Looper.getMainLooper());
-                    uiHandler.post(
-                            this::handlePlayRequest
-                    );
-                }
+            QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
+                    getApplicationContext(),
+                    mRadioStations)
+            );
+        }
+
+        mSession.setQueue(mPlayingQueue);
+
+        // immediately start playing from the beginning of the search results
+        mCurrentIndexOnQueue = 0;
+
+        final Handler uiHandler = new Handler(Looper.getMainLooper());
+        uiHandler.post(
+                this::handlePlayRequest
         );
     }
 
