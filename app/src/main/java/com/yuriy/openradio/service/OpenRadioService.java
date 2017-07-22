@@ -31,6 +31,7 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
@@ -213,7 +214,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Executor of the API requests.
      */
-    private ExecutorService mApiCallExecutor = Executors.newSingleThreadExecutor();
+    private ExecutorService mApiCallExecutor;
 
     /**
      * Collection of the Radio Stations.
@@ -356,6 +357,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onCreate();
 
         AppLogger.i(CLASS_NAME + " On Create");
+
+        mApiCallExecutor = Executors.newCachedThreadPool();
 
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
@@ -557,6 +560,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onDestroy();
 
         stopService();
+
+        final ExecutorService executorService = getApiCallExecutor();
+        if (executorService != null) {
+            executorService.shutdown();
+        }
     }
 
     @Override
@@ -908,25 +916,28 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         if (!radioStationCopy.getIsUpdated()) {
 
-            mApiCallExecutor.submit(
-                    () -> {
-                        // Start download information about Radio Station
-                        final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
-                                new HTTPDownloaderImpl(),
-                                UrlBuilder.getStation(
-                                        getApplicationContext(),
-                                        radioStationCopy.getIdAsString()
-                                )
-                        );
-                        radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
-                        radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
-                        radioStationCopy.setIsUpdated(true);
+            final ExecutorService executorService = getApiCallExecutor();
+            if (executorService != null) {
+                executorService.submit(
+                        () -> {
+                            // Start download information about Radio Station
+                            final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
+                                    new HTTPDownloaderImpl(),
+                                    UrlBuilder.getStation(
+                                            getApplicationContext(),
+                                            radioStationCopy.getIdAsString()
+                                    )
+                            );
+                            radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
+                            radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
+                            radioStationCopy.setIsUpdated(true);
 
-                        if (listener != null) {
-                            listener.onComplete(buildMetadata(radioStationCopy));
+                            if (listener != null) {
+                                listener.onComplete(buildMetadata(radioStationCopy));
+                            }
                         }
-                    }
-            );
+                );
+            }
         } else {
             if (listener != null) {
                 listener.onComplete(buildMetadata(radioStationCopy));
@@ -1026,8 +1037,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mWifiLock.isHeld()) {
             mWifiLock.release();
         }
-
-        mApiCallExecutor.shutdown();
     }
 
     /**
@@ -1667,8 +1676,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void performSearch(final String query) {
         AppLogger.i(CLASS_NAME + " Search for:" + query);
 
-        handleStopRequest(null);
-
         if (TextUtils.isEmpty(query)) {
             // A generic search like "Play music" sends an empty query
             // and it's expected that we start playing something.
@@ -1677,16 +1684,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        if (!mApiCallExecutor.isShutdown() && !mApiCallExecutor.isTerminated()) {
-            mApiCallExecutor.submit(
+        final ExecutorService executorService = getApiCallExecutor();
+        if (executorService != null) {
+            executorService.submit(
                     () -> {
                         try {
                             executePerformSearch(query);
                         } catch (final Exception e) {
+                            handleStopRequest(getString(R.string.no_search_results));
                             CrashlyticsUtils.logException(e);
                         }
                     }
             );
+        } else {
+            handleStopRequest(getString(R.string.no_search_results));
         }
     }
 
@@ -1761,6 +1772,23 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         index, mediaId
                 )
         );
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Nullable
+    private ExecutorService getApiCallExecutor() {
+        if (mApiCallExecutor == null) {
+            CrashlyticsUtils.logError("API executor is null");
+            return null;
+        }
+        if (mApiCallExecutor.isShutdown()) {
+            CrashlyticsUtils.logError("API executor is shut down");
+            return null;
+        }
+        return mApiCallExecutor;
     }
 
     /**
