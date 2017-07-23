@@ -24,7 +24,7 @@ android {
     println "Version code:" + code
     defaultConfig {
         applicationId "com.yuriy.openradio"
-        minSdkVersion 14
+        minSdkVersion 16
         targetSdkVersion 25
         versionCode code
         versionName "3.0"

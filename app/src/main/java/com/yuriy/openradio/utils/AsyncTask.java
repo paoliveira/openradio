@@ -21,7 +21,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Process;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import java.util.ArrayDeque;
 import java.util.concurrent.BlockingQueue;
@@ -320,9 +319,9 @@ public abstract class AsyncTask<Params, Progress, Result> {
                 try {
                     postResultIfNotInvoked(get());
                 } catch (final InterruptedException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 } catch (final ExecutionException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                     throw new RuntimeException("An error occur while executing doInBackground()",
                             e.getCause());
                 } catch (final CancellationException e) {

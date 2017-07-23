@@ -217,7 +217,7 @@ public class ImageCache {
                             }
                         } catch (final IOException e) {
                             mCacheParams.diskCacheDir = null;
-                            CrashlyticsUtils.logException(e);
+                            FabricUtils.logException(e);
                         }
                     }
                 }
@@ -268,7 +268,7 @@ public class ImageCache {
                         snapshot.getInputStream(DISK_CACHE_INDEX).close();
                     }
                 } catch (Exception e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 } finally {
                     try {
                         if (out != null) {
@@ -339,7 +339,7 @@ public class ImageCache {
                         }
                     }
                 } catch (final IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 } finally {
                     try {
                         if (inputStream != null) {
@@ -411,7 +411,7 @@ public class ImageCache {
                         AppLogger.d(TAG + " Disk cache cleared");
                     }
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
                 mDiskLruCache = null;
                 initDiskCache();
@@ -432,7 +432,7 @@ public class ImageCache {
                         AppLogger.d(TAG + " Disk cache flushed");
                     }
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             }
         }
@@ -454,7 +454,7 @@ public class ImageCache {
                         }
                     }
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             }
         }
@@ -570,7 +570,7 @@ public class ImageCache {
             try {
                 cachePath = context.getCacheDir().getPath();
             } catch (final Exception e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
                 cachePath = constructExternalCacheDir(context).getPath();
             }
         }
@@ -588,7 +588,7 @@ public class ImageCache {
             mDigest.update(key.getBytes());
             cacheKey = bytesToHexString(mDigest.digest());
         } catch (NoSuchAlgorithmException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
             cacheKey = String.valueOf(key.hashCode());
         }
         return cacheKey;

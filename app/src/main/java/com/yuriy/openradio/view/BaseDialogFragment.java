@@ -22,7 +22,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 /**
  * Created with Android Studio.
@@ -54,7 +54,7 @@ public class BaseDialogFragment extends DialogFragment {
             baseDialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor()
                     .newInstance();
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
         return baseDialogFragment;
     }

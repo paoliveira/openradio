@@ -28,7 +28,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -229,7 +229,7 @@ public final class MediaResourcesManager {
                         manager.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
                 return;
             }
 

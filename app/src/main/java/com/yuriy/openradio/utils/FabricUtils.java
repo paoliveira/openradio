@@ -19,6 +19,10 @@ package com.yuriy.openradio.utils;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
+
+import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by Yuriy Chernyshov
@@ -28,12 +32,16 @@ import com.crashlytics.android.Crashlytics;
  *
  *  A helper class designed to assist with API Crashlytics provided.
  */
-public final class CrashlyticsUtils {
+public final class FabricUtils {
+
+    public static final String EVENT_NAME_API_EXEC = "ApiExecutor";
+    public static final String EVENT_NAME_GOOGLE_DRIVE = "GoogleDrive";
+    public static final String EVENT_NAME_REMOTE_CONTROL_RECEIVER_RECEIVED = "RemoteControlReceiver received";
 
     /**
      * Default constructor.
      */
-    private CrashlyticsUtils() {
+    private FabricUtils() {
         super();
     }
 
@@ -51,15 +59,25 @@ public final class CrashlyticsUtils {
     }
 
     /**
-     * Logs error to the Fabric dashboard.
+     * Logs custom event to the Fabric dashboard.
      *
-     * @param errorMessage Message associated with error.
+     * @param name Event name.
      */
-    public static void logError(final String errorMessage) {
-        AppLogger.w("Er:" + errorMessage);
-        if (Crashlytics.getInstance() == null) {
+    public static void logCustomEvent(final String name, final String key, final String value) {
+        final boolean isFabricInit = Fabric.isInitialized();
+        AppLogger.w("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
+        if (!isFabricInit) {
             return;
         }
-        Crashlytics.log(errorMessage);
+        Answers.getInstance().logCustom(new CustomEvent(name).putCustomAttribute(key, value));
+    }
+
+    public static void logCustomEvent(final String name, final String key, final Number value) {
+        final boolean isFabricInit = Fabric.isInitialized();
+        AppLogger.w("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
+        if (!isFabricInit) {
+            return;
+        }
+        Answers.getInstance().logCustom(new CustomEvent(name).putCustomAttribute(key, value));
     }
 }

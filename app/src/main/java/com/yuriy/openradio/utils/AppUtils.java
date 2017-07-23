@@ -359,7 +359,7 @@ public final class AppUtils {
 
             return bout.toByteArray();
         } catch (IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             try {
                 is.close();
@@ -417,14 +417,14 @@ public final class AppUtils {
             packageName = context.getPackageName();
             return packageManager.getPackageInfo(packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
             return null;
         } catch (RuntimeException e) {
             // To catch RuntimeException("Package manager has died") that can occur on some
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
             return null;
         } catch (Throwable e) {
             AppLogger.e(CLASS_NAME + " Package manager has Throwable : " + e);
@@ -494,7 +494,7 @@ public final class AppUtils {
             fileOutputStream = new FileOutputStream(file);
             fileOutputStream.write(byteArray);
         } catch (IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             try {
                 byteArrayOutputStream.flush();
@@ -539,13 +539,13 @@ public final class AppUtils {
 
             result = true;
         } catch (IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             if (mFileOutputStream != null) {
                 try {
                     mFileOutputStream.close();
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             }
         }
@@ -592,7 +592,7 @@ public final class AppUtils {
         try {
             final boolean result = file.createNewFile();
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
         return file;
     }
@@ -710,7 +710,7 @@ public final class AppUtils {
                 }
             }
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
         return null;
     }

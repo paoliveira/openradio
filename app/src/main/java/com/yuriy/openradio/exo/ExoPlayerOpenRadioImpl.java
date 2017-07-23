@@ -52,7 +52,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -598,7 +598,7 @@ public final class ExoPlayerOpenRadioImpl {
                 return;
             }
 
-            CrashlyticsUtils.logException(error);
+            FabricUtils.logException(error);
 
             reference.mListener.onError(error);
         }

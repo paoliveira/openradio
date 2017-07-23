@@ -59,7 +59,7 @@ public final class AppLogger {
         try {
             logger.removeAllAppenders();
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
         try {
             final RollingFileAppender appender = new RollingFileAppender(layout, fileName);
@@ -67,7 +67,7 @@ public final class AppLogger {
             appender.setMaxBackupIndex(MAX_BACKUP_INDEX);
             logger.addAppender(appender);
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
         AppLogger.d("Current log stored to " + fileName);
     }
@@ -176,7 +176,7 @@ public final class AppLogger {
         try {
             Runtime.getRuntime().exec("logcat -f " + logcatFile.getPath());
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
 
         final File[] logs = getAllLogs(context);

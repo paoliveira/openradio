@@ -68,7 +68,7 @@ import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
@@ -1402,7 +1402,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     if (radioStation == null) {
                         final String msg = "Set custom action on null Radio Station. MediaId:" + mediaId
                                 + ". " + QueueHelper.queueToString(mRadioStations);
-                        CrashlyticsUtils.logException(new RuntimeException(msg));
+                        FabricUtils.logException(new RuntimeException(msg));
                         return;
                     }
 
@@ -1692,7 +1692,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             executePerformSearch(query);
                         } catch (final Exception e) {
                             handleStopRequest(getString(R.string.no_search_results));
-                            CrashlyticsUtils.logException(e);
+                            FabricUtils.logException(e);
                         }
                     }
             );
@@ -1781,11 +1781,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Nullable
     private ExecutorService getApiCallExecutor() {
         if (mApiCallExecutor == null) {
-            CrashlyticsUtils.logError("API executor is null");
+            FabricUtils.logCustomEvent(
+                    FabricUtils.EVENT_NAME_API_EXEC, "Error", "API executor is null"
+            );
             return null;
         }
         if (mApiCallExecutor.isShutdown()) {
-            CrashlyticsUtils.logError("API executor is shut down");
+            FabricUtils.logCustomEvent(
+                    FabricUtils.EVENT_NAME_API_EXEC, "Error", "API executor is shut down"
+            );
             return null;
         }
         return mApiCallExecutor;

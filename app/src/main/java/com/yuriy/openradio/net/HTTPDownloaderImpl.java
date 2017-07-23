@@ -20,7 +20,7 @@ import android.net.Uri;
 import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -84,7 +84,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             url = new URL(uri.toString());
         } catch (final MalformedURLException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
 
         if (url == null) {
@@ -95,7 +95,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
 
         if (urlConnection == null) {
@@ -110,7 +110,7 @@ public final class HTTPDownloaderImpl implements Downloader {
                 urlConnection.setRequestMethod("POST");
                 result = true;
             } catch (final ProtocolException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
 
             // If POST is supported:
@@ -124,7 +124,7 @@ public final class HTTPDownloaderImpl implements Downloader {
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
                 } catch (final IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 } finally {
                     try {
                         if (writer != null) {
@@ -144,7 +144,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             responseCode = urlConnection.getResponseCode();
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
 
         AppLogger.d("Response code:" + responseCode);
@@ -157,7 +157,7 @@ public final class HTTPDownloaderImpl implements Downloader {
             final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             response = toByteArray(inputStream);
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             urlConnection.disconnect();
         }

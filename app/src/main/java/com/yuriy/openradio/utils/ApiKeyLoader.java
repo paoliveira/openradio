@@ -25,7 +25,6 @@ package com.yuriy.openradio.utils;
 
 import android.content.Context;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.yuriy.openradio.R;
 
@@ -68,7 +67,7 @@ public final class ApiKeyLoader {
                 writer.write(buffer, 0, length);
             }
         } catch (IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             try {
                 stream.close();

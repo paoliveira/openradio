@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,7 +37,7 @@ import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.AsyncTask;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.IOException;
 
@@ -164,7 +163,7 @@ public final class SettingsDialog extends DialogFragment {
             AppLogger.zip(getActivity());
         } catch (final IOException e) {
             SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
             return;
         }
 
@@ -214,7 +213,7 @@ public final class SettingsDialog extends DialogFragment {
                 final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext.getApplicationContext()));
                 sendIntent .putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
                 return null;
             }
 
@@ -237,7 +236,7 @@ public final class SettingsDialog extends DialogFragment {
                     SafeToast.showAnyThread(
                             mContext.getApplicationContext(), mContext.getString(R.string.cant_start_activity)
                     );
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             } else {
                 SafeToast.showAnyThread(

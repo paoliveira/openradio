@@ -114,7 +114,7 @@ public class ImageFetcher extends ImageResizer {
                         AppLogger.d(TAG + " HTTP cache cleared");
                     }
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
                 mHttpDiskCache = null;
                 mHttpDiskCacheStarting = true;
@@ -134,7 +134,7 @@ public class ImageFetcher extends ImageResizer {
                         AppLogger.d(TAG + " HTTP cache flushed");
                     }
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             }
         }
@@ -154,7 +154,7 @@ public class ImageFetcher extends ImageResizer {
                         }
                     }
                 } catch (IOException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             }
         }
@@ -207,7 +207,7 @@ public class ImageFetcher extends ImageResizer {
                         fileDescriptor = fileInputStream.getFD();
                     }
                 } catch (IOException | IllegalStateException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 } finally {
                     if (fileDescriptor == null && fileInputStream != null) {
                         try {
@@ -266,7 +266,7 @@ public class ImageFetcher extends ImageResizer {
             }
             return true;
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();

@@ -25,7 +25,7 @@ import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
 
 import org.json.JSONArray;
@@ -118,7 +118,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                 allCategories.add(category);
 
             } catch (JSONException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
         }
 
@@ -161,7 +161,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                     allCountries.add(new CountryVO(countryName, countryCode));
                 }
             } catch (final JSONException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
         }
 
@@ -204,7 +204,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                 radioStations.add(radioStation);
 
             } catch (JSONException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
         }
 
@@ -279,14 +279,14 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             object = new JSONObject(response);
         } catch (JSONException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
             return radioStation;
         }
 
         try {
             updateRadioStation(radioStation, object);
         } catch (JSONException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
 
         return radioStation;
@@ -328,7 +328,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
         } catch (final UnsupportedEncodingException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
 
             responsesMapKey = null;
         }
@@ -355,7 +355,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         try {
             array = new JSONArray(response);
         } catch (JSONException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
 
         // Cache result
@@ -430,7 +430,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                 break;
 
             } catch (final Exception e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
         }
 

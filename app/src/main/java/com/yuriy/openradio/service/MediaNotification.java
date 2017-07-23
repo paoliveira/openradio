@@ -43,7 +43,7 @@ import android.util.LruCache;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -127,7 +127,7 @@ public class MediaNotification extends BroadcastReceiver {
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         }
         return notificationColor;
     }
@@ -207,7 +207,7 @@ public class MediaNotification extends BroadcastReceiver {
             try {
                 mController = new MediaControllerCompat(mService, mSessionToken);
             } catch (final RemoteException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
                 return;
             }
             mTransportControls = mController.getTransportControls();
@@ -412,7 +412,7 @@ public class MediaNotification extends BroadcastReceiver {
                         BitmapHelper.MEDIA_ART_BIG_HEIGHT
                 );
             } catch (final IOException e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
             if (mSource != null && bitmap != null) {
                 reference.mAlbumArtCache.put(mSource, bitmap);

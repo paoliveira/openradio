@@ -23,7 +23,7 @@ package com.yuriy.openradio.exo;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -159,7 +159,7 @@ final class IcyInputStream extends FilterInputStream {
         try {
             metadataString = new String(mBuffer, 0, size, mCharacterEncoding);
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
             return;
         }
 

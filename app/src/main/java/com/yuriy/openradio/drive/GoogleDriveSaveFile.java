@@ -22,7 +22,7 @@ import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.MetadataChangeSet;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -74,7 +74,7 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
         try {
             writer.write(data);
         } catch (final IOException e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
         } finally {
             try {
                 writer.close();

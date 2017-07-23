@@ -21,11 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
 import com.yuriy.openradio.utils.AppLogger;
-
-import io.fabric.sdk.android.Fabric;
+import com.yuriy.openradio.utils.FabricUtils;
 
 /**
  * Created by Yuriy Chernyshov
@@ -33,9 +30,13 @@ import io.fabric.sdk.android.Fabric;
  * On 3/5/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class RemoteControlReceiver extends BroadcastReceiver {
+public final class RemoteControlReceiver extends BroadcastReceiver {
 
     private static final String CLASS_NAME = RemoteControlReceiver.class.getSimpleName();
+
+    public RemoteControlReceiver() {
+        super();
+    }
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
@@ -44,15 +45,14 @@ public class RemoteControlReceiver extends BroadcastReceiver {
         }
         final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
         final int keyCode = event != null ? event.getKeyCode() : Integer.MIN_VALUE;
-        AppLogger.d(CLASS_NAME + " Key event:" + event);
-        if (Fabric.isInitialized()){
-            Answers.getInstance().logCustom(
-                    new CustomEvent("RemoteControlReceiver received")
-                            .putCustomAttribute("KeyCode", keyCode)
-            );
-        }
+        FabricUtils.logCustomEvent(
+                FabricUtils.EVENT_NAME_REMOTE_CONTROL_RECEIVER_RECEIVED, "KeyCode", (keyCode)
+        );
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
+
+                break;
+            case KeyEvent.KEYCODE_MEDIA_PAUSE:
 
                 break;
             default:

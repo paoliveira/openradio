@@ -18,7 +18,7 @@ package com.yuriy.openradio.exo;
 
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -90,7 +90,7 @@ final class IcyDataSource extends DefaultHttpDataSource {
             try {
                 period = Integer.parseInt(smetaint);
             } catch (final Exception e) {
-                CrashlyticsUtils.logException(e);
+                FabricUtils.logException(e);
             }
             if (period > 0) {
                 ret = new IcyInputStream(ret, period, mListener, null);

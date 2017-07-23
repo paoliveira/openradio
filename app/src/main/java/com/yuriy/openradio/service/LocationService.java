@@ -27,7 +27,7 @@ import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.CrashlyticsUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.PermissionChecker;
 
 import java.io.IOException;
@@ -161,7 +161,7 @@ public class LocationService {
                 try {
                     locationManager.removeUpdates(this);
                 } catch (final IllegalArgumentException e) {
-                    CrashlyticsUtils.logException(e);
+                    FabricUtils.logException(e);
                 }
             }
 
@@ -192,7 +192,7 @@ public class LocationService {
                     LocationManager.NETWORK_PROVIDER, 0, 0, locationListener
             );
         } catch (final Exception e) {
-            CrashlyticsUtils.logException(e);
+            FabricUtils.logException(e);
 
             mCountryCode = COUNTRY_CODE_DEFAULT;
             listener.onCountryCodeLocated(mCountryCode);
