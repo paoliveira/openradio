@@ -651,6 +651,9 @@ public final class MainActivity extends AppCompatActivity {
         final int[] positions = new int[itemsNumber];
         for (int i = 0; i < itemsNumber; ++i) {
             mediaItem = mBrowserAdapter.getItem(i);
+            if (mediaItem == null) {
+                continue;
+            }
             MediaItemHelper.updateSortIdField(mediaItem, i);
             mediaIds[i] = mediaItem.getMediaId();
             positions[i] = i;
