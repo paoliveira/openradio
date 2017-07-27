@@ -2,16 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
-    signingConfigs {
-        config {
-            keyAlias 'yuriychernyshovdev'
-            keyPassword 'gEgLk5Z3NyXQW3B'
-            storeFile file('/home/yurii/dev/AndroidKeyStore/yuriy-chernyshov-dev.jks')
-            storePassword 'gEgLk5Z3NyXQW3B'
-        }
-    }
-    compileSdkVersion 25
-    buildToolsVersion "26.0.0"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.1"
+
     def versionPropsFile = file('version.properties')
     def code = 1
     if (versionPropsFile.canRead()) {
@@ -22,10 +15,34 @@ android {
         throw new GradleException("Could not read version.properties !")
     }
     println "Version code:" + code
+
+    def signConfFile = file("sign.properties")
+    def storeFileProp
+    def aliasProp
+    def pwdProp
+    if (signConfFile.canRead()) {
+        def Properties signProps = new Properties()
+        signProps.load(new FileInputStream(signConfFile))
+        storeFileProp = signProps['file'].toString()
+        aliasProp = signProps['alias'].toString()
+        pwdProp = signProps['pwd'].toString()
+    } else {
+        throw new GradleException("Could not read sign.properties !")
+    }
+
+    signingConfigs {
+        config {
+            keyAlias aliasProp
+            keyPassword pwdProp
+            storeFile file(storeFileProp)
+            storePassword pwdProp
+        }
+    }
+
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode code
         versionName "3.0"
 
@@ -59,10 +76,6 @@ android {
     }
 }
 
-ext {
-    supportVersion = "25.4.0"
-}
-
 dependencies {
     compile "com.android.support:appcompat-v7:$supportVersion"
     compile "com.android.support:support-v4:$supportVersion"
@@ -70,7 +83,7 @@ dependencies {
     compile('com.crashlytics.sdk.android:crashlytics:2.6.8@aar') {
         transitive = true;
     }
-    compile 'com.google.android.gms:play-services-drive:11.0.2'
+    compile 'com.google.android.gms:play-services-drive:11.0.4'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'log4j:log4j:1.2.17'
 
