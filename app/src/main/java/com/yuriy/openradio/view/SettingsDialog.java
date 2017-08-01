@@ -21,12 +21,14 @@ import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
@@ -78,7 +80,13 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.settings_about, container, false);
+        final Rect displayRectangle = new Rect();
+        final Window window = getActivity().getWindow();
+        window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
+        final View view = inflater.inflate(R.layout.settings_about, container, false);
+        view.setMinimumWidth((int)(displayRectangle.width() * 0.9f));
+        view.setMinimumHeight((int)(displayRectangle.height() * 0.9f));
+        return view;
     }
 
     @Override
