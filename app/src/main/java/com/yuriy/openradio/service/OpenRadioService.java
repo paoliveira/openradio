@@ -1431,7 +1431,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Give up the audio focus.
      */
     private void giveUpAudioFocus() {
-        AppLogger.d(CLASS_NAME + " Give Up Audio Focus");
+        AppLogger.d(CLASS_NAME + " Give Up Audio Focus " + mAudioFocus);
         if (mAudioFocus != AudioFocus.FOCUSED) {
             return;
         }
