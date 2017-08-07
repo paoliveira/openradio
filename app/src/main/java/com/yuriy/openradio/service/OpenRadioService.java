@@ -40,8 +40,10 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
@@ -73,14 +75,24 @@ import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.utils.RadioStationChecker;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
+import wseemann.media.jplaylistparser.parser.AutoDetectParser;
+import wseemann.media.jplaylistparser.playlist.Playlist;
+import wseemann.media.jplaylistparser.playlist.PlaylistEntry;
 
 /**
  * Created by Yuriy Chernyshov
@@ -301,6 +313,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private long mPosition;
 
     private long mBufferedPosition;
+
+    private String mLastPlayedUrl;
 
     /**
      * Interface to link command implementation and Open Radio service.
@@ -637,9 +651,89 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
-    private void onError(final ExoPlaybackException error) {
-        AppLogger.e(CLASS_NAME + " ExoPlayer error:" + error);
+    private void onError(final ExoPlaybackException exception) {
+        AppLogger.e(CLASS_NAME + " ExoPlayer exception:" + exception);
+        final Throwable throwable = exception.getCause();
         handleStopRequest(getString(R.string.media_player_error));
+    }
+
+    private void onHandledError(final ExoPlaybackException exception) {
+        AppLogger.e(CLASS_NAME + " ExoPlayer handled exception:" + exception);
+        final Throwable throwable = exception.getCause();
+        if (throwable != null && throwable instanceof UnrecognizedInputFormatException) {
+            handleUnrecognizedInputFormatException();
+        }
+    }
+
+    private void handleUnrecognizedInputFormatException() {
+        mState = PlaybackStateCompat.STATE_STOPPED;
+        relaxResources(true);
+        giveUpAudioFocus();
+        updatePlaybackState(null);
+        mMediaNotification.stopNotification();
+
+        mApiCallExecutor.submit(
+                () -> {
+                    final String[] urls = extractUrlsFromPlaylist(mLastPlayedUrl);
+                    final Handler handler = new Handler(Looper.getMainLooper());
+                    handler.post(
+                            () -> {
+                                if (urls.length > 0) {
+                                    OpenRadioService.this.preparePlayer(urls[0]);
+                                } else {
+                                    OpenRadioService.this.handleStopRequest(
+                                            OpenRadioService.this.getString(R.string.media_player_error)
+                                    );
+                                }
+                            }
+                    );
+                }
+        );
+    }
+
+    private String[] extractUrlsFromPlaylist(final String playlistUrl) {
+        URL url;
+        HttpURLConnection conn = null;
+        InputStream is = null;
+        String[] result = null;
+
+        try {
+            url = new URL(playlistUrl);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(RadioStationChecker.CHECK_TIME);
+            conn.setReadTimeout(RadioStationChecker.CHECK_TIME);
+            conn.setRequestMethod("GET");
+
+            final String contentType = conn.getContentType();
+            is = conn.getInputStream();
+
+            final AutoDetectParser parser = new AutoDetectParser(RadioStationChecker.CHECK_TIME);
+            final Playlist playlist = new Playlist();
+            parser.parse(url.toString(), contentType, is, playlist);
+
+            final int length = playlist.getPlaylistEntries().size();
+            result = new String[length];
+            AppLogger.d("Found " + length + " streams assocated with " + playlistUrl);
+            for (int i = 0; i < length; i++) {
+                final PlaylistEntry entry = playlist.getPlaylistEntries().get(i);
+                result[i] = entry.get(PlaylistEntry.URI);
+                AppLogger.d(" - " + result[i]);
+            }
+        } catch (final IOException | JPlaylistParserException e) {
+            AppLogger.e("Can not get streams from playlist:\n" + Log.getStackTraceString(e));
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    /**/
+                }
+            }
+        }
+        return result == null ? new String[0] : result;
     }
 
     private void onPrepared() {
@@ -1116,24 +1210,31 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     " source=" + source
             );
 
-            service.mState = PlaybackStateCompat.STATE_STOPPED;
-
-            // release everything except ExoPlayer
-            service.relaxResources(false);
-
-            service.createMediaPlayerIfNeeded();
-
-            service.mState = PlaybackStateCompat.STATE_BUFFERING;
-
-            service.mExoPlayer.prepare(Uri.parse(source));
-
-            // If we are streaming from the internet, we want to hold a
-            // Wifi lock, which prevents the Wifi radio from going to
-            // sleep while the song is playing.
-            service.mWifiLock.acquire();
-
-            service.updatePlaybackState();
+            service.preparePlayer(source);
         }
+    }
+
+    private void preparePlayer(final String url) {
+        // Cache URL.
+        mLastPlayedUrl = url;
+        mState = PlaybackStateCompat.STATE_STOPPED;
+
+        // release everything except ExoPlayer
+        relaxResources(false);
+
+        createMediaPlayerIfNeeded();
+
+        mState = PlaybackStateCompat.STATE_BUFFERING;
+
+        AppLogger.d("Prepare " + mLastPlayedUrl);
+        mExoPlayer.prepare(Uri.parse(mLastPlayedUrl));
+
+        // If we are streaming from the internet, we want to hold a
+        // Wifi lock, which prevents the Wifi radio from going to
+        // sleep while the song is playing.
+        mWifiLock.acquire();
+
+        updatePlaybackState();
     }
 
     /**
@@ -1210,16 +1311,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param error Error message to present to the user.
      */
     private void updatePlaybackState(final String error) {
-        AppLogger.d(CLASS_NAME + " UpdatePlaybackState, setting session playback state to " + mState);
+        AppLogger.d(CLASS_NAME + " set playback state to " + mState + " with error:" + error);
 
-        // Start timeout handler for the new Radio Station
+        mRadioStationTimeoutHandler.removeCallbacks(mTimeoutRunnable);
+        // Start timeout handler for the Radio Station
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
             mRadioStationTimeoutHandler.postDelayed(
-                    radioStationTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
+                    mTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
             );
-            // Or cancel it in case of Success or Error
-        } else {
-            mRadioStationTimeoutHandler.removeCallbacks(radioStationTimeoutRunnable);
         }
 
         final PlaybackStateCompat.Builder stateBuilder
@@ -1246,9 +1345,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             stateBuilder.setActiveQueueItemId(item.getQueueId());
         }
 
-        mSession.setPlaybackState(stateBuilder.build());
-
-        AppLogger.d(CLASS_NAME + " UpdatePlaybackState, state:" + mState);
+        AppLogger.d(CLASS_NAME + " state:" + mState);
         if (mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
             mMediaNotification.startNotification();
         }
@@ -1257,10 +1354,26 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Runnable for the Radio Station buffering timeout.
      */
-    private final Runnable radioStationTimeoutRunnable = () -> {
-        handleStopRequest(null);
-        handleStopRequest(getString(R.string.can_not_play_station));
-    };
+    private final Runnable mTimeoutRunnable = new TimeoutRunnable(this);
+
+    private static final class TimeoutRunnable implements Runnable {
+
+        private final WeakReference<OpenRadioService> mReference;
+
+        private TimeoutRunnable(final OpenRadioService reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void run() {
+            final OpenRadioService service = mReference.get();
+            if (service != null) {
+                service.handleStopRequest(null);
+                service.handleStopRequest(service.getString(R.string.can_not_play_station));
+            }
+        }
+    }
 
     private long getAvailableActions() {
         long actions = PlaybackStateCompat.ACTION_PLAY
@@ -1835,6 +1948,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
          */
         private final WeakReference<OpenRadioService> mReference;
 
+        /**
+         * Constructor.
+         *
+         * @param reference
+         */
         private ExoPlayerListener(final OpenRadioService reference) {
             super();
             mReference = new WeakReference<>(reference);
@@ -1847,6 +1965,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             service.onError(error);
+        }
+
+        @Override
+        public void onHandledError(final ExoPlaybackException error) {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            service.onHandledError(error);
         }
 
         @Override

@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
  *
  * Helper class to check whether Radio Station's stream URL is provide 200 OK response.
  */
+
+// TODO: Refactor to use Executor Service
 public final class RadioStationChecker extends Thread {
 
     /**
@@ -31,7 +33,7 @@ public final class RadioStationChecker extends Thread {
     /**
      * Time out for the stream to decide whether there is response or not.
      */
-    private static final int CHECK_TIME = 2000;
+    public static final int CHECK_TIME = 2000;
     /**
      * Waiting max time for the thread for the initialization.
      */

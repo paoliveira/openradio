@@ -44,6 +44,7 @@ import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
@@ -80,6 +81,8 @@ public final class ExoPlayerOpenRadioImpl {
          * @param error Exception associated with error.
          */
         void onError(final ExoPlaybackException error);
+
+        void onHandledError(final ExoPlaybackException error);
 
         /**
          * Indicates that player is ready to play stream.
@@ -584,23 +587,27 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onPlayerError(final ExoPlaybackException error) {
-            AppLogger.e(LOG_TAG + " onPlayerError:\n" + Log.getStackTraceString(error));
+        public void onPlayerError(final ExoPlaybackException exception) {
+            AppLogger.e(LOG_TAG + " onPlayerError:\n" + Log.getStackTraceString(exception));
 
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
                 return;
             }
 
-            AppLogger.e(LOG_TAG + " num of exceptions " + reference.mNumOfExceptions.get());
-            if (reference.mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
-                reference.prepare(reference.mUri);
-                return;
+            if (exception.getCause() instanceof UnrecognizedInputFormatException) {
+                reference.mListener.onHandledError(exception);
+            } else {
+                AppLogger.e(LOG_TAG + " num of exceptions " + reference.mNumOfExceptions.get());
+                if (reference.mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
+                    reference.prepare(reference.mUri);
+                    return;
+                }
+
+                FabricUtils.logException(exception);
+
+                reference.mListener.onError(exception);
             }
-
-            FabricUtils.logException(error);
-
-            reference.mListener.onError(error);
         }
 
         @Override
