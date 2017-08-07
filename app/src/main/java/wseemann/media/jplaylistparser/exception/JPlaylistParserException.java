@@ -25,5 +25,4 @@ public class JPlaylistParserException extends Exception {
     public JPlaylistParserException(final String msg, final Throwable cause) {
         super(msg, cause);
     }
-
 }

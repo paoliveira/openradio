@@ -40,7 +40,6 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
@@ -730,7 +729,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 AppLogger.d(" - " + result[i]);
             }
         } catch (final IOException | JPlaylistParserException e) {
-            AppLogger.e("Can not get urls from playlist:\n" + Log.getStackTraceString(e));
+            final String errorMessage = "Can not get urls from playlist at " + playlistUrl;
+            FabricUtils.logException(new JPlaylistParserException(errorMessage, e));
         } finally {
             if (conn != null) {
                 conn.disconnect();
