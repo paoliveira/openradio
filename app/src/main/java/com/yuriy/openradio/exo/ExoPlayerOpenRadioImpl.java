@@ -595,19 +595,19 @@ public final class ExoPlayerOpenRadioImpl {
                 return;
             }
 
-            if (exception.getCause() instanceof UnrecognizedInputFormatException) {
-                reference.mListener.onHandledError(exception);
-            } else {
-                AppLogger.e(LOG_TAG + " num of exceptions " + reference.mNumOfExceptions.get());
-                if (reference.mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
+            AppLogger.e(LOG_TAG + " num of exceptions " + reference.mNumOfExceptions.get());
+            if (reference.mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
+                if (exception.getCause() instanceof UnrecognizedInputFormatException) {
+                    reference.mListener.onHandledError(exception);
+                } else {
                     reference.prepare(reference.mUri);
-                    return;
                 }
-
-                FabricUtils.logException(exception);
-
-                reference.mListener.onError(exception);
+                return;
             }
+
+            FabricUtils.logException(exception);
+
+            reference.mListener.onError(exception);
         }
 
         @Override

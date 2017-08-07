@@ -653,7 +653,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void onError(final ExoPlaybackException exception) {
         AppLogger.e(CLASS_NAME + " ExoPlayer exception:" + exception);
-        final Throwable throwable = exception.getCause();
         handleStopRequest(getString(R.string.media_player_error));
     }
 
@@ -666,29 +665,40 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void handleUnrecognizedInputFormatException() {
-        mState = PlaybackStateCompat.STATE_STOPPED;
-        relaxResources(true);
-        giveUpAudioFocus();
-        updatePlaybackState(null);
-        mMediaNotification.stopNotification();
+        handleStopRequest(null);
 
         mApiCallExecutor.submit(
                 () -> {
-                    final String[] urls = extractUrlsFromPlaylist(mLastPlayedUrl);
+                    final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
                     final Handler handler = new Handler(Looper.getMainLooper());
                     handler.post(
-                            () -> {
-                                if (urls.length > 0) {
-                                    OpenRadioService.this.preparePlayer(urls[0]);
-                                } else {
-                                    OpenRadioService.this.handleStopRequest(
-                                            OpenRadioService.this.getString(R.string.media_player_error)
-                                    );
-                                }
-                            }
+                            () -> OpenRadioService.this.handlePlayListUrlsExtracted(urls)
                     );
                 }
         );
+    }
+
+    private void handlePlayListUrlsExtracted(final String[] urls) {
+        if (urls.length == 0) {
+            handleStopRequest(getString(R.string.media_player_error));
+            return;
+        }
+
+        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final String mediaId = item.getDescription().getMediaId();
+
+        RadioStationVO radioStation;
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+        }
+        if (radioStation == null) {
+            handleStopRequest(getString(R.string.media_player_error));
+            return;
+        }
+
+        radioStation.setStreamURL(urls[0]);
+        QueueHelper.updateRadioStation(radioStation, mRadioStations);
+        OpenRadioService.this.handlePlayRequest();
     }
 
     private String[] extractUrlsFromPlaylist(final String playlistUrl) {
@@ -713,14 +723,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             final int length = playlist.getPlaylistEntries().size();
             result = new String[length];
-            AppLogger.d("Found " + length + " streams assocated with " + playlistUrl);
+            AppLogger.d("Found " + length + " streams associated with " + playlistUrl);
             for (int i = 0; i < length; i++) {
                 final PlaylistEntry entry = playlist.getPlaylistEntries().get(i);
                 result[i] = entry.get(PlaylistEntry.URI);
                 AppLogger.d(" - " + result[i]);
             }
         } catch (final IOException | JPlaylistParserException e) {
-            AppLogger.e("Can not get streams from playlist:\n" + Log.getStackTraceString(e));
+            AppLogger.e("Can not get urls from playlist:\n" + Log.getStackTraceString(e));
         } finally {
             if (conn != null) {
                 conn.disconnect();
@@ -1313,12 +1323,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void updatePlaybackState(final String error) {
         AppLogger.d(CLASS_NAME + " set playback state to " + mState + " with error:" + error);
 
-        mRadioStationTimeoutHandler.removeCallbacks(mTimeoutRunnable);
-        // Start timeout handler for the Radio Station
+        // Start timeout handler for the Radio Station.
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
             mRadioStationTimeoutHandler.postDelayed(
                     mTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
             );
+        // Or cancel it in case of Success or Error.
+        } else {
+            mRadioStationTimeoutHandler.removeCallbacks(mTimeoutRunnable);
         }
 
         final PlaybackStateCompat.Builder stateBuilder
