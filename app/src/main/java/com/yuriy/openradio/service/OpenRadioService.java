@@ -1357,6 +1357,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             stateBuilder.setActiveQueueItemId(item.getQueueId());
         }
 
+        mSession.setPlaybackState(stateBuilder.build());
+
         AppLogger.d(CLASS_NAME + " state:" + mState);
         if (mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
             mMediaNotification.startNotification();
