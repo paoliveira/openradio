@@ -127,17 +127,17 @@ public final class QueueActivity extends AppCompatActivity {
 
         // Assign listeners to the buttons
 
-        final ImageButton skipPrevious = findViewById(R.id.skip_previous);
+        final ImageButton skipPrevious = (ImageButton) findViewById(R.id.skip_previous);
         skipPrevious.setOnClickListener(mButtonListener);
 
-        final ImageButton skipNext =  findViewById(R.id.skip_next);
+        final ImageButton skipNext = (ImageButton) findViewById(R.id.skip_next);
         skipNext.setOnClickListener(mButtonListener);
 
-        mPlayPause = findViewById(R.id.play_pause);
+        mPlayPause = (ImageButton) findViewById(R.id.play_pause);
         mPlayPause.setOnClickListener(mButtonListener);
 
-        mProgressBar = findViewById(R.id.queue_progress_bar_view);
-        mBufferedTextView = findViewById(R.id.buffered_text_view);
+        mProgressBar = (ProgressBar) findViewById(R.id.queue_progress_bar_view);
+        mBufferedTextView = (TextView) findViewById(R.id.buffered_text_view);
 
         // Initialize adapter
         mQueueAdapter = new QueueAdapter(
@@ -156,7 +156,7 @@ public final class QueueActivity extends AppCompatActivity {
         );
 
         // Get list view reference from the inflated xml
-        mListView = findViewById(R.id.queue_list_view);
+        mListView = (ListView) findViewById(R.id.queue_list_view);
         // Set List's choice mode
         mListView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
         // Set adapter

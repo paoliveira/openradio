@@ -27,5 +27,5 @@ allprojects {
 }
 
 ext {
-    supportVersion = "26.0.1"
+    supportVersion = "25.4.0"
 }

@@ -265,7 +265,7 @@ public final class MainActivity extends AppCompatActivity {
         mBrowserAdapter = new MediaItemsAdapter(this, mImageFetcher);
 
         // Initialize progress bar
-        mProgressBar = findViewById(R.id.progress_bar_view);
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar_view);
 
         // Set OnSaveInstanceState to false
         mIsOnSaveInstancePassed.set(false);
@@ -273,10 +273,10 @@ public final class MainActivity extends AppCompatActivity {
         hideProgressBar();
 
         // Initialize No Data text view
-        mNoDataView = findViewById(R.id.no_data_view);
+        mNoDataView = (TextView) findViewById(R.id.no_data_view);
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
+        final ListView listView = (ListView) findViewById(R.id.list_view);
         // Set adapter
         listView.setAdapter(mBrowserAdapter);
         // Set click listener
@@ -285,7 +285,7 @@ public final class MainActivity extends AppCompatActivity {
         listView.setOnTouchListener(mOnTouchListener);
 
         // Handle Add Radio Station button.
-        final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
+        final FloatingActionButton addBtn = (FloatingActionButton) findViewById(R.id.add_station_btn);
         addBtn.setOnClickListener(
                 view -> {
                     // Show Add Station Dialog
@@ -310,7 +310,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onPause();
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
+        final ListView listView = (ListView) findViewById(R.id.list_view);
         if (listView != null) {
             unregisterForContextMenu(listView);
         }
@@ -321,7 +321,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onResume();
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
+        final ListView listView = (ListView) findViewById(R.id.list_view);
         if (listView != null) {
             registerForContextMenu(listView);
         }
@@ -449,7 +449,7 @@ public final class MainActivity extends AppCompatActivity {
         mIsOnSaveInstancePassed.set(true);
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
+        final ListView listView = (ListView) findViewById(R.id.list_view);
 
         // Save Media Stack
         outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mediaItemsStack);
@@ -796,7 +796,7 @@ public final class MainActivity extends AppCompatActivity {
     private void setSelectedItem(final int position) {
         AppLogger.d(CLASS_NAME + " Set selected:" + position);
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
+        final ListView listView = (ListView) findViewById(R.id.list_view);
         if (listView == null) {
             return;
         }
@@ -928,7 +928,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param metadata Metadata related to currently playing Radio Station.
      */
     private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
-        final RelativeLayout view = findViewById(R.id.last_played_item_view);
+        final RelativeLayout view = (RelativeLayout) findViewById(R.id.last_played_item_view);
         if (view == null) {
             return;
         }
@@ -942,19 +942,19 @@ public final class MainActivity extends AppCompatActivity {
 
         final MediaDescriptionCompat description = metadata.getDescription();
 
-        final TextView nameView = findViewById(R.id.name_view);
+        final TextView nameView = (TextView) findViewById(R.id.name_view);
         if (nameView != null) {
             nameView.setText(description.getTitle());
         }
-        final TextView descriptionView = findViewById(R.id.description_view);
+        final TextView descriptionView = (TextView) findViewById(R.id.description_view);
         if (descriptionView != null) {
             descriptionView.setText(description.getSubtitle());
         }
-        final ImageView imageView = findViewById(R.id.img_view);
+        final ImageView imageView = (ImageView) findViewById(R.id.img_view);
         if (imageView != null) {
             MediaItemsAdapter.updateImage(description, true, imageView, mImageFetcher);
         }
-        final CheckBox favoriteCheckView = findViewById(R.id.favorite_check_view);
+        final CheckBox favoriteCheckView = (CheckBox) findViewById(R.id.favorite_check_view);
         if (favoriteCheckView != null) {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                     MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), latestRadioStation),
@@ -1138,7 +1138,7 @@ public final class MainActivity extends AppCompatActivity {
             activity.mCurrentParentId = parentId;
             activity.hideProgressBar();
 
-            final FloatingActionButton addBtn = activity.findViewById(R.id.add_station_btn);
+            final FloatingActionButton addBtn = (FloatingActionButton) activity.findViewById(R.id.add_station_btn);
             if (parentId.equals(MediaIDHelper.MEDIA_ID_ROOT)) {
                 addBtn.setVisibility(View.VISIBLE);
             } else {
