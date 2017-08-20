@@ -30,6 +30,7 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerImpl;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
@@ -623,6 +624,11 @@ public final class ExoPlayerOpenRadioImpl {
         @Override
         public void onPlaybackParametersChanged(final PlaybackParameters playbackParameters) {
             //AppLogger.e(LOG_TAG + " onPlaybackParametersChanged");
+        }
+
+        @Override
+        public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
+            //AppLogger.e(LOG_TAG + " onRepeatModeChanged");
         }
     }
 

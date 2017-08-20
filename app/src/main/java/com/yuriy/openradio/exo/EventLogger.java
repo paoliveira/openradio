@@ -20,9 +20,9 @@ import android.util.Log;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RendererCapabilities;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -42,7 +42,6 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
-import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSpec;
@@ -54,8 +53,8 @@ import java.util.Locale;
 /**
  * Logs player events using {@link Log}.
  */
-final class EventLogger implements ExoPlayer.EventListener,
-        AudioRendererEventListener, AdaptiveMediaSourceEventListener,
+public final class EventLogger implements Player.EventListener, AudioRendererEventListener,
+        AdaptiveMediaSourceEventListener,
         ExtractorMediaSource.EventListener,
         MetadataRenderer.Output {
 
@@ -75,14 +74,14 @@ final class EventLogger implements ExoPlayer.EventListener,
     private final Timeline.Period period;
     private final long startTimeMs;
 
-    EventLogger(MappingTrackSelector trackSelector) {
+    public EventLogger(MappingTrackSelector trackSelector) {
         this.trackSelector = trackSelector;
         window = new Timeline.Window();
         period = new Timeline.Period();
         startTimeMs = SystemClock.elapsedRealtime();
     }
 
-    // ExoPlayer.EventListener
+    // Player.EventListener
 
     @Override
     public void onLoadingChanged(boolean isLoading) {
@@ -96,8 +95,19 @@ final class EventLogger implements ExoPlayer.EventListener,
     }
 
     @Override
+    public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
+        Log.d(TAG, "repeatMode [" + getRepeatModeString(repeatMode) + "]");
+    }
+
+    @Override
     public void onPositionDiscontinuity() {
         Log.d(TAG, "positionDiscontinuity");
+    }
+
+    @Override
+    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+        Log.d(TAG, "playbackParameters " + String.format(
+                "[speed=%.2f, pitch=%.2f]", playbackParameters.speed, playbackParameters.pitch));
     }
 
     @Override
@@ -130,7 +140,7 @@ final class EventLogger implements ExoPlayer.EventListener,
 
     @Override
     public void onTracksChanged(TrackGroupArray ignored, TrackSelectionArray trackSelections) {
-        MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = trackSelector.getCurrentMappedTrackInfo();
         if (mappedTrackInfo == null) {
             Log.d(TAG, "Tracks []");
             return;
@@ -287,11 +297,6 @@ final class EventLogger implements ExoPlayer.EventListener,
         // Do nothing.
     }
 
-    @Override
-    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-        // Do nothing.
-    }
-
     // Internal methods
 
     private void printInternalError(String type, Exception e) {
@@ -344,13 +349,13 @@ final class EventLogger implements ExoPlayer.EventListener,
 
     private static String getStateString(int state) {
         switch (state) {
-            case ExoPlayer.STATE_BUFFERING:
+            case Player.STATE_BUFFERING:
                 return "B";
-            case ExoPlayer.STATE_ENDED:
+            case Player.STATE_ENDED:
                 return "E";
-            case ExoPlayer.STATE_IDLE:
+            case Player.STATE_IDLE:
                 return "I";
-            case ExoPlayer.STATE_READY:
+            case Player.STATE_READY:
                 return "R";
             default:
                 return "?";
@@ -398,4 +403,16 @@ final class EventLogger implements ExoPlayer.EventListener,
         return enabled ? "[X]" : "[ ]";
     }
 
+    private static String getRepeatModeString(@Player.RepeatMode int repeatMode) {
+        switch (repeatMode) {
+            case Player.REPEAT_MODE_OFF:
+                return "OFF";
+            case Player.REPEAT_MODE_ONE:
+                return "ONE";
+            case Player.REPEAT_MODE_ALL:
+                return "ALL";
+            default:
+                return "?";
+        }
+    }
 }
