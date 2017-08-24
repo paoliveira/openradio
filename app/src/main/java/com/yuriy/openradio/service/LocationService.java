@@ -33,6 +33,7 @@ import com.yuriy.openradio.utils.PermissionChecker;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Yuriy Chernyshov
@@ -100,7 +101,7 @@ public class LocationService {
      *
      * @param context {@link Context} of the callee.
      */
-    public void requestCountryCodeLastKnown(final Context context) {
+    public void requestCountryCodeLastKnown(final Context context, final ExecutorService executorService) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
@@ -118,15 +119,20 @@ public class LocationService {
             return;
         }
 
-        try {
-            mCountryCode = extractCountryCode(
-                    context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
-            );
-        } catch (final IOException e) {
-            mCountryCode = COUNTRY_CODE_DEFAULT;
-        }
+        executorService.submit(
+                () -> {
+                    try {
+                        LocationService.this.mCountryCode = extractCountryCode(
+                                context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
+                        );
+                    } catch (final IOException e) {
+                        LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
+                        FabricUtils.logException(e);
+                    }
 
-        AppLogger.d(CLASS_NAME + " LastKnownLocation:" + mCountryCode);
+                    AppLogger.d(CLASS_NAME + " LastKnownLocation:" + LocationService.this.mCountryCode);
+                }
+        );
     }
 
     public void requestCountryCode(final Context context, final LocationServiceListener listener) {
@@ -145,13 +151,14 @@ public class LocationService {
                 }
 
                 try {
-                    mCountryCode = extractCountryCode(
+                    LocationService.this.mCountryCode = extractCountryCode(
                             context, location.getLatitude(), location.getLongitude()
                     );
                 } catch (final IOException e) {
-                    mCountryCode = COUNTRY_CODE_DEFAULT;
+                    LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
+                    FabricUtils.logException(e);
                 }
-                listener.onCountryCodeLocated(mCountryCode);
+                listener.onCountryCodeLocated(LocationService.this.mCountryCode);
 
                 if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
                     return;

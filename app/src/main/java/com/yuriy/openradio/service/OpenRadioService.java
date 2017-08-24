@@ -402,8 +402,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mCurrentIndexOnQueue = -1;
 
-        mLocationService.checkLocationEnable(this);
-        mLocationService.requestCountryCodeLastKnown(this);
+        mLocationService.checkLocationEnable(getApplicationContext());
+        mLocationService.requestCountryCodeLastKnown(getApplicationContext(), mApiCallExecutor);
 
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
         mWifiLock = ((WifiManager) getApplicationContext()
@@ -412,10 +412,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        final ComponentName mediaButtonReceiver = new ComponentName(this, RemoteControlReceiver.class);
+        final ComponentName mediaButtonReceiver = new ComponentName(getApplicationContext(), RemoteControlReceiver.class);
 
         // Start a new MediaSession
-        mSession = new MediaSessionCompat(this, "OpenRadioService", mediaButtonReceiver, null);
+        mSession = new MediaSessionCompat(getApplicationContext(), "OpenRadioService", mediaButtonReceiver, null);
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback(this));
         mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
@@ -587,7 +587,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 + ", clientUid=" + clientUid + ", rootHints=" + rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
-        if (!PackageValidator.isCallerAllowed(this, clientPackageName, clientUid)) {
+        if (!PackageValidator.isCallerAllowed(getApplicationContext(), clientPackageName, clientUid)) {
             // If the request comes from an untrusted package, return null. No further calls will
             // be made to other media browsing methods.
             AppLogger.w(CLASS_NAME + " OnGetRoot: IGNORING request from untrusted package "
@@ -1894,7 +1894,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (item != null && item.getDescription() != null) {
             mediaId = item.getDescription().getMediaId();
         }
-        LocalBroadcastManager.getInstance(this.getApplicationContext()).sendBroadcast(
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
                 AppLocalBroadcastReceiver.createIntentCurrentIndexOnQueue(
                         index, mediaId
                 )

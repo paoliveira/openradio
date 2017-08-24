@@ -20,6 +20,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -46,6 +48,13 @@ import java.util.List;
  * designed to prepare data to display root menu items.
  */
 public final class MediaItemRoot implements MediaItemCommand {
+
+    /**
+     * Main constructor.
+     */
+    public MediaItemRoot() {
+        super();
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -202,7 +211,11 @@ public final class MediaItemRoot implements MediaItemCommand {
 
         // If there is latest Radio Station (the one that played the last time Open Radio used) detected, play it.
         if (latestRadioStation != null) {
-            shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString());
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(
+                    () -> shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString()),
+                    2000
+            );
         }
     }
 }
