@@ -82,16 +82,16 @@ public final class RemoveStationDialog extends DialogFragment {
                 (int) (AppUtils.getShortestScreenSize(getActivity()) * 0.8),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        final LinearLayout root = (LinearLayout) view.findViewById(R.id.remove_station_dialog_root);
+        final LinearLayout root = view.findViewById(R.id.remove_station_dialog_root);
         root.setLayoutParams(layoutParams);
 
         final String mediaId = getArgument(getArguments(), KEY_MEDIA_ID);
         final String name = getArgument(getArguments(), KEY_NAME);
 
-        final TextView textView = (TextView) view.findViewById(R.id.remove_station_text_view);
+        final TextView textView = view.findViewById(R.id.remove_station_text_view);
         textView.setText(getString(R.string.remove_station_dialog_main_text, name));
 
-        final Button removeBtn = (Button) view.findViewById(R.id.remove_station_dialog_add_btn_view);
+        final Button removeBtn = view.findViewById(R.id.remove_station_dialog_add_btn_view);
         removeBtn.setOnClickListener(
                 viewBtn -> {
                     ((MainActivity) getActivity()).processRemoveStationCallback(mediaId);
@@ -99,7 +99,7 @@ public final class RemoveStationDialog extends DialogFragment {
                 }
         );
 
-        final Button cancelBtn = (Button) view.findViewById(R.id.remove_station_dialog_cancel_btn_view);
+        final Button cancelBtn = view.findViewById(R.id.remove_station_dialog_cancel_btn_view);
         cancelBtn.setOnClickListener(
                 viewBtn -> getDialog().dismiss()
         );

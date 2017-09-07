@@ -76,20 +76,20 @@ public final class AboutDialog extends DialogFragment {
 
         final String titleText = getActivity().getString(R.string.app_name) + "    v." +
                 AppUtils.getApplicationVersion(getActivity());
-        final TextView title = (TextView) view.findViewById(R.id.dialog_about_title_view);
+        final TextView title = view.findViewById(R.id.dialog_about_title_view);
         title.setText(titleText);
 
-        final TextView authorLink = (TextView) view.findViewById(R.id.about_author_link_view);
+        final TextView authorLink = view.findViewById(R.id.about_author_link_view);
         authorLink.setOnClickListener(
                 v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL))
         );
 
-        final TextView projectHomeLink = (TextView) view.findViewById(R.id.about_project_link_view);
+        final TextView projectHomeLink = view.findViewById(R.id.about_project_link_view);
         projectHomeLink.setOnClickListener(
                 v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(PROJECT_HOME_URL))
         );
 
-        final Button closeBtn = (Button) view.findViewById(R.id.about_dialog_close_btn_view);
+        final Button closeBtn = view.findViewById(R.id.about_dialog_close_btn_view);
         closeBtn.setOnClickListener(
                 v -> getDialog().dismiss()
         );

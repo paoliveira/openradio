@@ -83,15 +83,15 @@ public final class GoogleDriveDialog extends DialogFragment {
 
         final MainActivity activity = (MainActivity) getActivity();
 
-        final Button uploadTo = (Button) view.findViewById(R.id.upload_to_google_drive_btn);
+        final Button uploadTo = view.findViewById(R.id.upload_to_google_drive_btn);
         uploadTo.setOnClickListener(v -> activity.uploadRadioStationsToGoogleDrive());
 
-        final Button downloadFrom = (Button) view.findViewById(R.id.download_from_google_drive_btn);
+        final Button downloadFrom = view.findViewById(R.id.download_from_google_drive_btn);
         downloadFrom.setOnClickListener(v -> activity.downloadRadioStationsFromGoogleDrive());
 
-        mProgressBarUpload = (ProgressBar)view.findViewById(R.id.upload_to_google_drive_progress);
-        mProgressBarDownload = (ProgressBar)view.findViewById(R.id.download_to_google_drive_progress);
-        mProgressBarTitle = (ProgressBar)view.findViewById(R.id.google_drive_title_progress);
+        mProgressBarUpload = view.findViewById(R.id.upload_to_google_drive_progress);
+        mProgressBarDownload = view.findViewById(R.id.download_to_google_drive_progress);
+        mProgressBarTitle = view.findViewById(R.id.google_drive_title_progress);
 
         hideProgress(GoogleDriveManager.Command.UPLOAD);
         hideProgress(GoogleDriveManager.Command.DOWNLOAD);

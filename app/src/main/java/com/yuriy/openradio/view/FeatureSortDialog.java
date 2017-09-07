@@ -20,7 +20,6 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.yuriy.openradio.R;
@@ -49,10 +48,10 @@ public final class FeatureSortDialog extends BaseDialogFragment {
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final View view = getInflater().inflate(R.layout.feature_sort_dialog,
-                (ViewGroup) getActivity().findViewById(R.id.feature_sort_dialog_root));
+                 getActivity().findViewById(R.id.feature_sort_dialog_root));
 
         final Button okBtn
-                = (Button) view.findViewById(R.id.feature_sort_ok_btn_view);
+                = view.findViewById(R.id.feature_sort_ok_btn_view);
         okBtn.setOnClickListener(v -> {
                     AppPreferencesManager.setSortDialogShown(
                             getActivity().getApplicationContext(), true

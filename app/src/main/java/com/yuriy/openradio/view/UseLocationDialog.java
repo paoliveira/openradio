@@ -21,7 +21,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.yuriy.openradio.R;
@@ -51,10 +50,10 @@ public final class UseLocationDialog extends BaseDialogFragment {
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final View view = getInflater().inflate(R.layout.use_location_dialog,
-                (ViewGroup) getActivity().findViewById(R.id.use_location_dialog_root));
+                getActivity().findViewById(R.id.use_location_dialog_root));
 
         final Button enableLocationServiceBtn
-                = (Button) view.findViewById(R.id.uld_enable_location_service_btn_view);
+                = view.findViewById(R.id.uld_enable_location_service_btn_view);
         enableLocationServiceBtn.setOnClickListener(
                 v -> startActivityForResult(
                         IntentsHelper.makeOpenLocationSettingsIntent(),

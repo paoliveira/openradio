@@ -88,14 +88,14 @@ public final class AddStationDialog extends DialogFragment {
                 (int) (AppUtils.getShortestScreenSize(getActivity()) * 0.8),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        final LinearLayout root = (LinearLayout) view.findViewById(R.id.add_station_dialog_root);
+        final LinearLayout root = view.findViewById(R.id.add_station_dialog_root);
         root.setLayoutParams(layoutParams);
 
-        final EditText nameEdit = (EditText) view.findViewById(R.id.add_station_name_edit);
-        final EditText urlEdit = (EditText) view.findViewById(R.id.add_station_stream_url_edit);
-        mImageUrlEdit = (EditText) view.findViewById(R.id.add_station_image_url_edit);
+        final EditText nameEdit = view.findViewById(R.id.add_station_name_edit);
+        final EditText urlEdit = view.findViewById(R.id.add_station_stream_url_edit);
+        mImageUrlEdit = view.findViewById(R.id.add_station_image_url_edit);
 
-        final Spinner countriesSpinner = (Spinner) view.findViewById(R.id.add_station_country_spin);
+        final Spinner countriesSpinner = view.findViewById(R.id.add_station_country_spin);
         // Create an ArrayAdapter using the string array and a default spinner layout
         final ArrayAdapter<CharSequence> adapter = new ArrayAdapter<>(
                 getActivity(),
@@ -107,7 +107,7 @@ public final class AddStationDialog extends DialogFragment {
         // Apply the adapter to the spinner
         countriesSpinner.setAdapter(adapter);
 
-        final Spinner genresSpinner = (Spinner) view.findViewById(R.id.add_station_genre_spin);
+        final Spinner genresSpinner = view.findViewById(R.id.add_station_genre_spin);
         // Create an ArrayAdapter using the string array and a default spinner layout
         final ArrayAdapter<CharSequence> genresAdapter = new ArrayAdapter<>(
                 getActivity(),
@@ -119,7 +119,7 @@ public final class AddStationDialog extends DialogFragment {
         // Apply the adapter to the spinner
         genresSpinner.setAdapter(genresAdapter);
 
-        final Button imageUrlBtn = (Button) view.findViewById(R.id.add_station_image_browse_btn);
+        final Button imageUrlBtn = view.findViewById(R.id.add_station_image_browse_btn);
         imageUrlBtn.setOnClickListener(
                 viewBtn -> {
                     final Intent galleryIntent = new Intent();
@@ -133,7 +133,7 @@ public final class AddStationDialog extends DialogFragment {
                 }
         );
 
-        final Button addBtn = (Button) view.findViewById(R.id.add_station_dialog_add_btn_view);
+        final Button addBtn = view.findViewById(R.id.add_station_dialog_add_btn_view);
         addBtn.setOnClickListener(
                 viewBtn -> processInput(
                         nameEdit.getText().toString(),
@@ -144,7 +144,7 @@ public final class AddStationDialog extends DialogFragment {
                 )
         );
 
-        final Button cancelBtn = (Button) view.findViewById(R.id.add_station_dialog_cancel_btn_view);
+        final Button cancelBtn = view.findViewById(R.id.add_station_dialog_cancel_btn_view);
         cancelBtn.setOnClickListener(
                 viewBtn -> getDialog().dismiss()
         );
