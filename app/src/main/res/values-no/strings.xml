@@ -101,4 +101,5 @@
     <string name="google_drive_data_saved">Radiostasjoner lagres i Google Drive</string>
     <string name="google_drive_data_read">Radiostasjoner leses fra Google Drive</string>
     <string name="google_drive_conn_error">Feil ved å koble til Google Drive</string>
+    <string name="queue">Kø</string>
 </resources>

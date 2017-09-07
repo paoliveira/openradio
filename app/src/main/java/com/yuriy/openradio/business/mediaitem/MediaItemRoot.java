@@ -20,8 +20,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -211,11 +209,7 @@ public final class MediaItemRoot implements MediaItemCommand {
 
         // If there is latest Radio Station (the one that played the last time Open Radio used) detected, play it.
         if (latestRadioStation != null) {
-            final Handler handler = new Handler(Looper.getMainLooper());
-            handler.postDelayed(
-                    () -> shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString()),
-                    2000
-            );
+            shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString());
         }
     }
 }

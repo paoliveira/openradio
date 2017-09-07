@@ -181,6 +181,7 @@ abstract class AbstractStorage {
      */
     @NonNull
     static List<RadioStationVO> getAll(final Context context, final String name) {
+        // TODO: Return cache when possible
         final List<RadioStationVO> radioStations = new ArrayList<>();
         final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
@@ -190,10 +191,16 @@ abstract class AbstractStorage {
         int counter = 0;
         Boolean isListSorted = null;
         for (final String key : map.keySet()) {
-            value = String.valueOf(map.get(key));
-            if (value == null || value.isEmpty()) {
+            // This is not Radio Station
+            if (LocalRadioStationsStorage.isKeyId(key)) {
                 continue;
             }
+
+            value = String.valueOf(map.get(key));
+            if (TextUtils.isEmpty(value)) {
+                continue;
+            }
+
             radioStation = deserializer.deserialize(value);
 
             // This is not valid Radio Station. It can be happen in case of there is assigned ID

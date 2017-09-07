@@ -101,4 +101,5 @@
     <string name="google_drive_data_saved">Les Stations de Radio sont enregistrées sur Google Drive</string>
     <string name="google_drive_data_read">Les Stations de Radio sont lues depuis Google Drive</string>
     <string name="google_drive_conn_error">Erreur lors de la connexion à Google Drive</string>
+    <string name="queue">Queue</string>
 </resources>

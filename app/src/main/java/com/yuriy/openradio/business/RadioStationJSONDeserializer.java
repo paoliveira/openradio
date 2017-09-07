@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.business;
 
+import android.util.Log;
+
 import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.utils.AppLogger;
 
@@ -59,7 +61,7 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
             radioStation.setSortId(getIntValue(jsonObject, RadioStationJSONHelper.KEY_SORT_ID, -1));
         } catch (final Throwable e) {
             /* Ignore this exception */
-            AppLogger.e("Error while demarshall RadioStation:" + e);
+            AppLogger.e("Error while demarshall RadioStation:\n" + Log.getStackTraceString(e));
         }
         return radioStation;
     }

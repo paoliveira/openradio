@@ -145,4 +145,6 @@
     <string name="google_drive_data_read">Radio Stations are read from Google Drive</string>
     <string name="google_drive_conn_error">Error to connect to Google Drive</string>
 
+    <string name="queue">Queue</string>
+
 </resources>

@@ -101,4 +101,5 @@
     <string name="google_drive_data_saved">Radiosender werden in Google Drive gespeichert</string>
     <string name="google_drive_data_read">Radiosender werden von Google Drive gelesen</string>
     <string name="google_drive_conn_error">Fehler beim Herstellen einer Verbindung zu Google Drive</string>
+    <string name="queue">Queue</string>
 </resources>

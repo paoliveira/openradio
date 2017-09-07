@@ -1485,19 +1485,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             );
         }
 
-        mSession.setQueue(mPlayingQueue);
-
-        final String queueTitle = "Queue Title";
+        final String queueTitle = getString(R.string.queue);
         mSession.setQueueTitle(queueTitle);
-
-        if (mPlayingQueue.isEmpty()) {
-            return;
-        }
 
         final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
                 mPlayingQueue, mediaId
         );
         if (mCurrentIndexOnQueue == tempIndexOnQueue) {
+            AppLogger.w("Skip play request, same id");
             return;
         }
 
@@ -1505,6 +1500,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mCurrentIndexOnQueue = tempIndexOnQueue;
 
         if (mCurrentIndexOnQueue == -1) {
+            AppLogger.w("Skip play request, negative id");
+            return;
+        }
+
+        mSession.setQueue(mPlayingQueue);
+
+        if (mPlayingQueue.isEmpty()) {
             return;
         }
 

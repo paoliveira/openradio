@@ -19,6 +19,7 @@ package com.yuriy.openradio.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.text.TextUtils;
 
 import com.yuriy.openradio.api.RadioStationVO;
 
@@ -85,6 +86,15 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
         id = id + 1;
         setId(context, id);
         return id;
+    }
+
+    /**
+     *
+     * @param value
+     * @return
+     */
+    public static boolean isKeyId(final String value) {
+        return TextUtils.equals(KEY_ID, value);
     }
 
     /**
