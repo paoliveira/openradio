@@ -115,7 +115,7 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Instance of the ExoPlayer.
      */
-    private final ExoPlayer mExoPlayer;
+    private ExoPlayer mExoPlayer;
 
     /**
      * Handler for the ExoPlayer to handle events.
@@ -191,12 +191,12 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Runnable implementation to handle playback progress.
      */
-    private final Runnable mUpdateProgressAction = this::updateProgress;
+    private Runnable mUpdateProgressAction = this::updateProgress;
 
     /**
      * Handler to handle playback progress runnable.
      */
-    private final Handler mUpdateProgressHandler = new Handler();
+    private Handler mUpdateProgressHandler = new Handler();
 
     /**
      * Main constructor.
@@ -255,8 +255,10 @@ public final class ExoPlayerOpenRadioImpl {
                 mMainHandler, mEventLogger
         );
 
-        mExoPlayer.prepare(mMediaSource);
-        mExoPlayer.setPlayWhenReady(true);
+        if (mExoPlayer != null) {
+            mExoPlayer.prepare(mMediaSource);
+            mExoPlayer.setPlayWhenReady(true);
+        }
 
         stayAwake(true);
     }
@@ -278,7 +280,9 @@ public final class ExoPlayerOpenRadioImpl {
                 );
             }
         }
-        mExoPlayer.sendMessages(messages);
+        if (mExoPlayer != null) {
+            mExoPlayer.sendMessages(messages);
+        }
     }
 
     /**
@@ -292,15 +296,17 @@ public final class ExoPlayerOpenRadioImpl {
     }
 
     /**
-     * Pause current stream based on the URI passed to {@link #prepare(Uri)} method.
+     * Pause current stream based on the URI passed to {@link #prepare(Uri)} )} method.
      */
     public void pause() {
         AppLogger.d(LOG_TAG + " pause");
 
         mUserState = UserState.PAUSE;
 
-        mExoPlayer.stop();
-        mExoPlayer.setPlayWhenReady(false);
+        if (mExoPlayer != null) {
+            mExoPlayer.stop();
+            mExoPlayer.setPlayWhenReady(false);
+        }
 
         stayAwake(false);
     }
@@ -325,7 +331,9 @@ public final class ExoPlayerOpenRadioImpl {
         mUserState = UserState.RESET;
 
         stayAwake(false);
-        mExoPlayer.stop();
+        if (mExoPlayer != null) {
+            mExoPlayer.stop();
+        }
         mMediaSource.releaseSource();
     }
 
@@ -333,9 +341,19 @@ public final class ExoPlayerOpenRadioImpl {
      * Release the player and associated resources.
      */
     public void release() {
+        if (mExoPlayer == null) {
+            AppLogger.d(LOG_TAG + " ExoPlayer impl already released");
+            return;
+        }
+
+        mExoPlayer.removeListener(mComponentListener);
         mUpdateProgressHandler.removeCallbacks(mUpdateProgressAction);
         reset();
         mExoPlayer.release();
+
+        mExoPlayer = null;
+        mUpdateProgressHandler = null;
+        mUpdateProgressAction = null;
     }
 
     /**
@@ -469,7 +487,7 @@ public final class ExoPlayerOpenRadioImpl {
      * Listener class for the players components events.
      */
     private static final class ComponentListener implements
-            AudioRendererEventListener, MetadataRenderer.Output, ExoPlayer.EventListener {
+            AudioRendererEventListener, MetadataRenderer.Output, Player.EventListener {
 
         /**
          * Reference to enclosing class.
@@ -531,7 +549,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onTimelineChanged(final Timeline timeline, final Object manifest) {
-            //AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + " " + manifest);
+            AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + " " + manifest);
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
                 return;
@@ -558,10 +576,10 @@ public final class ExoPlayerOpenRadioImpl {
             }
 
             switch (playbackState) {
-                case ExoPlayer.STATE_BUFFERING:
+                case Player.STATE_BUFFERING:
                     AppLogger.d(LOG_TAG + " STATE_BUFFERING");
                     break;
-                case ExoPlayer.STATE_ENDED:
+                case Player.STATE_ENDED:
                     AppLogger.d(LOG_TAG + " STATE_ENDED, userState:" + reference.mUserState);
                     reference.mUpdateProgressHandler.removeCallbacks(reference.mUpdateProgressAction);
 
@@ -569,10 +587,10 @@ public final class ExoPlayerOpenRadioImpl {
                         reference.prepare(reference.mUri);
                     }
                     break;
-                case ExoPlayer.STATE_IDLE:
+                case Player.STATE_IDLE:
                     AppLogger.d(LOG_TAG + " STATE_IDLE");
                     break;
-                case ExoPlayer.STATE_READY:
+                case Player.STATE_READY:
                     AppLogger.d(LOG_TAG + " STATE_READY");
 
                     reference.mListener.onPrepared();
@@ -613,7 +631,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onPositionDiscontinuity() {
-            //AppLogger.e(LOG_TAG + " onPositionDiscontinuity");
+            AppLogger.e(LOG_TAG + " onPositionDiscontinuity");
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
                 return;
@@ -636,13 +654,17 @@ public final class ExoPlayerOpenRadioImpl {
      * Handle playback update progress.
      */
     private void updateProgress() {
-        long position = 0;
-        long bufferedPosition = 0;
-        long duration = 0;
+        long position;
+        long bufferedPosition;
+        long duration;
         if (mExoPlayer != null) {
             position = mExoPlayer.getCurrentPosition();
             bufferedPosition = mExoPlayer.getBufferedPosition();
             duration = mExoPlayer.getDuration();
+        } else {
+            // TODO: Investigate why this callback's loop still exists even after destroy()
+            AppLogger.w(LOG_TAG + " update progress with null player");
+            return;
         }
 
         AppLogger.d(
@@ -655,10 +677,10 @@ public final class ExoPlayerOpenRadioImpl {
 
         // Cancel any pending updates and schedule a new one if necessary.
         mUpdateProgressHandler.removeCallbacks(mUpdateProgressAction);
-        final int playbackState = mExoPlayer == null ? ExoPlayer.STATE_IDLE : mExoPlayer.getPlaybackState();
-        if (playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
+        final int playbackState = mExoPlayer.getPlaybackState();
+        if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
             long delayMs;
-            if (mExoPlayer.getPlayWhenReady() && playbackState == ExoPlayer.STATE_READY) {
+            if (mExoPlayer.getPlayWhenReady() && playbackState == Player.STATE_READY) {
                 delayMs = 1000 - (position % 1000);
                 if (delayMs < 200) {
                     delayMs += 1000;

@@ -87,6 +87,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
 import wseemann.media.jplaylistparser.parser.AutoDetectParser;
@@ -271,6 +272,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Indicates whether {@link #onBind(Intent)} has been called.
      */
     private boolean mIsBind;
+
+    /**
+     *
+     */
+    private final AtomicBoolean mIsPlayWhenReady = new AtomicBoolean(true);
 
     /**
      * Enumeration for the Audio Focus states.
@@ -609,6 +615,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     @Override
+    public void onLoadItem(final String itemId, @NonNull final Result<MediaBrowserCompat.MediaItem> result) {
+        super.onLoadItem(itemId, result);
+
+        AppLogger.i(CLASS_NAME + " OnLoadItem:" + itemId + ", res:" + result);
+    }
+
+
+
+    @Override
     public final void onLoadChildren(@NonNull final String parentId,
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
 
@@ -641,7 +656,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setParentId(parentId);
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
-            shareObject.setRemotePlay(this::handlePlayFromMediaId);
+            shareObject.setRemotePlay(this::handleLastRadioStation);
 
             command.create(mPlaybackStateListener, shareObject);
         } else {
@@ -747,11 +762,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void onPrepared() {
-        AppLogger.i(CLASS_NAME + " ExoPlayer prepared");
+        AppLogger.i(CLASS_NAME + " ExoPlayer prepared (mIsPlayWhenReady):" + mIsPlayWhenReady);
 
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
-        configMediaPlayerState();
+        if (mIsPlayWhenReady.get()) {
+            configMediaPlayerState();
+        } else {
+            handleStopRequest(null);
+            mIsPlayWhenReady.set(true);
+        }
     }
 
     @Override
@@ -1463,6 +1483,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mServiceStarted = false;
     }
 
+    private void handleLastRadioStation(final String mediaId) {
+        mIsPlayWhenReady.set(!mIsAndroidAuto);
+        handlePlayFromMediaId(mediaId);
+    }
+
     /**
      * Consume Radio Station by it's ID.
      *
@@ -1516,13 +1541,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
         getCurrentPlayingRadioStationAsync(
-                currentMusic -> {
+                (track) -> {
 
-                    if (currentMusic == null) {
+                    if (track == null) {
                         return;
                     }
                     // Set appropriate "Favorite" icon on Custom action:
-                    final String mediaId = currentMusic.getString(
+                    final String mediaId = track.getString(
                             MediaMetadataCompat.METADATA_KEY_MEDIA_ID
                     );
                     final RadioStationVO radioStation = QueueHelper.getRadioStationById(
@@ -1536,12 +1561,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     }
 
                     int favoriteIcon = R.drawable.ic_star_off;
-                    if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
+                    if (FavoritesStorage.isFavorite(radioStation, OpenRadioService.this.getApplicationContext())) {
                         favoriteIcon = R.drawable.ic_star_on;
                     }
                     stateBuilder.addCustomAction(
                             CUSTOM_ACTION_THUMBS_UP,
-                            getString(R.string.favorite),
+                            OpenRadioService.this.getString(R.string.favorite),
                             favoriteIcon
                     );
                 }
@@ -1752,7 +1777,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 service.getCurrentPlayingRadioStationAsync(
-                        track -> {
+                        (track) -> {
 
                             if (track != null) {
                                 final String mediaId = track.getString(
@@ -2011,5 +2036,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.mBufferedPosition = bufferedPosition;
             service.updatePlaybackState();
         }
+
+
     }
 }

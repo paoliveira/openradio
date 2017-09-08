@@ -207,7 +207,8 @@ public final class MediaItemRoot implements MediaItemCommand {
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());
 
-        // If there is latest Radio Station (the one that played the last time Open Radio used) detected, play it.
+        // If there is no Android Auto and there is latest Radio Station
+        // (the one that played the last time Open Radio used) detected, play it.
         if (latestRadioStation != null) {
             shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString());
         }
