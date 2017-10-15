@@ -33,7 +33,9 @@ import com.yuriy.openradio.utils.PermissionChecker;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Yuriy Chernyshov
@@ -101,7 +103,7 @@ public class LocationService {
      *
      * @param context {@link Context} of the callee.
      */
-    public void requestCountryCodeLastKnown(final Context context, final ExecutorService executorService) {
+    public void requestCountryCodeLastKnownSync(final Context context, final ExecutorService executorService) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
@@ -119,6 +121,7 @@ public class LocationService {
             return;
         }
 
+        final CountDownLatch latch = new CountDownLatch(1);
         executorService.submit(
                 () -> {
                     try {
@@ -128,11 +131,19 @@ public class LocationService {
                     } catch (final IOException e) {
                         LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
                         FabricUtils.logException(e);
+                    } finally {
+                        latch.countDown();
                     }
 
                     AppLogger.d(CLASS_NAME + " LastKnownLocation:" + LocationService.this.mCountryCode);
                 }
         );
+        try {
+            latch.await(1, TimeUnit.SECONDS);
+        } catch (final InterruptedException e) {
+            LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
+            FabricUtils.logException(e);
+        }
     }
 
     public void requestCountryCode(final Context context, final LocationServiceListener listener) {

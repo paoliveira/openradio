@@ -409,7 +409,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mCurrentIndexOnQueue = -1;
 
         mLocationService.checkLocationEnable(getApplicationContext());
-        mLocationService.requestCountryCodeLastKnown(getApplicationContext(), mApiCallExecutor);
+        mLocationService.requestCountryCodeLastKnownSync(getApplicationContext(), mApiCallExecutor);
 
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
         mWifiLock = ((WifiManager) getApplicationContext()
@@ -641,6 +641,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (TextUtils.isEmpty(countryCode)) {
             // If no Country Code founded - use device native one.
             countryCode = mLocationService.getCountryCode();
+            AppLogger.d(CLASS_NAME + " country code:" + countryCode);
         }
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIDHelper.getId(parentId));
