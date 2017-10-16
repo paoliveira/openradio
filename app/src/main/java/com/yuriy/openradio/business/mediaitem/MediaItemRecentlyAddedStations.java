@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.business.mediaitem;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -38,21 +37,23 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemRecentlyAddedStations} is concrete implementation of the {@link MediaItemCommand}
  * that designed to prepare the recently added radio stations.
  */
-public class MediaItemRecentlyAddedStations implements MediaItemCommand {
+public final class MediaItemRecentlyAddedStations implements MediaItemCommand {
 
-    private static final String CLASS_NAME = MediaItemRecentlyAddedStations.class.getSimpleName();
+    /**
+     * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
+     */
+    private int mPageIndex;
 
     /**
      * Default constructor.
      */
     public MediaItemRecentlyAddedStations() {
         super();
+        mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
     }
 
     @Override
@@ -79,34 +80,31 @@ public class MediaItemRecentlyAddedStations implements MediaItemCommand {
      */
     private void loadStations(final IUpdatePlaybackState playbackStateListener,
                               @NonNull final MediaItemShareObject shareObject) {
-        final Uri uri;
-        if (shareObject.isAndroidAuto()) {
-            final int numberOfItems = 10;
-            uri = UrlBuilder.getRecentlyAddedStations(shareObject.getContext(), numberOfItems);
-        } else {
-            uri = UrlBuilder.getRecentlyAddedStations(shareObject.getContext());
-        }
         final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                uri
+                UrlBuilder.getRecentlyAddedStations(shareObject.getContext(), mPageIndex++, UrlBuilder.ITEMS_PER_PAGE)
         );
 
         if (list.isEmpty()) {
 
-            final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    shareObject.getContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
-            );
-            final MediaDescriptionCompat mediaDescription = track.getDescription();
-            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
-            shareObject.getMediaItems().add(mediaItem);
-            shareObject.getResult().sendResult(shareObject.getMediaItems());
-
-            if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(
-                        shareObject.getContext().getString(R.string.no_data_message)
+            if (mPageIndex == UrlBuilder.FIRST_PAGE_INDEX + 1) {
+                final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                        shareObject.getContext(),
+                        MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
                 );
+                final MediaDescriptionCompat mediaDescription = track.getDescription();
+                final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                        mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+                shareObject.getMediaItems().add(mediaItem);
+                shareObject.getResult().sendResult(shareObject.getMediaItems());
+
+                if (playbackStateListener != null) {
+                    playbackStateListener.updatePlaybackState(
+                            shareObject.getContext().getString(R.string.no_data_message)
+                    );
+                }
+            } else {
+                shareObject.getResult().sendResult(shareObject.getMediaItems());
             }
 
             return;

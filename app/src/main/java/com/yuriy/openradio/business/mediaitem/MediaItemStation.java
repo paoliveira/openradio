@@ -33,13 +33,18 @@ import com.yuriy.openradio.utils.QueueHelper;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * {@link MediaItemStation} is concrete implementation of the {@link MediaItemCommand} that
+ * designed to prepare data to display radio station by its Id.
  */
+public final class MediaItemStation implements MediaItemCommand {
 
-/**
- * {@link MediaItemStationsInCategory} is concrete implementation of the {@link MediaItemCommand} that
- * designed to prepare data to display radio stations of concrete Category.
- */
-public class MediaItemStationsInCategory implements MediaItemCommand {
+    /**
+     * Default constructor.
+     */
+    public MediaItemStation() {
+        super();
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,

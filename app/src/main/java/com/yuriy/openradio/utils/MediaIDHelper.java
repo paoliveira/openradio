@@ -95,6 +95,9 @@ public final class MediaIDHelper {
      * @return Extracted Id.
      */
     public static String getId(final String value) {
+        if (value == null) {
+            return null;
+        }
         for (final String id : IDS) {
             if (value.startsWith(id) || value.equals(id)) {
                 if (!TextUtils.isEmpty(getCountryCode(value))) {
@@ -138,5 +141,21 @@ public final class MediaIDHelper {
     public static boolean isMediaIdSortable(final String categoryMediaId) {
         return MEDIA_ID_FAVORITES_LIST.equals(categoryMediaId)
                 || MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(categoryMediaId);
+    }
+
+    /**
+     * Returns whether or not current Catalog is refreshable once end of list reached, for instance
+     * Local Radio Stations.
+     *
+     * @param categoryMediaId Category Media Id.
+     * @return {@code true} in case of Catalog is refreshable, {@code false} otherwise.
+     */
+    public static boolean isMediaIdRefreshable(final String categoryMediaId) {
+        return MEDIA_ID_ALL_STATIONS.equals(categoryMediaId)
+                || MEDIA_ID_COUNTRY_STATIONS.equals(categoryMediaId)
+                || MEDIA_ID_POPULAR_STATIONS.equals(categoryMediaId)
+                || MEDIA_ID_RADIO_STATIONS_IN_CATEGORY.equals(categoryMediaId)
+                || MEDIA_ID_RECENT_ADDED_STATIONS.equals(categoryMediaId)
+                || MEDIA_ID_RECENT_PLAYED_SONGS.equals(categoryMediaId);
     }
 }

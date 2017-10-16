@@ -38,22 +38,24 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemPopularStations} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare the top popular stations all time based on unique views and station detail
  * API call.
  */
-public class MediaItemPopularStations implements MediaItemCommand {
+public final class MediaItemPopularStations implements MediaItemCommand {
 
-    private static final String CLASS_NAME = MediaItemPopularStations.class.getSimpleName();
+    /**
+     * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
+     */
+    private int mPageIndex;
 
     /**
      * Default constructor.
      */
     public MediaItemPopularStations() {
         super();
+        mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
     }
 
     @Override
@@ -80,34 +82,31 @@ public class MediaItemPopularStations implements MediaItemCommand {
      */
     private void loadStations(final IUpdatePlaybackState playbackStateListener,
                               @NonNull final MediaItemShareObject shareObject) {
-        final Uri uri;
-        if (shareObject.isAndroidAuto()) {
-            final int numberOfItems = 10;
-            uri = UrlBuilder.getPopularStations(shareObject.getContext(), numberOfItems);
-        } else {
-            uri = UrlBuilder.getPopularStations(shareObject.getContext());
-        }
         final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                uri
+                UrlBuilder.getPopularStations(shareObject.getContext(), mPageIndex++, UrlBuilder.ITEMS_PER_PAGE)
         );
 
         if (list.isEmpty()) {
 
-            final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    shareObject.getContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
-            );
-            final MediaDescriptionCompat mediaDescription = track.getDescription();
-            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
-            shareObject.getMediaItems().add(mediaItem);
-            shareObject.getResult().sendResult(shareObject.getMediaItems());
-
-            if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(
-                        shareObject.getContext().getString(R.string.no_data_message)
+            if (mPageIndex == UrlBuilder.FIRST_PAGE_INDEX + 1) {
+                final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                        shareObject.getContext(),
+                        MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
                 );
+                final MediaDescriptionCompat mediaDescription = track.getDescription();
+                final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                        mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+                shareObject.getMediaItems().add(mediaItem);
+                shareObject.getResult().sendResult(shareObject.getMediaItems());
+
+                if (playbackStateListener != null) {
+                    playbackStateListener.updatePlaybackState(
+                            shareObject.getContext().getString(R.string.no_data_message)
+                    );
+                }
+            } else {
+                shareObject.getResult().sendResult(shareObject.getMediaItems());
             }
 
             return;

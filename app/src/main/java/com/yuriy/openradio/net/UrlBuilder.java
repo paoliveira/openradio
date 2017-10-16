@@ -16,24 +16,31 @@
 
 package com.yuriy.openradio.net;
 
-/**
- * Created by Yuriy Chernyshov
- * At Android Studio
- * On 12/15/14
- * E-Mail: chernyshov.yuriy@gmail.com
- */
-
 import android.content.Context;
 import android.net.Uri;
 
 import com.yuriy.openradio.utils.ApiKeyLoader;
 
 /**
+ * Created by Yuriy Chernyshov
+ * At Android Studio
+ * On 12/15/14
+ * E-Mail: chernyshov.yuriy@gmail.com
+ *
  * {@link com.yuriy.openradio.net.UrlBuilder} is a helper class which performs
  * build URL of the different API calls.
  */
+public final class UrlBuilder {
 
-public class UrlBuilder {
+    /**
+     * Id of the first page (refer to Dirble API for more info) of the Radio Stations List.
+     */
+    public static final int FIRST_PAGE_INDEX = 1;
+
+    /**
+     * Number of Radio Stations in each page (refer to Dirble API for more info).
+     */
+    public static final int ITEMS_PER_PAGE = 30;
 
     /**
      * Base URL for the API requests.
@@ -49,7 +56,9 @@ public class UrlBuilder {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private UrlBuilder() { }
+    private UrlBuilder() {
+        super();
+    }
 
     /**
      * Get Uri for the All Categories list.
@@ -92,10 +101,13 @@ public class UrlBuilder {
      * @param categoryId Id of the Category.
      * @return {@link android.net.Uri}
      */
-    public static Uri getStationsInCategory(final Context context, final String categoryId) {
+    public static Uri getStationsInCategory(final Context context, final String categoryId,
+                                            final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "category/" + categoryId + "/stations"
                         + "?token=" + ApiKeyLoader.getApiKey(context)
+                        + "&page=" + String.valueOf(pageNumber)
+                        + "&per_page=" + String.valueOf(numberPerPage)
         );
     }
 
@@ -106,10 +118,13 @@ public class UrlBuilder {
      * @param countryCode Country Code.
      * @return {@link android.net.Uri}
      */
-    public static Uri getStationsInCountry(final Context context, final String countryCode) {
+    public static Uri getStationsInCountry(final Context context, final String countryCode,
+                                           final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "countries/" + countryCode + "/stations"
                         + "?token=" + ApiKeyLoader.getApiKey(context)
+                        + "&page=" + String.valueOf(pageNumber)
+                        + "&per_page=" + String.valueOf(numberPerPage)
         );
     }
 
@@ -117,40 +132,16 @@ public class UrlBuilder {
      * Get Uri for the list of the popular Radio Stations.
      *
      * @param context       Context of the application.
+     * @param pageNumber    Id of the current page being requested.
+     * @param numberPerPage Number of items in one response.
      * @return {@link android.net.Uri}
      */
-    public static Uri getPopularStations(final Context context) {
+    public static Uri getPopularStations(final Context context, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "stations/popular"
                         + "?token=" + ApiKeyLoader.getApiKey(context)
-        );
-    }
-
-    /**
-     * Get Uri for the list of the popular Radio Stations.
-     *
-     * @param context       Context of the application.
-     * @param numberOfItems Number of items in one response.
-     * @return {@link android.net.Uri}
-     */
-    public static Uri getPopularStations(final Context context, final int numberOfItems) {
-        return Uri.parse(
-                BASE_URL + "stations/popular"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-                        + "&per_page=" + String.valueOf(numberOfItems)
-        );
-    }
-
-    /**
-     * Get Uri for the list of the recently added Radio Stations.
-     *
-     * @param context Context of the application.
-     * @return {@link android.net.Uri}
-     */
-    public static Uri getRecentlyAddedStations(final Context context) {
-        return Uri.parse(
-                BASE_URL + "stations/recent"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
+                        + "&page=" + String.valueOf(pageNumber)
+                        + "&per_page=" + String.valueOf(numberPerPage)
         );
     }
 
@@ -158,14 +149,15 @@ public class UrlBuilder {
      * Get Uri for the list of the recently added Radio Stations.
      *
      * @param context       Context of the application.
-     * @param numberOfItems Number of items in one response.
+     * @param numberPerPage Number of items in one response.
      * @return {@link android.net.Uri}
      */
-    public static Uri getRecentlyAddedStations(final Context context, final int numberOfItems) {
+    public static Uri getRecentlyAddedStations(final Context context, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "stations/recent"
                         + "?token=" + ApiKeyLoader.getApiKey(context)
-                        + "&per_page=" + String.valueOf(numberOfItems)
+                        + "&page=" + String.valueOf(pageNumber)
+                        + "&per_page=" + String.valueOf(numberPerPage)
         );
     }
 
@@ -178,7 +170,8 @@ public class UrlBuilder {
      */
     public static Uri getStation(final Context context, final String stationId) {
         return Uri.parse(
-                BASE_URL + "station/" + stationId + "?token=" + ApiKeyLoader.getApiKey(context)
+                BASE_URL + "station/" + stationId
+                        + "?token=" + ApiKeyLoader.getApiKey(context)
         );
     }
 
@@ -202,19 +195,6 @@ public class UrlBuilder {
      */
     public static Uri getCountryFlagSmall(final String countryCode) {
         return getCountryFlag(countryCode.toLowerCase(), "l");
-    }
-
-    /**
-     * Get Uri for list of all Radio Stations.
-     *
-     * @param context Context of the application.
-     * @return {@link android.net.Uri}
-     */
-    public static Uri getAllStations(final Context context, final int pageNumber,
-                                     final int numberPerPage) {
-        return Uri.parse(BASE_URL + "stations/?token=" + ApiKeyLoader.getApiKey(context)
-                + "&page=" + String.valueOf(pageNumber)
-                + "&per_page=" + String.valueOf(numberPerPage));
     }
 
     /**

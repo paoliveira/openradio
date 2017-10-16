@@ -36,13 +36,15 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemParentCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of Parent Categories.
  */
-public class MediaItemParentCategories implements MediaItemCommand {
+public final class MediaItemParentCategories implements MediaItemCommand {
+
+    public MediaItemParentCategories() {
+        super();
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,

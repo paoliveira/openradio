@@ -37,13 +37,24 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of Child Category.
  */
-public class MediaItemChildCategories implements MediaItemCommand {
+public final class MediaItemChildCategories implements MediaItemCommand {
+
+    /**
+     * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
+     */
+    private int mPageIndex;
+
+    /**
+     * Default constructor.
+     */
+    public MediaItemChildCategories() {
+        super();
+        mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
@@ -74,24 +85,34 @@ public class MediaItemChildCategories implements MediaItemCommand {
 
         final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
-                UrlBuilder.getStationsInCategory(shareObject.getContext(), childMenuId));
+                UrlBuilder.getStationsInCategory(
+                        shareObject.getContext(),
+                        childMenuId,
+                        mPageIndex++,
+                        UrlBuilder.ITEMS_PER_PAGE
+                )
+        );
 
         if (list.isEmpty()) {
 
-            final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                    shareObject.getContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
-            );
-            final MediaDescriptionCompat mediaDescription = track.getDescription();
-            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
-            shareObject.getMediaItems().add(mediaItem);
-            shareObject.getResult().sendResult(shareObject.getMediaItems());
-
-            if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(
-                        shareObject.getContext().getString(R.string.no_data_message)
+            if (mPageIndex == UrlBuilder.FIRST_PAGE_INDEX + 1) {
+                final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                        shareObject.getContext(),
+                        MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
                 );
+                final MediaDescriptionCompat mediaDescription = track.getDescription();
+                final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                        mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+                shareObject.getMediaItems().add(mediaItem);
+                shareObject.getResult().sendResult(shareObject.getMediaItems());
+
+                if (playbackStateListener != null) {
+                    playbackStateListener.updatePlaybackState(
+                            shareObject.getContext().getString(R.string.no_data_message)
+                    );
+                }
+            } else {
+                shareObject.getResult().sendResult(shareObject.getMediaItems());
             }
 
             return;
@@ -105,7 +126,7 @@ public class MediaItemChildCategories implements MediaItemCommand {
                 shareObject.getParentId(), shareObject.getChildCategories()
         );
 
-        for (RadioStationVO radioStation : shareObject.getRadioStations()) {
+        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
 
             radioStation.setGenre(genre);
 

@@ -43,6 +43,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -283,6 +284,8 @@ public final class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(mOnItemClickListener);
         // Set touch listener.
         listView.setOnTouchListener(mOnTouchListener);
+        // Set scroll listener.
+        listView.setOnScrollListener(new OnScrollListener(this));
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
@@ -543,7 +546,7 @@ public final class MainActivity extends AppCompatActivity {
      * just request Location via Android API and return result via Broadcast event.
      */
     public final void processLocationCallback() {
-        startService(OpenRadioService.makeRequestLocationIntent(this));
+        startService(OpenRadioService.makeRequestLocationIntent(getApplicationContext()));
     }
 
     /**
@@ -553,7 +556,7 @@ public final class MainActivity extends AppCompatActivity {
                                                 final String imageUrl, final String genre,
                                                 final String country) {
         startService(OpenRadioService.makeAddRadioStationIntent(
-                this, name, url, imageUrl, genre, country
+                getApplicationContext(), name, url, imageUrl, genre, country
         ));
     }
 
@@ -561,7 +564,7 @@ public final class MainActivity extends AppCompatActivity {
      * Process user's input in order to remove custom {@link RadioStationVO}.
      */
     public final void processRemoveStationCallback(final String mediaId) {
-        startService(OpenRadioService.makeRemoveRadioStationIntent(this, mediaId));
+        startService(OpenRadioService.makeRemoveRadioStationIntent(getApplicationContext(), mediaId));
     }
 
     /**
@@ -822,7 +825,7 @@ public final class MainActivity extends AppCompatActivity {
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationCountryCode());
         intentFilter.addAction(AppLocalBroadcastReceiver.getActionCurrentIndexOnQueueChanged());
         // Register receiver
-        LocalBroadcastManager.getInstance(this).registerReceiver(
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
                 mAppLocalBroadcastReceiver,
                 intentFilter
         );
@@ -852,8 +855,7 @@ public final class MainActivity extends AppCompatActivity {
 
         if (item.isBrowsable()) {
             if (item.getDescription().getTitle() != null
-                    && item.getDescription().getTitle()
-                    .equals(getString(R.string.category_empty))) {
+                    && item.getDescription().getTitle().equals(getString(R.string.category_empty))) {
                 return;
             }
         }
@@ -1154,6 +1156,8 @@ public final class MainActivity extends AppCompatActivity {
                 activity.showNoDataMessage();
             }
 
+            activity.hideProgressBar();
+
             if (!activity.listPositionMap.containsKey(parentId)) {
                 AppLogger.d(CLASS_NAME + " No key");
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
@@ -1307,6 +1311,15 @@ public final class MainActivity extends AppCompatActivity {
                 || TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
             mMediaResourcesManager.disconnect();
             mMediaResourcesManager.connect();
+        }
+    }
+
+    private void onScrolledToEnd() {
+        if (MediaIDHelper.isMediaIdRefreshable(mCurrentParentId)) {
+            unsubscribeFromItem(mCurrentParentId);
+            addMediaItemToStack(mCurrentParentId);
+            // Call "show" method after "unsubscribe".
+            showProgressBar();
         }
     }
 
@@ -1499,6 +1512,58 @@ public final class MainActivity extends AppCompatActivity {
                     reference.getGoogleDriveDialog().hideTitleProgress();
                 }
             });
+        }
+    }
+
+    private static final class OnScrollListener implements AbsListView.OnScrollListener {
+
+        private final WeakReference<MainActivity> mReference;
+        private int mScrollState;
+        private int mFirstVisibleItem;
+        private int mVisibleItemCount;
+        private int mTotalItemCount;
+
+        private OnScrollListener(final MainActivity reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onScrollStateChanged(final AbsListView view, final int scrollState) {
+            AppLogger.d("ScrollStateChanged to:" + scrollState);
+
+            mScrollState = scrollState;
+
+            reportEndOfScroll();
+        }
+
+        @Override
+        public void onScroll(final AbsListView view, final int firstVisibleItem,
+                             final int visibleItemCount, final int totalItemCount) {
+            AppLogger.d("Scroll first:" + firstVisibleItem + " count:" + visibleItemCount + " total:" + totalItemCount);
+
+            mFirstVisibleItem = firstVisibleItem;
+            mVisibleItemCount = visibleItemCount;
+            mTotalItemCount = totalItemCount;
+
+            //reportEndOfScroll();
+        }
+
+        private void reportEndOfScroll() {
+            if (mScrollState != SCROLL_STATE_IDLE) {
+                return;
+            }
+
+            if (mFirstVisibleItem + mVisibleItemCount != mTotalItemCount) {
+                return;
+            }
+
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+
+            reference.onScrolledToEnd();
         }
     }
 }

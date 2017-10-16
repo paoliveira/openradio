@@ -37,13 +37,18 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemSearchFromApp} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations from the search collection.
  */
-public class MediaItemSearchFromApp implements MediaItemCommand {
+public final class MediaItemSearchFromApp implements MediaItemCommand {
+
+    /**
+     * Default constructor.
+     */
+    public MediaItemSearchFromApp() {
+        super();
+    }
 
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,

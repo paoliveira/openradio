@@ -103,6 +103,7 @@ public class LocationService {
      *
      * @param context {@link Context} of the callee.
      */
+    @SuppressWarnings("ResourceType")
     public void requestCountryCodeLastKnownSync(final Context context, final ExecutorService executorService) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -114,7 +115,6 @@ public class LocationService {
             return;
         }
 
-        @SuppressWarnings("ResourceType")
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
             AppLogger.w(CLASS_NAME + " LastKnownLocation unavailable");
@@ -146,6 +146,7 @@ public class LocationService {
         }
     }
 
+    @SuppressWarnings("ResourceType")
     public void requestCountryCode(final Context context, final LocationServiceListener listener) {
         // Acquire a reference to the system Location Manager
         final LocationManager locationManager
@@ -175,7 +176,6 @@ public class LocationService {
                     return;
                 }
 
-                //noinspection ResourceType
                 try {
                     locationManager.removeUpdates(this);
                 } catch (final IllegalArgumentException e) {
@@ -204,7 +204,6 @@ public class LocationService {
         }
 
         // Register the listener with the Location Manager to receive location updates
-        //noinspection ResourceType
         try {
             locationManager.requestLocationUpdates(
                     LocationManager.NETWORK_PROVIDER, 0, 0, locationListener

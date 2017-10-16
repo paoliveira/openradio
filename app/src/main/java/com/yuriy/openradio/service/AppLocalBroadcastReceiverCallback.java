@@ -48,4 +48,5 @@ public interface AppLocalBroadcastReceiverCallback {
      * @param mediaId media Id of the current Radio Station.
      */
     void onCurrentIndexOnQueueChanged(final int index, final String mediaId);
+
 }

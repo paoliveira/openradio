@@ -63,7 +63,7 @@ import com.yuriy.openradio.business.mediaitem.MediaItemRecentlyAddedStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
 import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
 import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
-import com.yuriy.openradio.business.mediaitem.MediaItemStationsInCategory;
+import com.yuriy.openradio.business.mediaitem.MediaItemStation;
 import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -321,6 +321,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private String mLastPlayedUrl;
 
+    private String mCurrentParentId;
+
     /**
      * Interface to link command implementation and Open Radio service.
      */
@@ -387,7 +389,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, new MediaItemParentCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
-        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStationsInCategory());
+        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStation());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, new MediaItemLocalsList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP, new MediaItemSearchFromApp());
@@ -621,14 +623,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.i(CLASS_NAME + " OnLoadItem:" + itemId + ", res:" + result);
     }
 
-
-
     @Override
     public final void onLoadChildren(@NonNull final String parentId,
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
 
         AppLogger.i(CLASS_NAME + " OnLoadChildren:" + parentId + ", res:" + result);
 
+        mCurrentParentId = parentId;
         final List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
         // Instantiate appropriate downloader (HTTP one)
@@ -637,14 +638,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final APIServiceProvider serviceProvider = getServiceProvider();
 
         // If Parent Id contains Country Code - use it in the API.
-        String countryCode = MediaIDHelper.getCountryCode(parentId);
+        String countryCode = MediaIDHelper.getCountryCode(mCurrentParentId);
         if (TextUtils.isEmpty(countryCode)) {
             // If no Country Code founded - use device native one.
             countryCode = mLocationService.getCountryCode();
             AppLogger.d(CLASS_NAME + " country code:" + countryCode);
         }
 
-        final MediaItemCommand command = mMediaItemCommands.get(MediaIDHelper.getId(parentId));
+        final MediaItemCommand command = mMediaItemCommands.get(MediaIDHelper.getId(mCurrentParentId));
         if (command != null) {
 
             final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();
@@ -654,14 +655,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setServiceProvider(serviceProvider);
             shareObject.setResult(result);
             shareObject.setMediaItems(mediaItems);
-            shareObject.setParentId(parentId);
+            shareObject.setParentId(mCurrentParentId);
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
             shareObject.setRemotePlay(this::handleLastRadioStation);
 
             command.create(mPlaybackStateListener, shareObject);
         } else {
-            AppLogger.w(CLASS_NAME + " Skipping unmatched parentId: " + parentId);
+            AppLogger.w(CLASS_NAME + " Skipping unmatched parentId: " + mCurrentParentId);
             result.sendResult(mediaItems);
         }
     }
