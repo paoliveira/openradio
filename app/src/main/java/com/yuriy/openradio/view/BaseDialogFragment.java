@@ -29,17 +29,10 @@ import com.yuriy.openradio.utils.FabricUtils;
  * Author: Chernyshov Yuriy - Mobile Development
  * Date: 28.05.14
  * Time: 13:32
- */
-
-/**
+ *
  * {@link BaseDialogFragment} is a base class to display Dialog.
  */
 public class BaseDialogFragment extends DialogFragment {
-
-    /**
-     * String tag to use in the logging message.
-     */
-    private static final String LOG_TAG = BaseDialogFragment.class.getSimpleName();
 
     /**
      * Factory method to create instance of the provided class.

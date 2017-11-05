@@ -2,13 +2,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.0"
 
     def versionPropsFile = file('version.properties')
     def code = 1
     if (versionPropsFile.canRead()) {
-        def Properties versionProps = new Properties()
+        Properties versionProps = new Properties()
         versionProps.load(new FileInputStream(versionPropsFile))
         code = versionProps['VERSION_CODE'].toInteger()
     } else {
@@ -21,7 +21,7 @@ android {
     def aliasProp
     def pwdProp
     if (signConfFile.canRead()) {
-        def Properties signProps = new Properties()
+        Properties signProps = new Properties()
         signProps.load(new FileInputStream(signConfFile))
         storeFileProp = signProps['file'].toString()
         aliasProp = signProps['alias'].toString()
@@ -42,13 +42,9 @@ android {
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 16
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode code
         versionName "3.0"
-
-        jackOptions {
-            enabled true
-        }
     }
 
     compileOptions {
@@ -57,10 +53,6 @@ android {
     }
 
     buildTypes {
-//        release {
-//            minifyEnabled true
-//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-//        }
         debug {
             signingConfig signingConfigs.config
         }
@@ -80,10 +72,10 @@ dependencies {
     compile "com.android.support:appcompat-v7:$supportVersion"
     compile "com.android.support:support-v4:$supportVersion"
     compile "com.android.support:design:$supportVersion"
-    compile('com.crashlytics.sdk.android:crashlytics:2.7.0@aar') {
-        transitive = true;
+    compile('com.crashlytics.sdk.android:crashlytics:2.7.1@aar') {
+        transitive = true
     }
-    compile 'com.google.android.gms:play-services-drive:11.0.4'
+    compile 'com.google.android.gms:play-services-drive:11.4.2'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'log4j:log4j:1.2.17'
 
@@ -99,7 +91,7 @@ dependencies {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name.equals("assembleRelease")) {
+    if (task.name == "assembleRelease") {
         task.doLast() {
             tasks.getAndIncrementVersionCode.execute()
         }
@@ -112,7 +104,7 @@ task getAndIncrementVersionCode << {
 
     def versionPropsFile = file('version.properties')
     if (versionPropsFile.canRead()) {
-        def Properties versionProps = new Properties()
+        Properties versionProps = new Properties()
         versionProps.load(new FileInputStream(versionPropsFile))
         def code = versionProps['VERSION_CODE'].toInteger() + 1
         versionProps['VERSION_CODE'] = code.toString()

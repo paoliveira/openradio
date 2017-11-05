@@ -30,13 +30,13 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.LruCache;
 
@@ -173,9 +173,12 @@ public class MediaNotification extends BroadcastReceiver {
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, final Intent intent) {
         final String action = intent.getAction();
         AppLogger.d(CLASS_NAME + " Received intent with action " + action);
+        if (TextUtils.isEmpty(action)) {
+            return;
+        }
         switch (action) {
             case ACTION_PAUSE:
                 mTransportControls.pause();
@@ -286,7 +289,7 @@ public class MediaNotification extends BroadcastReceiver {
         }
 
         mNotificationBuilder
-                .setStyle(new NotificationCompat.MediaStyle()
+                .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle()
                         .setShowActionsInCompactView(playPauseActionIndex)  // only show play/pause in compact view
                         .setMediaSession(mSessionToken))
                 .setColor(mNotificationColor)
