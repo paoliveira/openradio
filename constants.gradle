@@ -1,0 +1,32 @@
+/**
+ * Constants defined in the build scripts.
+ */
+project.ext {
+    /**
+     * Build and compile constants
+     */
+    compileSdkVersion = 27
+    minSdkVersion = 16
+    targetSdkVersion = 27
+    supportVersion = "27.0.0"
+    buildToolsVersion = "27.0.0"
+
+    /**
+     * Libraries versions
+     */
+    googlePlayServicesDriveVersion = "11.4.2"
+    constraintLayoutVersion = "1.0.2"
+    log4jVersion = "1.2.17"
+    crashlyticsVersion = "2.7.1"
+    dexMakerVersion = "1.2"
+    hamcrestVersion = "1.3"
+    junitVersion = "4.12"
+    // https://mvnrepository.com/artifact/org.json/json
+    jsonTestVersion = "20171018"
+
+    /**
+     * Application constants
+     */
+    applicationId = "com.yuriy.openradio"
+    versionName = "3.0"
+}
