@@ -1,11 +1,11 @@
 package com.yuriy.openradio.utils;
 
-import java.lang.ref.WeakReference;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Set;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -31,9 +31,9 @@ public final class RadioStationChecker extends Thread {
      */
     private static final Object MONITOR = new Object();
     /**
-     * Time out for the stream to decide whether there is response or not.
+     * Time out for the stream to decide whether there is response or not, ms.
      */
-    public static final int CHECK_TIME = 2000;
+    public static final int TIME_OUT = 2000;
     /**
      * Waiting max time for the thread for the initialization.
      */
@@ -88,19 +88,21 @@ public final class RadioStationChecker extends Thread {
         AppLogger.d(CLASS_NAME + " Check Stream Url:" + mUrl);
         try {
             mInitLatch.await(INIT_WAIT_TIME, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-                /* Ignore */
+        } catch (final InterruptedException e) {
+            /* Ignore */
         }
 
         HttpURLConnection urlConnection = null;
+        // Use input stream in order to close stream explicitly, this is the expectation of one
+        // of the HttpURLConnection implementation.
+        InputStream inputStream = null;
         try {
             final double startTime = System.currentTimeMillis();
             final URL url = new URL(mUrl);
             urlConnection = (HttpURLConnection) url.openConnection();
-
-            mTimer.schedule(new TimerTaskListener(this, urlConnection), CHECK_TIME);
-
+            urlConnection.setConnectTimeout(TIME_OUT);
             urlConnection.connect();
+            inputStream = urlConnection.getInputStream();
             final int responseCode = urlConnection.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 AppLogger.d(CLASS_NAME + " Stream Url OK:" + urlConnection.getResponseMessage()
@@ -110,59 +112,31 @@ public final class RadioStationChecker extends Thread {
                 }
             }
         } catch (final Exception e) {
-            AppLogger.e(CLASS_NAME + " Stream Url check failed:" + e.getMessage());
+            AppLogger.e(
+                    CLASS_NAME + " Stream Url " + mUrl + " check failed:" + e.getMessage()
+            );
             //FabricUtils.logException(e);
         } finally {
-            clear(urlConnection);
+            clear(urlConnection, inputStream);
         }
     }
 
     /**
      * Clear timer and disconnect connection.
      */
-    private synchronized void clear(final HttpURLConnection urlConnection) {
+    private synchronized void clear(final HttpURLConnection urlConnection,
+                                    final InputStream inputStream) {
         if (urlConnection == null) {
             return;
         }
         mTimer.cancel();
         mTimer.purge();
+        try {
+            inputStream.close();
+        } catch (Exception e) {
+            /* Ignore */
+        }
         urlConnection.disconnect();
         mCompleteLatch.countDown();
-    }
-
-    /**
-     * Helper class to keep track on the check time.
-     * When the time runs out - terminate check procedure.
-     */
-    private static final class TimerTaskListener extends TimerTask {
-
-        /**
-         * Weak reference to the checker class.
-         */
-        private final WeakReference<RadioStationChecker> mReference;
-
-        private HttpURLConnection mUrlConnection;
-
-        /**
-         * Constructor.
-         *
-         * @param reference The reference to the checker class.
-         */
-        private TimerTaskListener(final RadioStationChecker reference,
-                                  final HttpURLConnection urlConnection) {
-            super();
-            mReference = new WeakReference<>(reference);
-            mUrlConnection = urlConnection;
-        }
-
-        @Override
-        public void run() {
-            AppLogger.e(CLASS_NAME + " Stream Url check failed by timeout");
-            final RadioStationChecker reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.clear(mUrlConnection);
-        }
     }
 }

@@ -726,14 +726,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         try {
             url = new URL(playlistUrl);
             conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(RadioStationChecker.CHECK_TIME);
-            conn.setReadTimeout(RadioStationChecker.CHECK_TIME);
+            conn.setConnectTimeout(RadioStationChecker.TIME_OUT);
+            conn.setReadTimeout(RadioStationChecker.TIME_OUT);
             conn.setRequestMethod("GET");
 
             final String contentType = conn.getContentType();
             is = conn.getInputStream();
 
-            final AutoDetectParser parser = new AutoDetectParser(RadioStationChecker.CHECK_TIME);
+            final AutoDetectParser parser = new AutoDetectParser(RadioStationChecker.TIME_OUT);
             final Playlist playlist = new Playlist();
             parser.parse(url.toString(), contentType, is, playlist);
 
