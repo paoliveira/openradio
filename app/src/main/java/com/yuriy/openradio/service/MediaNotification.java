@@ -41,6 +41,8 @@ import android.text.TextUtils;
 import android.util.LruCache;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.notification.MediaNotificationData;
+import com.yuriy.openradio.business.notification.MediaNotificationManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -54,7 +56,7 @@ import java.lang.ref.WeakReference;
  * won't be killed during playback.
  */
 public class MediaNotification extends BroadcastReceiver {
-    
+
     private static final String CLASS_NAME = MediaNotification.class.getSimpleName();
 
     private static final int NOTIFICATION_ID = 412;
@@ -123,7 +125,7 @@ public class MediaNotification extends BroadcastReceiver {
             packageContext.setTheme(applicationInfo.theme);
             Resources.Theme theme = packageContext.getTheme();
             TypedArray ta = theme.obtainStyledAttributes(
-                    new int[] {android.support.v7.appcompat.R.attr.colorPrimary});
+                    new int[]{android.support.v7.appcompat.R.attr.colorPrimary});
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (final Exception e) {
@@ -252,24 +254,33 @@ public class MediaNotification extends BroadcastReceiver {
 
         updatePlayPauseAction();
 
-        mNotificationBuilder = new NotificationCompat.Builder(mService);
-        int playPauseActionIndex = 0;
+        // Create/Retrieve Notification Channel for O and beyond devices (26+).
+        final String notificationChannelId = MediaNotificationManager.createNotificationChannel(
+                mService.getApplicationContext(),
+                new MediaNotificationData()
+        );
 
+        mNotificationBuilder = new NotificationCompat.Builder(
+                mService.getApplicationContext(), notificationChannelId
+        );
+
+        int playPauseActionIndex = 0;
         // If skip to previous action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
-            mNotificationBuilder
-                    .addAction(R.drawable.ic_skip_previous_white_24dp,
-                            mService.getString(R.string.label_previous), mPreviousIntent);
+            mNotificationBuilder.addAction(
+                    R.drawable.ic_skip_previous_white_24dp,
+                    mService.getString(R.string.label_previous),
+                    mPreviousIntent
+            );
             playPauseActionIndex = 1;
         }
 
-        mNotificationBuilder.addAction(mPlayPauseAction);
-
-        // If skip to next action is enabled
-        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
-            mNotificationBuilder.addAction(R.drawable.ic_skip_next_white_24dp,
-                    mService.getString(R.string.label_next), mNextIntent);
-        }
+        // Build the style.
+        android.support.v4.media.app.NotificationCompat.MediaStyle mediaStyle
+                = new android.support.v4.media.app.NotificationCompat.MediaStyle()
+                // only show play/pause in compact view
+                .setShowActionsInCompactView(playPauseActionIndex)
+                .setMediaSession(mSessionToken);
 
         final MediaDescriptionCompat description = mMetadata.getDescription();
 
@@ -284,14 +295,23 @@ public class MediaNotification extends BroadcastReceiver {
             if (art == null) {
                 fetchArtUrl = artUrl;
                 // use a placeholder art while the remote art is being downloaded
-                art = BitmapFactory.decodeResource(mService.getResources(), R.drawable.ic_radio_station);
+                art = BitmapFactory.decodeResource(
+                        mService.getResources(), R.drawable.ic_radio_station
+                );
             }
         }
 
+        // If skip to next action is enabled
+        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
+            mNotificationBuilder.addAction(
+                    R.drawable.ic_skip_next_white_24dp,
+                    mService.getString(R.string.label_next),
+                    mNextIntent
+            );
+        }
+        mNotificationBuilder.addAction(mPlayPauseAction);
         mNotificationBuilder
-                .setStyle(new android.support.v4.media.app.NotificationCompat.MediaStyle()
-                        .setShowActionsInCompactView(playPauseActionIndex)  // only show play/pause in compact view
-                        .setMediaSession(mSessionToken))
+                .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -404,7 +424,7 @@ public class MediaNotification extends BroadcastReceiver {
         protected Bitmap doInBackground(final Void... params) {
             final MediaNotification reference = mReference.get();
             if (reference == null) {
-                return  null;
+                return null;
             }
 
             Bitmap bitmap = null;

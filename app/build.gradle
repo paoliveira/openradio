@@ -73,6 +73,7 @@ dependencies {
     compile "com.android.support:appcompat-v7:$supportVersion"
     compile "com.android.support:support-v4:$supportVersion"
     compile "com.android.support:design:$supportVersion"
+    compile "com.android.support:support-v13:$supportVersion"
     compile("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
         transitive = true
     }
