@@ -24,13 +24,14 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.PermissionChecker;
 
-import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
@@ -43,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  * On 4/27/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class LocationService {
+public final class LocationService {
 
     private static final String CLASS_NAME = LocationService.class.getSimpleName();
     /**
@@ -73,7 +74,7 @@ public class LocationService {
     /**
      * @return Country code for the current user's location.
      */
-    public String getCountryCode() {
+    String getCountryCode() {
         return mCountryCode;
     }
 
@@ -83,7 +84,7 @@ public class LocationService {
      *
      * @param context {@link Context} of the callee.
      */
-    public void checkLocationEnable(final Context context) {
+    void checkLocationEnable(final Context context) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
@@ -104,7 +105,8 @@ public class LocationService {
      * @param context {@link Context} of the callee.
      */
     @SuppressWarnings("ResourceType")
-    public void requestCountryCodeLastKnownSync(final Context context, final ExecutorService executorService) {
+    void requestCountryCodeLastKnownSync(final Context context,
+                                         final ExecutorService executorService) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
@@ -112,12 +114,13 @@ public class LocationService {
         // Or use LocationManager.GPS_PROVIDER
 
         if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            AppLogger.w("Location permission not granted");
             return;
         }
 
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
-            AppLogger.w(CLASS_NAME + " LastKnownLocation unavailable");
+            AppLogger.w(CLASS_NAME + " Last known Location unavailable");
             return;
         }
 
@@ -128,14 +131,11 @@ public class LocationService {
                         LocationService.this.mCountryCode = extractCountryCode(
                                 context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
                         );
-                    } catch (final IOException e) {
-                        LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
-                        FabricUtils.logException(e);
                     } finally {
                         latch.countDown();
                     }
 
-                    AppLogger.d(CLASS_NAME + " LastKnownLocation:" + LocationService.this.mCountryCode);
+                    AppLogger.d(CLASS_NAME + " Last known Location:" + LocationService.this.mCountryCode);
                 }
         );
         try {
@@ -147,62 +147,18 @@ public class LocationService {
     }
 
     @SuppressWarnings("ResourceType")
-    public void requestCountryCode(final Context context, final LocationServiceListener listener) {
+    void requestCountryCode(final Context context, final LocationServiceListener listener) {
         // Acquire a reference to the system Location Manager
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-        // Define a listener that responds to location updates
-        final LocationListener locationListener = new LocationListener() {
-
-            @Override
-            public void onLocationChanged(Location location) {
-
-                if (listener == null) {
-                    return;
-                }
-
-                try {
-                    LocationService.this.mCountryCode = extractCountryCode(
-                            context, location.getLatitude(), location.getLongitude()
-                    );
-                } catch (final IOException e) {
-                    LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
-                    FabricUtils.logException(e);
-                }
-                listener.onCountryCodeLocated(LocationService.this.mCountryCode);
-
-                if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    return;
-                }
-
-                try {
-                    locationManager.removeUpdates(this);
-                } catch (final IllegalArgumentException e) {
-                    FabricUtils.logException(e);
-                }
-            }
-
-            @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
-
-            @Override
-            public void onProviderEnabled(String provider) {
-
-            }
-
-            @Override
-            public void onProviderDisabled(String provider) {
-
-            }
-        };
 
         if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
             return;
         }
 
+        final LocationListener locationListener = new LocationListenerImpl(
+                this, listener, context, locationManager
+        );
         // Register the listener with the Location Manager to receive location updates
         try {
             locationManager.requestLocationUpdates(
@@ -216,15 +172,91 @@ public class LocationService {
         }
     }
 
-    private static String extractCountryCode(final Context context, final double latitude,
-                                             final double longitude) throws IOException {
+    private static String extractCountryCode(final Context context,
+                                             final double latitude,
+                                             final double longitude) {
         final Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-        final List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
+        List<Address> addresses = null;
+        AppLogger.d("Location Latitude:" + latitude + " Longitude:" + longitude);
+        try {
+            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+            AppLogger.d("Location:" + addresses.get(0) + " " + Thread.currentThread());
+        } catch (final Exception e) {
+            FabricUtils.log("Latitude:" + latitude + " Longitude:" + longitude);
+            FabricUtils.logException(e);
+        }
 
         if (addresses == null || addresses.isEmpty()) {
             return COUNTRY_CODE_DEFAULT;
         }
 
         return addresses.get(0).getCountryCode();
+    }
+
+    /**
+     *  Define a listener that responds to location updates.
+     */
+    private static final class LocationListenerImpl implements LocationListener {
+
+        private final WeakReference<LocationService> mReference;
+        private final LocationServiceListener mListener;
+        private final Context mContext;
+        @NonNull
+        private final LocationManager mLocationManager;
+
+        private LocationListenerImpl(final LocationService reference,
+                                     final LocationServiceListener listener,
+                                     final Context context,
+                                     @NonNull final LocationManager locationManager) {
+            super();
+            mReference = new WeakReference<>(reference);
+            mListener = listener;
+            mContext = context;
+            mLocationManager = locationManager;
+        }
+
+        @Override
+        public void onLocationChanged(final Location location) {
+
+            if (mListener == null) {
+                return;
+            }
+            final LocationService reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+
+            reference.mCountryCode = extractCountryCode(
+                    mContext, location.getLatitude(), location.getLongitude()
+            );
+            mListener.onCountryCodeLocated(reference.mCountryCode);
+
+            if (!PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                return;
+            }
+
+            try {
+                mLocationManager.removeUpdates(this);
+            } catch (final IllegalArgumentException e) {
+                FabricUtils.logException(e);
+            }
+        }
+
+        @Override
+        public void onStatusChanged(final String provider,
+                                    final int status,
+                                    final Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(final String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(final String provider) {
+
+        }
     }
 }

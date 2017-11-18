@@ -480,7 +480,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         switch (command) {
             case VALUE_NAME_REQUEST_LOCATION_COMMAND:
                 mLocationService.requestCountryCode(
-                        this,
+                        getApplicationContext(),
                         countryCode -> LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
                                 AppLocalBroadcastReceiver.createIntentLocationCountryCode(
                                         countryCode

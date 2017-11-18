@@ -59,6 +59,17 @@ public final class FabricUtils {
     }
 
     /**
+     *
+     * @param message
+     */
+    public static void log(final String message) {
+        if (Crashlytics.getInstance() == null) {
+            return;
+        }
+        Crashlytics.log(message);
+    }
+
+    /**
      * Logs custom event to the Fabric dashboard.
      *
      * @param name Event name.
