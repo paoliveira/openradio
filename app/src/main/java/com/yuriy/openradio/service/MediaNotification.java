@@ -257,7 +257,7 @@ public class MediaNotification extends BroadcastReceiver {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = MediaNotificationManager.createNotificationChannel(
                 mService.getApplicationContext(),
-                new MediaNotificationData()
+                new MediaNotificationData(mMetadata)
         );
 
         mNotificationBuilder = new NotificationCompat.Builder(

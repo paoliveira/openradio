@@ -17,7 +17,7 @@ public final class MediaNotificationManager {
 
     public static String createNotificationChannel(
             final Context context,
-            MediaNotificationData notificationData) {
+            final MediaNotificationData notificationData) {
 
         // NotificationChannels are required for Notifications on O (API 26) and above.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -40,6 +40,7 @@ public final class MediaNotificationManager {
             notificationChannel.setDescription(channelDescription);
             notificationChannel.enableVibration(channelEnableVibrate);
             notificationChannel.setLockscreenVisibility(channelLocksScreenVisibility);
+            // Keep this nulls to suspend bug in Android O when each notification provides with a sound
             notificationChannel.setSound(null, null);
 
             // Adds NotificationChannel to system. Attempting to create an existing notification

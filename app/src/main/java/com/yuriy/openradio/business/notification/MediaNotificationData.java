@@ -1,7 +1,11 @@
 package com.yuriy.openradio.business.notification;
 
 import android.app.NotificationManager;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.MediaDescriptionCompat;
+import android.support.v4.media.MediaMetadataCompat;
 
 /**
  * Created by Chernyshov Yurii
@@ -9,7 +13,6 @@ import android.support.v4.app.NotificationCompat;
  * On 05/11/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-
 public final class MediaNotificationData {
 
     // Standard notification values:
@@ -25,15 +28,28 @@ public final class MediaNotificationData {
     private boolean mChannelEnableVibrate;
     private int mChannelLockScreenVisibility;
     
-    public MediaNotificationData() {
+    public MediaNotificationData(@NonNull final MediaMetadataCompat metadata) {
         super();
-        mContentTitle = "Content title";
-        mContentText = "Content text";
-        mPriority = NotificationCompat.PRIORITY_LOW;
+
+        final MediaDescriptionCompat description = metadata.getDescription();
+        if (description.getTitle() != null) {
+            mContentTitle = description.getTitle().toString();
+        } else {
+            mContentTitle = "Notification";
+        }
+        if (description.getSubtitle() != null) {
+            mContentText = description.getSubtitle().toString();
+        } else {
+            mContentText = "Notification";
+        }
+
+        mPriority = NotificationCompat.PRIORITY_DEFAULT;
         mChannelId = "channel_id_1";
-        mChannelName = "Channel Name";
-        mChannelDescription = "Channel description";
-        mChannelImportance = NotificationManager.IMPORTANCE_LOW;
+        mChannelName = "Radio Station";
+        mChannelDescription = "Updates about current Radio Station";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            mChannelImportance = NotificationManager.IMPORTANCE_DEFAULT;
+        }
         mChannelEnableVibrate = false;
         mChannelLockScreenVisibility = NotificationCompat.VISIBILITY_PUBLIC;
     }
