@@ -40,6 +40,7 @@ public final class MediaNotificationManager {
             notificationChannel.setDescription(channelDescription);
             notificationChannel.enableVibration(channelEnableVibrate);
             notificationChannel.setLockscreenVisibility(channelLocksScreenVisibility);
+            notificationChannel.setSound(null, null);
 
             // Adds NotificationChannel to system. Attempting to create an existing notification
             // channel with its original values performs no operation, so it's safe to perform the

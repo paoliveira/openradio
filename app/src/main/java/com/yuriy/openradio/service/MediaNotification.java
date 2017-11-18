@@ -383,6 +383,9 @@ public class MediaNotification extends BroadcastReceiver {
         // Make sure that the notification can be dismissed by the user when we are not playing:
         mNotificationBuilder.setOngoing(mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING);
 
+        mNotificationBuilder.setDefaults(0);
+        mNotificationBuilder.setSound(null);
+
         mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
@@ -459,6 +462,10 @@ public class MediaNotification extends BroadcastReceiver {
                 // If the media is still the same, update the notification:
                 AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + mSource);
                 reference.mNotificationBuilder.setLargeIcon(bitmap);
+
+                reference.mNotificationBuilder.setDefaults(0);
+                reference.mNotificationBuilder.setSound(null);
+
                 reference.mNotificationManager.notify(
                         NOTIFICATION_ID, reference.mNotificationBuilder.build()
                 );

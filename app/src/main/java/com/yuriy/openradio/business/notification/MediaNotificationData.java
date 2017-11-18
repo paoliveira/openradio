@@ -29,11 +29,11 @@ public final class MediaNotificationData {
         super();
         mContentTitle = "Content title";
         mContentText = "Content text";
-        mPriority = NotificationCompat.PRIORITY_DEFAULT;
+        mPriority = NotificationCompat.PRIORITY_LOW;
         mChannelId = "channel_id_1";
         mChannelName = "Channel Name";
         mChannelDescription = "Channel description";
-        mChannelImportance = NotificationManager.IMPORTANCE_DEFAULT;
+        mChannelImportance = NotificationManager.IMPORTANCE_LOW;
         mChannelEnableVibrate = false;
         mChannelLockScreenVisibility = NotificationCompat.VISIBILITY_PUBLIC;
     }
