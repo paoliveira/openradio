@@ -55,7 +55,7 @@ import java.lang.ref.WeakReference;
  * MediaSession. Maintaining a visible notification (usually) guarantees that the music service
  * won't be killed during playback.
  */
-public class MediaNotification extends BroadcastReceiver {
+public final class MediaNotification extends BroadcastReceiver {
 
     private static final String CLASS_NAME = MediaNotification.class.getSimpleName();
 
@@ -76,6 +76,7 @@ public class MediaNotification extends BroadcastReceiver {
 
     private PlaybackStateCompat mPlaybackState;
     private MediaMetadataCompat mMetadata;
+    private final MediaControllerCompat.Callback mCb;
 
     private NotificationCompat.Builder mNotificationBuilder;
     private NotificationManagerCompat mNotificationManager;
@@ -88,6 +89,9 @@ public class MediaNotification extends BroadcastReceiver {
     private boolean mStarted = false;
 
     public MediaNotification(final OpenRadioService service) {
+        super();
+
+        mCb = new MediaControllerCompatCallback(this);
         mService = service;
         updateSessionToken();
 
@@ -142,7 +146,7 @@ public class MediaNotification extends BroadcastReceiver {
     public void startNotification() {
         if (!mStarted) {
             mController.registerCallback(mCb);
-            IntentFilter filter = new IntentFilter();
+            final IntentFilter filter = new IntentFilter();
             filter.addAction(ACTION_NEXT);
             filter.addAction(ACTION_PAUSE);
             filter.addAction(ACTION_PLAY);
@@ -222,29 +226,55 @@ public class MediaNotification extends BroadcastReceiver {
         }
     }
 
-    private final MediaControllerCompat.Callback mCb = new MediaControllerCompat.Callback() {
+    private static final class MediaControllerCompatCallback extends MediaControllerCompat.Callback {
 
-        @Override
-        public void onPlaybackStateChanged(@NonNull PlaybackStateCompat state) {
-            mPlaybackState = state;
-            AppLogger.d(CLASS_NAME + " Received new playback state:" + state);
-            updateNotificationPlaybackState();
+        private static final String CLASS_NAME = MediaControllerCompatCallback.class.getSimpleName();
+        private final WeakReference<MediaNotification> mReference;
+
+        private MediaControllerCompatCallback(final MediaNotification reference) {
+            super();
+
+            mReference = new WeakReference<>(reference);
         }
 
         @Override
-        public void onMetadataChanged(MediaMetadataCompat metadata) {
-            mMetadata = metadata;
+        public void onPlaybackStateChanged(final @NonNull PlaybackStateCompat state) {
+            AppLogger.d(CLASS_NAME + " Received new playback state:" + state);
+
+            final MediaNotification reference = mReference.get();
+            if (reference == null) {
+                AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
+                return;
+            }
+            reference.mPlaybackState = state;
+            reference.updateNotificationPlaybackState();
+        }
+
+        @Override
+        public void onMetadataChanged(final MediaMetadataCompat metadata) {
             AppLogger.d(CLASS_NAME + " Received new metadata:" + metadata);
-            updateNotificationMetadata();
+
+            final MediaNotification reference = mReference.get();
+            if (reference == null) {
+                AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
+                return;
+            }
+            reference.mMetadata = metadata;
+            reference.updateNotificationMetadata();
         }
 
         @Override
         public void onSessionDestroyed() {
-            super.onSessionDestroyed();
             AppLogger.d(CLASS_NAME + " Session was destroyed, resetting to the new session token");
-            updateSessionToken();
+
+            final MediaNotification reference = mReference.get();
+            if (reference == null) {
+                AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
+                return;
+            }
+            reference.updateSessionToken();
         }
-    };
+    }
 
     private void updateNotificationMetadata() {
         AppLogger.d(CLASS_NAME + " Update Notification Metadata : " + mMetadata);
@@ -359,10 +389,13 @@ public class MediaNotification extends BroadcastReceiver {
             return;
         }
         if (mNotificationBuilder == null) {
-            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. there is no notificationBuilder. Ignoring request to update state!");
+            AppLogger.d(
+                    CLASS_NAME + " updateNotificationPlaybackState. there is no notificationBuilder. " +
+                            "Ignoring request to update state!"
+            );
             return;
         }
-        if (mPlaybackState.getPosition() >= 0) {
+        if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
             AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. updating playback position to " +
                     (System.currentTimeMillis() - mPlaybackState.getPosition()) / 1000 + " seconds");
             mNotificationBuilder
