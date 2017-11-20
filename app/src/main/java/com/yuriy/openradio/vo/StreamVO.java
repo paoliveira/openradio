@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.api;
+package com.yuriy.openradio.vo;
 
 /**
  * Created by Yuriy Chernyshov
@@ -24,7 +24,7 @@ package com.yuriy.openradio.api;
  */
 
 /**
- * {@link com.yuriy.openradio.api.StreamVO} is a value object that holds Stream's data.
+ * {@link StreamVO} is a value object that holds Stream's data.
  */
 public final class StreamVO {
 
@@ -65,9 +65,9 @@ public final class StreamVO {
     private StreamVO() { }
 
     /**
-     * Factory method to create instance of the {@link com.yuriy.openradio.api.StreamVO}.
+     * Factory method to create instance of the {@link StreamVO}.
      *
-     * @return Instance of the {@link com.yuriy.openradio.api.StreamVO}.
+     * @return Instance of the {@link StreamVO}.
      */
     public static StreamVO makeDefaultInstance() {
         return new StreamVO();

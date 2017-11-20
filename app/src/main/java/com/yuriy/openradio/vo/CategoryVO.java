@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.api;
+package com.yuriy.openradio.vo;
 
 /**
  * Created by Yuriy Chernyshov
@@ -26,7 +26,7 @@ package com.yuriy.openradio.api;
 import com.yuriy.openradio.utils.AppLogger;
 
 /**
- * {@link com.yuriy.openradio.api.CategoryVO} is a value object that holds Radio Category data.
+ * {@link CategoryVO} is a value object that holds Radio Category data.
  */
 public final class CategoryVO {
 
@@ -93,9 +93,9 @@ public final class CategoryVO {
     }
 
     /**
-     * Factory method to create instance of the {@link com.yuriy.openradio.api.CategoryVO}.
+     * Factory method to create instance of the {@link CategoryVO}.
      *
-     * @return Instance of the {@link com.yuriy.openradio.api.CategoryVO}.
+     * @return Instance of the {@link CategoryVO}.
      */
     public static CategoryVO makeDefaultInstance() {
         return new CategoryVO();

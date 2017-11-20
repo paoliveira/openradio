@@ -23,7 +23,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.CountryVO;
+import com.yuriy.openradio.vo.CountryVO;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;

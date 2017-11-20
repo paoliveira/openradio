@@ -46,7 +46,6 @@ import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.api.RadioStationVO;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.RemoteControlReceiver;
@@ -75,6 +74,7 @@ import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
 import com.yuriy.openradio.utils.QueueHelper;
 import com.yuriy.openradio.utils.RadioStationChecker;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -231,7 +231,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Collection of the Radio Stations.
      */
-    private final List<RadioStationVO> mRadioStations = new ArrayList<>();
+    private final List<RadioStation> mRadioStations = new ArrayList<>();
 
     /**
      * Indicates if we should start playing immediately after we gain focus.
@@ -495,7 +495,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 if (mediaDescription == null) {
                     return super.onStartCommand(intent, flags, startId);
                 }
-                final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                final RadioStation radioStation = QueueHelper.getRadioStationById(
                         mediaDescription.getMediaId(), mRadioStations
                 );
                 if (radioStation == null) {
@@ -521,7 +521,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                 if (!TextUtils.isEmpty(name)
                         && !TextUtils.isEmpty(url)) {
-                    final RadioStationVO radioStationLocal = RadioStationVO.makeDefaultInstance();
+                    final RadioStation radioStationLocal = RadioStation.makeDefaultInstance();
 
                     radioStationLocal.setId(LocalRadioStationsStorage.getId(getApplicationContext()));
                     radioStationLocal.setName(name);
@@ -703,7 +703,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
         final String mediaId = item.getDescription().getMediaId();
 
-        RadioStationVO radioStation;
+        RadioStation radioStation;
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
         }
@@ -818,7 +818,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Factory method to make intent to create custom {@link RadioStationVO}.
+     * Factory method to make intent to create custom {@link RadioStation}.
      *
      * @param context Context of the callee.
      *
@@ -840,7 +840,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Factory method to make Intent to remove custom {@link RadioStationVO}.
+     * Factory method to make Intent to remove custom {@link RadioStation}.
      *
      * @param context Context of the callee.
      * @param mediaId Media Id of the Radio Station.
@@ -877,10 +877,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Factory method to make {@link Intent} to update whether {@link RadioStationVO} is Favorite.
+     * Factory method to make {@link Intent} to update whether {@link RadioStation} is Favorite.
      *
      * @param context          Context of the callee.
-     * @param mediaDescription {@link MediaDescriptionCompat} of the {@link RadioStationVO}.
+     * @param mediaDescription {@link MediaDescriptionCompat} of the {@link RadioStation}.
      * @param isFavorite       Whether Radio station is Favorite or not.
      * @return {@link Intent}.
      */
@@ -901,7 +901,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param sortId  Sort Id to update to.
      */
     private void updateSortId(final String mediaId, final int sortId, final String categoryMediaId) {
-        RadioStationVO radioStation;
+        RadioStation radioStation;
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
             if (radioStation != null) {
@@ -1014,13 +1014,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         final String mediaId = item.getDescription().getMediaId();
 
-        RadioStationVO radioStation;
+        RadioStation radioStation;
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
         }
 
         // Make a copy of the Radio Station
-        final RadioStationVO radioStationCopy = radioStation;
+        final RadioStation radioStationCopy = radioStation;
 
         if (radioStationCopy == null) {
             if (listener != null) {
@@ -1047,7 +1047,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 executorService.submit(
                         () -> {
                             // Start download information about Radio Station
-                            final RadioStationVO radioStationUpdated = getServiceProvider().getStation(
+                            final RadioStation radioStationUpdated = getServiceProvider().getStation(
                                     new HTTPDownloaderImpl(),
                                     UrlBuilder.getStation(
                                             getApplicationContext(),
@@ -1071,7 +1071,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
-    private MediaMetadataCompat buildMetadata(final RadioStationVO radioStation) {
+    private MediaMetadataCompat buildMetadata(final RadioStation radioStation) {
         if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
             updatePlaybackState(getString(R.string.no_data_message));
         }
@@ -1111,7 +1111,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaId is null");
             return;
         }
-        final RadioStationVO radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+        final RadioStation radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
         if (radioStation == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - Radio Station is null");
             return;
@@ -1552,7 +1552,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     final String mediaId = track.getString(
                             MediaMetadataCompat.METADATA_KEY_MEDIA_ID
                     );
-                    final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                    final RadioStation radioStation = QueueHelper.getRadioStationById(
                             mediaId, mRadioStations
                     );
                     if (radioStation == null) {
@@ -1586,9 +1586,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Remove {@link RadioStationVO} from the Favorites store by the provided Media Id.
+     * Remove {@link RadioStation} from the Favorites store by the provided Media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStationVO}.
+     * @param mediaId Media Id of the {@link RadioStation}.
      */
     private void removeFromFavorites(final String mediaId) {
         FavoritesStorage.removeFromFavorites(
@@ -1785,7 +1785,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                 final String mediaId = track.getString(
                                         MediaMetadataCompat.METADATA_KEY_MEDIA_ID
                                 );
-                                final RadioStationVO radioStation = QueueHelper.getRadioStationById(
+                                final RadioStation radioStation = QueueHelper.getRadioStationById(
                                         mediaId, service.mRadioStations
                                 );
 
@@ -1868,7 +1868,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Instantiate appropriate API service provider
         final APIServiceProvider serviceProvider = getServiceProvider();
 
-        final List<RadioStationVO> list = serviceProvider.getStations(
+        final List<RadioStation> list = serviceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchUrl(getApplicationContext()),
                 APIServiceProviderImpl.getSearchQueryParameters(query)

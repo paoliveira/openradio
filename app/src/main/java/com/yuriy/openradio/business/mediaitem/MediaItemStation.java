@@ -21,7 +21,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -73,7 +73,7 @@ public final class MediaItemStation implements MediaItemCommand {
         final String radioStationId
                 = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, "");
 
-        final RadioStationVO radioStation = shareObject.getServiceProvider().getStation(
+        final RadioStation radioStation = shareObject.getServiceProvider().getStation(
                 shareObject.getDownloader(),
                 UrlBuilder.getStation(shareObject.getContext(), radioStationId));
 

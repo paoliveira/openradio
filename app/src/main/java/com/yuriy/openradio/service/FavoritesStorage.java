@@ -20,7 +20,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
 
@@ -48,26 +48,26 @@ public final class FavoritesStorage extends AbstractStorage {
      * {@inheritDoc}
      */
     @NonNull
-    public static List<RadioStationVO> getAllFavoritesFromString(final String marshalledRadioStations) {
+    public static List<RadioStation> getAllFavoritesFromString(final String marshalledRadioStations) {
         return getAllFromString(marshalledRadioStations);
     }
 
     /**
-     * Add provided {@link RadioStationVO} to the Favorites preferences.
+     * Add provided {@link RadioStation} to the Favorites preferences.
      *
-     * @param radioStation {@link RadioStationVO} to add to Favorites.
+     * @param radioStation {@link RadioStation} to add to Favorites.
      * @param context      Context of the callee.
      */
-    public static synchronized void addToFavorites(final RadioStationVO radioStation,
+    public static synchronized void addToFavorites(final RadioStation radioStation,
                                                    final Context context) {
         add(radioStation, context, FILE_NAME);
     }
 
     /**
-     * Remove provided {@link RadioStationVO} from the Favorites preferences
+     * Remove provided {@link RadioStation} from the Favorites preferences
      * by the provided media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStationVO}.
+     * @param mediaId Media Id of the {@link RadioStation}.
      * @param context Context of the callee.
      */
     public static synchronized void removeFromFavorites(final String mediaId,
@@ -81,7 +81,7 @@ public final class FavoritesStorage extends AbstractStorage {
      * @param context Context of the callee.
      * @return Collection of the Favorites Radio stations.
      */
-    public static List<RadioStationVO> getAllFavorites(final Context context) {
+    public static List<RadioStation> getAllFavorites(final Context context) {
         return getAll(context, FILE_NAME);
     }
 
@@ -106,19 +106,19 @@ public final class FavoritesStorage extends AbstractStorage {
     }
 
     /**
-     * Check whether provided {@link RadioStationVO} is in Favorites preferences.
+     * Check whether provided {@link RadioStation} is in Favorites preferences.
      *
-     * @param radioStation {@link RadioStationVO} to check in the Favorites.
+     * @param radioStation {@link RadioStation} to check in the Favorites.
      * @param context      Context of the callee.
      * @return True in case of success, False - otherwise.
      */
-    public static boolean isFavorite(final RadioStationVO radioStation, final Context context) {
+    public static boolean isFavorite(final RadioStation radioStation, final Context context) {
         final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
         if (sharedPreferences.contains(radioStation.getIdAsString())) {
             return true;
         }
-        final List<RadioStationVO> list = getAllFavorites(context);
-        for (final RadioStationVO station : list) {
+        final List<RadioStation> list = getAllFavorites(context);
+        for (final RadioStation station : list) {
             if (station == null) {
                 continue;
             }

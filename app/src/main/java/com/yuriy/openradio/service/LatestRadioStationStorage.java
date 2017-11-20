@@ -19,7 +19,7 @@ package com.yuriy.openradio.service;
 import android.content.Context;
 import android.support.annotation.Nullable;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.AppPreferencesManager;
 
 import java.util.List;
@@ -50,12 +50,12 @@ public final class LatestRadioStationStorage extends AbstractStorage {
     private static final String KEY = "LatestRadioStationKey";
 
     /**
-     * Save provided {@link RadioStationVO} to the Latest Radio Station preferences.
+     * Save provided {@link RadioStation} to the Latest Radio Station preferences.
      *
-     * @param radioStation {@link RadioStationVO} to add as Latest Radio Station.
+     * @param radioStation {@link RadioStation} to add as Latest Radio Station.
      * @param context      Context of the callee.
      */
-    public static synchronized void addToLocals(final RadioStationVO radioStation, final Context context) {
+    public static synchronized void addToLocals(final RadioStation radioStation, final Context context) {
         add(KEY, radioStation, context, FILE_NAME);
     }
 
@@ -66,14 +66,14 @@ public final class LatestRadioStationStorage extends AbstractStorage {
      * @return Collection of the Local Radio Stations.
      */
     @Nullable
-    public static synchronized RadioStationVO load(final Context context) {
+    public static synchronized RadioStation load(final Context context) {
         // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
         // exposed.
         if (!AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             return null;
         }
 
-        final List<RadioStationVO> list = getAll(context, FILE_NAME);
+        final List<RadioStation> list = getAll(context, FILE_NAME);
         // There is only one Radio Station in collection.
         if (!list.isEmpty()) {
             return list.get(0);

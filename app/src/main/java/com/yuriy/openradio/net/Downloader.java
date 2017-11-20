@@ -50,5 +50,5 @@ public interface Downloader {
      * @param parameters List of parameters to attach to connection.
      * @return Downloaded data.
      */
-    byte[] downloadDataFromUri(final Uri uri, List<Pair<String, String>> parameters);
+    byte[] downloadDataFromUri(final Uri uri, final List<Pair<String, String>> parameters);
 }

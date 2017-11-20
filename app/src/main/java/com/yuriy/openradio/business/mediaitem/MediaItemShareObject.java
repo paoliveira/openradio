@@ -22,8 +22,8 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.api.CategoryVO;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.service.OpenRadioService;
 
@@ -98,7 +98,7 @@ public final class MediaItemShareObject {
     /**
      *
      */
-    private List<RadioStationVO> mRadioStations;
+    private List<RadioStation> mRadioStations;
 
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
@@ -265,7 +265,7 @@ public final class MediaItemShareObject {
      *
      * @return
      */
-    public List<RadioStationVO> getRadioStations() {
+    public List<RadioStation> getRadioStations() {
         return mRadioStations;
     }
 
@@ -273,7 +273,7 @@ public final class MediaItemShareObject {
      *
      * @param value
      */
-    public void setRadioStations(final List<RadioStationVO> value) {
+    public void setRadioStations(final List<RadioStation> value) {
         mRadioStations = value;
     }
 

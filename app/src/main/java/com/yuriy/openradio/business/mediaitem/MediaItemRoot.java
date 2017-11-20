@@ -25,7 +25,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LatestRadioStationStorage;
@@ -65,7 +65,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
         // Get lat know Radio Station.
-        final RadioStationVO latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
+        final RadioStation latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
         if (latestRadioStation != null) {
             // Add Radio Station to queue.
             QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());

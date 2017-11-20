@@ -48,6 +48,11 @@ public final class UrlBuilder {
     private static final String BASE_URL = "http://api.dirble.com/v2/";
 
     /**
+     * Google Geo API base url.
+     */
+    private static final String GOOGLE_GEO_URL = "https://maps.googleapis.com/maps/api/geocode";
+
+    /**
      * URL of the Geo Names service to obtain country's flag.
      */
     private static final String GEO_NAMES_FLAGS = "http://www.geonames.org/flags/";
@@ -58,6 +63,16 @@ public final class UrlBuilder {
      */
     private UrlBuilder() {
         super();
+    }
+
+    /**
+     *
+     * @param latitude
+     * @param longitude
+     * @return
+     */
+    public static Uri getGoogleGeoAPIUrl(final double latitude, final double longitude) {
+        return  Uri.parse(GOOGLE_GEO_URL + "/json?latlng=" + latitude + "," + longitude);
     }
 
     /**

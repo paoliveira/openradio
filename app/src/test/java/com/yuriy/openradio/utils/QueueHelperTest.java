@@ -1,6 +1,6 @@
 package com.yuriy.openradio.utils;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import org.junit.Test;
 
@@ -25,11 +25,11 @@ public final class QueueHelperTest {
 
     @Test
     public void merge() throws Exception {
-        final List<RadioStationVO> listA = new ArrayList<>();
-        final List<RadioStationVO> listB = new ArrayList<>();
-        final RadioStationVO[] radioStations = new RadioStationVO[10];
+        final List<RadioStation> listA = new ArrayList<>();
+        final List<RadioStation> listB = new ArrayList<>();
+        final RadioStation[] radioStations = new RadioStation[10];
         for (int i = 0; i < radioStations.length; i++) {
-            final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
+            final RadioStation radioStation = RadioStation.makeDefaultInstance();
             radioStation.setId(i);
             radioStation.setStreamURL("Url" + i);
 

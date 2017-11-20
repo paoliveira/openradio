@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.business;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -28,7 +28,7 @@ import org.json.JSONObject;
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * {@link RadioStationJSONSerializer} is implementation of the {@link RadioStationSerializer}
- * interface that serialize {@link RadioStationVO} into JSON's String.
+ * interface that serialize {@link RadioStation} into JSON's String.
  */
 public final class RadioStationJSONSerializer implements RadioStationSerializer {
 
@@ -40,7 +40,7 @@ public final class RadioStationJSONSerializer implements RadioStationSerializer 
     }
 
     @Override
-    public final String serialize(final RadioStationVO radioStation) {
+    public final String serialize(final RadioStation radioStation) {
         final JSONObject jsonObject = new JSONObject();
         if (radioStation == null) {
             return jsonObject.toString();

@@ -21,7 +21,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
 
@@ -98,21 +98,21 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
     }
 
     /**
-     * Add provided {@link RadioStationVO} to the Local Radio Stations preferences.
+     * Add provided {@link RadioStation} to the Local Radio Stations preferences.
      *
-     * @param radioStation {@link RadioStationVO} to add to the Local Radio Stations.
+     * @param radioStation {@link RadioStation} to add to the Local Radio Stations.
      * @param context      Context of the callee.
      */
-    public static synchronized void addToLocal(final RadioStationVO radioStation,
+    public static synchronized void addToLocal(final RadioStation radioStation,
                                                final Context context) {
         add(radioStation, context, FILE_NAME);
     }
 
     /**
-     * Remove provided {@link RadioStationVO} from the Local radio Stations preferences
+     * Remove provided {@link RadioStation} from the Local radio Stations preferences
      * by the provided media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStationVO}.
+     * @param mediaId Media Id of the {@link RadioStation}.
      * @param context Context of the callee.
      */
     public static synchronized void removeFromLocal(final String mediaId, final Context context) {
@@ -133,7 +133,7 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
      * {@inheritDoc}
      */
     @NonNull
-    public static List<RadioStationVO> getAllLocalsFromString(final String marshalledRadioStations) {
+    public static List<RadioStation> getAllLocalsFromString(final String marshalledRadioStations) {
         return getAllFromString(marshalledRadioStations);
     }
 
@@ -143,11 +143,11 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
      * @param context Context of the callee.
      * @return Collection of the Local Radio Stations.
      */
-    public static List<RadioStationVO> getAllLocals(final Context context) {
-        final List<RadioStationVO> list = getAll(context, FILE_NAME);
+    public static List<RadioStation> getAllLocals(final Context context) {
+        final List<RadioStation> list = getAll(context, FILE_NAME);
         // Loop for the key that holds KEY for the next Local Radio Station
         // and remove it from collection.
-        for (final RadioStationVO radioStation : list) {
+        for (final RadioStation radioStation : list) {
             if (radioStation.getId() == 0) {
                 list.remove(radioStation);
                 break;
@@ -164,10 +164,10 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
      *         {@code false} - otherwise.
      */
     public static boolean isLocalsEmpty(final Context context) {
-        final List<RadioStationVO> list = getAll(context, FILE_NAME);
+        final List<RadioStation> list = getAll(context, FILE_NAME);
         // Loop for the key that holds KEY for the next Local Radio Station
         // and remove it from collection.
-        for (final RadioStationVO radioStation : list) {
+        for (final RadioStation radioStation : list) {
             if (radioStation.getId() == 0) {
                 list.remove(radioStation);
                 break;
@@ -177,13 +177,13 @@ public final class LocalRadioStationsStorage extends AbstractStorage {
     }
 
     /**
-     * Check whether provided {@link RadioStationVO} is in Local Stations preferences.
+     * Check whether provided {@link RadioStation} is in Local Stations preferences.
      *
-     * @param radioStation {@link RadioStationVO} to check in the Favorites.
+     * @param radioStation {@link RadioStation} to check in the Favorites.
      * @param context      Context of the callee.
      * @return True in case of success, False - otherwise.
      */
-    public static boolean isLocalRadioStation(final RadioStationVO radioStation, final Context context) {
+    public static boolean isLocalRadioStation(final RadioStation radioStation, final Context context) {
         final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
         return sharedPreferences.contains(radioStation.getIdAsString());
     }

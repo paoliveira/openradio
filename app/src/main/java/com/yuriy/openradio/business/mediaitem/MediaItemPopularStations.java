@@ -16,14 +16,13 @@
 
 package com.yuriy.openradio.business.mediaitem;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
@@ -82,7 +81,7 @@ public final class MediaItemPopularStations implements MediaItemCommand {
      */
     private void loadStations(final IUpdatePlaybackState playbackStateListener,
                               @NonNull final MediaItemShareObject shareObject) {
-        final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
+        final List<RadioStation> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
                 UrlBuilder.getPopularStations(shareObject.getContext(), mPageIndex++, UrlBuilder.ITEMS_PER_PAGE)
         );
@@ -116,7 +115,7 @@ public final class MediaItemPopularStations implements MediaItemCommand {
             QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
-        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
+        for (final RadioStation radioStation : shareObject.getRadioStations()) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     shareObject.getContext(),

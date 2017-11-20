@@ -27,6 +27,9 @@ import android.net.Uri;
 import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
 
@@ -42,7 +45,7 @@ public interface APIServiceProvider {
      * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link Uri} of the request.
      *
-     * @return Collection of the {@link com.yuriy.openradio.api.CategoryVO}s
+     * @return Collection of the {@link CategoryVO}s
      */
     List<CategoryVO> getCategories(final Downloader downloader, final Uri uri);
 
@@ -63,7 +66,7 @@ public interface APIServiceProvider {
      * @param uri        {@link android.net.Uri} of the request.
      * @return collection of the Radio Stations.
      */
-    List<RadioStationVO> getStations(final Downloader downloader, final Uri uri);
+    List<RadioStation> getStations(final Downloader downloader, final Uri uri);
 
     /**
      * Get a list of Radio Stations by provided Uri.
@@ -73,9 +76,9 @@ public interface APIServiceProvider {
      * @param parameters List of parameters to attach to url connection.
      * @return collection of the Radio Stations.
      */
-    List<RadioStationVO> getStations(final Downloader downloader,
-                                     final Uri uri,
-                                     final List<Pair<String, String>> parameters);
+    List<RadioStation> getStations(final Downloader downloader,
+                                   final Uri uri,
+                                   final List<Pair<String, String>> parameters);
 
     /**
      * Get a Radio Station.
@@ -84,5 +87,5 @@ public interface APIServiceProvider {
      * @param uri        {@link android.net.Uri} of the request.
      * @return Radio Station.
      */
-    RadioStationVO getStation(final Downloader downloader, final Uri uri);
+    RadioStation getStation(final Downloader downloader, final Uri uri);
 }

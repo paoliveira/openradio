@@ -23,10 +23,18 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.yuriy.openradio.api.GoogleGeoAPI;
+import com.yuriy.openradio.api.GoogleGeoAPIImpl;
+import com.yuriy.openradio.business.GoogleGeoDataParser;
+import com.yuriy.openradio.business.GoogleGeoDataParserJson;
+import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.net.HTTPDownloaderImpl;
+import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.PermissionChecker;
@@ -50,7 +58,8 @@ public final class LocationService {
     /**
      * Default value of the Country Code.
      */
-    private static final String COUNTRY_CODE_DEFAULT = "CA";
+    public static final String COUNTRY_CODE_DEFAULT = "CA";
+    public static final String COUNTRY_NAME_DEFAULT = "Canada";
 
     /**
      * Obtained value of the Country Code.
@@ -118,6 +127,11 @@ public final class LocationService {
             return;
         }
 
+        Thread thread = new Thread(
+                () -> getCountryCodeGoogleAPI(43.6225325, -79.4831353)
+        );
+        thread.start();
+
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
             AppLogger.w(CLASS_NAME + " Last known Location unavailable");
@@ -128,7 +142,7 @@ public final class LocationService {
         executorService.submit(
                 () -> {
                     try {
-                        LocationService.this.mCountryCode = extractCountryCode(
+                        LocationService.this.mCountryCode = getCountryCodeGeocoder(
                                 context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
                         );
                     } finally {
@@ -172,18 +186,17 @@ public final class LocationService {
         }
     }
 
-    private static String extractCountryCode(final Context context,
-                                             final double latitude,
-                                             final double longitude) {
+    private static String getCountryCodeGeocoder(final Context context,
+                                                 final double latitude,
+                                                 final double longitude) {
         final Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses = null;
-        AppLogger.d("Location Latitude:" + latitude + " Longitude:" + longitude);
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            AppLogger.d("Location:" + addresses.get(0) + " " + Thread.currentThread());
         } catch (final Exception e) {
-            FabricUtils.log("Latitude:" + latitude + " Longitude:" + longitude);
-            FabricUtils.logException(e);
+//            FabricUtils.log("Latitude:" + latitude + " Longitude:" + longitude);
+//            FabricUtils.logException(e);
+            return getCountryCodeGoogleAPI(latitude, longitude);
         }
 
         if (addresses == null || addresses.isEmpty()) {
@@ -191,6 +204,15 @@ public final class LocationService {
         }
 
         return addresses.get(0).getCountryCode();
+    }
+
+    private static String getCountryCodeGoogleAPI(final double latitude,
+                                                  final double longitude) {
+        final GoogleGeoDataParser parser = new GoogleGeoDataParserJson();
+        final GoogleGeoAPI googleGeoAPI = new GoogleGeoAPIImpl(parser);
+        final Downloader downloader = new HTTPDownloaderImpl();
+        final Uri uri = UrlBuilder.getGoogleGeoAPIUrl(latitude, longitude);
+        return googleGeoAPI.getCountry(downloader, uri).getCode();
     }
 
     /**
@@ -226,7 +248,7 @@ public final class LocationService {
                 return;
             }
 
-            reference.mCountryCode = extractCountryCode(
+            reference.mCountryCode = getCountryCodeGeocoder(
                     mContext, location.getLatitude(), location.getLongitude()
             );
             mListener.onCountryCodeLocated(reference.mCountryCode);

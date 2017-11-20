@@ -22,7 +22,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
@@ -83,7 +83,7 @@ public final class MediaItemChildCategories implements MediaItemCommand {
         final String childMenuId
                 = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
 
-        final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
+        final List<RadioStation> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
                 UrlBuilder.getStationsInCategory(
                         shareObject.getContext(),
@@ -126,7 +126,7 @@ public final class MediaItemChildCategories implements MediaItemCommand {
                 shareObject.getParentId(), shareObject.getChildCategories()
         );
 
-        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
+        for (final RadioStation radioStation : shareObject.getRadioStations()) {
 
             radioStation.setGenre(genre);
 

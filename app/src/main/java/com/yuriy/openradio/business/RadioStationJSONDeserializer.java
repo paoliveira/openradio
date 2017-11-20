@@ -18,7 +18,7 @@ package com.yuriy.openradio.business;
 
 import android.util.Log;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.utils.AppLogger;
 
 import org.json.JSONException;
@@ -40,8 +40,8 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
     }
 
     @Override
-    public final RadioStationVO deserialize(final String value) {
-        final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
+    public final RadioStation deserialize(final String value) {
+        final RadioStation radioStation = RadioStation.makeDefaultInstance();
         if (value == null || value.isEmpty()) {
             return radioStation;
         }

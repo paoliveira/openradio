@@ -36,6 +36,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.ImageFilePath;
@@ -203,7 +204,7 @@ public final class AddStationDialog extends DialogFragment {
 
     /**
      * Validate provided input in order to pass data farther to
-     * generate {@link com.yuriy.openradio.api.RadioStationVO}.
+     * generate {@link RadioStation}.
      *
      * @param name     Name of the Radio Station.
      * @param url      Url of the Stream associated with Radio Station.

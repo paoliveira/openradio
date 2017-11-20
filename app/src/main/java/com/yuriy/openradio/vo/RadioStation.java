@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.api;
+package com.yuriy.openradio.vo;
 
 import java.io.Serializable;
 
@@ -24,10 +24,10 @@ import java.io.Serializable;
  * On 12/16/14
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * {@link com.yuriy.openradio.api.RadioStationVO} is a value object that holds information
+ * {@link RadioStation} is a value object that holds information
  * about concrete Radio Station.
  */
-public final class RadioStationVO implements Serializable {
+public final class RadioStation implements Serializable {
 
     public static final int SORT_ID_UNSET = -1;
 
@@ -72,7 +72,7 @@ public final class RadioStationVO implements Serializable {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private RadioStationVO() {
+    private RadioStation() {
         super();
     }
 
@@ -192,7 +192,7 @@ public final class RadioStationVO implements Serializable {
         if (object == null || getClass() != object.getClass()) {
             return false;
         }
-        final RadioStationVO that = (RadioStationVO) object;
+        final RadioStation that = (RadioStation) object;
         return mId == that.mId && mStreamURL.equals(that.mStreamURL);
 
     }
@@ -224,11 +224,11 @@ public final class RadioStationVO implements Serializable {
     }
 
     /**
-     * Factory method to create instance of the {@link com.yuriy.openradio.api.RadioStationVO}.
+     * Factory method to create instance of the {@link RadioStation}.
      *
-     * @return Instance of the {@link com.yuriy.openradio.api.RadioStationVO}.
+     * @return Instance of the {@link RadioStation}.
      */
-    public static RadioStationVO makeDefaultInstance() {
-        return new RadioStationVO();
+    public static RadioStation makeDefaultInstance() {
+        return new RadioStation();
     }
 }

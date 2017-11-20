@@ -26,7 +26,7 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.lang.reflect.Field;
 
@@ -257,28 +257,28 @@ public final class MediaItemHelper {
 
     /**
      * Build {@link android.media.MediaMetadata} from provided
-     * {@link com.yuriy.openradio.api.RadioStationVO}.
+     * {@link RadioStation}.
      *
      * @param context      Context of the callee.
-     * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
+     * @param radioStation {@link RadioStation}.
      * @return {@link android.media.MediaMetadata}
      */
     public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
-                                                                         final RadioStationVO radioStation) {
+                                                                         final RadioStation radioStation) {
         return buildMediaMetadataFromRadioStation(context, radioStation, null);
     }
 
     /**
      * Build {@link android.media.MediaMetadata} from provided
-     * {@link com.yuriy.openradio.api.RadioStationVO}.
+     * {@link RadioStation}.
      *
      * @param context      Context of the callee.
-     * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
+     * @param radioStation {@link RadioStation}.
      * @param streamTitle  Title of the current stream.
      * @return {@link android.media.MediaMetadata}
      */
     public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
-                                                                         final RadioStationVO radioStation,
+                                                                         final RadioStation radioStation,
                                                                          final String streamTitle) {
 
         if (radioStation == null) {
@@ -354,14 +354,14 @@ public final class MediaItemHelper {
 
     /**
      * Build {@link MediaDescriptionCompat} from provided
-     * {@link com.yuriy.openradio.api.RadioStationVO}.
+     * {@link RadioStation}.
      *
      * @param context      Context of the callee.
-     * @param radioStation {@link com.yuriy.openradio.api.RadioStationVO}.
+     * @param radioStation {@link RadioStation}.
      * @return {@link MediaDescriptionCompat}
      */
     public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final Context context,
-                                                                               final RadioStationVO radioStation) {
+                                                                               final RadioStation radioStation) {
         String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/radio_station_alpha_bg";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()

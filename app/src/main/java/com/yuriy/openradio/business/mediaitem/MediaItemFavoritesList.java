@@ -21,7 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.MediaItemsComparator;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -57,7 +57,7 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
 
         final Context context = shareObject.getContext();
 
-        final List<RadioStationVO> list = FavoritesStorage.getAllFavorites(
+        final List<RadioStation> list = FavoritesStorage.getAllFavorites(
                 context
         );
 
@@ -65,7 +65,7 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
             QueueHelper.copyCollection(shareObject.getRadioStations(), list);
         }
 
-        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
+        for (final RadioStation radioStation : shareObject.getRadioStations()) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     context,

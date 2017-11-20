@@ -14,17 +14,33 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.api;
 
-import com.yuriy.openradio.vo.RadioStation;
+import android.net.Uri;
+
+import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.CountryVO;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
- * On 6/9/15
+ * On 12/14/14
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * {@link GoogleGeoAPI} is an interface which provides
+ * various methods of the Google Geo's API.
  */
-public interface RadioStationDeserializer {
+public interface GoogleGeoAPI {
 
-    RadioStation deserialize(final String value);
+    /**
+     * Get a country name.
+     *
+     * @param downloader Implementation of the {@link Downloader} interface.
+     * @param uri        {@link Uri} of the request.
+     *
+     * @return Collection of the {@link CategoryVO}s
+     */
+    CountryVO getCountry(final Downloader downloader, final Uri uri);
+
 }

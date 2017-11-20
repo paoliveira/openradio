@@ -27,6 +27,10 @@ import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
+import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.RadioStation;
+import com.yuriy.openradio.vo.StreamVO;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -169,16 +173,16 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<RadioStationVO> getStations(final Downloader downloader, final Uri uri) {
+    public List<RadioStation> getStations(final Downloader downloader, final Uri uri) {
         return getStations(downloader, uri, new ArrayList<>());
     }
 
     @Override
-    public List<RadioStationVO> getStations(final Downloader downloader,
-                                            final Uri uri,
-                                            final List<Pair<String, String>> parameters) {
+    public List<RadioStation> getStations(final Downloader downloader,
+                                          final Uri uri,
+                                          final List<Pair<String, String>> parameters) {
 
-        final List<RadioStationVO> radioStations = new ArrayList<>();
+        final List<RadioStation> radioStations = new ArrayList<>();
 
         if (mDataParser == null) {
             AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
@@ -188,12 +192,12 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         final JSONArray array = downloadJSONArray(downloader, uri, parameters);
 
         JSONObject object;
-        RadioStationVO radioStation;
+        RadioStation radioStation;
         for (int i = 0; i < array.length(); i++) {
             try {
                 object = (JSONObject) array.get(i);
 
-                radioStation = RadioStationVO.makeDefaultInstance();
+                radioStation = RadioStation.makeDefaultInstance();
 
                 updateRadioStation(radioStation, object);
 
@@ -218,7 +222,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         final Set<String> passedUrls = new TreeSet<>();
         final Thread[] checkers = new Thread[radioStations.size()];
         int counter = 0;
-        for (final RadioStationVO radioStationVO : radioStations) {
+        for (final RadioStation radioStationVO : radioStations) {
             checker = new RadioStationChecker(
                     radioStationVO.getStreamURL(), initLatch, completeLatch, passedUrls
             );
@@ -261,8 +265,8 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public RadioStationVO getStation(Downloader downloader, Uri uri) {
-        final RadioStationVO radioStation = RadioStationVO.makeDefaultInstance();
+    public RadioStation getStation(Downloader downloader, Uri uri) {
+        final RadioStation radioStation = RadioStation.makeDefaultInstance();
 
         // Download response from the server
         final String response = new String(downloader.downloadDataFromUri(uri));
@@ -442,13 +446,13 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     /**
-     * Updates {@link RadioStationVO} with the values extraced from the JSOn Object.
+     * Updates {@link RadioStation} with the values extraced from the JSOn Object.
      *
-     * @param radioStation Instance of the {@link RadioStationVO} to be updated.
+     * @param radioStation Instance of the {@link RadioStation} to be updated.
      * @param object       JSON object that holds informational parameters.
      * @throws JSONException
      */
-    private void updateRadioStation(final RadioStationVO radioStation, final JSONObject object)
+    private void updateRadioStation(final RadioStation radioStation, final JSONObject object)
             throws JSONException {
 
         if (object.has(JSONDataParserImpl.KEY_STATUS)) {

@@ -55,7 +55,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
@@ -550,7 +550,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Process user's input in order to generate custom {@link RadioStationVO}.
+     * Process user's input in order to generate custom {@link RadioStation}.
      */
     public final void processAddStationCallback(final String name, final String url,
                                                 final String imageUrl, final String genre,
@@ -561,7 +561,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Process user's input in order to remove custom {@link RadioStationVO}.
+     * Process user's input in order to remove custom {@link RadioStation}.
      */
     public final void processRemoveStationCallback(final String mediaId) {
         startService(OpenRadioService.makeRemoveRadioStationIntent(getApplicationContext(), mediaId));
@@ -935,7 +935,7 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final RadioStationVO latestRadioStation = LatestRadioStationStorage.load(getApplicationContext());
+        final RadioStation latestRadioStation = LatestRadioStationStorage.load(getApplicationContext());
         if (latestRadioStation == null) {
             view.setVisibility(View.GONE);
             return;

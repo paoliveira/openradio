@@ -22,7 +22,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
@@ -79,7 +79,7 @@ public final class MediaItemCountryStations implements MediaItemCommand {
      */
     private void loadCountryStations(final IUpdatePlaybackState playbackStateListener,
                                      @NonNull final MediaItemShareObject shareObject) {
-        final List<RadioStationVO> list = shareObject.getServiceProvider().getStations(
+        final List<RadioStation> list = shareObject.getServiceProvider().getStations(
                 shareObject.getDownloader(),
                 UrlBuilder.getStationsInCountry(
                         shareObject.getContext(),
@@ -118,7 +118,7 @@ public final class MediaItemCountryStations implements MediaItemCommand {
             shareObject.getRadioStations().addAll(list);
         }
 
-        for (final RadioStationVO radioStation : shareObject.getRadioStations()) {
+        for (final RadioStation radioStation : shareObject.getRadioStations()) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     shareObject.getContext(),

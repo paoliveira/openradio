@@ -24,7 +24,7 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.service.FavoritesStorage;
 import com.yuriy.openradio.service.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
@@ -358,16 +358,16 @@ public final class GoogleDriveManager {
             final String favoritesRx = splitRadioStationCategories(data)[0];
             final String localsRx = splitRadioStationCategories(data)[1];
 
-            final List<RadioStationVO> favoritesList = FavoritesStorage.getAllFavorites(mContext);
-            final List<RadioStationVO> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(favoritesRx);
+            final List<RadioStation> favoritesList = FavoritesStorage.getAllFavorites(mContext);
+            final List<RadioStation> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(favoritesRx);
             QueueHelper.merge(favoritesList, favoritesRxList);
-            for (final RadioStationVO radioStation : favoritesList) {
+            for (final RadioStation radioStation : favoritesList) {
                 FavoritesStorage.addToFavorites(radioStation, mContext);
             }
-            final List<RadioStationVO> localsList = LocalRadioStationsStorage.getAllLocals(mContext);
-            final List<RadioStationVO> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(localsRx);
+            final List<RadioStation> localsList = LocalRadioStationsStorage.getAllLocals(mContext);
+            final List<RadioStation> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(localsRx);
             QueueHelper.merge(localsList, localsRxList);
-            for (final RadioStationVO radioStation : localsList) {
+            for (final RadioStation radioStation : localsList) {
                 LocalRadioStationsStorage.addToLocal(radioStation, mContext);
             }
         }

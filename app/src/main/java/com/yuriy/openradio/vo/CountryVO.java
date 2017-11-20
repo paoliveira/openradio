@@ -1,4 +1,4 @@
-package com.yuriy.openradio.api;
+package com.yuriy.openradio.vo;
 
 import android.support.annotation.NonNull;
 
@@ -8,7 +8,7 @@ import android.support.annotation.NonNull;
  * On 01/11/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class CountryVO {
+public final class CountryVO {
 
     @NonNull
     private final String mName;
@@ -16,7 +16,7 @@ public class CountryVO {
     @NonNull
     private final String mCode;
 
-    CountryVO(@NonNull final String name, @NonNull final String code) {
+    public CountryVO(@NonNull final String name, @NonNull final String code) {
         super();
         mName = name;
         mCode = code;
@@ -32,9 +32,9 @@ public class CountryVO {
 
     @Override
     public String toString() {
-        return "CountryVO{" +
-                "mName='" + mName + '\'' +
-                ", mCode='" + mCode + '\'' +
-                '}';
+        return "Country{" +
+                "name='" + mName + '\'' +
+                ", code='" + mCode + '\'' +
+                "}";
     }
 }

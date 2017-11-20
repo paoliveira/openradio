@@ -23,8 +23,8 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.api.CategoryVO;
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,12 +55,12 @@ public final class QueueHelper {
      */
     public static List<MediaSessionCompat.QueueItem> getPlayingQueue(
             final Context context,
-            final List<RadioStationVO> radioStations) {
+            final List<RadioStation> radioStations) {
         final List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
         int count = 0;
         MediaSessionCompat.QueueItem item;
         MediaMetadataCompat track;
-        for (final RadioStationVO radioStation : radioStations) {
+        for (final RadioStation radioStation : radioStations) {
             track = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
             if (track == null) {
                 AppLogger.w(CLASS_NAME + " Get playing queue warning, Radio Station is null");
@@ -73,7 +73,7 @@ public final class QueueHelper {
     }
 
     /**
-     * Method return index of the {@link com.yuriy.openradio.api.RadioStationVO} at the queue.
+     * Method return index of the {@link RadioStation} at the queue.
      *
      * @param queue   Playing queue.
      * @param mediaId Id of the Radio Station.
@@ -92,7 +92,7 @@ public final class QueueHelper {
     }
 
     /**
-     * Method return index of the {@link com.yuriy.openradio.api.RadioStationVO} at the queue.
+     * Method return index of the {@link RadioStation} at the queue.
      *
      * @param queue   Playing queue.
      * @param mediaId Id of the Radio Station.
@@ -127,9 +127,9 @@ public final class QueueHelper {
      * @param radioStations
      * @return
      */
-    public static RadioStationVO getRadioStationById(final String id,
-                                                     final List<RadioStationVO> radioStations) {
-        for (final RadioStationVO radioStation : radioStations) {
+    public static RadioStation getRadioStationById(final String id,
+                                                   final List<RadioStation> radioStations) {
+        for (final RadioStation radioStation : radioStations) {
             if (radioStation == null) {
                 continue;
             }
@@ -147,8 +147,8 @@ public final class QueueHelper {
      * @param radioStation  Radio Station to add to collection.
      * @param radioStations Collection to add Radio Station into.
      */
-    public static void addRadioStation(final RadioStationVO radioStation,
-                                       final List<RadioStationVO> radioStations) {
+    public static void addRadioStation(final RadioStation radioStation,
+                                       final List<RadioStation> radioStations) {
         if (radioStation == null) {
             return;
         }
@@ -157,7 +157,7 @@ public final class QueueHelper {
         }
 
         boolean contains = false;
-        for (final RadioStationVO radioStationInt : radioStations) {
+        for (final RadioStation radioStationInt : radioStations) {
             if (radioStationInt == null) {
                 continue;
             }
@@ -186,11 +186,11 @@ public final class QueueHelper {
     /**
      *
      * @param radioStationVO
-     * @param radioStationVOs
+     * @param radioStations
      */
-    public static void updateRadioStation(final RadioStationVO radioStationVO,
-                                          final List<RadioStationVO> radioStationVOs) {
-        for (final RadioStationVO radioStation : radioStationVOs) {
+    public static void updateRadioStation(final RadioStation radioStationVO,
+                                          final List<RadioStation> radioStations) {
+        for (final RadioStation radioStation : radioStations) {
             if (radioStationVO.getId() == radioStation.getId()) {
                 radioStation.setStreamURL(radioStationVO.getStreamURL());
                 radioStation.setBitRate(radioStationVO.getBitRate());
@@ -207,8 +207,8 @@ public final class QueueHelper {
      * @return
      */
     public static boolean removeRadioStation(final String mediaId,
-                                             final List<RadioStationVO> radioStations) {
-        for (final RadioStationVO radioStation : radioStations) {
+                                             final List<RadioStation> radioStations) {
+        for (final RadioStation radioStation : radioStations) {
             if (radioStation == null) {
                 continue;
             }
@@ -252,11 +252,11 @@ public final class QueueHelper {
      * @param listA
      * @param listB
      */
-    public static void merge(final List<RadioStationVO> listA, final List<RadioStationVO> listB) {
+    public static void merge(final List<RadioStation> listA, final List<RadioStation> listB) {
         if (listA == null || listB == null) {
             return;
         }
-        for (final RadioStationVO radioStation : listB) {
+        for (final RadioStation radioStation : listB) {
             if (listA.contains(radioStation)) {
                 continue;
             }
@@ -270,13 +270,13 @@ public final class QueueHelper {
      * @return
      */
     @NonNull
-    public static String queueToString(@Nullable final List<RadioStationVO> list) {
+    public static String queueToString(@Nullable final List<RadioStation> list) {
         final StringBuilder builder = new StringBuilder("RadioStations:{");
         final String delimiter = ", ";
         if (list == null) {
             builder.append("null");
         } else {
-            for (final RadioStationVO radioStation : list) {
+            for (final RadioStation radioStation : list) {
                 builder.append(radioStation.toString()).append(delimiter);
             }
             if (builder.length() > delimiter.length()) {

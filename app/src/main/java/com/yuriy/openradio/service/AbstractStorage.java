@@ -21,7 +21,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.RadioStationDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONDeserializer;
 import com.yuriy.openradio.business.RadioStationJSONSerializer;
@@ -52,17 +52,17 @@ abstract class AbstractStorage {
     }
 
     /**
-     * Add provided {@link RadioStationVO} to the storage.
+     * Add provided {@link RadioStation} to the storage.
      *
-     * @param radioStation {@link RadioStationVO} to add to the storage.
+     * @param radioStation {@link RadioStation} to add to the storage.
      * @param context      Context of the callee.
      * @param name         Name of the file for the preferences.
      */
-    protected static synchronized void add(final RadioStationVO radioStation,
+    protected static synchronized void add(final RadioStation radioStation,
                                            final Context context, final String name) {
-        final List<RadioStationVO> all = getAll(context, name);
+        final List<RadioStation> all = getAll(context, name);
         int maxSortId = -1;
-        for (final RadioStationVO radioStationLocal : all) {
+        for (final RadioStation radioStationLocal : all) {
             if (radioStationLocal.getSortId() > maxSortId) {
                 maxSortId = radioStationLocal.getSortId();
             }
@@ -75,20 +75,20 @@ abstract class AbstractStorage {
     }
 
     /**
-     * Add provided {@link RadioStationVO} to the storage.
+     * Add provided {@link RadioStation} to the storage.
      *
      * @param key          Key for the Radio Station.
-     * @param radioStation {@link RadioStationVO} to add to the storage.
+     * @param radioStation {@link RadioStation} to add to the storage.
      * @param context      Context of the callee.
      * @param name         Name of the file for the preferences.
      */
     protected static synchronized void add(@NonNull final String key,
-                                           @NonNull final RadioStationVO radioStation,
+                                           @NonNull final RadioStation radioStation,
                                            @NonNull final Context context,
                                            @NonNull final String name) {
-        final List<RadioStationVO> all = getAll(context, name);
+        final List<RadioStation> all = getAll(context, name);
         int maxSortId = -1;
-        for (final RadioStationVO radioStationLocal : all) {
+        for (final RadioStation radioStationLocal : all) {
             if (radioStationLocal.getSortId() > maxSortId) {
                 maxSortId = radioStationLocal.getSortId();
             }
@@ -101,9 +101,9 @@ abstract class AbstractStorage {
     }
 
     /**
-     * Remove provided {@link RadioStationVO} from the storage by the provided Media Id.
+     * Remove provided {@link RadioStation} from the storage by the provided Media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStationVO}.
+     * @param mediaId Media Id of the {@link RadioStation}.
      * @param context Context of the callee.
      * @param name    Name of the file for the preferences.
      */
@@ -150,15 +150,15 @@ abstract class AbstractStorage {
      * @return List of Radio Stations.
      */
     @NonNull
-    static List<RadioStationVO> getAllFromString(final String marshalledRadioStations) {
-        final List<RadioStationVO> list = new ArrayList<>();
+    static List<RadioStation> getAllFromString(final String marshalledRadioStations) {
+        final List<RadioStation> list = new ArrayList<>();
         if (TextUtils.isEmpty(marshalledRadioStations)) {
             return list;
         }
         final RadioStationDeserializer deserializer = new RadioStationJSONDeserializer();
         final String[] radioStationsPairs = marshalledRadioStations.split(KEY_VALUE_PAIR_DELIMITER);
         String[] radioStationKeyValue;
-        RadioStationVO radioStation;
+        RadioStation radioStation;
         for (final String radioStationString : radioStationsPairs) {
             radioStationKeyValue = radioStationString.split(KEY_VALUE_DELIMITER);
             if (radioStationKeyValue.length != 2) {
@@ -180,13 +180,13 @@ abstract class AbstractStorage {
      * @return Collection of the Radio Stations.
      */
     @NonNull
-    static List<RadioStationVO> getAll(final Context context, final String name) {
+    static List<RadioStation> getAll(final Context context, final String name) {
         // TODO: Return cache when possible
-        final List<RadioStationVO> radioStations = new ArrayList<>();
+        final List<RadioStation> radioStations = new ArrayList<>();
         final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
         final RadioStationDeserializer deserializer = new RadioStationJSONDeserializer();
-        RadioStationVO radioStation;
+        RadioStation radioStation;
         String value;
         int counter = 0;
         Boolean isListSorted = null;
@@ -265,15 +265,15 @@ abstract class AbstractStorage {
     }
 
     /**
-     * Add provided {@link RadioStationVO} to the storage.
+     * Add provided {@link RadioStation} to the storage.
      *
      * @param key          Key for the Radio Station.
-     * @param radioStation {@link RadioStationVO} to add to the storage.
+     * @param radioStation {@link RadioStation} to add to the storage.
      * @param context      Context of the callee.
      * @param name         Name of the file for the preferences.
      */
     private static synchronized void addInternal(final String key,
-                                                 final RadioStationVO radioStation,
+                                                 final RadioStation radioStation,
                                                  final Context context,
                                                  final String name) {
         final RadioStationSerializer serializer = new RadioStationJSONSerializer();
@@ -285,10 +285,10 @@ abstract class AbstractStorage {
     /**
      * Creates a key for given Radio Station to use in storage.
      *
-     * @param radioStation {@link RadioStationVO} to create key for.
+     * @param radioStation {@link RadioStation} to create key for.
      * @return Key associated with Radio Station.
      */
-    private static String createKeyForRadioStation(@NonNull final RadioStationVO radioStation) {
+    private static String createKeyForRadioStation(@NonNull final RadioStation radioStation) {
         return radioStation.getIdAsString();
     }
 }

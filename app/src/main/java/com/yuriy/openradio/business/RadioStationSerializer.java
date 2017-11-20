@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.business;
 
-import com.yuriy.openradio.api.RadioStationVO;
+import com.yuriy.openradio.vo.RadioStation;
 
 /**
  * Created by Yuriy Chernyshov
@@ -25,15 +25,15 @@ import com.yuriy.openradio.api.RadioStationVO;
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * {@link RadioStationSerializer} is an interface that provides common method to serialize
- * {@link RadioStationVO}.
+ * {@link RadioStation}.
  */
 public interface RadioStationSerializer {
 
     /**
-     * Serialize {@link RadioStationVO}.
+     * Serialize {@link RadioStation}.
      *
-     * @param radioStation {@link RadioStationVO} to be serialized.
-     * @return String representation of the {@link RadioStationVO}.
+     * @param radioStation {@link RadioStation} to be serialized.
+     * @return String representation of the {@link RadioStation}.
      */
-    String serialize(final RadioStationVO radioStation);
+    String serialize(final RadioStation radioStation);
 }
