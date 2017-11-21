@@ -66,10 +66,11 @@ public final class UrlBuilder {
     }
 
     /**
-     *
-     * @param latitude
-     * @param longitude
-     * @return
+     * Get Uri for the Google Geo API which returns location.
+     * 
+     * @param latitude  Latitude of the location.
+     * @param longitude Longitude of the location.
+     * @return {@link Uri}.
      */
     public static Uri getGoogleGeoAPIUrl(final double latitude, final double longitude) {
         return  Uri.parse(GOOGLE_GEO_URL + "/json?latlng=" + latitude + "," + longitude);
@@ -79,7 +80,7 @@ public final class UrlBuilder {
      * Get Uri for the All Categories list.
      *
      * @param context Context of the application.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getAllCategoriesUrl(final Context context) {
         return Uri.parse(BASE_URL + "categories?token=" + ApiKeyLoader.getApiKey(context));
@@ -89,7 +90,7 @@ public final class UrlBuilder {
      * Get Uri for the All Countries list.
      *
      * @param context Context of the application.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getAllCountriesUrl(final Context context) {
         return Uri.parse(BASE_URL + "countries?token=" + ApiKeyLoader.getApiKey(context));
@@ -100,7 +101,7 @@ public final class UrlBuilder {
      *
      * @param context   Context of the application.
      * @param primaryId Id of the primary Menu Item
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getChildCategoriesUrl(final Context context, final String primaryId) {
         return Uri.parse(
@@ -114,7 +115,7 @@ public final class UrlBuilder {
      *
      * @param context    Context of the application.
      * @param categoryId Id of the Category.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getStationsInCategory(final Context context, final String categoryId,
                                             final int pageNumber, final int numberPerPage) {
@@ -131,7 +132,7 @@ public final class UrlBuilder {
      *
      * @param context     Context of the application.
      * @param countryCode Country Code.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getStationsInCountry(final Context context, final String countryCode,
                                            final int pageNumber, final int numberPerPage) {
@@ -149,7 +150,7 @@ public final class UrlBuilder {
      * @param context       Context of the application.
      * @param pageNumber    Id of the current page being requested.
      * @param numberPerPage Number of items in one response.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getPopularStations(final Context context, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
@@ -165,7 +166,7 @@ public final class UrlBuilder {
      *
      * @param context       Context of the application.
      * @param numberPerPage Number of items in one response.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getRecentlyAddedStations(final Context context, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
@@ -206,7 +207,7 @@ public final class UrlBuilder {
      * Get Uri for the provided country flag of the small size for the usage in Geo Names service.
      *
      * @param countryCode Country code.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     public static Uri getCountryFlagSmall(final String countryCode) {
         return getCountryFlag(countryCode.toLowerCase(), "l");
@@ -218,7 +219,7 @@ public final class UrlBuilder {
      * @param countryCode Country code.
      * @param size        Size of the flag's image. Could be "l" for the small size and
      *                    "x" for the big size.
-     * @return {@link android.net.Uri}
+     * @return {@link Uri}
      */
     private static Uri getCountryFlag(final String countryCode, final String size) {
         return Uri.parse(GEO_NAMES_FLAGS + size + "/" + countryCode.toLowerCase() + ".gif");

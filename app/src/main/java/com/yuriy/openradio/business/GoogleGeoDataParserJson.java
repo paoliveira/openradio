@@ -1,5 +1,22 @@
+/*
+ * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.yuriy.openradio.business;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.utils.AppLogger;
@@ -16,8 +33,10 @@ import org.json.JSONObject;
  * At Android Studio
  * On 19/11/17
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * Implementation of the {@link GoogleGeoDataParser} designed to parse a response which is
+ * representation of JSON.
  */
-
 public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
 
     /**
@@ -38,6 +57,7 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
     }
 
     @Override
+    @NonNull
     public GoogleGeoLocation getLocation(final byte[] data) {
         final GoogleGeoLocation location = new GoogleGeoLocation();
         final JSONObject object = getObject(data);
@@ -72,10 +92,16 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
         } catch (final JSONException e) {
             AppLogger.w(CLASS_NAME + " Can extract data from response:" + e);
         }
-        AppLogger.d(CLASS_NAME + " TRACE:" + location);
         return location;
     }
 
+    /**
+     * Checks whether provided JSON array is belong to type of "country".
+     *
+     * @param addressTypes JSON array represented an input.
+     * @return {@code true} in case of success, {@code false} otherwise.
+     * @throws JSONException
+     */
     private boolean isAddressTypeCountry(final JSONArray addressTypes) throws JSONException {
         if (addressTypes == null) {
             return false;
@@ -88,6 +114,12 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
         return false;
     }
 
+    /**
+     * Constructs JSON object from the bytes array.
+     *
+     * @param data Input data.
+     * @return JSON object.
+     */
     private JSONObject getObject(final byte[] data) {
         JSONObject array = new JSONObject();
         final String response = new String(data);

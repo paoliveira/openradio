@@ -118,6 +118,10 @@ public final class LocationService {
                                          final ExecutorService executorService) {
         final LocationManager locationManager
                 = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (locationManager == null) {
+            AppLogger.w(CLASS_NAME + " Location Manager unavailable");
+            return;
+        }
 
         final String locationProvider = LocationManager.NETWORK_PROVIDER;
         // Or use LocationManager.GPS_PROVIDER
@@ -126,11 +130,6 @@ public final class LocationService {
             AppLogger.w("Location permission not granted");
             return;
         }
-
-        Thread thread = new Thread(
-                () -> getCountryCodeGoogleAPI(43.6225325, -79.4831353)
-        );
-        thread.start();
 
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
@@ -190,13 +189,13 @@ public final class LocationService {
                                                  final double latitude,
                                                  final double longitude) {
         final Geocoder geocoder = new Geocoder(context, Locale.getDefault());
-        List<Address> addresses = null;
+        List<Address> addresses;
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception e) {
-//            FabricUtils.log("Latitude:" + latitude + " Longitude:" + longitude);
-//            FabricUtils.logException(e);
-            return getCountryCodeGoogleAPI(latitude, longitude);
+            final String countryCode = getCountryCodeGoogleAPI(latitude, longitude);
+            AppLogger.d("Country:" + countryCode);
+            return countryCode;
         }
 
         if (addresses == null || addresses.isEmpty()) {
@@ -206,6 +205,13 @@ public final class LocationService {
         return addresses.get(0).getCountryCode();
     }
 
+    /**
+     * Call Google Map API to get current country.
+     *
+     * @param latitude  Latitude of the location.
+     * @param longitude Longitude of the location.
+     * @return Country code.
+     */
     private static String getCountryCodeGoogleAPI(final double latitude,
                                                   final double longitude) {
         final GoogleGeoDataParser parser = new GoogleGeoDataParserJson();
