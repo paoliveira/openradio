@@ -22,7 +22,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.service.OpenRadioService;
@@ -47,7 +47,7 @@ public final class MediaItemShareObject {
     /**
      * Collection of the Child Categories.
      */
-    private final List<CategoryVO> mChildCategories = new ArrayList<>();
+    private final List<Category> mChildCategories = new ArrayList<>();
 
     /**
      * Id of the current Category. It is used for example when back from an empty Category.
@@ -125,7 +125,7 @@ public final class MediaItemShareObject {
     /**
      * @return Collection of the Child Categories.
      */
-    public List<CategoryVO> getChildCategories() {
+    public List<Category> getChildCategories() {
         return mChildCategories;
     }
 

@@ -22,7 +22,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -72,7 +72,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
      */
     private void loadAllCategories(final IUpdatePlaybackState playbackStateListener,
                                    @NonNull final MediaItemShareObject shareObject) {
-        final List<CategoryVO> list = shareObject.getServiceProvider().getCategories(
+        final List<Category> list = shareObject.getServiceProvider().getCategories(
                 shareObject.getDownloader(),
                 UrlBuilder.getAllCategoriesUrl(shareObject.getContext()));
 
@@ -87,14 +87,14 @@ public final class MediaItemAllCategories implements MediaItemCommand {
 
         // Collection of All Categories.
         // TODO : Probably this collection is redundant.
-        final List<CategoryVO> allCategories = new ArrayList<>();
+        final List<Category> allCategories = new ArrayList<>();
         QueueHelper.copyCollection(allCategories, list);
 
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
         final Set<String> predefinedCategories = AppUtils.predefinedCategories();
-        for (final CategoryVO category : allCategories) {
+        for (final Category category : allCategories) {
 
             if (!predefinedCategories.contains(category.getTitle())) {
                 continue;

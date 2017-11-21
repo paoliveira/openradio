@@ -24,9 +24,9 @@ package com.yuriy.openradio.vo;
  */
 
 /**
- * {@link StreamVO} is a value object that holds Stream's data.
+ * {@link MediaStream} is a value object that holds Stream's data.
  */
-public final class StreamVO {
+public final class MediaStream {
 
     private int mId;
 
@@ -62,14 +62,14 @@ public final class StreamVO {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private StreamVO() { }
+    private MediaStream() { }
 
     /**
-     * Factory method to create instance of the {@link StreamVO}.
+     * Factory method to create instance of the {@link MediaStream}.
      *
-     * @return Instance of the {@link StreamVO}.
+     * @return Instance of the {@link MediaStream}.
      */
-    public static StreamVO makeDefaultInstance() {
-        return new StreamVO();
+    public static MediaStream makeDefaultInstance() {
+        return new MediaStream();
     }
 }

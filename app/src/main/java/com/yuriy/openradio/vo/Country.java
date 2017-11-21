@@ -10,7 +10,7 @@ import com.yuriy.openradio.service.LocationService;
  * On 01/11/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class CountryVO {
+public final class Country {
 
     @NonNull
     private final String mName;
@@ -18,7 +18,7 @@ public final class CountryVO {
     @NonNull
     private final String mCode;
 
-    public CountryVO(@NonNull final String name, @NonNull final String code) {
+    public Country(@NonNull final String name, @NonNull final String code) {
         super();
         mName = name;
         mCode = code;
@@ -29,8 +29,8 @@ public final class CountryVO {
      *
      * @return Default country.
      */
-    public static CountryVO getDefaultCountry() {
-        return new CountryVO(
+    public static Country getDefaultCountry() {
+        return new Country(
                 LocationService.COUNTRY_NAME_DEFAULT,
                 LocationService.COUNTRY_CODE_DEFAULT
         );

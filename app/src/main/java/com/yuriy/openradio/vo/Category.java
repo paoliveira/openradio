@@ -26,11 +26,11 @@ package com.yuriy.openradio.vo;
 import com.yuriy.openradio.utils.AppLogger;
 
 /**
- * {@link CategoryVO} is a value object that holds Radio Category data.
+ * {@link Category} is a value object that holds Radio Category data.
  */
-public final class CategoryVO {
+public final class Category {
 
-    private static final String CLASS_NAME = CategoryVO.class.getSimpleName();
+    private static final String CLASS_NAME = Category.class.getSimpleName();
 
     private int mId;
 
@@ -46,7 +46,7 @@ public final class CategoryVO {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private CategoryVO() { }
+    private Category() { }
 
     public int getId() {
         return mId;
@@ -93,11 +93,11 @@ public final class CategoryVO {
     }
 
     /**
-     * Factory method to create instance of the {@link CategoryVO}.
+     * Factory method to create instance of the {@link Category}.
      *
-     * @return Instance of the {@link CategoryVO}.
+     * @return Instance of the {@link Category}.
      */
-    public static CategoryVO makeDefaultInstance() {
-        return new CategoryVO();
+    public static Category makeDefaultInstance() {
+        return new Category();
     }
 }

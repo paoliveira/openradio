@@ -18,8 +18,6 @@ package com.yuriy.openradio.vo;
 
 import android.support.annotation.NonNull;
 
-import com.yuriy.openradio.service.LocationService;
-
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -29,18 +27,18 @@ import com.yuriy.openradio.service.LocationService;
 
 public final class GoogleGeoLocation {
 
-    private CountryVO mCountry;
+    private Country mCountry;
 
     public GoogleGeoLocation() {
         super();
-        mCountry = CountryVO.getDefaultCountry();
+        mCountry = Country.getDefaultCountry();
     }
 
-    public void setCountry(@NonNull final CountryVO value) {
-        mCountry = new CountryVO(value.getName(), value.getCode());
+    public void setCountry(@NonNull final Country value) {
+        mCountry = new Country(value.getName(), value.getCode());
     }
 
-    public CountryVO getCountry() {
+    public Country getCountry() {
         return mCountry;
     }
 

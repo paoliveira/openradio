@@ -27,8 +27,8 @@ import android.net.Uri;
 import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.net.Downloader;
-import com.yuriy.openradio.vo.CategoryVO;
-import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.Category;
+import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
@@ -45,9 +45,9 @@ public interface APIServiceProvider {
      * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link Uri} of the request.
      *
-     * @return Collection of the {@link CategoryVO}s
+     * @return Collection of the {@link Category}s
      */
-    List<CategoryVO> getCategories(final Downloader downloader, final Uri uri);
+    List<Category> getCategories(final Downloader downloader, final Uri uri);
 
     /**
      * Get a list of all countries.
@@ -57,7 +57,7 @@ public interface APIServiceProvider {
      *
      * @return Collection of the Countries
      */
-    List<CountryVO> getCountries(final Downloader downloader, final Uri uri);
+    List<Country> getCountries(final Downloader downloader, final Uri uri);
 
     /**
      * Get a list of Radio Stations by provided Uri.

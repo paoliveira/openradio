@@ -23,7 +23,7 @@ import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.GoogleGeoDataParser;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.GoogleGeoLocation;
 
 /**
@@ -60,10 +60,10 @@ public final class GoogleGeoAPIImpl implements GoogleGeoAPI {
 
     @Override
     @NonNull
-    public CountryVO getCountry(final Downloader downloader, final Uri uri) {
+    public Country getCountry(final Downloader downloader, final Uri uri) {
         if (mDataParser == null) {
             AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
-            return CountryVO.getDefaultCountry();
+            return Country.getDefaultCountry();
         }
 
         final byte[] data = downloader.downloadDataFromUri(uri);

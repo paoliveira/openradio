@@ -19,8 +19,8 @@ package com.yuriy.openradio.api;
 import android.net.Uri;
 
 import com.yuriy.openradio.net.Downloader;
-import com.yuriy.openradio.vo.CategoryVO;
-import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.Category;
+import com.yuriy.openradio.vo.Country;
 
 /**
  * Created by Yuriy Chernyshov
@@ -39,8 +39,8 @@ public interface GoogleGeoAPI {
      * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link Uri} of the request.
      *
-     * @return Collection of the {@link CategoryVO}s
+     * @return Collection of the {@link Category}s
      */
-    CountryVO getCountry(final Downloader downloader, final Uri uri);
+    Country getCountry(final Downloader downloader, final Uri uri);
 
 }

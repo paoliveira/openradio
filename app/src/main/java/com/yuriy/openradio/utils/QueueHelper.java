@@ -23,7 +23,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;
@@ -227,7 +227,7 @@ public final class QueueHelper {
      * @return
      */
     public static String getGenreNameById(final String genreId,
-                                          final List<CategoryVO> categoriesList) {
+                                          final List<Category> categoriesList) {
         String genre = "";
         if (genreId == null) {
             return genre;
@@ -236,7 +236,7 @@ public final class QueueHelper {
             return genre;
         }
 
-        for (CategoryVO category : categoriesList) {
+        for (Category category : categoriesList) {
             if (String.valueOf(category.getId()).equals(genreId)) {
                 genre = category.getName();
                 break;

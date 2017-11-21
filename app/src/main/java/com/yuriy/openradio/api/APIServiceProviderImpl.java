@@ -27,10 +27,10 @@ import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
-import com.yuriy.openradio.vo.CategoryVO;
-import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.Category;
+import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.RadioStation;
-import com.yuriy.openradio.vo.StreamVO;
+import com.yuriy.openradio.vo.MediaStream;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -88,9 +88,9 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<CategoryVO> getCategories(final Downloader downloader, final Uri uri) {
+    public List<Category> getCategories(final Downloader downloader, final Uri uri) {
 
-        final List<CategoryVO> allCategories = new ArrayList<>();
+        final List<Category> allCategories = new ArrayList<>();
 
         if (mDataParser == null) {
             AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
@@ -100,12 +100,12 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         final JSONArray array = downloadJSONArray(downloader, uri);
 
         JSONObject object;
-        CategoryVO category;
+        Category category;
         for (int i = 0; i < array.length(); i++) {
             try {
                 object = (JSONObject) array.get(i);
 
-                category = CategoryVO.makeDefaultInstance();
+                category = Category.makeDefaultInstance();
 
                 // TODO: Use data parser to parse JSON to value object
 
@@ -130,9 +130,9 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     @Override
-    public List<CountryVO> getCountries(final Downloader downloader, final Uri uri) {
+    public List<Country> getCountries(final Downloader downloader, final Uri uri) {
 
-        final List<CountryVO> allCountries = new ArrayList<>();
+        final List<Country> allCountries = new ArrayList<>();
 
         if (mDataParser == null) {
             AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
@@ -162,7 +162,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                         continue;
                     }
 
-                    allCountries.add(new CountryVO(countryName, countryCode));
+                    allCountries.add(new Country(countryName, countryCode));
                 }
             } catch (final JSONException e) {
                 FabricUtils.logException(e);
@@ -376,11 +376,11 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
      * @param jsonArray Collection of the streams.
      * @return Selected stream.
      */
-    private StreamVO selectStream(final JSONArray jsonArray) {
-        final StreamVO streamVO = StreamVO.makeDefaultInstance();
+    private MediaStream selectStream(final JSONArray jsonArray) {
+        final MediaStream mediaStream = MediaStream.makeDefaultInstance();
 
         if (jsonArray == null) {
-            return streamVO;
+            return mediaStream;
         }
 
         JSONObject object;
@@ -427,9 +427,9 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                     stream = stream.replace("htyp://", "http://");
                 }
 
-                streamVO.setBitrate(bitrate);
-                streamVO.setUrl(stream);
-                streamVO.setId(id);
+                mediaStream.setBitrate(bitrate);
+                mediaStream.setUrl(stream);
+                mediaStream.setId(id);
 
                 break;
 
@@ -438,11 +438,11 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
             }
         }
 
-        if (streamVO.getUrl().isEmpty()) {
+        if (mediaStream.getUrl().isEmpty()) {
             AppLogger.w(CLASS_NAME + " Stream has not been selected from:" + jsonArray);
         }
 
-        return streamVO;
+        return mediaStream;
     }
 
     /**
@@ -469,10 +469,10 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         }
 
         if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
-            final StreamVO streamVO
+            final MediaStream mediaStream
                     = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
-            radioStation.setStreamURL(streamVO.getUrl());
-            radioStation.setBitRate(String.valueOf(streamVO.getBitrate()));
+            radioStation.setStreamURL(mediaStream.getUrl());
+            radioStation.setBitRate(String.valueOf(mediaStream.getBitrate()));
         }
 
         if (object.has(JSONDataParserImpl.KEY_ID)) {

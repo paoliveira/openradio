@@ -22,7 +22,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.CategoryVO;
+import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -76,7 +76,7 @@ public final class MediaItemParentCategories implements MediaItemCommand {
 
         shareObject.setCurrentCategory(primaryMenuId);
 
-        final List<CategoryVO> list = shareObject.getServiceProvider().getCategories(
+        final List<Category> list = shareObject.getServiceProvider().getCategories(
                 shareObject.getDownloader(),
                 UrlBuilder.getChildCategoriesUrl(shareObject.getContext(), primaryMenuId));
 
@@ -94,7 +94,7 @@ public final class MediaItemParentCategories implements MediaItemCommand {
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
-        for (final CategoryVO category : shareObject.getChildCategories()) {
+        for (final Category category : shareObject.getChildCategories()) {
             shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
                             .setMediaId(

@@ -21,7 +21,7 @@ import android.text.TextUtils;
 
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
-import com.yuriy.openradio.vo.CountryVO;
+import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.GoogleGeoLocation;
 
 import org.json.JSONArray;
@@ -86,7 +86,7 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
                 final String countryName = address.getString(KEY_LONG_NAME);
                 final String countryCode = address.getString(KEY_SHORT_NAME);
                 if (!TextUtils.isEmpty(countryName) && !TextUtils.isEmpty(countryCode)) {
-                    location.setCountry(new CountryVO(countryName, countryCode));
+                    location.setCountry(new Country(countryName, countryCode));
                 }
             }
         } catch (final JSONException e) {
