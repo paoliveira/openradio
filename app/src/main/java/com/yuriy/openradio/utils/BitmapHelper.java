@@ -22,6 +22,8 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.text.TextUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -91,19 +93,51 @@ public final class BitmapHelper {
     public static Bitmap fetchAndRescaleBitmap(final String uri, final int width, final int height)
             throws IOException {
 
-        final URL url = new URL(uri);
-        HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
-        httpConnection.setDoInput(true);
-        httpConnection.connect();
-        InputStream inputStream = httpConnection.getInputStream();
-        int scaleFactor = findScaleFactor(width, height, inputStream);
+        InputStream inputStream;
+        int scaleFactor;
 
-        httpConnection = (HttpURLConnection) url.openConnection();
-        httpConnection.setDoInput(true);
-        httpConnection.connect();
-        inputStream = httpConnection.getInputStream();
+        if (uri.toLowerCase().startsWith("www")
+                || uri.toLowerCase().startsWith("http")) {
+            final URL url = new URL(uri);
+            HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
+            httpConnection.setDoInput(true);
+            httpConnection.connect();
+            inputStream = httpConnection.getInputStream();
+            try {
+                scaleFactor = findScaleFactor(width, height, inputStream);
+            } finally {
+                inputStream.close();
+            }
 
-        return scaleBitmap(scaleFactor, inputStream);
+            httpConnection = (HttpURLConnection) url.openConnection();
+            httpConnection.setDoInput(true);
+            httpConnection.connect();
+            inputStream = httpConnection.getInputStream();
+        } else {
+            inputStream = new FileInputStream(new File(uri));
+            try {
+                scaleFactor = findScaleFactor(width, height, inputStream);
+            } finally {
+                inputStream.close();
+            }
+            inputStream = new FileInputStream(new File(uri));
+        }
+
+        Bitmap bitmap;
+        try {
+            bitmap = scaleBitmap(scaleFactor, inputStream);
+        } finally {
+            inputStream.close();
+        }
+        if (bitmap != null) {
+            AppLogger.d("FetchedAndRescaled bmp:" + bitmap.getWidth() + "x" + bitmap.getHeight());
+        } else {
+            final String message = "FetchedAndRescaled bmp for url '" + uri + "' is null";
+            final Exception exception = new Exception(message);
+            FabricUtils.logException(exception);
+        }
+
+        return bitmap;
     }
 
     /**
