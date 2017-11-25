@@ -18,8 +18,8 @@ package com.google.android.exoplayer2;
 import android.os.Handler;
 
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
-import com.google.android.exoplayer2.metadata.MetadataRenderer;
-import com.google.android.exoplayer2.text.TextRenderer;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
+import com.google.android.exoplayer2.text.TextOutput;
 
 /**
  * Builds {@link Renderer} instances for use by a {@link SimpleExoPlayer}.
@@ -30,12 +30,13 @@ public interface RenderersFactory {
    * Builds the {@link Renderer} instances for a {@link SimpleExoPlayer}.
    *
    * @param eventHandler A handler to use when invoking event listeners and outputs.
+   * @param audioRendererEventListener An event listener for audio renderers.
    * @param textRendererOutput An output for text renderers.
    * @param metadataRendererOutput An output for metadata renderers.
    * @return The {@link Renderer instances}.
    */
   Renderer[] createRenderers(Handler eventHandler,
-      AudioRendererEventListener audioRendererEventListener,
-      TextRenderer.Output textRendererOutput, MetadataRenderer.Output metadataRendererOutput);
+      AudioRendererEventListener audioRendererEventListener, TextOutput textRendererOutput,
+      MetadataOutput metadataRendererOutput);
 
 }

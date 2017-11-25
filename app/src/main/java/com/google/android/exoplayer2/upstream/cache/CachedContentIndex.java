@@ -34,9 +34,9 @@ import java.io.OutputStream;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 import javax.crypto.Cipher;
@@ -49,7 +49,7 @@ import javax.crypto.spec.SecretKeySpec;
 /**
  * This class maintains the index of cached content.
  */
-/*package*/ final class CachedContentIndex {
+/*package*/ class CachedContentIndex {
 
   public static final String FILE_NAME = "cached_content_index.exi";
 
@@ -64,6 +64,7 @@ import javax.crypto.spec.SecretKeySpec;
   private final AtomicFile atomicFile;
   private final Cipher cipher;
   private final SecretKeySpec secretKeySpec;
+  private final boolean encrypt;
   private boolean changed;
   private ReusableBufferedOutputStream bufferedOutputStream;
 
@@ -80,19 +81,32 @@ import javax.crypto.spec.SecretKeySpec;
    * Creates a CachedContentIndex which works on the index file in the given cacheDir.
    *
    * @param cacheDir Directory where the index file is kept.
-   * @param secretKey If not null, cache keys will be stored encrypted on filesystem using AES/CBC.
-   *     The key must be 16 bytes long.
+   * @param secretKey 16 byte AES key for reading and writing the cache index.
    */
   public CachedContentIndex(File cacheDir, byte[] secretKey) {
+    this(cacheDir, secretKey, secretKey != null);
+  }
+
+  /**
+   * Creates a CachedContentIndex which works on the index file in the given cacheDir.
+   *
+   * @param cacheDir Directory where the index file is kept.
+   * @param secretKey 16 byte AES key for reading, and optionally writing, the cache index.
+   * @param encrypt Whether the index will be encrypted when written. Must be false if {@code
+   *     secretKey} is null.
+   */
+  public CachedContentIndex(File cacheDir, byte[] secretKey, boolean encrypt) {
+    this.encrypt = encrypt;
     if (secretKey != null) {
       Assertions.checkArgument(secretKey.length == 16);
       try {
-        cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+        cipher = getCipher();
         secretKeySpec = new SecretKeySpec(secretKey, "AES");
       } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
         throw new IllegalStateException(e); // Should never happen.
       }
     } else {
+      Assertions.checkState(!encrypt);
       cipher = null;
       secretKeySpec = null;
     }
@@ -176,14 +190,14 @@ import javax.crypto.spec.SecretKeySpec;
 
   /** Removes empty {@link CachedContent} instances from index. */
   public void removeEmpty() {
-    LinkedList<String> cachedContentToBeRemoved = new LinkedList<>();
+    ArrayList<String> cachedContentToBeRemoved = new ArrayList<>();
     for (CachedContent cachedContent : keyToContent.values()) {
       if (cachedContent.isEmpty()) {
         cachedContentToBeRemoved.add(cachedContent.key);
       }
     }
-    for (String key : cachedContentToBeRemoved) {
-      removeEmpty(key);
+    for (int i = 0; i < cachedContentToBeRemoved.size(); i++) {
+      removeEmpty(cachedContentToBeRemoved.get(i));
     }
   }
 
@@ -247,10 +261,8 @@ import javax.crypto.spec.SecretKeySpec;
           throw new IllegalStateException(e);
         }
         input = new DataInputStream(new CipherInputStream(inputStream, cipher));
-      } else {
-        if (cipher != null) {
-          changed = true; // Force index to be rewritten encrypted after read.
-        }
+      } else if (encrypt) {
+        changed = true; // Force index to be rewritten encrypted after read.
       }
 
       int count = input.readInt();
@@ -288,10 +300,10 @@ import javax.crypto.spec.SecretKeySpec;
       output = new DataOutputStream(bufferedOutputStream);
       output.writeInt(VERSION);
 
-      int flags = cipher != null ? FLAG_ENCRYPTED_INDEX : 0;
+      int flags = encrypt ? FLAG_ENCRYPTED_INDEX : 0;
       output.writeInt(flags);
 
-      if (cipher != null) {
+      if (encrypt) {
         byte[] initializationVector = new byte[16];
         new Random().nextBytes(initializationVector);
         output.write(initializationVector);
@@ -339,6 +351,18 @@ import javax.crypto.spec.SecretKeySpec;
     CachedContent cachedContent = new CachedContent(id, key, length);
     addNew(cachedContent);
     return cachedContent;
+  }
+
+  private static Cipher getCipher() throws NoSuchPaddingException, NoSuchAlgorithmException {
+    // Workaround for https://issuetracker.google.com/issues/36976726
+    if (Util.SDK_INT == 18) {
+      try {
+        return Cipher.getInstance("AES/CBC/PKCS5PADDING", "BC");
+      } catch (Throwable ignored) {
+        // ignored
+      }
+    }
+    return Cipher.getInstance("AES/CBC/PKCS5PADDING");
   }
 
   /**

@@ -32,6 +32,7 @@ import android.view.Display;
 import android.view.WindowManager;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.upstream.DataSource;
 import java.io.ByteArrayOutputStream;
@@ -247,13 +248,23 @@ public final class Util {
   }
 
   /**
+   * Returns a new {@link String} constructed by decoding UTF-8 encoded bytes.
+   *
+   * @param bytes The UTF-8 encoded bytes to decode.
+   * @return The string.
+   */
+  public static String fromUtf8Bytes(byte[] bytes) {
+    return new String(bytes, Charset.forName(C.UTF8_NAME));
+  }
+
+  /**
    * Returns a new byte array containing the code points of a {@link String} encoded using UTF-8.
    *
    * @param value The {@link String} whose bytes should be obtained.
    * @return The code points encoding using UTF-8.
    */
   public static byte[] getUtf8Bytes(String value) {
-    return value.getBytes(Charset.defaultCharset()); // UTF-8 is the default on Android.
+    return value.getBytes(Charset.forName(C.UTF8_NAME));
   }
 
   /**
@@ -791,6 +802,8 @@ public final class Util {
         return channelCount * 3;
       case C.ENCODING_PCM_32BIT:
         return channelCount * 4;
+      case C.ENCODING_INVALID:
+      case Format.NO_VALUE:
       default:
         throw new IllegalArgumentException();
     }
@@ -900,8 +913,7 @@ public final class Util {
       return C.TYPE_DASH;
     } else if (fileName.endsWith(".m3u8")) {
       return C.TYPE_HLS;
-    } else if (fileName.endsWith(".ism") || fileName.endsWith(".isml")
-        || fileName.endsWith(".ism/manifest") || fileName.endsWith(".isml/manifest")) {
+    } else if (fileName.matches(".*\\.ism(l)?(/manifest(\\(.+\\))?)?")) {
       return C.TYPE_SS;
     } else {
       return C.TYPE_OTHER;
@@ -1077,10 +1089,15 @@ public final class Util {
 
   /** Creates an empty directory in the directory returned by {@link Context#getCacheDir()}. */
   public static File createTempDirectory(Context context, String prefix) throws IOException {
-    File tempFile = File.createTempFile(prefix, null, context.getCacheDir());
+    File tempFile = createTempFile(context, prefix);
     tempFile.delete(); // Delete the temp file.
     tempFile.mkdir(); // Create a directory with the same name.
     return tempFile;
+  }
+
+  /** Creates a new empty file in the directory returned by {@link Context#getCacheDir()}. */
+  public static File createTempFile(Context context, String prefix) throws IOException {
+    return File.createTempFile(prefix, null, context.getCacheDir());
   }
 
   /**

@@ -260,6 +260,14 @@ public class DefaultHttpDataSource implements HttpDataSource {
     return bytesToRead;
   }
 
+  /**
+   * Gets the input stream from the connection.
+   *
+   */
+  protected InputStream getInputStream(final HttpURLConnection connection ) throws IOException {
+    return connection.getInputStream();
+  }
+
   @Override
   public int read(byte[] buffer, int offset, int readLength) throws HttpDataSourceException {
     try {
@@ -641,13 +649,6 @@ public class DefaultHttpDataSource implements HttpDataSource {
       }
       connection = null;
     }
-  }
-
-  /**
-   * Gets the input stream from the connection.
-   */
-  protected InputStream getInputStream(final HttpURLConnection connection) throws IOException {
-    return connection.getInputStream();
   }
 
 }

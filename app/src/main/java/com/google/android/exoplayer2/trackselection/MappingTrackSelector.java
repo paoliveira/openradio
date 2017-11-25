@@ -199,6 +199,7 @@ public abstract class MappingTrackSelector extends TrackSelector {
      * @param trackIndex The index of the track within the track group.
      * @return One of {@link RendererCapabilities#FORMAT_HANDLED},
      *     {@link RendererCapabilities#FORMAT_EXCEEDS_CAPABILITIES},
+     *     {@link RendererCapabilities#FORMAT_UNSUPPORTED_DRM},
      *     {@link RendererCapabilities#FORMAT_UNSUPPORTED_SUBTYPE} and
      *     {@link RendererCapabilities#FORMAT_UNSUPPORTED_TYPE}.
      */
@@ -214,6 +215,7 @@ public abstract class MappingTrackSelector extends TrackSelector {
      * Tracks for which {@link #getTrackFormatSupport(int, int, int)} returns
      * {@link RendererCapabilities#FORMAT_HANDLED} are always considered.
      * Tracks for which {@link #getTrackFormatSupport(int, int, int)} returns
+     * {@link RendererCapabilities#FORMAT_UNSUPPORTED_DRM},
      * {@link RendererCapabilities#FORMAT_UNSUPPORTED_TYPE} or
      * {@link RendererCapabilities#FORMAT_UNSUPPORTED_SUBTYPE} are never considered.
      * Tracks for which {@link #getTrackFormatSupport(int, int, int)} returns
@@ -571,6 +573,8 @@ public abstract class MappingTrackSelector extends TrackSelector {
       }
     }
 
+    boolean[] rendererEnabled = determineEnabledRenderers(rendererCapabilities, trackSelections);
+
     // Package up the track information and selections.
     MappedTrackInfo mappedTrackInfo = new MappedTrackInfo(rendererTrackTypes,
         rendererTrackGroupArrays, mixedMimeTypeAdaptationSupport, rendererFormatSupports,
@@ -581,14 +585,26 @@ public abstract class MappingTrackSelector extends TrackSelector {
     RendererConfiguration[] rendererConfigurations =
         new RendererConfiguration[rendererCapabilities.length];
     for (int i = 0; i < rendererCapabilities.length; i++) {
-      rendererConfigurations[i] = trackSelections[i] != null ? RendererConfiguration.DEFAULT : null;
+      rendererConfigurations[i] = rendererEnabled[i] ? RendererConfiguration.DEFAULT : null;
     }
     // Configure audio and video renderers to use tunneling if appropriate.
     maybeConfigureRenderersForTunneling(rendererCapabilities, rendererTrackGroupArrays,
         rendererFormatSupports, rendererConfigurations, trackSelections, tunnelingAudioSessionId);
 
-    return new TrackSelectorResult(trackGroups, new TrackSelectionArray(trackSelections),
-        mappedTrackInfo, rendererConfigurations);
+    return new TrackSelectorResult(trackGroups, rendererEnabled,
+        new TrackSelectionArray(trackSelections), mappedTrackInfo, rendererConfigurations);
+  }
+
+  private boolean[] determineEnabledRenderers(RendererCapabilities[] rendererCapabilities,
+      TrackSelection[] trackSelections) {
+    boolean[] rendererEnabled = new boolean[trackSelections.length];
+    for (int i = 0; i < rendererEnabled.length; i++) {
+      boolean forceRendererDisabled = rendererDisabledFlags.get(i);
+      rendererEnabled[i] = !forceRendererDisabled
+          && (rendererCapabilities[i].getTrackType() == C.TRACK_TYPE_NONE
+          || trackSelections[i] != null);
+    }
+    return rendererEnabled;
   }
 
   @Override
@@ -615,12 +631,12 @@ public abstract class MappingTrackSelector extends TrackSelector {
   /**
    * Finds the renderer to which the provided {@link TrackGroup} should be mapped.
    * <p>
-   * A {@link TrackGroup} is mapped to the renderer that reports
-   * {@link RendererCapabilities#FORMAT_HANDLED} support for one or more of the tracks in the group,
-   * or {@link RendererCapabilities#FORMAT_EXCEEDS_CAPABILITIES} if no such renderer exists, or
-   * {@link RendererCapabilities#FORMAT_UNSUPPORTED_SUBTYPE} if again no such renderer exists. In
-   * the case that two or more renderers report the same level of support, the renderer with the
-   * lowest index is associated.
+   * A {@link TrackGroup} is mapped to the renderer that reports the highest of (listed in
+   * decreasing order of support) {@link RendererCapabilities#FORMAT_HANDLED},
+   * {@link RendererCapabilities#FORMAT_EXCEEDS_CAPABILITIES},
+   * {@link RendererCapabilities#FORMAT_UNSUPPORTED_DRM} and
+   * {@link RendererCapabilities#FORMAT_UNSUPPORTED_SUBTYPE}. In the case that two or more renderers
+   * report the same level of support, the renderer with the lowest index is associated.
    * <p>
    * If all renderers report {@link RendererCapabilities#FORMAT_UNSUPPORTED_TYPE} for all of the
    * tracks in the group, then {@code renderers.length} is returned to indicate that the group was

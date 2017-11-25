@@ -23,7 +23,19 @@ import com.google.android.exoplayer2.upstream.Allocator;
 import java.io.IOException;
 
 /**
- * A source of media consisting of one or more {@link MediaPeriod}s.
+ * Defines and provides media to be played by an {@link ExoPlayer}. A MediaSource has two main
+ * responsibilities:
+ * <ul>
+ *   <li>To provide the player with a {@link Timeline} defining the structure of its media, and to
+ *   provide a new timeline whenever the structure of the media changes. The MediaSource provides
+ *   these timelines by calling {@link Listener#onSourceInfoRefreshed} on the {@link Listener}
+ *   passed to {@link #prepareSource(ExoPlayer, boolean, Listener)}.</li>
+ *   <li>To provide {@link MediaPeriod} instances for the periods in its timeline. MediaPeriods are
+ *   obtained by calling {@link #createPeriod(MediaPeriodId, Allocator)}, and provide a way for the
+ *   player to load and read the media.</li>
+ * </ul>
+ * All methods are called on the player's internal playback thread, as described in the
+ * {@link ExoPlayer} Javadoc.
  */
 public interface MediaSource {
 
@@ -34,11 +46,14 @@ public interface MediaSource {
 
     /**
      * Called when manifest and/or timeline has been refreshed.
+     * <p>
+     * Called on the playback thread.
      *
+     * @param source The {@link MediaSource} whose info has been refreshed.
      * @param timeline The source's timeline.
      * @param manifest The loaded manifest. May be null.
      */
-    void onSourceInfoRefreshed(Timeline timeline, @Nullable Object manifest);
+    void onSourceInfoRefreshed(MediaSource source, Timeline timeline, @Nullable Object manifest);
 
   }
 

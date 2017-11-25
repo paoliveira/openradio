@@ -28,7 +28,7 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.MetadataRenderer;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.metadata.emsg.EventMessage;
 import com.google.android.exoplayer2.metadata.id3.ApicFrame;
 import com.google.android.exoplayer2.metadata.id3.CommentFrame;
@@ -53,15 +53,13 @@ import java.util.Locale;
 /**
  * Logs player events using {@link Log}.
  */
-public final class EventLogger implements Player.EventListener, AudioRendererEventListener,
-        AdaptiveMediaSourceEventListener,
-        ExtractorMediaSource.EventListener,
-        MetadataRenderer.Output {
+public final class EventLogger implements Player.EventListener, MetadataOutput,
+        AudioRendererEventListener, AdaptiveMediaSourceEventListener,
+        ExtractorMediaSource.EventListener {
 
     private static final String TAG = "EventLogger";
     private static final int MAX_TIMELINE_ITEM_LINES = 3;
     private static final NumberFormat TIME_FORMAT;
-
     static {
         TIME_FORMAT = NumberFormat.getInstance(Locale.US);
         TIME_FORMAT.setMinimumFractionDigits(2);
@@ -100,8 +98,13 @@ public final class EventLogger implements Player.EventListener, AudioRendererEve
     }
 
     @Override
-    public void onPositionDiscontinuity() {
-        Log.d(TAG, "positionDiscontinuity");
+    public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+        Log.d(TAG, "shuffleModeEnabled [" + shuffleModeEnabled + "]");
+    }
+
+    @Override
+    public void onPositionDiscontinuity(@Player.DiscontinuityReason int reason) {
+        Log.d(TAG, "positionDiscontinuity [" + getDiscontinuityReasonString(reason) + "]");
     }
 
     @Override
@@ -117,14 +120,14 @@ public final class EventLogger implements Player.EventListener, AudioRendererEve
         Log.d(TAG, "sourceInfo [periodCount=" + periodCount + ", windowCount=" + windowCount);
         for (int i = 0; i < Math.min(periodCount, MAX_TIMELINE_ITEM_LINES); i++) {
             timeline.getPeriod(i, period);
-            Log.d(TAG, "  " + "period [" + getTimeString(period.getDurationMs()) + "]");
+            Log.d(TAG, "  " +  "period [" + getTimeString(period.getDurationMs()) + "]");
         }
         if (periodCount > MAX_TIMELINE_ITEM_LINES) {
             Log.d(TAG, "  ...");
         }
         for (int i = 0; i < Math.min(windowCount, MAX_TIMELINE_ITEM_LINES); i++) {
             timeline.getWindow(i, window);
-            Log.d(TAG, "  " + "window [" + getTimeString(window.getDurationMs()) + ", "
+            Log.d(TAG, "  " +  "window [" + getTimeString(window.getDurationMs()) + ", "
                     + window.isSeekable + ", " + window.isDynamic + "]");
         }
         if (windowCount > MAX_TIMELINE_ITEM_LINES) {
@@ -204,7 +207,12 @@ public final class EventLogger implements Player.EventListener, AudioRendererEve
         Log.d(TAG, "]");
     }
 
-    // MetadataRenderer.Output
+    @Override
+    public void onSeekProcessed() {
+        Log.d(TAG, "seekProcessed");
+    }
+
+    // MetadataOutput
 
     @Override
     public void onMetadata(Metadata metadata) {
@@ -243,7 +251,7 @@ public final class EventLogger implements Player.EventListener, AudioRendererEve
     }
 
     @Override
-    public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+    public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
         printInternalError("audioTrackUnderrun [" + bufferSize + ", " + bufferSizeMs + ", "
                 + elapsedSinceLastFeedMs + "]", null);
     }
@@ -368,6 +376,8 @@ public final class EventLogger implements Player.EventListener, AudioRendererEve
                 return "YES";
             case RendererCapabilities.FORMAT_EXCEEDS_CAPABILITIES:
                 return "NO_EXCEEDS_CAPABILITIES";
+            case RendererCapabilities.FORMAT_UNSUPPORTED_DRM:
+                return "NO_UNSUPPORTED_DRM";
             case RendererCapabilities.FORMAT_UNSUPPORTED_SUBTYPE:
                 return "NO_UNSUPPORTED_TYPE";
             case RendererCapabilities.FORMAT_UNSUPPORTED_TYPE:
@@ -411,6 +421,21 @@ public final class EventLogger implements Player.EventListener, AudioRendererEve
                 return "ONE";
             case Player.REPEAT_MODE_ALL:
                 return "ALL";
+            default:
+                return "?";
+        }
+    }
+
+    private static String getDiscontinuityReasonString(@Player.DiscontinuityReason int reason) {
+        switch (reason) {
+            case Player.DISCONTINUITY_REASON_PERIOD_TRANSITION:
+                return "PERIOD_TRANSITION";
+            case Player.DISCONTINUITY_REASON_SEEK:
+                return "SEEK";
+            case Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT:
+                return "SEEK_ADJUSTMENT";
+            case Player.DISCONTINUITY_REASON_INTERNAL:
+                return "INTERNAL";
             default:
                 return "?";
         }

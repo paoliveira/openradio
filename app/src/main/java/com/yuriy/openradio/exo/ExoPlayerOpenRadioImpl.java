@@ -534,7 +534,7 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onAudioTrackUnderrun(final int bufferSize,
+        public void onAudioSinkUnderrun(final int bufferSize,
                                          final long bufferSizeMs,
                                          final long elapsedSinceLastFeedMs) {
 
@@ -630,8 +630,8 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onPositionDiscontinuity() {
-            AppLogger.e(LOG_TAG + " onPositionDiscontinuity");
+        public void onPositionDiscontinuity(@Player.DiscontinuityReason int reason) {
+            AppLogger.e(LOG_TAG + " onPositionDiscontinuity:" + reason);
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
                 return;
@@ -647,6 +647,16 @@ public final class ExoPlayerOpenRadioImpl {
         @Override
         public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
             //AppLogger.e(LOG_TAG + " onRepeatModeChanged");
+        }
+
+        @Override
+        public void onShuffleModeEnabledChanged(final boolean shuffleModeEnabled) {
+
+        }
+
+        @Override
+        public void onSeekProcessed() {
+
         }
     }
 

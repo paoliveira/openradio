@@ -24,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.IntentsHelper;
@@ -88,6 +89,11 @@ public final class AboutDialog extends DialogFragment {
         projectHomeLink.setOnClickListener(
                 v -> startActivity(IntentsHelper.makeUrlBrowsableIntent(PROJECT_HOME_URL))
         );
+
+        final TextView exoPlayerVersion = view.findViewById(R.id.exo_player_version_view);
+        final String exoPlayerVersionText
+                = getString(R.string.about_exo_text) + " " + ExoPlayerLibraryInfo.VERSION;
+        exoPlayerVersion.setText(exoPlayerVersionText);
 
         final Button closeBtn = view.findViewById(R.id.about_dialog_close_btn_view);
         closeBtn.setOnClickListener(

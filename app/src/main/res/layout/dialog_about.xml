@@ -127,7 +127,7 @@
             android:layout_height="wrap_content" />
 
         <TextView
-            android:text="@string/about_exo_text"
+            android:id="@+id/exo_player_version_view"
             android:layout_gravity="start"
             android:textStyle="bold"
             android:layout_width="match_parent"

@@ -33,7 +33,8 @@ import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
 
 /**
- * An extensible media player that plays {@link MediaSource}s.
+ * An extensible media player that plays {@link MediaSource}s. Instances can be obtained from
+ * {ExoPlayerFactory}.
  *
  * <h3>Player components</h3>
  * <p>ExoPlayer is designed to make few assumptions about (and hence impose few restrictions on) the
@@ -53,7 +54,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
  *   {@link DynamicConcatenatingMediaSource}, {@link LoopingMediaSource} and
  *   {@link ClippingMediaSource}).</li>
  *   <li><b>{@link Renderer}</b>s that render individual components of the media. The library
- *   provides default implementations for common media types (
+ *   provides default implementations for common media types ({MediaCodecVideoRenderer},
  *   {@link MediaCodecAudioRenderer}, {@link TextRenderer} and {@link MetadataRenderer}). A Renderer
  *   consumes media from the MediaSource being played. Renderers are injected when the player is
  *   created.</li>
@@ -210,12 +211,18 @@ public interface ExoPlayer extends Player {
   /**
    * Prepares the player to play the provided {@link MediaSource}. Equivalent to
    * {@code prepare(mediaSource, true, true)}.
+   * <p>
+   * Note: {@link MediaSource} instances are not designed to be re-used. If you want to prepare a
+   * player more than once with the same piece of media, use a new instance each time.
    */
   void prepare(MediaSource mediaSource);
 
   /**
    * Prepares the player to play the provided {@link MediaSource}, optionally resetting the playback
    * position the default position in the first {@link Timeline.Window}.
+   * <p>
+   * Note: {@link MediaSource} instances are not designed to be re-used. If you want to prepare a
+   * player more than once with the same piece of media, use a new instance each time.
    *
    * @param mediaSource The {@link MediaSource} to play.
    * @param resetPosition Whether the playback position should be reset to the default position in

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.extractor.mp4;
+package com.google.android.exoplayer2.util;
 
-/* package */ final class DefaultSampleValues {
+import android.util.Pair;
 
-  public final int sampleDescriptionIndex;
-  public final int duration;
-  public final int size;
-  public final int flags;
+/**
+ * Converts exceptions into error codes and user readable error messages.
+ */
+public interface ErrorMessageProvider<T extends Exception> {
 
-  public DefaultSampleValues(int sampleDescriptionIndex, int duration, int size, int flags) {
-    this.sampleDescriptionIndex = sampleDescriptionIndex;
-    this.duration = duration;
-    this.size = size;
-    this.flags = flags;
-  }
+  /**
+   * Returns a pair consisting of an error code and a user readable error message for the given
+   * exception.
+   *
+   * @param exception The exception for which an error code and message should be generated.
+   */
+  Pair<Integer, String> getErrorMessage(T exception);
 
 }
