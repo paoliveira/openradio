@@ -86,10 +86,7 @@ public final class AutoDetectParser {
         parser.parse(uri, stream, playlist);
     }
 
-    void parse(
-            final String uri,
-            final Playlist playlist)
-            throws IOException, JPlaylistParserException {
+    void parse(final String uri, final Playlist playlist) throws IOException, JPlaylistParserException {
         Parser parser;
         String extension;
 
@@ -141,11 +138,24 @@ public final class AutoDetectParser {
         }
     }
 
-    private String getFileExtension(final String uri) {
+    String getFileExtension(final String uri) {
         String fileExtension = "";
-        final int index = uri.lastIndexOf(".");
-        if (index != -1) {
-            fileExtension = uri.substring(index, uri.length());
+        int beginIndex = uri.lastIndexOf(".");
+        if (beginIndex != -1) {
+            int endIndex = uri.length();
+            fileExtension = uri.substring(beginIndex, endIndex);
+            // Keep this order the same!
+            if (fileExtension.startsWith(PLSPlaylistParser.EXTENSION)) {
+                endIndex = PLSPlaylistParser.EXTENSION.length();
+            } else if (fileExtension.startsWith(M3U8PlaylistParser.EXTENSION)) {
+                endIndex = M3U8PlaylistParser.EXTENSION.length();
+            } else if (fileExtension.startsWith(M3UPlaylistParser.EXTENSION)) {
+                endIndex = M3UPlaylistParser.EXTENSION.length();
+            } else {
+                endIndex = fileExtension.length();
+            }
+            beginIndex = 0;
+            fileExtension = fileExtension.substring(beginIndex, endIndex);
         }
         return fileExtension;
     }
