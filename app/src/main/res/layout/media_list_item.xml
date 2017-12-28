@@ -36,16 +36,14 @@
 
         <TextView
             android:id="@+id/title"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            style="@style/text_style"
             android:layout_marginLeft="@dimen/margin_text_view"
             android:layout_marginTop="@dimen/margin_text_view"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <TextView
             android:id="@+id/description"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
+            style="@style/text_style"
             android:layout_marginLeft="@dimen/margin_text_view"
             android:layout_marginTop="@dimen/margin_text_view"
             android:textAppearance="?android:attr/textAppearanceSmall" />

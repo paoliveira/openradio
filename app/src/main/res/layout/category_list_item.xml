@@ -18,16 +18,14 @@
         android:id="@+id/name_view"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/text_style"
         android:layout_toRightOf="@+id/img_view"
         android:layout_toLeftOf="@+id/favorite_check_view"/>
 
     <TextView
         android:id="@+id/description_view"
         android:textSize="18sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/text_style"
         android:layout_toRightOf="@+id/img_view"
         android:layout_below="@+id/name_view"
         android:layout_toLeftOf="@+id/favorite_check_view"/>
