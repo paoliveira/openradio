@@ -25,6 +25,7 @@ import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
@@ -215,11 +217,15 @@ public final class SettingsDialog extends DialogFragment {
             sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mailInfo.mTo});
             sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo.mSubj);
             sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo.mMailBody + "\r\n" );
-            sendIntent .setType("vnd.android.cursor.dir/email");
+            sendIntent.setType("vnd.android.cursor.dir/email");
 
             try {
-                final Uri path = Uri.fromFile(AppLogger.getLogsZipFile(mContext.getApplicationContext()));
-                sendIntent .putExtra(Intent.EXTRA_STREAM, path);
+                final Uri path = FileProvider.getUriForFile(
+                        mContext.getApplication(),
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        AppLogger.getLogsZipFile(mContext.getApplicationContext())
+                );
+                sendIntent.putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
                 FabricUtils.logException(e);
                 return null;
@@ -234,10 +240,12 @@ public final class SettingsDialog extends DialogFragment {
 
             if (intent != null) {
                 try {
+                    final Intent intent1 = Intent.createChooser(
+                            intent, mContext.getString(R.string.send_logs_chooser_title)
+                    );
+                    intent1.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     mContext.startActivityForResult(
-                            Intent.createChooser(
-                                    intent, mContext.getString(R.string.send_logs_chooser_title)
-                            ),
+                            intent1,
                             LOGS_EMAIL_REQUEST_CODE
                     );
                 } catch (final ActivityNotFoundException e) {
