@@ -43,6 +43,7 @@ import android.util.LruCache;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.notification.MediaNotificationData;
 import com.yuriy.openradio.business.notification.MediaNotificationManager;
+import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -320,7 +321,9 @@ public final class MediaNotification extends BroadcastReceiver {
             // This sample assumes the iconUri will be a valid URL formatted String, but
             // it can actually be any valid Android Uri formatted String.
             // async fetch the album art icon
-            final String artUrl = description.getIconUri().toString();
+            final String artUrl = UrlBuilder.preProcessIconUrl(
+                    description.getIconUri().toString()
+            );
             art = mAlbumArtCache.get(artUrl);
             if (art == null) {
                 fetchArtUrl = artUrl;

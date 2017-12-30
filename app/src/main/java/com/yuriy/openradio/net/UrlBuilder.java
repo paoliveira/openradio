@@ -58,6 +58,16 @@ public final class UrlBuilder {
     private static final String GEO_NAMES_FLAGS = "http://www.geonames.org/flags/";
 
     /**
+     * Base url for the icons used previously by Dirble.
+     */
+    static final String OLD_IMG_BASE_URL = "cdn.devality.com";
+
+    /**
+     * Base url for the icons using currently by Dirble.
+     */
+    static final String NEW_IMG_BASE_URL = "img.dirble.com";
+
+    /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
@@ -211,6 +221,37 @@ public final class UrlBuilder {
      */
     public static Uri getCountryFlagSmall(final String countryCode) {
         return getCountryFlag(countryCode.toLowerCase(), "l");
+    }
+
+    /**
+     * Pre-process URI of the Radio Station icon. It checks whether URI contains old base part
+     * and replace it with new one.
+     *
+     * @param uri URI of the icon.
+     * @return Modified URI.
+     */
+    public static Uri preProcessIconUri(final Uri uri) {
+        if (uri == null) {
+            return null;
+        }
+        return Uri.parse(preProcessIconUrl(uri.toString()));
+    }
+
+    /**
+     * Pre-process URL of the Radio Station icon. It checks whether URL contains old base part
+     * and replace it with new one.
+     *
+     * @param url URL of the icon.
+     * @return Modified URL.
+     */
+    public static String preProcessIconUrl(final String url) {
+        if (url == null || url.length() == 0) {
+            return url;
+        }
+        if (url.contains(OLD_IMG_BASE_URL)) {
+            return url.replace(OLD_IMG_BASE_URL, NEW_IMG_BASE_URL);
+        }
+        return url;
     }
 
     /**

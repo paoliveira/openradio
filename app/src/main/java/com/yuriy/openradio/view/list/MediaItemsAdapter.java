@@ -33,6 +33,7 @@ import android.widget.ImageView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.MediaItemsComparator;
+import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -256,7 +257,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
         if (description.getIconBitmap() != null) {
             imageView.setImageBitmap(description.getIconBitmap());
         } else {
-            final Uri iconUri = description.getIconUri();
+            final Uri iconUri = UrlBuilder.preProcessIconUri(description.getIconUri());
             if (isPlayable) {
 
                 if (iconUri != null && iconUri.toString().startsWith("android")) {
