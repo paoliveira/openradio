@@ -193,6 +193,8 @@ public final class LocationService {
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception e) {
+            FabricUtils.log(LocationService.class.getSimpleName() + " lat:" + latitude + ", long:" + longitude);
+            FabricUtils.logException(e);
             final String countryCode = getCountryCodeGoogleAPI(latitude, longitude);
             AppLogger.d("Country:" + countryCode);
             return countryCode;
@@ -218,6 +220,11 @@ public final class LocationService {
         final GoogleGeoAPI googleGeoAPI = new GoogleGeoAPIImpl(parser);
         final Downloader downloader = new HTTPDownloaderImpl();
         final Uri uri = UrlBuilder.getGoogleGeoAPIUrl(latitude, longitude);
+        if (uri != null) {
+            FabricUtils.log(LocationService.class.getSimpleName() + " uri:" + uri.toString());
+        } else {
+            FabricUtils.log(LocationService.class.getSimpleName() + " uri is null");
+        }
         return googleGeoAPI.getCountry(downloader, uri).getCode();
     }
 

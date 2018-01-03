@@ -321,6 +321,7 @@ public final class MediaNotification extends BroadcastReceiver {
             // This sample assumes the iconUri will be a valid URL formatted String, but
             // it can actually be any valid Android Uri formatted String.
             // async fetch the album art icon
+            FabricUtils.log(MediaNotification.class.getSimpleName() + " icon:" + description.getIconUri().toString());
             final String artUrl = UrlBuilder.preProcessIconUrl(
                     description.getIconUri().toString()
             );
