@@ -17,6 +17,7 @@
 package com.yuriy.openradio.net;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.utils.AppLogger;
@@ -43,9 +44,7 @@ import java.util.List;
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link com.yuriy.openradio.net.HTTPDownloaderImpl} allows to download data from the
  * resource over HTTP protocol.
  */
@@ -66,7 +65,7 @@ public final class HTTPDownloaderImpl implements Downloader {
     /**
      * Represents the end-of-file (or stream).
      */
-    public static final int EOF = -1;
+    private static final int EOF = -1;
 
     @Override
     public byte[] downloadDataFromUri(final Uri uri) {
@@ -74,7 +73,8 @@ public final class HTTPDownloaderImpl implements Downloader {
     }
 
     @Override
-    public byte[] downloadDataFromUri(final Uri uri, final List<Pair<String, String>> parameters) {
+    public byte[] downloadDataFromUri(final Uri uri,
+                                      @NonNull final List<Pair<String, String>> parameters) {
         AppLogger.i(CLASS_NAME + " Request URL:" + uri);
         byte[] response = new byte[0];
 
@@ -83,8 +83,13 @@ public final class HTTPDownloaderImpl implements Downloader {
         URL url = null;
         try {
             url = new URL(uri.toString());
-        } catch (final MalformedURLException e) {
-            FabricUtils.logException(e);
+        } catch (final MalformedURLException exception) {
+            FabricUtils.logException(
+                    new DownloaderException(
+                            createExceptionMessage(uri, parameters),
+                            exception
+                    )
+            );
         }
 
         if (url == null) {
@@ -94,8 +99,13 @@ public final class HTTPDownloaderImpl implements Downloader {
         HttpURLConnection urlConnection = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
-        } catch (final IOException e) {
-            FabricUtils.logException(e);
+        } catch (final IOException exception) {
+            FabricUtils.logException(
+                    new DownloaderException(
+                            createExceptionMessage(uri, parameters),
+                            exception
+                    )
+            );
         }
 
         if (urlConnection == null) {
@@ -109,8 +119,13 @@ public final class HTTPDownloaderImpl implements Downloader {
             try {
                 urlConnection.setRequestMethod("POST");
                 result = true;
-            } catch (final ProtocolException e) {
-                FabricUtils.logException(e);
+            } catch (final ProtocolException exception) {
+                FabricUtils.logException(
+                        new DownloaderException(
+                                createExceptionMessage(uri, parameters),
+                                exception
+                        )
+                );
             }
 
             // If POST is supported:
@@ -123,8 +138,13 @@ public final class HTTPDownloaderImpl implements Downloader {
                     writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
-                } catch (final IOException e) {
-                    FabricUtils.logException(e);
+                } catch (final IOException exception) {
+                    FabricUtils.logException(
+                            new DownloaderException(
+                                    createExceptionMessage(uri, parameters),
+                                    exception
+                            )
+                    );
                 } finally {
                     try {
                         if (writer != null) {
@@ -134,7 +154,7 @@ public final class HTTPDownloaderImpl implements Downloader {
                             outputStream.close();
                         }
                     } catch (final IOException e) {
-                    /* Ignore */
+                        /* Ignore */
                     }
                 }
             }
@@ -143,8 +163,13 @@ public final class HTTPDownloaderImpl implements Downloader {
         int responseCode = 0;
         try {
             responseCode = urlConnection.getResponseCode();
-        } catch (final IOException e) {
-            FabricUtils.logException(e);
+        } catch (final IOException exception) {
+            FabricUtils.logException(
+                    new DownloaderException(
+                            createExceptionMessage(uri, parameters),
+                            exception
+                    )
+            );
         }
 
         AppLogger.d("Response code:" + responseCode);
@@ -156,8 +181,13 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             response = toByteArray(inputStream);
-        } catch (final IOException e) {
-            FabricUtils.logException(e);
+        } catch (final IOException exception) {
+            FabricUtils.logException(
+                    new DownloaderException(
+                            createExceptionMessage(uri, parameters),
+                            exception
+                    )
+            );
         } finally {
             urlConnection.disconnect();
         }
@@ -268,8 +298,8 @@ public final class HTTPDownloaderImpl implements Downloader {
      * @throws IOException          if an I/O error occurs
      * @since 2.2
      */
-    public static long copyLarge(final InputStream input, final OutputStream output,
-                                 final byte[] buffer)
+    private static long copyLarge(final InputStream input, final OutputStream output,
+                                  final byte[] buffer)
             throws IOException {
         long count = 0;
         int n;
@@ -304,5 +334,21 @@ public final class HTTPDownloaderImpl implements Downloader {
         }
 
         return result.toString();
+    }
+
+    /**
+     *
+     * @param uri
+     * @param parameters
+     * @return
+     */
+    private String createExceptionMessage(@NonNull final Uri uri,
+                                          @NonNull final List<Pair<String, String>> parameters) {
+        final StringBuilder builder = new StringBuilder(uri.toString());
+        for (final Pair<String, String> pair : parameters) {
+            builder.append(" ");
+            builder.append(pair.toString());
+        }
+        return builder.toString();
     }
 }

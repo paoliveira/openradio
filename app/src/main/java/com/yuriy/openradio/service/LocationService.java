@@ -192,11 +192,11 @@ public final class LocationService {
         List<Address> addresses;
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
-        } catch (final Exception e) {
+        } catch (final Exception exception) {
             FabricUtils.log(LocationService.class.getSimpleName() + " lat:" + latitude + ", long:" + longitude);
-            FabricUtils.logException(e);
             final String countryCode = getCountryCodeGoogleAPI(latitude, longitude);
-            AppLogger.d("Country:" + countryCode);
+            FabricUtils.log("Country:" + countryCode);
+            FabricUtils.logException(exception);
             return countryCode;
         }
 

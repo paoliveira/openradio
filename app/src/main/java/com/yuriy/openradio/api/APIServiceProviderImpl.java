@@ -17,6 +17,7 @@
 package com.yuriy.openradio.api;
 
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
 
@@ -504,6 +505,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
      * @param searchQuery String to use as query.
      * @return List of the query search parameters.
      */
+    @NonNull
     public static List<Pair<String, String>> getSearchQueryParameters(final String searchQuery) {
         final List<Pair<String, String>> result = new ArrayList<>();
         result.add(new Pair<>(SEARCH_PARAMETER_KEY, searchQuery));
