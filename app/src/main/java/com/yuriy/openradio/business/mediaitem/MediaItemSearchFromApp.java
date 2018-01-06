@@ -24,7 +24,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
-import com.yuriy.openradio.service.FavoritesStorage;
+import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;

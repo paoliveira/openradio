@@ -14,25 +14,38 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.vo;
 
-import com.yuriy.openradio.vo.GoogleGeoLocation;
+import android.support.annotation.NonNull;
 
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
  * On 19/11/17
  * E-Mail: chernyshov.yuriy@gmail.com
- *
- * Data parser for the response obtained from Google Geo API.
  */
-public interface GoogleGeoDataParser {
 
-    /**
-     * Get location from the raw response.
-     *
-     * @param data Bytes array represented server's response.
-     * @return Location object created from the response.
-     */
-    GoogleGeoLocation getLocation(final byte[] data);
+public final class GeoLocation {
+
+    private Country mCountry;
+
+    public GeoLocation() {
+        super();
+        mCountry = Country.getDefaultCountry();
+    }
+
+    public void setCountry(@NonNull final Country value) {
+        mCountry = new Country(value.getName(), value.getCode());
+    }
+
+    public Country getCountry() {
+        return mCountry;
+    }
+
+    @Override
+    public String toString() {
+        return "GeoLocation{" +
+                "country=" + mCountry +
+                "}";
+    }
 }

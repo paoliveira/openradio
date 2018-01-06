@@ -23,7 +23,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.MediaItemsComparator;
-import com.yuriy.openradio.service.LocalRadioStationsStorage;
+import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
 

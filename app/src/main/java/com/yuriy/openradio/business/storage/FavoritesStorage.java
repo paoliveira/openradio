@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -30,7 +30,7 @@ import java.util.List;
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class FavoritesStorage extends AbstractStorage {
+public final class FavoritesStorage extends AbstractRadioStationsStorage {
 
     /**
      * Private constructor

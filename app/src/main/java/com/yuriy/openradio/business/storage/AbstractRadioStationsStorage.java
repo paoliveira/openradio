@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -38,7 +38,7 @@ import java.util.Map;
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-abstract class AbstractStorage {
+abstract class AbstractRadioStationsStorage extends AbstractStorage {
 
     private static final String KEY_VALUE_DELIMITER = "<:>";
 
@@ -47,7 +47,7 @@ abstract class AbstractStorage {
     /**
      * Default constructor.
      */
-    AbstractStorage() {
+    AbstractRadioStationsStorage() {
         super();
     }
 
@@ -238,30 +238,6 @@ abstract class AbstractStorage {
         final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
         return map.isEmpty();
-    }
-
-    /**
-     * Return an instance of the Shared Preferences.
-     *
-     * @param context Context of the callee.
-     * @param name    Name of the file for the preferences.
-     * @return An instance of the Shared Preferences.
-     */
-    static SharedPreferences getSharedPreferences(final Context context,
-                                                  final String name) {
-        return context.getSharedPreferences(name, Context.MODE_PRIVATE);
-    }
-
-    /**
-     * Return {@link android.content.SharedPreferences.Editor} associated with the
-     * Shared Preferences.
-     *
-     * @param context Context of the callee.
-     * @param name    Name of the file for the preferences.
-     * @return {@link android.content.SharedPreferences.Editor}.
-     */
-    static SharedPreferences.Editor getEditor(final Context context, final String name) {
-        return getSharedPreferences(context, name).edit();
     }
 
     /**

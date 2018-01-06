@@ -14,38 +14,33 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.vo;
+package com.yuriy.openradio.api;
 
-import android.support.annotation.NonNull;
+import android.net.Uri;
+
+import com.yuriy.openradio.net.Downloader;
+import com.yuriy.openradio.vo.Category;
+import com.yuriy.openradio.vo.Country;
 
 /**
- * Created by Chernyshov Yurii
+ * Created by Yuriy Chernyshov
  * At Android Studio
- * On 19/11/17
+ * On 12/14/14
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * {@link GeoAPI} is an interface which provides
+ * various methods of the Geo's API.
  */
+public interface GeoAPI {
 
-public final class GoogleGeoLocation {
+    /**
+     * Get a country name.
+     *
+     * @param downloader Implementation of the {@link Downloader} interface.
+     * @param uri        {@link Uri} of the request.
+     *
+     * @return Collection of the {@link Category}s
+     */
+    Country getCountry(final Downloader downloader, final Uri uri);
 
-    private Country mCountry;
-
-    public GoogleGeoLocation() {
-        super();
-        mCountry = Country.getDefaultCountry();
-    }
-
-    public void setCountry(@NonNull final Country value) {
-        mCountry = new Country(value.getName(), value.getCode());
-    }
-
-    public Country getCountry() {
-        return mCountry;
-    }
-
-    @Override
-    public String toString() {
-        return "GoogleGeoLocation{" +
-                "country=" + mCountry +
-                "}";
-    }
 }

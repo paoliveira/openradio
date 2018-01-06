@@ -53,6 +53,11 @@ public final class UrlBuilder {
     private static final String GOOGLE_GEO_URL = "https://maps.googleapis.com/maps/api/geocode";
 
     /**
+     * IP-API url.
+     */
+    private static final String IP_API_URL = "http://ip-api.com/json";
+
+    /**
      * URL of the Geo Names service to obtain country's flag.
      */
     private static final String GEO_NAMES_FLAGS = "http://www.geonames.org/flags/";
@@ -83,7 +88,16 @@ public final class UrlBuilder {
      * @return {@link Uri}.
      */
     public static Uri getGoogleGeoAPIUrl(final double latitude, final double longitude) {
-        return  Uri.parse(GOOGLE_GEO_URL + "/json?latlng=" + latitude + "," + longitude);
+        return Uri.parse(GOOGLE_GEO_URL + "/json?latlng=" + latitude + "," + longitude);
+    }
+
+    /**
+     * Get Uri for the IP API Geo API which returns location.
+     *
+     * @return {@link Uri}.
+     */
+    public static Uri getIPAPIUrl() {
+        return Uri.parse(IP_API_URL);
     }
 
     /**

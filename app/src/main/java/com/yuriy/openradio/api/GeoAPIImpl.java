@@ -20,11 +20,11 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.business.DataParser;
-import com.yuriy.openradio.business.GoogleGeoDataParser;
+import com.yuriy.openradio.business.location.GeoDataParser;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.Country;
-import com.yuriy.openradio.vo.GoogleGeoLocation;
+import com.yuriy.openradio.vo.GeoLocation;
 
 /**
  * Created by Yuriy Chernyshov
@@ -32,29 +32,28 @@ import com.yuriy.openradio.vo.GoogleGeoLocation;
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * {@link GoogleGeoAPIImpl} is the implementation of the
+ * {@link GeoAPIImpl} is the implementation of the
  * {@link APIServiceProvider} interface.
  */
-public final class GoogleGeoAPIImpl implements GoogleGeoAPI {
+public final class GeoAPIImpl implements GeoAPI {
 
     /**
      * Tag string to use in logging messages.
      */
-    @SuppressWarnings("unused")
-    private static final String CLASS_NAME = GoogleGeoAPIImpl.class.getSimpleName();
+    private static final String CLASS_NAME = GeoAPIImpl.class.getSimpleName();
 
     /**
      * Implementation of the {@link DataParser} allows to
      * parse raw response of the data into different formats.
      */
-    private GoogleGeoDataParser mDataParser;
+    private GeoDataParser mDataParser;
 
     /**
      * Constructor.
      *
      * @param dataParser Implementation of the {@link DataParser}
      */
-    public GoogleGeoAPIImpl(final GoogleGeoDataParser dataParser) {
+    public GeoAPIImpl(final GeoDataParser dataParser) {
         mDataParser = dataParser;
     }
 
@@ -67,7 +66,7 @@ public final class GoogleGeoAPIImpl implements GoogleGeoAPI {
         }
 
         final byte[] data = downloader.downloadDataFromUri(uri);
-        final GoogleGeoLocation location = mDataParser.getLocation(data);
+        final GeoLocation location = mDataParser.getLocation(data);
 
         return location.getCountry();
     }

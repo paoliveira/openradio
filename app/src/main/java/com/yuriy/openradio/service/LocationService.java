@@ -28,16 +28,18 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
-import com.yuriy.openradio.api.GoogleGeoAPI;
-import com.yuriy.openradio.api.GoogleGeoAPIImpl;
-import com.yuriy.openradio.business.GoogleGeoDataParser;
-import com.yuriy.openradio.business.GoogleGeoDataParserJson;
+import com.yuriy.openradio.api.GeoAPI;
+import com.yuriy.openradio.api.GeoAPIImpl;
+import com.yuriy.openradio.business.location.GeoDataParser;
+import com.yuriy.openradio.business.location.IPAPIDataParserJson;
+import com.yuriy.openradio.business.storage.GeoAPIStorage;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.PermissionChecker;
+import com.yuriy.openradio.vo.Country;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -60,6 +62,8 @@ public final class LocationService {
      */
     public static final String COUNTRY_CODE_DEFAULT = "CA";
     public static final String COUNTRY_NAME_DEFAULT = "Canada";
+
+    public static final int COUNTRY_REQUEST_MIN_WAIT = 60000;
 
     /**
      * Obtained value of the Country Code.
@@ -193,10 +197,10 @@ public final class LocationService {
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception exception) {
-            FabricUtils.log(LocationService.class.getSimpleName() + " lat:" + latitude + ", long:" + longitude);
-            final String countryCode = getCountryCodeGoogleAPI(latitude, longitude);
-            FabricUtils.log("Country:" + countryCode);
-            FabricUtils.logException(exception);
+            final String countryCode = getCountryCode(context, latitude, longitude);
+            final String msg = "Can not get geocoder location for lat:" + latitude
+                    + ", long:" + longitude + ", country by ip-api:" + countryCode;
+            FabricUtils.logException(new Exception(msg, exception));
             return countryCode;
         }
 
@@ -208,24 +212,39 @@ public final class LocationService {
     }
 
     /**
-     * Call Google Map API to get current country.
+     * Call Geo API to get current country.
      *
+     * @param context   Context of the application.
      * @param latitude  Latitude of the location.
      * @param longitude Longitude of the location.
      * @return Country code.
      */
-    private static String getCountryCodeGoogleAPI(final double latitude,
-                                                  final double longitude) {
-        final GoogleGeoDataParser parser = new GoogleGeoDataParserJson();
-        final GoogleGeoAPI googleGeoAPI = new GoogleGeoAPIImpl(parser);
-        final Downloader downloader = new HTTPDownloaderImpl();
-        final Uri uri = UrlBuilder.getGoogleGeoAPIUrl(latitude, longitude);
-        if (uri != null) {
-            FabricUtils.log(LocationService.class.getSimpleName() + " uri:" + uri.toString());
-        } else {
-            FabricUtils.log(LocationService.class.getSimpleName() + " uri is null");
+    private static String getCountryCode(final Context context,
+                                         final double latitude, final double longitude) {
+        Country country;
+
+        final long lastUsedTime = GeoAPIStorage.getLastUseTime(context);
+        final long currentTime = System.currentTimeMillis();
+        if (lastUsedTime != GeoAPIStorage.LAST_USE_TIME_DEFAULT
+                && currentTime - lastUsedTime < COUNTRY_REQUEST_MIN_WAIT) {
+            country = new Country(
+                    GeoAPIStorage.getLastKnownCountryName(context),
+                    GeoAPIStorage.getLastKnownCountryCode(context)
+            );
+            return country.getCode();
         }
-        return googleGeoAPI.getCountry(downloader, uri).getCode();
+
+        final GeoDataParser parser = new IPAPIDataParserJson();
+        final GeoAPI geoAPI = new GeoAPIImpl(parser);
+        final Downloader downloader = new HTTPDownloaderImpl();
+        final Uri uri = UrlBuilder.getIPAPIUrl();
+        country = geoAPI.getCountry(downloader, uri);
+
+        GeoAPIStorage.setLastUseTime(currentTime, context);
+        GeoAPIStorage.setLastKnownCountryName(country.getName(), context);
+        GeoAPIStorage.setLastKnownCountryCode(country.getCode(), context);
+
+        return country.getCode();
     }
 
     /**

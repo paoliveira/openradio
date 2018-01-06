@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.storage;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
@@ -30,7 +30,7 @@ import java.util.List;
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class LatestRadioStationStorage extends AbstractStorage {
+public final class LatestRadioStationStorage extends AbstractRadioStationsStorage {
 
     /**
      * Private constructor

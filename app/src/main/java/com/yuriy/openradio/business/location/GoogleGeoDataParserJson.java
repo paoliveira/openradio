@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.location;
 
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.vo.Country;
-import com.yuriy.openradio.vo.GoogleGeoLocation;
+import com.yuriy.openradio.vo.GeoLocation;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,10 +33,10 @@ import org.json.JSONObject;
  * On 19/11/17
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * Implementation of the {@link GoogleGeoDataParser} designed to parse a response which is
+ * Implementation of the {@link GeoDataParser} designed to parse a response which is
  * representation of JSON.
  */
-public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
+public final class GoogleGeoDataParserJson implements GeoDataParser {
 
     /**
      * Tag string to use in logging messages.
@@ -58,9 +57,9 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
 
     @Override
     @NonNull
-    public GoogleGeoLocation getLocation(final byte[] data) {
-        final GoogleGeoLocation location = new GoogleGeoLocation();
-        final JSONObject object = getObject(data);
+    public GeoLocation getLocation(final byte[] data) {
+        final GeoLocation location = new GeoLocation();
+        final JSONObject object = getJsonObject(data);
         if (object == null) {
             return location;
         }
@@ -90,7 +89,7 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
                 }
             }
         } catch (final JSONException e) {
-            AppLogger.w(CLASS_NAME + " Can extract data from response:" + e);
+            AppLogger.w(CLASS_NAME + " Can not extract data from response:" + e);
         }
         return location;
     }
@@ -112,27 +111,5 @@ public final class GoogleGeoDataParserJson implements GoogleGeoDataParser {
             }
         }
         return false;
-    }
-
-    /**
-     * Constructs JSON object from the bytes array.
-     *
-     * @param data Input data.
-     * @return JSON object.
-     */
-    private JSONObject getObject(final byte[] data) {
-        JSONObject array = new JSONObject();
-        final String response = new String(data);
-        // Ignore empty response
-        if (response.isEmpty()) {
-            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
-            return array;
-        }
-        try {
-            array = new JSONObject(response);
-        } catch (final JSONException e) {
-            FabricUtils.logException(e);
-        }
-        return array;
     }
 }
