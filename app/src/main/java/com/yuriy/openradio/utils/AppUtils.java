@@ -716,22 +716,34 @@ public final class AppUtils {
     }
 
     /**
-     * Simple network connection check.
      *
-     * @param context Application context.
+     * @param context Context of the callee.
+     * @return
      */
-    public static boolean isConnected(@NonNull final Context context) {
+    public static boolean checkConnectivity(@NonNull final Context context) {
         final ConnectivityManager connectivityManager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        // TODO: Check connectivityManager for a null reference
-        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        if (networkInfo == null || !networkInfo.isConnectedOrConnecting()) {
-            SafeToast.showAnyThread(
-                    context,
-                    context.getString(R.string.no_network_connection_toast)
-            );
+        if (connectivityManager == null) {
             return false;
         }
-        return true;
+        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return !(networkInfo == null || !networkInfo.isConnectedOrConnecting());
+    }
+
+    /**
+     * Simple network connection check.
+     *
+     * @param context Context of the callee.
+     * @return
+     */
+    public static boolean checkConnectivityAndNotify(@NonNull final Context context) {
+        if (checkConnectivity(context)) {
+            return true;
+        }
+        SafeToast.showAnyThread(
+                context,
+                context.getString(R.string.no_network_connection_toast)
+        );
+        return false;
     }
 }

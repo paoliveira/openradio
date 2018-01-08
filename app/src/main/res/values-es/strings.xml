@@ -102,4 +102,5 @@
     <string name="google_drive_data_read">Las Estaciones de Radio se leen desde Google Drive</string>
     <string name="google_drive_conn_error">Error al conectarse a Google Drive</string>
     <string name="queue">Cola</string>
+    <string name="can_not_get_account_name">No se puede obtener el nombre de la cuenta de Google.</string>
 </resources>

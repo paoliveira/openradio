@@ -638,7 +638,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Instantiate appropriate downloader (HTTP one)
         final Downloader downloader = new HTTPDownloaderImpl();
         // Instantiate appropriate API service provider
-        final APIServiceProvider serviceProvider = getServiceProvider();
+        final APIServiceProvider serviceProvider = getServiceProvider(getApplicationContext());
 
         // If Parent Id contains Country Code - use it in the API.
         String countryCode = MediaIDHelper.getCountryCode(mCurrentParentId);
@@ -1050,7 +1050,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 executorService.submit(
                         () -> {
                             // Start download information about Radio Station
-                            final RadioStation radioStationUpdated = getServiceProvider().getStation(
+                            final RadioStation radioStationUpdated = getServiceProvider(OpenRadioService.this.getApplicationContext()).getStation(
                                     new HTTPDownloaderImpl(),
                                     UrlBuilder.getStation(
                                             getApplicationContext(),
@@ -1581,11 +1581,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * @return Implementation of the {@link APIServiceProvider} interface.
      */
-    private static APIServiceProvider getServiceProvider() {
+    private static APIServiceProvider getServiceProvider(final Context context) {
         // Instantiate appropriate parser (JSON one)
         final DataParser dataParser = new JSONDataParserImpl();
         // Instantiate appropriate API service provider
-        return new APIServiceProviderImpl(dataParser);
+        return new APIServiceProviderImpl(context, dataParser);
     }
 
     /**
@@ -1869,7 +1869,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Instantiate appropriate downloader (HTTP one)
         final Downloader downloader = new HTTPDownloaderImpl();
         // Instantiate appropriate API service provider
-        final APIServiceProvider serviceProvider = getServiceProvider();
+        final APIServiceProvider serviceProvider = getServiceProvider(getApplicationContext());
 
         final List<RadioStation> list = serviceProvider.getStations(
                 downloader,

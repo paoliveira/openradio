@@ -55,7 +55,7 @@ public final class GoogleDriveManager {
     public interface Listener {
 
         /**
-         *
+         * Google Drive requested information about account to use.
          */
         void onAccountRequested();
 

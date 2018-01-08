@@ -37,6 +37,7 @@ import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.PermissionChecker;
 import com.yuriy.openradio.vo.Country;
@@ -197,9 +198,11 @@ public final class LocationService {
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception exception) {
+            final boolean isConnected = AppUtils.checkConnectivity(context);
             final String countryCode = getCountryCode(context, latitude, longitude);
             final String msg = "Can not get geocoder location for lat:" + latitude
-                    + ", long:" + longitude + ", country by ip-api:" + countryCode;
+                    + ", long:" + longitude + ", country by ip-api:" + countryCode
+                    + ", connected:" + isConnected;
             FabricUtils.logException(new Exception(msg, exception));
             return countryCode;
         }

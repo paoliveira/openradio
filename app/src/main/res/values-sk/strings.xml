@@ -102,4 +102,5 @@
     <string name="google_drive_data_read">Rozhlasové stanice sa čítajú z Google Drive</string>
     <string name="google_drive_conn_error">Chyba pri pripojení k Google Drive</string>
     <string name="queue">Fronta</string>
+    <string name="can_not_get_account_name">Nemôžem získať meno účtu Google.</string>
 </resources>

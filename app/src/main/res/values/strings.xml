@@ -146,5 +146,6 @@
     <string name="google_drive_conn_error">Error to connect to Google Drive</string>
 
     <string name="queue">Queue</string>
+    <string name="can_not_get_account_name">Can not get Google Account name</string>
 
 </resources>

@@ -46,6 +46,7 @@ public class ImageFetcher extends ImageResizer {
     private boolean mHttpDiskCacheStarting = true;
     private final Object mHttpDiskCacheLock = new Object();
     private static final int DISK_CACHE_INDEX = 0;
+    private Context mContext;
 
     /**
      * Initialize providing a target image width and height for the processing images.
@@ -71,7 +72,7 @@ public class ImageFetcher extends ImageResizer {
     }
 
     private void init(@NonNull final Context context) {
-        AppUtils.isConnected(context);
+        mContext = context;
         mHttpCacheDir = ImageCache.getDiskCacheDir(context, HTTP_CACHE_DIR);
     }
 
@@ -166,7 +167,7 @@ public class ImageFetcher extends ImageResizer {
      * @param data The data to load the bitmap, in this case, a regular http URL
      * @return The downloaded and resized bitmap
      */
-    private Bitmap processBitmap(String data) {
+    private Bitmap processBitmap(final Context context, final String data) {
         if (BuildConfig.DEBUG) {
             AppLogger.d(TAG + " processBitmap - " + data);
         }
@@ -192,7 +193,7 @@ public class ImageFetcher extends ImageResizer {
                         }
                         DiskLruCache.Editor editor = mHttpDiskCache.edit(key);
                         if (editor != null) {
-                            if (downloadUrlToStream(data, editor.newOutputStream(DISK_CACHE_INDEX))) {
+                            if (downloadUrlToStream(context, data, editor.newOutputStream(DISK_CACHE_INDEX))) {
                                 editor.commit();
                             } else {
                                 editor.abort();
@@ -231,8 +232,8 @@ public class ImageFetcher extends ImageResizer {
     }
 
     @Override
-    protected Bitmap processBitmap(Object data) {
-        return processBitmap(String.valueOf(data));
+    protected Bitmap processBitmap(final Object data) {
+        return processBitmap(mContext, String.valueOf(data));
     }
 
     /**
@@ -241,7 +242,9 @@ public class ImageFetcher extends ImageResizer {
      * @param urlString The URL to fetch
      * @return true if successful, false otherwise
      */
-    private boolean downloadUrlToStream(String urlString, OutputStream outputStream) {
+    private boolean downloadUrlToStream(final Context context,
+                                        final String urlString,
+                                        final OutputStream outputStream) {
         HttpURLConnection urlConnection = null;
         BufferedOutputStream out = null;
         BufferedInputStream in = null;
@@ -249,9 +252,12 @@ public class ImageFetcher extends ImageResizer {
         try {
             if (urlString.toLowerCase().startsWith("www")
                     || urlString.toLowerCase().startsWith("http")) {
-                final URL url = new URL(urlString);
-                urlConnection = (HttpURLConnection) url.openConnection();
-                in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+
+                if (AppUtils.checkConnectivityAndNotify(context)) {
+                    final URL url = new URL(urlString);
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+                }
             } else {
                 in = new BufferedInputStream(new FileInputStream(new File(urlString)), IO_BUFFER_SIZE);
             }

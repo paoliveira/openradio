@@ -498,7 +498,9 @@ public final class MainActivity extends AppCompatActivity {
             case ACCOUNT_REQUEST_CODE:
                 final String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
                 if (TextUtils.isEmpty(email)) {
-                    SafeToast.showAnyThread(getApplicationContext(), "Can not get Account Name");
+                    SafeToast.showAnyThread(
+                            getApplicationContext(), getString(R.string.can_not_get_account_name)
+                    );
                     break;
                 }
                 mGoogleDriveManager.connect(email);

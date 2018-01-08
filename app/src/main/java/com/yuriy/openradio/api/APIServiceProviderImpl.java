@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.api;
 
+import android.content.Context;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
@@ -26,6 +27,7 @@ import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
 import com.yuriy.openradio.vo.Category;
@@ -80,11 +82,20 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     private DataParser mDataParser;
 
     /**
+     *
+     */
+    @NonNull
+    private final Context mContext;
+
+    /**
      * Constructor.
      *
      * @param dataParser Implementation of the {@link com.yuriy.openradio.business.DataParser}
      */
-    public APIServiceProviderImpl(final DataParser dataParser) {
+    public APIServiceProviderImpl(@NonNull final Context context,
+                                  final DataParser dataParser) {
+        super();
+        mContext = context;
         mDataParser = dataParser;
     }
 
@@ -329,6 +340,11 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                                         final List<Pair<String, String>> parameters) {
         JSONArray array = new JSONArray();
 
+        if (AppUtils.checkConnectivityAndNotify(mContext)) {
+            AppLogger.e("Network is not available");
+            return array;
+        }
+
         String responsesMapKey = uri.toString();
         try {
             responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
@@ -337,7 +353,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
 
             responsesMapKey = null;
         }
-        //AppLogger.d("HTTP response cache key:" + responsesMapKey);
 
         // Check cache to avoid unnecessary API call
         if (!TextUtils.isEmpty(responsesMapKey) && RESPONSES_MAP.containsKey(responsesMapKey)) {
@@ -348,8 +363,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
 
         // Download response from the server
         final String response = new String(downloader.downloadDataFromUri(uri, parameters));
-        //AppLogger.i(CLASS_NAME + " URI:" + uri);
-        //AppLogger.i(CLASS_NAME + " Response:\n" + response);
 
         // Ignore empty response
         if (response.isEmpty()) {
