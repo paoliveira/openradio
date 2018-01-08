@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.view;
 
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
@@ -53,19 +54,20 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
+import com.yuriy.openradio.business.storage.FavoritesStorage;
+import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
 import com.yuriy.openradio.drive.GoogleDriveManager;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
-import com.yuriy.openradio.business.storage.FavoritesStorage;
-import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.service.ScreenBroadcastReceiver;
 import com.yuriy.openradio.utils.AppLogger;
@@ -76,6 +78,7 @@ import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PermissionChecker;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.io.Serializable;
 import java.lang.ref.WeakReference;
@@ -138,6 +141,7 @@ public final class MainActivity extends AppCompatActivity {
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
 
     private static final int RESOLVE_CONNECTION_REQUEST_CODE = 300;
+    private static final int ACCOUNT_REQUEST_CODE = 400;
 
     /**
      * Progress Bar view to indicate that data is loading.
@@ -484,11 +488,20 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         AppLogger.d("OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
         switch (requestCode) {
             case RESOLVE_CONNECTION_REQUEST_CODE:
-                if (resultCode == Activity.RESULT_OK) {
-                    mGoogleDriveManager.connect();
+                mGoogleDriveManager.connect();
+                break;
+            case ACCOUNT_REQUEST_CODE:
+                final String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                if (TextUtils.isEmpty(email)) {
+                    SafeToast.showAnyThread(getApplicationContext(), "Can not get Account Name");
+                    break;
                 }
+                mGoogleDriveManager.connect(email);
                 break;
         }
     }
@@ -1445,7 +1458,7 @@ public final class MainActivity extends AppCompatActivity {
                     message = reference.getString(R.string.google_drive_data_saved);
                     break;
                 case DOWNLOAD:
-                    message = reference.getString(R.string.google_drive_error_when_read);
+                    message = reference.getString(R.string.google_drive_data_read);
                     reference.updateListAfterDownloadFromGoogleDrive();
                     break;
             }
@@ -1512,6 +1525,24 @@ public final class MainActivity extends AppCompatActivity {
                     reference.getGoogleDriveDialog().hideTitleProgress();
                 }
             });
+        }
+
+        @Override
+        public void onAccountRequested() {
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+
+            reference.startActivityForResult(
+                    AccountPicker.newChooseAccountIntent(
+                            null,
+                            null,
+                            new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
+                            true, null, null, null, null
+                    ),
+                    ACCOUNT_REQUEST_CODE
+            );
         }
     }
 

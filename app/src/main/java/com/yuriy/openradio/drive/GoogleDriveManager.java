@@ -24,12 +24,12 @@ import android.support.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,6 +53,11 @@ public final class GoogleDriveManager {
      * Listener for the Google Drive client events.
      */
     public interface Listener {
+
+        /**
+         *
+         */
+        void onAccountRequested();
 
         /**
          * Google Drive client start to connect.
@@ -164,39 +169,45 @@ public final class GoogleDriveManager {
      */
     public void connect() {
         if (mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-
+            mListener.onAccountRequested();
             mListener.onConnect();
         }
+    }
+
+    public void connect(final String account) {
+        if (mGoogleApiClient != null) {
+            return;
+        }
+
+        mGoogleApiClient = getGoogleApiClient(mContext, account);
+        mGoogleApiClient.connect();
     }
 
     /**
      * Upload Radio Stations to Google Drive.
      */
     public void uploadRadioStations() {
-        queueCommand(mContext, Command.UPLOAD);
+        queueCommand(Command.UPLOAD);
     }
 
     /**
      * Download Radio Stations from Google Drive.
      */
     public void downloadRadioStations() {
-        queueCommand(mContext, Command.DOWNLOAD);
+        queueCommand(Command.DOWNLOAD);
     }
 
     /**
      * Put a command to query.
      *
-     * @param context Context of the callee.
      * @param command Command to put in queue.
      */
-    private void queueCommand(final Context context, final Command command) {
-        final GoogleApiClient client = getGoogleApiClient(context);
+    private void queueCommand(final Command command) {
         addCommand(command);
-        if (!client.isConnected()) {
-            client.connect();
+        if (mGoogleApiClient == null) {
+            mListener.onAccountRequested();
         } else {
-            if (!client.isConnecting()) {
+            if (!mGoogleApiClient.isConnecting()) {
                 handleNextCommand();
             }
         }
@@ -312,14 +323,12 @@ public final class GoogleDriveManager {
      * @param context Context of application.
      * @return Instance of the {@link GoogleApiClient}.
      */
-    private synchronized GoogleApiClient getGoogleApiClient(final Context context) {
-        if (mGoogleApiClient != null) {
-            return mGoogleApiClient;
-        }
-
+    private GoogleApiClient getGoogleApiClient(final Context context,
+                                               final String accountName) {
         mGoogleApiClient = new GoogleApiClient.Builder(context)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
+                .setAccountName(accountName)
                 .addConnectionCallbacks(new ConnectionCallbackImpl(this))
                 .addOnConnectionFailedListener(new ConnectionFailedListenerImpl(this))
                 .build();
@@ -377,7 +386,7 @@ public final class GoogleDriveManager {
      * Merge provided categories into the single data string.
      *
      * @param favorites Favorites Radio Stations as one single string.
-     * @param locals Locals Radio Stations as one single string.
+     * @param locals    Locals Radio Stations as one single string.
      * @return Data sting.
      */
     private String mergeRadioStationCategories(@NonNull final String favorites, @NonNull final String locals) {
