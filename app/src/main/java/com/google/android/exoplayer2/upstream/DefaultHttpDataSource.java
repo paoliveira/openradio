@@ -265,7 +265,7 @@ public class DefaultHttpDataSource implements HttpDataSource {
    *
    */
   protected InputStream getInputStream(final HttpURLConnection connection ) throws IOException {
-    return connection.getInputStream();
+      return connection.getInputStream();
   }
 
   @Override

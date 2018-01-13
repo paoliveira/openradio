@@ -17,14 +17,7 @@ package com.google.android.exoplayer2.extractor;
 
 import com.google.android.exoplayer2.extractor.mp3.Mp3Extractor;
 import com.google.android.exoplayer2.extractor.ogg.OggExtractor;
-import com.google.android.exoplayer2.extractor.ts.Ac3Extractor;
-import com.google.android.exoplayer2.extractor.ts.AdtsExtractor;
-import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory;
-import com.google.android.exoplayer2.extractor.ts.PsExtractor;
-import com.google.android.exoplayer2.extractor.ts.TsExtractor;
-import com.google.android.exoplayer2.extractor.ts.TsPayloadReader;
 import com.google.android.exoplayer2.extractor.wav.WavExtractor;
-import com.google.android.exoplayer2.util.TimestampAdjuster;
 
 import java.lang.reflect.Constructor;
 
@@ -34,11 +27,7 @@ import java.lang.reflect.Constructor;
  * <ul>
  * <li>Ogg Vorbis/FLAC ({@link OggExtractor}</li>
  * <li>MP3 ({@link Mp3Extractor})</li>
- * <li>AAC ({@link AdtsExtractor})</li>
- * <li>MPEG TS ({@link TsExtractor})</li>
- * <li>MPEG PS ({@link PsExtractor})</li>
  * <li>WAV ({@link WavExtractor})</li>
- * <li>AC3 ({@link Ac3Extractor})</li>
  * <li>FLAC (only available if the FLAC extension is built and included)</li>
  * </ul>
  */
@@ -60,11 +49,9 @@ public final class DefaultExtractorsFactory implements ExtractorsFactory {
   }
 
   private @Mp3Extractor.Flags int mp3Flags;
-  private @TsExtractor.Mode int tsMode;
-  private @DefaultTsPayloadReaderFactory.Flags int tsFlags;
 
   public DefaultExtractorsFactory() {
-    tsMode = TsExtractor.MODE_SINGLE_PMT;
+
   }
 
   /**
@@ -79,45 +66,15 @@ public final class DefaultExtractorsFactory implements ExtractorsFactory {
     return this;
   }
 
-  /**
-   * Sets the mode for {@link TsExtractor} instances created by the factory.
-   *
-   * @see TsExtractor#TsExtractor(int, TimestampAdjuster, TsPayloadReader.Factory)
-   * @param mode The mode to use.
-   * @return The factory, for convenience.
-   */
-  public synchronized DefaultExtractorsFactory setTsExtractorMode(@TsExtractor.Mode int mode) {
-    tsMode = mode;
-    return this;
-  }
-
-  /**
-   * Sets flags for {@link DefaultTsPayloadReaderFactory}s used by {@link TsExtractor} instances
-   * created by the factory.
-   *
-   * @see TsExtractor#TsExtractor(int)
-   * @param flags The flags to use.
-   * @return The factory, for convenience.
-   */
-  public synchronized DefaultExtractorsFactory setTsExtractorFlags(
-      @DefaultTsPayloadReaderFactory.Flags int flags) {
-    tsFlags = flags;
-    return this;
-  }
-
   @Override
   public synchronized Extractor[] createExtractors() {
-    Extractor[] extractors = new Extractor[FLAC_EXTRACTOR_CONSTRUCTOR == null ? 7 : 8];
+    Extractor[] extractors = new Extractor[FLAC_EXTRACTOR_CONSTRUCTOR == null ? 3 : 4];
     extractors[0] = new Mp3Extractor(mp3Flags);
-    extractors[1] = new AdtsExtractor();
-    extractors[2] = new Ac3Extractor();
-    extractors[3] = new TsExtractor(tsMode, tsFlags);
-    extractors[4] = new OggExtractor();
-    extractors[5] = new PsExtractor();
-    extractors[6] = new WavExtractor();
+    extractors[1] = new OggExtractor();
+    extractors[2] = new WavExtractor();
     if (FLAC_EXTRACTOR_CONSTRUCTOR != null) {
       try {
-        extractors[7] = FLAC_EXTRACTOR_CONSTRUCTOR.newInstance();
+        extractors[3] = FLAC_EXTRACTOR_CONSTRUCTOR.newInstance();
       } catch (Exception e) {
         // Should never happen.
         throw new IllegalStateException("Unexpected error creating FLAC extractor", e);

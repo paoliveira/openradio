@@ -16,12 +16,10 @@
 package com.google.android.exoplayer2;
 
 import android.annotation.TargetApi;
-import android.graphics.SurfaceTexture;
 import android.media.PlaybackParams;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
-import android.view.SurfaceHolder;
 import android.view.TextureView;
 
 import com.google.android.exoplayer2.audio.AudioAttributes;
@@ -41,8 +39,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * An {@link ExoPlayer} implementation that uses default {@link Renderer} components. Instances can
- * be obtained from {ExoPlayerFactory}.
+ * An {@link ExoPlayer} implementation that uses default {@link Renderer} components.
  */
 @TargetApi(16)
 public class SimpleExoPlayer implements ExoPlayer {
@@ -55,11 +52,12 @@ public class SimpleExoPlayer implements ExoPlayer {
   private final ComponentListener componentListener;
   private final CopyOnWriteArraySet<TextOutput> textOutputs;
   private final CopyOnWriteArraySet<MetadataOutput> metadataOutputs;
+  private final CopyOnWriteArraySet<AudioRendererEventListener> audioDebugListeners;
   private final int audioRendererCount;
 
   private Format audioFormat;
 
-  private AudioRendererEventListener audioDebugListener;
+  private TextureView textureView;
   private DecoderCounters audioDecoderCounters;
   private int audioSessionId;
   private AudioAttributes audioAttributes;
@@ -70,6 +68,7 @@ public class SimpleExoPlayer implements ExoPlayer {
     componentListener = new ComponentListener();
     textOutputs = new CopyOnWriteArraySet<>();
     metadataOutputs = new CopyOnWriteArraySet<>();
+    audioDebugListeners = new CopyOnWriteArraySet<>();
     Looper eventLooper = Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper();
     Handler eventHandler = new Handler(eventLooper);
     renderers = renderersFactory.createRenderers(eventHandler, componentListener,
@@ -316,9 +315,32 @@ public class SimpleExoPlayer implements ExoPlayer {
    * Sets a listener to receive debug events from the audio renderer.
    *
    * @param listener The listener.
+   * @deprecated Use {@link #addAudioDebugListener(AudioRendererEventListener)}.
    */
+  @Deprecated
   public void setAudioDebugListener(AudioRendererEventListener listener) {
-    audioDebugListener = listener;
+    audioDebugListeners.clear();
+    if (listener != null) {
+      addAudioDebugListener(listener);
+    }
+  }
+
+  /**
+   * Adds a listener to receive debug events from the audio renderer.
+   *
+   * @param listener The listener.
+   */
+  public void addAudioDebugListener(AudioRendererEventListener listener) {
+    audioDebugListeners.add(listener);
+  }
+
+  /**
+   * Removes a listener to receive debug events from the audio renderer.
+   *
+   * @param listener The listener.
+   */
+  public void removeAudioDebugListener(AudioRendererEventListener listener) {
+    audioDebugListeners.remove(listener);
   }
 
   // ExoPlayer implementation
@@ -409,7 +431,7 @@ public class SimpleExoPlayer implements ExoPlayer {
   }
 
   @Override
-  public void setPlaybackParameters(PlaybackParameters playbackParameters) {
+  public void setPlaybackParameters(@Nullable PlaybackParameters playbackParameters) {
     player.setPlaybackParameters(playbackParameters);
   }
 
@@ -541,28 +563,27 @@ public class SimpleExoPlayer implements ExoPlayer {
   // Internal methods.
 
   /**
-   * Creates the ExoPlayer implementation used by this {@link SimpleExoPlayer}.
+   * Creates the {@link ExoPlayer} implementation used by this instance.
    *
    * @param renderers The {@link Renderer}s that will be used by the instance.
    * @param trackSelector The {@link TrackSelector} that will be used by the instance.
    * @param loadControl The {@link LoadControl} that will be used by the instance.
    * @return A new {@link ExoPlayer} instance.
    */
-  protected ExoPlayer createExoPlayerImpl(Renderer[] renderers, TrackSelector trackSelector,
-      LoadControl loadControl) {
+  protected ExoPlayer createExoPlayerImpl(
+      Renderer[] renderers, TrackSelector trackSelector, LoadControl loadControl) {
     return new ExoPlayerImpl(renderers, trackSelector, loadControl);
   }
 
   private final class ComponentListener implements
-      AudioRendererEventListener, TextOutput, MetadataOutput, SurfaceHolder.Callback,
-      TextureView.SurfaceTextureListener {
+      AudioRendererEventListener, TextOutput, MetadataOutput {
 
     // AudioRendererEventListener implementation
 
     @Override
     public void onAudioEnabled(DecoderCounters counters) {
       audioDecoderCounters = counters;
-      if (audioDebugListener != null) {
+      for (AudioRendererEventListener audioDebugListener : audioDebugListeners) {
         audioDebugListener.onAudioEnabled(counters);
       }
     }
@@ -570,7 +591,7 @@ public class SimpleExoPlayer implements ExoPlayer {
     @Override
     public void onAudioSessionId(int sessionId) {
       audioSessionId = sessionId;
-      if (audioDebugListener != null) {
+      for (AudioRendererEventListener audioDebugListener : audioDebugListeners) {
         audioDebugListener.onAudioSessionId(sessionId);
       }
     }
@@ -578,7 +599,7 @@ public class SimpleExoPlayer implements ExoPlayer {
     @Override
     public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs,
         long initializationDurationMs) {
-      if (audioDebugListener != null) {
+      for (AudioRendererEventListener audioDebugListener : audioDebugListeners) {
         audioDebugListener.onAudioDecoderInitialized(decoderName, initializedTimestampMs,
             initializationDurationMs);
       }
@@ -587,7 +608,7 @@ public class SimpleExoPlayer implements ExoPlayer {
     @Override
     public void onAudioInputFormatChanged(Format format) {
       audioFormat = format;
-      if (audioDebugListener != null) {
+      for (AudioRendererEventListener audioDebugListener : audioDebugListeners) {
         audioDebugListener.onAudioInputFormatChanged(format);
       }
     }
@@ -595,14 +616,14 @@ public class SimpleExoPlayer implements ExoPlayer {
     @Override
     public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs,
         long elapsedSinceLastFeedMs) {
-      if (audioDebugListener != null) {
+      for (AudioRendererEventListener audioDebugListener : audioDebugListeners) {
         audioDebugListener.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
       }
     }
 
     @Override
     public void onAudioDisabled(DecoderCounters counters) {
-      if (audioDebugListener != null) {
+      for (AudioRendererEventListener audioDebugListener : audioDebugListeners) {
         audioDebugListener.onAudioDisabled(counters);
       }
       audioFormat = null;
@@ -626,42 +647,6 @@ public class SimpleExoPlayer implements ExoPlayer {
       for (MetadataOutput metadataOutput : metadataOutputs) {
         metadataOutput.onMetadata(metadata);
       }
-    }
-
-    // SurfaceHolder.Callback implementation
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-      // Do nothing.
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-    }
-
-    // TextureView.SurfaceTextureListener implementation
-
-    @Override
-    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
-    }
-
-    @Override
-    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
-      // Do nothing.
-    }
-
-    @Override
-    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
-      return true;
-    }
-
-    @Override
-    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
-      // Do nothing.
     }
 
   }

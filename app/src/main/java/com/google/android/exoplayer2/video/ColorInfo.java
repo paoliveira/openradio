@@ -17,8 +17,10 @@ package com.google.android.exoplayer2.video;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
+
 import java.util.Arrays;
 
 /**

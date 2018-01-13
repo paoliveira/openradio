@@ -716,9 +716,10 @@ public final class AppUtils {
     }
 
     /**
+     * Checks for the connection availability.
      *
      * @param context Context of the callee.
-     * @return
+     * @return {@code true} if connection is available, {@code false} otherwise.
      */
     public static boolean checkConnectivity(@NonNull final Context context) {
         final ConnectivityManager connectivityManager =
@@ -731,10 +732,10 @@ public final class AppUtils {
     }
 
     /**
-     * Simple network connection check.
+     * Checks for the connection availability.
      *
      * @param context Context of the callee.
-     * @return
+     * @return {@code true} if connection is available, {@code false} otherwise.
      */
     public static boolean checkConnectivityAndNotify(@NonNull final Context context) {
         if (checkConnectivity(context)) {

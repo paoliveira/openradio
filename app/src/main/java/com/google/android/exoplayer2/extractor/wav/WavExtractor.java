@@ -21,27 +21,16 @@ import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.extractor.ExtractorInput;
 import com.google.android.exoplayer2.extractor.ExtractorOutput;
-import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.PositionHolder;
-import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.util.MimeTypes;
+
 import java.io.IOException;
 
-/** {@link Extractor} to extract samples from a WAV byte stream. */
-public final class WavExtractor implements Extractor, SeekMap {
-
-  /**
-   * Factory for {@link WavExtractor} instances.
-   */
-  public static final ExtractorsFactory FACTORY = new ExtractorsFactory() {
-
-    @Override
-    public Extractor[] createExtractors() {
-      return new Extractor[] {new WavExtractor()};
-    }
-
-  };
+/**
+ * Extracts data from WAV byte streams.
+ */
+public final class WavExtractor implements Extractor {
 
   /** Arbitrary maximum input size of 32KB, which is ~170ms of 16-bit stereo PCM audio at 48KHz. */
   private static final int MAX_INPUT_SIZE = 32 * 1024;
@@ -93,7 +82,7 @@ public final class WavExtractor implements Extractor, SeekMap {
 
     if (!wavHeader.hasDataBounds()) {
       WavHeaderReader.skipToData(input, wavHeader);
-      extractorOutput.seekMap(this);
+      extractorOutput.seekMap(wavHeader);
     }
 
     int bytesAppended = trackOutput.sampleData(input, MAX_INPUT_SIZE - pendingBytes, true);
@@ -113,20 +102,4 @@ public final class WavExtractor implements Extractor, SeekMap {
     return bytesAppended == RESULT_END_OF_INPUT ? RESULT_END_OF_INPUT : RESULT_CONTINUE;
   }
 
-  // SeekMap implementation.
-
-  @Override
-  public long getDurationUs() {
-    return wavHeader.getDurationUs();
-  }
-
-  @Override
-  public boolean isSeekable() {
-    return true;
-  }
-
-  @Override
-  public long getPosition(long timeUs) {
-    return wavHeader.getPosition(timeUs);
-  }
 }

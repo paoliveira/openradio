@@ -340,8 +340,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                                         final List<Pair<String, String>> parameters) {
         JSONArray array = new JSONArray();
 
-        if (AppUtils.checkConnectivityAndNotify(mContext)) {
-            AppLogger.e("Network is not available");
+        if (!AppUtils.checkConnectivityAndNotify(mContext)) {
             return array;
         }
 

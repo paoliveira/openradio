@@ -31,7 +31,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.yuriy.openradio.api.GeoAPI;
 import com.yuriy.openradio.api.GeoAPIImpl;
 import com.yuriy.openradio.business.location.GeoDataParser;
-import com.yuriy.openradio.business.location.IPAPIDataParserJson;
+import com.yuriy.openradio.business.location.GoogleGeoDataParserJson;
 import com.yuriy.openradio.business.storage.GeoAPIStorage;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
@@ -134,6 +134,9 @@ public final class LocationService {
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
         if (lastKnownLocation == null) {
             AppLogger.w(CLASS_NAME + " Last known Location unavailable");
+
+            requestCountryCode(context, null);
+
             return;
         }
 
@@ -196,7 +199,7 @@ public final class LocationService {
             final boolean isConnected = AppUtils.checkConnectivity(context);
             final String countryCode = getCountryCode(context, latitude, longitude);
             final String msg = "Can not get geocoder location for lat:" + latitude
-                    + ", long:" + longitude + ", country by ip-api:" + countryCode
+                    + ", long:" + longitude + ", country by geo api:" + countryCode
                     + ", connected:" + isConnected;
             FabricUtils.logException(new Exception(msg, exception));
             return countryCode;
@@ -232,10 +235,10 @@ public final class LocationService {
             return country.getCode();
         }
 
-        final GeoDataParser parser = new IPAPIDataParserJson();
+        final GeoDataParser parser = new GoogleGeoDataParserJson();
         final GeoAPI geoAPI = new GeoAPIImpl(parser);
         final Downloader downloader = new HTTPDownloaderImpl();
-        final Uri uri = UrlBuilder.getIPAPIUrl();
+        final Uri uri = UrlBuilder.getGoogleGeoAPIUrl(latitude, longitude);
         country = geoAPI.getCountry(downloader, uri);
 
         GeoAPIStorage.setLastUseTime(currentTime, context);
@@ -269,10 +272,7 @@ public final class LocationService {
 
         @Override
         public void onLocationChanged(final Location location) {
-
-            if (mListener == null) {
-                return;
-            }
+            AppLogger.d("On Location changed:" + location);
             final LocationService reference = mReference.get();
             if (reference == null) {
                 return;
@@ -281,7 +281,9 @@ public final class LocationService {
             reference.mCountryCode = getCountryCodeGeocoder(
                     mContext, location.getLatitude(), location.getLongitude()
             );
-            mListener.onCountryCodeLocated(reference.mCountryCode);
+            if (mListener != null) {
+                mListener.onCountryCodeLocated(reference.mCountryCode);
+            }
 
             if (!PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 return;
