@@ -2,8 +2,6 @@ package com.yuriy.openradio.vo;
 
 import android.support.annotation.NonNull;
 
-import com.yuriy.openradio.service.LocationService;
-
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -12,11 +10,22 @@ import com.yuriy.openradio.service.LocationService;
  */
 public final class Country {
 
+    /**
+     * Default value of the Country Code.
+     */
+    public static final String COUNTRY_CODE_DEFAULT = "CA";
+
+    public static final String COUNTRY_NAME_DEFAULT = "Canada";
+
     @NonNull
     private final String mName;
 
     @NonNull
     private final String mCode;
+
+    private double mLatitude;
+
+    private double mLongitude;
 
     public Country(@NonNull final String name, @NonNull final String code) {
         super();
@@ -31,8 +40,8 @@ public final class Country {
      */
     public static Country getDefaultCountry() {
         return new Country(
-                LocationService.COUNTRY_NAME_DEFAULT,
-                LocationService.COUNTRY_CODE_DEFAULT
+                COUNTRY_NAME_DEFAULT,
+                COUNTRY_CODE_DEFAULT
         );
     }
 
@@ -44,11 +53,29 @@ public final class Country {
         return mCode;
     }
 
+    public double getLatitude() {
+        return mLatitude;
+    }
+
+    public void setLatitude(final double value) {
+        mLatitude = value;
+    }
+
+    public double getLongitude() {
+        return mLongitude;
+    }
+
+    public void setLongitude(final double value) {
+        mLongitude = value;
+    }
+
     @Override
     public String toString() {
         return "Country{" +
                 "name='" + mName + '\'' +
                 ", code='" + mCode + '\'' +
+                ", lat='" + mLatitude + '\'' +
+                ", lng='" + mLongitude + '\'' +
                 "}";
     }
 }

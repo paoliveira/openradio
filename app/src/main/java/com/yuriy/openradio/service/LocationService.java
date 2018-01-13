@@ -58,18 +58,13 @@ import java.util.concurrent.TimeUnit;
 public final class LocationService {
 
     private static final String CLASS_NAME = LocationService.class.getSimpleName();
-    /**
-     * Default value of the Country Code.
-     */
-    public static final String COUNTRY_CODE_DEFAULT = "CA";
-    public static final String COUNTRY_NAME_DEFAULT = "Canada";
 
     public static final int COUNTRY_REQUEST_MIN_WAIT = 60000;
 
     /**
      * Obtained value of the Country Code.
      */
-    private String mCountryCode = COUNTRY_CODE_DEFAULT;
+    private String mCountryCode = Country.COUNTRY_CODE_DEFAULT;
 
     /**
      * Private constructor.
@@ -159,7 +154,7 @@ public final class LocationService {
         try {
             latch.await(1, TimeUnit.SECONDS);
         } catch (final InterruptedException e) {
-            LocationService.this.mCountryCode = COUNTRY_CODE_DEFAULT;
+            LocationService.this.mCountryCode = Country.COUNTRY_CODE_DEFAULT;
             FabricUtils.logException(e);
         }
     }
@@ -185,7 +180,7 @@ public final class LocationService {
         } catch (final Exception e) {
             FabricUtils.logException(e);
 
-            mCountryCode = COUNTRY_CODE_DEFAULT;
+            mCountryCode = Country.COUNTRY_CODE_DEFAULT;
             listener.onCountryCodeLocated(mCountryCode);
         }
     }
@@ -208,7 +203,7 @@ public final class LocationService {
         }
 
         if (addresses == null || addresses.isEmpty()) {
-            return COUNTRY_CODE_DEFAULT;
+            return Country.COUNTRY_CODE_DEFAULT;
         }
 
         return addresses.get(0).getCountryCode();

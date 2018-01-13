@@ -19,7 +19,7 @@ package com.yuriy.openradio.business.storage;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.yuriy.openradio.service.LocationService;
+import com.yuriy.openradio.vo.Country;
 
 /**
  * Created by Yuriy Chernyshov
@@ -107,7 +107,7 @@ public final class GeoAPIStorage extends AbstractRadioStationsStorage {
         final SharedPreferences preferences = getSharedPreferences(context, FILE_NAME);
         return preferences.getString(
                 KEY_LAST_KNOWN_COUNTRY_CODE,
-                LocationService.COUNTRY_CODE_DEFAULT
+                Country.COUNTRY_CODE_DEFAULT
         );
     }
 
@@ -131,7 +131,7 @@ public final class GeoAPIStorage extends AbstractRadioStationsStorage {
         final SharedPreferences preferences = getSharedPreferences(context, FILE_NAME);
         return preferences.getString(
                 KEY_LAST_KNOWN_COUNTRY_NAME,
-                LocationService.COUNTRY_NAME_DEFAULT
+                Country.COUNTRY_NAME_DEFAULT
         );
     }
 }
