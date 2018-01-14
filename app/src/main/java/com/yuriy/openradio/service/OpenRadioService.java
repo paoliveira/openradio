@@ -632,6 +632,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         AppLogger.i(CLASS_NAME + " OnLoadChildren:" + parentId + ", res:" + result);
 
+        boolean isSameCatalogue = false;
+        // Check whether category had changed.
+        if (TextUtils.equals(mCurrentParentId, parentId)) {
+            isSameCatalogue = true;
+        }
+
         mCurrentParentId = parentId;
         final List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
@@ -661,6 +667,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setParentId(mCurrentParentId);
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
+            shareObject.isSameCatalogue(isSameCatalogue);
             shareObject.setRemotePlay(this::handleLastRadioStation);
 
             command.create(mPlaybackStateListener, shareObject);

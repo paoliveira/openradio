@@ -107,6 +107,8 @@ public final class MediaItemShareObject {
 
     private OpenRadioService.RemotePlay mRemotePlay;
 
+    private boolean mIsSameCatalogue;
+
     /**
      * Private constructor.
      */
@@ -291,6 +293,14 @@ public final class MediaItemShareObject {
      */
     public void setIsAndroidAuto(boolean value) {
         mIsAndroidAuto = value;
+    }
+
+    public boolean isSameCatalogue() {
+        return mIsSameCatalogue;
+    }
+
+    public void isSameCatalogue(final boolean value) {
+        mIsSameCatalogue = value;
     }
 
     /**

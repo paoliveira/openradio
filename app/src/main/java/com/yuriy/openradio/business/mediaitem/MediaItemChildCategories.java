@@ -17,18 +17,11 @@
 package com.yuriy.openradio.business.mediaitem;
 
 import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
-import android.support.v4.media.MediaMetadataCompat;
 
-import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
-import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
-import com.yuriy.openradio.utils.MediaItemHelper;
-import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
 
@@ -41,19 +34,13 @@ import java.util.List;
  * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of Child Category.
  */
-public final class MediaItemChildCategories implements MediaItemCommand {
-
-    /**
-     * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
-     */
-    private int mPageIndex;
+public final class MediaItemChildCategories extends IndexableMediaItemCommand {
 
     /**
      * Default constructor.
      */
     public MediaItemChildCategories() {
         super();
-        mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
     }
 
     @Override
@@ -66,84 +53,20 @@ public final class MediaItemChildCategories implements MediaItemCommand {
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load Radio Stations into menu
-                    loadStationsInCategory(playbackStateListener, shareObject);
-                });
-    }
+                    final String childMenuId
+                            = shareObject.getParentId()
+                            .replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
 
-    /**
-     * Load Radio Stations into Menu.
-     *
-     * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
-     *                              references needed to execute command.
-     */
-    private void loadStationsInCategory(final IUpdatePlaybackState playbackStateListener,
-                                        @NonNull final MediaItemShareObject shareObject) {
-
-        final String childMenuId
-                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
-
-        final List<RadioStation> list = shareObject.getServiceProvider().getStations(
-                shareObject.getDownloader(),
-                UrlBuilder.getStationsInCategory(
-                        shareObject.getContext(),
-                        childMenuId,
-                        mPageIndex++,
-                        UrlBuilder.ITEMS_PER_PAGE
-                )
-        );
-
-        if (list.isEmpty()) {
-
-            if (mPageIndex == UrlBuilder.FIRST_PAGE_INDEX + 1) {
-                final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                        shareObject.getContext(),
-                        MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
-                );
-                final MediaDescriptionCompat mediaDescription = track.getDescription();
-                final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                        mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
-                shareObject.getMediaItems().add(mediaItem);
-                shareObject.getResult().sendResult(shareObject.getMediaItems());
-
-                if (playbackStateListener != null) {
-                    playbackStateListener.updatePlaybackState(
-                            shareObject.getContext().getString(R.string.no_data_message)
+                    final List<RadioStation> list = shareObject.getServiceProvider().getStations(
+                            shareObject.getDownloader(),
+                            UrlBuilder.getStationsInCategory(
+                                    shareObject.getContext(),
+                                    childMenuId,
+                                    incrementAndGetPageIndex(),
+                                    UrlBuilder.ITEMS_PER_PAGE
+                            )
                     );
-                }
-            } else {
-                shareObject.getResult().sendResult(shareObject.getMediaItems());
-            }
-
-            return;
-        }
-
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(shareObject.getRadioStations(), list);
-        }
-
-        final String genre = QueueHelper.getGenreNameById(
-                shareObject.getParentId(), shareObject.getChildCategories()
-        );
-
-        for (final RadioStation radioStation : shareObject.getRadioStations()) {
-
-            radioStation.setGenre(genre);
-
-            final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    shareObject.getContext(),
-                    radioStation
-            );
-            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
-
-            if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
-                MediaItemHelper.updateFavoriteField(mediaItem, true);
-            }
-
-            shareObject.getMediaItems().add(mediaItem);
-        }
-
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
+                    handleDataLoaded(playbackStateListener, shareObject, list);
+                });
     }
 }
