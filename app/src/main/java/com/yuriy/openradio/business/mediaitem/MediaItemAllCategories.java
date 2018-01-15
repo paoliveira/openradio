@@ -22,13 +22,11 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
-import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.Category;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -85,16 +83,11 @@ public final class MediaItemAllCategories implements MediaItemCommand {
 
         Collections.sort(list, (lhs, rhs) -> lhs.getTitle().compareTo(rhs.getTitle()));
 
-        // Collection of All Categories.
-        // TODO : Probably this collection is redundant.
-        final List<Category> allCategories = new ArrayList<>();
-        QueueHelper.copyCollection(allCategories, list);
-
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
         final Set<String> predefinedCategories = AppUtils.predefinedCategories();
-        for (final Category category : allCategories) {
+        for (final Category category : list) {
 
             if (!predefinedCategories.contains(category.getTitle())) {
                 continue;

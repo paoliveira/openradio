@@ -172,13 +172,13 @@ public final class QueueHelper {
     }
 
     /**
-     * Copying collection from source to destination.
+     * Clear destination and copy collection from source.
      *
      * @param destination Destination collection.
      * @param source      Source collection.
      */
-    public static <T> void copyCollection(@NonNull final List<T> destination,
-                                          @NonNull final List<T> source) {
+    public static <T> void clearAndCopyCollection(@NonNull final List<T> destination,
+                                                  @NonNull final List<T> source) {
         destination.clear();
         destination.addAll(source);
     }

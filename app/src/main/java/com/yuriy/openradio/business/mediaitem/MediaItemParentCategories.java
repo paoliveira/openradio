@@ -89,7 +89,7 @@ public final class MediaItemParentCategories implements MediaItemCommand {
 
         Collections.sort(list, (lhs, rhs) -> lhs.getTitle().compareTo(rhs.getTitle()));
 
-        QueueHelper.copyCollection(shareObject.getChildCategories(), list);
+        QueueHelper.clearAndCopyCollection(shareObject.getChildCategories(), list);
 
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";

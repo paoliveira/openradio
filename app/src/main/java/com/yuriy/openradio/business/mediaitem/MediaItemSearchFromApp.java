@@ -96,7 +96,7 @@ public final class MediaItemSearchFromApp implements MediaItemCommand {
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(shareObject.getRadioStations(), list);
+            QueueHelper.clearAndCopyCollection(shareObject.getRadioStations(), list);
         }
 
         for (final RadioStation radioStation : shareObject.getRadioStations()) {

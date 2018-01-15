@@ -1516,7 +1516,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
+            QueueHelper.clearAndCopyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
                     getApplicationContext(),
                     mRadioStations)
             );
@@ -1899,9 +1899,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.copyCollection(mRadioStations, list);
+            QueueHelper.clearAndCopyCollection(mRadioStations, list);
 
-            QueueHelper.copyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
+            QueueHelper.clearAndCopyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
                     getApplicationContext(),
                     mRadioStations)
             );
