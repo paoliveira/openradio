@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -324,14 +325,16 @@ public final class GoogleDriveManager {
      * @return Instance of the {@link GoogleApiClient}.
      */
     private GoogleApiClient getGoogleApiClient(final Context context,
-                                               final String accountName) {
-        mGoogleApiClient = new GoogleApiClient.Builder(context)
+                                               @Nullable final String accountName) {
+        final GoogleApiClient.Builder builder = new GoogleApiClient.Builder(context)
                 .addApi(Drive.API)
                 .addScope(Drive.SCOPE_FILE)
-                .setAccountName(accountName)
                 .addConnectionCallbacks(new ConnectionCallbackImpl(this))
-                .addOnConnectionFailedListener(new ConnectionFailedListenerImpl(this))
-                .build();
+                .addOnConnectionFailedListener(new ConnectionFailedListenerImpl(this));
+        if (!TextUtils.isEmpty(accountName)) {
+            builder.setAccountName(accountName);
+        }
+        mGoogleApiClient = builder.build();
         return mGoogleApiClient;
     }
 

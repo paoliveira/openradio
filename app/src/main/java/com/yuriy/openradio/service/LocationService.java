@@ -66,18 +66,23 @@ public final class LocationService {
      */
     private String mCountryCode = Country.COUNTRY_CODE_DEFAULT;
 
+    private final ExecutorService mExecutorService;
+
     /**
      * Private constructor.
      */
-    private LocationService() { }
+    private LocationService(final ExecutorService executorService) {
+        super();
+        mExecutorService = executorService;
+    }
 
     /**
      * Factory method to return default instance of the {@link LocationService}.
      *
      * @return Instance of the {@link LocationService}.
      */
-    public static LocationService getInstance() {
-        return new LocationService();
+    public static LocationService getInstance(final ExecutorService executorService) {
+        return new LocationService(executorService);
     }
 
     /**
@@ -132,7 +137,7 @@ public final class LocationService {
         }
 
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
-        if (lastKnownLocation == null) {
+        if (lastKnownLocation != null) {
             AppLogger.w(CLASS_NAME + " Last known Location unavailable");
 
             requestCountryCode(context, null);
@@ -193,6 +198,9 @@ public final class LocationService {
                                                  final double longitude) {
         final Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses;
+
+        getCountryCode(context, latitude, longitude);
+
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception exception) {
@@ -278,12 +286,16 @@ public final class LocationService {
                 return;
             }
 
-            reference.mCountryCode = getCountryCodeGeocoder(
-                    mContext, location.getLatitude(), location.getLongitude()
+            reference.mExecutorService.submit(
+                    () -> {
+                        reference.mCountryCode = getCountryCodeGeocoder(
+                                mContext, location.getLatitude(), location.getLongitude()
+                        );
+                        if (mListener != null) {
+                            mListener.onCountryCodeLocated(reference.mCountryCode);
+                        }
+                    }
             );
-            if (mListener != null) {
-                mListener.onCountryCodeLocated(reference.mCountryCode);
-            }
 
             if (!PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
                 return;

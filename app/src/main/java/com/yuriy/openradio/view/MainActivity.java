@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -71,6 +72,7 @@ import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.service.ScreenBroadcastReceiver;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -1536,15 +1538,20 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            reference.startActivityForResult(
-                    AccountPicker.newChooseAccountIntent(
-                            null,
-                            null,
-                            new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
-                            true, null, null, null, null
-                    ),
-                    ACCOUNT_REQUEST_CODE
-            );
+            try {
+                reference.startActivityForResult(
+                        AccountPicker.newChooseAccountIntent(
+                                null,
+                                null,
+                                new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
+                                true, null, null, null, null
+                        ),
+                        ACCOUNT_REQUEST_CODE
+                );
+            } catch (final ActivityNotFoundException e) {
+                FabricUtils.logException(e);
+                reference.mGoogleDriveManager.connect(null);
+            }
         }
     }
 

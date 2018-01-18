@@ -63,13 +63,13 @@ import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
 import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
 import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
 import com.yuriy.openradio.business.mediaitem.MediaItemStation;
+import com.yuriy.openradio.business.storage.FavoritesStorage;
+import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
+import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
-import com.yuriy.openradio.business.storage.FavoritesStorage;
-import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
-import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
@@ -229,7 +229,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Executor of the API requests.
      */
-    private ExecutorService mApiCallExecutor;
+    private final ExecutorService mApiCallExecutor = Executors.newCachedThreadPool();
 
     /**
      * Collection of the Radio Stations.
@@ -259,7 +259,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Service class to provide information about current location.
      */
-    private final LocationService mLocationService = LocationService.getInstance();
+    private final LocationService mLocationService = LocationService.getInstance(mApiCallExecutor);
 
     /**
      * Listener of the Playback State changes.
@@ -381,8 +381,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onCreate();
 
         AppLogger.i(CLASS_NAME + " On Create");
-
-        mApiCallExecutor = Executors.newCachedThreadPool();
 
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
@@ -1891,16 +1889,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            mRadioStations.clear();
-            mPlayingQueue.clear();
-        }
-
         AppLogger.i(CLASS_NAME + " Found " + list.size() + " items");
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.clearAndCopyCollection(mRadioStations, list);
-
             QueueHelper.clearAndCopyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
                     getApplicationContext(),
                     mRadioStations)
