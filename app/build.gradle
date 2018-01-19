@@ -70,26 +70,26 @@ android {
 }
 
 dependencies {
-    compile "com.android.support:appcompat-v7:$supportVersion"
-    compile "com.android.support:support-v4:$supportVersion"
-    compile "com.android.support:design:$supportVersion"
-    compile "com.android.support:support-v13:$supportVersion"
-    compile("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
+    implementation "com.android.support:appcompat-v7:$supportVersion"
+    implementation "com.android.support:support-v4:$supportVersion"
+    implementation "com.android.support:design:$supportVersion"
+    implementation "com.android.support:support-v13:$supportVersion"
+    implementation("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
         transitive = true
     }
-    compile "com.google.android.gms:play-services-auth:$googlePlayServicesDriveVersion"
-    compile "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
-    compile "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
-    compile "log4j:log4j:$log4jVersion"
+    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesDriveVersion"
+    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
+    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+    implementation "log4j:log4j:$log4jVersion"
 
-    androidTestCompile("com.google.dexmaker:dexmaker-mockito:$dexMakerVersion") {
+    androidTestImplementation("com.google.dexmaker:dexmaker-mockito:$dexMakerVersion") {
         exclude group: 'org.hamcrest'
     }
-    androidTestCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    androidTestImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
 
-    testCompile "org.hamcrest:hamcrest-all:$hamcrestVersion"
-    testCompile "junit:junit:$junitVersion"
-    testCompile group: "org.json", name: "json", version: "$jsonTestVersion"
+    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    testImplementation "junit:junit:$junitVersion"
+    testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
 }
 
 tasks.whenTaskAdded { task ->

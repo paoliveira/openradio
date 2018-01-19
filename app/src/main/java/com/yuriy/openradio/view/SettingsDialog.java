@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
@@ -40,10 +41,10 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.AsyncTask;
 import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 
 /**
  * Created by Yuriy Chernyshov
@@ -177,7 +178,7 @@ public final class SettingsDialog extends DialogFragment {
             return;
         }
 
-        mSendLogMailTask = new SendLogEmailTask(getActivity());
+        mSendLogMailTask = new SendLogEmailTask(this);
 
         final String subj = "Logs report Open Radio, "
                 + "v:" + AppUtils.getApplicationVersion(getActivity())
@@ -192,15 +193,19 @@ public final class SettingsDialog extends DialogFragment {
 
     private static final class SendLogEmailTask extends AsyncTask<MailInfo, Void, Intent> {
 
-        private final Activity mContext;
+        private final WeakReference<SettingsDialog> mContext;
 
-        private SendLogEmailTask(final Activity context) {
+        private SendLogEmailTask(final SettingsDialog context) {
             super();
-            mContext = context;
+            mContext = new WeakReference<>(context);
         }
 
         @Override
         protected Intent doInBackground(final MailInfo... mailInfoArray) {
+            final SettingsDialog dialog = mContext.get();
+            if (dialog == null) {
+                return null;
+            }
             if (mailInfoArray == null) {
                 throw new NullPointerException("mailInfoArray");
             }
@@ -221,9 +226,9 @@ public final class SettingsDialog extends DialogFragment {
 
             try {
                 final Uri path = FileProvider.getUriForFile(
-                        mContext.getApplication(),
+                        dialog.getActivity().getApplication(),
                         BuildConfig.APPLICATION_ID + ".provider",
-                        AppLogger.getLogsZipFile(mContext.getApplicationContext())
+                        AppLogger.getLogsZipFile(dialog.getActivity().getApplicationContext())
                 );
                 sendIntent.putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
@@ -237,26 +242,33 @@ public final class SettingsDialog extends DialogFragment {
         @Override
         protected void onPostExecute(final Intent intent) {
             super.onPostExecute(intent);
+            final SettingsDialog dialog = mContext.get();
+            if (dialog == null) {
+                return;
+            }
 
             if (intent != null) {
                 try {
                     final Intent intent1 = Intent.createChooser(
-                            intent, mContext.getString(R.string.send_logs_chooser_title)
+                            intent,
+                            dialog.getActivity().getString(R.string.send_logs_chooser_title)
                     );
                     intent1.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    mContext.startActivityForResult(
+                    dialog.getActivity().startActivityForResult(
                             intent1,
                             LOGS_EMAIL_REQUEST_CODE
                     );
                 } catch (final ActivityNotFoundException e) {
                     SafeToast.showAnyThread(
-                            mContext.getApplicationContext(), mContext.getString(R.string.cant_start_activity)
+                            dialog.getActivity().getApplicationContext(),
+                            dialog.getActivity().getString(R.string.cant_start_activity)
                     );
                     FabricUtils.logException(e);
                 }
             } else {
                 SafeToast.showAnyThread(
-                        mContext.getApplicationContext(), mContext.getString(R.string.cant_send_logs)
+                        dialog.getActivity().getApplicationContext(),
+                        dialog.getActivity().getString(R.string.cant_send_logs)
                 );
             }
         }

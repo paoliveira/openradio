@@ -24,6 +24,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
+import android.os.AsyncTask;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.widget.ImageView;
@@ -68,7 +69,7 @@ public abstract class ImageWorker {
      * image is found in the memory cache, it is set immediately, otherwise an {@link AsyncTask}
      * will be created to asynchronously load the bitmap.
      *
-     * @param data The URL of the image to download.
+     * @param data      The URL of the image to download.
      * @param imageView The ImageView to bind the downloaded image to.
      */
     public void loadImage(Object data, ImageView imageView) {
@@ -86,17 +87,12 @@ public abstract class ImageWorker {
             // Bitmap found in memory cache
             imageView.setImageDrawable(value);
         } else if (cancelPotentialWork(data, imageView)) {
-            //BEGIN_INCLUDE(execute_background_task)
             final BitmapWorkerTask task = new BitmapWorkerTask(data, imageView, this);
             final AsyncDrawable asyncDrawable =
                     new AsyncDrawable(mResources, mLoadingBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
 
-            // NOTE: This uses a custom version of AsyncTask that has been pulled from the
-            // framework and slightly modified. Refer to the docs at the top of the class
-            // for more info on what was changed.
-            task.executeOnExecutor(AsyncTask.DUAL_THREAD_EXECUTOR);
-            //END_INCLUDE(execute_background_task)
+            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
         }
     }
 
@@ -121,11 +117,12 @@ public abstract class ImageWorker {
     /**
      * Adds an {@link ImageCache} to this {@link com.yuriy.openradio.utils.ImageWorker} to handle disk and memory bitmap
      * caching.
+     *
      * @param fragmentManager
-     * @param cacheParams The cache parameters to use for the image cache.
+     * @param cacheParams     The cache parameters to use for the image cache.
      */
     public void addImageCache(FragmentManager fragmentManager,
-            ImageCache.ImageCacheParams cacheParams) {
+                              ImageCache.ImageCacheParams cacheParams) {
         mImageCacheParams = cacheParams;
         mImageCache = ImageCache.getInstance(fragmentManager, mImageCacheParams);
         new CacheAsyncTask(this).execute(MESSAGE_INIT_DISK_CACHE);
@@ -134,9 +131,10 @@ public abstract class ImageWorker {
     /**
      * Adds an {@link ImageCache} to this {@link com.yuriy.openradio.utils.ImageWorker} to handle disk and memory bitmap
      * caching.
+     *
      * @param activity
      * @param diskCacheDirectoryName See
-     * {@link ImageCache.ImageCacheParams#ImageCacheParams(android.content.Context, String)}.
+     *                               {@link ImageCache.ImageCacheParams#ImageCacheParams(android.content.Context, String)}.
      */
     public void addImageCache(FragmentActivity activity, String diskCacheDirectoryName) {
         mImageCacheParams = new ImageCache.ImageCacheParams(activity, diskCacheDirectoryName);
@@ -162,7 +160,7 @@ public abstract class ImageWorker {
      * example, you could resize a large bitmap here, or pull down an image from the network.
      *
      * @param data The data to identify which image to process, as provided by
-     *            {@link com.yuriy.openradio.utils.ImageWorker#loadImage(Object, android.widget.ImageView)}
+     *             {@link com.yuriy.openradio.utils.ImageWorker#loadImage(Object, android.widget.ImageView)}
      * @return The processed bitmap
      */
     protected abstract Bitmap processBitmap(Object data);
@@ -176,6 +174,7 @@ public abstract class ImageWorker {
 
     /**
      * Cancels any pending work attached to the provided ImageView.
+     *
      * @param imageView
      */
     public static void cancelWork(ImageView imageView) {
@@ -241,8 +240,8 @@ public abstract class ImageWorker {
         private final WeakReference<ImageWorker> mReference;
 
         private BitmapWorkerTask(final Object data,
-                                final ImageView imageView,
-                                final ImageWorker reference) {
+                                 final ImageView imageView,
+                                 final ImageWorker reference) {
             super();
             mData = data;
             imageViewReference = new WeakReference<>(imageView);
@@ -274,7 +273,8 @@ public abstract class ImageWorker {
                 while (reference.mPauseWork && !isCancelled()) {
                     try {
                         reference.mPauseWorkLock.wait();
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) {
+                    }
                 }
             }
 
@@ -301,14 +301,7 @@ public abstract class ImageWorker {
             // here, if it was, and the thread is still running, we may as well add the processed
             // bitmap to our cache as it might be used again in the future
             if (bitmap != null) {
-                if (Utils.hasHoneycomb()) {
-                    // Running on Honeycomb or newer, so wrap in a standard BitmapDrawable
-                    drawable = new BitmapDrawable(reference.mResources, bitmap);
-                } else {
-                    // Running on Gingerbread or older, so wrap in a RecyclingBitmapDrawable
-                    // which will recycle automatically
-                    drawable = new RecyclingBitmapDrawable(reference.mResources, bitmap);
-                }
+                drawable = new BitmapDrawable(reference.mResources, bitmap);
 
                 if (reference.mImageCache != null) {
                     reference.mImageCache.addBitmapToCache(dataString, drawable);
@@ -385,21 +378,22 @@ public abstract class ImageWorker {
      * independently of the finish order.
      */
     private static class AsyncDrawable extends BitmapDrawable {
+
         private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskReference;
 
-        public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask bitmapWorkerTask) {
+        private AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask bitmapWorkerTask) {
             super(res, bitmap);
             bitmapWorkerTaskReference =
                     new WeakReference<>(bitmapWorkerTask);
         }
 
-        public BitmapWorkerTask getBitmapWorkerTask() {
+        private BitmapWorkerTask getBitmapWorkerTask() {
             return bitmapWorkerTaskReference.get();
         }
     }
 
     /**
-     * Called when the processing is complete and the final drawable should be 
+     * Called when the processing is complete and the final drawable should be
      * set on the ImageView.
      *
      * @param imageView
@@ -409,7 +403,7 @@ public abstract class ImageWorker {
         if (mFadeInBitmap) {
             // Transition drawable with a transparent drawable and the final drawable
             final TransitionDrawable td =
-                    new TransitionDrawable(new Drawable[] {
+                    new TransitionDrawable(new Drawable[]{
                             new ColorDrawable(mResources.getColor(android.R.color.transparent)),
                             drawable
                     });
@@ -445,11 +439,11 @@ public abstract class ImageWorker {
         }
     }
 
-    protected static class CacheAsyncTask extends AsyncTask<Object, Void, Void> {
+    private static class CacheAsyncTask extends AsyncTask<Object, Void, Void> {
 
         private final WeakReference<ImageWorker> mReference;
 
-        public CacheAsyncTask(final ImageWorker reference) {
+        private CacheAsyncTask(final ImageWorker reference) {
             mReference = new WeakReference<>(reference);
         }
 
@@ -460,7 +454,7 @@ public abstract class ImageWorker {
                 AppLogger.w(TAG + " CacheAsyncTask doInBackground - reference is null");
                 return null;
             }
-            switch ((Integer)params[0]) {
+            switch ((Integer) params[0]) {
                 case MESSAGE_CLEAR:
                     reference.clearCacheInternal();
                     break;

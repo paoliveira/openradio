@@ -53,7 +53,7 @@ public final class PermissionChecker {
      *         <b>FALSE</b> otherwise.
      */
     public static boolean isGranted(final Context context, final String permission) {
-        if (!Utils.isMinApiLevel23()) {
+        if (!Utils.hasVersionM()) {
             return true;
         }
         final boolean result = context != null
@@ -75,7 +75,7 @@ public final class PermissionChecker {
      *         <b>FALSE</b> otherwise.
      */
     public static boolean isGranted(final WeakReference<Context> context, final String permission) {
-        if (!Utils.isMinApiLevel23()) {
+        if (!Utils.hasVersionM()) {
             return true;
         }
         final boolean result = context != null

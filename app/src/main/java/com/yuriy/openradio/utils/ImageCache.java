@@ -26,7 +26,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.StatFs;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.util.LruCache;
@@ -143,10 +142,7 @@ public class ImageCache {
             // require knowledge of the expected size of the bitmaps. From Honeycomb to JellyBean
             // the size would need to be precise, from KitKat onward the size would just need to
             // be the upper bound (due to changes in how inBitmap can re-use bitmaps).
-            if (Utils.hasHoneycomb()) {
-                mReusableBitmaps =
-                        Collections.synchronizedSet(new HashSet<SoftReference<Bitmap>>());
-            }
+            mReusableBitmaps = Collections.synchronizedSet(new HashSet<SoftReference<Bitmap>>());
 
             mMemoryCache = new LruCache<String, BitmapDrawable>(mCacheParams.memCacheSize) {
 
@@ -163,11 +159,9 @@ public class ImageCache {
                     } else {
                         // The removed entry is a standard BitmapDrawable
 
-                        if (Utils.hasHoneycomb()) {
-                            // We're running on Honeycomb or later, so add the bitmap
-                            // to a SoftReference set for possible use with inBitmap later
-                            mReusableBitmaps.add(new SoftReference<>(oldValue.getBitmap()));
-                        }
+                        // We're running on Honeycomb or later, so add the bitmap
+                        // to a SoftReference set for possible use with inBitmap later
+                        mReusableBitmaps.add(new SoftReference<>(oldValue.getBitmap()));
                     }
                 }
 
@@ -564,7 +558,7 @@ public class ImageCache {
         // otherwise use internal cache dir
         String cachePath;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())
-                || !isExternalStorageRemovable()) {
+                || !Environment.isExternalStorageRemovable()) {
             cachePath = getExternalCacheDir(context).getPath();
         } else {
             try {
@@ -625,23 +619,7 @@ public class ImageCache {
             return bitmap.getAllocationByteCount();
         }
 
-        if (Utils.hasHoneycombMR1()) {
-            return bitmap.getByteCount();
-        }
-
-        // Pre HC-MR1
-        return bitmap.getRowBytes() * bitmap.getHeight();
-    }
-
-    /**
-     * Check if external storage is built-in or removable.
-     *
-     * @return True if external storage is removable (like an SD card), false
-     *         otherwise.
-     */
-    @TargetApi(VERSION_CODES.GINGERBREAD)
-    private static boolean isExternalStorageRemovable() {
-        return !Utils.hasGingerbread() || Environment.isExternalStorageRemovable();
+        return bitmap.getByteCount();
     }
 
     /**
@@ -650,14 +628,10 @@ public class ImageCache {
      * @param context The context to use
      * @return The external cache dir
      */
-    @TargetApi(VERSION_CODES.FROYO)
     private static File getExternalCacheDir(final Context context) {
-        File file;
-        if (Utils.hasFroyo()) {
-            file = context.getExternalCacheDir();
-            if (file != null) {
-                return file;
-            }
+        final File file = context.getExternalCacheDir();
+        if (file != null) {
+            return file;
         }
 
         // In other case, we need to construct the external cache dir ourselves
@@ -675,13 +649,8 @@ public class ImageCache {
      * @param path The path to check
      * @return The space available in bytes
      */
-    @TargetApi(VERSION_CODES.GINGERBREAD)
     public static long getUsableSpace(File path) {
-        if (Utils.hasGingerbread()) {
-            return path.getUsableSpace();
-        }
-        final StatFs stats = new StatFs(path.getPath());
-        return (long) stats.getBlockSize() * (long) stats.getAvailableBlocks();
+        return path.getUsableSpace();
     }
 
     /**
