@@ -137,7 +137,7 @@ public final class LocationService {
         }
 
         final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
-        if (lastKnownLocation != null) {
+        if (lastKnownLocation == null) {
             AppLogger.w(CLASS_NAME + " Last known Location unavailable");
 
             requestCountryCode(context, null);
@@ -281,30 +281,31 @@ public final class LocationService {
         @Override
         public void onLocationChanged(final Location location) {
             AppLogger.d("On Location changed:" + location);
+            if (PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                try {
+                    mLocationManager.removeUpdates(this);
+                } catch (final IllegalArgumentException e) {
+                    FabricUtils.logException(e);
+                }
+            }
+
             final LocationService reference = mReference.get();
             if (reference == null) {
                 return;
             }
 
-            reference.mExecutorService.submit(
-                    () -> {
-                        reference.mCountryCode = getCountryCodeGeocoder(
-                                mContext, location.getLatitude(), location.getLongitude()
-                        );
-                        if (mListener != null) {
-                            mListener.onCountryCodeLocated(reference.mCountryCode);
+            if (!reference.mExecutorService.isShutdown()
+                    && !reference.mExecutorService.isTerminated()) {
+                reference.mExecutorService.submit(
+                        () -> {
+                            reference.mCountryCode = getCountryCodeGeocoder(
+                                    mContext, location.getLatitude(), location.getLongitude()
+                            );
+                            if (mListener != null) {
+                                mListener.onCountryCodeLocated(reference.mCountryCode);
+                            }
                         }
-                    }
-            );
-
-            if (!PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                return;
-            }
-
-            try {
-                mLocationManager.removeUpdates(this);
-            } catch (final IllegalArgumentException e) {
-                FabricUtils.logException(e);
+                );
             }
         }
 
