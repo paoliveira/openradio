@@ -181,7 +181,9 @@ public class ImageFetcher extends ImageResizer {
             while (mHttpDiskCacheStarting) {
                 try {
                     mHttpDiskCacheLock.wait();
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                    /* Ignore */
+                }
             }
 
             if (mHttpDiskCache != null) {
@@ -226,7 +228,9 @@ public class ImageFetcher extends ImageResizer {
         if (fileInputStream != null) {
             try {
                 fileInputStream.close();
-            } catch (IOException e) {}
+            } catch (IOException e) {
+                /* Ignore */
+            }
         }
         return bitmap;
     }
@@ -264,6 +268,10 @@ public class ImageFetcher extends ImageResizer {
 
             out = new BufferedOutputStream(outputStream, IO_BUFFER_SIZE);
 
+            if (in == null) {
+                return false;
+            }
+
             int b;
             while ((b = in.read()) != -1) {
                 out.write(b);
@@ -282,7 +290,9 @@ public class ImageFetcher extends ImageResizer {
                 if (in != null) {
                     in.close();
                 }
-            } catch (final IOException e) {}
+            } catch (final IOException e) {
+                /* Ignore */
+            }
         }
         return false;
     }
