@@ -16,7 +16,6 @@
 package com.google.android.exoplayer2;
 
 import android.os.Looper;
-
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.ClippingMediaSource;
@@ -31,9 +30,11 @@ import com.google.android.exoplayer2.text.TextRenderer;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
 
 /**
- * An extensible media player that plays {@link MediaSource}s.
+ * An extensible media player that plays {@link MediaSource}s. Instances can be obtained from
+ * {@link ExoPlayerFactory}.
  *
  * <h3>Player components</h3>
  * <p>ExoPlayer is designed to make few assumptions about (and hence impose few restrictions on) the
@@ -53,7 +54,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
  *   {@link DynamicConcatenatingMediaSource}, {@link LoopingMediaSource} and
  *   {@link ClippingMediaSource}).</li>
  *   <li><b>{@link Renderer}</b>s that render individual components of the media. The library
- *   provides default implementations for common media types (
+ *   provides default implementations for common media types ({@link MediaCodecVideoRenderer},
  *   {@link MediaCodecAudioRenderer}, {@link TextRenderer} and {@link MetadataRenderer}). A Renderer
  *   consumes media from the MediaSource being played. Renderers are injected when the player is
  *   created.</li>

@@ -596,6 +596,8 @@ public final class MainActivity extends AppCompatActivity {
         // Save search query string, retrieve it later in the service
         Utils.setSearchQuery(queryString);
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+
+        showProgressBar();
     }
 
     /**
@@ -741,6 +743,7 @@ public final class MainActivity extends AppCompatActivity {
      * Show progress bar.
      */
     private void showProgressBar() {
+        AppLogger.d("Show progress bar");
         if (mProgressBar == null) {
             return;
         }
@@ -751,6 +754,7 @@ public final class MainActivity extends AppCompatActivity {
      * Hide progress bar.
      */
     private void hideProgressBar() {
+        AppLogger.d("Hide progress bar");
         if (mProgressBar == null) {
             return;
         }

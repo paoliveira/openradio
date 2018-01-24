@@ -16,12 +16,17 @@
 package com.google.android.exoplayer2;
 
 import android.annotation.TargetApi;
+import android.graphics.SurfaceTexture;
+import android.media.MediaCodec;
 import android.media.PlaybackParams;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
+import android.util.Log;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.TextureView;
-
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
@@ -34,15 +39,48 @@ import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.util.Util;
-
+import com.google.android.exoplayer2.video.VideoRendererEventListener;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * An {@link ExoPlayer} implementation that uses default {@link Renderer} components.
+ * An {@link ExoPlayer} implementation that uses default {@link Renderer} components. Instances can
+ * be obtained from {@link ExoPlayerFactory}.
  */
 @TargetApi(16)
 public class SimpleExoPlayer implements ExoPlayer {
+
+  /**
+   * A listener for video rendering information from a {@link SimpleExoPlayer}.
+   */
+  public interface VideoListener {
+
+    /**
+     * Called each time there's a change in the size of the video being rendered.
+     *
+     * @param width The video width in pixels.
+     * @param height The video height in pixels.
+     * @param unappliedRotationDegrees For videos that require a rotation, this is the clockwise
+     *     rotation in degrees that the application should apply for the video for it to be rendered
+     *     in the correct orientation. This value will always be zero on API levels 21 and above,
+     *     since the renderer will apply all necessary rotations internally. On earlier API levels
+     *     this is not possible. Applications that use {@link android.view.TextureView} can apply
+     *     the rotation by calling {@link android.view.TextureView#setTransform}. Applications that
+     *     do not expect to encounter rotated videos can safely ignore this parameter.
+     * @param pixelWidthHeightRatio The width to height ratio of each pixel. For the normal case
+     *     of square pixels this will be equal to 1.0. Different values are indicative of anamorphic
+     *     content.
+     */
+    void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees,
+        float pixelWidthHeightRatio);
+
+    /**
+     * Called when a frame is rendered for the first time since setting the surface, and when a
+     * frame is rendered for the first time since a video track was selected.
+     */
+    void onRenderedFirstFrame();
+
+  }
 
   private static final String TAG = "SimpleExoPlayer";
 
@@ -50,14 +88,24 @@ public class SimpleExoPlayer implements ExoPlayer {
 
   private final ExoPlayer player;
   private final ComponentListener componentListener;
+  private final CopyOnWriteArraySet<VideoListener> videoListeners;
   private final CopyOnWriteArraySet<TextOutput> textOutputs;
   private final CopyOnWriteArraySet<MetadataOutput> metadataOutputs;
+  private final CopyOnWriteArraySet<VideoRendererEventListener> videoDebugListeners;
   private final CopyOnWriteArraySet<AudioRendererEventListener> audioDebugListeners;
+  private final int videoRendererCount;
   private final int audioRendererCount;
 
+  private Format videoFormat;
   private Format audioFormat;
 
+  private Surface surface;
+  private boolean ownsSurface;
+  @C.VideoScalingMode
+  private int videoScalingMode;
+  private SurfaceHolder surfaceHolder;
   private TextureView textureView;
+  private DecoderCounters videoDecoderCounters;
   private DecoderCounters audioDecoderCounters;
   private int audioSessionId;
   private AudioAttributes audioAttributes;
@@ -66,32 +114,190 @@ public class SimpleExoPlayer implements ExoPlayer {
   protected SimpleExoPlayer(RenderersFactory renderersFactory, TrackSelector trackSelector,
       LoadControl loadControl) {
     componentListener = new ComponentListener();
+    videoListeners = new CopyOnWriteArraySet<>();
     textOutputs = new CopyOnWriteArraySet<>();
     metadataOutputs = new CopyOnWriteArraySet<>();
+    videoDebugListeners = new CopyOnWriteArraySet<>();
     audioDebugListeners = new CopyOnWriteArraySet<>();
     Looper eventLooper = Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper();
     Handler eventHandler = new Handler(eventLooper);
-    renderers = renderersFactory.createRenderers(eventHandler, componentListener,
+    renderers = renderersFactory.createRenderers(eventHandler, componentListener, componentListener,
         componentListener, componentListener);
 
     // Obtain counts of video and audio renderers.
+    int videoRendererCount = 0;
     int audioRendererCount = 0;
     for (Renderer renderer : renderers) {
       switch (renderer.getTrackType()) {
+        case C.TRACK_TYPE_VIDEO:
+          videoRendererCount++;
+          break;
         case C.TRACK_TYPE_AUDIO:
           audioRendererCount++;
           break;
       }
     }
+    this.videoRendererCount = videoRendererCount;
     this.audioRendererCount = audioRendererCount;
 
     // Set initial values.
     audioVolume = 1;
     audioSessionId = C.AUDIO_SESSION_ID_UNSET;
     audioAttributes = AudioAttributes.DEFAULT;
+    videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT;
 
     // Build the player and associated objects.
     player = createExoPlayerImpl(renderers, trackSelector, loadControl);
+  }
+
+  /**
+   * Sets the video scaling mode.
+   * <p>
+   * Note that the scaling mode only applies if a {@link MediaCodec}-based video {@link Renderer} is
+   * enabled and if the output surface is owned by a {@link android.view.SurfaceView}.
+   *
+   * @param videoScalingMode The video scaling mode.
+   */
+  public void setVideoScalingMode(@C.VideoScalingMode int videoScalingMode) {
+    this.videoScalingMode = videoScalingMode;
+    ExoPlayerMessage[] messages = new ExoPlayerMessage[videoRendererCount];
+    int count = 0;
+    for (Renderer renderer : renderers) {
+      if (renderer.getTrackType() == C.TRACK_TYPE_VIDEO) {
+        messages[count++] = new ExoPlayerMessage(renderer, C.MSG_SET_SCALING_MODE,
+            videoScalingMode);
+      }
+    }
+    player.sendMessages(messages);
+  }
+
+  /**
+   * Returns the video scaling mode.
+   */
+  public @C.VideoScalingMode int getVideoScalingMode() {
+    return videoScalingMode;
+  }
+
+  /**
+   * Clears any {@link Surface}, {@link SurfaceHolder}, {@link SurfaceView} or {@link TextureView}
+   * currently set on the player.
+   */
+  public void clearVideoSurface() {
+    setVideoSurface(null);
+  }
+
+  /**
+   * Sets the {@link Surface} onto which video will be rendered. The caller is responsible for
+   * tracking the lifecycle of the surface, and must clear the surface by calling
+   * {@code setVideoSurface(null)} if the surface is destroyed.
+   * <p>
+   * If the surface is held by a {@link SurfaceView}, {@link TextureView} or {@link SurfaceHolder}
+   * then it's recommended to use {@link #setVideoSurfaceView(SurfaceView)},
+   * {@link #setVideoTextureView(TextureView)} or {@link #setVideoSurfaceHolder(SurfaceHolder)}
+   * rather than this method, since passing the holder allows the player to track the lifecycle of
+   * the surface automatically.
+   *
+   * @param surface The {@link Surface}.
+   */
+  public void setVideoSurface(Surface surface) {
+    removeSurfaceCallbacks();
+    setVideoSurfaceInternal(surface, false);
+  }
+
+  /**
+   * Clears the {@link Surface} onto which video is being rendered if it matches the one passed.
+   * Else does nothing.
+   *
+   * @param surface The surface to clear.
+   */
+  public void clearVideoSurface(Surface surface) {
+    if (surface != null && surface == this.surface) {
+      setVideoSurface(null);
+    }
+  }
+
+  /**
+   * Sets the {@link SurfaceHolder} that holds the {@link Surface} onto which video will be
+   * rendered. The player will track the lifecycle of the surface automatically.
+   *
+   * @param surfaceHolder The surface holder.
+   */
+  public void setVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
+    removeSurfaceCallbacks();
+    this.surfaceHolder = surfaceHolder;
+    if (surfaceHolder == null) {
+      setVideoSurfaceInternal(null, false);
+    } else {
+      surfaceHolder.addCallback(componentListener);
+      Surface surface = surfaceHolder.getSurface();
+      setVideoSurfaceInternal(surface != null && surface.isValid() ? surface : null, false);
+    }
+  }
+
+  /**
+   * Clears the {@link SurfaceHolder} that holds the {@link Surface} onto which video is being
+   * rendered if it matches the one passed. Else does nothing.
+   *
+   * @param surfaceHolder The surface holder to clear.
+   */
+  public void clearVideoSurfaceHolder(SurfaceHolder surfaceHolder) {
+    if (surfaceHolder != null && surfaceHolder == this.surfaceHolder) {
+      setVideoSurfaceHolder(null);
+    }
+  }
+
+  /**
+   * Sets the {@link SurfaceView} onto which video will be rendered. The player will track the
+   * lifecycle of the surface automatically.
+   *
+   * @param surfaceView The surface view.
+   */
+  public void setVideoSurfaceView(SurfaceView surfaceView) {
+    setVideoSurfaceHolder(surfaceView == null ? null : surfaceView.getHolder());
+  }
+
+  /**
+   * Clears the {@link SurfaceView} onto which video is being rendered if it matches the one passed.
+   * Else does nothing.
+   *
+   * @param surfaceView The texture view to clear.
+   */
+  public void clearVideoSurfaceView(SurfaceView surfaceView) {
+    clearVideoSurfaceHolder(surfaceView == null ? null : surfaceView.getHolder());
+  }
+
+  /**
+   * Sets the {@link TextureView} onto which video will be rendered. The player will track the
+   * lifecycle of the surface automatically.
+   *
+   * @param textureView The texture view.
+   */
+  public void setVideoTextureView(TextureView textureView) {
+    removeSurfaceCallbacks();
+    this.textureView = textureView;
+    if (textureView == null) {
+      setVideoSurfaceInternal(null, true);
+    } else {
+      if (textureView.getSurfaceTextureListener() != null) {
+        Log.w(TAG, "Replacing existing SurfaceTextureListener.");
+      }
+      textureView.setSurfaceTextureListener(componentListener);
+      SurfaceTexture surfaceTexture = textureView.isAvailable() ? textureView.getSurfaceTexture()
+          : null;
+      setVideoSurfaceInternal(surfaceTexture == null ? null : new Surface(surfaceTexture), true);
+    }
+  }
+
+  /**
+   * Clears the {@link TextureView} onto which video is being rendered if it matches the one passed.
+   * Else does nothing.
+   *
+   * @param textureView The texture view to clear.
+   */
+  public void clearVideoTextureView(TextureView textureView) {
+    if (textureView != null && textureView == this.textureView) {
+      setVideoTextureView(null);
+    }
   }
 
   /**
@@ -205,6 +411,13 @@ public class SimpleExoPlayer implements ExoPlayer {
   }
 
   /**
+   * Returns the video format currently being played, or null if no video is being played.
+   */
+  public Format getVideoFormat() {
+    return videoFormat;
+  }
+
+  /**
    * Returns the audio format currently being played, or null if no audio is being played.
    */
   public Format getAudioFormat() {
@@ -219,10 +432,60 @@ public class SimpleExoPlayer implements ExoPlayer {
   }
 
   /**
+   * Returns {@link DecoderCounters} for video, or null if no video is being played.
+   */
+  public DecoderCounters getVideoDecoderCounters() {
+    return videoDecoderCounters;
+  }
+
+  /**
    * Returns {@link DecoderCounters} for audio, or null if no audio is being played.
    */
   public DecoderCounters getAudioDecoderCounters() {
     return audioDecoderCounters;
+  }
+
+  /**
+   * Adds a listener to receive video events.
+   *
+   * @param listener The listener to register.
+   */
+  public void addVideoListener(VideoListener listener) {
+    videoListeners.add(listener);
+  }
+
+  /**
+   * Removes a listener of video events.
+   *
+   * @param listener The listener to unregister.
+   */
+  public void removeVideoListener(VideoListener listener) {
+    videoListeners.remove(listener);
+  }
+
+  /**
+   * Sets a listener to receive video events, removing all existing listeners.
+   *
+   * @param listener The listener.
+   * @deprecated Use {@link #addVideoListener(VideoListener)}.
+   */
+  @Deprecated
+  public void setVideoListener(VideoListener listener) {
+    videoListeners.clear();
+    if (listener != null) {
+      addVideoListener(listener);
+    }
+  }
+
+  /**
+   * Equivalent to {@link #removeVideoListener(VideoListener)}.
+   *
+   * @param listener The listener to clear.
+   * @deprecated Use {@link #removeVideoListener(VideoListener)}.
+   */
+  @Deprecated
+  public void clearVideoListener(VideoListener listener) {
+    removeVideoListener(listener);
   }
 
   /**
@@ -309,6 +572,38 @@ public class SimpleExoPlayer implements ExoPlayer {
   @Deprecated
   public void clearMetadataOutput(MetadataOutput output) {
     removeMetadataOutput(output);
+  }
+
+  /**
+   * Sets a listener to receive debug events from the video renderer.
+   *
+   * @param listener The listener.
+   * @deprecated Use {@link #addVideoDebugListener(VideoRendererEventListener)}.
+   */
+  @Deprecated
+  public void setVideoDebugListener(VideoRendererEventListener listener) {
+    videoDebugListeners.clear();
+    if (listener != null) {
+      addVideoDebugListener(listener);
+    }
+  }
+
+  /**
+   * Adds a listener to receive debug events from the video renderer.
+   *
+   * @param listener The listener.
+   */
+  public void addVideoDebugListener(VideoRendererEventListener listener) {
+    videoDebugListeners.add(listener);
+  }
+
+  /**
+   * Removes a listener to receive debug events from the video renderer.
+   *
+   * @param listener The listener.
+   */
+  public void removeVideoDebugListener(VideoRendererEventListener listener) {
+    videoDebugListeners.remove(listener);
   }
 
   /**
@@ -448,6 +743,13 @@ public class SimpleExoPlayer implements ExoPlayer {
   @Override
   public void release() {
     player.release();
+    removeSurfaceCallbacks();
+    if (surface != null) {
+      if (ownsSurface) {
+        surface.release();
+      }
+      surface = null;
+    }
   }
 
   @Override
@@ -575,8 +877,116 @@ public class SimpleExoPlayer implements ExoPlayer {
     return new ExoPlayerImpl(renderers, trackSelector, loadControl);
   }
 
-  private final class ComponentListener implements
-      AudioRendererEventListener, TextOutput, MetadataOutput {
+  private void removeSurfaceCallbacks() {
+    if (textureView != null) {
+      if (textureView.getSurfaceTextureListener() != componentListener) {
+        Log.w(TAG, "SurfaceTextureListener already unset or replaced.");
+      } else {
+        textureView.setSurfaceTextureListener(null);
+      }
+      textureView = null;
+    }
+    if (surfaceHolder != null) {
+      surfaceHolder.removeCallback(componentListener);
+      surfaceHolder = null;
+    }
+  }
+
+  private void setVideoSurfaceInternal(Surface surface, boolean ownsSurface) {
+    // Note: We don't turn this method into a no-op if the surface is being replaced with itself
+    // so as to ensure onRenderedFirstFrame callbacks are still called in this case.
+    ExoPlayerMessage[] messages = new ExoPlayerMessage[videoRendererCount];
+    int count = 0;
+    for (Renderer renderer : renderers) {
+      if (renderer.getTrackType() == C.TRACK_TYPE_VIDEO) {
+        messages[count++] = new ExoPlayerMessage(renderer, C.MSG_SET_SURFACE, surface);
+      }
+    }
+    if (this.surface != null && this.surface != surface) {
+      // We're replacing a surface. Block to ensure that it's not accessed after the method returns.
+      player.blockingSendMessages(messages);
+      // If we created the previous surface, we are responsible for releasing it.
+      if (this.ownsSurface) {
+        this.surface.release();
+      }
+    } else {
+      player.sendMessages(messages);
+    }
+    this.surface = surface;
+    this.ownsSurface = ownsSurface;
+  }
+
+  private final class ComponentListener implements VideoRendererEventListener,
+      AudioRendererEventListener, TextOutput, MetadataOutput, SurfaceHolder.Callback,
+      TextureView.SurfaceTextureListener {
+
+    // VideoRendererEventListener implementation
+
+    @Override
+    public void onVideoEnabled(DecoderCounters counters) {
+      videoDecoderCounters = counters;
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onVideoEnabled(counters);
+      }
+    }
+
+    @Override
+    public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs,
+        long initializationDurationMs) {
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onVideoDecoderInitialized(decoderName, initializedTimestampMs,
+            initializationDurationMs);
+      }
+    }
+
+    @Override
+    public void onVideoInputFormatChanged(Format format) {
+      videoFormat = format;
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onVideoInputFormatChanged(format);
+      }
+    }
+
+    @Override
+    public void onDroppedFrames(int count, long elapsed) {
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onDroppedFrames(count, elapsed);
+      }
+    }
+
+    @Override
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees,
+        float pixelWidthHeightRatio) {
+      for (VideoListener videoListener : videoListeners) {
+        videoListener.onVideoSizeChanged(width, height, unappliedRotationDegrees,
+            pixelWidthHeightRatio);
+      }
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onVideoSizeChanged(width, height, unappliedRotationDegrees,
+            pixelWidthHeightRatio);
+      }
+    }
+
+    @Override
+    public void onRenderedFirstFrame(Surface surface) {
+      if (SimpleExoPlayer.this.surface == surface) {
+        for (VideoListener videoListener : videoListeners) {
+          videoListener.onRenderedFirstFrame();
+        }
+      }
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onRenderedFirstFrame(surface);
+      }
+    }
+
+    @Override
+    public void onVideoDisabled(DecoderCounters counters) {
+      for (VideoRendererEventListener videoDebugListener : videoDebugListeners) {
+        videoDebugListener.onVideoDisabled(counters);
+      }
+      videoFormat = null;
+      videoDecoderCounters = null;
+    }
 
     // AudioRendererEventListener implementation
 
@@ -647,6 +1057,46 @@ public class SimpleExoPlayer implements ExoPlayer {
       for (MetadataOutput metadataOutput : metadataOutputs) {
         metadataOutput.onMetadata(metadata);
       }
+    }
+
+    // SurfaceHolder.Callback implementation
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+      setVideoSurfaceInternal(holder.getSurface(), false);
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+      // Do nothing.
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+      setVideoSurfaceInternal(null, false);
+    }
+
+    // TextureView.SurfaceTextureListener implementation
+
+    @Override
+    public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture, int width, int height) {
+      setVideoSurfaceInternal(new Surface(surfaceTexture), true);
+    }
+
+    @Override
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
+      // Do nothing.
+    }
+
+    @Override
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
+      setVideoSurfaceInternal(null, true);
+      return true;
+    }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+      // Do nothing.
     }
 
   }
