@@ -22,6 +22,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.support.annotation.Nullable;
 
 import com.yuriy.openradio.BuildConfig;
 
@@ -169,6 +170,7 @@ public class ImageResizer extends ImageWorker {
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
      *         that are equal to or greater than the requested width and height
      */
+    @Nullable
     public static Bitmap decodeSampledBitmapFromDescriptor(
             FileDescriptor fileDescriptor, int reqWidth, int reqHeight, ImageCache cache) {
 
@@ -185,7 +187,12 @@ public class ImageResizer extends ImageWorker {
 
         addInBitmapOptions(options, cache);
 
-        return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+        try {
+            return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+        } catch (final Exception e) {
+            FabricUtils.logException(e);
+            return null;
+        }
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)

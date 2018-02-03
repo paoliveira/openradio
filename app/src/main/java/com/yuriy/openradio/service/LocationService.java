@@ -26,6 +26,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import com.yuriy.openradio.api.GeoAPI;
@@ -189,7 +190,9 @@ public final class LocationService {
             FabricUtils.logException(e);
 
             mCountryCode = Country.COUNTRY_CODE_DEFAULT;
-            listener.onCountryCodeLocated(mCountryCode);
+            if (listener != null) {
+                listener.onCountryCodeLocated(mCountryCode);
+            }
         }
     }
 
@@ -262,12 +265,14 @@ public final class LocationService {
     private static final class LocationListenerImpl implements LocationListener {
 
         private final WeakReference<LocationService> mReference;
+        @Nullable
         private final LocationServiceListener mListener;
         private final Context mContext;
         @NonNull
         private final LocationManager mLocationManager;
 
         private LocationListenerImpl(final LocationService reference,
+                                     @Nullable
                                      final LocationServiceListener listener,
                                      final Context context,
                                      @NonNull final LocationManager locationManager) {

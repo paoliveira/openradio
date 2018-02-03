@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
+import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.vo.RadioStation;
@@ -128,7 +129,8 @@ public final class MediaItemRoot implements MediaItemCommand {
         }
 
         // If the Country code is known but not in Auto mode
-        if (!shareObject.isAndroidAuto() && !shareObject.getCountryCode().isEmpty()) {
+        if (!shareObject.isAndroidAuto()
+                && !TextUtils.isEmpty(shareObject.getCountryCode())) {
 
             final int identifier = context.getResources().getIdentifier(
                     "flag_" + shareObject.getCountryCode().toLowerCase(),
