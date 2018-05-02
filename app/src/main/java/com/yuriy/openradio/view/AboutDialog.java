@@ -17,6 +17,7 @@
 package com.yuriy.openradio.view;
 
 import android.app.DialogFragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,9 +75,10 @@ public final class AboutDialog extends DialogFragment {
                              final Bundle savedInstanceState) {
 
         final View view = inflater.inflate(R.layout.dialog_about, container, false);
-
-        final String titleText = getActivity().getString(R.string.app_name) + "    v." +
-                AppUtils.getApplicationVersion(getActivity());
+        final Context context = getActivity().getApplicationContext();
+        final String titleText = context.getString(R.string.app_name) + "    v." +
+                AppUtils.getApplicationVersion(context) + "." +
+                AppUtils.getApplicationVersionCode(context);
         final TextView title = view.findViewById(R.id.dialog_about_title_view);
         title.setText(titleText);
 

@@ -21,7 +21,6 @@ import android.app.DialogFragment;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,15 +29,15 @@ import android.support.v4.content.FileProvider;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -69,6 +68,8 @@ public final class SettingsDialog extends DialogFragment {
     private static final String SUPPORT_MAIL = "chernyshov.yuriy@gmail.com";
 
     private SendLogEmailTask mSendLogMailTask;
+    private EditText mUserAgentEditView;
+    private CheckBox mUserAgentCheckView;
 
     /**
      * Create a new instance of {@link SettingsDialog}
@@ -83,13 +84,7 @@ public final class SettingsDialog extends DialogFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        final Rect displayRectangle = new Rect();
-        final Window window = getActivity().getWindow();
-        window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
-        final View view = inflater.inflate(R.layout.settings_about, container, false);
-        view.setMinimumWidth((int)(displayRectangle.width() * 0.9f));
-        view.setMinimumHeight((int)(displayRectangle.height() * 0.9f));
-        return view;
+        return inflater.inflate(R.layout.settings_about, container, false);
     }
 
     @Override
@@ -146,6 +141,40 @@ public final class SettingsDialog extends DialogFragment {
         sendLogsBtn.setOnClickListener(
                 view13 -> sendLogMailTask()
         );
+
+        mUserAgentEditView = view.findViewById(R.id.user_agent_input_view);
+        mUserAgentEditView.setText(AppPreferencesManager.getCustomUserAgent(context));
+
+        mUserAgentCheckView = view.findViewById(R.id.user_agent_check_view);
+        mUserAgentCheckView.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> {
+                    AppPreferencesManager.isCustomUserAgent(context, isChecked);
+                    mUserAgentEditView.setEnabled(isChecked);
+                }
+        );
+
+        final boolean isCustomUserAgent = AppPreferencesManager.isCustomUserAgent(context);
+        mUserAgentCheckView.setChecked(isCustomUserAgent);
+        mUserAgentEditView.setEnabled(isCustomUserAgent);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        saveCustomUserAgent();
+    }
+
+    private void saveCustomUserAgent() {
+        if (mUserAgentEditView == null) {
+            return;
+        }
+        final Context context = getActivity().getApplicationContext();
+        if (context == null) {
+            return;
+        }
+
+        final String userAgent = mUserAgentEditView.getText().toString().trim();
+        AppPreferencesManager.setCustomUserAgent(context, userAgent);
     }
 
     private void processEnableCheckView(final Context context, final boolean isEnable) {

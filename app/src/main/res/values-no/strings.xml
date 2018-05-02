@@ -103,4 +103,6 @@
     <string name="google_drive_conn_error">Feil ved å koble til Google Drive</string>
     <string name="queue">Kø</string>
     <string name="can_not_get_account_name">Kan ikke få Google-kontonavn.</string>
+    <string name="custom_user_agent_label">Tilpasset User Agent</string>
+    <string name="custom_user_agent_hint">Tilpasset User Agent tompt</string>
 </resources>

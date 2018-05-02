@@ -20,7 +20,7 @@ import android.app.Application;
 import android.os.Build;
 
 import com.crashlytics.android.Crashlytics;
-import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 

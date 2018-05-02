@@ -20,7 +20,6 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 
 import com.yuriy.openradio.vo.RadioStation;
-import com.yuriy.openradio.business.AppPreferencesManager;
 
 import java.util.List;
 

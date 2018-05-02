@@ -52,8 +52,9 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
-import com.google.android.exoplayer2.util.Util;
+import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 
 import java.lang.ref.WeakReference;
@@ -417,11 +418,15 @@ public final class ExoPlayerOpenRadioImpl {
     private DataSource.Factory buildDataSourceFactory(@NonNull final Context context,
                                                       @NonNull final IcyInputStreamListener icyInputStreamListener) {
         final int timeOut = DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS;
+        final String userAgent = AppPreferencesManager.isCustomUserAgent(context)
+                ? AppPreferencesManager.getCustomUserAgent(context)
+                : AppUtils.getDefaultUserAgent(context);
+        AppLogger.d("UserAgent:" + userAgent);
         return new DefaultDataSourceFactory(
                 context,
                 null,
                 new IcyHttpDataSourceFactory(
-                        Util.getUserAgent(context, "OpenRadio"),
+                        userAgent,
                         icyInputStreamListener,
                         timeOut
                 )

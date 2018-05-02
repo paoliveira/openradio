@@ -103,4 +103,6 @@
     <string name="google_drive_conn_error">Chyba pri pripojení k Google Drive</string>
     <string name="queue">Fronta</string>
     <string name="can_not_get_account_name">Nemôžem získať meno účtu Google.</string>
+    <string name="custom_user_agent_label">Vlastný User Agent</string>
+    <string name="custom_user_agent_hint">Vlastný User Agent je prázdny</string>
 </resources>

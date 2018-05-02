@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+
+import com.yuriy.openradio.utils.AppUtils;
 
 /**
  * Created by Yuriy Chernyshov
@@ -55,6 +57,16 @@ public final class AppPreferencesManager {
      *
      */
     private static final String PREFS_KEY_IS_SORT_DIALOG_SHOWN = "IS_SORT_DIALOG_SHOWN";
+
+    /**
+     *
+     */
+    private static final String PREFS_KEY_IS_CUSTOM_USER_AGENT = "IS_CUSTOM_USER_AGENT";
+
+    /**
+     *
+     */
+    private static final String PREFS_KEY_CUSTOM_USER_AGENT = "CUSTOM_USER_AGENT";
 
     /**
      * Default constructor.
@@ -146,6 +158,50 @@ public final class AppPreferencesManager {
                                           final boolean value) {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putBoolean(PREFS_KEY_IS_SORT_DIALOG_SHOWN, value);
+        editor.apply();
+    }
+
+    /**
+     * @return {@code true} if custom user agent is enabled, {@code false} otherwise.
+     */
+    public static boolean isCustomUserAgent(@NonNull final Context context) {
+        return getSharedPreferences(context).getBoolean(
+                PREFS_KEY_IS_CUSTOM_USER_AGENT,
+                false
+        );
+    }
+
+    /**
+     * Sets {@code true} if custom user agent is enabled, {@code false} otherwise.
+     *
+     * @param value Boolean value.
+     */
+    public static void isCustomUserAgent(@NonNull final Context context,
+                                          final boolean value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putBoolean(PREFS_KEY_IS_CUSTOM_USER_AGENT, value);
+        editor.apply();
+    }
+
+    /**
+     * @return Value of the custom user agent, or default one in case of errors.
+     */
+    public static String getCustomUserAgent(@NonNull final Context context) {
+        return getSharedPreferences(context).getString(
+                PREFS_KEY_CUSTOM_USER_AGENT,
+                AppUtils.getDefaultUserAgent(context)
+        );
+    }
+
+    /**
+     * Sets the value of custom user agent.
+     *
+     * @param value Custom user agent.
+     */
+    public static void setCustomUserAgent(@NonNull final Context context,
+                                          @NonNull final String value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putString(PREFS_KEY_CUSTOM_USER_AGENT, value);
         editor.apply();
     }
 

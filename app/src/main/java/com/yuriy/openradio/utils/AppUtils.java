@@ -31,6 +31,7 @@ import android.support.v4.app.FragmentActivity;
 import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 
+import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.view.SafeToast;
 
@@ -510,6 +511,10 @@ public final class AppUtils {
                 /* Ignore */
             }
         }
+    }
+
+    public static String getDefaultUserAgent(@NonNull final Context context) {
+        return Util.getUserAgent(context, "OpenRadio");
     }
 
     /**

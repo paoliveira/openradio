@@ -103,4 +103,6 @@
     <string name="google_drive_conn_error">Error al conectarse a Google Drive</string>
     <string name="queue">Cola</string>
     <string name="can_not_get_account_name">No se puede obtener el nombre de la cuenta de Google.</string>
+    <string name="custom_user_agent_label">User Agent personalizado</string>
+    <string name="custom_user_agent_hint">User Agent personalizado vacío</string>
 </resources>

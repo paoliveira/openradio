@@ -148,4 +148,7 @@
     <string name="queue">Queue</string>
     <string name="can_not_get_account_name">Can not get Google Account name</string>
 
+    <string name="custom_user_agent_label">Custom User Agent</string>
+    <string name="custom_user_agent_hint">Custom User Agent empty</string>
+
 </resources>

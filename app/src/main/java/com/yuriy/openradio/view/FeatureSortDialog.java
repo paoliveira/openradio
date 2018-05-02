@@ -23,7 +23,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.AppPreferencesManager;
+import com.yuriy.openradio.business.storage.AppPreferencesManager;
 
 /**
  * Created by Yuriy Chernyshov
