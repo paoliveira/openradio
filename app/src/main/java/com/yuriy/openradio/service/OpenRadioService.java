@@ -32,6 +32,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
@@ -1177,7 +1178,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Handle a request to play Radio Station
      */
     private void handlePlayRequest() {
-        AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState);
+        AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         if (!mServiceStarted) {
@@ -1185,7 +1186,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // The MusicService needs to keep running even after the calling MediaBrowser
             // is disconnected. Call startService(Intent) and then stopSelf(..) when we no longer
             // need to play media.
-            startService(new Intent(getApplicationContext(), OpenRadioService.class));
+            final Context context = getApplicationContext();
+            ContextCompat.startForegroundService(
+                    context,
+                    new Intent(context, OpenRadioService.class)
+            );
             mServiceStarted = true;
         }
 
