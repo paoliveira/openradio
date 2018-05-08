@@ -63,6 +63,7 @@ public final class FabricUtils {
      * @param message
      */
     public static void log(final String message) {
+        AppLogger.d("FabricUtils msg::" + message);
         if (Crashlytics.getInstance() == null) {
             return;
         }

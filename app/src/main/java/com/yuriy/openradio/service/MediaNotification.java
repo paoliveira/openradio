@@ -154,8 +154,18 @@ public final class MediaNotification extends BroadcastReceiver {
             filter.addAction(ACTION_PREV);
             mService.registerReceiver(this, filter);
 
-            mMetadata = mController.getMetadata();
-            mPlaybackState = mController.getPlaybackState();
+            final MediaMetadataCompat metadata = mController.getMetadata();
+            if (metadata != null) {
+                mMetadata = metadata;
+            } else {
+                FabricUtils.log("StartNotification with null metadata");
+            }
+            PlaybackStateCompat playbackState = mController.getPlaybackState();
+            if (playbackState != null) {
+                mPlaybackState = playbackState;
+            } else {
+                FabricUtils.log("StartNotification with null playback state");
+            }
 
             mStarted = true;
             // The notification must be updated after setting started to true
@@ -286,6 +296,11 @@ public final class MediaNotification extends BroadcastReceiver {
 
         if (mPlaybackState == null) {
             FabricUtils.log("UpdateNotificationMetadata stopped, playback state is null");
+            return;
+        }
+
+        if (mService == null) {
+            FabricUtils.log("UpdateNotificationMetadata stopped, service is null");
             return;
         }
 
