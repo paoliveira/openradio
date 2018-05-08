@@ -1192,6 +1192,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     new Intent(context, OpenRadioService.class)
             );
             mServiceStarted = true;
+            mMediaNotification.updateNotificationMetadata();
         }
 
         mPlayOnFocusGain = true;

@@ -277,9 +277,15 @@ public final class MediaNotification extends BroadcastReceiver {
         }
     }
 
-    private void updateNotificationMetadata() {
+    public void updateNotificationMetadata() {
         AppLogger.d(CLASS_NAME + " Update Notification Metadata : " + mMetadata);
-        if (mMetadata == null || mPlaybackState == null) {
+        if (mMetadata == null) {
+            FabricUtils.log("UpdateNotificationMetadata stopped, metadata is null");
+            return;
+        }
+
+        if (mPlaybackState == null) {
+            FabricUtils.log("UpdateNotificationMetadata stopped, playback state is null");
             return;
         }
 
@@ -355,7 +361,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setLargeIcon(art);
 
         updateNotificationPlaybackState();
-
+        FabricUtils.log("UpdateNotificationMetadata Start Foreground");
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
