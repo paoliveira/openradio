@@ -158,7 +158,7 @@ public final class MediaNotification extends BroadcastReceiver {
             if (metadata != null) {
                 mMetadata = metadata;
             } else {
-                FabricUtils.log("StartNotification with null metadata");
+                FabricUtils.log("StartNotification null metadata, prev metadata " + mMetadata);
             }
             PlaybackStateCompat playbackState = mController.getPlaybackState();
             if (playbackState != null) {
@@ -270,7 +270,11 @@ public final class MediaNotification extends BroadcastReceiver {
                 AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
                 return;
             }
-            reference.mMetadata = metadata;
+            if (metadata != null) {
+                reference.mMetadata = metadata;
+            } else {
+                FabricUtils.log("OnMetadataChanged null metadata, prev metadata " + reference.mMetadata);
+            }
             reference.updateNotificationMetadata();
         }
 

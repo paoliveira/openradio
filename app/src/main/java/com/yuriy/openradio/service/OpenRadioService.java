@@ -412,20 +412,21 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mCurrentIndexOnQueue = -1;
 
-        mLocationService.checkLocationEnable(getApplicationContext());
-        mLocationService.requestCountryCodeLastKnownSync(getApplicationContext(), mApiCallExecutor);
+        final Context context = getApplicationContext();
+        mLocationService.checkLocationEnable(context);
+        mLocationService.requestCountryCodeLastKnownSync(context, mApiCallExecutor);
 
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
-        mWifiLock = ((WifiManager) getApplicationContext()
+        mWifiLock = ((WifiManager) context
                 .getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "OpenRadio_lock");
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        final ComponentName mediaButtonReceiver = new ComponentName(getApplicationContext(), RemoteControlReceiver.class);
+        final ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlReceiver.class);
 
         // Start a new MediaSession
-        mSession = new MediaSessionCompat(getApplicationContext(), "OpenRadioService", mediaButtonReceiver, null);
+        mSession = new MediaSessionCompat(context, "OpenRadioService", mediaButtonReceiver, null);
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback(this));
         mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
