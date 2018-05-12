@@ -43,6 +43,7 @@ import android.util.LruCache;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.notification.MediaNotificationData;
 import com.yuriy.openradio.business.notification.MediaNotificationManager;
+import com.yuriy.openradio.business.notification.NoMediaNotificationData;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
@@ -294,11 +295,13 @@ public final class MediaNotification extends BroadcastReceiver {
     public void updateNotificationMetadata() {
         AppLogger.d(CLASS_NAME + " Update Notification Metadata : " + mMetadata);
         if (mMetadata == null) {
+            showNoStreamNotification();
             FabricUtils.log("UpdateNotificationMetadata stopped, metadata is null");
             return;
         }
 
         if (mPlaybackState == null) {
+            showNoStreamNotification();
             FabricUtils.log("UpdateNotificationMetadata stopped, playback state is null");
             return;
         }
@@ -385,6 +388,35 @@ public final class MediaNotification extends BroadcastReceiver {
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
+    }
+
+    private void showNoStreamNotification() {
+        // Create/Retrieve Notification Channel for O and beyond devices (26+).
+        final String notificationChannelId = MediaNotificationManager.createNotificationChannelNoStream(
+                mService.getApplicationContext(),
+                new NoMediaNotificationData()
+        );
+        // Build the style.
+        android.support.v4.media.app.NotificationCompat.MediaStyle mediaStyle
+                = new android.support.v4.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(mSessionToken);
+
+        mNotificationBuilder = new NotificationCompat.Builder(
+                mService.getApplicationContext(), notificationChannelId
+        );
+        mNotificationBuilder
+                .setStyle(mediaStyle)
+                .setColor(mNotificationColor)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setUsesChronometer(false)
+                .setContentTitle("No Radio Station")
+                .setContentText("No Radio Station available")
+                .setLargeIcon(BitmapFactory.decodeResource(
+                        mService.getResources(), R.drawable.ic_radio_station
+                ));
+        FabricUtils.log("UpdateNotificationMetadata Start Foreground No Media");
+        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
     private void updatePlayPauseAction() {
