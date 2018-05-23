@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2018 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.drm;
+package com.google.android.exoplayer2;
 
-/**
- * Thrown when a non-platform component fails to decrypt data.
- */
-public class DecryptionException extends Exception {
+/** Called to prepare a playback. */
+public interface PlaybackPreparer {
 
-  /**
-   * A component specific error code.
-   */
-  public final int errorCode;
-
-  /**
-   * @param errorCode A component specific error code.
-   * @param message The detail message.
-   */
-  public DecryptionException(int errorCode, String message) {
-    super(message);
-    this.errorCode = errorCode;
-  }
-
+  /** Called to prepare a playback. */
+  void preparePlayback();
 }

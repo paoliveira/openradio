@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.text.cea;
-
-import com.google.android.exoplayer2.text.SubtitleOutputBuffer;
+package com.google.android.exoplayer2.source;
 
 /**
- * A {@link SubtitleOutputBuffer} for {@link CeaDecoder}s.
+ * Default implementation of {@link CompositeSequenceableLoaderFactory}.
  */
-public final class CeaOutputBuffer extends SubtitleOutputBuffer {
-
-  private final CeaDecoder owner;
-
-  /**
-   * @param owner The decoder that owns this buffer.
-   */
-  public CeaOutputBuffer(CeaDecoder owner) {
-    super();
-    this.owner = owner;
-  }
+public final class DefaultCompositeSequenceableLoaderFactory
+    implements CompositeSequenceableLoaderFactory {
 
   @Override
-  public final void release() {
-    owner.releaseOutputBuffer(this);
+  public SequenceableLoader createCompositeSequenceableLoader(SequenceableLoader... loaders) {
+    return new CompositeSequenceableLoader(loaders);
   }
 
 }

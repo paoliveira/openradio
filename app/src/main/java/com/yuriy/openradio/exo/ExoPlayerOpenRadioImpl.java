@@ -52,6 +52,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.util.Clock;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -233,7 +234,9 @@ public final class ExoPlayerOpenRadioImpl {
         }
         mAudioRendererCount = audioRendererCount;
 
-        mExoPlayer = new ExoPlayerImpl(mRenderers, trackSelector, new DefaultLoadControl());
+        mExoPlayer = new ExoPlayerImpl(
+                mRenderers, trackSelector, new DefaultLoadControl(), Clock.DEFAULT
+        );
         mExoPlayer.addListener(mComponentListener);
     }
 
@@ -553,8 +556,8 @@ public final class ExoPlayerOpenRadioImpl {
         // Event listener
 
         @Override
-        public void onTimelineChanged(final Timeline timeline, final Object manifest) {
-            AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + " " + manifest);
+        public void onTimelineChanged(final Timeline timeline, final Object manifest, int reason) {
+            AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + " " + manifest + " " + reason);
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
                 return;

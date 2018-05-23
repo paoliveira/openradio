@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.drm;
+package com.google.android.exoplayer2.source;
 
 /**
- * Thrown when the drm keys loaded into an open session expire.
+ * A factory to create composite {@link SequenceableLoader}s.
  */
-public final class KeysExpiredException extends Exception {
+public interface CompositeSequenceableLoaderFactory {
+
+  /**
+   * Creates a composite {@link SequenceableLoader}.
+   *
+   * @param loaders The sub-loaders that make up the {@link SequenceableLoader} to be built.
+   * @return A composite {@link SequenceableLoader} that comprises the given loaders.
+   */
+  SequenceableLoader createCompositeSequenceableLoader(SequenceableLoader... loaders);
+
 }
