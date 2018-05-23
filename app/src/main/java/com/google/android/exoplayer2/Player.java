@@ -22,10 +22,11 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.video.VideoListener;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -63,20 +64,6 @@ public interface Player {
     /** Returns the video scaling mode. */
     @C.VideoScalingMode
     int getVideoScalingMode();
-
-    /**
-     * Adds a listener to receive video events.
-     *
-     * @param listener The listener to register.
-     */
-    void addVideoListener(VideoListener listener);
-
-    /**
-     * Removes a listener of video events.
-     *
-     * @param listener The listener to unregister.
-     */
-    void removeVideoListener(VideoListener listener);
 
     /**
      * Clears any {@link Surface}, {@link SurfaceHolder}, {@link SurfaceView} or {@link TextureView}
