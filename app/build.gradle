@@ -82,6 +82,8 @@ dependencies {
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
     implementation "log4j:log4j:$log4jVersion"
 
+    compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
+
     androidTestImplementation("com.google.dexmaker:dexmaker-mockito:$dexMakerVersion") {
         exclude group: 'org.hamcrest'
     }

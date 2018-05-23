@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.metadata.emsg;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.util.Util;
 import java.util.Arrays;
@@ -104,7 +105,7 @@ public final class EventMessage implements Metadata.Entry {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) {
       return true;
     }
@@ -115,6 +116,11 @@ public final class EventMessage implements Metadata.Entry {
     return presentationTimeUs == other.presentationTimeUs && durationMs == other.durationMs
         && id == other.id && Util.areEqual(schemeIdUri, other.schemeIdUri)
         && Util.areEqual(value, other.value) && Arrays.equals(messageData, other.messageData);
+  }
+
+  @Override
+  public String toString() {
+    return "EMSG: scheme=" + schemeIdUri + ", id=" + id + ", value=" + value;
   }
 
   // Parcelable implementation.

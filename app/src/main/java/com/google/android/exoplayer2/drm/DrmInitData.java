@@ -39,18 +39,13 @@ public final class DrmInitData implements Comparator<SchemeData>, Parcelable {
    * <p>The result is generated as follows.
    *
    * <ol>
-   *   <li>
-   *     Include all {@link SchemeData}s from {@code manifestData} where {@link
-   *     SchemeData#hasData()} is true.
-   *   </li>
-   *   <li>
-   *     Include all {@link SchemeData}s in {@code mediaData} where {@link SchemeData#hasData()} is
-   *     true and for which we did not include an entry from the manifest targeting the same UUID.
-   *   </li>
-   *   <li>
-   *     If available, the scheme type from the manifest is used. If not, the scheme type from the
-   *     media is used.
-   *   </li>
+   *   <li>Include all {@link SchemeData}s from {@code manifestData} where {@link
+   *       SchemeData#hasData()} is true.
+   *   <li>Include all {@link SchemeData}s in {@code mediaData} where {@link SchemeData#hasData()}
+   *       is true and for which we did not include an entry from the manifest targeting the same
+   *       UUID.
+   *   <li>If available, the scheme type from the manifest is used. If not, the scheme type from the
+   *       media is used.
    * </ol>
    *
    * @param manifestData DRM session acquisition data obtained from the manifest.
@@ -200,7 +195,7 @@ public final class DrmInitData implements Comparator<SchemeData>, Parcelable {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) {
       return true;
     }
@@ -343,7 +338,7 @@ public final class DrmInitData implements Comparator<SchemeData>, Parcelable {
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
       if (!(obj instanceof SchemeData)) {
         return false;
       }

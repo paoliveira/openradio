@@ -61,6 +61,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
   private boolean hasPendingPrepare;
   private boolean hasPendingSeek;
   private PlaybackParameters playbackParameters;
+  private @Nullable ExoPlaybackException playbackError;
 
   // Playback information when there is no pending seek/set source operation.
   private PlaybackInfo playbackInfo;
@@ -92,11 +93,9 @@ public final class ExoPlayerImpl implements ExoPlayer {
     this.listeners = new CopyOnWriteArraySet<>();
     emptyTrackSelectorResult =
         new TrackSelectorResult(
-            TrackGroupArray.EMPTY,
-            new boolean[renderers.length],
-            new TrackSelectionArray(new TrackSelection[renderers.length]),
-            null,
-            new RendererConfiguration[renderers.length]);
+            new RendererConfiguration[renderers.length],
+            new TrackSelection[renderers.length],
+            null);
     window = new Timeline.Window();
     period = new Timeline.Period();
     playbackParameters = PlaybackParameters.DEFAULT;
@@ -108,7 +107,11 @@ public final class ExoPlayerImpl implements ExoPlayer {
       }
     };
     playbackInfo =
-        new PlaybackInfo(Timeline.EMPTY, /* startPositionUs= */ 0, emptyTrackSelectorResult);
+        new PlaybackInfo(
+            Timeline.EMPTY,
+            /* startPositionUs= */ 0,
+            TrackGroupArray.EMPTY,
+            emptyTrackSelectorResult);
     internalPlayer =
         new ExoPlayerImplInternal(
             renderers,
@@ -155,12 +158,18 @@ public final class ExoPlayerImpl implements ExoPlayer {
   }
 
   @Override
+  public @Nullable ExoPlaybackException getPlaybackError() {
+    return playbackError;
+  }
+
+  @Override
   public void prepare(MediaSource mediaSource) {
     prepare(mediaSource, true, true);
   }
 
   @Override
   public void prepare(MediaSource mediaSource, boolean resetPosition, boolean resetState) {
+    playbackError = null;
     PlaybackInfo playbackInfo =
         getResetPlaybackInfo(
             resetPosition, resetState, /* playbackState= */ Player.STATE_BUFFERING);
@@ -170,7 +179,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
     // because it uses a callback.
     hasPendingPrepare = true;
     pendingOperationAcks++;
-    internalPlayer.prepare(mediaSource, resetPosition);
+    internalPlayer.prepare(mediaSource, resetPosition, resetState);
     updatePlaybackInfo(
         playbackInfo,
         /* positionDiscontinuity= */ false,
@@ -184,6 +193,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
     if (this.playWhenReady != playWhenReady) {
       this.playWhenReady = playWhenReady;
       internalPlayer.setPlayWhenReady(playWhenReady);
+      PlaybackInfo playbackInfo = this.playbackInfo;
       for (Player.EventListener listener : listeners) {
         listener.onPlayerStateChanged(playWhenReady, playbackInfo.playbackState);
       }
@@ -309,12 +319,23 @@ public final class ExoPlayerImpl implements ExoPlayer {
   }
 
   @Override
+  public @Nullable Object getCurrentTag() {
+    int windowIndex = getCurrentWindowIndex();
+    return windowIndex > playbackInfo.timeline.getWindowCount()
+        ? null
+        : playbackInfo.timeline.getWindow(windowIndex, window, /* setTag= */ true).tag;
+  }
+
+  @Override
   public void stop() {
     stop(/* reset= */ false);
   }
 
   @Override
   public void stop(boolean reset) {
+    if (reset) {
+      playbackError = null;
+    }
     PlaybackInfo playbackInfo =
         getResetPlaybackInfo(
             /* resetPosition= */ reset,
@@ -512,7 +533,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
 
   @Override
   public TrackGroupArray getCurrentTrackGroups() {
-    return playbackInfo.trackSelectorResult.groups;
+    return playbackInfo.trackGroups;
   }
 
   @Override
@@ -550,9 +571,10 @@ public final class ExoPlayerImpl implements ExoPlayer {
         }
         break;
       case ExoPlayerImplInternal.MSG_ERROR:
-        ExoPlaybackException exception = (ExoPlaybackException) msg.obj;
+        ExoPlaybackException playbackError = (ExoPlaybackException) msg.obj;
+        this.playbackError = playbackError;
         for (Player.EventListener listener : listeners) {
-          listener.onPlayerError(exception);
+          listener.onPlayerError(playbackError);
         }
         break;
       default:
@@ -567,10 +589,6 @@ public final class ExoPlayerImpl implements ExoPlayer {
       @DiscontinuityReason int positionDiscontinuityReason) {
     pendingOperationAcks -= operationAcks;
     if (pendingOperationAcks == 0) {
-      if (playbackInfo.timeline == null) {
-        // Replace internal null timeline with externally visible empty timeline.
-        playbackInfo = playbackInfo.copyWithTimeline(Timeline.EMPTY, playbackInfo.manifest);
-      }
       if (playbackInfo.startPositionUs == C.TIME_UNSET) {
         // Replace internal unset start position with externally visible start position of zero.
         playbackInfo =
@@ -620,6 +638,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
         playbackInfo.contentPositionUs,
         playbackState,
         /* isLoading= */ false,
+        resetState ? TrackGroupArray.EMPTY : playbackInfo.trackGroups,
         resetState ? emptyTrackSelectorResult : playbackInfo.trackSelectorResult);
   }
 
@@ -635,7 +654,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
     boolean playbackStateChanged = playbackInfo.playbackState != newPlaybackInfo.playbackState;
     boolean isLoadingChanged = playbackInfo.isLoading != newPlaybackInfo.isLoading;
     boolean trackSelectorResultChanged =
-        this.playbackInfo.trackSelectorResult != newPlaybackInfo.trackSelectorResult;
+        playbackInfo.trackSelectorResult != newPlaybackInfo.trackSelectorResult;
     playbackInfo = newPlaybackInfo;
     if (timelineOrManifestChanged || timelineChangeReason == TIMELINE_CHANGE_REASON_PREPARED) {
       for (Player.EventListener listener : listeners) {
@@ -652,7 +671,7 @@ public final class ExoPlayerImpl implements ExoPlayer {
       trackSelector.onSelectionActivated(playbackInfo.trackSelectorResult.info);
       for (Player.EventListener listener : listeners) {
         listener.onTracksChanged(
-            playbackInfo.trackSelectorResult.groups, playbackInfo.trackSelectorResult.selections);
+            playbackInfo.trackGroups, playbackInfo.trackSelectorResult.selections);
       }
     }
     if (isLoadingChanged) {

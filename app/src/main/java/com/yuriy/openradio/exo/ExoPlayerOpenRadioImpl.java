@@ -53,6 +53,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Clock;
+import com.google.android.exoplayer2.util.EventLogger;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -338,7 +339,11 @@ public final class ExoPlayerOpenRadioImpl {
         if (mExoPlayer != null) {
             mExoPlayer.stop();
         }
-        mMediaSource.releaseSource();
+        mMediaSource.releaseSource(
+                (source, timeline, manifest) -> AppLogger.d(
+                        "OnSourceInfoRefreshed:" + source + " " + manifest
+                )
+        );
     }
 
     /**
@@ -395,9 +400,17 @@ public final class ExoPlayerOpenRadioImpl {
                                      final AudioRendererEventListener eventListener,
                                      final AudioProcessor[] audioProcessors,
                                      final List<Renderer> out) {
-        out.add(new MediaCodecAudioRenderer(MediaCodecSelector.DEFAULT, null, true,
-                mainHandler, eventListener, AudioCapabilities.getCapabilities(context),
-                audioProcessors));
+        out.add(
+                new MediaCodecAudioRenderer(
+                        context,
+                        MediaCodecSelector.DEFAULT,
+                        null,
+                        true,
+                        mainHandler,
+                        eventListener,
+                        AudioCapabilities.getCapabilities(context),
+                        audioProcessors)
+        );
     }
 
     /**
