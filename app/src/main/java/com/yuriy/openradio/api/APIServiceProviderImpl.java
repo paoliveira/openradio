@@ -32,8 +32,8 @@ import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.Country;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.vo.MediaStream;
+import com.yuriy.openradio.vo.RadioStation;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Yuriy Chernyshov
@@ -228,20 +230,16 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         // Begin workaround section against dead Radio Stations
         //
 
-        Thread checker;
         final CountDownLatch completeLatch = new CountDownLatch(radioStations.size());
-        final CountDownLatch initLatch = new CountDownLatch(1);
         final Set<String> passedUrls = new TreeSet<>();
-        final Thread[] checkers = new Thread[radioStations.size()];
-        int counter = 0;
+        final ExecutorService executor = Executors.newFixedThreadPool(5);
         for (final RadioStation radioStationVO : radioStations) {
-            checker = new RadioStationChecker(
-                    radioStationVO.getStreamURL(), initLatch, completeLatch, passedUrls
+            executor.submit(
+                    new RadioStationChecker(
+                            radioStationVO.getStreamURL(), completeLatch, passedUrls
+                    )
             );
-            checkers[counter++] = checker;
-            checker.start();
         }
-        initLatch.countDown();
         try {
             completeLatch.await();
         } catch (final InterruptedException e) {
@@ -257,17 +255,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
             }
         }
         passedUrls.clear();
-
-        // Interrupt checker threads
-        for (final Thread checkerToInterrupt : checkers) {
-            if (!checkerToInterrupt.isInterrupted()) {
-                checkerToInterrupt.interrupt();
-            }
-        }
-        // Clear references
-        for (int i = 0; i < checkers.length; i++) {
-            checkers[i] = null;
-        }
 
         //
         // End workaround section against dead Radio Stations
@@ -459,7 +446,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     /**
-     * Updates {@link RadioStation} with the values extraced from the JSOn Object.
+     * Updates {@link RadioStation} with the values extracted from the JSOn Object.
      *
      * @param radioStation Instance of the {@link RadioStation} to be updated.
      * @param object       JSON object that holds informational parameters.

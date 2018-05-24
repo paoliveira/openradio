@@ -1,25 +1,23 @@
 package com.yuriy.openradio.utils;
 
-import java.io.IOException;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.Timer;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 1/25/16
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * Helper class to check whether Radio Station's stream URL is provide 200 OK response.
  */
 
-// TODO: Refactor to use Executor Service
-public final class RadioStationChecker extends Thread {
+public final class RadioStationChecker implements Runnable {
 
     /**
      * String tag to use in the logs.
@@ -35,78 +33,72 @@ public final class RadioStationChecker extends Thread {
      */
     public static final int TIME_OUT = 2000;
     /**
-     * Waiting max time for the thread for the initialization.
-     */
-    private static final int INIT_WAIT_TIME = 2000;
-    /**
      * Radio Station that is uses to check.
      */
     private final String mUrl;
     /**
-     * Timer to keep track on the check time. When specified time runs out, time is used
-     * to terminate check procedure.
-     */
-    private final Timer mTimer = new Timer();
-    /**
      * Latch object to use to determine completion.
      */
     private final CountDownLatch mCompleteLatch;
-    /**
-     * Latch object to use to determine init.
-     */
-    private final CountDownLatch mInitLatch;
     /**
      * Collection of the urls with correct 200 OK response. This is collection
      * of the items to be used.
      */
     private final Set<String> mPassedUrls;
 
+    private static final Set<String> BLACK_LIST = new HashSet<>();
+
+    static {
+        BLACK_LIST.add("susehost.com");
+    }
+
     /**
      * Constructor.
      *
      * @param url           Url of the Radio Station to be checked.
-     * @param initLatch     Latch object to use to determine init.
      * @param completeLatch Latch object to use to determine completion.
      * @param passedUrls    Collection of the Urls with correct 200 OK response.
      */
     public RadioStationChecker(final String url,
-                               final CountDownLatch initLatch,
                                final CountDownLatch completeLatch,
                                final Set<String> passedUrls) {
         super();
         mUrl = url;
-        mInitLatch = initLatch;
         mCompleteLatch = completeLatch;
         mPassedUrls = passedUrls;
-
-        setName(CLASS_NAME + "-Thread");
     }
 
     @Override
     public void run() {
-        super.run();
         AppLogger.d(CLASS_NAME + " Check Stream Url:" + mUrl);
-        try {
-            mInitLatch.await(INIT_WAIT_TIME, TimeUnit.MILLISECONDS);
-        } catch (final InterruptedException e) {
-            /* Ignore */
+
+        for (final String url : BLACK_LIST) {
+            if (mUrl.contains(url)) {
+                AppLogger.w("Skipp black listed url");
+                mCompleteLatch.countDown();
+                return;
+            }
         }
 
         HttpURLConnection urlConnection = null;
         // Use input stream in order to close stream explicitly, this is the expectation of one
         // of the HttpURLConnection implementation.
         InputStream inputStream = null;
+        final double startTime = System.currentTimeMillis();
         try {
-            final double startTime = System.currentTimeMillis();
             final URL url = new URL(mUrl);
             urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setReadTimeout(TIME_OUT);
             urlConnection.setConnectTimeout(TIME_OUT);
+            urlConnection.setInstanceFollowRedirects(true);
+            urlConnection.setUseCaches(false);
+            urlConnection.setDefaultUseCaches(false);
             urlConnection.connect();
-            inputStream = urlConnection.getInputStream();
+            inputStream = new BufferedInputStream(urlConnection.getInputStream());
             final int responseCode = urlConnection.getResponseCode();
+            AppLogger.d(CLASS_NAME + " Stream response:" + responseCode
+                    + " within " + (System.currentTimeMillis() - startTime) + " ms Url:" + mUrl);
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                AppLogger.d(CLASS_NAME + " Stream Url OK:" + urlConnection.getResponseMessage()
-                        + " within " + (System.currentTimeMillis() - startTime) + " ms");
                 synchronized (MONITOR) {
                     mPassedUrls.add(mUrl);
                 }
@@ -124,19 +116,18 @@ public final class RadioStationChecker extends Thread {
     /**
      * Clear timer and disconnect connection.
      */
-    private synchronized void clear(final HttpURLConnection urlConnection,
-                                    final InputStream inputStream) {
-        if (urlConnection == null) {
-            return;
-        }
-        mTimer.cancel();
-        mTimer.purge();
-        try {
-            inputStream.close();
-        } catch (Exception e) {
-            /* Ignore */
-        }
-        urlConnection.disconnect();
+    private void clear(final HttpURLConnection urlConnection,
+                       final InputStream inputStream) {
         mCompleteLatch.countDown();
+        if (urlConnection != null) {
+            urlConnection.disconnect();
+        }
+        if (inputStream != null) {
+            try {
+                inputStream.close();
+            } catch (final Exception e) {
+                /* Ignore */
+            }
+        }
     }
 }
