@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -36,12 +37,12 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.ImageFilePath;
 import com.yuriy.openradio.utils.IntentsHelper;
 import com.yuriy.openradio.utils.PermissionChecker;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;
 
@@ -134,6 +135,8 @@ public final class AddStationDialog extends DialogFragment {
                 }
         );
 
+        final CheckBox addToFavCheckView = view.findViewById(R.id.add_to_fav_check_view);
+
         final Button addBtn = view.findViewById(R.id.add_station_dialog_add_btn_view);
         addBtn.setOnClickListener(
                 viewBtn -> processInput(
@@ -141,7 +144,8 @@ public final class AddStationDialog extends DialogFragment {
                         urlEdit.getText().toString(),
                         mImageUrlEdit.getText().toString(),
                         String.valueOf(genresSpinner.getSelectedItem()),
-                        String.valueOf(countriesSpinner.getSelectedItem())
+                        String.valueOf(countriesSpinner.getSelectedItem()),
+                        addToFavCheckView.isChecked()
                 )
         );
 
@@ -211,9 +215,10 @@ public final class AddStationDialog extends DialogFragment {
      * @param imageUrl Url of the Image associated with Radio Station.
      * @param genre    Genre of the Radio Station.
      * @param country  Country of the Radio Station.
+     * @param addToFav Whether or not add radio station to favorites.
      */
     private void processInput(final String name, final String url, final String imageUrl,
-                              final String genre, final String country) {
+                              final String genre, final String country, final boolean addToFav) {
         if (TextUtils.isEmpty(name)) {
             displayToast("Name is empty");
             return;
@@ -224,7 +229,7 @@ public final class AddStationDialog extends DialogFragment {
         }
 
         ((MainActivity) getActivity()).processAddStationCallback(
-                name, url, imageUrl, genre, country
+                name, url, imageUrl, genre, country, addToFav
         );
 
         getDialog().dismiss();

@@ -21,14 +21,13 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.MediaItemsComparator;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -57,12 +56,11 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
 
         final Context context = shareObject.getContext();
 
-        final List<RadioStation> list = FavoritesStorage.getAllFavorites(
-                context
-        );
-
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.clearAndCopyCollection(shareObject.getRadioStations(), list);
+            QueueHelper.clearAndCopyCollection(
+                    shareObject.getRadioStations(),
+                    FavoritesStorage.getAllFavorites(context)
+            );
         }
 
         for (final RadioStation radioStation : shareObject.getRadioStations()) {

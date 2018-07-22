@@ -149,6 +149,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String EXTRA_KEY_ADD_STATION_COUNTRY
             = "EXTRA_KEY_ADD_STATION_COUNTRY";
 
+    private static final String EXTRA_KEY_ADD_STATION_ADD_TO_FAV
+            = "EXTRA_KEY_ADD_STATION_ADD_TO_FAV";
+
     private static final String EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID";
 
     private static final String EXTRA_KEY_MEDIA_IDS = "EXTRA_KEY_MEDIA_IDS";
@@ -479,19 +482,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (command == null || command.isEmpty()) {
             return super.onStartCommand(intent, flags, startId);
         }
-
+        final Context context = getApplicationContext();
         switch (command) {
             case VALUE_NAME_REQUEST_LOCATION_COMMAND:
                 mLocationService.requestCountryCode(
-                        getApplicationContext(),
-                        countryCode -> LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
+                        context,
+                        countryCode -> LocalBroadcastManager.getInstance(context).sendBroadcast(
                                 AppLocalBroadcastReceiver.createIntentLocationCountryCode(
                                         countryCode
                                 )
                         )
                 );
                 break;
-            case VALUE_NAME_GET_RADIO_STATION_COMMAND:
+            case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
                 // Update Favorites Radio station: whether add it or remove it from the storage
                 final boolean isFavorite = getIsFavoriteFromIntent(intent);
                 final MediaDescriptionCompat mediaDescription = extractMediaDescription(intent);
@@ -508,25 +511,27 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     return super.onStartCommand(intent, flags, startId);
                 }
                 if (isFavorite) {
-                    FavoritesStorage.addToFavorites(
-                            radioStation, getApplicationContext()
-                    );
+                    FavoritesStorage.addToFavorites(radioStation, context);
                 } else {
                     removeFromFavorites(radioStation.getIdAsString());
                 }
                 break;
-            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND:
+            }
+            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
                 final String name = intent.getStringExtra(EXTRA_KEY_ADD_STATION_NAME);
                 final String url = intent.getStringExtra(EXTRA_KEY_ADD_STATION_STREAM_URL);
                 final String imageUrl = intent.getStringExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL);
                 final String genre = intent.getStringExtra(EXTRA_KEY_ADD_STATION_GENRE);
                 final String country = intent.getStringExtra(EXTRA_KEY_ADD_STATION_COUNTRY);
+                final boolean addToFav = intent.getBooleanExtra(
+                        EXTRA_KEY_ADD_STATION_ADD_TO_FAV, false
+                );
 
                 if (!TextUtils.isEmpty(name)
                         && !TextUtils.isEmpty(url)) {
                     final RadioStation radioStationLocal = RadioStation.makeDefaultInstance();
 
-                    radioStationLocal.setId(LocalRadioStationsStorage.getId(getApplicationContext()));
+                    radioStationLocal.setId(LocalRadioStationsStorage.getId(context));
                     radioStationLocal.setName(name);
                     radioStationLocal.setStreamURL(url);
                     radioStationLocal.setImageUrl(imageUrl);
@@ -535,7 +540,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     radioStationLocal.setCountry(country);
                     radioStationLocal.setIsLocal(true);
 
-                    LocalRadioStationsStorage.addToLocal(radioStationLocal, getApplicationContext());
+                    LocalRadioStationsStorage.addToLocal(radioStationLocal, context);
+                    if (addToFav) {
+                        FavoritesStorage.addToFavorites(radioStationLocal, context);
+                    }
 
                     notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
 
@@ -544,13 +552,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     AppLogger.w(CLASS_NAME + " Can not add Station, Name or url are empty");
                 }
                 break;
+            }
             case VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND: {
                 final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
                 if (TextUtils.isEmpty(mediaId)) {
                     AppLogger.w(CLASS_NAME + " Can not remove Station, Media Id is empty");
                     break;
                 }
-                LocalRadioStationsStorage.removeFromLocal(mediaId, getApplicationContext());
+                LocalRadioStationsStorage.removeFromLocal(mediaId, context);
                 QueueHelper.removeRadioStation(mediaId, mRadioStations);
 
                 notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
@@ -830,14 +839,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Factory method to make intent to create custom {@link RadioStation}.
      *
-     * @param context Context of the callee.
-     *
      * @return {@link Intent}.
      */
     public static Intent makeAddRadioStationIntent(final Context context,
                                                    final String name, final String url,
                                                    final String imageUrl, final String genre,
-                                                   final String country) {
+                                                   final String country, final boolean addToFav) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND);
         intent.putExtra(EXTRA_KEY_ADD_STATION_NAME, name);
@@ -846,6 +853,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         intent.putExtra(EXTRA_KEY_ADD_STATION_THUMB_URL, imageUrl);
         intent.putExtra(EXTRA_KEY_ADD_STATION_GENRE, genre);
         intent.putExtra(EXTRA_KEY_ADD_STATION_COUNTRY, country);
+        intent.putExtra(EXTRA_KEY_ADD_STATION_ADD_TO_FAV, addToFav);
         return intent;
     }
 

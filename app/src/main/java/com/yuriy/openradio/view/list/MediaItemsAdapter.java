@@ -147,7 +147,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         updateImage(description, mediaItem.isPlayable(), mViewHolder.mImageView, mImageFetcher);
 
-        if (mediaItem.isPlayable() && !MediaItemHelper.isLocalRadioStationField(mediaItem)) {
+        if (mediaItem.isPlayable()) {
             handleFavoriteAction(mViewHolder.mFavoriteCheckView, description, mediaItem, mCurrentActivity);
         } else {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
@@ -291,7 +291,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
         favoriteCheckView.setOnClickListener(
 
                 view -> {
-                    boolean isChecked = ((CheckBox) view).isChecked();
+                    final boolean isChecked = ((CheckBox) view).isChecked();
 
                     MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 

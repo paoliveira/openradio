@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
+import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.MediaItemsComparator;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
@@ -57,10 +58,11 @@ public final class MediaItemLocalsList implements MediaItemCommand {
 
         final Context context = shareObject.getContext();
 
-        final List<RadioStation> list = LocalRadioStationsStorage.getAllLocals(context);
-
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.clearAndCopyCollection(shareObject.getRadioStations(), list);
+            QueueHelper.clearAndCopyCollection(
+                    shareObject.getRadioStations(),
+                    LocalRadioStationsStorage.getAllLocals(context)
+            );
         }
 
         for (final RadioStation radioStation : shareObject.getRadioStations()) {
@@ -74,6 +76,9 @@ public final class MediaItemLocalsList implements MediaItemCommand {
 
             if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
                 MediaItemHelper.updateLocalRadioStationField(mediaItem, true);
+            }
+            if (FavoritesStorage.isFavorite(radioStation, context)) {
+                MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
             MediaItemHelper.updateSortIdField(mediaItem, radioStation.getSortId());
 

@@ -151,4 +151,9 @@
     <string name="custom_user_agent_label">Custom User Agent</string>
     <string name="custom_user_agent_hint">Custom User Agent empty</string>
 
+    <string name="add_to_fav_string">Add to Favorites</string>
+    <string name="about_playlist_title">Playlist is parsed by:</string>
+    <string name="about_playlist_name">"Java Playlist Parser" of William Seemann</string>
+    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+
 </resources>

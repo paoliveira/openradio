@@ -105,4 +105,8 @@
     <string name="can_not_get_account_name">Nelze získat jméno účtu Google</string>
     <string name="custom_user_agent_label">Vlastní User Agent</string>
     <string name="custom_user_agent_hint">Vlastní User Agent prázdný</string>
+    <string name="add_to_fav_string">Přidat k oblíbeným</string>
+    <string name="about_playlist_title">Playlist je analyzován:</string>
+    <string name="about_playlist_name">"Java Playlist Parser" od Williama Seemanna</string>
+    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
 </resources>

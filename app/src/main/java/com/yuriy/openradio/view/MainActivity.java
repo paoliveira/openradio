@@ -571,9 +571,9 @@ public final class MainActivity extends AppCompatActivity {
      */
     public final void processAddStationCallback(final String name, final String url,
                                                 final String imageUrl, final String genre,
-                                                final String country) {
+                                                final String country, final boolean addToFav) {
         startService(OpenRadioService.makeAddRadioStationIntent(
-                getApplicationContext(), name, url, imageUrl, genre, country
+                getApplicationContext(), name, url, imageUrl, genre, country, addToFav
         ));
     }
 

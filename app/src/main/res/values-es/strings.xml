@@ -105,4 +105,9 @@
     <string name="can_not_get_account_name">No se puede obtener el nombre de la cuenta de Google.</string>
     <string name="custom_user_agent_label">User Agent personalizado</string>
     <string name="custom_user_agent_hint">User Agent personalizado vacío</string>
+
+    <string name="add_to_fav_string">Agregar a los favoritos</string>
+    <string name="about_playlist_title">La lista de reproducción es analizada por:</string>
+    <string name="about_playlist_name">"Java Playlist Parser" de William Seemann</string>
+    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
 </resources>

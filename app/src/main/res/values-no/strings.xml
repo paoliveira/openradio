@@ -105,4 +105,8 @@
     <string name="can_not_get_account_name">Kan ikke få Google-kontonavn.</string>
     <string name="custom_user_agent_label">Tilpasset User Agent</string>
     <string name="custom_user_agent_hint">Tilpasset User Agent tompt</string>
+    <string name="add_to_fav_string">Legg til i favoritter</string>
+    <string name="about_playlist_title">Spilleliste blir analysert av:</string>
+    <string name="about_playlist_name">"Java Playlist Parser" av William Seemann</string>
+    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
 </resources>

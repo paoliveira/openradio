@@ -105,4 +105,8 @@
     <string name="can_not_get_account_name">Impossible d\'obtenir le nom du compte Google</string>
     <string name="custom_user_agent_label">User Agent personnalisé</string>
     <string name="custom_user_agent_hint">User Agent personnalisé est vide</string>
+    <string name="add_to_fav_string">Ajouter aux Favoris</string>
+    <string name="about_playlist_title">La playlist est analysée par:</string>
+    <string name="about_playlist_name">"Java Playlist Parser" de William Seemann</string>
+    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
 </resources>
