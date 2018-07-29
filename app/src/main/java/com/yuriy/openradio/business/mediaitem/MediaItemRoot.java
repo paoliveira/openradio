@@ -85,6 +85,32 @@ public final class MediaItemRoot implements MediaItemCommand {
             }
         }
 
+        // Show Favorites if they are exists.
+        if (!FavoritesStorage.isFavoritesEmpty(context)) {
+            // Favorites list
+
+            final int identifier = context.getResources().getIdentifier(
+                    "ic_favorites_on",
+                    "drawable", context.getPackageName()
+            );
+            // Overlay base image with the appropriate flag
+            final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
+            final Bitmap bitmap = overlay.execute(context, identifier,
+                    BitmapFactory.decodeResource(
+                            context.getResources(),
+                            R.drawable.ic_all_categories
+                    ));
+            final int itemsLength = mediaItems.size();
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    new MediaDescriptionCompat.Builder()
+                            .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
+                            .setTitle(context.getString(R.string.favorites_list_title))
+                            .setIconBitmap(bitmap)
+                            .setSubtitle(context.getString(R.string.favorites_list_sub_title))
+                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+            ));
+        }
+
         // Recently added Radio Stations
         mediaItems.add(new MediaBrowserCompat.MediaItem(
                 new MediaDescriptionCompat.Builder()
@@ -151,32 +177,6 @@ public final class MediaItemRoot implements MediaItemCommand {
                             .setSubtitle(context.getString(
                                     R.string.country_stations_sub_title
                             ))
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
-        }
-
-        // Show Favorites if they are exists.
-        if (!FavoritesStorage.isFavoritesEmpty(context)) {
-            // Favorites list
-
-            final int identifier = context.getResources().getIdentifier(
-                    "ic_favorites_on",
-                    "drawable", context.getPackageName()
-            );
-            // Overlay base image with the appropriate flag
-            final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-            final Bitmap bitmap = overlay.execute(context, identifier,
-                    BitmapFactory.decodeResource(
-                            context.getResources(),
-                            R.drawable.ic_all_categories
-                    ));
-
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
-                            .setTitle(context.getString(R.string.favorites_list_title))
-                            .setIconBitmap(bitmap)
-                            .setSubtitle(context.getString(R.string.favorites_list_sub_title))
                             .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
