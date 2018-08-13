@@ -5,11 +5,11 @@ project.ext {
     /**
      * Build and compile constants
      */
-    compileSdkVersion = 27
+    compileSdkVersion = 28
     minSdkVersion = 16
-    targetSdkVersion = 27
+    targetSdkVersion = 28
     supportVersion = "27.1.1"
-    buildToolsVersion = "27.0.3"
+    buildToolsVersion = "28.0.2"
     checkerframeworkVersion = '2.5.0'
 
     /**
