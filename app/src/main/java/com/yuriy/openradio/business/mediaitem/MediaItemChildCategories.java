@@ -19,6 +19,7 @@ package com.yuriy.openradio.business.mediaitem;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.vo.RadioStation;
@@ -36,6 +37,8 @@ import java.util.List;
  */
 public final class MediaItemChildCategories extends IndexableMediaItemCommand {
 
+    private static final String LOG_TAG = MediaItemChildCategories.class.getSimpleName();
+
     /**
      * Default constructor.
      */
@@ -46,7 +49,8 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
-
+        super.create(playbackStateListener, shareObject);
+        AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 

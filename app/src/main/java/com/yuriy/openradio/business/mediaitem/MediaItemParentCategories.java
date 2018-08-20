@@ -22,6 +22,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppUtils;
@@ -42,6 +43,8 @@ import java.util.List;
  */
 public final class MediaItemParentCategories implements MediaItemCommand {
 
+    private static final String LOG_TAG = MediaItemParentCategories.class.getSimpleName();
+
     public MediaItemParentCategories() {
         super();
     }
@@ -49,7 +52,7 @@ public final class MediaItemParentCategories implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
-
+        AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 

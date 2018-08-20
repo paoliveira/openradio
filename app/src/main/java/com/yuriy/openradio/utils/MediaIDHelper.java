@@ -59,6 +59,8 @@ public final class MediaIDHelper {
 
     public static final String MEDIA_ID_RECENT_ADDED_STATIONS = "__RECENT_ADDED_STATIONS__";
 
+    public static final String MEDIA_ID_LIST_ENDED = "MEDIA_ID_LIST_ENDED";
+
     /**
      *
      */
@@ -151,11 +153,13 @@ public final class MediaIDHelper {
      * @return {@code true} in case of Catalog is refreshable, {@code false} otherwise.
      */
     public static boolean isMediaIdRefreshable(final String categoryMediaId) {
-        return MEDIA_ID_ALL_STATIONS.equals(categoryMediaId)
+        return !TextUtils.isEmpty(categoryMediaId)
+                && (MEDIA_ID_ALL_STATIONS.equals(categoryMediaId)
                 || MEDIA_ID_COUNTRY_STATIONS.equals(categoryMediaId)
                 || MEDIA_ID_POPULAR_STATIONS.equals(categoryMediaId)
                 || MEDIA_ID_RADIO_STATIONS_IN_CATEGORY.equals(categoryMediaId)
                 || MEDIA_ID_RECENT_ADDED_STATIONS.equals(categoryMediaId)
-                || MEDIA_ID_RECENT_PLAYED_SONGS.equals(categoryMediaId);
+                || MEDIA_ID_RECENT_PLAYED_SONGS.equals(categoryMediaId)
+                || categoryMediaId.contains(MEDIA_ID_CHILD_CATEGORIES));
     }
 }

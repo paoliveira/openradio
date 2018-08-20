@@ -24,6 +24,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
@@ -43,6 +44,8 @@ import java.util.List;
  */
 public final class MediaItemSearchFromApp implements MediaItemCommand {
 
+    private static final String LOG_TAG = MediaItemSearchFromApp.class.getSimpleName();
+
     /**
      * Default constructor.
      */
@@ -53,7 +56,7 @@ public final class MediaItemSearchFromApp implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
-
+        AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 

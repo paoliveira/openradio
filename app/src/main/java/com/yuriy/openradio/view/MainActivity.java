@@ -59,10 +59,10 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
+import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
@@ -1168,6 +1168,11 @@ public final class MainActivity extends AppCompatActivity {
                 addBtn.setVisibility(View.GONE);
             }
 
+            // No need to go on if indexed list ended with last item.
+            if (MediaItemHelper.isEndOfList(children)) {
+                return;
+            }
+
             activity.mBrowserAdapter.clear();
             activity.mBrowserAdapter.notifyDataSetInvalidated();
             activity.mBrowserAdapter.addAll(children);
@@ -1176,8 +1181,6 @@ public final class MainActivity extends AppCompatActivity {
             if (children.isEmpty()) {
                 activity.showNoDataMessage();
             }
-
-            activity.hideProgressBar();
 
             if (!activity.listPositionMap.containsKey(parentId)) {
                 AppLogger.d(CLASS_NAME + " No key");
@@ -1341,6 +1344,8 @@ public final class MainActivity extends AppCompatActivity {
             addMediaItemToStack(mCurrentParentId);
             // Call "show" method after "unsubscribe".
             showProgressBar();
+        } else {
+            AppLogger.w("Category " + mCurrentParentId + " is not refreshable");
         }
     }
 

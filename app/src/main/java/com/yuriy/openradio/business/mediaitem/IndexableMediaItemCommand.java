@@ -25,6 +25,8 @@ import java.util.List;
 
 public abstract class IndexableMediaItemCommand implements MediaItemCommand {
 
+    private static final String LOG_TAG = IndexableMediaItemCommand.class.getSimpleName();
+
     /**
      * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
      */
@@ -38,6 +40,7 @@ public abstract class IndexableMediaItemCommand implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
+        AppLogger.d(LOG_TAG + " invoked");
         if (!shareObject.isSameCatalogue()) {
             AppLogger.d("Not the same catalogue, clear list");
             mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
@@ -52,6 +55,7 @@ public abstract class IndexableMediaItemCommand implements MediaItemCommand {
     void handleDataLoaded(final IUpdatePlaybackState playbackStateListener,
                           @NonNull final MediaItemShareObject shareObject,
                           final List<RadioStation> list) {
+        AppLogger.d(LOG_TAG + " Loaded " + list.size() + " items, index " + mPageIndex);
         if (list.isEmpty()) {
 
             if (mPageIndex == UrlBuilder.FIRST_PAGE_INDEX + 1) {
@@ -71,7 +75,9 @@ public abstract class IndexableMediaItemCommand implements MediaItemCommand {
                     );
                 }
             } else {
-                shareObject.getResult().sendResult(shareObject.getMediaItems());
+                shareObject.getResult().sendResult(
+                        MediaItemHelper.createListEndedResult()
+                );
             }
 
             return;

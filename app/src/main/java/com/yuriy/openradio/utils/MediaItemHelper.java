@@ -26,9 +26,13 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.vo.MediaItemListEnded;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -416,5 +420,24 @@ public final class MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .build();
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static List<MediaBrowserCompat.MediaItem> createListEndedResult() {
+        return new ArrayList<>(Collections.singletonList(new MediaItemListEnded()));
+    }
+
+    /**
+     *
+     * @param list
+     * @return
+     */
+    public static boolean isEndOfList(final List<MediaBrowserCompat.MediaItem> list) {
+        return list == null
+                || list.size() == 1
+                && (list.get(0) == null || list.get(0) instanceof MediaItemListEnded);
     }
 }

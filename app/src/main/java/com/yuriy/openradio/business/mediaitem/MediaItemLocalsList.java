@@ -22,6 +22,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.business.storage.FavoritesStorage;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.MediaItemsComparator;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
@@ -42,6 +43,8 @@ import java.util.List;
  */
 public final class MediaItemLocalsList implements MediaItemCommand {
 
+    private static final String LOG_TAG = MediaItemLocalsList.class.getSimpleName();
+
     /**
      * Default constructor.
      */
@@ -52,7 +55,7 @@ public final class MediaItemLocalsList implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
-
+        AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 

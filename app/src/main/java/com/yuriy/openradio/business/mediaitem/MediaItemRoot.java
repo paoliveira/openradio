@@ -26,6 +26,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
@@ -48,6 +49,8 @@ import java.util.List;
  */
 public final class MediaItemRoot implements MediaItemCommand {
 
+    private static final String LOG_TAG = MediaItemRoot.class.getSimpleName();
+
     /**
      * Main constructor.
      */
@@ -58,7 +61,7 @@ public final class MediaItemRoot implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
-
+        AppLogger.d(LOG_TAG + " invoked");
         final Context context = shareObject.getContext();
 
         final String iconUrl = "android.resource://" +

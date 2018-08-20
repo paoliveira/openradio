@@ -47,6 +47,8 @@ import java.util.List;
  */
 public final class MediaItemCountriesList implements MediaItemCommand {
 
+    private static final String LOG_TAG = MediaItemCountriesList.class.getSimpleName();
+
     /**
      * String tag to use in the log message.
      */
@@ -55,7 +57,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
-
+        AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 
