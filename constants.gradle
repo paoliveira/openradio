@@ -18,7 +18,7 @@ project.ext {
     googlePlayServicesDriveVersion = "15.0.1"
     constraintLayoutVersion = "1.1.2"
     log4jVersion = "1.2.17"
-    crashlyticsVersion = "2.9.4"
+    crashlyticsVersion = "2.9.5"
     dexMakerVersion = "1.2"
     hamcrestVersion = "1.3"
     junitVersion = "4.12"
