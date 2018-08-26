@@ -64,6 +64,7 @@ import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
 import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
 import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
 import com.yuriy.openradio.business.mediaitem.MediaItemStation;
+import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
@@ -330,6 +331,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private String mCurrentParentId;
 
+    private MasterVolumeBroadcastReceiver mMasterVolumeBroadcastReceiver;
+
+    /**
+     * Default constructor.
+     */
+    public OpenRadioService() {
+        super();
+        final MasterVolumeBroadcastReceiverListener listener = new MasterVolumeEventListener(this);
+        mMasterVolumeBroadcastReceiver = new MasterVolumeBroadcastReceiver(listener);
+    }
+
     /**
      * Interface to link command implementation and Open Radio service.
      */
@@ -436,6 +448,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
+        mMasterVolumeBroadcastReceiver.register(context);
     }
 
     @Override
@@ -488,7 +501,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 mLocationService.requestCountryCode(
                         context,
                         countryCode -> LocalBroadcastManager.getInstance(context).sendBroadcast(
-                                AppLocalBroadcastReceiver.createIntentLocationCountryCode(
+                                AppLocalBroadcast.createIntentLocationCountryCode(
                                         countryCode
                                 )
                         )
@@ -592,6 +605,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + " On Destroy");
         super.onDestroy();
 
+        mMasterVolumeBroadcastReceiver.unregister(getApplicationContext());
         stopService();
 
         final ExecutorService executorService = getApiCallExecutor();
@@ -1314,11 +1328,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             // we have audio focus:
-            if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
-                mExoPlayer.setVolume(VOLUME_DUCK);   // we'll be relatively quiet
-            } else {
-                mExoPlayer.setVolume(VOLUME_NORMAL); // we can be loud again
-            }
+            setPlayerVolume();
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
                 if (!mExoPlayer.isPlaying()) {
@@ -1332,6 +1342,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         updatePlaybackState();
+    }
+
+    private void setPlayerVolume() {
+        if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
+            mExoPlayer.setVolume(getNormalVolume() * 0.2F); // we'll be relatively quiet
+        } else {
+            mExoPlayer.setVolume(getNormalVolume()); // we can be loud again
+        }
+    }
+
+    private float getNormalVolume() {
+        final int masterVolume = AppPreferencesManager.getMasterVolume(getApplicationContext());
+        return masterVolume / 100.0F;
     }
 
     /**
@@ -1941,7 +1964,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mediaId = item.getDescription().getMediaId();
         }
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
-                AppLocalBroadcastReceiver.createIntentCurrentIndexOnQueue(
+                AppLocalBroadcast.createIntentCurrentIndexOnQueue(
                         index, mediaId
                 )
         );
@@ -2055,7 +2078,24 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.mBufferedPosition = bufferedPosition;
             service.updatePlaybackState();
         }
+    }
 
+    private static final class MasterVolumeEventListener implements MasterVolumeBroadcastReceiverListener {
 
+        private final WeakReference<OpenRadioService> mReference;
+
+        private MasterVolumeEventListener(final OpenRadioService service) {
+            super();
+            mReference = new WeakReference<>(service);
+        }
+
+        @Override
+        public void onMasterVolumeChanged() {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            service.setPlayerVolume();
+        }
     }
 }

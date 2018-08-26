@@ -110,7 +110,7 @@ public final class LocationService {
         }
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(
-                AppLocalBroadcastReceiver.createIntentLocationDisabled()
+                AppLocalBroadcast.createIntentLocationDisabled()
         );
     }
 

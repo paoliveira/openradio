@@ -155,5 +155,6 @@
     <string name="about_playlist_title">Playlist is parsed by:</string>
     <string name="about_playlist_name">"Java Playlist Parser" of William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+    <string name="settings_master_volume">Master sound volume:</string>
 
 </resources>

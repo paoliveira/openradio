@@ -109,4 +109,5 @@
     <string name="about_playlist_title">Spilleliste blir analysert av:</string>
     <string name="about_playlist_name">"Java Playlist Parser" av William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+    <string name="settings_master_volume">Master lydvolum:</string>
 </resources>

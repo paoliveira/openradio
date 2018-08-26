@@ -69,6 +69,13 @@ public final class AppPreferencesManager {
     private static final String PREFS_KEY_CUSTOM_USER_AGENT = "CUSTOM_USER_AGENT";
 
     /**
+     *
+     */
+    private static final String PREFS_KEY_MASTER_VOLUME = "MASTER_VOLUME";
+
+    private static final int MASTER_VOLUME_DEFAULT = 100;
+
+    /**
      * Default constructor.
      */
     private AppPreferencesManager() {
@@ -202,6 +209,27 @@ public final class AppPreferencesManager {
                                           @NonNull final String value) {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putString(PREFS_KEY_CUSTOM_USER_AGENT, value);
+        editor.apply();
+    }
+
+    /**
+     * @return Value of the master volume, or default one in case of errors.
+     */
+    public static int getMasterVolume(@NonNull final Context context) {
+        return getSharedPreferences(context).getInt(
+                PREFS_KEY_MASTER_VOLUME,
+                MASTER_VOLUME_DEFAULT
+        );
+    }
+
+    /**
+     * Sets the value of master volume.
+     *
+     * @param value Master volume.
+     */
+    public static void setMasterVolume(@NonNull final Context context, final int value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putInt(PREFS_KEY_MASTER_VOLUME, value);
         editor.apply();
     }
 

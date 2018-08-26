@@ -109,4 +109,5 @@
     <string name="about_playlist_title">Playlist wird geparst von:</string>
     <string name="about_playlist_name">"Java Playlist Parser" von William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+    <string name="settings_master_volume">Master-Lautstärke:</string>
 </resources>

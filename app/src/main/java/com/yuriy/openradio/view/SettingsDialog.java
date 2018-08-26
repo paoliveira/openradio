@@ -26,18 +26,21 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
+import com.yuriy.openradio.service.AppLocalBroadcast;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -156,6 +159,28 @@ public final class SettingsDialog extends DialogFragment {
         final boolean isCustomUserAgent = AppPreferencesManager.isCustomUserAgent(context);
         mUserAgentCheckView.setChecked(isCustomUserAgent);
         mUserAgentEditView.setEnabled(isCustomUserAgent);
+
+        final SeekBar masterVolumeSeekBar = view.findViewById(R.id.master_vol_seek_bar);
+        masterVolumeSeekBar.setProgress(AppPreferencesManager.getMasterVolume(context));
+        masterVolumeSeekBar.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(final SeekBar seekBar,
+                                                  final int progress,
+                                                  final boolean fromUser) {}
+
+                    @Override
+                    public void onStartTrackingTouch(final SeekBar seekBar) {}
+
+                    @Override
+                    public void onStopTrackingTouch(final SeekBar seekBar) {
+                        AppPreferencesManager.setMasterVolume(context, seekBar.getProgress());
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(
+                                AppLocalBroadcast.createIntentMasterVolumeChanged()
+                        );
+                    }
+                }
+        );
     }
 
     @Override

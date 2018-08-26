@@ -61,6 +61,20 @@
             android:layout_height="wrap_content"
             android:text="@string/clear_logs_label" />
 
+        <TextView
+            android:text="@string/settings_master_volume"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="10dp"/>
+
+        <SeekBar
+            android:id="@+id/master_vol_seek_bar"
+            android:paddingTop="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"/>
+
     </LinearLayout>
 
 </ScrollView>

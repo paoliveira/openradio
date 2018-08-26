@@ -109,4 +109,5 @@
     <string name="about_playlist_title">La playlist est analysée par:</string>
     <string name="about_playlist_name">"Java Playlist Parser" de William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+    <string name="settings_master_volume">Volume sonore principal:</string>
 </resources>

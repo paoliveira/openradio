@@ -67,6 +67,7 @@ import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
 import com.yuriy.openradio.drive.GoogleDriveManager;
+import com.yuriy.openradio.service.AppLocalBroadcast;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
 import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
 import com.yuriy.openradio.service.OpenRadioService;
@@ -842,9 +843,9 @@ public final class MainActivity extends AppCompatActivity {
 
         // Create filter and add actions
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationDisabled());
-        intentFilter.addAction(AppLocalBroadcastReceiver.getActionLocationCountryCode());
-        intentFilter.addAction(AppLocalBroadcastReceiver.getActionCurrentIndexOnQueueChanged());
+        intentFilter.addAction(AppLocalBroadcast.getActionLocationDisabled());
+        intentFilter.addAction(AppLocalBroadcast.getActionLocationCountryCode());
+        intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
         // Register receiver
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
                 mAppLocalBroadcastReceiver,
@@ -860,7 +861,9 @@ public final class MainActivity extends AppCompatActivity {
     private void unregisterReceivers() {
         mAppLocalBroadcastReceiver.unregisterListener();
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mAppLocalBroadcastReceiver);
+        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
+                mAppLocalBroadcastReceiver
+        );
 
         mScreenBroadcastReceiver.unregister(getApplicationContext());
     }
