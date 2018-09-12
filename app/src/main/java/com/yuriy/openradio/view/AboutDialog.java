@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
@@ -52,7 +51,7 @@ public final class AboutDialog extends DialogFragment {
      * My profile's url
      */
     private static final String AUTHOR_PROFILE_URL
-            = "http://www.linkedin.com/pub/yuriy-chernyshov/1b/622/270";
+            = "https://www.linkedin.com/in/yurii-chernyshov-2706221b/";
 
     /**
      * Project's url
@@ -96,11 +95,6 @@ public final class AboutDialog extends DialogFragment {
         final String exoPlayerVersionText
                 = getString(R.string.about_exo_text) + " " + ExoPlayerLibraryInfo.VERSION;
         exoPlayerVersion.setText(exoPlayerVersionText);
-
-        final Button closeBtn = view.findViewById(R.id.about_dialog_close_btn_view);
-        closeBtn.setOnClickListener(
-                v -> getDialog().dismiss()
-        );
 
         return view;
     }

@@ -16,7 +16,8 @@ project.ext {
      * Libraries versions
      */
     googlePlayServicesDriveVersion = "15.0.1"
-    constraintLayoutVersion = "1.1.2"
+    googlePlayServicesDriveVersionAuth = "16.0.0"
+    constraintLayoutVersion = "1.1.3"
     log4jVersion = "1.2.17"
     crashlyticsVersion = "2.9.5"
     dexMakerVersion = "1.2"
