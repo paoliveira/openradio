@@ -1345,6 +1345,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void setPlayerVolume() {
+        if (mExoPlayer == null) {
+            AppLogger.e(CLASS_NAME + " can not set player volume, player null");
+            return;
+        }
         if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
             mExoPlayer.setVolume(getNormalVolume() * 0.2F); // we'll be relatively quiet
         } else {
