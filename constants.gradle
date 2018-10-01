@@ -10,7 +10,7 @@ project.ext {
     targetSdkVersion = 28
     supportVersion = "28.0.0"
     supportVersionDesign = "27.1.1"
-    buildToolsVersion = "28.0.2"
+    buildToolsVersion = "28.0.3"
     checkerframeworkVersion = '2.5.0'
 
     /**
