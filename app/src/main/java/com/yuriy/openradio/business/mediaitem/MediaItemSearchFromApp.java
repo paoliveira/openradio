@@ -17,17 +17,11 @@
 package com.yuriy.openradio.business.mediaitem;
 
 import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
 
-import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.MediaItemHelper;
-import com.yuriy.openradio.utils.QueueHelper;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.vo.RadioStation;
 
@@ -42,7 +36,7 @@ import java.util.List;
  * {@link MediaItemSearchFromApp} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations from the search collection.
  */
-public final class MediaItemSearchFromApp implements MediaItemCommand {
+public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
 
     private static final String LOG_TAG = MediaItemSearchFromApp.class.getSimpleName();
 
@@ -56,6 +50,7 @@ public final class MediaItemSearchFromApp implements MediaItemCommand {
     @Override
     public void create(final IUpdatePlaybackState playbackStateListener,
                        @NonNull final MediaItemShareObject shareObject) {
+        super.create(playbackStateListener, shareObject);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
@@ -63,61 +58,14 @@ public final class MediaItemSearchFromApp implements MediaItemCommand {
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    loadSearchedStations(playbackStateListener, shareObject);
+                    final List<RadioStation> list = shareObject.getServiceProvider().getStations(
+                            shareObject.getDownloader(),
+                            UrlBuilder.getSearchUrl(shareObject.getContext()),
+                            // Get search query from the holder util.
+                            APIServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
+                    );
+                    handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );
-    }
-
-    /**
-     * Load Radio Stations from the Search query.
-     *
-     * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
-     *                              references needed to execute command
-     */
-    private void loadSearchedStations(final IUpdatePlaybackState playbackStateListener,
-                                      @NonNull final MediaItemShareObject shareObject) {
-        final List<RadioStation> list = shareObject.getServiceProvider().getStations(
-                shareObject.getDownloader(),
-                UrlBuilder.getSearchUrl(shareObject.getContext()),
-                // Get search query from the holder util.
-                APIServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
-        );
-
-        shareObject.getMediaItems().clear();
-
-        if (list.isEmpty()) {
-
-            shareObject.getResult().sendResult(shareObject.getMediaItems());
-            if (playbackStateListener != null) {
-                playbackStateListener.updatePlaybackState(
-                        shareObject.getContext().getString(R.string.no_search_results)
-                );
-            }
-
-            return;
-        }
-
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.clearAndCopyCollection(shareObject.getRadioStations(), list);
-        }
-
-        for (final RadioStation radioStation : shareObject.getRadioStations()) {
-
-            final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    shareObject.getContext(),
-                    radioStation
-            );
-            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
-
-            if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
-                MediaItemHelper.updateFavoriteField(mediaItem, true);
-            }
-
-            shareObject.getMediaItems().add(mediaItem);
-        }
-
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

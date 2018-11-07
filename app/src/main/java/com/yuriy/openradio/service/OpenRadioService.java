@@ -413,18 +413,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_POPULAR_STATIONS, new MediaItemPopularStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RECENT_ADDED_STATIONS, new MediaItemRecentlyAddedStations());
 
-        // Create and start a background HandlerThread since by
-        // default a Service runs in the UI Thread, which we don't
-        // want to block.
-        //final HandlerThread thread = new HandlerThread(
-        //        OpenRadioService.class.getSimpleName() + "-MessagesThread"
-        //);
-        //thread.start();
-
-        // Get the HandlerThread's Looper and use it for our Handler.
-        //mMessagesHandler = new MessagesHandler(thread.getLooper());
-        //mMessagesHandler.setReference(this);
-
         mCurrentIndexOnQueue = -1;
 
         final Context context = getApplicationContext();

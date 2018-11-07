@@ -11,16 +11,16 @@ project.ext {
     supportVersion = "28.0.0"
     supportVersionDesign = "27.1.1"
     buildToolsVersion = "28.0.3"
-    checkerframeworkVersion = '2.5.0'
+    checkerframeworkVersion = '2.5.6'
 
     /**
      * Libraries versions
      */
-    googlePlayServicesDriveVersion = "15.0.1"
-    googlePlayServicesDriveVersionAuth = "16.0.0"
+    googlePlayServicesDriveVersion = "16.0.0"
+    googlePlayServicesAuthVersion = "16.0.1"
     constraintLayoutVersion = "1.1.3"
     log4jVersion = "1.2.17"
-    crashlyticsVersion = "2.9.5"
+    crashlyticsVersion = "2.9.6"
     dexMakerVersion = "1.2"
     hamcrestVersion = "1.3"
     junitVersion = "4.12"

@@ -52,7 +52,7 @@ public final class FabricUtils {
      */
     public static void logException(final Exception exception) {
         AppLogger.e("Ex:" + Log.getStackTraceString(exception));
-        if (Crashlytics.getInstance() == null) {
+        if (!Fabric.isInitialized()) {
             return;
         }
         Crashlytics.logException(exception);
@@ -64,7 +64,7 @@ public final class FabricUtils {
      */
     public static void log(final String message) {
         AppLogger.d("FabricUtils msg::" + message);
-        if (Crashlytics.getInstance() == null) {
+        if (!Fabric.isInitialized()) {
             return;
         }
         Crashlytics.log(message);

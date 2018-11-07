@@ -202,8 +202,6 @@ public final class LocationService {
         final Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses;
 
-        getCountryCode(context, latitude, longitude);
-
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception exception) {
