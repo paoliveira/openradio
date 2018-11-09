@@ -157,4 +157,8 @@
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
     <string name="settings_master_volume">Master sound volume:</string>
 
+    <string name="edit_station_menu_label">Edit Radio Station</string>
+    <string name="edit_station_dialog_title">Edit Radio Station</string>
+    <string name="edit_station_dialog_button_label">Edit</string>
+
 </resources>

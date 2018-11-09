@@ -399,6 +399,11 @@ public final class MainActivity extends AppCompatActivity {
                     handleDeleteRadioStationMenu(mOnTouchListener.mPosition);
                 }
                 break;
+            case R.id.edit_radio_station_menu:
+                if (mOnTouchListener.mPosition != -1) {
+                    handleEditRadioStationMenu(mOnTouchListener.mPosition);
+                }
+                break;
         }
         return super.onContextItemSelected(item);
     }
@@ -575,6 +580,17 @@ public final class MainActivity extends AppCompatActivity {
                                                 final String country, final boolean addToFav) {
         startService(OpenRadioService.makeAddRadioStationIntent(
                 getApplicationContext(), name, url, imageUrl, genre, country, addToFav
+        ));
+    }
+
+    /**
+     * Process user's input in order to edit custom {@link RadioStation}.
+     */
+    public final void processEditStationCallback(final String mediaId, final String name, final String url,
+                                                 final String imageUrl, final String genre,
+                                                 final String country, final boolean addToFav) {
+        startService(OpenRadioService.makeEditRadioStationIntent(
+                getApplicationContext(), mediaId, name, url, imageUrl, genre, country, addToFav
         ));
     }
 
@@ -924,7 +940,7 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // If Item is not Local Radio Station - skipp farther processing
+        // If Item is not Local Radio Station - skip farther processing
         if (!MediaItemHelper.isLocalRadioStationField(item)) {
             return;
         }
@@ -945,6 +961,33 @@ public final class MainActivity extends AppCompatActivity {
                 item.getMediaId(), name
         );
         dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
+    }
+
+    /**
+     * Handles action of the Radio Station edition.
+     *
+     * @param position Position (in the List) of the Radio Station to be edited.
+     */
+    private void handleEditRadioStationMenu(final int position) {
+        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
+        if (item == null) {
+            return;
+        }
+
+        // If Item is not Local Radio Station - skip farther processing
+        if (!MediaItemHelper.isLocalRadioStationField(item)) {
+            return;
+        }
+
+        if (mIsOnSaveInstancePassed.get()) {
+            AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
+            return;
+        }
+
+        // Show Edit Station Dialog
+        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        final DialogFragment dialog = EditStationDialog.newInstance(item.getMediaId());
+        dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
 
     /**

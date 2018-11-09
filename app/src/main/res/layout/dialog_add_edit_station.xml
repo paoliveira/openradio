@@ -9,7 +9,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/add_station_dialog_root">
+        android:id="@+id/add_edit_station_dialog_root">
 
         <TextView
             android:layout_width="match_parent"
@@ -18,7 +18,7 @@
             android:text="@string/add_station_name_label"/>
 
         <EditText
-            android:id="@+id/add_station_name_edit"
+            android:id="@+id/add_edit_station_name_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/add_station_name_hint"
@@ -32,7 +32,7 @@
             android:text="@string/add_station_url_label"/>
 
         <EditText
-            android:id="@+id/add_station_stream_url_edit"
+            android:id="@+id/add_edit_station_stream_url_edit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/add_station_url_hint"
@@ -51,7 +51,7 @@
             android:orientation="horizontal">
 
             <EditText
-                android:id="@+id/add_station_image_url_edit"
+                android:id="@+id/add_edit_station_image_url_edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/add_station_image_hint"
@@ -60,7 +60,7 @@
                 android:layout_weight="1"/>
 
             <Button
-                android:id="@+id/add_station_image_browse_btn"
+                android:id="@+id/add_edit_station_image_browse_btn"
                 android:layout_width="100dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -87,7 +87,7 @@
             android:text="@string/add_station_country_label"/>
 
         <Spinner
-            android:id="@+id/add_station_country_spin"
+            android:id="@+id/add_edit_station_country_spin"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"/>
@@ -110,14 +110,14 @@
             android:layout_height="wrap_content">
 
             <Button
-                android:id="@+id/add_station_dialog_cancel_btn_view"
+                android:id="@+id/add_edit_station_dialog_cancel_btn_view"
                 android:text="@string/cancel_label"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"/>
 
             <Button
-                android:id="@+id/add_station_dialog_add_btn_view"
+                android:id="@+id/add_edit_station_dialog_add_btn_view"
                 android:text="@string/add_station_dialog_button_label"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"

@@ -124,6 +124,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND";
 
+    private static final String VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND
+            = "VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND";
+
     private static final String VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
 
@@ -133,25 +136,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
 
-    private static final String EXTRA_KEY_ADD_STATION_NAME = "EXTRA_KEY_ADD_STATION_NAME";
+    private static final String EXTRA_KEY_STATION_NAME = "EXTRA_KEY_STATION_NAME";
 
-    private static final String EXTRA_KEY_ADD_STATION_STREAM_URL
-            = "EXTRA_KEY_ADD_STATION_STREAM_URL";
+    private static final String EXTRA_KEY_STATION_STREAM_URL = "EXTRA_KEY_STATION_STREAM_URL";
 
-    private static final String EXTRA_KEY_ADD_STATION_IMAGE_URL
-            = "EXTRA_KEY_ADD_STATION_IMAGE_URL";
+    private static final String EXTRA_KEY_STATION_IMAGE_URL = "EXTRA_KEY_STATION_IMAGE_URL";
 
-    private static final String EXTRA_KEY_ADD_STATION_THUMB_URL
-            = "EXTRA_KEY_ADD_STATION_THUMB_URL";
+    private static final String EXTRA_KEY_STATION_THUMB_URL = "EXTRA_KEY_STATION_THUMB_URL";
 
-    private static final String EXTRA_KEY_ADD_STATION_GENRE
-            = "EXTRA_KEY_ADD_STATION_GENRE";
+    private static final String EXTRA_KEY_STATION_GENRE = "EXTRA_KEY_STATION_GENRE";
 
-    private static final String EXTRA_KEY_ADD_STATION_COUNTRY
-            = "EXTRA_KEY_ADD_STATION_COUNTRY";
+    private static final String EXTRA_KEY_STATION_COUNTRY = "EXTRA_KEY_STATION_COUNTRY";
 
-    private static final String EXTRA_KEY_ADD_STATION_ADD_TO_FAV
-            = "EXTRA_KEY_ADD_STATION_ADD_TO_FAV";
+    private static final String EXTRA_KEY_STATION_ADD_TO_FAV = "EXTRA_KEY_STATION_ADD_TO_FAV";
 
     private static final String EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID";
 
@@ -518,18 +515,40 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 }
                 break;
             }
-            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
-                final String name = intent.getStringExtra(EXTRA_KEY_ADD_STATION_NAME);
-                final String url = intent.getStringExtra(EXTRA_KEY_ADD_STATION_STREAM_URL);
-                final String imageUrl = intent.getStringExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL);
-                final String genre = intent.getStringExtra(EXTRA_KEY_ADD_STATION_GENRE);
-                final String country = intent.getStringExtra(EXTRA_KEY_ADD_STATION_COUNTRY);
+            case VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND: {
+                final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
+                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
+                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
+                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
+                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
+                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
                 final boolean addToFav = intent.getBooleanExtra(
-                        EXTRA_KEY_ADD_STATION_ADD_TO_FAV, false
+                        EXTRA_KEY_STATION_ADD_TO_FAV, false
                 );
 
-                if (!TextUtils.isEmpty(name)
-                        && !TextUtils.isEmpty(url)) {
+                final RadioStation radioStation = LocalRadioStationsStorage.getFromLocal(mediaId, context);
+
+                if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(url)) {
+
+                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
+
+                    AppLogger.d(CLASS_NAME + " Edited:" + radioStation);
+                } else {
+                    AppLogger.w(CLASS_NAME + " Can not edit Station, Name or url are empty");
+                }
+                break;
+            }
+            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
+                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
+                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
+                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
+                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
+                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
+                final boolean addToFav = intent.getBooleanExtra(
+                        EXTRA_KEY_STATION_ADD_TO_FAV, false
+                );
+
+                if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(url)) {
                     final RadioStation radioStationLocal = RadioStation.makeDefaultInstance();
 
                     radioStationLocal.setId(LocalRadioStationsStorage.getId(context));
@@ -849,13 +868,35 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                                    final String country, final boolean addToFav) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_NAME, name);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_STREAM_URL, url);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_IMAGE_URL, imageUrl);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_THUMB_URL, imageUrl);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_GENRE, genre);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_COUNTRY, country);
-        intent.putExtra(EXTRA_KEY_ADD_STATION_ADD_TO_FAV, addToFav);
+        intent.putExtra(EXTRA_KEY_STATION_NAME, name);
+        intent.putExtra(EXTRA_KEY_STATION_STREAM_URL, url);
+        intent.putExtra(EXTRA_KEY_STATION_IMAGE_URL, imageUrl);
+        intent.putExtra(EXTRA_KEY_STATION_THUMB_URL, imageUrl);
+        intent.putExtra(EXTRA_KEY_STATION_GENRE, genre);
+        intent.putExtra(EXTRA_KEY_STATION_COUNTRY, country);
+        intent.putExtra(EXTRA_KEY_STATION_ADD_TO_FAV, addToFav);
+        return intent;
+    }
+
+    /**
+     * Factory method to make intent to edit custom {@link RadioStation}.
+     *
+     * @return {@link Intent}.
+     */
+    public static Intent makeEditRadioStationIntent(final Context context, final String mediaId,
+                                                    final String name, final String url,
+                                                    final String imageUrl, final String genre,
+                                                    final String country, final boolean addToFav) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND);
+        intent.putExtra(EXTRA_KEY_MEDIA_ID, mediaId);
+        intent.putExtra(EXTRA_KEY_STATION_NAME, name);
+        intent.putExtra(EXTRA_KEY_STATION_STREAM_URL, url);
+        intent.putExtra(EXTRA_KEY_STATION_IMAGE_URL, imageUrl);
+        intent.putExtra(EXTRA_KEY_STATION_THUMB_URL, imageUrl);
+        intent.putExtra(EXTRA_KEY_STATION_GENRE, genre);
+        intent.putExtra(EXTRA_KEY_STATION_COUNTRY, country);
+        intent.putExtra(EXTRA_KEY_STATION_ADD_TO_FAV, addToFav);
         return intent;
     }
 

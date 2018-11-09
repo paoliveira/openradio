@@ -4,6 +4,9 @@
         android:id="@+id/sort_radio_stations_menu"
         android:title="@string/sort_radio_stations_menu_label"/>
     <item
+        android:id="@+id/edit_radio_station_menu"
+        android:title="@string/edit_station_menu_label"/>
+    <item
         android:id="@+id/delete_radio_station_menu"
         android:title="@string/delete_station_menu_label"/>
 </menu>

@@ -120,6 +120,22 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     }
 
     /**
+     *
+     * @param mediaId
+     * @param context
+     * @return
+     */
+    public static synchronized RadioStation getFromLocal(final String mediaId, final Context context) {
+        final List<RadioStation> list = getAll(context, FILE_NAME);
+        for (final RadioStation radioStation : list) {
+            if (radioStation.getIdAsString().endsWith(mediaId)) {
+                return radioStation;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Return Local added Radio Stations which are stored in the persistent storage represented in a single String.
      *
      * @param context Context of the callee.
