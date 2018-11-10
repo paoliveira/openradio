@@ -50,11 +50,13 @@ import java.util.ArrayList;
  * At Android Studio
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * Base dialog to use by Edit and Add dialogs.
  */
 public abstract class BaseAddEditStationDialog extends DialogFragment {
 
     /**
-     * View for the selected Image Url.
+     * Text view for Image Url.
      */
     protected EditText mImageUrlEdit;
     protected EditText mNameEdit;
@@ -191,20 +193,23 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
     }
 
     /**
-     * @param name
-     * @param url
-     * @param imageUrl
-     * @param genre
-     * @param country
-     * @param addToFav
+     * Abstraction to handle action once input is processed.
+     *
+     * @param name     Name of the Radio Station.
+     * @param url      Url of the Stream associated with Radio Station.
+     * @param imageUrl Url of the Image associated with Radio Station.
+     * @param genre    Genre of the Radio Station.
+     * @param country  Country of the Radio Station.
+     * @param addToFav Whether or not add radio station to favorites.
      */
     protected abstract void processInput(final String name, final String url, final String imageUrl,
                                          final String genre, final String country, final boolean addToFav);
 
     /**
+     * Return position of country in drop down list.
      *
-     * @param country
-     * @return
+     * @param country Country of the Radio Station.
+     * @return Position of country.
      */
     protected int getCountryPosition(final String country) {
         if (mCountriesAdapter == null) {
@@ -214,9 +219,10 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
     }
 
     /**
+     * Return position of genre in drop down list.
      *
-     * @param genre
-     * @return
+     * @param genre Genre of the Radio Station.
+     * @return Position of Genre.
      */
     protected int getGenrePosition(final String genre) {
         if (mGenresAdapter == null) {

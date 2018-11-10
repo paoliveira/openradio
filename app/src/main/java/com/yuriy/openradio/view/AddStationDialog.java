@@ -29,6 +29,8 @@ import com.yuriy.openradio.vo.RadioStation;
  * At Android Studio
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * Dialog view to handle Add Radio Station functionality.
  */
 public final class AddStationDialog extends BaseAddEditStationDialog {
 
@@ -43,7 +45,7 @@ public final class AddStationDialog extends BaseAddEditStationDialog {
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
     /**
-     * Create a new instance of {@link AddStationDialog}
+     * Create a new instance of {@link AddStationDialog}.
      */
     @SuppressWarnings("all")
     public static AddStationDialog newInstance() {

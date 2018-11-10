@@ -51,7 +51,7 @@ public final class AboutDialog extends DialogFragment {
      * My profile's url
      */
     private static final String AUTHOR_PROFILE_URL
-            = "https://www.linkedin.com/in/yurii-chernyshov-2706221b/";
+            = "https://www.linkedin.com/in/yurii-chernyshov/";
 
     /**
      * Project's url

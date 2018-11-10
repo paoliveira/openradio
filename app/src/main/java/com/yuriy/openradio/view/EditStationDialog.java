@@ -28,7 +28,6 @@ import android.widget.Button;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
-import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.RadioStation;
 
 /**
@@ -36,6 +35,8 @@ import com.yuriy.openradio.vo.RadioStation;
  * At Android Studio
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * Dialog to provide components to Edit Radio Station.
  */
 public final class EditStationDialog extends BaseAddEditStationDialog {
 
@@ -49,18 +50,25 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    public static final String MEDIA_ID_TAG = "MEDIA_ID_TAG";
+    /**
+     * Key to keep Media Id's value in Bundle.
+     */
+    private static final String MEDIA_ID_KEY = "MEDIA_ID_KEY";
 
+    /**
+     * Media Id associated with current Radio Station.
+     */
     private String mMediaId;
 
     /**
      * Create a new instance of {@link EditStationDialog}
+     *
+     * @param mediaId Media id associated with Radio Station.
      */
-    @SuppressWarnings("all")
     public static EditStationDialog newInstance(final String mediaId) {
         final EditStationDialog editStationDialog = new EditStationDialog();
         final Bundle bundle = new Bundle();
-        bundle.putString(MEDIA_ID_TAG, mediaId);
+        bundle.putString(MEDIA_ID_KEY, mediaId);
         editStationDialog.setArguments(bundle);
         return editStationDialog;
     }
@@ -76,16 +84,16 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
 
         mMediaId = getMediaId(getArguments());
 
+        final Context context = getActivity().getApplicationContext();
         if (mMediaId != null) {
-            final Context context = getActivity().getApplicationContext();
-            final RadioStation radioStation = LocalRadioStationsStorage.getFromLocal(mMediaId, context);
+            final RadioStation radioStation = LocalRadioStationsStorage.get(mMediaId, context);
             if (radioStation != null) {
                 handleUI(radioStation, context);
             } else {
-                //TODO: Handle UI in case of no Radio Station found.
+                handleInvalidRadioStation(context, addOrEditBtn);
             }
         } else {
-            //TODO: Handle UI in case of no ID found.
+            handleInvalidRadioStation(context, addOrEditBtn);
         }
 
         return view;
@@ -111,9 +119,21 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
     }
 
     /**
+     * Handles UI in case of error while trying to edit Radio Station.
      *
-     * @param radioStation
-     * @param context
+     * @param context      Context of a callee.
+     * @param addOrEditBtn Edit button.
+     */
+    private void handleInvalidRadioStation(@NonNull final Context context, @NonNull final Button addOrEditBtn) {
+        SafeToast.showAnyThread(context, context.getString(R.string.can_not_edit_station_label));
+        addOrEditBtn.setEnabled(false);
+    }
+
+    /**
+     * Update UI with Radio Station loaded from storage.
+     *
+     * @param radioStation Radio Station.
+     * @param context      Context of a callee.
      */
     private void handleUI(@NonNull final RadioStation radioStation, final Context context) {
         mNameEdit.setText(radioStation.getName());
@@ -125,17 +145,18 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
     }
 
     /**
+     * Extract media id from provided Bundle.
      *
-     * @param bundle
-     * @return
+     * @param bundle Bundle to handle.
+     * @return Media Id or {@code null} if there is nothing to extract.
      */
     private static String getMediaId(@Nullable final Bundle bundle) {
         if (bundle == null) {
             return null;
         }
-        if (!bundle.containsKey(MEDIA_ID_TAG)) {
+        if (!bundle.containsKey(MEDIA_ID_KEY)) {
             return null;
         }
-        return bundle.getString(MEDIA_ID_TAG);
+        return bundle.getString(MEDIA_ID_KEY);
     }
 }

@@ -110,4 +110,8 @@
     <string name="about_playlist_name">"Java Playlist Parser" de William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
     <string name="settings_master_volume">Volumen de sonido maestro:</string>
+    <string name="edit_station_menu_label">Editar Estación de Radio</string>
+    <string name="edit_station_dialog_title">Editar Estación de Radio</string>
+    <string name="edit_station_dialog_button_label">Editar</string>
+    <string name="can_not_edit_station_label">No se puede editar la Estación de Radio</string>
 </resources>

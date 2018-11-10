@@ -60,14 +60,14 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      */
     protected static synchronized void add(final RadioStation radioStation,
                                            final Context context, final String name) {
-        final List<RadioStation> all = getAll(context, name);
-        int maxSortId = -1;
-        for (final RadioStation radioStationLocal : all) {
-            if (radioStationLocal.getSortId() > maxSortId) {
-                maxSortId = radioStationLocal.getSortId();
-            }
-        }
         if (radioStation.getSortId() == -1) {
+            final List<RadioStation> all = getAll(context, name);
+            int maxSortId = -1;
+            for (final RadioStation radioStationLocal : all) {
+                if (radioStationLocal.getSortId() > maxSortId) {
+                    maxSortId = radioStationLocal.getSortId();
+                }
+            }
             radioStation.setSortId(maxSortId + 1);
         }
 
@@ -112,6 +112,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
         final SharedPreferences.Editor editor = getEditor(context, name);
         editor.remove(mediaId);
         editor.commit();
+        AppLogger.i("Radio Station removed, media id:" + mediaId);
     }
 
     /**
@@ -256,6 +257,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
         final SharedPreferences.Editor editor = getEditor(context, name);
         editor.putString(key, serializer.serialize(radioStation));
         editor.commit();
+        AppLogger.i("Radio Station added " + radioStation);
     }
 
     /**

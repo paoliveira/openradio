@@ -110,4 +110,8 @@
     <string name="about_playlist_name">"Java Playlist Parser" William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
     <string name="settings_master_volume">Hlavná hlasitosť zvuku:</string>
+    <string name="edit_station_menu_label">Upraviť Rozhlasovú Stanicu</string>
+    <string name="edit_station_dialog_title">Upraviť Rozhlasovú Stanicu</string>
+    <string name="edit_station_dialog_button_label">Upraviť</string>
+    <string name="can_not_edit_station_label">Nie je možné upraviť Rozhlasovú Stanicu</string>
 </resources>

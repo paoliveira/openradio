@@ -21,6 +21,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     private static final String FILE_NAME = "LocalRadioStationsPreferences";
 
     /**
-     * Key for the a of the Radio Station Id.
+     * Key for Radio Station Id.
      */
     private static final String KEY_ID = "KEY_ID";
 
@@ -71,7 +72,6 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * Gets value of the Radio Station Id.
      *
      * @param context Applications context.
-     *
      * @return The value of the Radio Station Id.
      */
     public static int getId(final Context context) {
@@ -89,11 +89,12 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     }
 
     /**
+     * Check whether provided value is equal to {@link #KEY_ID}.
      *
-     * @param value
-     * @return
+     * @param value Value ot compare of.
+     * @return {@code true} in case of value is {@link #KEY_ID}, {@code false} otherwise.
      */
-    public static boolean isKeyId(final String value) {
+    static boolean isKeyId(final String value) {
         return TextUtils.equals(KEY_ID, value);
     }
 
@@ -103,8 +104,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * @param radioStation {@link RadioStation} to add to the Local Radio Stations.
      * @param context      Context of the callee.
      */
-    public static synchronized void addToLocal(final RadioStation radioStation,
-                                               final Context context) {
+    public static synchronized void add(final RadioStation radioStation, final Context context) {
         add(radioStation, context, FILE_NAME);
     }
 
@@ -120,12 +120,56 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     }
 
     /**
+     * Update Radio Station with provided values.
      *
-     * @param mediaId
-     * @param context
-     * @return
+     * @param mediaId  Media Id of the {@link RadioStation}.
+     * @param context  Context of the callee.
+     * @param name     Name of Radio Station.
+     * @param url      URL of stream associated with Radio Station.
+     * @param imageUrl URL of image associated with Radio Stream.
+     * @param genre    Genre of Radio Station.
+     * @param country  Country associated with Radio Station.
+     * @param addToFav Whether or not Radio Station is in Favorite category.
+     * @return {@code true} in case of success or {@code false} if Radio Station was not found.
      */
-    public static synchronized RadioStation getFromLocal(final String mediaId, final Context context) {
+    public static synchronized boolean update(final String mediaId, final Context context,
+                                              final String name, final String url, final String imageUrl,
+                                              final String genre, final String country, final boolean addToFav) {
+        boolean result = false;
+        final List<RadioStation> list = getAll(context, FILE_NAME);
+        for (final RadioStation radioStation : list) {
+            if (radioStation.getIdAsString().endsWith(mediaId)) {
+                radioStation.setName(name);
+                radioStation.setStreamURL(url);
+                //TODO: Should we remove previous image from storage?
+                radioStation.setImageUrl(imageUrl);
+                radioStation.setGenre(genre);
+                radioStation.setCountry(country);
+
+                if (addToFav) {
+                    FavoritesStorage.addToFavorites(radioStation, context);
+                } else {
+                    FavoritesStorage.removeFromFavorites(mediaId, context);
+                }
+
+                add(radioStation, context, FILE_NAME);
+                AppLogger.d("Radio station updated to:" + radioStation.toString());
+
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Return Radio Station object associated with media id.
+     *
+     * @param mediaId Media Id of the {@link RadioStation}.
+     * @param context Context of the callee.
+     * @return Radio Station or {@code null} if there was nothing found.
+     */
+    public static synchronized RadioStation get(final String mediaId, final Context context) {
         final List<RadioStation> list = getAll(context, FILE_NAME);
         for (final RadioStation radioStation : list) {
             if (radioStation.getIdAsString().endsWith(mediaId)) {
@@ -177,7 +221,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      *
      * @param context Context of the callee.
      * @return {@code true} in case of the are Local Radio Stations in collection,
-     *         {@code false} - otherwise.
+     * {@code false} - otherwise.
      */
     public static boolean isLocalsEmpty(final Context context) {
         final List<RadioStation> list = getAll(context, FILE_NAME);

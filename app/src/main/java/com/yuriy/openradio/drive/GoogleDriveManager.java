@@ -380,7 +380,7 @@ public final class GoogleDriveManager {
             final List<RadioStation> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(localsRx);
             QueueHelper.merge(localsList, localsRxList);
             for (final RadioStation radioStation : localsList) {
-                LocalRadioStationsStorage.addToLocal(radioStation, mContext);
+                LocalRadioStationsStorage.add(radioStation, mContext);
             }
         }
     }

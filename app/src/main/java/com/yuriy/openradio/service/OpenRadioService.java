@@ -526,15 +526,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         EXTRA_KEY_STATION_ADD_TO_FAV, false
                 );
 
-                final RadioStation radioStation = LocalRadioStationsStorage.getFromLocal(mediaId, context);
+                final boolean result = LocalRadioStationsStorage.update(
+                        mediaId, context, name, url, imageUrl, genre, country, addToFav
+                );
 
-                if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(url)) {
-
-                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
-
-                    AppLogger.d(CLASS_NAME + " Edited:" + radioStation);
+                if (result) {
+                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
                 } else {
-                    AppLogger.w(CLASS_NAME + " Can not edit Station, Name or url are empty");
+                    AppLogger.w(CLASS_NAME + " Can not edit Station");
                 }
                 break;
             }
@@ -560,14 +559,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     radioStationLocal.setCountry(country);
                     radioStationLocal.setIsLocal(true);
 
-                    LocalRadioStationsStorage.addToLocal(radioStationLocal, context);
+                    LocalRadioStationsStorage.add(radioStationLocal, context);
                     if (addToFav) {
                         FavoritesStorage.addToFavorites(radioStationLocal, context);
                     }
 
                     notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
-
-                    AppLogger.d(CLASS_NAME + " Add:" + radioStationLocal);
                 } else {
                     AppLogger.w(CLASS_NAME + " Can not add Station, Name or url are empty");
                 }
@@ -583,8 +580,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 QueueHelper.removeRadioStation(mediaId, mRadioStations);
 
                 notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
-
-                AppLogger.d(CLASS_NAME + " Remove:" + mediaId);
                 break;
             }
             case VALUE_NAME_UPDATE_SORT_IDS:
@@ -974,7 +969,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (TextUtils.equals(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
                 FavoritesStorage.addToFavorites(radioStation, getApplicationContext());
             } else if (TextUtils.equals(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
-                LocalRadioStationsStorage.addToLocal(radioStation, getApplicationContext());
+                LocalRadioStationsStorage.add(radioStation, getApplicationContext());
             }
         }
     }
