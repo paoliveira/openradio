@@ -24,9 +24,11 @@ import java.net.URLDecoder;
 
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
 import wseemann.media.jplaylistparser.mime.MediaType;
+import wseemann.media.jplaylistparser.parser.asx.ASXPlaylistParser;
 import wseemann.media.jplaylistparser.parser.m3u.M3UPlaylistParser;
 import wseemann.media.jplaylistparser.parser.m3u8.M3U8PlaylistParser;
 import wseemann.media.jplaylistparser.parser.pls.PLSPlaylistParser;
+import wseemann.media.jplaylistparser.parser.xspf.XSPFPlaylistParser;
 import wseemann.media.jplaylistparser.playlist.Playlist;
 
 public final class AutoDetectParser {
@@ -66,6 +68,8 @@ public final class AutoDetectParser {
         final AbstractParser m3uPlaylistParser = new M3UPlaylistParser(mTimeout);
         final AbstractParser m3u8PlaylistParser = new M3U8PlaylistParser(mTimeout);
         final AbstractParser plsPlaylistParser = new PLSPlaylistParser(mTimeout);
+        final AbstractParser xspfPlaylistParser = new XSPFPlaylistParser(mTimeout);
+        final AbstractParser asxPlaylistParser = new ASXPlaylistParser(mTimeout);
 
         extension = getFileExtension(uri);
 
@@ -79,6 +83,12 @@ public final class AutoDetectParser {
         } else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)
                 || plsPlaylistParser.getSupportedTypes().contains(MediaType.parse(mimeType))) {
             parser = plsPlaylistParser;
+        } else if (extension.equalsIgnoreCase(XSPFPlaylistParser.EXTENSION)
+                || xspfPlaylistParser.getSupportedTypes().contains(MediaType.parse(mimeType))) {
+            parser = xspfPlaylistParser;
+        } else if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)
+                || asxPlaylistParser.getSupportedTypes().contains(MediaType.parse(mimeType))) {
+            parser = asxPlaylistParser;
         } else {
             throw new JPlaylistParserException("Unsupported format:" + uri);
         }
@@ -97,6 +107,8 @@ public final class AutoDetectParser {
         final AbstractParser m3uPlaylistParser = new M3UPlaylistParser(mTimeout);
         final AbstractParser m3u8PlaylistParser = new M3U8PlaylistParser(mTimeout);
         final AbstractParser plsPlaylistParser = new PLSPlaylistParser(mTimeout);
+        final AbstractParser xspfPlaylistParser = new XSPFPlaylistParser(mTimeout);
+        final AbstractParser asxPlaylistParser = new ASXPlaylistParser(mTimeout);
 
         extension = getFileExtension(uri);
 
@@ -107,6 +119,10 @@ public final class AutoDetectParser {
             parser = m3u8PlaylistParser;
         } else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)) {
             parser = plsPlaylistParser;
+        } else if (extension.equalsIgnoreCase(XSPFPlaylistParser.EXTENSION)) {
+            parser = xspfPlaylistParser;
+        } else if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)) {
+            parser = asxPlaylistParser;
         } else {
             throw new JPlaylistParserException("Unsupported format:" + uri);
         }
@@ -151,6 +167,10 @@ public final class AutoDetectParser {
                 endIndex = M3U8PlaylistParser.EXTENSION.length();
             } else if (fileExtension.startsWith(M3UPlaylistParser.EXTENSION)) {
                 endIndex = M3UPlaylistParser.EXTENSION.length();
+            } else if (fileExtension.startsWith(XSPFPlaylistParser.EXTENSION)) {
+                endIndex = XSPFPlaylistParser.EXTENSION.length();
+            } else if (fileExtension.startsWith(ASXPlaylistParser.EXTENSION)) {
+                endIndex = ASXPlaylistParser.EXTENSION.length();
             } else {
                 endIndex = fileExtension.length();
             }

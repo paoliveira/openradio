@@ -61,6 +61,10 @@ public final class MediaType implements Comparable<MediaType> {
         return MediaType.parse("audio/" + type);
     }
 
+    public static MediaType video(String type) {
+        return MediaType.parse("video/" + type);
+    }
+
     /**
      * Parses the given string to a media type. The string is expected
      * to be of the form "type/subtype(; parameter=...)*" as defined in

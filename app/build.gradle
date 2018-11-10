@@ -81,6 +81,8 @@ dependencies {
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
     implementation "log4j:log4j:$log4jVersion"
+    // https://mvnrepository.com/artifact/org.jdom/jdom2
+    implementation group: 'org.jdom', name: 'jdom2', version: '2.0.6'
 
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
 
