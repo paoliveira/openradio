@@ -74,20 +74,9 @@ public final class QueueActivity extends AppCompatActivity {
     private QueueAdapter mQueueAdapter;
 
     /**
-     * Position of the first visible element in the List, usually using when restore position
-     * when List re-creating.
-     */
-//    private int mListFirstVisiblePosition = 0;
-
-    /**
      * Key value for the first visible ID in the List for the store Bundle
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
-
-    /**
-     * Key value for the selected media id (from {@link MainActivity}).
-     */
-    private static final String BUNDLE_ARG_SELECTED_MEDIA_ID = "BUNDLE_ARG_SELECTED_MEDIA_ID";
 
     /**
      * Progress Bar to indicate that Radio Station is going to play.
@@ -144,13 +133,7 @@ public final class QueueActivity extends AppCompatActivity {
                 (o1, o2) -> {
                     final int sortId1 = MediaItemHelper.getSortIdField(o1);
                     final int sortId2 = MediaItemHelper.getSortIdField(o2);
-                    if (sortId2 > sortId1) {
-                        return -1;
-                    }
-                    if (sortId2 < sortId1) {
-                        return 1;
-                    }
-                    return 0;
+                    return Integer.compare(sortId1, sortId2);
                 }
         );
 
@@ -167,35 +150,10 @@ public final class QueueActivity extends AppCompatActivity {
             skipToQueueItem(position);
             view.setSelected(true);
         });
-//        mListView.setOnScrollListener(
-//                new AbsListView.OnScrollListener() {
-//                    @Override
-//                    public void onScrollStateChanged(final AbsListView view, final int scrollState) {
-//                        if (scrollState == SCROLL_STATE_IDLE
-//                                || scrollState == SCROLL_STATE_TOUCH_SCROLL) {
-//                            return;
-//                        }
-//                        mListFirstVisiblePosition = mListView.getFirstVisiblePosition();
-//                        AppLogger.d(
-//                                CLASS_NAME
-//                                        + " 1st visible pos (after scroll) is "
-//                                        + mListFirstVisiblePosition
-//                        );
-//                    }
-//
-//                    @Override
-//                    public void onScroll(final AbsListView view, final int firstVisibleItem,
-//                                         final int visibleItemCount, final int totalItemCount) {
-//
-//                    }
-//                }
-//        );
 
         mMediaResourcesManager.create();
 
         updateBufferedTime(0);
-
-        restoreState(savedInstanceState);
     }
 
     @Override
@@ -226,14 +184,11 @@ public final class QueueActivity extends AppCompatActivity {
      * launching.
      *
      * @param context Context of the callee.
-     * @param mediaId Selected Media Id.
      *
      * @return {@link android.content.Intent}
      */
-    public static Intent makeIntent(final Context context, final String mediaId) {
-        final Intent intent = new Intent(context, QueueActivity.class);
-        intent.putExtra(BUNDLE_ARG_SELECTED_MEDIA_ID, mediaId);
-        return intent;
+    public static Intent makeIntent(final Context context) {
+        return new Intent(context, QueueActivity.class);
     }
 
     private void skipToQueueItem(final int position) {
@@ -243,45 +198,7 @@ public final class QueueActivity extends AppCompatActivity {
             return;
         }
 
-//        mListFirstVisiblePosition = mListView.getFirstVisiblePosition();
-//        AppLogger.d(
-//                CLASS_NAME
-//                        + " 1st visible pos (after click) is "
-//                        + mListFirstVisiblePosition
-//        );
-
         mMediaResourcesManager.transportControlsSkipToQueueItem(item.getQueueId());
-    }
-
-    /**
-     * Extract the value of the Selected Media Id (selected in the {@link MainActivity}).
-     *
-     * @param intent Intent associated with the start of the {@link QueueActivity}.
-     * @return Value of the Selected Media Id.
-     */
-    private static String getSelectedMediaId(final Intent intent) {
-        if (intent == null) {
-            return "";
-        }
-        if (!intent.hasExtra(BUNDLE_ARG_SELECTED_MEDIA_ID)) {
-            return "";
-        }
-        return intent.getStringExtra(BUNDLE_ARG_SELECTED_MEDIA_ID);
-    }
-
-    /**
-     * Restore state of the UI as it was before destroying.
-     *
-     * @param savedInstanceState {@link android.os.Bundle} with stored values.
-     */
-    private void restoreState(final Bundle savedInstanceState) {
-        if (savedInstanceState == null) {
-            // Nothing to restore
-            return;
-        }
-        // Restore List's position
-//        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
-//        AppLogger.d(CLASS_NAME + " 1st visible pos (after restore) is " + mListFirstVisiblePosition);
     }
 
     /**
@@ -359,8 +276,6 @@ public final class QueueActivity extends AppCompatActivity {
                 statusBuilder.append(mPlaybackState);
         }
 
-//        mListView.setSelection(mListFirstVisiblePosition);
-
         statusBuilder.append(" -- At position: ").append(state.getPosition());
         AppLogger.d(CLASS_NAME + " " + statusBuilder.toString());
 
@@ -379,11 +294,6 @@ public final class QueueActivity extends AppCompatActivity {
         if (position > 0) {
             skipToQueueItem(position - 1);
         }
-
-//        mListFirstVisiblePosition--;
-//        if (mListFirstVisiblePosition < 0) {
-//            mListFirstVisiblePosition = 0;
-//        }
     }
 
     /**
@@ -395,11 +305,6 @@ public final class QueueActivity extends AppCompatActivity {
         if (position < count - 1) {
             skipToQueueItem(position + 1);
         }
-
-//        mListFirstVisiblePosition++;
-//        if (mListFirstVisiblePosition > count) {
-//            mListFirstVisiblePosition = count;
-//        }
     }
 
     /**
@@ -499,7 +404,7 @@ public final class QueueActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onConnected(List<MediaSessionCompat.QueueItem> queue) {
+        public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
             final QueueActivity activity = mReference.get();
             if (activity == null) {
                 return;
@@ -509,31 +414,6 @@ public final class QueueActivity extends AppCompatActivity {
             activity.mPlaybackState = activity.mMediaResourcesManager.getPlaybackState();
 
             if (queue != null) {
-
-                // If the is no first visible position restored, try to get selected id from the
-                // bundles of the Intent.
-
-//                if (activity.mListFirstVisiblePosition == 0) {
-//                    final int queueSize = queue.size();
-//                    final String selectedMediaId = getSelectedMediaId(activity.getIntent());
-//                    MediaSessionCompat.QueueItem item;
-//                    String mediaId;
-//                    for (int i = 0; i < queueSize; i++) {
-//                        item = queue.get(i);
-//                        if (item == null) {
-//                            continue;
-//                        }
-//                        mediaId = item.getDescription().getMediaId();
-//                        if (mediaId == null) {
-//                            continue;
-//                        }
-//                        if (mediaId.equals(selectedMediaId)) {
-//                            activity.mListFirstVisiblePosition = i;
-//                            break;
-//                        }
-//                    }
-//                }
-
                 activity.mQueueAdapter.clear();
                 activity.mQueueAdapter.notifyDataSetInvalidated();
                 activity.mQueueAdapter.addAll(queue);

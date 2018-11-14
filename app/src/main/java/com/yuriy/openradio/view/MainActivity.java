@@ -924,7 +924,7 @@ public final class MainActivity extends AppCompatActivity {
 
             // Call appropriate activity for the items playing
             startActivity(
-                    QueueActivity.makeIntent(getApplicationContext(), mediaId)
+                    QueueActivity.makeIntent(getApplicationContext())
             );
         }
     }

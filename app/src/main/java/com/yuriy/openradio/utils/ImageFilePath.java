@@ -57,7 +57,7 @@ public final class ImageFilePath {
                 final Uri contentUri = ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
 
-                return getDataColumn(context, contentUri, null, null);
+                return getDataColumn(context, contentUri, uri, null, null);
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
@@ -79,7 +79,7 @@ public final class ImageFilePath {
                         split[1]
                 };
 
-                return getDataColumn(context, contentUri, selection, selectionArgs);
+                return getDataColumn(context, contentUri, uri, selection, selectionArgs);
             }
         }
         // MediaStore (and general)
@@ -89,7 +89,7 @@ public final class ImageFilePath {
             if (isGooglePhotosUri(uri))
                 return uri.getLastPathSegment();
 
-            return getDataColumn(context, uri, null, null);
+            return getDataColumn(context, uri, uri, null, null);
         }
         // File
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
@@ -105,32 +105,28 @@ public final class ImageFilePath {
      *
      * @param context       The context.
      * @param uri           The Uri to query.
+     * @param originalUri   The original Uri to query.
      * @param selection     (Optional) Filter used in the query.
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
     public static String getDataColumn(final Context context,
                                        final Uri uri,
+                                       final Uri originalUri,
                                        final String selection,
                                        final String[] selectionArgs) {
 
-        Cursor cursor = null;
         final String column = "_data";
-        final String[] projection = {
-                column
-        };
-
-        try {
-            cursor = context.getContentResolver().query(
-                    uri, projection, selection, selectionArgs, null
-            );
+        final String[] projection = {column};
+        try (final Cursor cursor = context.getContentResolver()
+                .query(uri, projection, selection, selectionArgs, null)) {
             if (cursor != null && cursor.moveToFirst()) {
                 final int index = cursor.getColumnIndexOrThrow(column);
                 return cursor.getString(index);
             }
-        } finally {
-            if (cursor != null)
-                cursor.close();
+        } catch (final Exception e) {
+            final String msg = "Can not get data column for " + (originalUri != null ? originalUri.toString() : "null.");
+            FabricUtils.logException(new Exception(msg, e));
         }
         return null;
     }
