@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.service;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -47,6 +48,7 @@ import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
+import com.yuriy.openradio.business.ConnectivityReceiver;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.RemoteControlReceiver;
@@ -331,10 +333,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private MasterVolumeBroadcastReceiver mMasterVolumeBroadcastReceiver;
 
     /**
+     * The BroadcastReceiver that tracks network connectivity changes.
+     */
+    private final BroadcastReceiver mConnectivityReceiver;
+
+    /**
      * Default constructor.
      */
     public OpenRadioService() {
         super();
+        final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
+                new ConnectivityChangeListenerImpl(this);
+        mConnectivityReceiver = new ConnectivityReceiver(connectivityChangeListener);
         final MasterVolumeBroadcastReceiverListener listener = new MasterVolumeEventListener(this);
         mMasterVolumeBroadcastReceiver = new MasterVolumeBroadcastReceiver(listener);
     }
@@ -434,6 +444,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mMediaNotification = new MediaNotification(this);
         mMasterVolumeBroadcastReceiver.register(context);
+
+        // Registers BroadcastReceiver to track network connection changes.
+        registerReceiver(mConnectivityReceiver, ConnectivityReceiver.getIntentFilter());
     }
 
     @Override
@@ -606,6 +619,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public final void onDestroy() {
         AppLogger.d(CLASS_NAME + " On Destroy");
         super.onDestroy();
+
+        unregisterReceiver(mConnectivityReceiver);
 
         mMasterVolumeBroadcastReceiver.unregister(getApplicationContext());
         stopService();
@@ -1103,13 +1118,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 executorService.submit(
                         () -> {
                             // Start download information about Radio Station
-                            final RadioStation radioStationUpdated = getServiceProvider(OpenRadioService.this.getApplicationContext()).getStation(
-                                    new HTTPDownloaderImpl(),
-                                    UrlBuilder.getStation(
-                                            getApplicationContext(),
-                                            radioStationCopy.getIdAsString()
-                                    )
-                            );
+                            final RadioStation radioStationUpdated = getServiceProvider(
+                                    OpenRadioService.this.getApplicationContext())
+                                    .getStation(
+                                            new HTTPDownloaderImpl(),
+                                            UrlBuilder.getStation(
+                                                    getApplicationContext(),
+                                                    radioStationCopy.getIdAsString()
+                                            )
+                                    );
                             radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
                             radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
                             radioStationCopy.setIsUpdated(true);
@@ -1226,6 +1243,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void handlePlayRequest() {
         AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
+
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+            return;
+        }
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         if (!mServiceStarted) {
@@ -1570,6 +1591,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param mediaId ID of the Radio Station.
      */
     private void handlePlayFromMediaId(final String mediaId) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+            return;
+        }
+
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             mState = PlaybackStateCompat.STATE_STOPPED;
         }
@@ -1669,6 +1694,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 mediaId,
                 getApplicationContext()
         );
+    }
+
+    private void handleConnectivityChange(final boolean isConnected) {
+        if (isConnected) {
+            handlePlayRequest();
+        }
     }
 
     /**
@@ -2004,12 +2035,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     @Nullable
     private ExecutorService getApiCallExecutor() {
-        if (mApiCallExecutor == null) {
-            FabricUtils.logCustomEvent(
-                    FabricUtils.EVENT_NAME_API_EXEC, "Error", "API executor is null"
-            );
-            return null;
-        }
         if (mApiCallExecutor.isShutdown()) {
             FabricUtils.logCustomEvent(
                     FabricUtils.EVENT_NAME_API_EXEC, "Error", "API executor is shut down"
@@ -2124,6 +2149,35 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             service.setPlayerVolume();
+        }
+    }
+
+    /**
+     * Listener of the connectivity events.
+     */
+    private static final class ConnectivityChangeListenerImpl implements ConnectivityReceiver.ConnectivityChangeListener {
+
+        private final WeakReference<OpenRadioService> mReference;
+
+        /**
+         * Main constructor.
+         *
+         * @param reference Reference of the callee.
+         */
+        private ConnectivityChangeListenerImpl(final OpenRadioService reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onConnectivityChange(final boolean isConnected) {
+            AppLogger.i(CLASS_NAME + " network connected:" + isConnected);
+            final OpenRadioService reference = mReference.get();
+            if (reference == null) {
+                AppLogger.w(CLASS_NAME + " network connected, enclosing reference is null");
+                return;
+            }
+            reference.handleConnectivityChange(isConnected);
         }
     }
 }

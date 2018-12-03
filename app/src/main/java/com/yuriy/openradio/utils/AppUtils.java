@@ -23,8 +23,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -32,8 +30,6 @@ import android.telephony.TelephonyManager;
 import android.util.DisplayMetrics;
 
 import com.google.android.exoplayer2.util.Util;
-import com.yuriy.openradio.R;
-import com.yuriy.openradio.view.SafeToast;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -718,38 +714,5 @@ public final class AppUtils {
             FabricUtils.logException(e);
         }
         return null;
-    }
-
-    /**
-     * Checks for the connection availability.
-     *
-     * @param context Context of the callee.
-     * @return {@code true} if connection is available, {@code false} otherwise.
-     */
-    public static boolean checkConnectivity(@NonNull final Context context) {
-        final ConnectivityManager connectivityManager =
-                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (connectivityManager == null) {
-            return false;
-        }
-        final NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
-        return !(networkInfo == null || !networkInfo.isConnectedOrConnecting());
-    }
-
-    /**
-     * Checks for the connection availability.
-     *
-     * @param context Context of the callee.
-     * @return {@code true} if connection is available, {@code false} otherwise.
-     */
-    public static boolean checkConnectivityAndNotify(@NonNull final Context context) {
-        if (checkConnectivity(context)) {
-            return true;
-        }
-        SafeToast.showAnyThread(
-                context,
-                context.getString(R.string.no_network_connection_toast)
-        );
-        return false;
     }
 }

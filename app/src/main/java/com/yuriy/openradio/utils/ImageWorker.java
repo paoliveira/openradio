@@ -92,7 +92,11 @@ public abstract class ImageWorker {
                     new AsyncDrawable(mResources, mLoadingBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
 
-            task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            try {
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } catch (final Exception e) {
+                /* Ignore */
+            }
         }
     }
 
