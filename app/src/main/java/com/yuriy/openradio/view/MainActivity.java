@@ -59,6 +59,7 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.ConnectivityReceiver;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
@@ -890,6 +891,10 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the clicked item.
      */
     private void handleOnItemClick(final int position) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+            return;
+        }
+
         // Current selected media item
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
 
