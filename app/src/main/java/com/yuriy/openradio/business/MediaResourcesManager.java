@@ -191,6 +191,10 @@ public final class MediaResourcesManager {
         return mMediaController.getPlaybackState();
     }
 
+    public MediaMetadataCompat getMediaMetadata() {
+        return mMediaController != null ? mMediaController.getMetadata() : null;
+    }
+
     /**
      * Callback object for the Media Browser connection events.
      */

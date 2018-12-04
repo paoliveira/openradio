@@ -484,7 +484,7 @@ public final class MediaNotification extends BroadcastReceiver {
         mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
-    private void fetchBitmapFromURLAsync(final String source) {
+    private void fetchBitmapFromURLAsync(@NonNull final String source) {
         AppLogger.d(CLASS_NAME + " getBitmapFromURLAsync: starting async task to fetch " + source);
         final AsyncTask<Void, Void, Bitmap> task = new FetchBitmapAsyncTask(this, source);
         task.execute();
@@ -503,6 +503,7 @@ public final class MediaNotification extends BroadcastReceiver {
         /**
          * Resource URL.
          */
+        @NonNull
         private final String mSource;
 
         /**
@@ -512,7 +513,7 @@ public final class MediaNotification extends BroadcastReceiver {
          * @param source            URL of the resource.
          */
         private FetchBitmapAsyncTask(final MediaNotification mediaNotification,
-                                     final String source) {
+                                     @NonNull final String source) {
             super();
             mReference = new WeakReference<>(mediaNotification);
             mSource = source;
@@ -535,7 +536,7 @@ public final class MediaNotification extends BroadcastReceiver {
             } catch (final IOException e) {
                 FabricUtils.logException(e);
             }
-            if (mSource != null && bitmap != null) {
+            if (bitmap != null) {
                 reference.mAlbumArtCache.put(mSource, bitmap);
             } else {
                 AppLogger.e(CLASS_NAME + " Can not put data into AlbumArtCache, " +
@@ -551,9 +552,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 return;
             }
             if (bitmap != null && reference.mMetadata != null
-                    && reference.mNotificationBuilder != null
-                    && reference.mMetadata.getDescription().getIconUri() != null
-                    && !TextUtils.equals(mSource, reference.mMetadata.getDescription().getIconUri().toString())) {
+                    && reference.mNotificationBuilder != null) {
                 // If the media is still the same, update the notification:
                 AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + mSource);
                 reference.mNotificationBuilder.setLargeIcon(bitmap);

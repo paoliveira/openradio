@@ -25,7 +25,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
@@ -222,6 +221,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private int mState = PlaybackStateCompat.STATE_NONE;
 
+    private String mCurrentStreamTitle;
+
     /**
      * Wifi lock that we hold when streaming files from the internet,
      * in order to prevent the device from shutting off the Wifi radio.
@@ -282,11 +283,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
     private boolean mIsAndroidAuto = false;
-
-    /**
-     * Indicates whether {@link #onBind(Intent)} has been called.
-     */
-    private boolean mIsBind;
 
     /**
      *
@@ -458,24 +454,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(getApplicationContext());
-    }
-
-    @Override
-    public IBinder onBind(final Intent intent) {
-        AppLogger.i(CLASS_NAME + " On Bind: " + intent);
-        mIsBind = true;
-        return super.onBind(intent);
-    }
-
-    @Override
-    public boolean onUnbind(final Intent intent) {
-        AppLogger.i(CLASS_NAME + " On Unbind: " + intent);
-        if (mIsBind) {
-            final Handler handler = new Handler();
-            handler.post(this::stopService);
-            mIsBind = false;
-        }
-        return super.onUnbind(intent);
     }
 
     @Override
@@ -1188,6 +1166,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * throwing exception if one of the stream parameters is invalid.
      */
     private void updateMetadata(final String streamTitle) {
+        mCurrentStreamTitle = streamTitle;
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             AppLogger.e(
                     CLASS_NAME + " Can't retrieve current metadata, curIndx:"
@@ -1627,8 +1606,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
+        // Use this flag to compare indexes of the items later on.
+        // Do not compare indexes if state is not play.
+        boolean isStatePlay = true;
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             mState = PlaybackStateCompat.STATE_STOPPED;
+            isStatePlay = false;
         }
 
         if (mediaId.equals("-1")) {
@@ -1649,7 +1632,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
                 mPlayingQueue, mediaId
         );
-        if (mCurrentIndexOnQueue == tempIndexOnQueue) {
+        if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
             AppLogger.w("Skip play request, same id");
             return;
         }

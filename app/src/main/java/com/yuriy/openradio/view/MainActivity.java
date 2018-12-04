@@ -58,20 +58,20 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
+import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.business.broadcast.AppLocalReceiver;
+import com.yuriy.openradio.business.broadcast.AppLocalReceiverCallback;
+import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
+import com.yuriy.openradio.business.broadcast.ScreenReceiver;
+import com.yuriy.openradio.business.service.OpenRadioService;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
 import com.yuriy.openradio.drive.GoogleDriveManager;
-import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.business.broadcast.AppLocalReceiver;
-import com.yuriy.openradio.business.broadcast.AppLocalReceiverCallback;
-import com.yuriy.openradio.business.service.OpenRadioService;
-import com.yuriy.openradio.business.broadcast.ScreenReceiver;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
@@ -119,6 +119,8 @@ public final class MainActivity extends AppCompatActivity {
 
     private View mCurrentRadioStationView;
 
+    private MediaMetadataCompat mLastKnownMetadata;
+
     /**
      * Stack of the media items.
      * It is used when navigating back and forth via list.
@@ -134,6 +136,8 @@ public final class MainActivity extends AppCompatActivity {
      * Key value for the Media Stack for the store Bundle.
      */
     private static final String BUNDLE_ARG_MEDIA_ITEMS_STACK = "BUNDLE_ARG_MEDIA_ITEMS_STACK";
+
+    private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
 
     /**
      * Key value for the List-Position map for the store Bundle.
@@ -252,6 +256,8 @@ public final class MainActivity extends AppCompatActivity {
 
         // Set content.
         setContentView(R.layout.activity_main);
+
+        mLastKnownMetadata = null;
 
         mGoogleDriveManager = new GoogleDriveManager(
                 getApplicationContext(), new GoogleDriveManagerListenerImpl(this)
@@ -478,6 +484,10 @@ public final class MainActivity extends AppCompatActivity {
 
         // Save List-Position Map
         outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mListPositionMap);
+
+        if (mLastKnownMetadata != null) {
+            outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
+        }
 
         // Get first visible item id
         int firstVisiblePosition = listView.getFirstVisiblePosition();
@@ -825,6 +835,16 @@ public final class MainActivity extends AppCompatActivity {
         final int listFirstVisiblePosition
                 = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
         setSelectedItem(listFirstVisiblePosition);
+
+        final MediaMetadataCompat lastKnownMetadata = savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA);
+        if (lastKnownMetadata != null) {
+            mLastKnownMetadata = lastKnownMetadata;
+            handleMetadataChanged(mLastKnownMetadata);
+        } else {
+            if (mMediaResourcesManager.getMediaMetadata() != null) {
+                handleMetadataChanged(mMediaResourcesManager.getMediaMetadata());
+            }
+        }
     }
 
     /**
@@ -1038,6 +1058,9 @@ public final class MainActivity extends AppCompatActivity {
      * @param metadata Metadata related to currently playing Radio Station.
      */
     private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
+        mLastKnownMetadata = metadata;
+        // TODO: Probably no need to have this check as currently playing Radio Station is the only one relates to
+        //       metadata change.
         final RadioStation radioStation = getLastKnowRadioStationAndUpdateView();
         if (radioStation == null) {
             return;
@@ -1469,6 +1492,11 @@ public final class MainActivity extends AppCompatActivity {
                     activity.mMediaItemsStack.get(activity.mMediaItemsStack.size() - 1),
                     activity.mMedSubscriptionCallback
             );
+
+            // Update metadata in case of UI started on and media service was already created and stream played.
+            if (activity.mMediaResourcesManager.getMediaMetadata() != null) {
+                activity.handleMetadataChanged(activity.mMediaResourcesManager.getMediaMetadata());
+            }
         }
 
         @Override
