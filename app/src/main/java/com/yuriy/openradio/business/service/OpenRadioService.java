@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.business.service;
 
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -48,15 +47,17 @@ import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.business.broadcast.RemoteControlBroadcastReceiver;
-import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.business.broadcast.ConnectivityBroadcastReceiver;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
-import com.yuriy.openradio.business.broadcast.MasterVolumeBroadcastReceiver;
-import com.yuriy.openradio.business.broadcast.MasterVolumeBroadcastReceiverListener;
 import com.yuriy.openradio.business.MediaNotification;
 import com.yuriy.openradio.business.RadioStationUpdateListener;
+import com.yuriy.openradio.business.broadcast.AbstractReceiver;
+import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.business.broadcast.BecomingNoisyReceiver;
+import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
+import com.yuriy.openradio.business.broadcast.MasterVolumeReceiver;
+import com.yuriy.openradio.business.broadcast.MasterVolumeReceiverListener;
+import com.yuriy.openradio.business.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
@@ -138,6 +139,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
 
     private static final String VALUE_NAME_UPDATE_SORT_IDS = "VALUE_NAME_UPDATE_SORT_IDS";
+
+    private static final String VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM";
 
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
@@ -335,23 +338,26 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private String mCurrentParentId;
 
-    private MasterVolumeBroadcastReceiver mMasterVolumeBroadcastReceiver;
+    private MasterVolumeReceiver mMasterVolumeBroadcastReceiver;
 
     /**
      * The BroadcastReceiver that tracks network connectivity changes.
      */
-    private final BroadcastReceiver mConnectivityReceiver;
+    private final AbstractReceiver mConnectivityReceiver;
+
+    private final BecomingNoisyReceiver mNoisyAudioStreamReceiver;
 
     /**
      * Default constructor.
      */
     public OpenRadioService() {
         super();
-        final ConnectivityBroadcastReceiver.ConnectivityChangeListener connectivityChangeListener =
+        mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(new BecomingNoisyReceiverListenerImpl(this));
+        final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
                 new ConnectivityChangeListenerImpl(this);
-        mConnectivityReceiver = new ConnectivityBroadcastReceiver(connectivityChangeListener);
-        final MasterVolumeBroadcastReceiverListener listener = new MasterVolumeEventListener(this);
-        mMasterVolumeBroadcastReceiver = new MasterVolumeBroadcastReceiver(listener);
+        mConnectivityReceiver = new ConnectivityReceiver(connectivityChangeListener);
+        final MasterVolumeReceiverListener listener = new MasterVolumeEventListener(this);
+        mMasterVolumeBroadcastReceiver = new MasterVolumeReceiver(listener);
     }
 
     /**
@@ -438,7 +444,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        final ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlBroadcastReceiver.class);
+        final ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlReceiver.class);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(context, "OpenRadioService", mediaButtonReceiver, null);
@@ -451,7 +457,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMasterVolumeBroadcastReceiver.register(context);
 
         // Registers BroadcastReceiver to track network connection changes.
-        registerReceiver(mConnectivityReceiver, ConnectivityBroadcastReceiver.getIntentFilter());
+        mConnectivityReceiver.register(getApplicationContext());
     }
 
     @Override
@@ -613,6 +619,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     updateSortId(mediaId, sortIds[counter++], categoryMediaId);
                 }
                 break;
+            case VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM:
+                if (mState == PlaybackStateCompat.STATE_PLAYING) {
+                    handlePauseRequest();
+                } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
+                    handlePlayRequest();
+                }
+                break;
             default:
                 AppLogger.w(CLASS_NAME + " Unknown command:" + command);
         }
@@ -625,7 +638,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + " On Destroy");
         super.onDestroy();
 
-        unregisterReceiver(mConnectivityReceiver);
+        mConnectivityReceiver.unregister(getApplicationContext());
 
         mMasterVolumeBroadcastReceiver.unregister(getApplicationContext());
         stopService();
@@ -920,7 +933,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      *
      * @param context Context of the callee.
      * @param mediaId Media Id of the Radio Station.
-     *
      * @return {@link Intent}.
      */
     public static Intent makeRemoveRadioStationIntent(final Context context, final String mediaId) {
@@ -967,6 +979,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_GET_RADIO_STATION_COMMAND);
         intent.putExtra(EXTRA_KEY_MEDIA_DESCRIPTION, mediaDescription);
         intent.putExtra(EXTRA_KEY_IS_FAVORITE, isFavorite);
+        return intent;
+    }
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    public static Intent makeToggleLastPlayedItemIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM);
         return intent;
     }
 
@@ -1210,7 +1233,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         AppLogger.d(
                 CLASS_NAME +
-                " Updating metadata for MusicId:" + mediaId + ", title:" + streamTitle
+                        " Updating metadata for MusicId:" + mediaId + ", title:" + streamTitle
         );
         mSession.setMetadata(track);
     }
@@ -1249,7 +1272,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handlePlayRequest() {
         AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
 
-        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 
@@ -1285,6 +1308,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // just go ahead to the new song and (re)start playing
             getCurrentPlayingRadioStationAsync(mRadioStationUpdateListener);
         }
+
+        mNoisyAudioStreamReceiver.register(getApplicationContext());
     }
 
     /**
@@ -1325,8 +1350,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.d(
                     CLASS_NAME + " Play Radio Station: current (" + service.mCurrentIndexOnQueue
                             + ") in mPlayingQueue. " +
-                    " musicId=" + track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
-                    " source=" + source
+                            " musicId=" + track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
+                            " source=" + source
             );
 
             service.preparePlayer(source);
@@ -1450,7 +1475,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mRadioStationTimeoutHandler.postDelayed(
                     mTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
             );
-        // Or cancel it in case of Success or Error.
+            // Or cancel it in case of Success or Error.
         } else {
             mRadioStationTimeoutHandler.removeCallbacks(mTimeoutRunnable);
         }
@@ -1573,6 +1598,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mState = PlaybackStateCompat.STATE_STOPPED;
 
+        mNoisyAudioStreamReceiver.unregister(getApplicationContext());
+
         // let go of all resources...
         relaxResources(true);
         giveUpAudioFocus();
@@ -1596,7 +1623,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param mediaId ID of the Radio Station.
      */
     private void handlePlayFromMediaId(final String mediaId) {
-        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 
@@ -1711,11 +1738,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      *
      */
     private static final class MediaSessionCallback extends MediaSessionCompat.Callback {
-
-        /**
-         *
-         */
-        private final String CLASS_NAME = MediaSessionCallback.class.getSimpleName();
 
         /**
          * Reference to the enclosing class.
@@ -2035,7 +2057,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
      * @return
      */
     @Nullable
@@ -2055,14 +2076,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final class PlaybackStateListener implements MediaItemCommand.IUpdatePlaybackState {
 
         /**
-         * Reference to the outer class.
+         * Reference to enclosing class.
          */
         private final WeakReference<OpenRadioService> mReference;
 
         /**
          * private constructor.
          *
-         * @param reference Reference to the outer class.
+         * @param reference Reference to enclosing class.
          */
         private PlaybackStateListener(final OpenRadioService reference) {
             super();
@@ -2085,14 +2106,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final class ExoPlayerListener implements ExoPlayerOpenRadioImpl.Listener {
 
         /**
-         * Reference to the outer class.
+         * Reference to enclosing class.
          */
         private final WeakReference<OpenRadioService> mReference;
 
         /**
          * Constructor.
          *
-         * @param reference
+         * @param reference Reference to enclosing class.
          */
         private ExoPlayerListener(final OpenRadioService reference) {
             super();
@@ -2138,7 +2159,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
-    private static final class MasterVolumeEventListener implements MasterVolumeBroadcastReceiverListener {
+    private static final class MasterVolumeEventListener implements MasterVolumeReceiverListener {
 
         private final WeakReference<OpenRadioService> mReference;
 
@@ -2160,14 +2181,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Listener of the connectivity events.
      */
-    private static final class ConnectivityChangeListenerImpl implements ConnectivityBroadcastReceiver.ConnectivityChangeListener {
+    private static final class ConnectivityChangeListenerImpl implements ConnectivityReceiver.ConnectivityChangeListener {
 
         private final WeakReference<OpenRadioService> mReference;
 
         /**
          * Main constructor.
          *
-         * @param reference Reference of the callee.
+         * @param reference Reference to enclosing class.
          */
         private ConnectivityChangeListenerImpl(final OpenRadioService reference) {
             super();
@@ -2183,6 +2204,37 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             reference.handleConnectivityChange(isConnected);
+        }
+    }
+
+    /**
+     * Listener to handle audio becoming noisy events.
+     */
+    private static final class BecomingNoisyReceiverListenerImpl
+            implements BecomingNoisyReceiver.BecomingNoisyReceiverListener {
+
+        /**
+         * Reference to enclosing class.
+         */
+        private final WeakReference<OpenRadioService> mReference;
+
+        /**
+         * Main constructor.
+         *
+         * @param reference Reference to enclosing class.
+         */
+        private BecomingNoisyReceiverListenerImpl(final OpenRadioService reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void onAudioBecomingNoisy() {
+            final OpenRadioService reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            reference.handlePauseRequest();
         }
     }
 }

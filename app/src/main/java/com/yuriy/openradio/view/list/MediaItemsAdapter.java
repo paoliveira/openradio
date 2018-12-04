@@ -33,8 +33,8 @@ import android.widget.ImageView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.MediaItemsComparator;
-import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.business.service.OpenRadioService;
+import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;

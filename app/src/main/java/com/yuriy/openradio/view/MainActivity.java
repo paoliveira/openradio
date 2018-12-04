@@ -51,7 +51,6 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +58,7 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.broadcast.ConnectivityBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
@@ -69,10 +68,10 @@ import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
 import com.yuriy.openradio.drive.GoogleDriveManager;
 import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.business.broadcast.AppLocalBroadcastReceiver;
-import com.yuriy.openradio.business.broadcast.AppLocalBroadcastReceiverCallback;
+import com.yuriy.openradio.business.broadcast.AppLocalReceiver;
+import com.yuriy.openradio.business.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.business.service.OpenRadioService;
-import com.yuriy.openradio.business.broadcast.ScreenBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.ScreenReceiver;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
@@ -98,7 +97,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Author: Chernyshov Yuriy - Mobile Development
  * Date: 19.12.14
  * Time: 15:13
- *
+ * <p>
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
 public final class MainActivity extends AppCompatActivity {
@@ -118,16 +117,18 @@ public final class MainActivity extends AppCompatActivity {
      */
     private ImageFetcher mImageFetcher;
 
+    private View mCurrentRadioStationView;
+
     /**
      * Stack of the media items.
      * It is used when navigating back and forth via list.
      */
-    private final List<String> mediaItemsStack = new LinkedList<>();
+    private final List<String> mMediaItemsStack = new LinkedList<>();
 
     /**
      * Map of the last used list position for the given list of the media items.
      */
-    private final Map<String, Integer> listPositionMap = new Hashtable<>();
+    private final Map<String, Integer> mListPositionMap = new Hashtable<>();
 
     /**
      * Key value for the Media Stack for the store Bundle.
@@ -160,8 +161,8 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Receiver for the local application;s events
      */
-    private final AppLocalBroadcastReceiver mAppLocalBroadcastReceiver
-            = AppLocalBroadcastReceiver.getInstance();
+    private final AppLocalReceiver mAppLocalBroadcastReceiver
+            = AppLocalReceiver.getInstance();
 
     /**
      * Listener of the Permissions status changes.
@@ -226,7 +227,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Receiver for the Screen OF/ON events.
      */
-    private final ScreenBroadcastReceiver mScreenBroadcastReceiver = new ScreenBroadcastReceiver();
+    private final ScreenReceiver mScreenBroadcastReceiver = new ScreenReceiver();
 
     /**
      *
@@ -278,6 +279,11 @@ public final class MainActivity extends AppCompatActivity {
 
         // Set OnSaveInstanceState to false
         mIsOnSaveInstancePassed.set(false);
+
+        mCurrentRadioStationView = findViewById(R.id.current_radio_station_view);
+        mCurrentRadioStationView.setOnClickListener(
+                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(getApplicationContext()))
+        );
 
         hideProgressBar();
 
@@ -345,8 +351,8 @@ public final class MainActivity extends AppCompatActivity {
 
         // Restore position for the Catalogue list.
         if (!TextUtils.isEmpty(mCurrentParentId)
-                && listPositionMap.containsKey(mCurrentParentId)) {
-            final int position = listPositionMap.get(mCurrentParentId);
+                && mListPositionMap.containsKey(mCurrentParentId)) {
+            final int position = mListPositionMap.get(mCurrentParentId);
             setSelectedItem(position);
         }
         // Restore position for the Catalogue of the Playable items
@@ -468,10 +474,10 @@ public final class MainActivity extends AppCompatActivity {
         final ListView listView = findViewById(R.id.list_view);
 
         // Save Media Stack
-        outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mediaItemsStack);
+        outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
 
         // Save List-Position Map
-        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) listPositionMap);
+        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mListPositionMap);
 
         // Get first visible item id
         int firstVisiblePosition = listView.getFirstVisiblePosition();
@@ -482,14 +488,6 @@ public final class MainActivity extends AppCompatActivity {
 
         // Save first visible ID of the List
         outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
-
-        // Keep last selected position for the given category.
-        // We will use it when back to this category. Only if collection is not empty.
-        /*if (!mediaItemsStack.isEmpty()) {
-            listPositionMap.put(
-                    mediaItemsStack.get(mediaItemsStack.size() - 1), firstVisiblePosition
-            );
-        }*/
 
         super.onSaveInstanceState(outState);
     }
@@ -530,34 +528,34 @@ public final class MainActivity extends AppCompatActivity {
         hideProgressBar();
 
         // If there is root category - close activity
-        if (mediaItemsStack.size() == 1) {
+        if (mMediaItemsStack.size() == 1) {
 
             // Un-subscribe from item
-            mMediaResourcesManager.unsubscribe(mediaItemsStack.remove(mediaItemsStack.size() - 1));
+            mMediaResourcesManager.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
             // Clear stack
-            mediaItemsStack.clear();
+            mMediaItemsStack.clear();
 
             // perform android framework lifecycle
             super.onBackPressed();
             return;
         }
 
-        int location = mediaItemsStack.size() - 1;
+        int location = mMediaItemsStack.size() - 1;
         if (location >= 0) {
             // Get current media item and un-subscribe.
-            final String currentMediaId = mediaItemsStack.remove(location);
+            final String currentMediaId = mMediaItemsStack.remove(location);
             mMediaResourcesManager.unsubscribe(currentMediaId);
         }
 
         // Un-subscribe from all items.
-        for (final String mediaItemId : mediaItemsStack) {
+        for (final String mediaItemId : mMediaItemsStack) {
             mMediaResourcesManager.unsubscribe(mediaItemId);
         }
 
         // Subscribe to the previous item.
-        location = mediaItemsStack.size() - 1;
+        location = mMediaItemsStack.size() - 1;
         if (location >= 0) {
-            final String previousMediaId = mediaItemsStack.get(location);
+            final String previousMediaId = mMediaItemsStack.get(location);
             if (!TextUtils.isEmpty(previousMediaId)) {
                 AppLogger.d("Back to " + previousMediaId);
                 mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
@@ -633,7 +631,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
      * @param connectionResult
      */
     private void requestGoogleDriveSignIn(@NonNull final ConnectionResult connectionResult) {
@@ -728,9 +725,9 @@ public final class MainActivity extends AppCompatActivity {
         hideProgressBar();
 
         // Remove provided media item (and it's duplicates, if any)
-        for (int i = 0; i < mediaItemsStack.size(); i++) {
-            if (mediaItemsStack.get(i).equals(mediaItemId)) {
-                mediaItemsStack.remove(i);
+        for (int i = 0; i < mMediaItemsStack.size(); i++) {
+            if (mMediaItemsStack.get(i).equals(mediaItemId)) {
+                mMediaItemsStack.remove(i);
                 i--;
             }
         }
@@ -750,8 +747,8 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (!mediaItemsStack.contains(mediaId)) {
-            mediaItemsStack.add(mediaId);
+        if (!mMediaItemsStack.contains(mediaId)) {
+            mMediaItemsStack.add(mediaId);
         }
 
         mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
@@ -810,9 +807,9 @@ public final class MainActivity extends AppCompatActivity {
         final Map<String, Integer> listPositionMapRestored
                 = (Map<String, Integer>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
         if (listPositionMapRestored != null) {
-            listPositionMap.clear();
+            mListPositionMap.clear();
             for (String key : listPositionMapRestored.keySet()) {
-                listPositionMap.put(key, listPositionMapRestored.get(key));
+                mListPositionMap.put(key, listPositionMapRestored.get(key));
             }
         }
 
@@ -820,8 +817,8 @@ public final class MainActivity extends AppCompatActivity {
         final List<String> mediaItemsStackRestored
                 = (List<String>) savedInstanceState.getSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK);
         if (mediaItemsStackRestored != null) {
-            mediaItemsStack.clear();
-            mediaItemsStack.addAll(mediaItemsStackRestored);
+            mMediaItemsStack.clear();
+            mMediaItemsStack.addAll(mediaItemsStackRestored);
         }
 
         // Restore List's position
@@ -891,7 +888,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the clicked item.
      */
     private void handleOnItemClick(final int position) {
-        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 
@@ -907,10 +904,10 @@ public final class MainActivity extends AppCompatActivity {
 
         // Keep last selected position for the given category.
         // We will use it when back to this category
-        final int mediaItemsStackSize = mediaItemsStack.size();
+        final int mediaItemsStackSize = mMediaItemsStack.size();
         if (mediaItemsStackSize >= 1) {
-            final String children = mediaItemsStack.get(mediaItemsStackSize - 1);
-            listPositionMap.put(children, position);
+            final String children = mMediaItemsStack.get(mediaItemsStackSize - 1);
+            mListPositionMap.put(children, position);
         }
 
         showProgressBar();
@@ -995,6 +992,45 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
 
+    private RadioStation getLastKnowRadioStationAndUpdateView() {
+        if (mCurrentRadioStationView == null) {
+            return null;
+        }
+
+        final RadioStation radioStation = LatestRadioStationStorage.load(getApplicationContext());
+        if (radioStation == null) {
+            mCurrentRadioStationView.setVisibility(View.GONE);
+            return null;
+        }
+        mCurrentRadioStationView.setVisibility(View.VISIBLE);
+        return radioStation;
+    }
+
+    private void handlePlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
+        final RadioStation radioStation = getLastKnowRadioStationAndUpdateView();
+        if (radioStation == null) {
+            return;
+        }
+        View playBtn = findViewById(R.id.crs_play_btn_view);
+        View pauseBtn = findViewById(R.id.crs_pause_btn_view);
+        ProgressBar progressBar = findViewById(R.id.crs_progress_view);
+        switch (state.getState()) {
+            case PlaybackStateCompat.STATE_PLAYING:
+                progressBar.setVisibility(View.GONE);
+                playBtn.setVisibility(View.GONE);
+                pauseBtn.setVisibility(View.VISIBLE);
+                break;
+            case PlaybackStateCompat.STATE_PAUSED:
+                progressBar.setVisibility(View.GONE);
+                playBtn.setVisibility(View.VISIBLE);
+                pauseBtn.setVisibility(View.GONE);
+                break;
+            default:
+                progressBar.setVisibility(View.GONE);
+                break;
+        }
+    }
+
     /**
      * Handles event of Metadata updated.
      * Updates UI related to the currently playing Radio Station.
@@ -1002,43 +1038,36 @@ public final class MainActivity extends AppCompatActivity {
      * @param metadata Metadata related to currently playing Radio Station.
      */
     private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
-        final RelativeLayout view = findViewById(R.id.last_played_item_view);
-        if (view == null) {
+        final RadioStation radioStation = getLastKnowRadioStationAndUpdateView();
+        if (radioStation == null) {
             return;
         }
-
-        final RadioStation latestRadioStation = LatestRadioStationStorage.load(getApplicationContext());
-        if (latestRadioStation == null) {
-            view.setVisibility(View.GONE);
-            return;
-        }
-        view.setVisibility(View.VISIBLE);
 
         final MediaDescriptionCompat description = metadata.getDescription();
 
-        final TextView nameView = findViewById(R.id.name_view);
+        final TextView nameView = findViewById(R.id.crs_name_view);
         if (nameView != null) {
             nameView.setText(description.getTitle());
         }
-        final TextView descriptionView = findViewById(R.id.description_view);
+        final TextView descriptionView = findViewById(R.id.crs_description_view);
         if (descriptionView != null) {
             descriptionView.setText(description.getSubtitle());
         }
-        final ImageView imageView = findViewById(R.id.img_view);
+        final ImageView imageView = findViewById(R.id.crs_img_view);
         if (imageView != null) {
             MediaItemsAdapter.updateImage(description, true, imageView, mImageFetcher);
         }
-        final CheckBox favoriteCheckView = findViewById(R.id.favorite_check_view);
+        final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), latestRadioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), radioStation),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             );
             MediaItemHelper.updateFavoriteField(
                     mediaItem,
-                    FavoritesStorage.isFavorite(latestRadioStation, getApplicationContext())
+                    FavoritesStorage.isFavorite(radioStation, getApplicationContext())
             );
-            MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem,this);
+            MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, this);
         }
     }
 
@@ -1054,7 +1083,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Callback receiver of the local application's event.
      */
-    private static final class LocalBroadcastReceiverCallback implements AppLocalBroadcastReceiverCallback {
+    private static final class LocalBroadcastReceiverCallback implements AppLocalReceiverCallback {
 
         private static final String CLASS_NAME = LocalBroadcastReceiverCallback.class.getSimpleName();
         /**
@@ -1233,7 +1262,7 @@ public final class MainActivity extends AppCompatActivity {
                 activity.showNoDataMessage();
             }
 
-            if (!activity.listPositionMap.containsKey(parentId)) {
+            if (!activity.mListPositionMap.containsKey(parentId)) {
                 AppLogger.d(CLASS_NAME + " No key");
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
                 activity.mBrowserAdapter.setActiveItemId(MediaSessionCompat.QueueItem.UNKNOWN_ID);
@@ -1242,7 +1271,7 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             // Restore position for the Catalogue list
-            int position = activity.listPositionMap.get(parentId);
+            int position = activity.mListPositionMap.get(parentId);
             activity.setSelectedItem(position);
             // Restore position for the Catalogue of the Playable items
             if (!TextUtils.isEmpty(activity.mCurrentMediaId)) {
@@ -1329,7 +1358,7 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public boolean onTouch(final View listView, final MotionEvent event) {
-            mPosition = ((ListView)listView).pointToPosition(
+            mPosition = ((ListView) listView).pointToPosition(
                     (int) event.getX(), (int) event.getY()
             );
 
@@ -1344,7 +1373,7 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             // Do drag and drop sort only for Favorites and Local Radio Stations
-            if (!MediaIDHelper.isMediaIdSortable(mainActivity.mCurrentParentId))  {
+            if (!MediaIDHelper.isMediaIdSortable(mainActivity.mCurrentParentId)) {
                 return false;
             }
 
@@ -1428,16 +1457,16 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            AppLogger.i(CLASS_NAME + " Stack empty:" + activity.mediaItemsStack.isEmpty());
+            AppLogger.i(CLASS_NAME + " Stack empty:" + activity.mMediaItemsStack.isEmpty());
 
             // If stack is empty - assume that this is a start point
-            if (activity.mediaItemsStack.isEmpty()) {
+            if (activity.mMediaItemsStack.isEmpty()) {
                 activity.addMediaItemToStack(activity.mMediaResourcesManager.getRoot());
             }
 
             // Subscribe to the media item
             activity.mMediaResourcesManager.subscribe(
-                    activity.mediaItemsStack.get(activity.mediaItemsStack.size() - 1),
+                    activity.mMediaItemsStack.get(activity.mMediaItemsStack.size() - 1),
                     activity.mMedSubscriptionCallback
             );
         }
@@ -1445,6 +1474,12 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
             AppLogger.d("Playback state changed to:" + state);
+            final MainActivity activity = mReference.get();
+            if (activity == null) {
+                AppLogger.w(CLASS_NAME + " onPlaybackStateChanged reference to MainActivity is null");
+                return;
+            }
+            activity.handlePlaybackStateChanged(state);
         }
 
         @Override

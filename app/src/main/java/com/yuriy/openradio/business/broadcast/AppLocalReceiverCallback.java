@@ -24,10 +24,10 @@ package com.yuriy.openradio.business.broadcast;
  */
 
 /**
- * {@link AppLocalBroadcastReceiverCallback} is an interface that provides various callback methods
+ * {@link AppLocalReceiverCallback} is an interface that provides various callback methods
  * of the Local Broadcast Receiver.
  */
-public interface AppLocalBroadcastReceiverCallback {
+public interface AppLocalReceiverCallback {
 
     /**
      * Dispatches when Location Services detects as disabled.

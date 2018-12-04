@@ -7,13 +7,13 @@
                 tools:context=".view.MainActivity">
 
     <include
-        android:id="@+id/last_played_item_view"
-        layout="@layout/category_list_item"
+        android:id="@+id/current_radio_station_view"
+        layout="@layout/current_radio_station_item"
         android:visibility="gone"/>
 
     <View
         android:id="@+id/last_played_separator_item_view"
-        android:layout_below="@id/last_played_item_view"
+        android:layout_below="@id/current_radio_station_view"
         android:layout_width="wrap_content"
         android:layout_height="1dp"
         android:background="@android:color/white"/>

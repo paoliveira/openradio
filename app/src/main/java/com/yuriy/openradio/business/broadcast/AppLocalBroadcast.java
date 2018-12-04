@@ -27,11 +27,6 @@ import android.content.Intent;
 public final class AppLocalBroadcast {
 
     /**
-     * Tag name to use in the logging.
-     */
-    private static final String CLASS_NAME = AppLocalBroadcast.class.getSimpleName();
-
-    /**
      * Action name for the "Disable Location service" on the mobile device.
      */
     private static final String ACTION_LOCATION_DISABLED = "ACTION_LOCATION_DISABLED";

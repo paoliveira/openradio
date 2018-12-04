@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.business.broadcast;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -38,7 +37,7 @@ import com.yuriy.openradio.view.SafeToast;
  * This class is designed in a way to handle actions associated with connectivity, such as listening to events from
  * system, provide check on available network, etc ...
  */
-public final class ConnectivityBroadcastReceiver extends BroadcastReceiver {
+public final class ConnectivityReceiver extends AbstractReceiver {
 
     /**
      * Listener to provide callback about connectivity events.
@@ -53,7 +52,7 @@ public final class ConnectivityBroadcastReceiver extends BroadcastReceiver {
         void onConnectivityChange(final boolean isConnected);
     }
 
-    private static final String CLASS_NAME = ConnectivityBroadcastReceiver.class.getSimpleName();
+    private static final String CLASS_NAME = ConnectivityReceiver.class.getSimpleName();
     private final ConnectivityChangeListener mListener;
 
     /**
@@ -61,8 +60,8 @@ public final class ConnectivityBroadcastReceiver extends BroadcastReceiver {
      *
      * @param listener Listener for the connectivity events.
      */
-    public ConnectivityBroadcastReceiver(@NonNull final ConnectivityChangeListener listener) {
-        super();
+    public ConnectivityReceiver(@NonNull final ConnectivityChangeListener listener) {
+        super(new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
         mListener = listener;
     }
 
@@ -81,15 +80,6 @@ public final class ConnectivityBroadcastReceiver extends BroadcastReceiver {
         }
         AppLogger.i(CLASS_NAME + " network connected:" + networkInfo.isConnected());
         mListener.onConnectivityChange(networkInfo.isConnected());
-    }
-
-    /**
-     * Create and return Intent filter to handle connectivity broadcast event.
-     *
-     * @return Instance of appropriate {@link IntentFilter}.
-     */
-    public static IntentFilter getIntentFilter() {
-        return new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
     }
 
     /**

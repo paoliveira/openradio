@@ -66,6 +66,8 @@ public final class RadioStation implements Serializable {
      */
     private boolean mIsLocal;
 
+    private boolean mIsLastKnown;
+
     private int mSortId = SORT_ID_UNSET;
 
     /**
@@ -184,6 +186,14 @@ public final class RadioStation implements Serializable {
         mSortId = value;
     }
 
+    public boolean isLastKnown() {
+        return mIsLastKnown;
+    }
+
+    public void setLastKnown(final boolean value) {
+        mIsLastKnown = value;
+    }
+
     @Override
     public boolean equals(final Object object) {
         if (this == object) {
@@ -219,6 +229,7 @@ public final class RadioStation implements Serializable {
                 ", thumbUrl='" + mThumbUrl + '\'' +
                 ", isUpdated=" + mIsUpdated + '\'' +
                 ", isLocal=" + mIsLocal + '\'' +
+                ", isLastKnown=" + mIsLastKnown + '\'' +
                 ", sortId=" + mSortId +
                 '}';
     }

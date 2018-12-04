@@ -30,11 +30,11 @@ import com.yuriy.openradio.utils.FabricUtils;
  * On 3/5/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class RemoteControlBroadcastReceiver extends BroadcastReceiver {
+public final class RemoteControlReceiver extends BroadcastReceiver {
 
-    private static final String CLASS_NAME = RemoteControlBroadcastReceiver.class.getSimpleName();
+    private static final String CLASS_NAME = RemoteControlReceiver.class.getSimpleName();
 
-    public RemoteControlBroadcastReceiver() {
+    public RemoteControlReceiver() {
         super();
     }
 

@@ -32,7 +32,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.yuriy.openradio.api.GeoAPI;
 import com.yuriy.openradio.api.GeoAPIImpl;
 import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.business.broadcast.ConnectivityBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.business.location.GeoDataParser;
 import com.yuriy.openradio.business.location.GoogleGeoDataParserJson;
 import com.yuriy.openradio.business.storage.GeoAPIStorage;
@@ -206,7 +206,7 @@ public final class LocationService {
         try {
             addresses = geocoder.getFromLocation(latitude, longitude, 1);
         } catch (final Exception exception) {
-            final boolean isConnected = ConnectivityBroadcastReceiver.checkConnectivity(context);
+            final boolean isConnected = ConnectivityReceiver.checkConnectivity(context);
             final String countryCode = getCountryCode(context, latitude, longitude);
             final String msg = "Can not get geocoder location for lat:" + latitude
                     + ", long:" + longitude + ", country by geo api:" + countryCode

@@ -30,14 +30,14 @@ import com.yuriy.openradio.utils.AppLogger;
  * On 01/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class ScreenBroadcastReceiver {
+public final class ScreenReceiver {
 
     private final BroadcastReceiver mReceiver;
 
     /**
      * Default constructor.
      */
-    public ScreenBroadcastReceiver() {
+    public ScreenReceiver() {
         super();
         mReceiver = new BroadcastReceiverImpl();
     }

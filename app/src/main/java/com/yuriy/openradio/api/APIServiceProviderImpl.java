@@ -22,7 +22,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.business.broadcast.ConnectivityBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.net.Downloader;
@@ -327,7 +327,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                                         final List<Pair<String, String>> parameters) {
         JSONArray array = new JSONArray();
 
-        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(mContext)) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(mContext)) {
             return array;
         }
 

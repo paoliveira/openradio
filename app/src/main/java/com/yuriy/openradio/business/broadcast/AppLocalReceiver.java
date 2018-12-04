@@ -28,12 +28,12 @@ import com.yuriy.openradio.utils.AppLogger;
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class AppLocalBroadcastReceiver extends BroadcastReceiver {
+public final class AppLocalReceiver extends BroadcastReceiver {
 
     /**
      * Tag name to use in the logging.
      */
-    private static final String CLASS_NAME = AppLocalBroadcastReceiver.class.getSimpleName();
+    private static final String CLASS_NAME = AppLocalReceiver.class.getSimpleName();
 
     /**
      * Key value for the Country Code in the Intent's bundles.
@@ -53,20 +53,20 @@ public final class AppLocalBroadcastReceiver extends BroadcastReceiver {
     /**
      * Callback listener of the various events.
      */
-    private AppLocalBroadcastReceiverCallback mCallback;
+    private AppLocalReceiverCallback mCallback;
 
     /**
      * Private constructor.
      */
-    private AppLocalBroadcastReceiver() { }
+    private AppLocalReceiver() { }
 
     /**
      * Register listener for the Local broadcast receiver actions. This listener pass events to
      * Activity class.
      *
-     * @param callback Implementation of the {@link AppLocalBroadcastReceiverCallback}
+     * @param callback Implementation of the {@link AppLocalReceiverCallback}
      */
-    public void registerListener(final AppLocalBroadcastReceiverCallback callback) {
+    public void registerListener(final AppLocalReceiverCallback callback) {
         mCallback = callback;
     }
 
@@ -118,9 +118,9 @@ public final class AppLocalBroadcastReceiver extends BroadcastReceiver {
     /**
      * Factory method to create default instance.
      *
-     * @return Instance of the {@link AppLocalBroadcastReceiver}
+     * @return Instance of the {@link AppLocalReceiver}
      */
-    public static AppLocalBroadcastReceiver getInstance() {
-        return new AppLocalBroadcastReceiver();
+    public static AppLocalReceiver getInstance() {
+        return new AppLocalReceiver();
     }
 }

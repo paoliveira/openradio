@@ -31,7 +31,7 @@ import android.text.TextUtils;
  *
  * Receiver for the local broadcast event when master volume of Exo Player changed.
  */
-public final class MasterVolumeBroadcastReceiver {
+public final class MasterVolumeReceiver {
 
     private final BroadcastReceiver mReceiver;
 
@@ -40,7 +40,7 @@ public final class MasterVolumeBroadcastReceiver {
      *
      * @param listener Listener for the master volume changed event.
      */
-    public MasterVolumeBroadcastReceiver(final MasterVolumeBroadcastReceiverListener listener) {
+    public MasterVolumeReceiver(final MasterVolumeReceiverListener listener) {
         super();
         mReceiver = new BroadcastReceiverImpl(listener);
     }
@@ -71,14 +71,14 @@ public final class MasterVolumeBroadcastReceiver {
      */
     private static final class BroadcastReceiverImpl extends BroadcastReceiver {
 
-        private final MasterVolumeBroadcastReceiverListener mListener;
+        private final MasterVolumeReceiverListener mListener;
 
         /**
          * Main constructor.
          *
          * @param listener Listener for the master volume changed event.
          */
-        private BroadcastReceiverImpl(final MasterVolumeBroadcastReceiverListener listener) {
+        private BroadcastReceiverImpl(final MasterVolumeReceiverListener listener) {
             super();
             mListener = listener;
         }

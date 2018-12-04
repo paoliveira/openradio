@@ -24,7 +24,7 @@ package com.yuriy.openradio.business.broadcast;
  *
  * Listener interface for the master volume changed event.
  */
-public interface MasterVolumeBroadcastReceiverListener {
+public interface MasterVolumeReceiverListener {
 
     /**
      * Dispatches when master volume changed.
