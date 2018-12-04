@@ -1,4 +1,4 @@
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.service;
 
 /**
  * Created by Yuriy Chernyshov

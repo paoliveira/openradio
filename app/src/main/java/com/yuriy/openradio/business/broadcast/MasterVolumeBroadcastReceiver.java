@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.broadcast;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -40,7 +40,7 @@ public final class MasterVolumeBroadcastReceiver {
      *
      * @param listener Listener for the master volume changed event.
      */
-    MasterVolumeBroadcastReceiver(final MasterVolumeBroadcastReceiverListener listener) {
+    public MasterVolumeBroadcastReceiver(final MasterVolumeBroadcastReceiverListener listener) {
         super();
         mReceiver = new BroadcastReceiverImpl(listener);
     }

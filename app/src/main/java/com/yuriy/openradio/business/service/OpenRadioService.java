@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.service;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -48,10 +48,15 @@ import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.business.ConnectivityReceiver;
+import com.yuriy.openradio.business.broadcast.RemoteControlBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.business.broadcast.ConnectivityBroadcastReceiver;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
-import com.yuriy.openradio.business.RemoteControlReceiver;
+import com.yuriy.openradio.business.broadcast.MasterVolumeBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.MasterVolumeBroadcastReceiverListener;
+import com.yuriy.openradio.business.MediaNotification;
+import com.yuriy.openradio.business.RadioStationUpdateListener;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
@@ -342,9 +347,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     public OpenRadioService() {
         super();
-        final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
+        final ConnectivityBroadcastReceiver.ConnectivityChangeListener connectivityChangeListener =
                 new ConnectivityChangeListenerImpl(this);
-        mConnectivityReceiver = new ConnectivityReceiver(connectivityChangeListener);
+        mConnectivityReceiver = new ConnectivityBroadcastReceiver(connectivityChangeListener);
         final MasterVolumeBroadcastReceiverListener listener = new MasterVolumeEventListener(this);
         mMasterVolumeBroadcastReceiver = new MasterVolumeBroadcastReceiver(listener);
     }
@@ -433,7 +438,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
-        final ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlReceiver.class);
+        final ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlBroadcastReceiver.class);
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(context, "OpenRadioService", mediaButtonReceiver, null);
@@ -446,7 +451,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMasterVolumeBroadcastReceiver.register(context);
 
         // Registers BroadcastReceiver to track network connection changes.
-        registerReceiver(mConnectivityReceiver, ConnectivityReceiver.getIntentFilter());
+        registerReceiver(mConnectivityReceiver, ConnectivityBroadcastReceiver.getIntentFilter());
     }
 
     @Override
@@ -1244,7 +1249,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handlePlayRequest() {
         AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
 
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 
@@ -1591,7 +1596,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param mediaId ID of the Radio Station.
      */
     private void handlePlayFromMediaId(final String mediaId) {
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 
@@ -2155,7 +2160,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Listener of the connectivity events.
      */
-    private static final class ConnectivityChangeListenerImpl implements ConnectivityReceiver.ConnectivityChangeListener {
+    private static final class ConnectivityChangeListenerImpl implements ConnectivityBroadcastReceiver.ConnectivityChangeListener {
 
         private final WeakReference<OpenRadioService> mReference;
 

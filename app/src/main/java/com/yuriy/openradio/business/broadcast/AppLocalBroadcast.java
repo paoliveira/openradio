@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business.broadcast;
 
 import android.content.Intent;
 

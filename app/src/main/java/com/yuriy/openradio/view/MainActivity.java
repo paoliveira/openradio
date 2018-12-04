@@ -59,7 +59,7 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.ConnectivityReceiver;
+import com.yuriy.openradio.business.broadcast.ConnectivityBroadcastReceiver;
 import com.yuriy.openradio.business.MediaResourceManagerListener;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.PermissionStatusListener;
@@ -68,11 +68,11 @@ import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
 import com.yuriy.openradio.drive.GoogleDriveManager;
-import com.yuriy.openradio.service.AppLocalBroadcast;
-import com.yuriy.openradio.service.AppLocalBroadcastReceiver;
-import com.yuriy.openradio.service.AppLocalBroadcastReceiverCallback;
-import com.yuriy.openradio.service.OpenRadioService;
-import com.yuriy.openradio.service.ScreenBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.business.broadcast.AppLocalBroadcastReceiver;
+import com.yuriy.openradio.business.broadcast.AppLocalBroadcastReceiverCallback;
+import com.yuriy.openradio.business.service.OpenRadioService;
+import com.yuriy.openradio.business.broadcast.ScreenBroadcastReceiver;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
@@ -891,7 +891,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the clicked item.
      */
     private void handleOnItemClick(final int position) {
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        if (!ConnectivityBroadcastReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 

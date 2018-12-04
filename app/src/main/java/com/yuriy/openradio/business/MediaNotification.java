@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -44,6 +44,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.notification.MediaNotificationData;
 import com.yuriy.openradio.business.notification.MediaNotificationManager;
 import com.yuriy.openradio.business.notification.NoMediaNotificationData;
+import com.yuriy.openradio.business.service.OpenRadioService;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;

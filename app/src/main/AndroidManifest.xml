@@ -60,7 +60,7 @@
             android:resource="@drawable/ic_notification"/>
 
         <service
-            android:name=".service.OpenRadioService"
+            android:name=".business.service.OpenRadioService"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
@@ -76,7 +76,7 @@
             android:name="com.crashlytics.ApiKey"
             android:value="3bba57c385bc4f6235b8e544ab5ed6d37745a00a"/>
 
-        <receiver android:name=".business.RemoteControlReceiver">
+        <receiver android:name=".business.broadcast.RemoteControlBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON"/>
             </intent-filter>

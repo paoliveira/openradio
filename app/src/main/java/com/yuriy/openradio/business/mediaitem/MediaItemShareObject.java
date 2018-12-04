@@ -25,7 +25,7 @@ import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.Downloader;
-import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.business.service.OpenRadioService;
 
 import java.util.ArrayList;
 import java.util.List;

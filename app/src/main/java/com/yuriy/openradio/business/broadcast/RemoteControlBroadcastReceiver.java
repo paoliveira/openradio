@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.broadcast;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,11 +30,11 @@ import com.yuriy.openradio.utils.FabricUtils;
  * On 3/5/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class RemoteControlReceiver extends BroadcastReceiver {
+public final class RemoteControlBroadcastReceiver extends BroadcastReceiver {
 
-    private static final String CLASS_NAME = RemoteControlReceiver.class.getSimpleName();
+    private static final String CLASS_NAME = RemoteControlBroadcastReceiver.class.getSimpleName();
 
-    public RemoteControlReceiver() {
+    public RemoteControlBroadcastReceiver() {
         super();
     }
 

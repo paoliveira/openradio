@@ -29,7 +29,7 @@ public final class Utils {
     /**
      * Holder for the Search query. Up to now I found it as quick solution to pass query
      * from {@link com.yuriy.openradio.view.MainActivity} to the
-     * {@link com.yuriy.openradio.service.OpenRadioService}
+     * {@link com.yuriy.openradio.business.service.OpenRadioService}
      */
     private static StringBuilder sSearchQuery = new StringBuilder();
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.broadcast;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -38,7 +38,7 @@ import com.yuriy.openradio.view.SafeToast;
  * This class is designed in a way to handle actions associated with connectivity, such as listening to events from
  * system, provide check on available network, etc ...
  */
-public final class ConnectivityReceiver extends BroadcastReceiver {
+public final class ConnectivityBroadcastReceiver extends BroadcastReceiver {
 
     /**
      * Listener to provide callback about connectivity events.
@@ -53,7 +53,7 @@ public final class ConnectivityReceiver extends BroadcastReceiver {
         void onConnectivityChange(final boolean isConnected);
     }
 
-    private static final String CLASS_NAME = ConnectivityReceiver.class.getSimpleName();
+    private static final String CLASS_NAME = ConnectivityBroadcastReceiver.class.getSimpleName();
     private final ConnectivityChangeListener mListener;
 
     /**
@@ -61,7 +61,7 @@ public final class ConnectivityReceiver extends BroadcastReceiver {
      *
      * @param listener Listener for the connectivity events.
      */
-    public ConnectivityReceiver(@NonNull final ConnectivityChangeListener listener) {
+    public ConnectivityBroadcastReceiver(@NonNull final ConnectivityChangeListener listener) {
         super();
         mListener = listener;
     }

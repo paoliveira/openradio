@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.service;
+package com.yuriy.openradio.business;
 
 import android.support.v4.media.MediaMetadataCompat;
 
@@ -27,7 +27,7 @@ import android.support.v4.media.MediaMetadataCompat;
  * {@link RadioStationUpdateListener} is an interface provided response for the Radio Station
  * update procedure.
  */
-interface RadioStationUpdateListener {
+public interface RadioStationUpdateListener {
 
     /**
      * Call this method when Radio Station has been updated.
