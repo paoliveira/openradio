@@ -1169,7 +1169,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        final MediaSessionCompat.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem queueItem = getCurrentQueueItem();
         if (queueItem == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - QueueItem is null");
             return;
@@ -1217,7 +1217,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     @Nullable
     private RadioStation getCurrentPlayingRadioStation() {
-        final MediaSessionCompat.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem queueItem = getCurrentQueueItem();
         if (queueItem == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - QueueItem is null");
             return null;
@@ -1234,6 +1234,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             return QueueHelper.getRadioStationById(mediaId, mRadioStations);
         }
+    }
+
+    /**
+     * Returns current queue item.
+     *
+     * @return {@link MediaSessionCompat.QueueItem} or {@code null}.
+     */
+    @Nullable
+    private MediaSessionCompat.QueueItem getCurrentQueueItem() {
+        if (mCurrentIndexOnQueue < 0) {
+            return null;
+        }
+        if (mCurrentIndexOnQueue >= mPlayingQueue.size()) {
+            return null;
+        }
+        return mPlayingQueue.get(mCurrentIndexOnQueue);
     }
 
     /**
@@ -1497,8 +1513,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Set the activeQueueItemId if the current index is valid.
         if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
-            MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
-            stateBuilder.setActiveQueueItemId(item.getQueueId());
+            final MediaSessionCompat.QueueItem item = getCurrentQueueItem();
+            if (item != null) {
+                stateBuilder.setActiveQueueItemId(item.getQueueId());
+            }
         }
 
         mSession.setPlaybackState(stateBuilder.build());
@@ -2045,7 +2063,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.w(CLASS_NAME + " Can not dispatch curr index on queue");
             return;
         }
-        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
+        final MediaSessionCompat.QueueItem item = getCurrentQueueItem();
         String mediaId = "";
         if (item != null && item.getDescription() != null) {
             mediaId = item.getDescription().getMediaId();
