@@ -19,6 +19,7 @@ package com.yuriy.openradio.utils;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -283,7 +284,7 @@ public final class MediaItemHelper {
      */
     public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
                                                                          final RadioStation radioStation,
-                                                                         final String streamTitle) {
+                                                                         @Nullable final String streamTitle) {
 
         if (radioStation == null) {
             return null;

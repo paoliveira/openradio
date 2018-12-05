@@ -211,6 +211,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private int mCurrentIndexOnQueue = -1;
 
+    private String mCurrentStreamTitle;
+
     /**
      * Queue of the Radio Stations in the Category
      */
@@ -220,8 +222,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Current local media player state
      */
     private int mState = PlaybackStateCompat.STATE_NONE;
-
-    private String mCurrentStreamTitle;
 
     /**
      * Wifi lock that we hold when streaming files from the internet,
@@ -746,13 +746,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
-        final String mediaId = item.getDescription().getMediaId();
-
-        RadioStation radioStation;
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
-        }
+        final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
             handleStopRequest(getString(R.string.media_player_error));
             return;
@@ -815,7 +809,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
         if (mIsPlayWhenReady.get()) {
+            final RadioStation radioStation = getCurrentPlayingRadioStation();
+            // Save latest selected Radio Station.
+            // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
+            if (radioStation != null) {
+                LatestRadioStationStorage.addToLocals(radioStation, getApplicationContext());
+            }
+
             configMediaPlayerState();
+
+            mMediaNotification.doInitialNotification(getApplicationContext(), getCurrentPlayingRadioStation());
+            updateMetadata(mCurrentStreamTitle);
         } else {
             handleStopRequest(null);
             mIsPlayWhenReady.set(true);
@@ -961,7 +965,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
      * @param context
      * @return
      */
@@ -1005,10 +1008,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // and notify associated MediaController(s).
         mSession.release();
 
-        if (mExoPlayer != null) {
-            mExoPlayer.release();
-            mExoPlayer = null;
+        releaseExoPlayer();
+    }
+
+    /**
+     * Clear Exo Player and associated resources.
+     */
+    private void releaseExoPlayer() {
+        mCurrentStreamTitle = null;
+        if (mExoPlayer == null) {
+            return;
         }
+        mExoPlayer.release();
+        mExoPlayer = null;
     }
 
     /**
@@ -1082,42 +1094,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
             return;
         }
-        final MediaSessionCompat.QueueItem item = mPlayingQueue.get(mCurrentIndexOnQueue);
-        if (item == null) {
+        final RadioStation radioStation = getCurrentPlayingRadioStation();
+        if (radioStation == null) {
             if (listener != null) {
                 listener.onComplete(null);
             }
             return;
         }
-        final String mediaId = item.getDescription().getMediaId();
-
-        RadioStation radioStation;
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
-        }
-
-        // Make a copy of the Radio Station
-        final RadioStation radioStationCopy = radioStation;
-
-        if (radioStationCopy == null) {
-            if (listener != null) {
-                listener.onComplete(null);
-            }
-            return;
-        }
-
-        // Save latest selected Radio Station.
-        // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
-        LatestRadioStationStorage.addToLocals(radioStation, getApplicationContext());
 
         // If there is no detailed information about Radio Station - download it here and
         // update model.
 
-        if (radioStationCopy.getStreamURL() != null && !radioStationCopy.getStreamURL().isEmpty()) {
-            radioStationCopy.setIsUpdated(true);
+        if (radioStation.getStreamURL() != null && !radioStation.getStreamURL().isEmpty()) {
+            radioStation.setIsUpdated(true);
         }
 
-        if (!radioStationCopy.getIsUpdated()) {
+        if (!radioStation.getIsUpdated()) {
 
             final ExecutorService executorService = getApiCallExecutor();
             if (executorService != null) {
@@ -1130,22 +1122,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                             new HTTPDownloaderImpl(),
                                             UrlBuilder.getStation(
                                                     getApplicationContext(),
-                                                    radioStationCopy.getIdAsString()
+                                                    radioStation.getIdAsString()
                                             )
                                     );
-                            radioStationCopy.setStreamURL(radioStationUpdated.getStreamURL());
-                            radioStationCopy.setBitRate(radioStationUpdated.getBitRate());
-                            radioStationCopy.setIsUpdated(true);
+                            radioStation.setStreamURL(radioStationUpdated.getStreamURL());
+                            radioStation.setBitRate(radioStationUpdated.getBitRate());
+                            radioStation.setIsUpdated(true);
 
                             if (listener != null) {
-                                listener.onComplete(buildMetadata(radioStationCopy));
+                                listener.onComplete(buildMetadata(radioStation));
                             }
                         }
                 );
             }
         } else {
             if (listener != null) {
-                listener.onComplete(buildMetadata(radioStationCopy));
+                listener.onComplete(buildMetadata(radioStation));
             }
         }
     }
@@ -1191,7 +1183,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaId is null");
             return;
         }
-        final RadioStation radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+        final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - Radio Station is null");
             return;
@@ -1206,6 +1198,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
         final String trackId = track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
+        // TODO: Check whether we can use media id from Radio Station
         if (!mediaId.equals(trackId)) {
             AppLogger.w(CLASS_NAME + " track ID '" + trackId + "' should match mediaId '" + mediaId + "'");
             return;
@@ -1215,6 +1208,32 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         " Updating metadata for MusicId:" + mediaId + ", title:" + streamTitle
         );
         mSession.setMetadata(track);
+    }
+
+    /**
+     * Return current active Radio Station object.
+     *
+     * @return {@link RadioStation} or {@code null}.
+     */
+    @Nullable
+    private RadioStation getCurrentPlayingRadioStation() {
+        final MediaSessionCompat.QueueItem queueItem = mPlayingQueue.get(mCurrentIndexOnQueue);
+        if (queueItem == null) {
+            AppLogger.w(CLASS_NAME + " Can not update Metadata - QueueItem is null");
+            return null;
+        }
+        if (queueItem.getDescription() == null) {
+            AppLogger.w(CLASS_NAME + " Can not update Metadata - Description of the QueueItem is null");
+            return null;
+        }
+        final String mediaId = queueItem.getDescription().getMediaId();
+        if (TextUtils.isEmpty(mediaId)) {
+            AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaId is null");
+            return null;
+        }
+        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
+            return QueueHelper.getRadioStationById(mediaId, mRadioStations);
+        }
     }
 
     /**
@@ -1234,9 +1253,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
 
         // stop and release the Media Player, if it's available
-        if (releaseMediaPlayer && mExoPlayer != null) {
-            mExoPlayer.release();
-            mExoPlayer = null;
+        if (releaseMediaPlayer) {
+            releaseExoPlayer();
         }
 
         // we can also release the Wifi lock, if we're holding it
@@ -1250,7 +1268,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void handlePlayRequest() {
         AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
-
+        mCurrentStreamTitle = null;
         if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
@@ -1487,7 +1505,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         AppLogger.d(CLASS_NAME + " state:" + mState);
         if (mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
-            mMediaNotification.startNotification();
+            mMediaNotification.startNotification(getApplicationContext(), getCurrentPlayingRadioStation());
         }
     }
 
@@ -2033,9 +2051,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mediaId = item.getDescription().getMediaId();
         }
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
-                AppLocalBroadcast.createIntentCurrentIndexOnQueue(
-                        index, mediaId
-                )
+                AppLocalBroadcast.createIntentCurrentIndexOnQueue(index, mediaId)
         );
     }
 

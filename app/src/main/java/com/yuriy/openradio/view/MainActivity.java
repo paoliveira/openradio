@@ -119,6 +119,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private View mCurrentRadioStationView;
 
+    @Nullable
     private MediaMetadataCompat mLastKnownMetadata;
 
     /**
@@ -838,12 +839,7 @@ public final class MainActivity extends AppCompatActivity {
 
         final MediaMetadataCompat lastKnownMetadata = savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA);
         if (lastKnownMetadata != null) {
-            mLastKnownMetadata = lastKnownMetadata;
-            handleMetadataChanged(mLastKnownMetadata);
-        } else {
-            if (mMediaResourcesManager.getMediaMetadata() != null) {
-                handleMetadataChanged(mMediaResourcesManager.getMediaMetadata());
-            }
+            handleMetadataChanged(lastKnownMetadata);
         }
     }
 
@@ -1057,7 +1053,7 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param metadata Metadata related to currently playing Radio Station.
      */
-    private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
+    private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
         mLastKnownMetadata = metadata;
         // TODO: Probably no need to have this check as currently playing Radio Station is the only one relates to
         //       metadata change.
@@ -1066,7 +1062,9 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        final MediaDescriptionCompat description = metadata.getDescription();
+        final MediaDescriptionCompat description = mLastKnownMetadata != null
+                ? mLastKnownMetadata.getDescription()
+                : MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), radioStation);
 
         final TextView nameView = findViewById(R.id.crs_name_view);
         if (nameView != null) {
@@ -1494,9 +1492,7 @@ public final class MainActivity extends AppCompatActivity {
             );
 
             // Update metadata in case of UI started on and media service was already created and stream played.
-            if (activity.mMediaResourcesManager.getMediaMetadata() != null) {
-                activity.handleMetadataChanged(activity.mMediaResourcesManager.getMediaMetadata());
-            }
+            activity.handleMetadataChanged(activity.mMediaResourcesManager.getMediaMetadata());
         }
 
         @Override

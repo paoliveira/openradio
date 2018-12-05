@@ -49,6 +49,8 @@ import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapHelper;
 import com.yuriy.openradio.utils.FabricUtils;
+import com.yuriy.openradio.utils.MediaItemHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -141,12 +143,22 @@ public final class MediaNotification extends BroadcastReceiver {
         return notificationColor;
     }
 
+    public void doInitialNotification(final Context context, final RadioStation radioStation) {
+        mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+        if (mMetadata == null) {
+            FabricUtils.log(
+                    "StartNotification null metadata, after created from RadioStation."
+            );
+        }
+        updateNotificationMetadata();
+    }
+
     /**
      * Posts the notification and starts tracking the session to keep it
      * updated. The notification will automatically be removed if the session is
      * destroyed before {@link #stopNotification} is called.
      */
-    public void startNotification() {
+    public void startNotification(final Context context, final RadioStation radioStation) {
         if (!mStarted) {
             mController.registerCallback(mCb);
             final IntentFilter filter = new IntentFilter();
@@ -160,7 +172,15 @@ public final class MediaNotification extends BroadcastReceiver {
             if (metadata != null) {
                 mMetadata = metadata;
             } else {
-                FabricUtils.log("StartNotification null metadata, prev metadata " + mMetadata);
+                FabricUtils.log(
+                        "StartNotification null metadata, prev metadata " + mMetadata + ". Create from RadioStation ..."
+                );
+                mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+                if (mMetadata == null) {
+                    FabricUtils.log(
+                            "StartNotification null metadata, after created from RadioStation."
+                    );
+                }
             }
             PlaybackStateCompat playbackState = mController.getPlaybackState();
             if (playbackState != null) {

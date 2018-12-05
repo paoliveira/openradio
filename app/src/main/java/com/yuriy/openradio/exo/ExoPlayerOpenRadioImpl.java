@@ -38,7 +38,6 @@ import com.google.android.exoplayer2.audio.AudioProcessor;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
@@ -46,14 +45,14 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Clock;
-import com.google.android.exoplayer2.util.EventLogger;
+import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -156,11 +155,6 @@ public final class ExoPlayerOpenRadioImpl {
     private DataSource.Factory mMediaDataSourceFactory;
 
     /**
-     * Event logger to use as debug logger.
-     */
-    private EventLogger mEventLogger;
-
-    /**
      * Current play URI.
      */
     private Uri mUri;
@@ -217,8 +211,6 @@ public final class ExoPlayerOpenRadioImpl {
         mComponentListener = new ComponentListener(this);
         mListener = listener;
 
-        final MappingTrackSelector trackSelector = new DefaultTrackSelector();
-        mEventLogger = new EventLogger(trackSelector);
         mMediaDataSourceFactory = buildDataSourceFactory(context, icyInputStreamListener);
 
         final List<Renderer> renderersList = new ArrayList<>();
@@ -236,7 +228,7 @@ public final class ExoPlayerOpenRadioImpl {
         mAudioRendererCount = audioRendererCount;
 
         mExoPlayer = new ExoPlayerImpl(
-                mRenderers, trackSelector, new DefaultLoadControl(), Clock.DEFAULT
+                mRenderers, new DefaultTrackSelector(), new DefaultLoadControl(), Clock.DEFAULT
         );
         mExoPlayer.addListener(mComponentListener);
     }
@@ -254,11 +246,21 @@ public final class ExoPlayerOpenRadioImpl {
 
         mUserState = UserState.PREPARE;
 
+        @C.ContentType int type = Util.inferContentType(uri);
         mUri = uri;
-        mMediaSource = new ExtractorMediaSource(
-                mUri, mMediaDataSourceFactory, new DefaultExtractorsFactory(),
-                mMainHandler, mEventLogger
-        );
+        switch (type) {
+            case C.TYPE_HLS:
+                mMediaSource = new HlsMediaSource.Factory(mMediaDataSourceFactory)
+                        .createMediaSource(mUri);
+                break;
+            case C.TYPE_OTHER:
+                mMediaSource = new ExtractorMediaSource.Factory(mMediaDataSourceFactory)
+                        .createMediaSource(mUri);
+                break;
+            default:
+                AppLogger.e("Unsupported extension:" + type);
+                break;
+        }
 
         if (mExoPlayer != null) {
             mExoPlayer.prepare(mMediaSource);
@@ -466,12 +468,6 @@ public final class ExoPlayerOpenRadioImpl {
      */
     public void setWakeMode(final Context context, int mode) {
         boolean washeld = false;
-
-        /* Disable persistant wakelocks in media ExoPlayer based on property */
-//        if (SystemProperties.getBoolean("audio.offload.ignore_setawake", false) == true) {
-//            Log.w(TAG, "IGNORING setWakeMode " + mode);
-//            return;
-//        }
 
         if (mWakeLock != null) {
             if (mWakeLock.isHeld()) {
