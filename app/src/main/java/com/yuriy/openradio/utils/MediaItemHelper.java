@@ -55,8 +55,6 @@ public final class MediaItemHelper {
 
     private static final String KEY_CURRENT_STREAM_TITLE = "CURRENT_STREAM_TITLE";
 
-    public static final String CUSTOM_METADATA_TRACK_SOURCE = "__SOURCE__";
-
     /**
      * Default constructor.
      */
@@ -299,7 +297,7 @@ public final class MediaItemHelper {
         final String title = radioStation.getName();
         final String artist = radioStation.getCountry();
         final String genre = radioStation.getGenre();
-        final String source = radioStation.getStreamURL();
+        final String source = radioStation.getMediaStream().getVariant(0).getUrl();
         final String id = String.valueOf(radioStation.getId());
         String subTitle = TextUtils.isEmpty(streamTitle) ? radioStation.getCountry() : streamTitle;
         if (TextUtils.isEmpty(subTitle)) {
@@ -314,7 +312,7 @@ public final class MediaItemHelper {
         // sample for convenience only.
         final MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
-                .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
@@ -415,7 +413,7 @@ public final class MediaItemHelper {
         // sample for convenience only.
         return new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, parentId)
-                .putString(CUSTOM_METADATA_TRACK_SOURCE, source)
+                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)

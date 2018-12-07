@@ -140,7 +140,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
         for (final RadioStation radioStation : list) {
             if (radioStation.getIdAsString().endsWith(mediaId)) {
                 radioStation.setName(name);
-                radioStation.setStreamURL(url);
+                radioStation.getMediaStream().setVariant(0, url);
                 //TODO: Should we remove previous image from storage?
                 radioStation.setImageUrl(imageUrl);
                 radioStation.setGenre(genre);

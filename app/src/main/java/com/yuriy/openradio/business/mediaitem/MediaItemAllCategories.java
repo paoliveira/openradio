@@ -50,8 +50,8 @@ public final class MediaItemAllCategories implements MediaItemCommand {
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
 
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:

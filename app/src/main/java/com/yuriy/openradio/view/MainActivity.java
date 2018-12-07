@@ -254,6 +254,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppLogger.d(CLASS_NAME + " OnCreate:" + savedInstanceState);
 
         // Set content.
         setContentView(R.layout.activity_main);
@@ -319,7 +320,7 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        mMediaResourcesManager.create();
+        mMediaResourcesManager.create(savedInstanceState);
 
         restoreState(savedInstanceState);
 
@@ -546,7 +547,9 @@ public final class MainActivity extends AppCompatActivity {
             // Clear stack
             mMediaItemsStack.clear();
 
-            // perform android framework lifecycle
+            startService(OpenRadioService.makeStopServiceIntent(getApplicationContext()));
+
+            // perform android frameworks lifecycle
             super.onBackPressed();
             return;
         }
@@ -568,6 +571,7 @@ public final class MainActivity extends AppCompatActivity {
         if (location >= 0) {
             final String previousMediaId = mMediaItemsStack.get(location);
             if (!TextUtils.isEmpty(previousMediaId)) {
+                showProgressBar();
                 AppLogger.d("Back to " + previousMediaId);
                 mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
             }
@@ -623,8 +627,6 @@ public final class MainActivity extends AppCompatActivity {
         // Save search query string, retrieve it later in the service
         Utils.setSearchQuery(queryString);
         addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
-
-        showProgressBar();
     }
 
     /**
@@ -761,7 +763,7 @@ public final class MainActivity extends AppCompatActivity {
         if (!mMediaItemsStack.contains(mediaId)) {
             mMediaItemsStack.add(mediaId);
         }
-
+        showProgressBar();
         mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
     }
 
@@ -769,7 +771,6 @@ public final class MainActivity extends AppCompatActivity {
      * Show progress bar.
      */
     private void showProgressBar() {
-        AppLogger.d("Show progress bar");
         if (mProgressBar == null) {
             return;
         }
@@ -780,7 +781,6 @@ public final class MainActivity extends AppCompatActivity {
      * Hide progress bar.
      */
     private void hideProgressBar() {
-        AppLogger.d("Hide progress bar");
         if (mProgressBar == null) {
             return;
         }
@@ -925,8 +925,6 @@ public final class MainActivity extends AppCompatActivity {
             final String children = mMediaItemsStack.get(mediaItemsStackSize - 1);
             mListPositionMap.put(children, position);
         }
-
-        showProgressBar();
 
         final String mediaId = item.getMediaId();
 
@@ -1443,8 +1441,6 @@ public final class MainActivity extends AppCompatActivity {
         if (MediaIDHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
             addMediaItemToStack(mCurrentParentId);
-            // Call "show" method after "unsubscribe".
-            showProgressBar();
         } else {
             AppLogger.w("Category " + mCurrentParentId + " is not refreshable");
         }
@@ -1485,6 +1481,7 @@ public final class MainActivity extends AppCompatActivity {
                 activity.addMediaItemToStack(activity.mMediaResourcesManager.getRoot());
             }
 
+            activity.showProgressBar();
             // Subscribe to the media item
             activity.mMediaResourcesManager.subscribe(
                     activity.mMediaItemsStack.get(activity.mMediaItemsStack.size() - 1),
@@ -1704,8 +1701,6 @@ public final class MainActivity extends AppCompatActivity {
             mFirstVisibleItem = firstVisibleItem;
             mVisibleItemCount = visibleItemCount;
             mTotalItemCount = totalItemCount;
-
-            //reportEndOfScroll();
         }
 
         private void reportEndOfScroll() {

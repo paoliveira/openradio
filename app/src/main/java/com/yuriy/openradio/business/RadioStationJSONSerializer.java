@@ -16,6 +16,10 @@
 
 package com.yuriy.openradio.business;
 
+import android.util.Log;
+
+import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.vo.MediaStream;
 import com.yuriy.openradio.vo.RadioStation;
 
 import org.json.JSONException;
@@ -32,6 +36,8 @@ import org.json.JSONObject;
  */
 public final class RadioStationJSONSerializer implements RadioStationSerializer {
 
+    private static final String CLASS_NAME = RadioStationJSONSerializer.class.getSimpleName();
+
     /**
      * Default constructor.
      */
@@ -45,21 +51,25 @@ public final class RadioStationJSONSerializer implements RadioStationSerializer 
         if (radioStation == null) {
             return jsonObject.toString();
         }
+        if (radioStation.isMediaStreamEmpty()) {
+            return jsonObject.toString();
+        }
         try {
             jsonObject.put(RadioStationJSONHelper.KEY_ID, radioStation.getId());
             jsonObject.put(RadioStationJSONHelper.KEY_NAME, radioStation.getName());
-            jsonObject.put(RadioStationJSONHelper.KEY_BITRATE, radioStation.getBitRate());
+            jsonObject.put(RadioStationJSONHelper.KEY_BITRATE, radioStation.getMediaStream().getVariant(0).getBitrate());
             jsonObject.put(RadioStationJSONHelper.KEY_COUNTRY, radioStation.getCountry());
             jsonObject.put(RadioStationJSONHelper.KEY_GENRE, radioStation.getGenre());
             jsonObject.put(RadioStationJSONHelper.KEY_IMG_URL, radioStation.getImageUrl());
-            jsonObject.put(RadioStationJSONHelper.KEY_STREAM_URL, radioStation.getStreamURL());
+            jsonObject.put(RadioStationJSONHelper.KEY_STREAM_URL, radioStation.getMediaStream().getVariant(0).getUrl());
             jsonObject.put(RadioStationJSONHelper.KEY_STATUS, radioStation.getStatus());
             jsonObject.put(RadioStationJSONHelper.KEY_THUMB_URL, radioStation.getThumbUrl());
             jsonObject.put(RadioStationJSONHelper.KEY_WEB_SITE, radioStation.getWebSite());
             jsonObject.put(RadioStationJSONHelper.KEY_IS_LOCAL, radioStation.isLocal());
             jsonObject.put(RadioStationJSONHelper.KEY_SORT_ID, radioStation.getSortId());
-        } catch (final JSONException e) {
+        } catch (final Exception e) {
             /* Ignore this exception */
+            AppLogger.e("Error while marshall " + radioStation + ", exception:\n" + Log.getStackTraceString(e));
         }
         return jsonObject.toString();
     }

@@ -16,10 +16,11 @@
 
 package com.yuriy.openradio.business;
 
+import android.text.TextUtils;
 import android.util.Log;
 
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.vo.RadioStation;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,11 +50,18 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
             final JSONObject jsonObject = new JSONObject(value);
             radioStation.setId(getIntValue(jsonObject, RadioStationJSONHelper.KEY_ID));
             radioStation.setName(getStringValue(jsonObject, RadioStationJSONHelper.KEY_NAME));
-            radioStation.setBitRate(getStringValue(jsonObject, RadioStationJSONHelper.KEY_BITRATE));
+
+            String bitrateStr = getStringValue(jsonObject, RadioStationJSONHelper.KEY_BITRATE, "0");
+            if (!TextUtils.isDigitsOnly(bitrateStr) || TextUtils.isEmpty(bitrateStr)) {
+                bitrateStr = "0";
+            }
+            radioStation.getMediaStream().setVariant(
+                    Integer.valueOf(bitrateStr),
+                    getStringValue(jsonObject, RadioStationJSONHelper.KEY_STREAM_URL)
+            );
             radioStation.setCountry(getStringValue(jsonObject, RadioStationJSONHelper.KEY_COUNTRY));
             radioStation.setGenre(getStringValue(jsonObject, RadioStationJSONHelper.KEY_GENRE));
             radioStation.setImageUrl(getStringValue(jsonObject, RadioStationJSONHelper.KEY_IMG_URL));
-            radioStation.setStreamURL(getStringValue(jsonObject, RadioStationJSONHelper.KEY_STREAM_URL));
             radioStation.setStatus(getIntValue(jsonObject, RadioStationJSONHelper.KEY_STATUS));
             radioStation.setThumbUrl(getStringValue(jsonObject, RadioStationJSONHelper.KEY_THUMB_URL));
             radioStation.setWebSite(getStringValue(jsonObject, RadioStationJSONHelper.KEY_WEB_SITE));
@@ -61,20 +69,24 @@ public final class RadioStationJSONDeserializer implements RadioStationDeseriali
             radioStation.setSortId(getIntValue(jsonObject, RadioStationJSONHelper.KEY_SORT_ID, -1));
         } catch (final Throwable e) {
             /* Ignore this exception */
-            AppLogger.e("Error while demarshall RadioStation:\n" + Log.getStackTraceString(e));
+            AppLogger.e("Error while de-marshall " + value + ", exception:\n" + Log.getStackTraceString(e));
         }
         return radioStation;
     }
 
-    private String getStringValue(final JSONObject jsonObject, final String key)
+    private String getStringValue(final JSONObject jsonObject, final String key) throws JSONException {
+        return getStringValue(jsonObject, key, "");
+    }
+
+    private String getStringValue(final JSONObject jsonObject, final String key, final String defaultValue)
             throws JSONException {
         if (jsonObject == null) {
-            return "";
+            return defaultValue;
         }
         if (jsonObject.has(key)) {
             return jsonObject.getString(key);
         }
-        return "";
+        return defaultValue;
     }
 
     private int getIntValue(final JSONObject jsonObject, final String key) throws JSONException {

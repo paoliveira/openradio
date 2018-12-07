@@ -60,7 +60,7 @@ public final class FeatureSortDialog extends BaseDialogFragment {
                 }
         );
 
-        final AlertDialog.Builder builder = createAlertDialogWithOkButton(getActivity());
+        final AlertDialog.Builder builder = createAlertDialog(getActivity());
         builder.setTitle(getActivity().getString(R.string.feature_sort_title));
         builder.setView(view);
         return builder.create();

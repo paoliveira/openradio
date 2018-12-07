@@ -99,25 +99,20 @@ dependencies {
 tasks.whenTaskAdded { task ->
     if (task.name == "assembleRelease") {
         task.doLast() {
-            tasks.getAndIncrementVersionCode.execute()
+            println "Get And Increment Version code"
+
+            def versionPropsFile = file('version.properties')
+            if (versionPropsFile.canRead()) {
+                Properties versionProps = new Properties()
+                versionProps.load(new FileInputStream(versionPropsFile))
+                def code = versionProps['VERSION_CODE'].toInteger() + 1
+                versionProps['VERSION_CODE'] = code.toString()
+                versionProps.store(versionPropsFile.newWriter(), null)
+
+                println "Version code incremented to " + code
+            } else {
+                throw new GradleException("Could not read version.properties !")
+            }
         }
-    }
-}
-
-task getAndIncrementVersionCode << {
-
-    println "Get And Increment Version code"
-
-    def versionPropsFile = file('version.properties')
-    if (versionPropsFile.canRead()) {
-        Properties versionProps = new Properties()
-        versionProps.load(new FileInputStream(versionPropsFile))
-        def code = versionProps['VERSION_CODE'].toInteger() + 1
-        versionProps['VERSION_CODE'] = code.toString()
-        versionProps.store(versionPropsFile.newWriter(), null)
-
-        println "Version code incremented to " + code
-    } else {
-        throw new GradleException("Could not read version.properties !")
     }
 }

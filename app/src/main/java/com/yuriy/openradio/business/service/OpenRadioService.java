@@ -25,7 +25,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
@@ -49,7 +48,7 @@ import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
-import com.yuriy.openradio.business.MediaNotification;
+import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.RadioStationUpdateListener;
 import com.yuriy.openradio.business.broadcast.AbstractReceiver;
 import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
@@ -72,6 +71,7 @@ import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
 import com.yuriy.openradio.business.mediaitem.MediaItemSearchFromApp;
 import com.yuriy.openradio.business.mediaitem.MediaItemShareObject;
 import com.yuriy.openradio.business.mediaitem.MediaItemStation;
+import com.yuriy.openradio.business.notification.MediaNotification;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
@@ -139,6 +139,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
 
     private static final String VALUE_NAME_UPDATE_SORT_IDS = "VALUE_NAME_UPDATE_SORT_IDS";
+
+    private static final String VALUE_NAME_STOP_SERVICE = "VALUE_NAME_STOP_SERVICE";
 
     private static final String VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM";
 
@@ -344,26 +346,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private final BecomingNoisyReceiver mNoisyAudioStreamReceiver;
 
-    /**
-     * Indicates whether {@link #onBind(Intent)} has been called.
-     */
-    private volatile boolean mIsBind;
-
-    @Override
-    public IBinder onBind(final Intent intent) {
-        mIsBind = true;
-        return super.onBind(intent);
-    }
-
-    @Override
-    public boolean onUnbind(final Intent intent) {
-        if (mIsBind) {
-            final Handler handler = new Handler();
-            handler.post(this::stopService);
-            mIsBind = false;
-        }
-        return super.onUnbind(intent);
-    }
+    private boolean mIsRestoreInstance = false;
 
     /**
      * Default constructor.
@@ -437,7 +420,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES, new MediaItemAllCategories());
-        //mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_STATIONS, new MediaItemAllStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, new MediaItemParentCategories());
@@ -481,7 +463,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Override
     public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-
         AppLogger.i(CLASS_NAME + " On Config changed: " + newConfig);
     }
 
@@ -576,7 +557,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                     radioStationLocal.setId(LocalRadioStationsStorage.getId(context));
                     radioStationLocal.setName(name);
-                    radioStationLocal.setStreamURL(url);
+                    radioStationLocal.getMediaStream().setVariant(0, url);
                     radioStationLocal.setImageUrl(imageUrl);
                     radioStationLocal.setThumbUrl(imageUrl);
                     radioStationLocal.setGenre(genre);
@@ -626,6 +607,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     handlePlayRequest();
                 }
                 break;
+            case VALUE_NAME_STOP_SERVICE:
+                stopService();
+                break;
             default:
                 AppLogger.w(CLASS_NAME + " Unknown command:" + command);
         }
@@ -674,22 +658,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.i(CLASS_NAME + " Package name is not Android Auto");
             mIsAndroidAuto = false;
         }
+        mIsRestoreInstance = MediaResourcesManager.bundleContainsIncrementListIndex(rootHints);
         return new BrowserRoot(MediaIDHelper.MEDIA_ID_ROOT, null);
-    }
-
-    @Override
-    public void onLoadItem(final String itemId, @NonNull final Result<MediaBrowserCompat.MediaItem> result) {
-        super.onLoadItem(itemId, result);
-
-        AppLogger.i(CLASS_NAME + " OnLoadItem:" + itemId + ", res:" + result);
     }
 
     @Override
     public final void onLoadChildren(@NonNull final String parentId,
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
-
         AppLogger.i(CLASS_NAME + " OnLoadChildren:" + parentId + ", res:" + result);
-
         boolean isSameCatalogue = false;
         // Check whether category had changed.
         if (TextUtils.equals(mCurrentParentId, parentId)) {
@@ -726,13 +702,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
             shareObject.isSameCatalogue(isSameCatalogue);
+            shareObject.setUseCache(mIsRestoreInstance);
             shareObject.setRemotePlay(this::handleLastRadioStation);
 
-            command.create(mPlaybackStateListener, shareObject);
+            command.execute(mPlaybackStateListener, shareObject);
         } else {
             AppLogger.w(CLASS_NAME + " Skipping unmatched parentId: " + mCurrentParentId);
             result.sendResult(mediaItems);
         }
+
+        mIsRestoreInstance = false;
     }
 
     private void onError(final ExoPlaybackException exception) {
@@ -773,10 +752,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             handleStopRequest(getString(R.string.media_player_error));
             return;
         }
-
-        radioStation.setStreamURL(urls[0]);
-        QueueHelper.updateRadioStation(radioStation, mRadioStations);
-        OpenRadioService.this.handlePlayRequest();
+        // TODO: Refactor
+        radioStation.getMediaStream().clear();
+        radioStation.getMediaStream().setVariant(0, urls[0]);
+        handlePlayRequest();
     }
 
     private String[] extractUrlsFromPlaylist(final String playlistUrl) {
@@ -969,6 +948,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
+     * Make intent to stop service.
+     *
+     * @param context Context of the callee.
+     * @return {@link Intent}.
+     */
+    public static Intent makeStopServiceIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STOP_SERVICE);
+        return intent;
+    }
+
+    /**
      * Factory method to make {@link Intent} to update whether {@link RadioStation} is Favorite.
      *
      * @param context          Context of the callee.
@@ -1124,14 +1115,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        // If there is no detailed information about Radio Station - download it here and
-        // update model.
 
-        if (radioStation.getStreamURL() != null && !radioStation.getStreamURL().isEmpty()) {
-            radioStation.setIsUpdated(true);
-        }
-
-        if (!radioStation.getIsUpdated()) {
+        // This indicates that Radio Station's url was not downloaded.
+        // In version Dirble v2 when list of the stations received they comes without stream url
+        // and bitrate, upon selecting one - it is necessary to load additional data.
+        if (radioStation.isMediaStreamEmpty()) {
 
             final ExecutorService executorService = getApiCallExecutor();
             if (executorService != null) {
@@ -1147,9 +1135,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                                     radioStation.getIdAsString()
                                             )
                                     );
-                            radioStation.setStreamURL(radioStationUpdated.getStreamURL());
-                            radioStation.setBitRate(radioStationUpdated.getBitRate());
-                            radioStation.setIsUpdated(true);
+                            radioStation.setMediaStream(radioStationUpdated.getMediaStream());
 
                             if (listener != null) {
                                 listener.onComplete(buildMetadata(radioStation));
@@ -1165,7 +1151,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private MediaMetadataCompat buildMetadata(final RadioStation radioStation) {
-        if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
+        if (radioStation.isMediaStreamEmpty()) {
             updatePlaybackState(getString(R.string.no_data_message));
         }
 
@@ -1284,7 +1270,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void relaxResources(boolean releaseMediaPlayer) {
         AppLogger.d(CLASS_NAME + " RelaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
         // stop being a foreground service
-        stopForeground(true);
+        stopForeground(false);
 
         // reset the delayed stop handler.
         mDelayedStopHandler.removeCallbacksAndMessages(null);
@@ -1381,7 +1367,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         " PlayQueue.size=" + service.mPlayingQueue.size());
                 return;
             }
-            final String source = track.getString(MediaItemHelper.CUSTOM_METADATA_TRACK_SOURCE);
+            final String source = track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
             AppLogger.d(
                     CLASS_NAME + " Play Radio Station: current (" + service.mCurrentIndexOnQueue
                             + ") in mPlayingQueue. " +

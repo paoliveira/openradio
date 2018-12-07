@@ -50,8 +50,8 @@ public final class MediaItemStation implements MediaItemCommand {
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
@@ -80,7 +80,7 @@ public final class MediaItemStation implements MediaItemCommand {
                 shareObject.getDownloader(),
                 UrlBuilder.getStation(shareObject.getContext(), radioStationId));
 
-        if (radioStation.getStreamURL() == null || radioStation.getStreamURL().isEmpty()) {
+        if (radioStation.isMediaStreamEmpty()) {
             if (playbackStateListener != null) {
                 playbackStateListener.updatePlaybackState(
                         shareObject.getContext().getString(R.string.no_data_message)
@@ -90,7 +90,7 @@ public final class MediaItemStation implements MediaItemCommand {
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.updateRadioStation(radioStation, shareObject.getRadioStations());
+            QueueHelper.updateRadioStationMediaStream(radioStation, shareObject.getRadioStations());
         }
 
         final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(

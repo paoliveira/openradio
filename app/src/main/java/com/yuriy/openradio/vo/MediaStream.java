@@ -16,53 +16,133 @@
 
 package com.yuriy.openradio.vo;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 4/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
- * {@link MediaStream} is a value object that holds Stream's data.
+ * <p>
+ * {@link MediaStream} is a value object that holds data associated with Radio Station's stream.
  */
 public final class MediaStream {
 
-    private int mId;
+    private final List<Variant> mVariants;
 
-    private String mUrl = "";
-
-    private int mBitrate = 128;
-
-    public String getUrl() {
-        return mUrl;
+    public void setVariant(final int bitrate, @NonNull final String url) {
+        mVariants.add(new Variant(bitrate, url));
     }
 
-    public void setUrl(final String value) {
-        mUrl = value;
+    public int getVariantsNumber() {
+        return mVariants.size();
     }
 
-    public int getBitrate() {
-        return mBitrate;
+    boolean isEmpty() {
+        return mVariants.isEmpty();
     }
 
-    public void setBitrate(final int value) {
-        mBitrate = value;
+    public void clear() {
+        mVariants.clear();
     }
 
-    public int getId() {
-        return mId;
+    @Nullable
+    public Variant getVariant(final int position) {
+        if (position < 0) {
+            return null;
+        }
+        if (position >= getVariantsNumber()) {
+            return null;
+        }
+        return mVariants.get(position).copy();
     }
 
-    public void setId(int value) {
-        mId = value;
+    @Override
+    public String toString() {
+        return "MediaStream{variants=" + mVariants + "}";
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final MediaStream that = (MediaStream) o;
+        return mVariants.equals(that.mVariants);
+    }
+
+    @Override
+    public int hashCode() {
+        return mVariants.hashCode();
     }
 
     /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private MediaStream() { }
+    private MediaStream() {
+        mVariants = new ArrayList<>();
+    }
+
+    public static final class Variant {
+
+        @NonNull
+        private final String mUrl;
+
+        // TODO: Convert to enum
+        private final int mBitrate;
+
+        private Variant(final int bitrate, @NonNull final String url) {
+            super();
+            mBitrate = bitrate;
+            mUrl = url;
+        }
+
+        public String getUrl() {
+            return mUrl;
+        }
+
+        public int getBitrate() {
+            return mBitrate;
+        }
+
+        @Override
+        public String toString() {
+            return "Variant{" +
+                    "url='" + mUrl + '\'' +
+                    ", bitrate=" + mBitrate +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(final Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            final Variant variant = (Variant) o;
+
+            if (mBitrate != variant.mBitrate) return false;
+            return mUrl.equals(variant.mUrl);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = mUrl.hashCode();
+            result = 31 * result + mBitrate;
+            return result;
+        }
+
+        private Variant copy() {
+            return new Variant(mBitrate, mUrl);
+        }
+    }
 
     /**
      * Factory method to create instance of the {@link MediaStream}.

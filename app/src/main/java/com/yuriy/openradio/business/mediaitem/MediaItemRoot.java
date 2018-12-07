@@ -59,8 +59,8 @@ public final class MediaItemRoot implements MediaItemCommand {
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
         AppLogger.d(LOG_TAG + " invoked");
         final Context context = shareObject.getContext();
 

@@ -24,6 +24,7 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.vo.RadioStation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of Child Category.
  */
@@ -47,9 +48,9 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
-        super.create(playbackStateListener, shareObject);
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
+        super.execute(playbackStateListener, shareObject);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
@@ -57,20 +58,25 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load Radio Stations into menu
-                    final String childMenuId
-                            = shareObject.getParentId()
-                            .replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
-
-                    final List<RadioStation> list = shareObject.getServiceProvider().getStations(
-                            shareObject.getDownloader(),
-                            UrlBuilder.getStationsInCategory(
-                                    shareObject.getContext(),
-                                    childMenuId,
-                                    incrementAndGetPageIndex(),
-                                    UrlBuilder.ITEMS_PER_PAGE
-                            )
-                    );
+                    // Load all categories into menu
+                    final List<RadioStation> list = new ArrayList<>();
+                    if (!shareObject.isUseCache()) {
+                        final String childMenuId = shareObject.getParentId()
+                                .replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
+                        list.addAll(
+                                shareObject.getServiceProvider().getStations(
+                                        shareObject.getDownloader(),
+                                        UrlBuilder.getStationsInCategory(
+                                                shareObject.getContext(),
+                                                childMenuId,
+                                                getPageNumber(),
+                                                UrlBuilder.ITEMS_PER_PAGE
+                                        )
+                                )
+                        );
+                    }
                     handleDataLoaded(playbackStateListener, shareObject, list);
-                });
+                }
+        );
     }
 }

@@ -55,8 +55,8 @@ public final class MediaItemCountriesList implements MediaItemCommand {
     private static final String CLASS_NAME = MediaItemCountriesList.class.getSimpleName();
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();

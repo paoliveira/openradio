@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.vo;
 
+import android.support.annotation.NonNull;
+
 import java.io.Serializable;
 
 /**
@@ -38,15 +40,10 @@ public final class RadioStation implements Serializable {
 
     private String mName = "";
 
-    private String mStreamURL = "";
-
     private String mWebSite = "";
 
     // TODO: Convert to enum
     private String mCountry = "";
-
-    // TODO: Convert to enum
-    private String mBitRate = "";
 
     private String mGenre = "";
 
@@ -54,12 +51,8 @@ public final class RadioStation implements Serializable {
 
     private String mThumbUrl = "";
 
-    /**
-     * Flag indicates that Station's data has been downloaded and updates.
-     * In version Dirble v2 when list of the stations received they comes without stream url
-     * and bitrate, upon selecting one - it is necessary to load additional data.
-     */
-    private boolean mIsUpdated;
+    @NonNull
+    private final MediaStream mMediaStream;
 
     /**
      * Flag indicate that Radio Station has been added locally to the phone storage.
@@ -76,6 +69,7 @@ public final class RadioStation implements Serializable {
      */
     private RadioStation() {
         super();
+        mMediaStream = MediaStream.makeDefaultInstance();
     }
 
     public final int getId() {
@@ -106,28 +100,12 @@ public final class RadioStation implements Serializable {
         mName = value;
     }
 
-    public final String getStreamURL() {
-        return mStreamURL;
-    }
-
-    public final void setStreamURL(final String value) {
-        mStreamURL = value;
-    }
-
     public final String getCountry() {
         return mCountry;
     }
 
     public final void setCountry(final String value) {
         mCountry = value;
-    }
-
-    public final String getBitRate() {
-        return mBitRate;
-    }
-
-    public final void setBitRate(final String value) {
-        mBitRate = value;
     }
 
     public final String getWebSite() {
@@ -144,14 +122,6 @@ public final class RadioStation implements Serializable {
 
     public final void setGenre(final String value) {
         mGenre = value;
-    }
-
-    public final boolean getIsUpdated() {
-        return mIsUpdated;
-    }
-
-    public final void setIsUpdated(final boolean value) {
-        mIsUpdated = value;
     }
 
     public final String getImageUrl() {
@@ -194,23 +164,39 @@ public final class RadioStation implements Serializable {
         mIsLastKnown = value;
     }
 
-    @Override
-    public boolean equals(final Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        final RadioStation that = (RadioStation) object;
-        return mId == that.mId && mStreamURL.equals(that.mStreamURL);
+    @NonNull
+    public final MediaStream getMediaStream() {
+        return mMediaStream;
+    }
 
+    public final boolean isMediaStreamEmpty() {
+        return mMediaStream.isEmpty();
+    }
+
+    public void setMediaStream(@NonNull final MediaStream value) {
+        //TODO: Dangerous! MediaItem may be reference from the same RadioStation object!
+        mMediaStream.clear();
+        final int size = value.getVariantsNumber();
+        for (int i = 0; i < size; i++) {
+            mMediaStream.setVariant(value.getVariant(i).getBitrate(), value.getVariant(i).getUrl());
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final RadioStation that = (RadioStation) o;
+
+        if (mId != that.mId) return false;
+        return mMediaStream.equals(that.mMediaStream);
     }
 
     @Override
     public int hashCode() {
         int result = mId;
-        result = 31 * result + mStreamURL.hashCode();
+        result = 31 * result + mMediaStream.hashCode();
         return result;
     }
 
@@ -220,14 +206,12 @@ public final class RadioStation implements Serializable {
                 "id=" + mId +
                 ", status=" + mStatus +
                 ", name='" + mName + '\'' +
-                ", streamURL='" + mStreamURL + '\'' +
+                ", stream='" + mMediaStream + '\'' +
                 ", webSite='" + mWebSite + '\'' +
                 ", country='" + mCountry + '\'' +
-                ", bitRate='" + mBitRate + '\'' +
                 ", genre='" + mGenre + '\'' +
                 ", imageUrl='" + mImageUrl + '\'' +
                 ", thumbUrl='" + mThumbUrl + '\'' +
-                ", isUpdated=" + mIsUpdated + '\'' +
                 ", isLocal=" + mIsLocal + '\'' +
                 ", isLastKnown=" + mIsLastKnown + '\'' +
                 ", sortId=" + mSortId +

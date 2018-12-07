@@ -25,6 +25,7 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.vo.RadioStation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,22 +49,26 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
-        super.create(playbackStateListener, shareObject);
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
+        super.execute(playbackStateListener, shareObject);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
-                    // Load all categories into menu
-                    final List<RadioStation> list = shareObject.getServiceProvider().getStations(
-                            shareObject.getDownloader(),
-                            UrlBuilder.getSearchUrl(shareObject.getContext()),
-                            // Get search query from the holder util.
-                            APIServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
-                    );
+                    final List<RadioStation> list = new ArrayList<>();
+                    if (!shareObject.isUseCache()) {
+                        list.addAll(
+                                shareObject.getServiceProvider().getStations(
+                                        shareObject.getDownloader(),
+                                        UrlBuilder.getSearchUrl(shareObject.getContext()),
+                                        // Get search query from the holder util.
+                                        APIServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
+                                )
+                        );
+                    }
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

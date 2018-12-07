@@ -30,6 +30,7 @@ import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.drive.GoogleDriveManager;
+import com.yuriy.openradio.utils.AppLogger;
 
 /**
  * Created by Yuriy Chernyshov

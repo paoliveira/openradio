@@ -23,6 +23,7 @@ import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.vo.RadioStation;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link MediaItemRecentlyAddedStations} is concrete implementation of the {@link MediaItemCommand}
  * that designed to prepare the recently added radio stations.
  */
@@ -46,9 +47,9 @@ public final class MediaItemRecentlyAddedStations extends IndexableMediaItemComm
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
-        super.create(playbackStateListener, shareObject);
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
+        super.execute(playbackStateListener, shareObject);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
@@ -56,15 +57,19 @@ public final class MediaItemRecentlyAddedStations extends IndexableMediaItemComm
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    final List<RadioStation> list = shareObject.getServiceProvider().getStations(
-                            shareObject.getDownloader(),
-                            UrlBuilder.getRecentlyAddedStations(
-                                    shareObject.getContext(),
-                                    incrementAndGetPageIndex(),
-                                    UrlBuilder.ITEMS_PER_PAGE
-                            )
-                    );
-
+                    final List<RadioStation> list = new ArrayList<>();
+                    if (!shareObject.isUseCache()) {
+                        list.addAll(
+                                shareObject.getServiceProvider().getStations(
+                                        shareObject.getDownloader(),
+                                        UrlBuilder.getRecentlyAddedStations(
+                                                shareObject.getContext(),
+                                                getPageNumber(),
+                                                UrlBuilder.ITEMS_PER_PAGE
+                                        )
+                                )
+                        );
+                    }
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

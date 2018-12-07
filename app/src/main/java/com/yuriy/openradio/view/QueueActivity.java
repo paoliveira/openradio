@@ -151,7 +151,7 @@ public final class QueueActivity extends AppCompatActivity {
             view.setSelected(true);
         });
 
-        mMediaResourcesManager.create();
+        mMediaResourcesManager.create(savedInstanceState);
 
         updateBufferedTime(0);
     }

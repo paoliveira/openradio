@@ -188,13 +188,11 @@ public final class QueueHelper {
      * @param radioStationVO
      * @param radioStations
      */
-    public static void updateRadioStation(final RadioStation radioStationVO,
-                                          final List<RadioStation> radioStations) {
+    public static void updateRadioStationMediaStream(final RadioStation radioStationVO,
+                                                     final List<RadioStation> radioStations) {
         for (final RadioStation radioStation : radioStations) {
             if (radioStationVO.getId() == radioStation.getId()) {
-                radioStation.setStreamURL(radioStationVO.getStreamURL());
-                radioStation.setBitRate(radioStationVO.getBitRate());
-                radioStation.setIsUpdated(true);
+                radioStation.setMediaStream(radioStationVO.getMediaStream());
                 break;
             }
         }

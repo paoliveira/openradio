@@ -49,6 +49,6 @@ public interface MediaItemCommand {
      * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
      *                              references needed to execute command.
      */
-    void create(final IUpdatePlaybackState playbackStateListener,
-                @NonNull final MediaItemShareObject shareObject);
+    void execute(final IUpdatePlaybackState playbackStateListener,
+                 @NonNull final MediaItemShareObject shareObject);
 }

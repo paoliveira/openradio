@@ -137,7 +137,7 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
      */
     private void handleUI(@NonNull final RadioStation radioStation, final Context context) {
         mNameEdit.setText(radioStation.getName());
-        mUrlEdit.setText(radioStation.getStreamURL());
+        mUrlEdit.setText(radioStation.getMediaStream().getVariant(0).getUrl());
         mImageUrlEdit.setText(radioStation.getImageUrl());
         mCountriesSpinner.setSelection(getCountryPosition(radioStation.getCountry()));
         mGenresSpinner.setSelection(getGenrePosition(radioStation.getGenre()));

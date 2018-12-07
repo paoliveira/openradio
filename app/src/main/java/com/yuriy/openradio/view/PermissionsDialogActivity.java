@@ -16,17 +16,24 @@
 
 package com.yuriy.openradio.view;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 
+import com.yuriy.openradio.utils.AppLogger;
+
+import java.util.Arrays;
+
 public final class PermissionsDialogActivity extends Activity {
 
+    private static final String CLASS_NAME = PermissionsDialogActivity.class.getSimpleName();
     private static final String KEY_PERMISSION_NAME = "KEY_PERMISSION_NAME";
-
     private static final int PERMISSIONS_REQUEST_CODE = 1234;
 
     @Override
@@ -41,7 +48,7 @@ public final class PermissionsDialogActivity extends Activity {
 
         // Should we show an explanation?
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissionName)) {
-            // Explain to the user why we need to read the contacts
+            // Explain to the user why we need this permission.
         }
 
         ActivityCompat.requestPermissions(
@@ -53,20 +60,32 @@ public final class PermissionsDialogActivity extends Activity {
 
     @Override
     public void onRequestPermissionsResult(final int requestCode,
-                                           final String[] permissions,
-                                           final int[] grantResults) {
+                                           @NonNull final String[] permissions,
+                                           @NonNull final int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        AppLogger.d(
+                CLASS_NAME + " permissions:" + Arrays.toString(permissions)
+                        + ", results:" + Arrays.toString(grantResults)
+        );
 
         finish();
 
-        // Restart main activity
-        final Intent intent = getBaseContext()
-                .getPackageManager()
-                .getLaunchIntentForPackage(getBaseContext().getPackageName());
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION, permissions, grantResults)) {
+            // Restart main activity
+            final Intent intent = getBaseContext()
+                    .getPackageManager()
+                    .getLaunchIntentForPackage(getBaseContext().getPackageName());
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+        }
     }
 
+    /**
+     *
+     * @param context
+     * @param permissionName
+     * @return
+     */
     public static Intent getIntent(final Context context, final String permissionName) {
         final Intent intent = new Intent(context, PermissionsDialogActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
@@ -74,10 +93,45 @@ public final class PermissionsDialogActivity extends Activity {
         return intent;
     }
 
+    /**
+     *
+     * @param intent
+     * @return
+     */
     private static String getPermissionName(final Intent intent) {
         if (intent == null) {
             return null;
         }
         return intent.getStringExtra(KEY_PERMISSION_NAME);
+    }
+
+    /**
+     *
+     * @param name
+     * @param permissions
+     * @param results
+     * @return
+     */
+    private static boolean isPermissionGranted(final String name, final String[] permissions, final int[] results) {
+        if (TextUtils.isEmpty(name)) {
+            return false;
+        }
+        int length = permissions.length;
+        if (length == 0) {
+            return false;
+        }
+
+        boolean isGranted = false;
+        String permission;
+        int result;
+        for (int i = 0; i < length; i++) {
+            permission = permissions[i];
+            result = results[i];
+            if (TextUtils.equals(name, permission) && result == PackageManager.PERMISSION_GRANTED) {
+                isGranted = true;
+                break;
+            }
+        }
+        return isGranted;
     }
 }

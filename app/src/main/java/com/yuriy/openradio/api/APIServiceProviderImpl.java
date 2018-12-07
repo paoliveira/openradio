@@ -22,9 +22,9 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
+import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
@@ -41,11 +41,11 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,7 +70,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     /**
      * Cache of the API responses. It used in order to avoid API call amount on the server.
      */
-    private static final Map<String, JSONArray> RESPONSES_MAP = new Hashtable<>();
+    private static final Map<String, JSONArray> RESPONSES_MAP = new ConcurrentHashMap<>();
 
     /**
      * Key for the search "key-value" pairs.
@@ -215,7 +215,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
 
                 updateRadioStation(radioStation, object);
 
-                if (radioStation.getStreamURL().isEmpty()) {
+                if (radioStation.isMediaStreamEmpty()) {
                     continue;
                 }
 
@@ -236,7 +236,8 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         for (final RadioStation radioStationVO : radioStations) {
             executor.submit(
                     new RadioStationChecker(
-                            radioStationVO.getStreamURL(), completeLatch, passedUrls
+                            // TODO: Probably check all variants
+                            radioStationVO.getMediaStream().getVariant(0).getUrl(), completeLatch, passedUrls
                     )
             );
         }
@@ -249,7 +250,8 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         // Clear "dead" Radio Stations
         for (int i = 0; i < radioStations.size(); i++) {
             radioStation = radioStations.get(i);
-            if (!passedUrls.contains(radioStation.getStreamURL())) {
+            // TODO: Probably check all variants
+            if (!passedUrls.contains(radioStation.getMediaStream().getVariant(0).getUrl())) {
                 radioStations.remove(radioStation);
                 i--;
             }
@@ -376,6 +378,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
      * @param jsonArray Collection of the streams.
      * @return Selected stream.
      */
+    @NonNull
     private MediaStream selectStream(final JSONArray jsonArray) {
         final MediaStream mediaStream = MediaStream.makeDefaultInstance();
 
@@ -386,8 +389,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         JSONObject object;
         int length = jsonArray.length();
         int bitrate = 0;
-        int id = 0;
-        String stream = "";
+        String url = "";
         for (int i = 0; i < length; i++) {
             try {
                 object = jsonArray.getJSONObject(i);
@@ -409,37 +411,26 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
                     }
                 }
                 if (object.has(JSONDataParserImpl.KEY_STREAM)) {
-                    stream = object.getString(JSONDataParserImpl.KEY_STREAM);
-                }
-                if (object.has(JSONDataParserImpl.KEY_STATION_ID)) {
-                    id = object.getInt(JSONDataParserImpl.KEY_STATION_ID);
+                    url = object.getString(JSONDataParserImpl.KEY_STREAM);
                 }
 
-                if (stream == null || stream.isEmpty()) {
+                if (url == null || url.isEmpty()) {
                     continue;
                 }
 
-                if (stream.startsWith("htt://")) {
-                    stream = stream.replace("htt://", "http://");
+                if (url.startsWith("htt://")) {
+                    url = url.replace("htt://", "http://");
                 }
 
-                if (stream.startsWith("htyp://")) {
-                    stream = stream.replace("htyp://", "http://");
+                if (url.startsWith("htyp://")) {
+                    url = url.replace("htyp://", "http://");
                 }
 
-                mediaStream.setBitrate(bitrate);
-                mediaStream.setUrl(stream);
-                mediaStream.setId(id);
-
-                break;
+                mediaStream.setVariant(bitrate, url);
 
             } catch (final Exception e) {
                 FabricUtils.logException(e);
             }
-        }
-
-        if (mediaStream.getUrl().isEmpty()) {
-            AppLogger.w(CLASS_NAME + " Stream has not been selected from:" + jsonArray);
         }
 
         return mediaStream;
@@ -471,8 +462,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
         if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
             final MediaStream mediaStream
                     = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
-            radioStation.setStreamURL(mediaStream.getUrl());
-            radioStation.setBitRate(String.valueOf(mediaStream.getBitrate()));
+            radioStation.setMediaStream(mediaStream);
         }
 
         if (object.has(JSONDataParserImpl.KEY_ID)) {

@@ -18,6 +18,7 @@ package com.yuriy.openradio.business;
 
 import android.app.Activity;
 import android.content.ComponentName;
+import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
@@ -45,6 +46,8 @@ public final class MediaResourcesManager {
      * Tag string to use in logging message.
      */
     private static final String CLASS_NAME = MediaResourcesManager.class.getSimpleName();
+
+    private static final String KEY_INCREMENT_LIST_KEY = "KEY_INCREMENT_LIST_KEY";
 
     /**
      * Browses media content offered by a {@link android.service.media.MediaBrowserService}.
@@ -92,12 +95,13 @@ public final class MediaResourcesManager {
     /**
      * Creates Media Browser, assigns listener.
      */
-    public void create() {
+    public void create(final Bundle savedInstance) {
         // Initialize Media Browser
         mMediaBrowser = new MediaBrowserCompat(
                 mActivity.getApplicationContext(),
                 new ComponentName(mActivity.getApplicationContext(), OpenRadioService.class),
-                new MediaBrowserConnectionCallback(this), null
+                new MediaBrowserConnectionCallback(this),
+                savedInstance != null ? MediaResourcesManager.createIncrementListIndexBundle() : null
         );
     }
 
@@ -129,7 +133,8 @@ public final class MediaResourcesManager {
      * @param parentId The id of the parent media item whose list of children will be subscribed.
      * @param callback The callback to receive the list of children.
      */
-    public void subscribe(@NonNull String parentId, @NonNull MediaBrowserCompat.SubscriptionCallback callback) {
+    public void subscribe(final @NonNull String parentId,
+                          final @NonNull MediaBrowserCompat.SubscriptionCallback callback) {
         if (mMediaBrowser != null) {
             mMediaBrowser.subscribe(parentId, callback);
         }
@@ -193,6 +198,22 @@ public final class MediaResourcesManager {
 
     public MediaMetadataCompat getMediaMetadata() {
         return mMediaController != null ? mMediaController.getMetadata() : null;
+    }
+
+    public static Bundle createIncrementListIndexBundle() {
+        final Bundle bundle = new Bundle();
+        bundle.putBoolean(KEY_INCREMENT_LIST_KEY, true);
+        return bundle;
+    }
+
+    public static boolean bundleContainsIncrementListIndex(final Bundle bundle) {
+        if (bundle == null) {
+            return false;
+        }
+        if (!bundle.containsKey(KEY_INCREMENT_LIST_KEY)) {
+            return false;
+        }
+        return bundle.getBoolean(KEY_INCREMENT_LIST_KEY, false);
     }
 
     /**

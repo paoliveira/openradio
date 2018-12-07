@@ -16,13 +16,20 @@
 
 package com.yuriy.openradio.business.broadcast;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
+import android.net.LinkProperties;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.net.NetworkRequest;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.telephony.TelephonyManager;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
@@ -33,7 +40,7 @@ import com.yuriy.openradio.view.SafeToast;
  * At Android Studio
  * On 03/12/18
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * This class is designed in a way to handle actions associated with connectivity, such as listening to events from
  * system, provide check on available network, etc ...
  */
@@ -72,12 +79,13 @@ public final class ConnectivityReceiver extends AbstractReceiver {
             mListener.onConnectivityChange(false);
             return;
         }
-        final NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        final NetworkInfo networkInfo = manager.getNetworkInfo(0);
         if (networkInfo == null) {
             AppLogger.e(CLASS_NAME + " network info is null");
             mListener.onConnectivityChange(false);
             return;
         }
+        getQuality(networkInfo);
         AppLogger.i(CLASS_NAME + " network connected:" + networkInfo.isConnected());
         mListener.onConnectivityChange(networkInfo.isConnected());
     }
@@ -125,8 +133,36 @@ public final class ConnectivityReceiver extends AbstractReceiver {
         final ConnectivityManager manager =
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (manager == null) {
-            AppLogger.e("Connectivity Manager is null");
+            AppLogger.e(CLASS_NAME + " Connectivity Manager is null");
         }
         return manager;
+    }
+
+    private void getQuality(final NetworkInfo info) {
+        if (info.getType() == ConnectivityManager.TYPE_WIFI) {
+            AppLogger.d(CLASS_NAME + " NetQ:WiFi");
+        } else if (info.getType() == ConnectivityManager.TYPE_MOBILE) {
+            AppLogger.d(CLASS_NAME + " NetQ:Mobile:" + info.getSubtype());
+            if (info.getSubtype() == TelephonyManager.NETWORK_TYPE_GPRS) {
+                // Bandwidth between 100 kbps and below
+            } else if (info.getSubtype() == TelephonyManager.NETWORK_TYPE_EDGE) {
+                // Bandwidth between 50-100 kbps
+            } else if (info.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_0) {
+                // Bandwidth between 400-1000 kbps
+            } else if (info.getSubtype() == TelephonyManager.NETWORK_TYPE_EVDO_A) {
+                // Bandwidth between 600-1400 kbps
+            }
+
+            // Other list of various subtypes you can check for and their bandwidth limits
+            // TelephonyManager.NETWORK_TYPE_1xRTT       ~ 50-100 kbps
+            // TelephonyManager.NETWORK_TYPE_CDMA        ~ 14-64 kbps
+            // TelephonyManager.NETWORK_TYPE_HSDPA       ~ 2-14 Mbps
+            // TelephonyManager.NETWORK_TYPE_HSPA        ~ 700-1700 kbps
+            // TelephonyManager.NETWORK_TYPE_HSUPA       ~ 1-23 Mbps
+            // TelephonyManager.NETWORK_TYPE_UMTS        ~ 400-7000 kbps
+            // TelephonyManager.NETWORK_TYPE_UNKNOWN     ~ Unknown
+
+        }
+//        AppLogger.d("LinkDownstreamBandwidthKbps: " + value);
     }
 }

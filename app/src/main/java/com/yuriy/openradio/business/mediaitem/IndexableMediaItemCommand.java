@@ -15,6 +15,7 @@ import com.yuriy.openradio.utils.QueueHelper;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Chernyshov Yurii
@@ -25,40 +26,42 @@ import java.util.List;
 
 public abstract class IndexableMediaItemCommand implements MediaItemCommand {
 
-    private static final String LOG_TAG = IndexableMediaItemCommand.class.getSimpleName();
+    private static final String CLASS_NAME = IndexableMediaItemCommand.class.getSimpleName();
 
     /**
      * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
      */
-    private int mPageIndex;
+    private AtomicInteger mPageIndex;
 
     IndexableMediaItemCommand() {
         super();
-        mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
+        mPageIndex = new AtomicInteger(UrlBuilder.FIRST_PAGE_INDEX);
     }
 
     @Override
-    public void create(final IUpdatePlaybackState playbackStateListener,
-                       @NonNull final MediaItemShareObject shareObject) {
-        AppLogger.d(LOG_TAG + " invoked");
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
+        AppLogger.d(CLASS_NAME + " invoked");
         if (!shareObject.isSameCatalogue()) {
             AppLogger.d("Not the same catalogue, clear list");
-            mPageIndex = UrlBuilder.FIRST_PAGE_INDEX;
+            mPageIndex.set(UrlBuilder.FIRST_PAGE_INDEX);
             shareObject.getRadioStations().clear();
         }
     }
 
-    int incrementAndGetPageIndex() {
-        return mPageIndex++;
+    int getPageNumber() {
+        final int number = mPageIndex.getAndIncrement();
+        AppLogger.d(CLASS_NAME + " page number:" + number);
+        return number;
     }
 
     void handleDataLoaded(final IUpdatePlaybackState playbackStateListener,
                           @NonNull final MediaItemShareObject shareObject,
                           final List<RadioStation> list) {
-        AppLogger.d(LOG_TAG + " Loaded " + list.size() + " items, index " + mPageIndex);
-        if (list.isEmpty()) {
+        AppLogger.d(CLASS_NAME + " Loaded " + list.size() + " items, index " + mPageIndex.get());
+        if (!shareObject.isUseCache() && list.isEmpty()) {
 
-            if (mPageIndex == UrlBuilder.FIRST_PAGE_INDEX + 1) {
+            if (mPageIndex.get() == UrlBuilder.FIRST_PAGE_INDEX + 1) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                         shareObject.getContext(),
                         MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()

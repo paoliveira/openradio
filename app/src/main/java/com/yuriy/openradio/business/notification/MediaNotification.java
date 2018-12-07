@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business;
+package com.yuriy.openradio.business.notification;
 
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -41,9 +41,6 @@ import android.text.TextUtils;
 import android.util.LruCache;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.notification.MediaNotificationData;
-import com.yuriy.openradio.business.notification.MediaNotificationManager;
-import com.yuriy.openradio.business.notification.NoMediaNotificationData;
 import com.yuriy.openradio.business.service.OpenRadioService;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
@@ -91,7 +88,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private int mNotificationColor;
 
-    private boolean mStarted = false;
+    private volatile boolean mStarted = false;
 
     public MediaNotification(final OpenRadioService service) {
         super();
@@ -129,12 +126,10 @@ public final class MediaNotification extends BroadcastReceiver {
         String packageName = mService.getPackageName();
         try {
             Context packageContext = mService.createPackageContext(packageName, 0);
-            ApplicationInfo applicationInfo =
-                    mService.getPackageManager().getApplicationInfo(packageName, 0);
+            ApplicationInfo applicationInfo = mService.getPackageManager().getApplicationInfo(packageName, 0);
             packageContext.setTheme(applicationInfo.theme);
             Resources.Theme theme = packageContext.getTheme();
-            TypedArray ta = theme.obtainStyledAttributes(
-                    new int[]{android.support.v7.appcompat.R.attr.colorPrimary});
+            TypedArray ta = theme.obtainStyledAttributes(new int[]{android.support.v7.appcompat.R.attr.colorPrimary});
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (final Exception e) {
@@ -159,40 +154,42 @@ public final class MediaNotification extends BroadcastReceiver {
      * destroyed before {@link #stopNotification} is called.
      */
     public void startNotification(final Context context, final RadioStation radioStation) {
-        if (!mStarted) {
-            mController.registerCallback(mCb);
-            final IntentFilter filter = new IntentFilter();
-            filter.addAction(ACTION_NEXT);
-            filter.addAction(ACTION_PAUSE);
-            filter.addAction(ACTION_PLAY);
-            filter.addAction(ACTION_PREV);
-            mService.registerReceiver(this, filter);
-
-            final MediaMetadataCompat metadata = mController.getMetadata();
-            if (metadata != null) {
-                mMetadata = metadata;
-            } else {
-                FabricUtils.log(
-                        "StartNotification null metadata, prev metadata " + mMetadata + ". Create from RadioStation ..."
-                );
-                mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
-                if (mMetadata == null) {
-                    FabricUtils.log(
-                            "StartNotification null metadata, after created from RadioStation."
-                    );
-                }
-            }
-            PlaybackStateCompat playbackState = mController.getPlaybackState();
-            if (playbackState != null) {
-                mPlaybackState = playbackState;
-            } else {
-                FabricUtils.log("StartNotification with null playback state");
-            }
-
-            mStarted = true;
-            // The notification must be updated after setting started to true
-            updateNotificationMetadata();
+        AppLogger.d(CLASS_NAME + " start (started:" + mStarted + ")");
+        if (mStarted) {
+            return;
         }
+        mController.registerCallback(mCb);
+        final IntentFilter filter = new IntentFilter();
+        filter.addAction(ACTION_NEXT);
+        filter.addAction(ACTION_PAUSE);
+        filter.addAction(ACTION_PLAY);
+        filter.addAction(ACTION_PREV);
+        mService.registerReceiver(this, filter);
+
+        final MediaMetadataCompat metadata = mController.getMetadata();
+        if (metadata != null) {
+            mMetadata = metadata;
+        } else {
+            FabricUtils.log(
+                    "StartNotification null metadata, prev metadata " + mMetadata + ". Create from RadioStation ..."
+            );
+            mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+            if (mMetadata == null) {
+                FabricUtils.log(
+                        "StartNotification null metadata, after created from RadioStation."
+                );
+            }
+        }
+        PlaybackStateCompat playbackState = mController.getPlaybackState();
+        if (playbackState != null) {
+            mPlaybackState = playbackState;
+        } else {
+            FabricUtils.log("StartNotification with null playback state");
+        }
+
+        mStarted = true;
+        // The notification must be updated after setting started to true
+        updateNotificationMetadata();
     }
 
     /**
@@ -200,6 +197,7 @@ public final class MediaNotification extends BroadcastReceiver {
      * was destroyed this has no effect.
      */
     public void stopNotification() {
+        AppLogger.d(CLASS_NAME + " stop");
         mStarted = false;
         mController.unregisterCallback(mCb);
         try {
@@ -261,12 +259,10 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private static final class MediaControllerCompatCallback extends MediaControllerCompat.Callback {
 
-        private static final String CLASS_NAME = MediaControllerCompatCallback.class.getSimpleName();
         private final WeakReference<MediaNotification> mReference;
 
         private MediaControllerCompatCallback(final MediaNotification reference) {
             super();
-
             mReference = new WeakReference<>(reference);
         }
 
@@ -404,7 +400,6 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setLargeIcon(art);
 
         updateNotificationPlaybackState();
-        FabricUtils.log("UpdateNotificationMetadata Start Foreground");
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
@@ -464,7 +459,10 @@ public final class MediaNotification extends BroadcastReceiver {
     }
 
     private void updateNotificationPlaybackState() {
-        AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. mPlaybackState=" + mPlaybackState);
+        AppLogger.d(
+                CLASS_NAME + " updateNotificationPlaybackState, playbackState:" + mPlaybackState
+                        + ", started:" + mStarted
+        );
         if (mPlaybackState == null || !mStarted) {
             AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. cancelling notification!");
             mService.stopForeground(true);
@@ -478,15 +476,11 @@ public final class MediaNotification extends BroadcastReceiver {
             return;
         }
         if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. updating playback position to " +
-                    (System.currentTimeMillis() - mPlaybackState.getPosition()) / 1000 + " seconds");
             mNotificationBuilder
                     .setWhen(System.currentTimeMillis() - mPlaybackState.getPosition())
                     .setShowWhen(true)
                     .setUsesChronometer(true);
-            mNotificationBuilder.setShowWhen(true);
         } else {
-            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. hiding playback position");
             mNotificationBuilder
                     .setWhen(0)
                     .setShowWhen(false)

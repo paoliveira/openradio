@@ -207,7 +207,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
             // This is not valid Radio Station. It can be happen in case of there is assigned ID
             // but actual Radio Station is not created yet. Probably it is necessary to re-design
             // functionality to avoid such scenario.
-            if (TextUtils.isEmpty(radioStation.getStreamURL())) {
+            if (radioStation.isMediaStreamEmpty()) {
                 continue;
             }
 

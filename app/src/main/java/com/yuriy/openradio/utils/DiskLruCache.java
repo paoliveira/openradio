@@ -254,7 +254,9 @@ public final class DiskLruCache implements Closeable {
     private static void deleteContents(File dir) throws IOException {
         File[] files = dir.listFiles();
         if (files == null) {
-            throw new IllegalArgumentException("not a directory: " + dir);
+            // Got report on this exception, not possible to track down root source.
+//            throw new IllegalArgumentException("not a directory: " + dir);
+            return;
         }
         for (File file : files) {
             if (file.isDirectory()) {

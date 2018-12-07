@@ -22,10 +22,10 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.api.APIServiceProvider;
+import com.yuriy.openradio.business.service.OpenRadioService;
+import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.RadioStation;
-import com.yuriy.openradio.net.Downloader;
-import com.yuriy.openradio.business.service.OpenRadioService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,9 +35,7 @@ import java.util.List;
  * At Android Studio
  * On 10/13/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link MediaItemShareObject} is a class that designed to keep all necessary references that are
  * shared between implementations of the {@link MediaItemCommand} interface, includes application
  * context, name of the current category, list of all categories, etc ...
@@ -107,7 +105,9 @@ public final class MediaItemShareObject {
 
     private OpenRadioService.RemotePlay mRemotePlay;
 
-    private boolean mIsSameCatalogue;
+    private volatile boolean mIsSameCatalogue;
+
+    private volatile boolean mIsUseCache;
 
     /**
      * Private constructor.
@@ -301,6 +301,14 @@ public final class MediaItemShareObject {
 
     public void isSameCatalogue(final boolean value) {
         mIsSameCatalogue = value;
+    }
+
+    public boolean isUseCache() {
+        return mIsUseCache;
+    }
+
+    public void setUseCache(final boolean value) {
+        mIsUseCache = value;
     }
 
     /**

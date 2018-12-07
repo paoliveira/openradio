@@ -369,7 +369,6 @@ public final class GoogleDriveManager {
         if (FILE_NAME_RADIO_STATIONS.equals(fileName)) {
             final String favoritesRx = splitRadioStationCategories(data)[0];
             final String localsRx = splitRadioStationCategories(data)[1];
-
             final List<RadioStation> favoritesList = FavoritesStorage.getAllFavorites(mContext);
             final List<RadioStation> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(favoritesRx);
             QueueHelper.merge(favoritesList, favoritesRxList);
@@ -514,8 +513,8 @@ public final class GoogleDriveManager {
 
         @Override
         public void onDownloadComplete(final String data, final String fileName) {
-            AppLogger.d("On Google Drive download completed");
             final GoogleDriveManager manager = mReference.get();
+            AppLogger.d("On Google Drive download completed, manager:" + manager);
             if (manager == null) {
                 return;
             }
@@ -525,6 +524,7 @@ public final class GoogleDriveManager {
             if (data != null) {
                 manager.handleDownloadCompleted(data, fileName);
             }
+            AppLogger.d("On Google Drive download completed, listener:" + manager.mListener);
 
             manager.mListener.onSuccess(mCommand);
         }
