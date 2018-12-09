@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
@@ -342,6 +343,27 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private final AbstractReceiver mConnectivityReceiver;
 
     private final BecomingNoisyReceiver mNoisyAudioStreamReceiver;
+
+    /**
+     * Indicates whether {@link #onBind(Intent)} has been called.
+     */
+    private volatile boolean mIsBind;
+
+    @Override
+    public IBinder onBind(final Intent intent) {
+        mIsBind = true;
+        return super.onBind(intent);
+    }
+
+    @Override
+    public boolean onUnbind(final Intent intent) {
+        if (mIsBind) {
+            final Handler handler = new Handler();
+            handler.post(this::stopService);
+            mIsBind = false;
+        }
+        return super.onUnbind(intent);
+    }
 
     /**
      * Default constructor.
