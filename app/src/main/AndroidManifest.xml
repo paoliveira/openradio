@@ -74,7 +74,7 @@
 
         <meta-data
             android:name="com.crashlytics.ApiKey"
-            android:value="3bba57c385bc4f6235b8e544ab5ed6d37745a00a"/>
+            android:value="@raw/crashlytics_metadata"/>
 
         <receiver android:name=".business.broadcast.RemoteControlReceiver">
             <intent-filter>
