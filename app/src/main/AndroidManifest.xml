@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="com.yuriy.openradio">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -74,7 +75,7 @@
 
         <meta-data
             android:name="com.crashlytics.ApiKey"
-            android:value="@raw/crashlytics_metadata"/>
+            android:value="${crashlytics_api_key}"/>
 
         <receiver android:name=".business.broadcast.RemoteControlReceiver">
             <intent-filter>
