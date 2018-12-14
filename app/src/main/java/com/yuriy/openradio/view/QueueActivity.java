@@ -425,11 +425,12 @@ public final class QueueActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onPlaybackStateChanged(final @NonNull PlaybackStateCompat state) {
+        public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
             final QueueActivity activity = mReference.get();
             if (activity == null) {
                 return;
             }
+
             activity.mPlaybackState = state;
             activity.onPlaybackStateChanged(state);
 

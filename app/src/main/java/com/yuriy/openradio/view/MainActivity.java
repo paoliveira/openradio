@@ -1021,28 +1021,22 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void handlePlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-        final RadioStation radioStation = getLastKnowRadioStationAndUpdateView();
-        if (radioStation == null) {
-            return;
-        }
-        View playBtn = findViewById(R.id.crs_play_btn_view);
-        View pauseBtn = findViewById(R.id.crs_pause_btn_view);
-        ProgressBar progressBar = findViewById(R.id.crs_progress_view);
+        final View playBtn = findViewById(R.id.crs_play_btn_view);
+        final View pauseBtn = findViewById(R.id.crs_pause_btn_view);
+        final ProgressBar progressBar = findViewById(R.id.crs_progress_view);
+
         switch (state.getState()) {
             case PlaybackStateCompat.STATE_PLAYING:
-                progressBar.setVisibility(View.GONE);
                 playBtn.setVisibility(View.GONE);
                 pauseBtn.setVisibility(View.VISIBLE);
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
-                progressBar.setVisibility(View.GONE);
                 playBtn.setVisibility(View.VISIBLE);
                 pauseBtn.setVisibility(View.GONE);
                 break;
-            default:
-                progressBar.setVisibility(View.GONE);
-                break;
         }
+
+        progressBar.setVisibility(View.GONE);
     }
 
     /**
