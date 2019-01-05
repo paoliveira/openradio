@@ -622,9 +622,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + " On Destroy");
         super.onDestroy();
 
-        mConnectivityReceiver.unregister(getApplicationContext());
+        final Context context = getApplicationContext();
+        mConnectivityReceiver.unregister(context);
+        mNoisyAudioStreamReceiver.unregister(context);
+        mMasterVolumeBroadcastReceiver.unregister(context);
 
-        mMasterVolumeBroadcastReceiver.unregister(getApplicationContext());
         stopService();
 
         final ExecutorService executorService = getApiCallExecutor();

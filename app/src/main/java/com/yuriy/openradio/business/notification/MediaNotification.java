@@ -501,7 +501,11 @@ public final class MediaNotification extends BroadcastReceiver {
     private void fetchBitmapFromURLAsync(@NonNull final String source) {
         AppLogger.d(CLASS_NAME + " getBitmapFromURLAsync: starting async task to fetch " + source);
         final AsyncTask<Void, Void, Bitmap> task = new FetchBitmapAsyncTask(this, source);
-        task.execute();
+        try {
+            task.execute();
+        } catch (final Exception e) {
+            FabricUtils.logException(e);
+        }
     }
 
     /**

@@ -375,6 +375,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected final void onDestroy() {
         super.onDestroy();
+        AppLogger.i(CLASS_NAME + " OnDestroy");
 
         PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
 

@@ -51,7 +51,7 @@ public final class FabricUtils {
      * @param exception Exception.
      */
     public static void logException(final Exception exception) {
-        AppLogger.e("Ex:" + Log.getStackTraceString(exception));
+        AppLogger.e(Log.getStackTraceString(exception));
         if (!Fabric.isInitialized()) {
             return;
         }
