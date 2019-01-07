@@ -8,22 +8,4 @@
         android:icon="@drawable/ic_search"
         app:showAsAction="ifRoom" />
 
-    <item
-        android:id="@+id/action_about"
-        android:orderInCategory="101"
-        app:showAsAction="never"
-        android:title="@string/action_about" />
-
-    <item
-        android:id="@+id/action_google_drive"
-        android:orderInCategory="102"
-        app:showAsAction="never"
-        android:title="@string/action_google_drive" />
-
-    <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="103"
-        app:showAsAction="never"
-        android:title="@string/action_settings" />
-
 </menu>

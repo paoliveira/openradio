@@ -162,4 +162,7 @@
     <string name="edit_station_dialog_button_label">Edit</string>
     <string name="can_not_edit_station_label">Can not edit Radio Station</string>
 
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
 </resources>

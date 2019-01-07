@@ -26,7 +26,6 @@ import android.widget.TextView;
 
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.IntentsHelper;
 
 /**
@@ -75,9 +74,7 @@ public final class AboutDialog extends DialogFragment {
 
         final View view = inflater.inflate(R.layout.dialog_about, container, false);
         final Context context = getActivity().getApplicationContext();
-        final String titleText = context.getString(R.string.app_name) + "    v." +
-                AppUtils.getApplicationVersion(context) + "." +
-                AppUtils.getApplicationVersionCode(context);
+        final String titleText = context.getString(R.string.app_name);
         final TextView title = view.findViewById(R.id.dialog_about_title_view);
         title.setText(titleText);
 

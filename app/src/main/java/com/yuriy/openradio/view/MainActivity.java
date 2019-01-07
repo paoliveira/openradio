@@ -30,6 +30,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -37,7 +38,11 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.ContextMenu;
 import android.view.Menu;
@@ -73,6 +78,7 @@ import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.drive.GoogleDriveError;
 import com.yuriy.openradio.drive.GoogleDriveManager;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
@@ -257,7 +263,60 @@ public final class MainActivity extends AppCompatActivity {
         AppLogger.d(CLASS_NAME + " OnCreate:" + savedInstanceState);
 
         // Set content.
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.main_drawer);
+
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        );
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        final NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(
+                menuItem -> {
+                    final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                    clearDialogs(fragmentTransaction);
+                    menuItem.setChecked(false);
+                    // Handle navigation view item clicks here.
+                    final int id = menuItem.getItemId();
+                    switch (id) {
+                        case R.id.nav_general:
+                            // Show Search Dialog
+                            final DialogFragment settingsDialog = SettingsDialog.newInstance();
+                            settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
+                            break;
+                        case R.id.nav_buffering:
+                            break;
+                        case R.id.nav_google_drive:
+                            // Show Google Drive Dialog
+                            final DialogFragment googleDriveDialog = GoogleDriveDialog.newInstance();
+                            googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
+                            break;
+                        case R.id.nav_logs:
+                            break;
+                        case R.id.nav_about:
+                            // Show About Dialog
+                            final DialogFragment aboutDialog = AboutDialog.newInstance();
+                            aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
+                            break;
+                        default:
+
+                            break;
+                    }
+
+                    drawer.closeDrawer(GravityCompat.START);
+                    return true;
+                }
+        );
+
+        final String versionText = AppUtils.getApplicationVersion(getApplicationContext()) + "." +
+                AppUtils.getApplicationVersionCode(getApplicationContext());
+        final TextView versionView = navigationView.getHeaderView(0).findViewById(R.id.drawer_ver_code_view);
+        versionView.setText(versionText);
 
         mLastKnownMetadata = null;
 
@@ -442,33 +501,12 @@ public final class MainActivity extends AppCompatActivity {
         // in a transaction.  We also want to remove any currently showing
         // dialog, so make our own transaction and take care of that here.
         final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        final Fragment fragmentByTag = getFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
-        }
-        fragmentTransaction.addToBackStack(null);
-
-        switch (id) {
-            case R.id.action_about:
-                // Show About Dialog
-                final DialogFragment aboutDialog = AboutDialog.newInstance();
-                aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
-                return true;
-            case R.id.action_search:
-                // Show Search Dialog
-                final DialogFragment searchDialog = SearchDialog.newInstance();
-                searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
-                return true;
-            case R.id.action_google_drive:
-                // Show Google Drive Dialog
-                final DialogFragment googleDriveDialog = GoogleDriveDialog.newInstance();
-                googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
-                return true;
-            case R.id.action_settings:
-                // Show Search Dialog
-                final DialogFragment settingsDialog = SettingsDialog.newInstance();
-                settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
-                return true;
+        clearDialogs(fragmentTransaction);
+        if (id == R.id.action_search) {
+            // Show Search Dialog
+            final DialogFragment searchDialog = SearchDialog.newInstance();
+            searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -577,6 +615,30 @@ public final class MainActivity extends AppCompatActivity {
                 mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
             }
         }
+    }
+
+    /**
+     *
+     * @param fragmentTransaction
+     */
+    private void clearDialogs(final FragmentTransaction fragmentTransaction) {
+        Fragment fragmentByTag = getFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getFragmentManager().findFragmentByTag(SettingsDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentTransaction.addToBackStack(null);
     }
 
     /**

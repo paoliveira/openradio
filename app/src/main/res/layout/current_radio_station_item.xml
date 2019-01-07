@@ -1,78 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="10dp"
-    android:id="@+id/category_list_root_view">
+                android:id="@+id/category_list_root_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/activity_vertical_margin">
 
     <ImageView
         android:id="@+id/crs_img_view"
-        android:layout_marginRight="15dp"
-        android:src="@drawable/ic_child_categories"
         android:layout_width="@dimen/list_item_width"
         android:layout_height="@dimen/list_item_width"
-        android:contentDescription="@string/content_description_category_icon" />
+        android:layout_marginRight="15dp"
+        android:contentDescription="@string/content_description_category_icon"
+        android:src="@drawable/ic_child_categories"/>
 
     <TextView
         android:id="@+id/crs_name_view"
-        android:textSize="22sp"
-        android:textStyle="bold"
         style="@style/text_style"
+        android:layout_toLeftOf="@+id/crs_favorite_check_view"
         android:layout_toRightOf="@+id/crs_img_view"
-        android:layout_toLeftOf="@+id/crs_favorite_check_view"/>
+        android:textSize="22sp"
+        android:textStyle="bold"/>
 
     <TextView
         android:id="@+id/crs_description_view"
-        android:textSize="18sp"
         style="@style/text_style"
-        android:layout_toRightOf="@+id/crs_img_view"
         android:layout_below="@+id/crs_name_view"
-        android:layout_toLeftOf="@+id/crs_favorite_check_view"/>
+        android:layout_toLeftOf="@+id/crs_favorite_check_view"
+        android:layout_toRightOf="@+id/crs_img_view"
+        android:textSize="18sp"/>
 
     <CheckBox
         android:id="@+id/crs_favorite_check_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
-        android:checked="false"
-        android:button="@drawable/check_box_favorites"/>
+        android:button="@drawable/check_box_favorites"
+        android:checked="false"/>
 
     <ImageView
         android:id="@+id/crs_play_btn_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/crs_favorite_check_view"
         android:layout_alignLeft="@+id/crs_favorite_check_view"
         android:layout_alignRight="@+id/crs_favorite_check_view"
+        android:layout_marginTop="10dp"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:layout_marginTop="10dp"
         android:src="@drawable/ic_play_arrow_white_24dp"
-        android:layout_below="@+id/crs_favorite_check_view"
         android:visibility="invisible"/>
 
     <ImageView
         android:id="@+id/crs_pause_btn_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/crs_favorite_check_view"
         android:layout_alignLeft="@+id/crs_favorite_check_view"
         android:layout_alignRight="@+id/crs_favorite_check_view"
+        android:layout_marginTop="10dp"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:layout_marginTop="10dp"
         android:src="@drawable/ic_pause_white_24dp"
-        android:layout_below="@+id/crs_favorite_check_view"
         android:visibility="invisible"/>
 
     <ProgressBar
         android:id="@+id/crs_progress_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/crs_favorite_check_view"
         android:layout_alignLeft="@+id/crs_favorite_check_view"
         android:layout_alignRight="@+id/crs_favorite_check_view"
         android:focusable="false"
         android:focusableInTouchMode="false"
-        android:indeterminate="true"
-        android:layout_below="@+id/crs_favorite_check_view"/>
+        android:indeterminate="true"/>
 
 </RelativeLayout>
