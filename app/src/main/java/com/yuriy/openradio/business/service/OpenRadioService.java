@@ -52,6 +52,7 @@ import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.RadioStationUpdateListener;
 import com.yuriy.openradio.business.broadcast.AbstractReceiver;
 import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.business.broadcast.BTConnectionReceiver;
 import com.yuriy.openradio.business.broadcast.BecomingNoisyReceiver;
 import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.business.broadcast.MasterVolumeReceiver;
@@ -346,6 +347,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private final BecomingNoisyReceiver mNoisyAudioStreamReceiver;
 
+    private final BTConnectionReceiver mBTConnectionReceiver;
+
     private boolean mIsRestoreInstance = false;
 
     /**
@@ -353,6 +356,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     public OpenRadioService() {
         super();
+        mBTConnectionReceiver = new BTConnectionReceiver(
+                () -> {
+                    if (mState == PlaybackStateCompat.STATE_PAUSED) {
+                        handlePlayRequest();
+                    }
+                }
+        );
         mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(new BecomingNoisyReceiverListenerImpl(this));
         final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
                 new ConnectivityChangeListenerImpl(this);
@@ -416,6 +426,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onCreate();
 
         AppLogger.i(CLASS_NAME + " On Create");
+        final Context context = getApplicationContext();
+        mBTConnectionReceiver.register(context);
+        mBTConnectionReceiver.locateDevice(context);
 
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ROOT, new MediaItemRoot());
@@ -433,7 +446,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mCurrentIndexOnQueue = -1;
 
-        final Context context = getApplicationContext();
         mLocationService.checkLocationEnable(context);
         mLocationService.requestCountryCodeLastKnownSync(context, mApiCallExecutor);
 
@@ -623,6 +635,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onDestroy();
 
         final Context context = getApplicationContext();
+        mBTConnectionReceiver.unregister(context);
         mConnectivityReceiver.unregister(context);
         mNoisyAudioStreamReceiver.unregister(context);
         mMasterVolumeBroadcastReceiver.unregister(context);
@@ -1295,7 +1308,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handlePlayRequest() {
         AppLogger.d(CLASS_NAME + " Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
         mCurrentStreamTitle = null;
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
+        final Context context = getApplicationContext();
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(context)) {
             return;
         }
 
@@ -1305,7 +1319,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // The MusicService needs to keep running even after the calling MediaBrowser
             // is disconnected. Call startService(Intent) and then stopSelf(..) when we no longer
             // need to play media.
-            final Context context = getApplicationContext();
             ContextCompat.startForegroundService(
                     context,
                     new Intent(context, OpenRadioService.class)
@@ -1332,7 +1345,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             getCurrentPlayingRadioStationAsync(mRadioStationUpdateListener);
         }
 
-        mNoisyAudioStreamReceiver.register(getApplicationContext());
+        mNoisyAudioStreamReceiver.register(context);
     }
 
     /**
