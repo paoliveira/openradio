@@ -12,12 +12,10 @@
             android:id="@+id/nav_buffering"
             android:icon="@drawable/ic_av_timer_black_24dp"
             android:title="Stream Buffering"/>
-
         <item
             android:id="@+id/nav_google_drive"
             android:icon="@drawable/ic_cloud_black_24dp"
             android:title="Google Drive"/>
-
         <item
             android:id="@+id/nav_logs"
             android:icon="@drawable/ic_file_download_black_24dp"

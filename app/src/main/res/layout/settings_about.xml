@@ -29,6 +29,13 @@
             android:text="@string/enable_last_known_radio_station_label" />
 
         <CheckBox
+            android:id="@+id/bt_auto_restart_check_view"
+            android:text="Resume playback when reconnected to the same Bluetooth Device"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"/>
+
+        <CheckBox
             android:id="@+id/user_agent_check_view"
             android:text="@string/custom_user_agent_label"
             android:layout_width="match_parent"
@@ -42,25 +49,6 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"/>
 
-        <CheckBox
-            android:id="@+id/settings_dialog_enable_logs_check_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:text="@string/enable_logs_label" />
-
-        <Button
-            android:id="@+id/settings_dialog_send_logs_btn_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/send_logs_label" />
-
-        <Button
-            android:id="@+id/settings_dialog_clear_logs_btn_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/clear_logs_label" />
-
         <TextView
             android:text="@string/settings_master_volume"
             android:textSize="20sp"
@@ -71,6 +59,7 @@
         <SeekBar
             android:id="@+id/master_vol_seek_bar"
             android:paddingTop="10dp"
+            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="100"/>

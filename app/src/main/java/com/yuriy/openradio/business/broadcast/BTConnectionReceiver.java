@@ -24,11 +24,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.utils.AppLogger;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 /**
@@ -49,6 +49,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
 
     private static final String CLASS_NAME = BTConnectionReceiver.class.getSimpleName();
 
+    @Nullable
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothProfile.ServiceListener mProfileListener;
     private String mConnectedDevice;
@@ -61,12 +62,15 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     public BTConnectionReceiver(final Listener listener) {
         super(new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED));
         mListener = listener;
-        mProfileListener = new BluetoothProfileServiceListenerImpl(this);
+        mProfileListener = new BluetoothProfileServiceListenerImpl();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
     public void locateDevice(final Context context) {
         // Establish connection to the proxy.
+        if (mBluetoothAdapter == null) {
+            return;
+        }
         mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
     }
 
@@ -90,25 +94,17 @@ public final class BTConnectionReceiver extends AbstractReceiver {
         super.unregister(context);
     }
 
-    private static class BluetoothProfileServiceListenerImpl implements BluetoothProfile.ServiceListener {
+    private class BluetoothProfileServiceListenerImpl implements BluetoothProfile.ServiceListener {
 
         private BluetoothHeadset mBluetoothHeadset;
-        private final WeakReference<BTConnectionReceiver> mBtConnectionReceiver;
 
-        private BluetoothProfileServiceListenerImpl(final BTConnectionReceiver receiver) {
+        private BluetoothProfileServiceListenerImpl() {
             super();
-            mBtConnectionReceiver = new WeakReference<>(receiver);
         }
 
         @Override
         public void onServiceConnected(int profile, BluetoothProfile proxy) {
             AppLogger.i(CLASS_NAME + " connected:" + profile);
-
-            final BTConnectionReceiver receiver = mBtConnectionReceiver.get();
-            if (receiver == null) {
-                return;
-            }
-
             if (profile != BluetoothProfile.HEADSET) {
                 return;
             }
@@ -131,12 +127,14 @@ public final class BTConnectionReceiver extends AbstractReceiver {
                 }
             }
 
-            if (TextUtils.equals(connectedDevice, receiver.mConnectedDevice)) {
+            if (TextUtils.equals(connectedDevice, BTConnectionReceiver.this.mConnectedDevice)) {
                 AppLogger.i("Connected to same BT device.");
-                receiver.mListener.onSameDeviceConnected();
+                BTConnectionReceiver.this.mListener.onSameDeviceConnected();
             }
-            receiver.mConnectedDevice = connectedDevice;
-            receiver.mBluetoothAdapter.closeProfileProxy(profile, mBluetoothHeadset);
+            BTConnectionReceiver.this.mConnectedDevice = connectedDevice;
+            if (BTConnectionReceiver.this.mBluetoothAdapter != null) {
+                BTConnectionReceiver.this.mBluetoothAdapter.closeProfileProxy(profile, mBluetoothHeadset);
+            }
         }
 
         @Override

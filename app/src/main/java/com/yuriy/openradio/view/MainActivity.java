@@ -290,6 +290,9 @@ public final class MainActivity extends AppCompatActivity {
                             settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_buffering:
+                            // Show Stream Buffering Dialog
+                            final DialogFragment streamBufferingDialog = StreamBufferingDialog.newInstance();
+                            streamBufferingDialog.show(fragmentTransaction, StreamBufferingDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_google_drive:
                             // Show Google Drive Dialog
@@ -297,6 +300,9 @@ public final class MainActivity extends AppCompatActivity {
                             googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_logs:
+                            // Show Application Logs Dialog
+                            final DialogFragment applicationLogsDialog = LogsDialog.newInstance();
+                            applicationLogsDialog.show(fragmentTransaction, LogsDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_about:
                             // Show About Dialog
