@@ -164,5 +164,9 @@
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="min_buff_description">Minimum duration of media that the player will attempt to ensure is buffered at all times, in milliseconds.</string>
+    <string name="max_buffer_description">Maximum duration of media that the player will attempt to buffer, in milliseconds.</string>
+    <string name="playback_buffer_description">Duration of media that must be buffered for playback to start or resume, in milliseconds.</string>
+    <string name="playbck_buffer_after_rebuffer_description">Duration of media that must be buffered for playback to resume after a rebuffer, in milliseconds.</string>
 
 </resources>

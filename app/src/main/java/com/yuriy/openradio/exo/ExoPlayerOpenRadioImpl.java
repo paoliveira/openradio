@@ -49,6 +49,7 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Clock;
@@ -228,7 +229,18 @@ public final class ExoPlayerOpenRadioImpl {
         mAudioRendererCount = audioRendererCount;
 
         mExoPlayer = new ExoPlayerImpl(
-                mRenderers, new DefaultTrackSelector(), new DefaultLoadControl(), Clock.DEFAULT
+                mRenderers,
+                new DefaultTrackSelector(),
+                new DefaultLoadControl(
+                        new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
+                        AppPreferencesManager.getMinBuffer(context),
+                        AppPreferencesManager.getMaxBuffer(context),
+                        AppPreferencesManager.getPlayBuffer(context),
+                        AppPreferencesManager.getPlayBufferRebuffer(context),
+                        DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
+                        DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
+                ),
+                Clock.DEFAULT
         );
         mExoPlayer.addListener(mComponentListener);
     }

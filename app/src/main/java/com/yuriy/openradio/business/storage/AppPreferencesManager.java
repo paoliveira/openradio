@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.utils.AppUtils;
 
 /**
@@ -72,6 +73,11 @@ public final class AppPreferencesManager {
      *
      */
     private static final String PREFS_KEY_MASTER_VOLUME = "MASTER_VOLUME";
+
+    private static final String PREFS_KEY_MIN_BUFFER = "PREFS_KEY_MIN_BUFFER";
+    private static final String PREFS_KEY_MAX_BUFFER = "PREFS_KEY_MAX_BUFFER";
+    private static final String PREFS_KEY_BUFFER_FOR_PLAYBACK = "PREFS_KEY_BUFFER_FOR_PLAYBACK";
+    private static final String PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK = "PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK";
 
     private static final int MASTER_VOLUME_DEFAULT = 100;
 
@@ -230,6 +236,54 @@ public final class AppPreferencesManager {
     public static void setMasterVolume(@NonNull final Context context, final int value) {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putInt(PREFS_KEY_MASTER_VOLUME, value);
+        editor.apply();
+    }
+
+    public static int getMinBuffer(@NonNull final Context context) {
+        return getSharedPreferences(context).getInt(
+                PREFS_KEY_MIN_BUFFER, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS
+        );
+    }
+
+    public static void setMinBuffer(@NonNull final Context context, final int value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putInt(PREFS_KEY_MIN_BUFFER, value);
+        editor.apply();
+    }
+
+    public static int getMaxBuffer(@NonNull final Context context) {
+        return getSharedPreferences(context).getInt(
+                PREFS_KEY_MAX_BUFFER, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS
+        );
+    }
+
+    public static void setMaxBuffer(@NonNull final Context context, final int value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putInt(PREFS_KEY_MAX_BUFFER, value);
+        editor.apply();
+    }
+
+    public static int getPlayBuffer(@NonNull final Context context) {
+        return getSharedPreferences(context).getInt(
+                PREFS_KEY_BUFFER_FOR_PLAYBACK, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS
+        );
+    }
+
+    public static void setPlayBuffer(@NonNull final Context context, final int value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putInt(PREFS_KEY_BUFFER_FOR_PLAYBACK, value);
+        editor.apply();
+    }
+
+    public static int getPlayBufferRebuffer(@NonNull final Context context) {
+        return getSharedPreferences(context).getInt(
+                PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+        );
+    }
+
+    public static void setPlayBufferRebuffer(@NonNull final Context context, final int value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putInt(PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK, value);
         editor.apply();
     }
 
