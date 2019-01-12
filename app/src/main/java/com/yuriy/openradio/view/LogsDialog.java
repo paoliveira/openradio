@@ -76,7 +76,7 @@ public final class LogsDialog extends BaseDialogFragment {
 
         setWindowDimensions(view, 0.8f, 0.8f);
 
-        final String titleText = "Application Logs";
+        final String titleText = getString(R.string.app_logs_label);
         final TextView title = view.findViewById(R.id.settings_logs_label_view);
         title.setText(titleText);
 

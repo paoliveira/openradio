@@ -169,4 +169,8 @@
     <string name="playback_buffer_description">Duration of media that must be buffered for playback to start or resume, in milliseconds.</string>
     <string name="playbck_buffer_after_rebuffer_description">Duration of media that must be buffered for playback to resume after a rebuffer, in milliseconds.</string>
 
+    <string name="app_logs_label">Application Logs</string>
+    <string name="stream_buffering_label">Stream Buffering</string>
+    <string name="restore_default">Restore Default</string>
+    <string name="stream_buffering_descr">Restart playback when values changed</string>
 </resources>

@@ -15,6 +15,12 @@
         android:textSize="20sp"
         android:textStyle="bold"/>
 
+    <TextView
+        android:text="@string/stream_buffering_descr"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -79,6 +85,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"/>
+
+            <Button
+                android:id="@+id/buffering_restore_btn"
+                android:text="@string/restore_default"
+                android:layout_marginTop="35dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
         </LinearLayout>
 
