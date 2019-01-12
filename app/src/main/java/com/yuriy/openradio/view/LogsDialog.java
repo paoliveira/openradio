@@ -16,8 +16,7 @@
 
 package com.yuriy.openradio.view;
 
-import android.app.Activity;
-import android.app.DialogFragment;
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -26,9 +25,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
@@ -50,7 +47,7 @@ import java.lang.ref.WeakReference;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class LogsDialog extends DialogFragment {
+public final class LogsDialog extends BaseDialogFragment {
 
     /**
      * Tag string mTo use in logging message.
@@ -68,31 +65,22 @@ public final class LogsDialog extends DialogFragment {
 
     private SendLogEmailTask mSendLogMailTask;
 
-    /**
-     * Create a new instance of {@link LogsDialog}
-     */
-    @SuppressWarnings("all")
-    public static LogsDialog newInstance() {
-        final LogsDialog aboutDialog = new LogsDialog();
-        // provide here an arguments, if any
-        return aboutDialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.settings_logs, container, false);
-    }
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final MainActivity activity = (MainActivity) getActivity();
 
-    @Override
-    public void onViewCreated(final View view, final Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        final View view = getInflater().inflate(
+                R.layout.dialog_settings_logs,
+                activity.findViewById(R.id.dialog_settings_logs_root)
+        );
+
+        setWindowDimensions(view, 0.8f, 0.8f);
 
         final String titleText = "Application Logs";
         final TextView title = view.findViewById(R.id.settings_logs_label_view);
         title.setText(titleText);
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = activity.getApplicationContext();
 
         final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(context);
         final CheckBox logsEnableCheckView = view.findViewById(R.id.settings_dialog_enable_logs_check_view);
@@ -109,7 +97,6 @@ public final class LogsDialog extends DialogFragment {
         clearLogsBtn.setOnClickListener(
 
                 view12 -> {
-                    final Activity activity = getActivity();
                     AppLogger.deleteZipFile(activity);
                     AppLogger.deleteLogcatFile(activity);
                     final boolean result = AppLogger.deleteAllLogs(activity);
@@ -126,6 +113,8 @@ public final class LogsDialog extends DialogFragment {
         sendLogsBtn.setOnClickListener(
                 view13 -> sendLogMailTask()
         );
+
+        return createAlertDialog(view);
     }
 
     private void processEnableCheckView(final Context context, final boolean isEnable) {

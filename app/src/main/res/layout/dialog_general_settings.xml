@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="15dp">
+            android:id="@+id/dialog_general_settings_root"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="15dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,52 +18,52 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
+            android:gravity="center"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
+            android:textStyle="bold"/>
 
         <CheckBox
             android:id="@+id/settings_dialog_enable_last_known_radio_station_check_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
-            android:text="@string/enable_last_known_radio_station_label" />
+            android:text="@string/enable_last_known_radio_station_label"/>
 
         <CheckBox
             android:id="@+id/bt_auto_restart_check_view"
-            android:text="Resume playback when reconnected to the same Bluetooth Device"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"/>
+            android:layout_marginBottom="15dp"
+            android:text="Resume playback when reconnected to the same Bluetooth Device"/>
 
         <CheckBox
             android:id="@+id/user_agent_check_view"
-            android:text="@string/custom_user_agent_label"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"/>
+            android:layout_marginBottom="15dp"
+            android:text="@string/custom_user_agent_label"/>
 
         <EditText
             android:id="@+id/user_agent_input_view"
-            android:hint="@string/custom_user_agent_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"/>
+            android:layout_marginBottom="15dp"
+            android:hint="@string/custom_user_agent_hint"/>
 
         <TextView
-            android:text="@string/settings_master_volume"
-            android:textSize="20sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"/>
+            android:paddingTop="10dp"
+            android:text="@string/settings_master_volume"
+            android:textSize="20sp"/>
 
         <SeekBar
             android:id="@+id/master_vol_seek_bar"
-            android:paddingTop="10dp"
-            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="100"/>
+            android:layout_marginBottom="15dp"
+            android:max="100"
+            android:paddingTop="10dp"/>
 
     </LinearLayout>
 

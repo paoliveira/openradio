@@ -1,168 +1,169 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="15dp">
+            android:id="@+id/dialog_about_root"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="15dp">
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
         <TextView
             android:id="@+id/dialog_about_title_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
+            android:gravity="center"
             android:textSize="20sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
+            android:textStyle="bold"/>
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
-            android:layout_height="wrap_content">
+            android:orientation="horizontal">
 
             <TextView
-                android:text="@string/about_author"
-                android:layout_gravity="start"
-                android:textStyle="bold"
-                android:paddingRight="5dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:paddingRight="5dp"
+                android:text="@string/about_author"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/about_author_link_view"
-                android:text="@string/about_author_name"
-                android:layout_gravity="start"
-                android:textStyle="bold"
-                android:textColor="@color/blue_light_color"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:text="@string/about_author_name"
+                android:textColor="@color/blue_light_color"
+                android:textStyle="bold"/>
 
         </LinearLayout>
 
         <LinearLayout
-            android:orientation="horizontal"
             android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
-            android:layout_height="wrap_content">
+            android:orientation="horizontal">
 
             <TextView
-                android:text="@string/about_project_home_title"
-                android:layout_gravity="start"
-                android:textStyle="bold"
-                android:paddingRight="5dp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:paddingRight="5dp"
+                android:text="@string/about_project_home_title"
+                android:textStyle="bold"/>
 
             <TextView
                 android:id="@+id/about_project_link_view"
-                android:text="@string/app_name"
-                android:layout_gravity="start"
-                android:textStyle="bold"
-                android:textColor="@color/blue_light_color"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:text="@string/app_name"
+                android:textColor="@color/blue_light_color"
+                android:textStyle="bold"/>
 
         </LinearLayout>
 
         <TextView
-            android:text="@string/about_project_home_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
             android:layout_marginBottom="15dp"
-            android:layout_gravity="start"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:text="@string/about_project_home_desc"/>
 
         <TextView
-            android:text="@string/about_thanks_1"
-            android:layout_gravity="start"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/about_thanks_1"/>
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
             android:text="@string/about_thanks_1_title"
-            android:layout_gravity="start"
-            android:textStyle="bold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textStyle="bold"/>
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginBottom="15dp"
+            android:autoLink="web"
             android:text="@string/about_thanks_1_url"
-            android:layout_gravity="start"
-            android:textStyle="bold"
-            android:autoLink="web"
-            android:layout_marginBottom="15dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textStyle="bold"/>
 
         <TextView
-            android:text="@string/about_thanks_2"
-            android:layout_gravity="start"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/about_thanks_2"/>
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
             android:text="@string/about_thanks_2_title"
-            android:layout_gravity="start"
-            android:textStyle="bold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textStyle="bold"/>
 
         <TextView
-            android:text="@string/about_thanks_2_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_gravity="start"
-            android:textStyle="bold"
-            android:autoLink="web"
             android:layout_marginBottom="15dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:autoLink="web"
+            android:text="@string/about_thanks_2_url"
+            android:textStyle="bold"/>
 
         <TextView
-            android:text="@string/about_exo_title"
-            android:layout_gravity="start"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/about_exo_title"/>
 
         <TextView
             android:id="@+id/exo_player_version_view"
-            android:layout_gravity="start"
-            android:textStyle="bold"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:textStyle="bold"/>
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginBottom="15dp"
+            android:autoLink="web"
             android:text="@string/about_exo_url"
-            android:layout_gravity="start"
-            android:textStyle="bold"
-            android:autoLink="web"
-            android:layout_marginBottom="15dp"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textStyle="bold"/>
 
         <TextView
-            android:text="@string/about_playlist_title"
-            android:layout_gravity="start"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/about_playlist_title"/>
 
         <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
             android:text="@string/about_playlist_name"
-            android:layout_gravity="start"
-            android:textStyle="bold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:textStyle="bold"/>
 
         <TextView
-            android:text="@string/about_playlist_url"
-            android:layout_gravity="start"
-            android:textStyle="bold"
-            android:autoLink="web"
-            android:layout_marginBottom="15dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginBottom="15dp"
+            android:autoLink="web"
+            android:text="@string/about_playlist_url"
+            android:textStyle="bold"/>
 
     </LinearLayout>
 

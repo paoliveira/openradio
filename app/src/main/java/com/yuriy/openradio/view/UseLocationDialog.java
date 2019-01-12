@@ -60,7 +60,7 @@ public final class UseLocationDialog extends BaseDialogFragment {
                         IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS)
         );
 
-        final AlertDialog.Builder builder = createAlertDialogWithOkButton(getActivity());
+        final AlertDialog.Builder builder = createAlertDialogBuilderWithOkButton(getActivity());
         builder.setTitle(getActivity().getString(R.string.location_service));
         builder.setView(view);
         return builder.create();

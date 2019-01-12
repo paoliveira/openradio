@@ -19,7 +19,10 @@ package com.yuriy.openradio.view;
 import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
+import android.graphics.Rect;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.Window;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -29,10 +32,10 @@ import com.yuriy.openradio.utils.FabricUtils;
  * Author: Chernyshov Yuriy - Mobile Development
  * Date: 28.05.14
  * Time: 13:32
- *
+ * <p>
  * {@link BaseDialogFragment} is a base class to display Dialog.
  */
-public class BaseDialogFragment extends DialogFragment {
+public abstract class BaseDialogFragment extends DialogFragment {
 
     /**
      * Factory method to create instance of the provided class.
@@ -44,8 +47,7 @@ public class BaseDialogFragment extends DialogFragment {
 
         BaseDialogFragment baseDialogFragment = null;
         try {
-            baseDialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor()
-                    .newInstance();
+            baseDialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor().newInstance();
         } catch (final Exception e) {
             FabricUtils.logException(e);
         }
@@ -58,8 +60,8 @@ public class BaseDialogFragment extends DialogFragment {
      * @param context Context of the place where dialog must be shown.
      * @return builder of the {@link AlertDialog}.
      */
-    protected static AlertDialog.Builder createAlertDialogWithCancelButton(final Context context) {
-        final AlertDialog.Builder builder = createAlertDialog(context);
+    protected static AlertDialog.Builder createAlertDialogBuilderWithCancelButton(final Context context) {
+        final AlertDialog.Builder builder = createAlertDialogBuilder(context);
         builder.setNegativeButton(R.string.close_label, (dialog, id) -> dialog.cancel());
         return builder;
     }
@@ -70,8 +72,8 @@ public class BaseDialogFragment extends DialogFragment {
      * @param context Context of the place where dialog must be shown.
      * @return builder of the {@link AlertDialog}.
      */
-    protected static AlertDialog.Builder createAlertDialogWithOkButton(final Context context) {
-        final AlertDialog.Builder builder = createAlertDialog(context);
+    protected static AlertDialog.Builder createAlertDialogBuilderWithOkButton(final Context context) {
+        final AlertDialog.Builder builder = createAlertDialogBuilder(context);
         builder.setPositiveButton(R.string.ok_label, (dialog, id) -> dialog.cancel());
         return builder;
     }
@@ -82,8 +84,19 @@ public class BaseDialogFragment extends DialogFragment {
      * @param context Context of the place where dialog must be shown.
      * @return builder of the {@link AlertDialog}.
      */
-    protected static AlertDialog.Builder createAlertDialog(final Context context) {
+    protected static AlertDialog.Builder createAlertDialogBuilder(final Context context) {
         return new AlertDialog.Builder(context);
+    }
+
+    /**
+     *
+     * @param view
+     * @return
+     */
+    protected AlertDialog createAlertDialog(final View view) {
+        final AlertDialog.Builder builder = createAlertDialogBuilder(getActivity());
+        builder.setView(view);
+        return builder.create();
     }
 
     /**
@@ -93,5 +106,19 @@ public class BaseDialogFragment extends DialogFragment {
      */
     protected LayoutInflater getInflater() {
         return LayoutInflater.from(getActivity());
+    }
+
+    /**
+     *
+     * @param view
+     * @param widthPercentage
+     * @param heightPercentage
+     */
+    protected void setWindowDimensions(final View view, final float widthPercentage, final float heightPercentage) {
+        final Rect displayRectangle = new Rect();
+        final Window window = getActivity().getWindow();
+        window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
+        view.setMinimumWidth((int) (displayRectangle.width() * widthPercentage));
+        view.setMinimumHeight((int) (displayRectangle.height() * heightPercentage));
     }
 }

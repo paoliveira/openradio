@@ -286,27 +286,37 @@ public final class MainActivity extends AppCompatActivity {
                     switch (id) {
                         case R.id.nav_general:
                             // Show Search Dialog
-                            final DialogFragment settingsDialog = SettingsDialog.newInstance();
-                            settingsDialog.show(fragmentTransaction, SettingsDialog.DIALOG_TAG);
+                            final DialogFragment settingsDialog = BaseDialogFragment.newInstance(
+                                    GeneralSettingsDialog.class.getName()
+                            );
+                            settingsDialog.show(fragmentTransaction, GeneralSettingsDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_buffering:
                             // Show Stream Buffering Dialog
-                            final DialogFragment streamBufferingDialog = StreamBufferingDialog.newInstance();
+                            final DialogFragment streamBufferingDialog = BaseDialogFragment.newInstance(
+                                    StreamBufferingDialog.class.getName()
+                            );
                             streamBufferingDialog.show(fragmentTransaction, StreamBufferingDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_google_drive:
                             // Show Google Drive Dialog
-                            final DialogFragment googleDriveDialog = GoogleDriveDialog.newInstance();
+                            final DialogFragment googleDriveDialog = BaseDialogFragment.newInstance(
+                                    GoogleDriveDialog.class.getName()
+                            );
                             googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_logs:
                             // Show Application Logs Dialog
-                            final DialogFragment applicationLogsDialog = LogsDialog.newInstance();
+                            final DialogFragment applicationLogsDialog = BaseDialogFragment.newInstance(
+                                    LogsDialog.class.getName()
+                            );
                             applicationLogsDialog.show(fragmentTransaction, LogsDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_about:
                             // Show About Dialog
-                            final DialogFragment aboutDialog = AboutDialog.newInstance();
+                            final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
+                                    AboutDialog.class.getName()
+                            );
                             aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
                             break;
                         default:
@@ -640,7 +650,7 @@ public final class MainActivity extends AppCompatActivity {
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
-        fragmentByTag = getFragmentManager().findFragmentByTag(SettingsDialog.DIALOG_TAG);
+        fragmentByTag = getFragmentManager().findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
@@ -1198,7 +1208,7 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            final BaseDialogFragment useLocationServiceDialog = BaseDialogFragment.newInstance(
+            final DialogFragment useLocationServiceDialog = BaseDialogFragment.newInstance(
                     UseLocationDialog.class.getName()
             );
             useLocationServiceDialog.setCancelable(false);
@@ -1312,7 +1322,7 @@ public final class MainActivity extends AppCompatActivity {
                         activity.getApplicationContext()
                 );
                 if (!isSortDialogShown) {
-                    final BaseDialogFragment featureSortDialog = BaseDialogFragment.newInstance(
+                    final DialogFragment featureSortDialog = BaseDialogFragment.newInstance(
                             FeatureSortDialog.class.getName()
                     );
                     featureSortDialog.setCancelable(false);

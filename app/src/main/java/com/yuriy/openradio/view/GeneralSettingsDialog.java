@@ -16,13 +16,11 @@
 
 package com.yuriy.openradio.view;
 
-import android.app.DialogFragment;
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -38,12 +36,12 @@ import com.yuriy.openradio.business.storage.AppPreferencesManager;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class SettingsDialog extends DialogFragment {
+public final class GeneralSettingsDialog extends BaseDialogFragment {
 
     /**
      * Tag string mTo use in logging message.
      */
-    private static final String CLASS_NAME = SettingsDialog.class.getSimpleName();
+    private static final String CLASS_NAME = GeneralSettingsDialog.class.getSimpleName();
 
     /**
      * Tag string mTo use in dialog transactions.
@@ -53,25 +51,16 @@ public final class SettingsDialog extends DialogFragment {
     private EditText mUserAgentEditView;
     private CheckBox mUserAgentCheckView;
 
-    /**
-     * Create a new instance of {@link SettingsDialog}
-     */
-    @SuppressWarnings("all")
-    public static SettingsDialog newInstance() {
-        final SettingsDialog aboutDialog = new SettingsDialog();
-        // provide here an arguments, if any
-        return aboutDialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.settings_about, container, false);
-    }
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final MainActivity activity = (MainActivity) getActivity();
 
-    @Override
-    public void onViewCreated(final View view, final Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        final View view = getInflater().inflate(
+                R.layout.dialog_general_settings,
+                activity.findViewById(R.id.dialog_general_settings_root)
+        );
+
+        setWindowDimensions(view, 0.9f, 0.9f);
 
         final String titleText = getActivity().getString(R.string.app_settings_title);
         final TextView title = view.findViewById(R.id.dialog_settings_title_view);
@@ -127,6 +116,8 @@ public final class SettingsDialog extends DialogFragment {
                     }
                 }
         );
+
+        return createAlertDialog(view);
     }
 
     @Override

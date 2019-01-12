@@ -16,12 +16,10 @@
 
 package com.yuriy.openradio.view;
 
-import android.app.DialogFragment;
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
@@ -34,7 +32,7 @@ import com.yuriy.openradio.utils.IntentsHelper;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class AboutDialog extends DialogFragment {
+public final class AboutDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in logging message.
@@ -58,22 +56,18 @@ public final class AboutDialog extends DialogFragment {
     private static final String PROJECT_HOME_URL
             = "https://bitbucket.org/ChernyshovYuriy/openradio";
 
-    /**
-     * Create a new instance of {@link com.yuriy.openradio.view.AboutDialog}
-     */
-    @SuppressWarnings("all")
-    public static AboutDialog newInstance() {
-        final AboutDialog aboutDialog = new AboutDialog();
-        // provide here an arguments, if any
-        return aboutDialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final MainActivity activity = (MainActivity) getActivity();
 
-        final View view = inflater.inflate(R.layout.dialog_about, container, false);
-        final Context context = getActivity().getApplicationContext();
+        final View view = getInflater().inflate(
+                R.layout.dialog_about,
+                activity.findViewById(R.id.dialog_about_root)
+        );
+
+        setWindowDimensions(view, 0.9f, 0.9f);
+
+        final Context context = activity.getApplicationContext();
         final String titleText = context.getString(R.string.app_name);
         final TextView title = view.findViewById(R.id.dialog_about_title_view);
         title.setText(titleText);
@@ -93,6 +87,6 @@ public final class AboutDialog extends DialogFragment {
                 = getString(R.string.about_exo_text) + " " + ExoPlayerLibraryInfo.VERSION;
         exoPlayerVersion.setText(exoPlayerVersionText);
 
-        return view;
+        return createAlertDialog(view);
     }
 }

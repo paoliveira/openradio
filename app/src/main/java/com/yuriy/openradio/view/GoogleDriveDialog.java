@@ -17,20 +17,14 @@
 package com.yuriy.openradio.view;
 
 import android.app.Activity;
-import android.app.DialogFragment;
-import android.graphics.Rect;
+import android.app.Dialog;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.drive.GoogleDriveManager;
-import com.yuriy.openradio.utils.AppLogger;
 
 /**
  * Created by Yuriy Chernyshov
@@ -38,7 +32,7 @@ import com.yuriy.openradio.utils.AppLogger;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class GoogleDriveDialog extends DialogFragment {
+public final class GoogleDriveDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in logging message.
@@ -56,33 +50,16 @@ public final class GoogleDriveDialog extends DialogFragment {
 
     private ProgressBar mProgressBarTitle;
 
-    /**
-     * Create a new instance of {@link GoogleDriveDialog}
-     */
-    @SuppressWarnings("all")
-    public static GoogleDriveDialog newInstance() {
-        final GoogleDriveDialog dialog = new GoogleDriveDialog();
-        // provide here an arguments, if any
-        return dialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        final Rect displayRectangle = new Rect();
-        final Window window = getActivity().getWindow();
-        window.getDecorView().getWindowVisibleDisplayFrame(displayRectangle);
-        final View view = inflater.inflate(R.layout.dialog_google_drive, container, false);
-        view.setMinimumWidth((int)(displayRectangle.width() * 0.9f));
-        view.setMinimumHeight((int)(displayRectangle.height() * 0.9f));
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(final View view, @Nullable final Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final MainActivity activity = (MainActivity) getActivity();
+
+        final View view = getInflater().inflate(
+                R.layout.dialog_google_drive,
+                activity.findViewById(R.id.dialog_google_drive_root)
+        );
+
+        setWindowDimensions(view, 0.9f, 0.9f);
 
         final Button uploadTo = view.findViewById(R.id.upload_to_google_drive_btn);
         uploadTo.setOnClickListener(v -> activity.uploadRadioStationsToGoogleDrive());
@@ -97,6 +74,8 @@ public final class GoogleDriveDialog extends DialogFragment {
         hideProgress(GoogleDriveManager.Command.UPLOAD);
         hideProgress(GoogleDriveManager.Command.DOWNLOAD);
         hideTitleProgress();
+
+        return createAlertDialog(view);
     }
 
     public void showProgress(final GoogleDriveManager.Command command) {

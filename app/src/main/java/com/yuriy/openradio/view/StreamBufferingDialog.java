@@ -16,12 +16,10 @@
 
 package com.yuriy.openradio.view;
 
-import android.app.DialogFragment;
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -34,7 +32,7 @@ import com.yuriy.openradio.business.storage.AppPreferencesManager;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class StreamBufferingDialog extends DialogFragment {
+public final class StreamBufferingDialog extends BaseDialogFragment {
 
     /**
      * Tag string mTo use in logging message.
@@ -46,25 +44,16 @@ public final class StreamBufferingDialog extends DialogFragment {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    /**
-     * Create a new instance of {@link StreamBufferingDialog}
-     */
-    @SuppressWarnings("all")
-    public static StreamBufferingDialog newInstance() {
-        final StreamBufferingDialog aboutDialog = new StreamBufferingDialog();
-        // provide here an arguments, if any
-        return aboutDialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.settings_stream_buffering, container, false);
-    }
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final MainActivity activity = (MainActivity) getActivity();
 
-    @Override
-    public void onViewCreated(final View view, final Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        final View view = getInflater().inflate(
+                R.layout.settings_stream_buffering,
+                activity.findViewById(R.id.settings_stream_buffering_root)
+        );
+
+        setWindowDimensions(view, 0.9f, 0.9f);
 
         final String titleText = "Stream Buffering";
         final TextView title = view.findViewById(R.id.stream_buffering_label_view);
@@ -80,11 +69,12 @@ public final class StreamBufferingDialog extends DialogFragment {
         playBuffer.setText(String.valueOf(AppPreferencesManager.getPlayBuffer(context)));
         final EditText playBufferRebuffer = getView().findViewById(R.id.play_buffer_after_rebuffer_edit_view);
         playBufferRebuffer.setText(String.valueOf(AppPreferencesManager.getPlayBufferRebuffer(context)));
+
+        return createAlertDialog(view);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-
     }
 }
