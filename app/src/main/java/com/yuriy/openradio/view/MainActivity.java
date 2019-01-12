@@ -520,7 +520,9 @@ public final class MainActivity extends AppCompatActivity {
         clearDialogs(fragmentTransaction);
         if (id == R.id.action_search) {
             // Show Search Dialog
-            final DialogFragment searchDialog = SearchDialog.newInstance();
+            final DialogFragment searchDialog = BaseDialogFragment.newInstance(
+                    SearchDialog.class.getName()
+            );
             searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
             return true;
         }
