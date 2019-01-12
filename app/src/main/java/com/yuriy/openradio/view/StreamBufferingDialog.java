@@ -59,15 +59,15 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         final TextView title = view.findViewById(R.id.stream_buffering_label_view);
         title.setText(titleText);
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = activity.getApplicationContext();
 
-        final EditText minBuffer = getView().findViewById(R.id.min_buffer_edit_view);
+        final EditText minBuffer = view.findViewById(R.id.min_buffer_edit_view);
         minBuffer.setText(String.valueOf(AppPreferencesManager.getMinBuffer(context)));
-        final EditText maxBuffer = getView().findViewById(R.id.max_buffer_edit_view);
+        final EditText maxBuffer = view.findViewById(R.id.max_buffer_edit_view);
         maxBuffer.setText(String.valueOf(AppPreferencesManager.getMaxBuffer(context)));
-        final EditText playBuffer = getView().findViewById(R.id.play_buffer_edit_view);
+        final EditText playBuffer = view.findViewById(R.id.play_buffer_edit_view);
         playBuffer.setText(String.valueOf(AppPreferencesManager.getPlayBuffer(context)));
-        final EditText playBufferRebuffer = getView().findViewById(R.id.play_buffer_after_rebuffer_edit_view);
+        final EditText playBufferRebuffer = view.findViewById(R.id.play_buffer_after_rebuffer_edit_view);
         playBufferRebuffer.setText(String.valueOf(AppPreferencesManager.getPlayBufferRebuffer(context)));
 
         return createAlertDialog(view);
