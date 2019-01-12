@@ -1052,8 +1052,9 @@ public final class MainActivity extends AppCompatActivity {
 
         // Show Remove Station Dialog
         final FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        final DialogFragment dialog = RemoveStationDialog.newInstance(
-                item.getMediaId(), name
+        final Bundle bundle = RemoveStationDialog.createBundle(item.getMediaId(), name);
+        final DialogFragment dialog = BaseDialogFragment.newInstance(
+                RemoveStationDialog.class.getName(), bundle
         );
         dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
     }

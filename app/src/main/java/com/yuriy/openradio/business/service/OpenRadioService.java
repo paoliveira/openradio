@@ -356,13 +356,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     public OpenRadioService() {
         super();
-        mBTConnectionReceiver = new BTConnectionReceiver(
-                () -> {
-                    if (mState == PlaybackStateCompat.STATE_PAUSED) {
-                        handlePlayRequest();
-                    }
-                }
-        );
+        mBTConnectionReceiver = new BTConnectionReceiver(this::handleBTSameDeviceConnected);
         mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(new BecomingNoisyReceiverListenerImpl(this));
         final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
                 new ConnectivityChangeListenerImpl(this);
@@ -1299,6 +1293,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // we can also release the Wifi lock, if we're holding it
         if (mWifiLock.isHeld()) {
             mWifiLock.release();
+        }
+    }
+
+    /**
+     * Handles event when Bluetooth connected to same device within application lifetime.
+     */
+    private void handleBTSameDeviceConnected() {
+        if (!AppPreferencesManager.isBtAutoPlay(getApplicationContext())) {
+            return;
+        }
+        if (mState == PlaybackStateCompat.STATE_PAUSED) {
+            handlePlayRequest();
         }
     }
 

@@ -78,6 +78,7 @@ public final class AppPreferencesManager {
     private static final String PREFS_KEY_MAX_BUFFER = "PREFS_KEY_MAX_BUFFER";
     private static final String PREFS_KEY_BUFFER_FOR_PLAYBACK = "PREFS_KEY_BUFFER_FOR_PLAYBACK";
     private static final String PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK = "PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK";
+    private static final String PREFS_KEY_BT_AUTO_PLAY = "PREFS_KEY_BT_AUTO_PLAY";
 
     private static final int MASTER_VOLUME_DEFAULT = 100;
 
@@ -284,6 +285,16 @@ public final class AppPreferencesManager {
     public static void setPlayBufferRebuffer(@NonNull final Context context, final int value) {
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putInt(PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK, value);
+        editor.apply();
+    }
+
+    public static boolean isBtAutoPlay(@NonNull final Context context) {
+        return getSharedPreferences(context).getBoolean(PREFS_KEY_BT_AUTO_PLAY, false);
+    }
+
+    public static void setBtAutoPlay(@NonNull final Context context, final boolean value) {
+        final SharedPreferences.Editor editor = getEditor(context);
+        editor.putBoolean(PREFS_KEY_BT_AUTO_PLAY, value);
         editor.apply();
     }
 

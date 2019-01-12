@@ -20,6 +20,7 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -43,15 +44,26 @@ public abstract class BaseDialogFragment extends DialogFragment {
      * @param className Name of the class to have instance of.
      * @return Instance of the class.
      */
-    public static BaseDialogFragment newInstance(final String className) {
+    public static DialogFragment newInstance(final String className) {
+        return newInstance(className, null);
+    }
 
-        BaseDialogFragment baseDialogFragment = null;
+    /**
+     *
+     * @param className
+     * @param bundle
+     * @return
+     */
+    public static DialogFragment newInstance(final String className, final Bundle bundle) {
+
+        DialogFragment dialogFragment = null;
         try {
-            baseDialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor().newInstance();
+            dialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor().newInstance();
+            dialogFragment.setArguments(bundle);
         } catch (final Exception e) {
             FabricUtils.logException(e);
         }
-        return baseDialogFragment;
+        return dialogFragment;
     }
 
     /**

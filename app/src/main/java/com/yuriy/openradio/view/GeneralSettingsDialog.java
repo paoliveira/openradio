@@ -49,7 +49,6 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
     private EditText mUserAgentEditView;
-    private CheckBox mUserAgentCheckView;
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
@@ -83,8 +82,8 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         mUserAgentEditView = view.findViewById(R.id.user_agent_input_view);
         mUserAgentEditView.setText(AppPreferencesManager.getCustomUserAgent(context));
 
-        mUserAgentCheckView = view.findViewById(R.id.user_agent_check_view);
-        mUserAgentCheckView.setOnCheckedChangeListener(
+        final CheckBox userAgentCheckView = view.findViewById(R.id.user_agent_check_view);
+        userAgentCheckView.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> {
                     AppPreferencesManager.isCustomUserAgent(context, isChecked);
                     mUserAgentEditView.setEnabled(isChecked);
@@ -92,7 +91,7 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         );
 
         final boolean isCustomUserAgent = AppPreferencesManager.isCustomUserAgent(context);
-        mUserAgentCheckView.setChecked(isCustomUserAgent);
+        userAgentCheckView.setChecked(isCustomUserAgent);
         mUserAgentEditView.setEnabled(isCustomUserAgent);
 
         final SeekBar masterVolumeSeekBar = view.findViewById(R.id.master_vol_seek_bar);
@@ -115,6 +114,12 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
                         );
                     }
                 }
+        );
+
+        final CheckBox btAutoRestart = view.findViewById(R.id.bt_auto_restart_check_view);
+        btAutoRestart.setChecked(AppPreferencesManager.isBtAutoPlay(context));
+        btAutoRestart.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> AppPreferencesManager.setBtAutoPlay(context, isChecked)
         );
 
         return createAlertDialog(view);

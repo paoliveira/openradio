@@ -16,18 +16,13 @@
 
 package com.yuriy.openradio.view;
 
-import android.app.DialogFragment;
+import android.app.Dialog;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.AppUtils;
 
 /**
  * Created by Yuriy Chernyshov
@@ -35,7 +30,7 @@ import com.yuriy.openradio.utils.AppUtils;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class RemoveStationDialog extends DialogFragment {
+public final class RemoveStationDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in logging message.
@@ -57,33 +52,16 @@ public final class RemoveStationDialog extends DialogFragment {
      */
     private static final String KEY_NAME = "KEY_NAME";
 
-    /**
-     * Create a new instance of {@link RemoveStationDialog}
-     */
-    @SuppressWarnings("all")
-    public static RemoveStationDialog newInstance(final String mediaId, final String name) {
-        final Bundle bundle = new Bundle();
-        bundle.putString(KEY_MEDIA_ID, mediaId);
-        bundle.putString(KEY_NAME, name);
-
-        final RemoveStationDialog dialog = new RemoveStationDialog();
-        dialog.setArguments(bundle);
-        return dialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        final MainActivity activity = (MainActivity) getActivity();
 
-        getDialog().setTitle(R.string.remove_station_dialog_title);
-
-        final View view = inflater.inflate(R.layout.dialog_remove_station, container, false);
-        final FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
-                (int) (AppUtils.getShortestScreenSize(getActivity()) * 0.8),
-                ViewGroup.LayoutParams.WRAP_CONTENT
+        final View view = getInflater().inflate(
+                R.layout.dialog_remove_station,
+                activity.findViewById(R.id.remove_station_dialog_root)
         );
-        final LinearLayout root = view.findViewById(R.id.remove_station_dialog_root);
-        root.setLayoutParams(layoutParams);
+
+        setWindowDimensions(view, 0.8f, 0.2f);
 
         final String mediaId = getArgument(getArguments(), KEY_MEDIA_ID);
         final String name = getArgument(getArguments(), KEY_NAME);
@@ -94,7 +72,7 @@ public final class RemoveStationDialog extends DialogFragment {
         final Button removeBtn = view.findViewById(R.id.remove_station_dialog_add_btn_view);
         removeBtn.setOnClickListener(
                 viewBtn -> {
-                    ((MainActivity) getActivity()).processRemoveStationCallback(mediaId);
+                    activity.processRemoveStationCallback(mediaId);
                     getDialog().dismiss();
                 }
         );
@@ -104,7 +82,14 @@ public final class RemoveStationDialog extends DialogFragment {
                 viewBtn -> getDialog().dismiss()
         );
 
-        return view;
+        return createAlertDialog(view);
+    }
+
+    public static Bundle createBundle(final String mediaId, final String name) {
+        final Bundle bundle = new Bundle();
+        bundle.putString(KEY_MEDIA_ID, mediaId);
+        bundle.putString(KEY_NAME, name);
+        return bundle;
     }
 
     /**

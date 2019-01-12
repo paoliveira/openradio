@@ -16,11 +16,9 @@
 
 package com.yuriy.openradio.view;
 
-import android.app.DialogFragment;
+import android.app.Dialog;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
@@ -32,7 +30,7 @@ import com.yuriy.openradio.R;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class SearchDialog extends DialogFragment {
+public final class SearchDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in logging message.
@@ -44,35 +42,27 @@ public final class SearchDialog extends DialogFragment {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    /**
-     * Create a new instance of {@link SearchDialog}
-     */
-    @SuppressWarnings("all")
-    public static SearchDialog newInstance() {
-        final SearchDialog aboutDialog = new SearchDialog();
-        // provide here an arguments, if any
-        return aboutDialog;
-    }
-
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
-
-        getDialog().setTitle(getActivity().getString(R.string.search_label));
-
-        final View view = inflater.inflate(R.layout.dialog_search, container, false);
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final MainActivity activity = (MainActivity) getActivity();
+
+        final View view = getInflater().inflate(
+                R.layout.dialog_search,
+                activity.findViewById(R.id.dialog_search_root)
+        );
+
+        setWindowDimensions(view, 0.8f, 0.8f);
         final EditText searchEditView = view.findViewById(R.id.search_dialog_edit_txt_view);
         final Button searchBtn = view.findViewById(R.id.search_dialog_btn_view);
         searchBtn.setOnClickListener(
                 viewBtn -> {
-                    if (activity != null && searchEditView != null) {
+                    if (searchEditView != null) {
                         activity.onSearchDialogClick(searchEditView.getText().toString().trim());
                     }
                     getDialog().dismiss();
                 }
         );
 
-        return view;
+        return createAlertDialog(view);
     }
 }

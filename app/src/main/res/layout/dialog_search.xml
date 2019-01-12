@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="15dp">
+              android:id="@+id/dialog_search_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              android:padding="15dp">
 
     <TextView
         android:layout_width="match_parent"
@@ -12,19 +13,19 @@
         android:layout_gravity="center"
         android:layout_marginBottom="15dp"
         android:text="@string/search_description"
-        android:textStyle="bold" />
+        android:textStyle="bold"/>
 
     <EditText
         android:id="@+id/search_dialog_edit_txt_view"
-        android:layout_marginBottom="15dp"
-        android:hint="@string/search_label"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:hint="@string/search_label"/>
 
     <Button
         android:id="@+id/search_dialog_btn_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/search_label" />
+        android:text="@string/search_label"/>
 
 </LinearLayout>

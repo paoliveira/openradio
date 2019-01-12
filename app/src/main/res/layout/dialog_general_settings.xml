@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
-            android:text="Resume playback when reconnected to the same Bluetooth Device"/>
+            android:text="@string/bt_auto_restart_descr"/>
 
         <CheckBox
             android:id="@+id/user_agent_check_view"
