@@ -51,7 +51,7 @@ public final class SearchDialog extends BaseDialogFragment {
                 activity.findViewById(R.id.dialog_search_root)
         );
 
-        setWindowDimensions(view, 0.8f, 0.8f);
+        setWindowDimensions(view, 0.8f, 0.4f);
         final EditText searchEditView = view.findViewById(R.id.search_dialog_edit_txt_view);
         final Button searchBtn = view.findViewById(R.id.search_dialog_btn_view);
         searchBtn.setOnClickListener(
