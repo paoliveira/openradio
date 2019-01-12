@@ -51,6 +51,7 @@ import com.yuriy.openradio.vo.RadioStation;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Keeps track of a notification and updates it automatically for a given
@@ -88,7 +89,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private int mNotificationColor;
 
-    private volatile boolean mStarted = false;
+    private AtomicBoolean mStarted = new AtomicBoolean(false);
 
     public MediaNotification(final OpenRadioService service) {
         super();
@@ -154,8 +155,8 @@ public final class MediaNotification extends BroadcastReceiver {
      * destroyed before {@link #stopNotification} is called.
      */
     public void startNotification(final Context context, final RadioStation radioStation) {
-        AppLogger.d(CLASS_NAME + " start (started:" + mStarted + ")");
-        if (mStarted) {
+        AppLogger.d(CLASS_NAME + " start (started:" + mStarted.get() + ")");
+        if (mStarted.get()) {
             return;
         }
         mController.registerCallback(mCb);
@@ -187,7 +188,7 @@ public final class MediaNotification extends BroadcastReceiver {
             FabricUtils.log("StartNotification with null playback state");
         }
 
-        mStarted = true;
+        mStarted.set(true);
         // The notification must be updated after setting started to true
         updateNotificationMetadata();
     }
@@ -198,7 +199,7 @@ public final class MediaNotification extends BroadcastReceiver {
      */
     public void stopNotification() {
         AppLogger.d(CLASS_NAME + " stop");
-        mStarted = false;
+        mStarted.set(false);
         mController.unregisterCallback(mCb);
         try {
             mNotificationManager.cancel(NOTIFICATION_ID);
@@ -251,7 +252,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 return;
             }
             mTransportControls = mController.getTransportControls();
-            if (mStarted) {
+            if (mStarted.get()) {
                 mController.registerCallback(mCb);
             }
         }
@@ -461,9 +462,9 @@ public final class MediaNotification extends BroadcastReceiver {
     private void updateNotificationPlaybackState() {
         AppLogger.d(
                 CLASS_NAME + " updateNotificationPlaybackState, playbackState:" + mPlaybackState
-                        + ", started:" + mStarted
+                        + ", started:" + mStarted.get()
         );
-        if (mPlaybackState == null || !mStarted) {
+        if (mPlaybackState == null || !mStarted.get()) {
             AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. cancelling notification!");
             mService.stopForeground(true);
             return;
@@ -567,6 +568,10 @@ public final class MediaNotification extends BroadcastReceiver {
         protected void onPostExecute(final Bitmap bitmap) {
             final MediaNotification reference = mReference.get();
             if (reference == null) {
+                return;
+            }
+            if (!reference.mStarted.get()) {
+                // Service is stopped. If notification is go on the service will start again.
                 return;
             }
             if (bitmap != null && reference.mMetadata != null

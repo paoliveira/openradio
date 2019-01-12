@@ -227,6 +227,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private int mState = PlaybackStateCompat.STATE_NONE;
 
+    private PauseReason mPauseReason = PauseReason.DEFAULT;
+
     /**
      * Wifi lock that we hold when streaming files from the internet,
      * in order to prevent the device from shutting off the Wifi radio.
@@ -312,6 +314,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
          * There is full audio focus
          */
         FOCUSED
+    }
+
+    private enum PauseReason {
+
+        DEFAULT, NOISY
     }
 
     /**
@@ -1303,7 +1310,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (!AppPreferencesManager.isBtAutoPlay(getApplicationContext())) {
             return;
         }
-        if (mState == PlaybackStateCompat.STATE_PAUSED) {
+        // Restore playback if it was paused by noisy receiver.
+        if (mState == PlaybackStateCompat.STATE_PAUSED && mPauseReason == PauseReason.NOISY) {
             handlePlayRequest();
         }
     }
@@ -1404,6 +1412,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Cache URL.
         mLastPlayedUrl = url;
         mState = PlaybackStateCompat.STATE_STOPPED;
+        mPauseReason = PauseReason.DEFAULT;
 
         // release everything except ExoPlayer
         relaxResources(false);
@@ -1479,14 +1488,24 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Handle a request to pause music
+     * Handle a request to pause radio stream.
      */
     private void handlePauseRequest() {
+        handlePauseRequest(PauseReason.DEFAULT);
+    }
+
+    /**
+     * Handle a request to pause radio stream with reason provided.
+     *
+     * @param reason Reason to pause.
+     */
+    private void handlePauseRequest(final PauseReason reason) {
         AppLogger.d(CLASS_NAME + " HandlePauseRequest: mState=" + mState);
 
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
             mState = PlaybackStateCompat.STATE_PAUSED;
+            mPauseReason = reason;
             if (mExoPlayer.isPlaying()) {
                 mExoPlayer.pause();
             }
@@ -1641,6 +1660,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + " Handle stop request: state=" + mState + " error=" + withError);
 
         mState = PlaybackStateCompat.STATE_STOPPED;
+        mPauseReason = PauseReason.DEFAULT;
 
         mNoisyAudioStreamReceiver.unregister(getApplicationContext());
 
@@ -2280,7 +2300,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (reference == null) {
                 return;
             }
-            reference.handlePauseRequest();
+            reference.handlePauseRequest(PauseReason.NOISY);
         }
     }
 }
