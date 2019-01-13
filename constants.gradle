@@ -31,5 +31,5 @@ project.ext {
      * Application constants
      */
     applicationId = "com.yuriy.openradio"
-    versionName = "3.0"
+    versionName = "3.1"
 }

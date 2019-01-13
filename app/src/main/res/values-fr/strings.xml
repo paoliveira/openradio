@@ -114,4 +114,16 @@
     <string name="edit_station_dialog_title">Modifier la Station de Radio</string>
     <string name="edit_station_dialog_button_label">Modifier</string>
     <string name="can_not_edit_station_label">Impossible de modifier la Station de Radio</string>
+    <string name="navigation_drawer_open">Ouvrir le tiroir de navigation.</string>
+    <string name="navigation_drawer_close">Fermer le tiroir de navigation</string>
+    <string name="min_buff_description">La durée minimale du support que le lecteur tentera de garantir est mise en mémoire tampon à tout moment, en millisecondes</string>
+    <string name="max_buffer_description">Durée maximale du média que le lecteur tentera de mettre en mémoire tampon, en millisecondes</string>
+    <string name="playback_buffer_description">Durée du support devant être mis en mémoire tampon pour que la lecture puisse démarrer ou reprendre, en millisecondes</string>
+    <string name="playbck_buffer_after_rebuffer_description">Durée du support devant être mis en mémoire tampon pour que la lecture reprenne après une remise en mémoire tampon, en millisecondes</string>
+    <string name="app_logs_label">Journaux d\'application</string>
+    <string name="stream_buffering_label">Mise en mémoire tampon des flux.</string>
+    <string name="restore_default">Restaurer par défaut</string>
+    <string name="stream_buffering_descr">Redémarrer la lecture lorsque les valeurs sont modifiées</string>
+    <string name="bt_auto_restart_descr">Reprendre la lecture lorsque vous vous reconnectez au même périphérique Bluetooth</string>
+    <string name="no_location_setting_desc">Impossible de trouver les Paramètres de Localisation</string>
 </resources>

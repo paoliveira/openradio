@@ -114,4 +114,16 @@
     <string name="edit_station_dialog_title">Rediger Radiostasjon</string>
     <string name="edit_station_dialog_button_label">Redigere</string>
     <string name="can_not_edit_station_label">Kan ikke redigere Radiostasjon</string>
+    <string name="navigation_drawer_open">Åpne navigasjonsskuffen</string>
+    <string name="navigation_drawer_close">Lukk navigasjonsskuffen</string>
+    <string name="min_buff_description">Minimumsvarighet for media som spilleren vil forsøke å sikre er buffert til enhver tid, i millisekunder</string>
+    <string name="max_buffer_description">Maksimal varighet av media som spilleren vil forsøke å buffer, i millisekunder</string>
+    <string name="playback_buffer_description">Varighet av media som må buffes for avspilling for å starte eller fortsette, i millisekunder</string>
+    <string name="playbck_buffer_after_rebuffer_description">Varighet av media som må buffes for avspilling for å gjenopptas etter en re-buffer i millisekunder</string>
+    <string name="app_logs_label">Applikasjonslogger</string>
+    <string name="stream_buffering_label">Stream buffering</string>
+    <string name="restore_default">Gjenopprette standard</string>
+    <string name="stream_buffering_descr">Start avspillingen igjen når verdiene er endret</string>
+    <string name="bt_auto_restart_descr">Fortsett avspilling når du kobler til samme Bluetooth-enhet igjen</string>
+    <string name="no_location_setting_desc">Kan ikke finne plasseringsinnstillinger</string>
 </resources>

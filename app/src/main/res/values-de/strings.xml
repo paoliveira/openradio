@@ -114,4 +114,16 @@
     <string name="edit_station_dialog_title">Radiosender bearbeiten</string>
     <string name="edit_station_dialog_button_label">Bearbeiten</string>
     <string name="can_not_edit_station_label">Radiosender kann nicht bearbeitet werden</string>
+    <string name="navigation_drawer_open">Öffnen Sie die Navigationsleiste</string>
+    <string name="navigation_drawer_close">Navigationsleiste schließen</string>
+    <string name="min_buff_description">Die Mindestdauer der Medien, die der Player sicherstellen soll, wird jederzeit in Millisekunden zwischengespeichert</string>
+    <string name="max_buffer_description">Maximale Dauer des Mediums, das vom Player gepuffert werden soll, in Millisekunden</string>
+    <string name="playback_buffer_description">Dauer des Mediums, das zum Starten oder Fortsetzen der Wiedergabe gepuffert werden muss, in Millisekunden</string>
+    <string name="playbck_buffer_after_rebuffer_description">Dauer des Mediums, das für die Wiedergabe gepuffert werden muss, um nach einem erneuten Puffer wieder aufgenommen zu werden, in Millisekunden</string>
+    <string name="app_logs_label">Anwendungsprotokolle</string>
+    <string name="stream_buffering_label">Stream-Pufferung</string>
+    <string name="restore_default">Standard wiederherstellen</string>
+    <string name="stream_buffering_descr">Starten Sie die Wiedergabe neu, wenn Sie die Werte ändern</string>
+    <string name="bt_auto_restart_descr">Setzen Sie die Wiedergabe fort, wenn Sie wieder mit demselben Bluetooth-Gerät verbunden sind</string>
+    <string name="no_location_setting_desc">Kann die Standorteinstellungen nicht finden</string>
 </resources>

@@ -114,4 +114,16 @@
     <string name="edit_station_dialog_title">Editar Estación de Radio</string>
     <string name="edit_station_dialog_button_label">Editar</string>
     <string name="can_not_edit_station_label">No se puede editar la Estación de Radio</string>
+    <string name="navigation_drawer_open">Abrir el cajón de navegación.</string>
+    <string name="navigation_drawer_close">Cerrar el cajón de navegación</string>
+    <string name="min_buff_description">Duración mínima de los medios que el reproductor intentará asegurar que esté almacenado en búfer en todo momento, en milisegundos</string>
+    <string name="max_buffer_description">Duración máxima de los medios que el reproductor intentará almacenar en milisegundos</string>
+    <string name="playback_buffer_description">Duración de los medios que deben almacenarse en búfer para que la reproducción se inicie o reanude, en milisegundos</string>
+    <string name="playbck_buffer_after_rebuffer_description">Duración de los medios que deben almacenarse en búfer para que la reproducción se reanude después de un re-buffer, en milisegundos</string>
+    <string name="app_logs_label">Registros de aplicaciones</string>
+    <string name="stream_buffering_label">Buffering de la corriente</string>
+    <string name="restore_default">Restaurar por defecto</string>
+    <string name="stream_buffering_descr">Reinicia la reproducción cuando se cambian los valores</string>
+    <string name="bt_auto_restart_descr">Reanude la reproducción cuando se vuelva a conectar al mismo dispositivo Bluetooth</string>
+    <string name="no_location_setting_desc">No se puede encontrar la Configuración de Ubicación</string>
 </resources>

@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.view;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
@@ -49,21 +50,33 @@ public final class UseLocationDialog extends BaseDialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final View view = getInflater().inflate(R.layout.use_location_dialog,
-                getActivity().findViewById(R.id.use_location_dialog_root));
+        final Activity activity = getActivity();
+        final View view = getInflater().inflate(
+                R.layout.use_location_dialog,
+                activity.findViewById(R.id.use_location_dialog_root)
+        );
 
         final Button enableLocationServiceBtn
                 = view.findViewById(R.id.uld_enable_location_service_btn_view);
         enableLocationServiceBtn.setOnClickListener(
-                v -> startActivityForResult(
-                        IntentsHelper.makeOpenLocationSettingsIntent(),
-                        IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS)
+                v -> {
+                    final Intent intent = IntentsHelper.makeOpenLocationSettingsIntent();
+                    // Verify that the intent will resolve to an activity
+                    if (intent.resolveActivity(activity.getPackageManager()) != null) {
+                        startActivityForResult(intent, IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS);
+                    } else {
+                        SafeToast.showAnyThread(
+                                activity.getApplicationContext(),
+                                getString(R.string.no_location_setting_desc)
+                        );
+                    }
+                }
         );
 
         setWindowDimensions(view, 0.9f, 0.9f);
 
-        final AlertDialog.Builder builder = createAlertDialogBuilderWithOkButton(getActivity());
-        builder.setTitle(getActivity().getString(R.string.location_service));
+        final AlertDialog.Builder builder = createAlertDialogBuilderWithOkButton(activity);
+        builder.setTitle(getString(R.string.location_service));
         builder.setView(view);
         return builder.create();
     }

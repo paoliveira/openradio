@@ -114,4 +114,16 @@
     <string name="edit_station_dialog_title">Upraviť Rozhlasovú Stanicu</string>
     <string name="edit_station_dialog_button_label">Upraviť</string>
     <string name="can_not_edit_station_label">Nie je možné upraviť Rozhlasovú Stanicu</string>
+    <string name="navigation_drawer_open">Otvorte navigačnú zásuvku</string>
+    <string name="navigation_drawer_close">Zatvorte navigačnú zásuvku</string>
+    <string name="min_buff_description">Minimálna doba trvania média, ktorú sa pokúsi prehrávač zabezpečiť, je vždy uložená do pamäte v milisekundách</string>
+    <string name="max_buffer_description">Maximálna dĺžka média, ktoré sa bude pokúšať vyrovnávať v milisekundách</string>
+    <string name="playback_buffer_description">Trvanie médií, ktoré musia byť uložené do vyrovnávacej pamäte na spustenie alebo obnovenie prehrávania v milisekundách</string>
+    <string name="playbck_buffer_after_rebuffer_description">Trvanie médií, ktoré musia byť uložené do vyrovnávacej pamäte pre obnovenie prehrávania po obnovení vyrovnávacej pamäte v milisekundách</string>
+    <string name="app_logs_label">Záznamy aplikácií</string>
+    <string name="stream_buffering_label">Streamovanie vyrovnávacej pamäte</string>
+    <string name="restore_default">Obnoviť predvolené</string>
+    <string name="stream_buffering_descr">Reštartujte prehrávanie pri zmene hodnôt</string>
+    <string name="bt_auto_restart_descr">Pokračujte v prehrávaní po opätovnom pripojení k rovnakému zariadeniu Bluetooth</string>
+    <string name="no_location_setting_desc">Nemožno nájsť Nastavenia Polohy</string>
 </resources>
