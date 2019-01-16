@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="min_buffer_val">1000</integer>
+    <integer name="max_buffer_val">300000</integer>
+    <integer name="min_buffer_sec">1</integer>
+    <integer name="max_buffer_min">5</integer>
+</resources>

@@ -174,7 +174,9 @@
     <string name="app_logs_label">Application Logs</string>
     <string name="stream_buffering_label">Stream Buffering</string>
     <string name="restore_default">Restore Default</string>
-    <string name="stream_buffering_descr">Restart playback when values are changed</string>
+    <string name="stream_buffering_descr">Restart playback when values are changed\nRange is %1$d - %2$d milliseconds\n(%3$d second - %4$d minutes)</string>
     <string name="bt_auto_restart_descr">Resume playback when re-connected to the same Bluetooth Device</string>
     <string name="no_location_setting_desc">Can not find Location Settings</string>
+
+    <string name="invalid_buffer_desc">Invalid value of buffer : </string>
 </resources>

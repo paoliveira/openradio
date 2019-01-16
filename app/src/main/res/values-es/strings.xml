@@ -123,7 +123,8 @@
     <string name="app_logs_label">Registros de aplicaciones</string>
     <string name="stream_buffering_label">Buffering de la corriente</string>
     <string name="restore_default">Restaurar por defecto</string>
-    <string name="stream_buffering_descr">Reinicia la reproducción cuando se cambian los valores</string>
+    <string name="stream_buffering_descr">Reinicia la reproducción cuando se cambian los valores\nEl rango es %1$d - %2$d milisegundos\n(%3$d segundo - %4$d minutos)</string>
     <string name="bt_auto_restart_descr">Reanude la reproducción cuando se vuelva a conectar al mismo dispositivo Bluetooth</string>
     <string name="no_location_setting_desc">No se puede encontrar la Configuración de Ubicación</string>
+    <string name="invalid_buffer_desc">Valor inválido del buffer : </string>
 </resources>

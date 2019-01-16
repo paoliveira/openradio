@@ -123,7 +123,8 @@
     <string name="app_logs_label">Záznamy aplikácií</string>
     <string name="stream_buffering_label">Streamovanie vyrovnávacej pamäte</string>
     <string name="restore_default">Obnoviť predvolené</string>
-    <string name="stream_buffering_descr">Reštartujte prehrávanie pri zmene hodnôt</string>
+    <string name="stream_buffering_descr">Reštartujte prehrávanie pri zmene hodnôt\nRozsah je %1$d - %2$d milisekundov\n(%3$d second - %4$d minutes)</string>
     <string name="bt_auto_restart_descr">Pokračujte v prehrávaní po opätovnom pripojení k rovnakému zariadeniu Bluetooth</string>
     <string name="no_location_setting_desc">Nemožno nájsť Nastavenia Polohy</string>
+    <string name="invalid_buffer_desc">Neplatná hodnota vyrovnávacej pamäte : </string>
 </resources>

@@ -1307,7 +1307,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Handles event when Bluetooth connected to same device within application lifetime.
      */
     private void handleBTSameDeviceConnected() {
-        if (!AppPreferencesManager.isBtAutoPlay(getApplicationContext())) {
+        final boolean autoPlay = AppPreferencesManager.isBtAutoPlay(getApplicationContext());
+        AppLogger.d(
+                "BTSameDeviceConnected, do auto play:" + autoPlay
+                        + ", state:" + mState
+                        + ", pause reason:" + mPauseReason
+        );
+        if (!autoPlay) {
             return;
         }
         // Restore playback if it was paused by noisy receiver.

@@ -123,7 +123,8 @@
     <string name="app_logs_label">Applikasjonslogger</string>
     <string name="stream_buffering_label">Stream buffering</string>
     <string name="restore_default">Gjenopprette standard</string>
-    <string name="stream_buffering_descr">Start avspillingen igjen når verdiene er endret</string>
+    <string name="stream_buffering_descr">Start avspillingen igjen når verdiene er endret\nOmrådet er %1$d - %2$d millisekunder\n(%3$d andre - %4$d minutter)</string>
     <string name="bt_auto_restart_descr">Fortsett avspilling når du kobler til samme Bluetooth-enhet igjen</string>
     <string name="no_location_setting_desc">Kan ikke finne plasseringsinnstillinger</string>
+    <string name="invalid_buffer_desc">Ugyldig verdi av buffer : </string>
 </resources>

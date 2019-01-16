@@ -123,7 +123,8 @@
     <string name="app_logs_label">Anwendungsprotokolle</string>
     <string name="stream_buffering_label">Stream-Pufferung</string>
     <string name="restore_default">Standard wiederherstellen</string>
-    <string name="stream_buffering_descr">Starten Sie die Wiedergabe neu, wenn Sie die Werte ändern</string>
+    <string name="stream_buffering_descr">Starten Sie die Wiedergabe neu, wenn Sie die Werte ändern\nBereich ist %1$d - %2$d millisekunden\n(%3$d sekunde - %4$d minuten)</string>
     <string name="bt_auto_restart_descr">Setzen Sie die Wiedergabe fort, wenn Sie wieder mit demselben Bluetooth-Gerät verbunden sind</string>
     <string name="no_location_setting_desc">Kann die Standorteinstellungen nicht finden</string>
+    <string name="invalid_buffer_desc">Ungültiger Wert des Puffers : </string>
 </resources>

@@ -123,7 +123,8 @@
     <string name="app_logs_label">Journaux d\'application</string>
     <string name="stream_buffering_label">Mise en mémoire tampon des flux.</string>
     <string name="restore_default">Restaurer par défaut</string>
-    <string name="stream_buffering_descr">Redémarrer la lecture lorsque les valeurs sont modifiées</string>
+    <string name="stream_buffering_descr">Redémarrer la lecture lorsque les valeurs sont modifiées\nLa plage est %1$d - %2$d millisecondes\n(%3$d seconde - %4$d minutes)</string>
     <string name="bt_auto_restart_descr">Reprendre la lecture lorsque vous vous reconnectez au même périphérique Bluetooth</string>
     <string name="no_location_setting_desc">Impossible de trouver les Paramètres de Localisation</string>
+    <string name="invalid_buffer_desc">Valeur invalide du tampon : </string>
 </resources>
