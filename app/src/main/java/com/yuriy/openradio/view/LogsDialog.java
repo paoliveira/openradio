@@ -85,11 +85,11 @@ public final class LogsDialog extends BaseDialogFragment {
         final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(context);
         final CheckBox logsEnableCheckView = view.findViewById(R.id.settings_dialog_enable_logs_check_view);
         logsEnableCheckView.setChecked(areLogsEnabled);
-        processEnableCheckView(context, areLogsEnabled);
+        processEnableCheckView(context, view, areLogsEnabled);
         logsEnableCheckView.setOnClickListener(
                 view1 -> {
                     final boolean checked = ((CheckBox) view1).isChecked();
-                    processEnableCheckView(context, checked);
+                    processEnableCheckView(context, view, checked);
                 }
         );
 
@@ -117,8 +117,7 @@ public final class LogsDialog extends BaseDialogFragment {
         return createAlertDialog(view);
     }
 
-    private void processEnableCheckView(final Context context, final boolean isEnable) {
-        final View view = getView();
+    private void processEnableCheckView(final Context context, final View view, final boolean isEnable) {
         if (view == null) {
             return;
         }
