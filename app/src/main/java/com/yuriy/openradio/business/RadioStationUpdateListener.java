@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.business;
 
-import android.support.v4.media.MediaMetadataCompat;
+import com.yuriy.openradio.vo.RadioStation;
 
 /**
  * Created by Yuriy Chernyshov
@@ -31,7 +31,7 @@ public interface RadioStationUpdateListener {
 
     /**
      * Call this method when Radio Station has been updated.
-     * @param track {@link MediaMetadataCompat} of the Radio Station.
+     * @param radioStation {@link RadioStation}.
      */
-    void onComplete(final MediaMetadataCompat track);
+    void onComplete(final RadioStation radioStation);
 }

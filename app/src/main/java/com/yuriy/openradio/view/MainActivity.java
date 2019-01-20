@@ -94,6 +94,7 @@ import java.lang.ref.WeakReference;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -250,6 +251,8 @@ public final class MainActivity extends AppCompatActivity {
      */
     private MediaResourcesManager mMediaResourcesManager;
 
+    private TextView mBufferedTextView;
+
     /**
      * Default constructor.
      */
@@ -372,6 +375,9 @@ public final class MainActivity extends AppCompatActivity {
 
         // Initialize No Data text view
         mNoDataView = findViewById(R.id.no_data_view);
+
+        mBufferedTextView = findViewById(R.id.crs_buffered_view);
+        updateBufferedTime(0);
 
         // Get list view reference from the inflated xml
         final ListView listView = findViewById(R.id.list_view);
@@ -1119,6 +1125,33 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         progressBar.setVisibility(View.GONE);
+
+        final double bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000.0;
+        updateBufferedTime(bufferedDuration);
+    }
+
+    /**
+     * Updates buffered value of the currently playing radio station.
+     *
+     * @param value Buffered time in seconds.
+     *
+     * TODO: Reuse the same code here and in QueueActivity
+     */
+    private void updateBufferedTime(double value) {
+        if (mBufferedTextView == null) {
+            return;
+        }
+        if (value < 0) {
+            value = 0;
+        }
+
+        final double finalValue = value;
+        runOnUiThread(
+                () -> {
+                    mBufferedTextView.setVisibility(finalValue > 0 ? View.VISIBLE : View.INVISIBLE);
+                    mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %.2f sec", finalValue));
+                }
+        );
     }
 
     /**

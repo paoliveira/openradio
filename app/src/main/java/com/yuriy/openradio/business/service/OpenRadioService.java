@@ -359,6 +359,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private boolean mIsRestoreInstance = false;
 
     /**
+     * Track last selected Radio Station. This filed used when AA uses buffering/duration and the "Last Played"
+     * Radio Station is not actually in any lists, it is single entity.
+     */
+    @Nullable
+    private RadioStation mLastKnownRadioStation;
+
+    /**
      * Default constructor.
      */
     public OpenRadioService() {
@@ -1154,14 +1161,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             radioStation.setMediaStream(radioStationUpdated.getMediaStream());
 
                             if (listener != null) {
-                                listener.onComplete(buildMetadata(radioStation));
+                                listener.onComplete(radioStation);
                             }
                         }
                 );
             }
         } else {
             if (listener != null) {
-                listener.onComplete(buildMetadata(radioStation));
+                listener.onComplete(radioStation);
             }
         }
     }
@@ -1177,11 +1184,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         );
     }
 
+    private void updateMetadata(final String streamTitle) {
+        updateMetadata(streamTitle, 0);
+    }
+
     /**
      * Updates Metadata for the currently playing Radio Station. This method terminates without
      * throwing exception if one of the stream parameters is invalid.
      */
-    private void updateMetadata(final String streamTitle) {
+    private void updateMetadata(final String streamTitle, final long duration) {
         mCurrentStreamTitle = streamTitle;
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             AppLogger.e(
@@ -1215,7 +1226,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation,
-                streamTitle
+                streamTitle,
+                duration
         );
         if (track == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaMetadata is null");
@@ -1243,20 +1255,24 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private RadioStation getCurrentPlayingRadioStation() {
         final MediaSessionCompat.QueueItem queueItem = getCurrentQueueItem();
         if (queueItem == null) {
-            AppLogger.w(CLASS_NAME + " Can not update Metadata - QueueItem is null");
+            AppLogger.w(CLASS_NAME + " Can not get current Radio Station - QueueItem is null");
             return null;
         }
         if (queueItem.getDescription() == null) {
-            AppLogger.w(CLASS_NAME + " Can not update Metadata - Description of the QueueItem is null");
+            AppLogger.w(CLASS_NAME + " Can not get current Radio Station - Description of the QueueItem is null");
             return null;
         }
         final String mediaId = queueItem.getDescription().getMediaId();
         if (TextUtils.isEmpty(mediaId)) {
-            AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaId is null");
+            AppLogger.w(CLASS_NAME + " Can not get current Radio Station - MediaId is null");
             return null;
         }
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            return QueueHelper.getRadioStationById(mediaId, mRadioStations);
+            RadioStation radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
+            if (radioStation == null) {
+                radioStation = mLastKnownRadioStation;
+            }
+            return radioStation;
         }
     }
 
@@ -1389,24 +1405,33 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         @Override
-        public void onComplete(final MediaMetadataCompat track) {
+        public void onComplete(@Nullable final RadioStation radioStation) {
             final OpenRadioService service = mReference.get();
             if (service == null) {
                 AppLogger.e(CLASS_NAME + " RS Update can not proceed farther, service is null");
                 return;
             }
-            if (track == null) {
+            if (radioStation == null) {
                 AppLogger.e(CLASS_NAME + " Play Radio Station: ignoring request to play next song, " +
                         "because cannot find it." +
                         " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
                         " PlayQueue.size=" + service.mPlayingQueue.size());
                 return;
             }
-            final String source = track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
+            service.mLastKnownRadioStation = radioStation;
+            final MediaMetadataCompat metadata = service.buildMetadata(radioStation);
+            if (metadata == null) {
+                AppLogger.e(CLASS_NAME + " Play Radio Station: ignoring request to play next song, " +
+                        "because cannot find metadata." +
+                        " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
+                        " PlayQueue.size=" + service.mPlayingQueue.size());
+                return;
+            }
+            final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
             AppLogger.d(
                     CLASS_NAME + " Play Radio Station: current (" + service.mCurrentIndexOnQueue
                             + ") in mPlayingQueue. " +
-                            " musicId=" + track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
+                            " musicId=" + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
                             " source=" + source
             );
 
@@ -1573,6 +1598,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
         }
 
+        // Update state only in case of play. Error cause "updatePlaybackState" which has "updateMetadata"
+        // inside - infinite loop!
+        if (mState == PlaybackStateCompat.STATE_PLAYING
+                || mState == PlaybackStateCompat.STATE_PAUSED
+                || mState == PlaybackStateCompat.STATE_BUFFERING) {
+            updateMetadata(mCurrentStreamTitle, mBufferedPosition);
+        }
         mSession.setPlaybackState(stateBuilder.build());
 
         AppLogger.d(CLASS_NAME + " state:" + mState);
@@ -1711,9 +1743,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.clearAndCopyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
-                    getApplicationContext(),
-                    mRadioStations)
+            QueueHelper.clearAndCopyCollection(
+                    mPlayingQueue, QueueHelper.getPlayingQueue(getApplicationContext(), mRadioStations)
             );
         }
 
@@ -1748,22 +1779,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
         getCurrentPlayingRadioStationAsync(
-                (track) -> {
+                (radioStation) -> {
 
-                    if (track == null) {
-                        return;
-                    }
+//                    if (radioStation1 == null) {
+//                        return;
+//                    }
                     // Set appropriate "Favorite" icon on Custom action:
-                    final String mediaId = track.getString(
-                            MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-                    );
-                    final RadioStation radioStation = QueueHelper.getRadioStationById(
-                            mediaId, mRadioStations
-                    );
+//                    final String mediaId = radioStation1.getString(
+//                            MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+//                    );
+//                    final RadioStation radioStation = QueueHelper.getRadioStationById(
+//                            mediaId, mRadioStations
+//                    );
                     if (radioStation == null) {
-                        final String msg = "Set custom action on null Radio Station. MediaId:" + mediaId
-                                + ". " + QueueHelper.queueToString(mRadioStations);
-                        FabricUtils.logException(new RuntimeException(msg));
+//                        final String msg = "Set custom action on null Radio Station. MediaId:" + mediaId
+//                                + ". " + QueueHelper.queueToString(mRadioStations);
+//                        FabricUtils.logException(new RuntimeException(msg));
                         return;
                     }
 
@@ -1985,20 +2016,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
                 service.getCurrentPlayingRadioStationAsync(
-                        (track) -> {
+                        (radioStation) -> {
 
-                            if (track != null) {
-                                final String mediaId = track.getString(
-                                        MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-                                );
-                                final RadioStation radioStation = QueueHelper.getRadioStationById(
-                                        mediaId, service.mRadioStations
-                                );
+                            if (radioStation != null) {
+//                                final String mediaId = radioStation.getString(
+//                                        MediaMetadataCompat.METADATA_KEY_MEDIA_ID
+//                                );
+//                                final RadioStation radioStation = QueueHelper.getRadioStationById(
+//                                        mediaId, service.mRadioStations
+//                                );
 
-                                if (radioStation == null) {
-                                    AppLogger.w(CLASS_NAME + " OnCustomAction radioStation is null");
-                                    return;
-                                }
+//                                if (radioStation == null) {
+//                                    AppLogger.w(CLASS_NAME + " OnCustomAction radioStation is null");
+//                                    return;
+//                                }
 
                                 final boolean isFavorite = FavoritesStorage.isFavorite(
                                         radioStation, service.getApplicationContext()
@@ -2227,6 +2258,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
             service.mPosition = position;
             service.mBufferedPosition = bufferedPosition;
+            AppLogger.d("OnProgress " + position + " " + bufferedPosition + " " + duration);
             service.updatePlaybackState();
         }
     }
