@@ -103,6 +103,13 @@ public final class ExoPlayerOpenRadioImpl {
          *                         or C.TIME_UNSET if the duration is not known.
          */
         void onProgress(long position, long bufferedPosition, long duration);
+
+        /**
+         *
+         * @param playWhenReady
+         * @param playbackState
+         */
+        void onPlayerStateChanged(final boolean playWhenReady, final int playbackState);
     }
 
     /**
@@ -603,7 +610,8 @@ public final class ExoPlayerOpenRadioImpl {
             if (reference == null) {
                 return;
             }
-
+            AppLogger.d(LOG_TAG + " onPlayerStateChanged to " + playbackState);
+            reference.mListener.onPlayerStateChanged(playWhenReady, playbackState);
             switch (playbackState) {
                 case Player.STATE_BUFFERING:
                     AppLogger.d(LOG_TAG + " STATE_BUFFERING");
@@ -627,7 +635,6 @@ public final class ExoPlayerOpenRadioImpl {
 
                     break;
                 default:
-                    AppLogger.w(LOG_TAG + " onPlayerStateChanged to " + playbackState);
                     break;
             }
 

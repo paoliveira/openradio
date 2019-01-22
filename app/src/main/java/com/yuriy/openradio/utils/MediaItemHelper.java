@@ -272,32 +272,17 @@ public final class MediaItemHelper {
     }
 
     /**
-     *
-     * @param context
-     * @param radioStation
-     * @param streamTitle
-     * @return
-     */
-    public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
-                                                                         final RadioStation radioStation,
-                                                                         @Nullable final String streamTitle) {
-        return buildMediaMetadataFromRadioStation(context, radioStation, streamTitle, 0);
-    }
-
-    /**
      * Build {@link android.media.MediaMetadata} from provided
      * {@link RadioStation}.
      *
      * @param context      Context of the callee.
      * @param radioStation {@link RadioStation}.
      * @param streamTitle  Title of the current stream.
-     * @param duration Duration of stream, ms.
      * @return {@link android.media.MediaMetadata}
      */
     public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
                                                                          final RadioStation radioStation,
-                                                                         @Nullable final String streamTitle,
-                                                                         final long duration) {
+                                                                         @Nullable final String streamTitle) {
 
         if (radioStation == null) {
             return null;
@@ -335,7 +320,6 @@ public final class MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, subTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, subTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, subTitle)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration)
                 .build();
 
         // Info: There is no other way to set custom values in the description's bundle ...

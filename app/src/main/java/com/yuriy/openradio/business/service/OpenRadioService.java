@@ -42,6 +42,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
@@ -269,11 +270,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Notification object.
      */
     private MediaNotification mMediaNotification;
-
-    /**
-     * Handler to manage response for the Radio Station's stream.
-     */
-    private Handler mRadioStationTimeoutHandler = new Handler();
 
     /**
      * Service class to provide information about current location.
@@ -1184,16 +1180,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         );
     }
 
-    private void updateMetadata(final String streamTitle) {
-        updateMetadata(streamTitle, 0);
-    }
+    //TODO: Translate
+    private static final String BUFFERING_STR = "Buffering...";
 
     /**
      * Updates Metadata for the currently playing Radio Station. This method terminates without
      * throwing exception if one of the stream parameters is invalid.
      */
-    private void updateMetadata(final String streamTitle, final long duration) {
-        mCurrentStreamTitle = streamTitle;
+    private void updateMetadata(final String streamTitle) {
+        if (!TextUtils.equals(BUFFERING_STR, streamTitle)) {
+            mCurrentStreamTitle = streamTitle;
+        }
         if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mPlayingQueue)) {
             AppLogger.e(
                     CLASS_NAME + " Can't retrieve current metadata, curIndx:"
@@ -1226,8 +1223,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataFromRadioStation(
                 getApplicationContext(),
                 radioStation,
-                streamTitle,
-                duration
+                streamTitle
         );
         if (track == null) {
             AppLogger.w(CLASS_NAME + " Can not update Metadata - MediaMetadata is null");
@@ -1562,16 +1558,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void updatePlaybackState(final String error) {
         AppLogger.d(CLASS_NAME + " set playback state to " + mState + " with error:" + error);
 
-        // Start timeout handler for the Radio Station.
-        if (mState == PlaybackStateCompat.STATE_BUFFERING) {
-            mRadioStationTimeoutHandler.postDelayed(
-                    mTimeoutRunnable, RADIO_STATION_BUFFERING_TIMEOUT
-            );
-            // Or cancel it in case of Success or Error.
-        } else {
-            mRadioStationTimeoutHandler.removeCallbacks(mTimeoutRunnable);
-        }
-
         final PlaybackStateCompat.Builder stateBuilder
                 = new PlaybackStateCompat.Builder().setActions(getAvailableActions());
 
@@ -1600,40 +1586,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Update state only in case of play. Error cause "updatePlaybackState" which has "updateMetadata"
         // inside - infinite loop!
-        if (mState == PlaybackStateCompat.STATE_PLAYING
-                || mState == PlaybackStateCompat.STATE_PAUSED
-                || mState == PlaybackStateCompat.STATE_BUFFERING) {
-            updateMetadata(mCurrentStreamTitle, mBufferedPosition);
+        if (mState == PlaybackStateCompat.STATE_BUFFERING) {
+            updateMetadata(BUFFERING_STR);
         }
         mSession.setPlaybackState(stateBuilder.build());
 
         AppLogger.d(CLASS_NAME + " state:" + mState);
-        if (mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
+        if (mState == PlaybackStateCompat.STATE_BUFFERING || mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
             mMediaNotification.startNotification(getApplicationContext(), getCurrentPlayingRadioStation());
-        }
-    }
-
-    /**
-     * Runnable for the Radio Station buffering timeout.
-     */
-    private final Runnable mTimeoutRunnable = new TimeoutRunnable(this);
-
-    private static final class TimeoutRunnable implements Runnable {
-
-        private final WeakReference<OpenRadioService> mReference;
-
-        private TimeoutRunnable(final OpenRadioService reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void run() {
-            final OpenRadioService service = mReference.get();
-            if (service != null) {
-                service.handleStopRequest(null);
-                service.handleStopRequest(service.getString(R.string.can_not_play_station));
-            }
         }
     }
 
@@ -2260,6 +2220,26 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.mBufferedPosition = bufferedPosition;
             AppLogger.d("OnProgress " + position + " " + bufferedPosition + " " + duration);
             service.updatePlaybackState();
+        }
+
+        @Override
+        public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+            final OpenRadioService service = mReference.get();
+            if (service == null) {
+                return;
+            }
+            AppLogger.d(CLASS_NAME + " OnPlayerStateChanged " + playbackState);
+            switch (playbackState) {
+                case Player.STATE_BUFFERING:
+                    service.mState = PlaybackStateCompat.STATE_BUFFERING;
+                    service.updatePlaybackState();
+                    break;
+                case Player.STATE_READY:
+                    service.mState = PlaybackStateCompat.STATE_PLAYING;
+                    service.updatePlaybackState();
+                default:
+                    break;
+            }
         }
     }
 
