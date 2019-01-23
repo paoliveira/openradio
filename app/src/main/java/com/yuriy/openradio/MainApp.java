@@ -60,6 +60,8 @@ public final class MainApp extends Application {
         thread.start();
     }
 
+
+
     /**
      * Print first log message with summary information about device and application.
      */

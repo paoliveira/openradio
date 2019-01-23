@@ -366,7 +366,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     public OpenRadioService() {
         super();
-        mBTConnectionReceiver = new BTConnectionReceiver(this::handleBTSameDeviceConnected);
+        mBTConnectionReceiver = new BTConnectionReceiver(
+                new BTConnectionReceiver.Listener() {
+                    @Override
+                    public void onSameDeviceConnected() {
+                        OpenRadioService.this.handleBTSameDeviceConnected();
+                    }
+
+                    @Override
+                    public void onDisconnected() {
+                        OpenRadioService.this.handlePauseRequest(PauseReason.NOISY);
+                    }
+                }
+        );
         mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(new BecomingNoisyReceiverListenerImpl(this));
         final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
                 new ConnectivityChangeListenerImpl(this);
@@ -1297,13 +1309,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void relaxResources(boolean releaseMediaPlayer) {
         AppLogger.d(CLASS_NAME + " RelaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
+
         // stop being a foreground service
         stopForeground(false);
-
         // reset the delayed stop handler.
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
-
+        
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer) {
             releaseExoPlayer();

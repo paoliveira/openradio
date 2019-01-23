@@ -45,6 +45,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     public interface Listener {
 
         void onSameDeviceConnected();
+        void onDisconnected();
     }
 
     private static final String CLASS_NAME = BTConnectionReceiver.class.getSimpleName();
@@ -85,6 +86,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
                 break;
             case BluetoothAdapter.STATE_DISCONNECTED:
                 AppLogger.i(CLASS_NAME + " disconnected");
+                mListener.onDisconnected();
                 break;
         }
     }
