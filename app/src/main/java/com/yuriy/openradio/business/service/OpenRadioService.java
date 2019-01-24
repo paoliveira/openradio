@@ -176,25 +176,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.yuriy.openradio.service.THUMBS_UP";
 
     /**
-     * Timeout for the response from the Radio Station's stream, in milliseconds.
-     */
-    private static final int RADIO_STATION_BUFFERING_TIMEOUT = 8000;
-
-    /**
      * Delay stopSelf by using a handler.
      */
     private static final int STOP_DELAY = 30000;
-
-    /**
-     * The volume we set the media player to when we lose audio focus,
-     * but are allowed to reduce the volume instead of stopping playback.
-     */
-    private static final float VOLUME_DUCK = 0.2f;
-
-    /**
-     * The volume we set the media player when we have audio focus.
-     */
-    private static final float VOLUME_NORMAL = 1.0f;
 
     /**
      * ExoPlayer's implementation to play Radio stream..
@@ -678,7 +662,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     + clientPackageName);
             return null;
         }
-        //noinspection StatementWithEmptyBody
         if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
@@ -753,7 +736,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void onHandledError(final ExoPlaybackException exception) {
         AppLogger.e(CLASS_NAME + " ExoPlayer handled exception:" + exception);
         final Throwable throwable = exception.getCause();
-        if (throwable != null && throwable instanceof UnrecognizedInputFormatException) {
+        if (throwable instanceof UnrecognizedInputFormatException) {
             handleUnrecognizedInputFormatException();
         }
     }
@@ -1315,7 +1298,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // reset the delayed stop handler.
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
-        
+
         // stop and release the Media Player, if it's available
         if (releaseMediaPlayer) {
             releaseExoPlayer();
@@ -1580,8 +1563,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.e(CLASS_NAME + " UpdatePlaybackState, error: " + error);
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
-            // TODO: Provide proper error code
-            stateBuilder.setErrorMessage(0, error);
+            stateBuilder.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, error);
             mState = PlaybackStateCompat.STATE_ERROR;
         }
 

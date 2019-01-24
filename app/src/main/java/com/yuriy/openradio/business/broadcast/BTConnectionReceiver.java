@@ -67,6 +67,10 @@ public final class BTConnectionReceiver extends AbstractReceiver {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
+    /**
+     *
+     * @param context
+     */
     public void locateDevice(final Context context) {
         // Establish connection to the proxy.
         if (mBluetoothAdapter == null) {
@@ -96,10 +100,19 @@ public final class BTConnectionReceiver extends AbstractReceiver {
         super.unregister(context);
     }
 
+    /**
+     *
+     */
     private class BluetoothProfileServiceListenerImpl implements BluetoothProfile.ServiceListener {
 
+        /**
+         *
+         */
         private BluetoothHeadset mBluetoothHeadset;
 
+        /**
+         *
+         */
         private BluetoothProfileServiceListenerImpl() {
             super();
         }
