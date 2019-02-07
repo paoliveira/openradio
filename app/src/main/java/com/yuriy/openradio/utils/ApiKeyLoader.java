@@ -16,13 +16,6 @@
 
 package com.yuriy.openradio.utils;
 
-/**
- * Created by Yuriy Chernyshov
- * At Android Studio
- * On 12/15/14
- * E-Mail: chernyshov.yuriy@gmail.com
- */
-
 import android.content.Context;
 import android.text.TextUtils;
 
@@ -35,8 +28,14 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Calendar;
 
 /**
+ * Created by Yuriy Chernyshov
+ * At Android Studio
+ * On 12/15/14
+ * E-Mail: chernyshov.yuriy@gmail.com
+ *
  * {@link com.yuriy.openradio.utils.ApiKeyLoader} is a helper class to provide
  * Dirble API key
  */
@@ -57,25 +56,25 @@ public final class ApiKeyLoader {
         if (!TextUtils.isEmpty(sCashedKey)) {
             return sCashedKey;
         }
-        final InputStream stream = context.getResources().openRawResource(R.raw.api_key);
-        final Writer writer = new StringWriter();
-        final char[] buffer = new char[1024];
-        try {
+        // Do balance load between two API keys: each for every 15 (or so, depends on concrete month) days.
+        final Calendar calendar = Calendar.getInstance();
+        final int day = calendar.get(Calendar.DAY_OF_MONTH);
+        int resourceId = R.raw.api_key;
+        if (day < 15) {
+            reso    urceId = R.raw.api_key_2;
+        }
+        try (InputStream stream = context.getResources().openRawResource(resourceId)) {
+            final Writer writer = new StringWriter();
+            final char[] buffer = new char[1024];
             final Reader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
             int length;
             while ((length = reader.read(buffer)) != -1) {
                 writer.write(buffer, 0, length);
             }
-        } catch (IOException e) {
+            sCashedKey = writer.toString();
+        } catch (final IOException e) {
             FabricUtils.logException(e);
-        } finally {
-            try {
-                stream.close();
-            } catch (IOException e) {
-                /* Ignore this exception */
-            }
         }
-        sCashedKey = writer.toString();
         return sCashedKey;
     }
 }
