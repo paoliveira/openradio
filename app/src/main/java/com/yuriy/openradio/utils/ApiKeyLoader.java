@@ -61,7 +61,7 @@ public final class ApiKeyLoader {
         final int day = calendar.get(Calendar.DAY_OF_MONTH);
         int resourceId = R.raw.api_key;
         if (day < 15) {
-            reso    urceId = R.raw.api_key_2;
+            resourceId = R.raw.api_key_2;
         }
         try (InputStream stream = context.getResources().openRawResource(resourceId)) {
             final Writer writer = new StringWriter();
