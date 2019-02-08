@@ -55,7 +55,14 @@ public final class ApiKeyLoader {
         if (!TextUtils.isEmpty(sCashedKey)) {
             return sCashedKey;
         }
-        final int resourceId = AppLogger.isDebug(context) ? R.raw.api_key_debug : R.raw.api_key;
+        final int resourceId;
+        if (AppLogger.isDebug(context)) {
+            AppLogger.i("API key is debug");
+            resourceId = R.raw.api_key_debug;
+        } else {
+            AppLogger.i("API key is release");
+            resourceId = R.raw.api_key;
+        }
         try (InputStream stream = context.getResources().openRawResource(resourceId)) {
             final Writer writer = new StringWriter();
             final char[] buffer = new char[1024];
