@@ -28,7 +28,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.Calendar;
 
 /**
  * Created by Yuriy Chernyshov
@@ -56,13 +55,7 @@ public final class ApiKeyLoader {
         if (!TextUtils.isEmpty(sCashedKey)) {
             return sCashedKey;
         }
-        // Do balance load between two API keys: each for every 15 (or so, depends on concrete month) days.
-        final Calendar calendar = Calendar.getInstance();
-        final int day = calendar.get(Calendar.DAY_OF_MONTH);
-        int resourceId = R.raw.api_key;
-        if (day < 15) {
-            resourceId = R.raw.api_key_2;
-        }
+        final int resourceId = AppLogger.isDebug(context) ? R.raw.api_key_debug : R.raw.api_key;
         try (InputStream stream = context.getResources().openRawResource(resourceId)) {
             final Writer writer = new StringWriter();
             final char[] buffer = new char[1024];

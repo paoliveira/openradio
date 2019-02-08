@@ -17,6 +17,7 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -49,6 +50,10 @@ public final class AppLogger {
 
     private AppLogger() {
         super();
+    }
+
+    public static boolean isDebug(final Context context) {
+        return ((context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0);
     }
 
     public static void initLogger(final Context context) {

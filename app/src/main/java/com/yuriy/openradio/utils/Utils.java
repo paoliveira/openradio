@@ -16,9 +16,6 @@
 
 package com.yuriy.openradio.utils;
 
-import android.os.Build;
-import android.os.Build.VERSION_CODES;
-
 /**
  * Class containing static utility methods.
  */
@@ -33,21 +30,13 @@ public final class Utils {
      */
     private static StringBuilder sSearchQuery = new StringBuilder();
 
-    public static boolean hasKitKat() {
-        return Build.VERSION.SDK_INT >= VERSION_CODES.KITKAT;
-    }
-
-    public static boolean hasVersionM() {
-        return Build.VERSION.SDK_INT >= VERSION_CODES.M;
-    }
-
     /**
      * Save Search query string.
      *
      * @param searchQuery Search query string.
      */
     public static void setSearchQuery(final String searchQuery) {
-        clearSearchQuery();
+        sSearchQuery.setLength(0);
         sSearchQuery.append(searchQuery);
     }
 
@@ -56,12 +45,5 @@ public final class Utils {
      */
     public static String getSearchQuery() {
         return sSearchQuery.toString();
-    }
-
-    /**
-     * Clear Search query string.
-     */
-    public static void clearSearchQuery() {
-        sSearchQuery.setLength(0);
     }
 }

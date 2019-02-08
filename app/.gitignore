@@ -1,5 +1,5 @@
 /build
 api_key
-api_key_2
+src/main/res/raw/api_key_debug.
 crashlytics.properties
 fabric.properties

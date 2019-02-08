@@ -23,6 +23,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -714,5 +715,13 @@ public final class AppUtils {
             FabricUtils.logException(e);
         }
         return null;
+    }
+
+    public static boolean hasKitKat() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+    }
+
+    public static boolean hasVersionM() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 }

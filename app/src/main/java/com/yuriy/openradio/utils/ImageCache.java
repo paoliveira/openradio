@@ -512,7 +512,7 @@ public class ImageCache {
     private static boolean canUseForInBitmap(
             Bitmap candidate, BitmapFactory.Options targetOptions) {
         //BEGIN_INCLUDE(can_use_for_inbitmap)
-        if (!Utils.hasKitKat()) {
+        if (!AppUtils.hasKitKat()) {
             // On earlier versions, the dimensions must match exactly and the inSampleSize must be 1
             return candidate.getWidth() == targetOptions.outWidth
                     && candidate.getHeight() == targetOptions.outHeight
@@ -615,7 +615,7 @@ public class ImageCache {
 
         // From KitKat onward use getAllocationByteCount() as allocated bytes can potentially be
         // larger than bitmap byte count.
-        if (Utils.hasKitKat()) {
+        if (AppUtils.hasKitKat()) {
             return bitmap.getAllocationByteCount();
         }
 
