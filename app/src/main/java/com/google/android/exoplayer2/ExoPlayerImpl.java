@@ -22,6 +22,7 @@ import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.util.Pair;
+
 import com.google.android.exoplayer2.PlayerMessage.Target;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
@@ -33,12 +34,13 @@ import com.google.android.exoplayer2.trackselection.TrackSelectorResult;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * An {@link ExoPlayer} implementation. Instances can be obtained from {@link ExoPlayerFactory}.
+ * An {@link ExoPlayer} implementation.
  */
 public final class ExoPlayerImpl implements ExoPlayer {
 
@@ -125,16 +127,6 @@ public final class ExoPlayerImpl implements ExoPlayer {
             this,
             clock);
     internalPlayerHandler = new Handler(internalPlayer.getPlaybackLooper());
-  }
-
-  @Override
-  public VideoComponent getVideoComponent() {
-    return null;
-  }
-
-  @Override
-  public TextComponent getTextComponent() {
-    return null;
   }
 
   @Override
