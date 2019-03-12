@@ -1583,7 +1583,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
             updateMetadata(BUFFERING_STR);
         }
-        mSession.setPlaybackState(stateBuilder.build());
+        try {
+            // Try to address issue on Android 4.1.2:
+            // IllegalStateException: beginBroadcast() called while already in a broadcast
+            mSession.setPlaybackState(stateBuilder.build());
+        } catch (final IllegalStateException e) {
+            FabricUtils.logException(e);
+        }
 
         AppLogger.d(CLASS_NAME + " state:" + mState);
         if (mState == PlaybackStateCompat.STATE_BUFFERING || mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {

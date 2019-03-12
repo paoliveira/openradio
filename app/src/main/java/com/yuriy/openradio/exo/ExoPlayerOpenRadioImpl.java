@@ -227,23 +227,36 @@ public final class ExoPlayerOpenRadioImpl {
 
         int audioRendererCount = 0;
         for (final Renderer renderer : mRenderers) {
-            switch (renderer.getTrackType()) {
-                case C.TRACK_TYPE_AUDIO:
-                    audioRendererCount++;
-                    break;
+            if (renderer.getTrackType() == C.TRACK_TYPE_AUDIO) {
+                audioRendererCount++;
             }
         }
         mAudioRendererCount = audioRendererCount;
+        int maxBufferMs = AppPreferencesManager.getMaxBuffer(context);
+        int minBufferMs = AppPreferencesManager.getMinBuffer(context);
+        int playBufferMs = AppPreferencesManager.getPlayBuffer(context);
+        int playBufferRebufferMs = AppPreferencesManager.getPlayBufferRebuffer(context);
+
+        // TODO: All these check points should be done in Settings UI.
+        if (minBufferMs == 0) {
+            minBufferMs = DefaultLoadControl.DEFAULT_MIN_BUFFER_MS;
+        }
+        if (maxBufferMs < minBufferMs) {
+            maxBufferMs = minBufferMs;
+        }
+        if (playBufferMs < minBufferMs) {
+            playBufferMs = minBufferMs;
+        }
 
         mExoPlayer = new ExoPlayerImpl(
                 mRenderers,
                 new DefaultTrackSelector(),
                 new DefaultLoadControl(
                         new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
-                        AppPreferencesManager.getMinBuffer(context),
-                        AppPreferencesManager.getMaxBuffer(context),
-                        AppPreferencesManager.getPlayBuffer(context),
-                        AppPreferencesManager.getPlayBufferRebuffer(context),
+                        minBufferMs,
+                        maxBufferMs,
+                        playBufferMs,
+                        playBufferRebufferMs,
                         DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
                         DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
                 ),

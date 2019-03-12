@@ -1020,15 +1020,22 @@ public final class MainActivity extends AppCompatActivity {
             addMediaItemToStack(mediaId);
         } else if (item.isPlayable()) {
             // Else - we play an item
-            MediaControllerCompat
-                    .getMediaController(this)
-                    .getTransportControls()
-                    .playFromMediaId(mediaId, null);
-
-            // Call appropriate activity for the items playing
-            startActivity(
-                    QueueActivity.makeIntent(getApplicationContext())
-            );
+            boolean result = false;
+            final MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
+            if (mediaController != null) {
+                final MediaControllerCompat.TransportControls transportControls = mediaController.getTransportControls();
+                if (transportControls != null) {
+                    transportControls.playFromMediaId(mediaId, null);
+                    // Call appropriate activity for the items playing
+                    startActivity(
+                            QueueActivity.makeIntent(getApplicationContext())
+                    );
+                    result = true;
+                }
+            }
+            if (!result) {
+                SafeToast.showAnyThread(getApplicationContext(), getString(R.string.can_not_play_station));
+            }
         }
     }
 
