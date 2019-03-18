@@ -244,8 +244,8 @@ public final class ExoPlayerOpenRadioImpl {
         if (maxBufferMs < minBufferMs) {
             maxBufferMs = minBufferMs;
         }
-        if (playBufferMs < minBufferMs) {
-            playBufferMs = minBufferMs;
+        if (minBufferMs < playBufferMs) {
+            minBufferMs = playBufferMs;
         }
 
         mExoPlayer = new ExoPlayerImpl(

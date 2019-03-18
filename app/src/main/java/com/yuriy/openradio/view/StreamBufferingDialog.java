@@ -130,7 +130,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         if (mMaxBuffer != null) {
             final String maxBufferStr = mMaxBuffer.getText().toString().trim();
             if (validateInput(maxBufferStr)) {
-                AppPreferencesManager.setMaxBuffer(context, Integer.valueOf(mMaxBuffer.getText().toString().trim()));
+                AppPreferencesManager.setMaxBuffer(context, Integer.valueOf(maxBufferStr));
             } else {
                 SafeToast.showAnyThread(context, erroMsgBase + maxBufferStr);
             }
@@ -138,7 +138,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         if (mPlayBuffer != null) {
             final String playBufferStr = mPlayBuffer.getText().toString().trim();
             if (validateInput(playBufferStr)) {
-                AppPreferencesManager.setPlayBuffer(context, Integer.valueOf(mPlayBuffer.getText().toString().trim()));
+                AppPreferencesManager.setPlayBuffer(context, Integer.valueOf(playBufferStr));
             } else {
                 SafeToast.showAnyThread(context, erroMsgBase + playBufferStr);
             }
@@ -147,7 +147,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
             final String playBufferRebufferStr = mPlayBufferRebuffer.getText().toString().trim();
             if (validateInput(playBufferRebufferStr)) {
                 AppPreferencesManager.setPlayBufferRebuffer(
-                        context, Integer.valueOf(mPlayBufferRebuffer.getText().toString().trim())
+                        context, Integer.valueOf(playBufferRebufferStr)
                 );
             } else {
                 SafeToast.showAnyThread(context, erroMsgBase + playBufferRebufferStr);
