@@ -112,7 +112,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Tag string to use in logging message.
      */
-    private static final String CLASS_NAME = MainActivity.class.getSimpleName();
+    private static final String CLASS_NAME = MainActivity.class.getSimpleName() + " ";
 
     /**
      * Adapter for the representing media items in the list.
@@ -263,7 +263,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        AppLogger.d(CLASS_NAME + " OnCreate:" + savedInstanceState);
+        AppLogger.d(CLASS_NAME + "OnCreate:" + savedInstanceState);
 
         // Set content.
         setContentView(R.layout.main_drawer);
@@ -456,7 +456,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected final void onDestroy() {
         super.onDestroy();
-        AppLogger.i(CLASS_NAME + " OnDestroy");
+        AppLogger.i(CLASS_NAME + "OnDestroy");
 
         PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
 
@@ -569,7 +569,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        AppLogger.d("OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
         if (resultCode != Activity.RESULT_OK) {
             return;
         }
@@ -635,7 +635,7 @@ public final class MainActivity extends AppCompatActivity {
             final String previousMediaId = mMediaItemsStack.get(location);
             if (!TextUtils.isEmpty(previousMediaId)) {
                 showProgressBar();
-                AppLogger.d("Back to " + previousMediaId);
+                AppLogger.d(CLASS_NAME + "Back to " + previousMediaId);
                 mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
             }
         }
@@ -741,7 +741,7 @@ public final class MainActivity extends AppCompatActivity {
             );
         } catch (IntentSender.SendIntentException e) {
             // Unable to resolve, message user appropriately
-            AppLogger.e("Google Drive unable to resolve failure:" + e);
+            AppLogger.e(CLASS_NAME + "Google Drive unable to resolve failure:" + e);
         }
     }
 
@@ -842,7 +842,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param mediaId Id of the {@link android.view.MenuItem}
      */
     private void addMediaItemToStack(final String mediaId) {
-        AppLogger.i(CLASS_NAME + " MediaItem Id added:" + mediaId);
+        AppLogger.i(CLASS_NAME + "MediaItem Id added:" + mediaId);
         if (TextUtils.isEmpty(mediaId)) {
             return;
         }
@@ -936,7 +936,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the item in the list.
      */
     private void setSelectedItem(final int position) {
-        AppLogger.d(CLASS_NAME + " Set selected:" + position);
+        AppLogger.d(CLASS_NAME + "Set selected:" + position);
         // Get list view reference from the inflated xml
         final ListView listView = findViewById(R.id.list_view);
         if (listView == null) {
@@ -1061,7 +1061,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         if (mIsOnSaveInstancePassed.get()) {
-            AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
+            AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState");
             return;
         }
 
@@ -1091,7 +1091,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         if (mIsOnSaveInstancePassed.get()) {
-            AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
+            AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState");
             return;
         }
 
@@ -1220,7 +1220,6 @@ public final class MainActivity extends AppCompatActivity {
      */
     private static final class LocalBroadcastReceiverCallback implements AppLocalReceiverCallback {
 
-        private static final String CLASS_NAME = LocalBroadcastReceiverCallback.class.getSimpleName();
         /**
          * Member field to keep reference to the outer class.
          */
@@ -1247,7 +1246,7 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             if (reference.mIsOnSaveInstancePassed.get()) {
-                AppLogger.w(CLASS_NAME + " Can not show Dialog after OnSaveInstanceState");
+                AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState");
                 return;
             }
 
@@ -1350,11 +1349,13 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void onChildrenLoaded(@NonNull final String parentId,
                                      @NonNull final List<MediaBrowserCompat.MediaItem> children) {
-            AppLogger.i(CLASS_NAME + " On children loaded:" + parentId);
+            AppLogger.i(
+                    CLASS_NAME + "Children loaded:" + parentId + ", children:" + children.size()
+            );
 
             final MainActivity activity = mReference.get();
             if (activity == null) {
-                AppLogger.w(CLASS_NAME + " On children loaded -> activity ref is null");
+                AppLogger.w(CLASS_NAME + "On children loaded -> activity ref is null");
                 return;
             }
 
@@ -1397,8 +1398,10 @@ public final class MainActivity extends AppCompatActivity {
                 activity.showNoDataMessage();
             }
 
+            activity.mMediaResourcesManager.dump();
+
             if (!activity.mListPositionMap.containsKey(parentId)) {
-                AppLogger.d(CLASS_NAME + " No key");
+                AppLogger.d(CLASS_NAME + "No key");
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
                 activity.mBrowserAdapter.setActiveItemId(MediaSessionCompat.QueueItem.UNKNOWN_ID);
                 activity.mBrowserAdapter.notifyDataSetInvalidated();
@@ -1459,7 +1462,7 @@ public final class MainActivity extends AppCompatActivity {
                                 final long id) {
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
-                AppLogger.w(CLASS_NAME + " OnItemClick return, reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + "OnItemClick return, reference to MainActivity is null");
                 return;
             }
             mainActivity.handleOnItemClick(position);
@@ -1499,7 +1502,7 @@ public final class MainActivity extends AppCompatActivity {
 
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
-                AppLogger.w(CLASS_NAME + " OnItemTouch return, reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + "OnItemTouch return, reference to MainActivity is null");
                 return false;
             }
 
@@ -1558,7 +1561,7 @@ public final class MainActivity extends AppCompatActivity {
             unsubscribeFromItem(mCurrentParentId);
             addMediaItemToStack(mCurrentParentId);
         } else {
-            AppLogger.w("Category " + mCurrentParentId + " is not refreshable");
+            AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
         }
     }
 
@@ -1586,11 +1589,11 @@ public final class MainActivity extends AppCompatActivity {
         public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
             final MainActivity activity = mReference.get();
             if (activity == null) {
-                AppLogger.w(CLASS_NAME + " onConnected reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
                 return;
             }
 
-            AppLogger.i(CLASS_NAME + " Stack empty:" + activity.mMediaItemsStack.isEmpty());
+            AppLogger.i(CLASS_NAME + "Stack empty:" + activity.mMediaItemsStack.isEmpty());
 
             // If stack is empty - assume that this is a start point
             if (activity.mMediaItemsStack.isEmpty()) {
@@ -1610,10 +1613,10 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d("Playback state changed to:" + state);
+            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
             final MainActivity activity = mReference.get();
             if (activity == null) {
-                AppLogger.w(CLASS_NAME + " onPlaybackStateChanged reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + "onPlaybackStateChanged reference to MainActivity is null");
                 return;
             }
             activity.handlePlaybackStateChanged(state);
@@ -1621,7 +1624,7 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d("Queue changed to:" + queue);
+            AppLogger.d(CLASS_NAME + "Queue changed to:" + queue);
         }
 
         @Override
@@ -1629,7 +1632,7 @@ public final class MainActivity extends AppCompatActivity {
                                       final List<MediaSessionCompat.QueueItem> queue) {
             final MainActivity activity = mReference.get();
             if (activity == null) {
-                AppLogger.w(CLASS_NAME + " onMetadataChanged reference to MainActivity is null");
+                AppLogger.w(CLASS_NAME + "onMetadataChanged reference to MainActivity is null");
                 return;
             }
             if (metadata == null) {
@@ -1802,18 +1805,13 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onScrollStateChanged(final AbsListView view, final int scrollState) {
-            AppLogger.d("ScrollStateChanged to:" + scrollState);
-
             mScrollState = scrollState;
-
             reportEndOfScroll();
         }
 
         @Override
         public void onScroll(final AbsListView view, final int firstVisibleItem,
                              final int visibleItemCount, final int totalItemCount) {
-            AppLogger.d("Scroll first:" + firstVisibleItem + " count:" + visibleItemCount + " total:" + totalItemCount);
-
             mFirstVisibleItem = firstVisibleItem;
             mVisibleItemCount = visibleItemCount;
             mTotalItemCount = totalItemCount;

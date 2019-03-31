@@ -32,7 +32,9 @@ import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Chernyshov Yurii
@@ -45,8 +47,11 @@ public final class MediaResourcesManager {
     /**
      * Tag string to use in logging message.
      */
-    private static final String CLASS_NAME = MediaResourcesManager.class.getSimpleName();
+    private final String CLASS_NAME;
 
+    /**
+     *
+     */
     private static final String KEY_INCREMENT_LIST_KEY = "KEY_INCREMENT_LIST_KEY";
 
     /**
@@ -79,6 +84,8 @@ public final class MediaResourcesManager {
      */
     private final MediaResourceManagerListener mListener;
 
+    private Set<String> mSubscribed;
+
     /**
      * Constructor.
      *
@@ -88,6 +95,8 @@ public final class MediaResourcesManager {
     public MediaResourcesManager(@NonNull final Activity activity,
                                  @NonNull final MediaResourceManagerListener listener) {
         super();
+        CLASS_NAME = "MdRsrcsMgr " + activity.getClass().getSimpleName() + " ";
+        mSubscribed = new HashSet<>();
         mActivity = activity;
         mListener = listener;
     }
@@ -109,6 +118,7 @@ public final class MediaResourcesManager {
      * Connects to the Media Browse service.
      */
     public void connect() {
+        AppLogger.i(CLASS_NAME + "Connect");
         if (mMediaBrowser != null) {
             mMediaBrowser.connect();
         }
@@ -118,6 +128,7 @@ public final class MediaResourcesManager {
      * Disconnects from the Media Browse service. After this, no more callbacks will be received.
      */
     public void disconnect() {
+        AppLogger.i(CLASS_NAME + "Disconnect");
         if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaSessionCallback);
         }
@@ -135,7 +146,12 @@ public final class MediaResourcesManager {
      */
     public void subscribe(final @NonNull String parentId,
                           final @NonNull MediaBrowserCompat.SubscriptionCallback callback) {
+        if (mSubscribed.contains(parentId)) {
+            return;
+        }
+        AppLogger.i(CLASS_NAME + "Subscribe:" + parentId);
         if (mMediaBrowser != null) {
+            mSubscribed.add(parentId);
             mMediaBrowser.subscribe(parentId, callback);
         }
     }
@@ -146,7 +162,12 @@ public final class MediaResourcesManager {
      * @param parentId The id of the parent media item whose list of children will be unsubscribed.
      */
     public void unsubscribe(@NonNull String parentId) {
+        if (!mSubscribed.contains(parentId)) {
+            return;
+        }
+        AppLogger.i(CLASS_NAME + "Unsubscribe:" + parentId + ", " + mMediaBrowser);
         if (mMediaBrowser != null) {
+            mSubscribed.remove(parentId);
             mMediaBrowser.unsubscribe(parentId);
         }
     }
@@ -226,6 +247,8 @@ public final class MediaResourcesManager {
          */
         private final WeakReference<MediaResourcesManager> mReference;
 
+        private final String CLASS_NAME;
+
         /**
          * Constructor.
          *
@@ -233,19 +256,21 @@ public final class MediaResourcesManager {
          */
         private MediaBrowserConnectionCallback(final MediaResourcesManager reference) {
             super();
+            CLASS_NAME = reference.CLASS_NAME;
             mReference = new WeakReference<>(reference);
         }
 
         @Override
         public void onConnected() {
-            AppLogger.d(CLASS_NAME + " On Connected");
+            AppLogger.d(CLASS_NAME + "Connected");
 
             final MediaResourcesManager manager = mReference.get();
             if (manager == null) {
+                AppLogger.w(CLASS_NAME + "Enclosing reference is null");
                 return;
             }
 
-            AppLogger.d(CLASS_NAME + " Session token " + manager.mMediaBrowser.getSessionToken());
+            AppLogger.d(CLASS_NAME + "Session token " + manager.mMediaBrowser.getSessionToken());
 
             // Initialize Media Controller
             try {
@@ -274,7 +299,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onConnectionSuspended() {
-            AppLogger.w(CLASS_NAME + " On Connection Suspended");
+            AppLogger.w(CLASS_NAME + "Connection Suspended");
             final MediaResourcesManager manager = mReference.get();
             if (manager == null) {
                 return;
@@ -287,7 +312,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onConnectionFailed() {
-            AppLogger.w(CLASS_NAME + " On Connection Failed");
+            AppLogger.w(CLASS_NAME + "Connection Failed");
         }
     }
 
@@ -303,6 +328,8 @@ public final class MediaResourcesManager {
          */
         private final WeakReference<MediaResourcesManager> mReference;
 
+        private final String CLASS_NAME;
+
         /**
          * Constructor
          *
@@ -310,23 +337,24 @@ public final class MediaResourcesManager {
          */
         private MediaSessionCallback(final MediaResourcesManager reference) {
             super();
+            CLASS_NAME = reference.CLASS_NAME;
             mReference = new WeakReference<>(reference);
         }
 
         @Override
         public void onSessionDestroyed() {
-            AppLogger.d(CLASS_NAME + " Session destroyed. Need to fetch a new Media Session");
+            AppLogger.d(CLASS_NAME + "Session destroyed. Need to fetch a new Media Session");
         }
 
         @Override
         public void onPlaybackStateChanged(final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + " Received playback state change to state " + state);
+            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
             final MediaResourcesManager manager = mReference.get();
             if (manager == null) {
                 return;
             }
             if (state == null) {
-                AppLogger.e(CLASS_NAME + " Received invalid playback state");
+                AppLogger.e(CLASS_NAME + "Received invalid playback state");
                 return;
             }
             manager.mListener.onPlaybackStateChanged(state);
@@ -334,9 +362,10 @@ public final class MediaResourcesManager {
 
         @Override
         public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + " On Queue Changed: " + queue);
+            AppLogger.d(CLASS_NAME + "Queue Changed:" + queue);
             final MediaResourcesManager manager = mReference.get();
             if (manager == null) {
+                AppLogger.w(CLASS_NAME + "Manager is null when queue changed");
                 return;
             }
             manager.mListener.onQueueChanged(queue);
@@ -344,7 +373,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onMetadataChanged(final MediaMetadataCompat metadata) {
-            AppLogger.d(CLASS_NAME + " On Metadata Changed: " + metadata);
+            AppLogger.d(CLASS_NAME + "Metadata Changed:" + metadata);
             final MediaResourcesManager manager = mReference.get();
             if (manager == null) {
                 return;
@@ -352,5 +381,12 @@ public final class MediaResourcesManager {
             final List<MediaSessionCompat.QueueItem> queue = manager.mMediaController.getQueue();
             manager.mListener.onMetadataChanged(metadata, queue);
         }
+    }
+
+    public void dump() {
+        AppLogger.i(
+                CLASS_NAME
+                        + "Dump queue:" + (mMediaController.getQueue() != null ? mMediaController.getQueue().size() : "null")
+        );
     }
 }
