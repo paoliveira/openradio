@@ -1708,13 +1708,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             );
         }
 
-        final String queueTitle = getString(R.string.queue);
-        mSession.setQueueTitle(queueTitle);
-        mSession.setQueue(mPlayingQueue);
-
         if (mPlayingQueue.isEmpty()) {
             return;
         }
+
+        final String queueTitle = getString(R.string.queue);
+        mSession.setQueueTitle(queueTitle);
+        mSession.setQueue(mPlayingQueue);
 
         final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
                 mPlayingQueue, mediaId
