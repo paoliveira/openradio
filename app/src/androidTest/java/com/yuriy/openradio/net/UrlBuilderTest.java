@@ -16,9 +16,11 @@
 
 package com.yuriy.openradio.net;
 
-import android.app.Application;
 import android.net.Uri;
-import android.test.ApplicationTestCase;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -30,13 +32,11 @@ import static org.hamcrest.Matchers.nullValue;
  * On 29/12/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class UrlBuilderTest extends ApplicationTestCase<Application> {
+@RunWith(AndroidJUnit4.class)
+public class UrlBuilderTest {
 
-    public UrlBuilderTest() {
-        super(Application.class);
-    }
-
-    public void testPreProcessIconUrl() throws Exception {
+    @Test
+    public void preProcessIconUrl() throws Exception {
         final String oldUrl = "https://" + UrlBuilder.OLD_IMG_BASE_URL + "/station/49314/c175.png";
         final String newUrl = UrlBuilder.preProcessIconUrl(oldUrl);
 
@@ -44,19 +44,22 @@ public final class UrlBuilderTest extends ApplicationTestCase<Application> {
         assertThat(newUrl.contains(UrlBuilder.OLD_IMG_BASE_URL), is(false));
     }
 
-    public void testPreProcessIconUrlNullInput() throws Exception {
+    @Test
+    public void preProcessIconUrlNullInput() throws Exception {
         final String newUrl = UrlBuilder.preProcessIconUrl(null);
 
         assertThat(newUrl, nullValue());
     }
 
-    public void testPreProcessIconUrlEmptyInput() throws Exception {
+    @Test
+    public void preProcessIconUrlEmptyInput() throws Exception {
         final String newUrl = UrlBuilder.preProcessIconUrl("");
 
         assertThat(newUrl, is(""));
     }
 
-    public void testPreProcessIconUri() throws Exception {
+    @Test
+    public void preProcessIconUri() throws Exception {
         final String oldUrl = "https://" + UrlBuilder.OLD_IMG_BASE_URL + "/station/49314/c175.png";
         final Uri oldUri = Uri.parse(oldUrl);
         final Uri newUri = UrlBuilder.preProcessIconUri(oldUri);
@@ -65,7 +68,8 @@ public final class UrlBuilderTest extends ApplicationTestCase<Application> {
         assertThat(newUri.toString().contains(UrlBuilder.OLD_IMG_BASE_URL), is(false));
     }
 
-    public void testPreProcessIconUriNullInput() throws Exception {
+    @Test
+    public void preProcessIconUriNullInput() throws Exception {
         final Uri newUri = UrlBuilder.preProcessIconUri(null);
 
         assertThat(newUri, nullValue());

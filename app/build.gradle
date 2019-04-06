@@ -46,6 +46,7 @@ android {
         targetSdkVersion project.ext.targetSdkVersion
         versionCode code
         versionName project.ext.versionName
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         final def crashlyticsApiKeyFile = file('crashlytics.properties')
         if (crashlyticsApiKeyFile.canRead()) {
@@ -53,8 +54,8 @@ android {
             properties.load(new FileInputStream(crashlyticsApiKeyFile))
             def apiKey = properties['apiKey'].toString()
             println "Crashlytics API key " + apiKey
-            
-            manifestPlaceholders = [crashlytics_api_key:apiKey]
+
+            manifestPlaceholders = [crashlytics_api_key: apiKey]
         } else {
             throw new GradleException("Could not read crashlytics.properties !")
         }
@@ -98,12 +99,11 @@ dependencies {
 
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
 
-    androidTestImplementation("com.google.dexmaker:dexmaker-mockito:$dexMakerVersion") {
-        exclude group: 'org.hamcrest'
-    }
-    androidTestImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
+    androidTestImplementation(
+            'com.android.support.test.espresso:espresso-core:2.2.2',
+            {exclude group: 'com.android.support', module: 'support-annotations'}
+    )
 
-    testImplementation "org.hamcrest:hamcrest-all:$hamcrestVersion"
     testImplementation "junit:junit:$junitVersion"
     testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
 }

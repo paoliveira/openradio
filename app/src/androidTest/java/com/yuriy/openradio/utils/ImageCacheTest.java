@@ -1,6 +1,11 @@
 package com.yuriy.openradio.utils;
 
-import android.test.InstrumentationTestCase;
+import android.content.Context;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 
@@ -13,13 +18,13 @@ import static org.hamcrest.core.IsNull.notNullValue;
  * On 7/16/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class ImageCacheTest extends InstrumentationTestCase {
+@RunWith(AndroidJUnit4.class)
+public class ImageCacheTest {
 
+    @Test
     public void testConstructExternalCacheDir() throws Exception {
-
-        final File file = ImageCache.constructExternalCacheDir(
-                getInstrumentation().getTargetContext()
-        );
+        final Context context = InstrumentationRegistry.getTargetContext();
+        final File file = ImageCache.constructExternalCacheDir(context);
 
         assertThat(file, notNullValue());
         assertThat(file.getPath(), notNullValue());

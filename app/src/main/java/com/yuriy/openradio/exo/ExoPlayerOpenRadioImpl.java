@@ -232,31 +232,16 @@ public final class ExoPlayerOpenRadioImpl {
             }
         }
         mAudioRendererCount = audioRendererCount;
-        int maxBufferMs = AppPreferencesManager.getMaxBuffer(context);
-        int minBufferMs = AppPreferencesManager.getMinBuffer(context);
-        int playBufferMs = AppPreferencesManager.getPlayBuffer(context);
-        int playBufferRebufferMs = AppPreferencesManager.getPlayBufferRebuffer(context);
-
-        // TODO: All these check points should be done in Settings UI.
-        if (minBufferMs == 0) {
-            minBufferMs = DefaultLoadControl.DEFAULT_MIN_BUFFER_MS;
-        }
-        if (maxBufferMs < minBufferMs) {
-            maxBufferMs = minBufferMs;
-        }
-        if (minBufferMs < playBufferMs) {
-            minBufferMs = playBufferMs;
-        }
 
         mExoPlayer = new ExoPlayerImpl(
                 mRenderers,
                 new DefaultTrackSelector(),
                 new DefaultLoadControl(
                         new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
-                        minBufferMs,
-                        maxBufferMs,
-                        playBufferMs,
-                        playBufferRebufferMs,
+                        AppPreferencesManager.getMinBuffer(context),
+                        AppPreferencesManager.getMaxBuffer(context),
+                        AppPreferencesManager.getPlayBuffer(context),
+                        AppPreferencesManager.getPlayBufferRebuffer(context),
                         DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
                         DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
                 ),

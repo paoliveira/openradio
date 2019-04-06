@@ -119,40 +119,64 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
             return;
         }
         final String erroMsgBase = getString(R.string.invalid_buffer_desc);
+        String minBufferStr = String.valueOf(DefaultLoadControl.DEFAULT_MIN_BUFFER_MS);
+        String maxBufferStr = String.valueOf(DefaultLoadControl.DEFAULT_MAX_BUFFER_MS);
+        String playBufferStr = String.valueOf(DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS);
+        String playBufferRebufferStr = String.valueOf(
+                DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+        );
+
         if (mMinBuffer != null) {
-            final String minBufferStr = mMinBuffer.getText().toString().trim();
-            if (validateInput(minBufferStr)) {
-                AppPreferencesManager.setMinBuffer(context, Integer.valueOf(minBufferStr));
-            } else {
+            minBufferStr = mMinBuffer.getText().toString().trim();
+            if (!validateInput(minBufferStr)) {
                 SafeToast.showAnyThread(context, erroMsgBase + minBufferStr);
+                return;
             }
         }
         if (mMaxBuffer != null) {
-            final String maxBufferStr = mMaxBuffer.getText().toString().trim();
-            if (validateInput(maxBufferStr)) {
-                AppPreferencesManager.setMaxBuffer(context, Integer.valueOf(maxBufferStr));
-            } else {
+            maxBufferStr = mMaxBuffer.getText().toString().trim();
+            if (!validateInput(maxBufferStr)) {
                 SafeToast.showAnyThread(context, erroMsgBase + maxBufferStr);
+                return;
             }
         }
         if (mPlayBuffer != null) {
-            final String playBufferStr = mPlayBuffer.getText().toString().trim();
-            if (validateInput(playBufferStr)) {
-                AppPreferencesManager.setPlayBuffer(context, Integer.valueOf(playBufferStr));
-            } else {
+            playBufferStr = mPlayBuffer.getText().toString().trim();
+            if (!validateInput(playBufferStr)) {
                 SafeToast.showAnyThread(context, erroMsgBase + playBufferStr);
+                return;
             }
         }
         if (mPlayBufferRebuffer != null) {
-            final String playBufferRebufferStr = mPlayBufferRebuffer.getText().toString().trim();
-            if (validateInput(playBufferRebufferStr)) {
-                AppPreferencesManager.setPlayBufferRebuffer(
-                        context, Integer.valueOf(playBufferRebufferStr)
-                );
-            } else {
+            playBufferRebufferStr = mPlayBufferRebuffer.getText().toString().trim();
+            if (!validateInput(playBufferRebufferStr)) {
                 SafeToast.showAnyThread(context, erroMsgBase + playBufferRebufferStr);
+                return;
             }
         }
+
+        int minBuffer = Integer.valueOf(minBufferStr);
+        int maxBuffer = Integer.valueOf(maxBufferStr);
+        int playBuffer = Integer.valueOf(playBufferStr);
+        int playBufferRebuffer = Integer.valueOf(playBufferRebufferStr);
+
+        if (maxBuffer < minBuffer) {
+            SafeToast.showAnyThread(context, "Min Buffer is greater than Max Buffer");
+            return;
+        }
+        if (minBuffer < playBuffer) {
+            SafeToast.showAnyThread(context, "Play Buffer is greater than Min Buffer");
+            return;
+        }
+        if (minBuffer < playBufferRebuffer) {
+            SafeToast.showAnyThread(context, "Play Re-Buffer is greater than Min Buffer");
+            return;
+        }
+
+        AppPreferencesManager.setMinBuffer(context, minBuffer);
+        AppPreferencesManager.setMaxBuffer(context, maxBuffer);
+        AppPreferencesManager.setPlayBuffer(context, playBuffer);
+        AppPreferencesManager.setPlayBufferRebuffer(context, playBufferRebuffer);
     }
 
     private boolean validateInput(final String value) {
@@ -162,7 +186,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         if (!TextUtils.isDigitsOnly(value)) {
             return false;
         }
-        int valueInt;
+        final int valueInt;
         try {
             valueInt = Integer.valueOf(value);
         } catch (final NumberFormatException e) {

@@ -345,6 +345,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Nullable
     private RadioStation mLastKnownRadioStation;
 
+    private APIServiceProvider mApiServiceProvider;
+
     /**
      * Default constructor.
      */
@@ -427,6 +429,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         AppLogger.i(CLASS_NAME + "On Create");
         final Context context = getApplicationContext();
+
+        mApiServiceProvider = new APIServiceProviderImpl(getApplicationContext(), new JSONDataParserImpl());
+
         mBTConnectionReceiver.register(context);
         mBTConnectionReceiver.locateDevice(context);
 
@@ -639,6 +644,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mConnectivityReceiver.unregister(context);
         mNoisyAudioStreamReceiver.unregister(context);
         mMasterVolumeBroadcastReceiver.unregister(context);
+        if (mApiServiceProvider instanceof APIServiceProviderImpl) {
+            ((APIServiceProviderImpl)mApiServiceProvider).close();
+        }
 
         stopService();
 
@@ -691,8 +699,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Instantiate appropriate downloader (HTTP one)
         final Downloader downloader = new HTTPDownloaderImpl();
-        // Instantiate appropriate API service provider
-        final APIServiceProvider serviceProvider = getServiceProvider(getApplicationContext());
 
         // If Parent Id contains Country Code - use it in the API.
         String countryCode = MediaIDHelper.getCountryCode(mCurrentParentId);
@@ -709,7 +715,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setContext(getApplicationContext());
             shareObject.setCountryCode(countryCode);
             shareObject.setDownloader(downloader);
-            shareObject.setServiceProvider(serviceProvider);
+            shareObject.setServiceProvider(mApiServiceProvider);
             shareObject.setResult(result);
             shareObject.setMediaItems(mediaItems);
             shareObject.setParentId(mCurrentParentId);
@@ -1139,9 +1145,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (executorService != null) {
                 executorService.submit(
                         () -> {
+                            if (mApiServiceProvider == null) {
+                                if (listener != null) {
+                                    listener.onComplete(null);
+                                }
+                                return;
+                            }
                             // Start download information about Radio Station
-                            final RadioStation radioStationUpdated = getServiceProvider(
-                                    OpenRadioService.this.getApplicationContext())
+                            final RadioStation radioStationUpdated = mApiServiceProvider
                                     .getStation(
                                             new HTTPDownloaderImpl(),
                                             UrlBuilder.getStation(
@@ -1771,16 +1782,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * @return Implementation of the {@link APIServiceProvider} interface.
-     */
-    private static APIServiceProvider getServiceProvider(final Context context) {
-        // Instantiate appropriate parser (JSON one)
-        final DataParser dataParser = new JSONDataParserImpl();
-        // Instantiate appropriate API service provider
-        return new APIServiceProviderImpl(context, dataParser);
-    }
-
-    /**
      * Remove {@link RadioStation} from the Favorites store by the provided Media Id.
      *
      * @param mediaId Media Id of the {@link RadioStation}.
@@ -2059,12 +2060,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param query Search query.
      */
     private void executePerformSearch(final String query) {
+        if (mApiServiceProvider == null) {
+            handleStopRequest(getString(R.string.no_search_results));
+            // TODO
+            return;
+        }
         // Instantiate appropriate downloader (HTTP one)
         final Downloader downloader = new HTTPDownloaderImpl();
-        // Instantiate appropriate API service provider
-        final APIServiceProvider serviceProvider = getServiceProvider(getApplicationContext());
 
-        final List<RadioStation> list = serviceProvider.getStations(
+        final List<RadioStation> list = mApiServiceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchUrl(getApplicationContext()),
                 APIServiceProviderImpl.getSearchQueryParameters(query)

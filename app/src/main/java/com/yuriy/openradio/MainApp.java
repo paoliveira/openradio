@@ -17,9 +17,11 @@
 package com.yuriy.openradio;
 
 import android.app.Application;
+import android.content.Context;
 import android.os.Build;
 
 import com.crashlytics.android.Crashlytics;
+import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -45,22 +47,23 @@ public final class MainApp extends Application {
     public final void onCreate() {
         super.onCreate();
 
+        final Context context = getApplicationContext();
         final Thread thread = new Thread(
                 () -> {
                     final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled(
-                            getApplicationContext()
+                            context
                     );
-                    AppLogger.initLogger(getApplicationContext());
+                    AppLogger.initLogger(context);
                     AppLogger.setIsLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage();
 
-                    Fabric.with(getApplicationContext(), new Crashlytics());
+                    Fabric.with(context, new Crashlytics());
+
+                    correctBufferSettings(context);
                 }
         );
         thread.start();
     }
-
-
 
     /**
      * Print first log message with summary information about device and application.
@@ -90,5 +93,34 @@ public final class MainApp extends Application {
         firstLogMessage.append(AppUtils.getUserCountry(this));
 
         AppLogger.i(firstLogMessage.toString());
+    }
+
+    /**
+     * Correct mal formatted values entered by user.
+     *
+     * @param context Context of a callee.
+     */
+    private void correctBufferSettings(final Context context) {
+        final int maxBufferMs = AppPreferencesManager.getMaxBuffer(context);
+        final int minBufferMs = AppPreferencesManager.getMinBuffer(context);
+        final int playBufferMs = AppPreferencesManager.getPlayBuffer(context);
+        final int playBufferRebufferMs = AppPreferencesManager.getPlayBufferRebuffer(context);
+
+        if (maxBufferMs < minBufferMs) {
+            AppPreferencesManager.setMaxBuffer(context, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS);
+            AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS);
+        }
+        if (minBufferMs < playBufferMs) {
+            AppPreferencesManager.setPlayBuffer(
+                    context, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS
+            );
+            AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS);
+        }
+        if (minBufferMs < playBufferRebufferMs) {
+            AppPreferencesManager.setPlayBufferRebuffer(
+                    context, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
+            );
+            AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS);
+        }
     }
 }

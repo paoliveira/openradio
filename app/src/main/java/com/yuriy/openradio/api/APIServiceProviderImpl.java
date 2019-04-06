@@ -25,6 +25,9 @@ import android.text.TextUtils;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
+import com.yuriy.openradio.cache.api.APICache;
+import com.yuriy.openradio.cache.api.PersistentAPICache;
+import com.yuriy.openradio.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
@@ -42,10 +45,8 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,7 +56,7 @@ import java.util.concurrent.Executors;
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link com.yuriy.openradio.api.APIServiceProviderImpl} is the implementation of the
  * {@link com.yuriy.openradio.api.APIServiceProvider} interface.
  */
@@ -66,11 +67,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
      */
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = APIServiceProviderImpl.class.getSimpleName();
-
-    /**
-     * Cache of the API responses. It used in order to avoid API call amount on the server.
-     */
-    private static final Map<String, JSONArray> RESPONSES_MAP = new ConcurrentHashMap<>();
 
     /**
      * Key for the search "key-value" pairs.
@@ -90,15 +86,28 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     private final Context mContext;
 
     /**
+     *
+     */
+    @NonNull
+    private final APICache mApiCache;
+
+    /**
      * Constructor.
      *
+     * @param context    Context of a callee.
      * @param dataParser Implementation of the {@link com.yuriy.openradio.business.DataParser}
      */
-    public APIServiceProviderImpl(@NonNull final Context context,
-                                  final DataParser dataParser) {
+    public APIServiceProviderImpl(@NonNull final Context context, final DataParser dataParser) {
         super();
+        mApiCache = new PersistentAPICache(context, PersistentAPIDbHelper.DATABASE_NAME);
         mContext = context;
         mDataParser = dataParser;
+    }
+
+    public void close() {
+        if (mApiCache instanceof PersistentAPICache) {
+            ((PersistentAPICache) mApiCache).close();
+        }
     }
 
     @Override
@@ -298,13 +307,6 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     }
 
     /**
-     * Clear responses cache
-     */
-    public static void clearCache() {
-        RESPONSES_MAP.clear();
-    }
-
-    /**
      * Download data as {@link org.json.JSONArray}.
      *
      * @param downloader Implementation of the {@link Downloader}.
@@ -342,11 +344,9 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
             responsesMapKey = null;
         }
 
-        // Check cache to avoid unnecessary API call
-        if (!TextUtils.isEmpty(responsesMapKey) && RESPONSES_MAP.containsKey(responsesMapKey)) {
-            // Return cached value
-            AppLogger.i(CLASS_NAME + " Get response from the cache");
-            return RESPONSES_MAP.get(responsesMapKey);
+        array = mApiCache.get(responsesMapKey);
+        if (array != null) {
+            return array;
         }
 
         // Download response from the server
@@ -354,6 +354,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
 
         // Ignore empty response
         if (response.isEmpty()) {
+            array = new JSONArray();
             AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
             return array;
         }
@@ -364,10 +365,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
             FabricUtils.logException(e);
         }
 
-        // Cache result
-        if (!TextUtils.isEmpty(responsesMapKey)) {
-            RESPONSES_MAP.put(responsesMapKey, array);
-        }
+        mApiCache.put(responsesMapKey, array);
 
         return array;
     }
