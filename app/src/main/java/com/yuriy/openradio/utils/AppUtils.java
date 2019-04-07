@@ -724,4 +724,8 @@ public final class AppUtils {
     public static boolean hasVersionM() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
+
+    public static boolean isVersionM() {
+        return Build.VERSION.SDK_INT == Build.VERSION_CODES.M;
+    }
 }

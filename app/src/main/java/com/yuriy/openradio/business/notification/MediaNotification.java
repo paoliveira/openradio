@@ -44,6 +44,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.business.service.OpenRadioService;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapHelper;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -496,7 +497,16 @@ public final class MediaNotification extends BroadcastReceiver {
         mNotificationBuilder.setDefaults(0);
         mNotificationBuilder.setSound(null);
 
-        mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+        if (AppUtils.isVersionM()) {
+            // Address https://bitbucket.org/ChernyshovYuriy/openradio/issues/64/npe-when-notificationmanager-do-notify
+            try {
+                mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+            } catch (final Exception e) {
+                AppLogger.e("Can not do notification:" + e);
+            }
+        } else {
+            mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+        }
     }
 
     private void fetchBitmapFromURLAsync(@NonNull final String source) {
