@@ -21,8 +21,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -32,11 +30,9 @@ import android.util.DisplayMetrics;
 
 import com.google.android.exoplayer2.util.Util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -65,9 +61,7 @@ public final class AppUtils {
      */
     public static final Map<String, String> COUNTRY_CODE_TO_NAME = new TreeMap<>();
 
-    /**
-     * http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
-     */
+    // http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
     static {
         COUNTRY_CODE_TO_NAME.put("AD", "Andorra");
         COUNTRY_CODE_TO_NAME.put("AE", "United Arab Emirates");
@@ -264,7 +258,6 @@ public final class AppUtils {
         COUNTRY_CODE_TO_NAME.put("ZA", "South Africa");
         COUNTRY_CODE_TO_NAME.put("ZM", "Zambia");
         COUNTRY_CODE_TO_NAME.put("ZW", "Zimbabwe");
-
         COUNTRY_CODE_TO_NAME.put("AI", "Anguilla");
         COUNTRY_CODE_TO_NAME.put("AN", "Netherlands Antilles");
         COUNTRY_CODE_TO_NAME.put("AQ", "Antarctica");
@@ -331,42 +324,6 @@ public final class AppUtils {
      * Private constructor
      */
     private AppUtils() {}
-
-    /**
-     * Read resource file as bytes array.
-     *
-     * @param id      Identifier of the resource.
-     * @param context Application context.
-     * @return Bytes array associated with a resource
-     */
-    public static byte[] getResource(final int id, final Context context) {
-        final Resources resources = context.getResources();
-        final InputStream is = resources.openRawResource(id);
-        final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        final byte[] readBuffer = new byte[4 * 1024];
-
-        try {
-            int read;
-            do {
-                read = is.read(readBuffer, 0, readBuffer.length);
-                if(read == -1) {
-                    break;
-                }
-                bout.write(readBuffer, 0, read);
-            } while(true);
-
-            return bout.toByteArray();
-        } catch (IOException e) {
-            FabricUtils.logException(e);
-        } finally {
-            try {
-                is.close();
-            } catch (IOException e) {
-                /* Ignore */
-            }
-        }
-        return new byte[0];
-    }
 
     /**
      * Get application's version name.
@@ -455,153 +412,15 @@ public final class AppUtils {
         return predefinedCategories;
     }
 
-    /**
-     * This method addToLocals provided Bitmap to the specified file.
-     *
-     * @param bitmap   Bitmap data.
-     * @param dirName  Path to the directory.
-     * @param fileName Name of the file.
-     */
-    public static void saveBitmapToFile(final Bitmap bitmap, final String dirName,
-                                        final String fileName) {
-
-        if (bitmap == null) {
-            AppLogger.e(CLASS_NAME + " Save bitmap to file, bitmap is null");
-            return;
-        }
-        // Create directory if needed
-        createDirIfNeeded(dirName);
-
-        //create a file to write bitmap data
-        final File file = new File(dirName + "/" + fileName);
-
-        // http://stackoverflow.com/questions/11539657/open-failed-ebusy-device-or-resource-busy
-        //noinspection ResultOfMethodCallIgnored
-        file.renameTo(file);
-        //noinspection ResultOfMethodCallIgnored
-        file.delete();
-
-        //Convert bitmap to byte array
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-        final byte[] byteArray = byteArrayOutputStream.toByteArray();
-
-        //write the bytes in file
-        FileOutputStream fileOutputStream = null;
-        try {
-            fileOutputStream = new FileOutputStream(file);
-            fileOutputStream.write(byteArray);
-        } catch (IOException e) {
-            FabricUtils.logException(e);
-        } finally {
-            try {
-                byteArrayOutputStream.flush();
-            } catch (IOException e) {
-                /* Ignore */
-            }
-            try {
-                if (fileOutputStream != null) {
-                    fileOutputStream.flush();
-                    fileOutputStream.close();
-                }
-            } catch (IOException e) {
-                /* Ignore */
-            }
-        }
+    static String generateRandomHexToken(final int byteLength) {
+        final SecureRandom secureRandom = new SecureRandom();
+        final byte[] token = new byte[byteLength];
+        secureRandom.nextBytes(token);
+        return new BigInteger(1, token).toString(16);
     }
 
     public static String getDefaultUserAgent(@NonNull final Context context) {
         return Util.getUserAgent(context, "OpenRadio");
-    }
-
-    /**
-     * Save data bytes to a file
-     *
-     * @param data     data as bytes array
-     * @param filePath a path to file
-     *
-     * @return true in case of success, false - otherwise
-     */
-    private static boolean saveDataToFile(byte[] data, String filePath) {
-        if (data == null) {
-            AppLogger.w(CLASS_NAME + " Save data to file -> data is null, path:" + filePath);
-            return false;
-        }
-        File file = new File(filePath);
-        AppLogger.d(CLASS_NAME + " Saving data to file '" + filePath + "', exists:" + file.exists());
-        if (file.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            file.delete();
-        }
-        FileOutputStream mFileOutputStream = null;
-        boolean result = false;
-        try {
-            mFileOutputStream = new FileOutputStream(file.getPath());
-            mFileOutputStream.write(data);
-
-            result = true;
-        } catch (IOException e) {
-            FabricUtils.logException(e);
-        } finally {
-            if (mFileOutputStream != null) {
-                try {
-                    mFileOutputStream.close();
-                } catch (IOException e) {
-                    FabricUtils.logException(e);
-                }
-            }
-        }
-        return result;
-    }
-
-    /**
-     *
-     * @param data
-     * @param dirName
-     * @param fileName
-     * @return
-     */
-    public static boolean saveDataToFile(final byte[] data, final String dirName,
-                                         final String fileName) {
-        createDirIfNeeded(dirName);
-        return saveDataToFile(data, dirName + "/" + fileName);
-    }
-
-    /**
-     * This method creates a directory with given name is such does not exists
-     *
-     * @param path a path to the directory
-     */
-    public static void createDirIfNeeded(final String path) {
-        final File file = new File(path);
-        if (file.exists() && !file.isDirectory()) {
-            //noinspection ResultOfMethodCallIgnored
-            file.delete();
-        }
-        if (!file.exists()) {
-            //noinspection ResultOfMethodCallIgnored
-            file.mkdirs();
-        }
-    }
-
-    /**
-     *
-     * @param path
-     * @return
-     */
-    public static File createFileIfNeeded(final String path) {
-        final File file = new File(path);
-        try {
-            final boolean result = file.createNewFile();
-        } catch (final IOException e) {
-            FabricUtils.logException(e);
-        }
-        return file;
-    }
-
-    public static boolean isFileExist(final String path) {
-        final File file = new File(path);
-        return file.exists() && !file.isDirectory();
     }
 
     /**
@@ -619,12 +438,12 @@ public final class AppUtils {
         return context.getExternalFilesDir(type);
     }
 
-    public static String getExternalStorageDir(final Context context) {
+    static String getExternalStorageDir(final Context context) {
         final File externalDir = getExternalFilesDirAPI8(context, null);
         return externalDir != null ? externalDir.getAbsolutePath() : null;
     }
 
-    public static int getLongestScreenSize(FragmentActivity context) {
+    static int getLongestScreenSize(FragmentActivity context) {
         final DisplayMetrics displayMetrics = new DisplayMetrics();
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         final int height = displayMetrics.heightPixels;
@@ -645,7 +464,7 @@ public final class AppUtils {
         return height < width ? height : width;
     }
 
-    public static boolean externalStorageAvailable() {
+    static boolean externalStorageAvailable() {
         boolean externalStorageAvailable;
         boolean externalStorageWriteable;
         final String state = Environment.getExternalStorageState();
@@ -717,11 +536,11 @@ public final class AppUtils {
         return null;
     }
 
-    public static boolean hasKitKat() {
+    static boolean hasKitKat() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 
-    public static boolean hasVersionM() {
+    static boolean hasVersionM() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 

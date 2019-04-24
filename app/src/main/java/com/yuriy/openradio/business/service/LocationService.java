@@ -151,20 +151,20 @@ public final class LocationService {
         executorService.submit(
                 () -> {
                     try {
-                        LocationService.this.mCountryCode = getCountryCodeGeocoder(
+                        mCountryCode = getCountryCodeGeocoder(
                                 context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
                         );
                     } finally {
                         latch.countDown();
                     }
 
-                    AppLogger.d(CLASS_NAME + " Last known Location:" + LocationService.this.mCountryCode);
+                    AppLogger.d(CLASS_NAME + " Last known Location:" + mCountryCode);
                 }
         );
         try {
             latch.await(1, TimeUnit.SECONDS);
         } catch (final InterruptedException e) {
-            LocationService.this.mCountryCode = Country.COUNTRY_CODE_DEFAULT;
+            mCountryCode = Country.COUNTRY_CODE_DEFAULT;
             FabricUtils.logException(e);
         }
     }

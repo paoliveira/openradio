@@ -19,12 +19,18 @@ package com.yuriy.openradio;
 import android.app.Application;
 import android.content.Context;
 import android.os.Build;
+import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
+import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.FileUtils;
+import com.yuriy.openradio.vo.RadioStation;
+
+import java.util.List;
 
 import io.fabric.sdk.android.Fabric;
 
@@ -37,6 +43,11 @@ import io.fabric.sdk.android.Fabric;
 public final class MainApp extends Application {
 
     /**
+     * Tag string to use in logging message.
+     */
+    private static final String CLASS_NAME = MainApp.class.getSimpleName() + " ";
+
+    /**
      * Constructor.
      */
     public MainApp() {
@@ -46,7 +57,7 @@ public final class MainApp extends Application {
     @Override
     public final void onCreate() {
         super.onCreate();
-
+        AppLogger.d(CLASS_NAME + "OnCreate");
         final Context context = getApplicationContext();
         final Thread thread = new Thread(
                 () -> {
@@ -55,13 +66,15 @@ public final class MainApp extends Application {
                     );
                     AppLogger.initLogger(context);
                     AppLogger.setIsLoggingEnabled(isLoggingEnabled);
-                    printFirstLogMessage();
+                    printFirstLogMessage(context);
 
                     Fabric.with(context, new Crashlytics());
 
                     correctBufferSettings(context);
+                    migrateImagesToIntStorage(context);
                 }
         );
+        thread.setName("Init-thread");
         thread.start();
     }
 
@@ -69,19 +82,19 @@ public final class MainApp extends Application {
      * Print first log message with summary information about device and application.
      */
     @SuppressWarnings("all")
-    private void printFirstLogMessage() {
+    private static void printFirstLogMessage(final Context context) {
         final StringBuilder firstLogMessage = new StringBuilder();
         firstLogMessage.append("\n");
         firstLogMessage.append("########### Create '");
-        firstLogMessage.append(getString(R.string.app_name));
+        firstLogMessage.append(context.getString(R.string.app_name));
         firstLogMessage.append("' Application ###########\n");
         firstLogMessage.append("- processors: ");
         firstLogMessage.append(Runtime.getRuntime().availableProcessors());
         firstLogMessage.append("\n");
         firstLogMessage.append("- version: ");
-        firstLogMessage.append(AppUtils.getApplicationVersionCode(this));
+        firstLogMessage.append(AppUtils.getApplicationVersionCode(context));
         firstLogMessage.append(".");
-        firstLogMessage.append(AppUtils.getApplicationVersionName(this));
+        firstLogMessage.append(AppUtils.getApplicationVersionName(context));
         firstLogMessage.append("\n");
         firstLogMessage.append("- OS ver: ");
         firstLogMessage.append(Build.VERSION.RELEASE);
@@ -90,7 +103,7 @@ public final class MainApp extends Application {
         firstLogMessage.append(Build.VERSION.SDK_INT);
         firstLogMessage.append("\n");
         firstLogMessage.append("- Country: ");
-        firstLogMessage.append(AppUtils.getUserCountry(this));
+        firstLogMessage.append(AppUtils.getUserCountry(context));
 
         AppLogger.i(firstLogMessage.toString());
     }
@@ -100,7 +113,7 @@ public final class MainApp extends Application {
      *
      * @param context Context of a callee.
      */
-    private void correctBufferSettings(final Context context) {
+    private static void correctBufferSettings(final Context context) {
         final int maxBufferMs = AppPreferencesManager.getMaxBuffer(context);
         final int minBufferMs = AppPreferencesManager.getMinBuffer(context);
         final int playBufferMs = AppPreferencesManager.getPlayBuffer(context);
@@ -122,5 +135,35 @@ public final class MainApp extends Application {
             );
             AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS);
         }
+    }
+
+    /**
+     *
+     * @param context Context of a callee.
+     */
+    private static void migrateImagesToIntStorage(final Context context) {
+        AppLogger.d(CLASS_NAME + "Migrate image to int. storage started");
+        final List<RadioStation> list = LocalRadioStationsStorage.getAllLocals(context);
+        String imageUrl;
+        String imageUrlLocal;
+        final String filesDir = FileUtils.getFilesDir(context).getAbsolutePath();
+        for (final RadioStation radioStation : list) {
+            imageUrl = radioStation.getImageUrl();
+            if (TextUtils.isEmpty(imageUrl)) {
+                continue;
+            }
+            if (imageUrl.contains(filesDir)) {
+                continue;
+            }
+            imageUrlLocal = FileUtils.copyExtFileToIntDir(context, imageUrl);
+            if (imageUrlLocal == null) {
+                imageUrlLocal = imageUrl;
+            }
+            radioStation.setImageUrl(imageUrlLocal);
+            radioStation.setThumbUrl(imageUrlLocal);
+
+            LocalRadioStationsStorage.add(radioStation, context);
+        }
+        AppLogger.d(CLASS_NAME + "Migrate image to int. storage completed");
     }
 }

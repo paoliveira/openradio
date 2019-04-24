@@ -25,6 +25,7 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
@@ -47,7 +48,6 @@ import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.api.APIServiceProvider;
 import com.yuriy.openradio.api.APIServiceProviderImpl;
-import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.RadioStationUpdateListener;
@@ -84,6 +84,7 @@ import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
+import com.yuriy.openradio.utils.FileUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.PackageValidator;
@@ -348,6 +349,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private APIServiceProvider mApiServiceProvider;
 
     /**
+     * Processes Messages sent to it from onStartCommand() that
+     * indicate which command to process.
+     */
+    private volatile ServiceHandler mServiceHandler;
+
+    /**
      * Default constructor.
      */
     public OpenRadioService() {
@@ -430,6 +437,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.i(CLASS_NAME + "On Create");
         final Context context = getApplicationContext();
 
+        // Create and start a background HandlerThread since by
+        // default a Service runs in the UI Thread, which we don't
+        // want to block.
+        final HandlerThread thread = new HandlerThread("OpenRadioService-Thread");
+        thread.start();
+        // Looper associated with the HandlerThread.
+        final Looper looper = thread.getLooper();
+        // Get the HandlerThread's Looper and use it for our Handler.
+        mServiceHandler = new ServiceHandler(looper);
+
         mApiServiceProvider = new APIServiceProviderImpl(getApplicationContext(), new JSONDataParserImpl());
 
         mBTConnectionReceiver.register(context);
@@ -485,151 +502,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     @Override
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
-
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
 
-        if (intent == null) {
-            return super.onStartCommand(null, flags, startId);
-        }
-
-        final Bundle bundle = intent.getExtras();
-        if (bundle == null) {
-            return super.onStartCommand(intent, flags, startId);
-        }
-
-        final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
-
-        if (command == null || command.isEmpty()) {
-            return super.onStartCommand(intent, flags, startId);
-        }
-        final Context context = getApplicationContext();
-        switch (command) {
-            case VALUE_NAME_REQUEST_LOCATION_COMMAND:
-                mLocationService.requestCountryCode(
-                        context,
-                        countryCode -> LocalBroadcastManager.getInstance(context).sendBroadcast(
-                                AppLocalBroadcast.createIntentLocationCountryCode(
-                                        countryCode
-                                )
-                        )
-                );
-                break;
-            case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
-                // Update Favorites Radio station: whether add it or remove it from the storage
-                final boolean isFavorite = getIsFavoriteFromIntent(intent);
-                final MediaDescriptionCompat mediaDescription = extractMediaDescription(intent);
-                if (mediaDescription == null) {
-                    return super.onStartCommand(intent, flags, startId);
-                }
-                final RadioStation radioStation = QueueHelper.getRadioStationById(
-                        mediaDescription.getMediaId(), mRadioStations
-                );
-                if (radioStation == null) {
-                    if (!isFavorite) {
-                        removeFromFavorites(mediaDescription.getMediaId());
-                    }
-                    return super.onStartCommand(intent, flags, startId);
-                }
-                if (isFavorite) {
-                    FavoritesStorage.addToFavorites(radioStation, context);
-                } else {
-                    removeFromFavorites(radioStation.getIdAsString());
-                }
-                break;
-            }
-            case VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND: {
-                final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
-                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
-                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
-                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
-                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
-                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
-                final boolean addToFav = intent.getBooleanExtra(
-                        EXTRA_KEY_STATION_ADD_TO_FAV, false
-                );
-
-                final boolean result = LocalRadioStationsStorage.update(
-                        mediaId, context, name, url, imageUrl, genre, country, addToFav
-                );
-
-                if (result) {
-                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
-                } else {
-                    AppLogger.w(CLASS_NAME + "Can not edit Station");
-                }
-                break;
-            }
-            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
-                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
-                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
-                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
-                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
-                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
-                final boolean addToFav = intent.getBooleanExtra(
-                        EXTRA_KEY_STATION_ADD_TO_FAV, false
-                );
-
-                if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(url)) {
-                    final RadioStation radioStationLocal = RadioStation.makeDefaultInstance();
-
-                    radioStationLocal.setId(LocalRadioStationsStorage.getId(context));
-                    radioStationLocal.setName(name);
-                    radioStationLocal.getMediaStream().setVariant(0, url);
-                    radioStationLocal.setImageUrl(imageUrl);
-                    radioStationLocal.setThumbUrl(imageUrl);
-                    radioStationLocal.setGenre(genre);
-                    radioStationLocal.setCountry(country);
-                    radioStationLocal.setIsLocal(true);
-
-                    LocalRadioStationsStorage.add(radioStationLocal, context);
-                    if (addToFav) {
-                        FavoritesStorage.addToFavorites(radioStationLocal, context);
-                    }
-
-                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
-                } else {
-                    AppLogger.w(CLASS_NAME + "Can not add Station, Name or url are empty");
-                }
-                break;
-            }
-            case VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND: {
-                final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
-                if (TextUtils.isEmpty(mediaId)) {
-                    AppLogger.w(CLASS_NAME + "Can not remove Station, Media Id is empty");
-                    break;
-                }
-                LocalRadioStationsStorage.removeFromLocal(mediaId, context);
-                QueueHelper.removeRadioStation(mediaId, mRadioStations);
-
-                notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
-                break;
-            }
-            case VALUE_NAME_UPDATE_SORT_IDS:
-                final String[] mediaIds = intent.getStringArrayExtra(EXTRA_KEY_MEDIA_IDS);
-                final int[] sortIds = intent.getIntArrayExtra(EXTRA_KEY_SORT_IDS);
-                final String categoryMediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
-                if (mediaIds == null || sortIds == null) {
-                    break;
-                }
-                // TODO: Optimize this algorithm, could be done in single iteration
-                int counter = 0;
-                for (final String mediaId : mediaIds) {
-                    updateSortId(mediaId, sortIds[counter++], categoryMediaId);
-                }
-                break;
-            case VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM:
-                if (mState == PlaybackStateCompat.STATE_PLAYING) {
-                    handlePauseRequest();
-                } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
-                    handlePlayRequest();
-                }
-                break;
-            case VALUE_NAME_STOP_SERVICE:
-                stopService();
-                break;
-            default:
-                AppLogger.w(CLASS_NAME + "Unknown command:" + command);
-        }
+        // Create a Message that will be sent to ServiceHandler.
+        final Message message = mServiceHandler.makeMessage(intent);
+        // Send the Message to ServiceHandler.
+        mServiceHandler.sendMessage(message);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -640,12 +518,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onDestroy();
 
         final Context context = getApplicationContext();
+        if (mServiceHandler != null) {
+            mServiceHandler.getLooper().quit();
+        }
         mBTConnectionReceiver.unregister(context);
         mConnectivityReceiver.unregister(context);
         mNoisyAudioStreamReceiver.unregister(context);
         mMasterVolumeBroadcastReceiver.unregister(context);
         if (mApiServiceProvider instanceof APIServiceProviderImpl) {
-            ((APIServiceProviderImpl)mApiServiceProvider).close();
+            ((APIServiceProviderImpl) mApiServiceProvider).close();
         }
 
         stopService();
@@ -1508,10 +1389,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.e(CLASS_NAME + "can not set player volume, player null");
             return;
         }
+        final float volume = getNormalVolume();
+        AppLogger.d("TRACE::" + volume + ", " + mAudioFocus);
         if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
-            mExoPlayer.setVolume(getNormalVolume() * 0.2F); // we'll be relatively quiet
+            mExoPlayer.setVolume(volume * 0.2F); // we'll be relatively quiet
         } else {
-            mExoPlayer.setVolume(getNormalVolume()); // we can be loud again
+            mExoPlayer.setVolume(volume); // we can be loud again
         }
     }
 
@@ -2137,6 +2020,164 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
+     *
+     * @param command
+     * @param intent
+     */
+    private void handleMessageInternal(@NonNull final String command, @NonNull final Intent intent) {
+        final Context context = getApplicationContext();
+        switch (command) {
+            case VALUE_NAME_REQUEST_LOCATION_COMMAND:
+                mLocationService.requestCountryCode(
+                        context,
+                        countryCode -> LocalBroadcastManager.getInstance(context).sendBroadcast(
+                                AppLocalBroadcast.createIntentLocationCountryCode(countryCode)
+                        )
+                );
+                break;
+            case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
+                // Update Favorites Radio station: whether add it or remove it from the storage
+                final boolean isFavorite = getIsFavoriteFromIntent(intent);
+                final MediaDescriptionCompat mediaDescription = extractMediaDescription(intent);
+                if (mediaDescription == null) {
+                    break;
+                }
+                final RadioStation radioStation = QueueHelper.getRadioStationById(
+                        mediaDescription.getMediaId(), mRadioStations
+                );
+                if (radioStation == null) {
+                    if (!isFavorite) {
+                        removeFromFavorites(mediaDescription.getMediaId());
+                    }
+                    break;
+                }
+                if (isFavorite) {
+                    FavoritesStorage.addToFavorites(radioStation, context);
+                } else {
+                    removeFromFavorites(radioStation.getIdAsString());
+                }
+                break;
+            }
+            case VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND: {
+                final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
+                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
+                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
+                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
+                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
+                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
+                final boolean addToFav = intent.getBooleanExtra(
+                        EXTRA_KEY_STATION_ADD_TO_FAV, false
+                );
+
+                String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, imageUrl);
+                if (imageUrlLocal == null) {
+                    imageUrlLocal = imageUrl;
+                } else {
+                    FileUtils.deleteFile(imageUrl);
+                }
+
+                final boolean result = LocalRadioStationsStorage.update(
+                        mediaId, context, name, url, imageUrlLocal, genre, country, addToFav
+                );
+
+                if (result) {
+                    notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
+                } else {
+                    AppLogger.w(CLASS_NAME + "Can not edit Station");
+                }
+                break;
+            }
+            case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
+                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
+                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
+                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
+                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
+                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
+                final boolean addToFav = intent.getBooleanExtra(
+                        EXTRA_KEY_STATION_ADD_TO_FAV, false
+                );
+
+                if (TextUtils.isEmpty(name)) {
+                    AppLogger.w(CLASS_NAME + "Can not add Station, Name is empty");
+                    break;
+                }
+
+                if (TextUtils.isEmpty(url)) {
+                    AppLogger.w(CLASS_NAME + "Can not add Station, URL is empty");
+                    break;
+                }
+
+                String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, imageUrl);
+                if (imageUrlLocal == null) {
+                    imageUrlLocal = imageUrl;
+                }
+
+                final RadioStation radioStationLocal = RadioStation.makeDefaultInstance();
+
+                radioStationLocal.setId(LocalRadioStationsStorage.getId(context));
+                radioStationLocal.setName(name);
+                radioStationLocal.getMediaStream().setVariant(0, url);
+                radioStationLocal.setImageUrl(imageUrlLocal);
+                radioStationLocal.setThumbUrl(imageUrlLocal);
+                radioStationLocal.setGenre(genre);
+                radioStationLocal.setCountry(country);
+                radioStationLocal.setIsLocal(true);
+
+                LocalRadioStationsStorage.add(radioStationLocal, context);
+                if (addToFav) {
+                    FavoritesStorage.addToFavorites(radioStationLocal, context);
+                }
+
+                notifyChildrenChanged(MediaIDHelper.MEDIA_ID_ROOT);
+
+                break;
+            }
+            case VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND: {
+                final String mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
+                if (TextUtils.isEmpty(mediaId)) {
+                    AppLogger.w(CLASS_NAME + "Can not remove Station, Media Id is empty");
+                    break;
+                }
+                LocalRadioStationsStorage.removeFromLocal(mediaId, context);
+                final RadioStation radioStation = QueueHelper.removeRadioStation(
+                        mediaId, mRadioStations
+                );
+                if (radioStation != null) {
+                    FileUtils.deleteFile(radioStation.getImageUrl());
+                }
+
+                notifyChildrenChanged(MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
+                break;
+            }
+            case VALUE_NAME_UPDATE_SORT_IDS:
+                final String[] mediaIds = intent.getStringArrayExtra(EXTRA_KEY_MEDIA_IDS);
+                final int[] sortIds = intent.getIntArrayExtra(EXTRA_KEY_SORT_IDS);
+                final String categoryMediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID);
+                if (mediaIds == null || sortIds == null) {
+                    break;
+                }
+                // TODO: Optimize this algorithm, could be done in single iteration
+                int counter = 0;
+                for (final String mediaId : mediaIds) {
+                    updateSortId(mediaId, sortIds[counter++], categoryMediaId);
+                }
+                break;
+            case VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM:
+                if (mState == PlaybackStateCompat.STATE_PLAYING) {
+                    handlePauseRequest();
+                } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
+                    handlePlayRequest();
+                }
+                break;
+            case VALUE_NAME_STOP_SERVICE:
+                stopService();
+                break;
+            default:
+                AppLogger.w(CLASS_NAME + "Unknown command:" + command);
+        }
+    }
+
+    /**
      * Listener class of the Playback State changes.
      */
     private static final class PlaybackStateListener implements MediaItemCommand.IUpdatePlaybackState {
@@ -2322,6 +2363,53 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             reference.handlePauseRequest(PauseReason.NOISY);
+        }
+    }
+
+    /**
+     * An inner class that inherits from Handler and uses its
+     * handleMessage() hook method to process Messages sent to
+     * it from onStartCommand().
+     */
+    private final class ServiceHandler extends Handler {
+
+        /**
+         * Class constructor initializes the Looper.
+         *
+         * @param looper The Looper that we borrow from HandlerThread.
+         */
+        private ServiceHandler(final Looper looper) {
+            super(looper);
+        }
+
+        /**
+         * A factory method that creates a Message that contains
+         * information of the command to perform.
+         */
+        private Message makeMessage(final Intent intent) {
+            final Message message = Message.obtain();
+            message.obj = intent;
+            return message;
+        }
+
+        /**
+         * Hook method that process command sent from service.
+         */
+        @Override
+        public void handleMessage(final Message message) {
+            final Intent intent = (Intent) message.obj;
+            if (intent == null) {
+                return;
+            }
+            final Bundle bundle = intent.getExtras();
+            if (bundle == null) {
+                return;
+            }
+            final String command = bundle.getString(KEY_NAME_COMMAND_NAME);
+            if (command == null || command.isEmpty()) {
+                return;
+            }
+            OpenRadioService.this.handleMessageInternal(command, intent);
         }
     }
 }

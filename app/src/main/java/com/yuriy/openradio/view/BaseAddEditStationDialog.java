@@ -44,6 +44,8 @@ import com.yuriy.openradio.utils.PermissionChecker;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -65,7 +67,7 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
     protected Spinner mGenresSpinner;
     protected CheckBox mAddToFavCheckView;
     private ArrayAdapter<CharSequence> mGenresAdapter;
-    private ArrayAdapter<CharSequence> mCountriesAdapter;
+    private ArrayAdapter<String> mCountriesAdapter;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -83,12 +85,15 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
         mUrlEdit = view.findViewById(R.id.add_edit_station_stream_url_edit);
         mImageUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit);
 
+        final List<String> countries = new ArrayList<>(AppUtils.COUNTRY_CODE_TO_NAME.values());
+        Collections.sort(countries);
+
         mCountriesSpinner = view.findViewById(R.id.add_edit_station_country_spin);
         // Create an ArrayAdapter using the string array and a default spinner layout
         mCountriesAdapter = new ArrayAdapter<>(
                 getActivity(),
                 android.R.layout.simple_spinner_item,
-                new ArrayList<>(AppUtils.COUNTRY_CODE_TO_NAME.values())
+                countries
         );
         // Specify the layout to use when the list of choices appears
         mCountriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);

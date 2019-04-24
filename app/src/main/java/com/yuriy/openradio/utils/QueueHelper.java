@@ -48,7 +48,6 @@ public final class QueueHelper {
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
     /**
-     *
      * @param context
      * @param radioStations
      * @return
@@ -111,7 +110,6 @@ public final class QueueHelper {
     }
 
     /**
-     *
      * @param index
      * @param queue
      * @return
@@ -122,7 +120,6 @@ public final class QueueHelper {
     }
 
     /**
-     *
      * @param id
      * @param radioStations
      * @return
@@ -184,7 +181,6 @@ public final class QueueHelper {
     }
 
     /**
-     *
      * @param radioStationVO
      * @param radioStations
      */
@@ -199,27 +195,25 @@ public final class QueueHelper {
     }
 
     /**
-     *
      * @param mediaId
      * @param radioStations
      * @return
      */
-    public static boolean removeRadioStation(final String mediaId,
-                                             final List<RadioStation> radioStations) {
+    public static RadioStation removeRadioStation(final String mediaId,
+                                                  final List<RadioStation> radioStations) {
         for (final RadioStation radioStation : radioStations) {
             if (radioStation == null) {
                 continue;
             }
             if (TextUtils.equals(radioStation.getIdAsString(), mediaId)) {
                 radioStations.remove(radioStation);
-                return true;
+                return radioStation;
             }
         }
-        return false;
+        return null;
     }
 
     /**
-     *
      * @param genreId
      * @param categoriesList
      * @return
@@ -263,7 +257,6 @@ public final class QueueHelper {
     }
 
     /**
-     *
      * @param list
      * @return
      */

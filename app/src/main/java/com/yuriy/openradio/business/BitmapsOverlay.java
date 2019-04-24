@@ -21,7 +21,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapHelper;
 
 /**
@@ -31,11 +30,6 @@ import com.yuriy.openradio.utils.BitmapHelper;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 public final class BitmapsOverlay {
-
-    /**
-     * Path to the directory with Flags, under app's folder.
-     */
-    private static final String FLAGS_DIR = "/img/flags";
 
     private static final String CLASS_NAME = BitmapsOverlay.class.getSimpleName();
 
@@ -73,19 +67,5 @@ public final class BitmapsOverlay {
         );
 
         return BitmapHelper.overlayWithBitmap(baseBitmap, overlayBitmap);
-    }
-
-    /**
-     * Build url to the county's flag.
-     *
-     * @param context     Callee context.
-     * @param countryCode Country code.
-     * @return Url to the flag image of the country.
-     */
-    private String getFlagUrl(final Context context, final String countryCode) {
-        // Create directory if such does nor exists
-        AppUtils.createDirIfNeeded(AppUtils.getExternalStorageDir(context) + FLAGS_DIR);
-        // return a path to the file
-        return AppUtils.getExternalStorageDir(context) + FLAGS_DIR + "/flag_" + countryCode + ".jpg";
     }
 }

@@ -82,6 +82,22 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == "com.android.support") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "28.+"
+            }
+        }
+        if (requested.group == "androidx") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "${targetSdk}.+"
+            }
+        }
+    }
+}
+
 dependencies {
     implementation "com.android.support:appcompat-v7:$supportVersion"
     implementation "com.android.support:support-v4:$supportVersion"

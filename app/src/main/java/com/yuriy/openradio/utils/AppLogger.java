@@ -82,7 +82,7 @@ public final class AppLogger {
     }
 
     private static void initLogsDirectories(final Context context) {
-        sInitLogsDirectory = context.getFilesDir() + "/logs";
+        sInitLogsDirectory = FileUtils.getFilesDir(context) + "/logs";
     }
 
     public static String getCurrentLogsDirectory(final Context context) {
@@ -165,14 +165,14 @@ public final class AppLogger {
 
     public static File getLogsZipFile(final Context context) {
         final String path = getCurrentLogsDirectory(context);
-        AppUtils.createDirIfNeeded(path);
-        return AppUtils.createFileIfNeeded(path + "/logs.zip");
+        FileUtils.createDirIfNeeded(path);
+        return FileUtils.createFileIfNeeded(path + "/logs.zip");
     }
 
     public static File getLogcatFile(final Context context) {
         final String path = getCurrentLogsDirectory(context);
-        AppUtils.createDirIfNeeded(path);
-        return AppUtils.createFileIfNeeded(path + "/logcat.txt");
+        FileUtils.createDirIfNeeded(path);
+        return FileUtils.createFileIfNeeded(path + "/logcat.txt");
     }
 
     public static void zip(final Context context) throws IOException {

@@ -67,7 +67,7 @@ public final class MediaResourcesManager {
     /**
      * Listener of the media Controllers callbacks.
      */
-    private final MediaControllerCompat.Callback mMediaSessionCallback = new MediaSessionCallback(this);
+    private final MediaControllerCompat.Callback mMediaSessionCallback;
 
     /**
      * Transport controls of the Media Controller.
@@ -96,6 +96,7 @@ public final class MediaResourcesManager {
                                  @NonNull final MediaResourceManagerListener listener) {
         super();
         CLASS_NAME = "MdRsrcsMgr " + activity.getClass().getSimpleName() + " ";
+        mMediaSessionCallback = new MediaSessionCallback(this);
         mSubscribed = new HashSet<>();
         mActivity = activity;
         mListener = listener;

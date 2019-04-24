@@ -152,7 +152,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
                     FavoritesStorage.removeFromFavorites(mediaId, context);
                 }
 
-                add(radioStation, context, FILE_NAME);
+                add(radioStation, context);
                 AppLogger.d("Radio station updated to:" + radioStation.toString());
 
                 result = true;

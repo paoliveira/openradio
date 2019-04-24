@@ -997,7 +997,10 @@ public final class MainActivity extends AppCompatActivity {
 
         // Current selected media item
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
-
+        if (item == null) {
+            SafeToast.showAnyThread(getApplicationContext(), getString(R.string.can_not_play_station));
+            return;
+        }
         if (item.isBrowsable()) {
             if (item.getDescription().getTitle() != null
                     && item.getDescription().getTitle().equals(getString(R.string.category_empty))) {
