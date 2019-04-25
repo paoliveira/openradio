@@ -44,25 +44,27 @@ public final class ApiKeyLoader {
     /**
      * Cashed value of the API key.
      */
-    private String mCashedKey = "";
+    private String mCashedKey;
     private int mIndex;
-    private int mMovesNum = 0;
+    private int mMovesNum;
     private Context mContext;
 
     private static final int[] IDS = new int[]{R.raw.api_key_1, R.raw.api_key_2};
 
     public ApiKeyLoader(final Context context) {
         super();
+        mCashedKey = "";
+        mMovesNum = 0;
         mContext = context;
         mIndex = ApiKeyLoaderStorage.getLastIndex(mContext);
     }
 
     public boolean hasNext() {
-        return mMovesNum <= IDS.length - 1;
+        return mMovesNum < IDS.length - 1;
     }
 
     public boolean wasMovedToNext() {
-        return mMovesNum != 0;
+        return mMovesNum > 0;
     }
 
     public void moveToNext() {

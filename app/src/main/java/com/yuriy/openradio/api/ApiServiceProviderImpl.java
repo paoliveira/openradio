@@ -353,15 +353,19 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         // Declare nd initialize variable for response.
         String response = "";
         // Keep requests in a loop until either response success or number of keys ended.
-        while (response.isEmpty() && mApiKeyLoader.hasNext()) {
+        while (response.isEmpty()) {
             // Download response from the server.
             response = new String(downloader.downloadDataFromUri(uriWithApiKey, parameters));
             // Move to next key in case of empty response.
-            if (response.isEmpty()) {
-                mApiKeyLoader.moveToNext();
-                // Inject next API key.
-                uriWithApiKey = UrlBuilder.injectApiKey(uri, mApiKeyLoader.getApiKey());
+            if (!response.isEmpty()) {
+                break;
             }
+            if (!mApiKeyLoader.hasNext()) {
+                break;
+            }
+            mApiKeyLoader.moveToNext();
+            // Inject next API key.
+            uriWithApiKey = UrlBuilder.injectApiKey(uri, mApiKeyLoader.getApiKey());
         }
 
         // Ignore empty response finally.
