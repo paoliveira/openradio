@@ -1,6 +1,7 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,10 +81,14 @@ public final class FileUtils {
             }
         } catch (final FileNotFoundException e) {
             isException = true;
-            FabricUtils.logException(e);
+            FabricUtils.logException(
+                    new FileNotFoundException("File " + filePath + " not found:\n" + Log.getStackTraceString(e))
+            );
         } catch (final IOException e) {
             isException = true;
-            FabricUtils.logException(e);
+            FabricUtils.logException(
+                    new FileNotFoundException("File " + filePath + " I/O exception:\n" + Log.getStackTraceString(e))
+            );
         }
         if (!isFileExists(file)) {
             return null;
@@ -104,7 +109,9 @@ public final class FileUtils {
         try {
             final boolean result = file.createNewFile();
         } catch (final IOException e) {
-            FabricUtils.logException(e);
+            FabricUtils.logException(
+                    new FileNotFoundException("File " + path + " not created:\n" + Log.getStackTraceString(e))
+            );
         }
         return file;
     }
