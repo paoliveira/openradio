@@ -23,12 +23,12 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.business.BitmapsOverlay;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.vo.Country;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -81,7 +81,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
 
         final List<Country> list = shareObject.getServiceProvider().getCountries(
                 shareObject.getDownloader(),
-                UrlBuilder.getAllCountriesUrl(shareObject.getContext()));
+                UrlBuilder.getAllCountriesUrl());
 
         if (list.isEmpty() && playbackStateListener != null) {
             playbackStateListener.updatePlaybackState(

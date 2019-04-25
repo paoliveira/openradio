@@ -63,7 +63,7 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
                         list.addAll(
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
-                                        UrlBuilder.getSearchUrl(shareObject.getContext()),
+                                        UrlBuilder.getSearchUrl(),
                                         // Get search query from the holder util.
                                         ApiServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
                                 )

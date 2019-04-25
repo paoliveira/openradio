@@ -64,7 +64,6 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
                                         UrlBuilder.getStationsInCountry(
-                                                shareObject.getContext(),
                                                 shareObject.getCountryCode(),
                                                 getPageNumber(),
                                                 UrlBuilder.ITEMS_PER_PAGE

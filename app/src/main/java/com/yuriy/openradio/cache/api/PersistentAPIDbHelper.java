@@ -27,9 +27,9 @@ import android.support.annotation.Nullable;
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public class PersistentAPIDbHelper extends SQLiteOpenHelper {
+public final class PersistentAPIDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "APICache.db";
 
     private static final String SQL_CREATE_ENTRIES =
@@ -42,7 +42,7 @@ public class PersistentAPIDbHelper extends SQLiteOpenHelper {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + PersistentAPIContract.APIEntry.TABLE_NAME;
 
-    PersistentAPIDbHelper(@Nullable Context context, final String dbName) {
+    PersistentAPIDbHelper(@Nullable final Context context, final String dbName) {
         super(context, dbName, null, DATABASE_VERSION);
     }
 

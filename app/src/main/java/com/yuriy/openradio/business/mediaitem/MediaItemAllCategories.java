@@ -76,7 +76,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
                                    @NonNull final MediaItemShareObject shareObject) {
         final List<Category> list = shareObject.getServiceProvider().getCategories(
                 shareObject.getDownloader(),
-                UrlBuilder.getAllCategoriesUrl(shareObject.getContext()));
+                UrlBuilder.getAllCategoriesUrl());
 
         if (list.isEmpty() && playbackStateListener != null) {
             playbackStateListener.updatePlaybackState(

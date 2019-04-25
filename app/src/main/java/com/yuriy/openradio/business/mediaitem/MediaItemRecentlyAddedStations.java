@@ -63,7 +63,6 @@ public final class MediaItemRecentlyAddedStations extends IndexableMediaItemComm
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
                                         UrlBuilder.getRecentlyAddedStations(
-                                                shareObject.getContext(),
                                                 getPageNumber(),
                                                 UrlBuilder.ITEMS_PER_PAGE
                                         )

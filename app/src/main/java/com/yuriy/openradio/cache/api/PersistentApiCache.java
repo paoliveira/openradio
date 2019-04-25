@@ -34,9 +34,9 @@ import org.json.JSONException;
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class PersistentAPICache implements APICache {
+public final class PersistentApiCache implements ApiCache {
 
-    private static final String CLASS_NAME = PersistentAPICache.class.getSimpleName() + " ";
+    private static final String CLASS_NAME = PersistentApiCache.class.getSimpleName() + " ";
     private static final String[] PROJECTION = {
             BaseColumns._ID,
             PersistentAPIContract.APIEntry.COLUMN_NAME_KEY,
@@ -48,7 +48,7 @@ public final class PersistentAPICache implements APICache {
 
     private final PersistentAPIDbHelper mDbHelper;
 
-    public PersistentAPICache(final Context context, final String dbName) {
+    public PersistentApiCache(final Context context, final String dbName) {
         super();
         mDbHelper = new PersistentAPIDbHelper(context, dbName);
     }

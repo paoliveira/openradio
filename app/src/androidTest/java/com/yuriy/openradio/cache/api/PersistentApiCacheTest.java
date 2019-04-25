@@ -21,15 +21,15 @@ import static org.junit.Assert.assertThat;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 @RunWith(AndroidJUnit4.class)
-public class PersistentAPICacheTest {
+public class PersistentApiCacheTest {
 
     private static final String DB_NAME = "ApiTestDb";
-    private APICache mApiCache;
+    private ApiCache mApiCache;
 
     @Before
     public void setUp() throws Exception {
         Context context = InstrumentationRegistry.getTargetContext();
-        mApiCache = new PersistentAPICache(context, DB_NAME);
+        mApiCache = new PersistentApiCache(context, DB_NAME);
         mApiCache.clear();
     }
 
@@ -83,7 +83,7 @@ public class PersistentAPICacheTest {
         mApiCache.remove(key);
         mApiCache.put(key, in3);
 
-        assertThat(((PersistentAPICache)mApiCache).getCount(key), is(1));
+        assertThat(((PersistentApiCache)mApiCache).getCount(key), is(1));
         assertThat(mApiCache.get(key).toString().equals(in3.toString()), is(true));
     }
 

@@ -25,13 +25,12 @@ import android.text.TextUtils;
 import com.yuriy.openradio.business.DataParser;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
-import com.yuriy.openradio.cache.api.APICache;
-import com.yuriy.openradio.cache.api.PersistentAPICache;
+import com.yuriy.openradio.cache.api.ApiCache;
 import com.yuriy.openradio.cache.api.PersistentAPIDbHelper;
+import com.yuriy.openradio.cache.api.PersistentApiCache;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
-import com.yuriy.openradio.utils.ApiKeyLoader;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
@@ -68,7 +67,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      * Tag string to use in logging messages.
      */
     @SuppressWarnings("unused")
-    private static final String CLASS_NAME = ApiServiceProviderImpl.class.getSimpleName();
+    private static final String CLASS_NAME = ApiServiceProviderImpl.class.getSimpleName() + " ";
 
     /**
      * Key for the search "key-value" pairs.
@@ -91,10 +90,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      *
      */
     @NonNull
-    private final APICache mApiCache;
-
-    @NonNull
-    private final ApiKeyLoader mApiKeyLoader;
+    private final ApiCache mApiCache;
 
     /**
      * Constructor.
@@ -104,15 +100,14 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      */
     public ApiServiceProviderImpl(@NonNull final Context context, final DataParser dataParser) {
         super();
-        mApiKeyLoader = new ApiKeyLoader(context);
-        mApiCache = new PersistentAPICache(context, PersistentAPIDbHelper.DATABASE_NAME);
+        mApiCache = new PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME);
         mContext = context;
         mDataParser = dataParser;
     }
 
     public void close() {
-        if (mApiCache instanceof PersistentAPICache) {
-            ((PersistentAPICache) mApiCache).close();
+        if (mApiCache instanceof PersistentApiCache) {
+            ((PersistentApiCache) mApiCache).close();
         }
     }
 
@@ -122,7 +117,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         final List<Category> allCategories = new ArrayList<>();
 
         if (mDataParser == null) {
-            AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
+            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null");
             return allCategories;
         }
 
@@ -164,7 +159,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         final List<Country> allCountries = new ArrayList<>();
 
         if (mDataParser == null) {
-            AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
+            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null");
             return allCountries;
         }
 
@@ -185,7 +180,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
                     if (TextUtils.isEmpty(countryName) || TextUtils.isEmpty(countryCode)) {
                         AppLogger.w(
-                                CLASS_NAME + " Can not parse Country name and or Code, " +
+                                CLASS_NAME + "Can not parse Country name and or Code, " +
                                         "one or both values are not valid"
                         );
                         continue;
@@ -214,7 +209,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         final List<RadioStation> radioStations = new ArrayList<>();
 
         if (mDataParser == null) {
-            AppLogger.w(CLASS_NAME + " Can not parse data, parser is null");
+            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null");
             return radioStations;
         }
 
@@ -286,11 +281,11 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
         // Download response from the server
         final String response = new String(downloader.downloadDataFromUri(uri));
-        AppLogger.i(CLASS_NAME + " Response:\n" + response);
+        AppLogger.i(CLASS_NAME + "Response:\n" + response);
 
         // Ignore empty response
         if (response.isEmpty()) {
-            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
+            AppLogger.w(CLASS_NAME + "Can not parse data, response is empty");
             return radioStation;
         }
 
@@ -341,70 +336,46 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return array;
         }
 
-        // Inject API key initially, based on last known key.
-        Uri uriWithApiKey = UrlBuilder.injectApiKey(uri, mApiKeyLoader.getApiKey());
         // Create key to associate response with.
-        String responsesMapKey = createResponseKey(uriWithApiKey, parameters);
+        String responsesMapKey = UrlBuilder.excludeApiToken(uri.toString());
+        try {
+            responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
+        } catch (final UnsupportedEncodingException e) {
+            FabricUtils.logException(e);
+            responsesMapKey = null;
+        }
+
         // Try to get cache first and return it in case of success.
         array = mApiCache.get(responsesMapKey);
         if (array != null) {
             return array;
         }
-        // Declare nd initialize variable for response.
-        String response = "";
-        // Keep requests in a loop until either response success or number of keys ended.
-        while (response.isEmpty()) {
-            // Download response from the server.
-            response = new String(downloader.downloadDataFromUri(uriWithApiKey, parameters));
-            // Move to next key in case of empty response.
-            if (!response.isEmpty()) {
-                break;
-            }
-            if (!mApiKeyLoader.hasNext()) {
-                break;
-            }
-            mApiKeyLoader.moveToNext();
-            // Inject next API key.
-            uriWithApiKey = UrlBuilder.injectApiKey(uri, mApiKeyLoader.getApiKey());
-        }
 
+        // Declare and initialize variable for response.
+        final String response = new String(downloader.downloadDataFromUri(uri, parameters));
         // Ignore empty response finally.
         if (response.isEmpty()) {
             array = new JSONArray();
-            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
+            AppLogger.w(CLASS_NAME + "Can not parse data, response is empty");
             return array;
         }
 
-        // In case we moved to next API key, recreate map key for cache.
-        if (mApiKeyLoader.wasMovedToNext()) {
-            // Remove previous record.
-            mApiCache.remove(responsesMapKey);
-            responsesMapKey = createResponseKey(uriWithApiKey, parameters);
-            // Jut in case, try to remove record with new map key.
-            mApiCache.remove(responsesMapKey);
-        }
-
+        boolean isSuccess = false;
         try {
             array = new JSONArray(response);
-            // Finally, cache new response.
-            mApiCache.put(responsesMapKey, array);
+            isSuccess = true;
         } catch (final JSONException e) {
             FabricUtils.logException(e);
         }
 
-        return array;
-    }
-
-    private String createResponseKey(final Uri uri, final List<Pair<String, String>> parameters) {
-        String responsesMapKey = uri.toString();
-        try {
-            responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
-        } catch (final UnsupportedEncodingException e) {
-            FabricUtils.logException(e);
-
-            responsesMapKey = null;
+        if (isSuccess) {
+            // Remove previous record.
+            mApiCache.remove(responsesMapKey);
+            // Finally, cache new response.
+            mApiCache.put(responsesMapKey, array);
         }
-        return responsesMapKey;
+
+        return array;
     }
 
     /**

@@ -67,7 +67,6 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
                                         UrlBuilder.getStationsInCategory(
-                                                shareObject.getContext(),
                                                 childMenuId,
                                                 getPageNumber(),
                                                 UrlBuilder.ITEMS_PER_PAGE

@@ -24,7 +24,7 @@ import org.json.JSONArray;
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public interface APICache {
+public interface ApiCache {
 
     JSONArray get(final String key);
 

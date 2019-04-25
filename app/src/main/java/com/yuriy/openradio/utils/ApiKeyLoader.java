@@ -17,10 +17,8 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
-import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.storage.ApiKeyLoaderStorage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +27,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Random;
 
 /**
  * Created by Yuriy Chernyshov
@@ -36,58 +35,53 @@ import java.io.Writer;
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * {@link com.yuriy.openradio.utils.ApiKeyLoader} is a helper class to provide
- * Dirble API key
+ * {@link ApiKeyLoader} is a helper class to provide Dirble API key.
  */
 public final class ApiKeyLoader {
 
-    /**
-     * Cashed value of the API key.
-     */
-    private String mCashedKey;
-    private int mIndex;
-    private int mMovesNum;
-    private Context mContext;
-
     private static final int[] IDS = new int[]{R.raw.api_key_1, R.raw.api_key_2};
+    private static final String[] KEYS = new String[IDS.length];
+    private static final Random RND = new Random();
 
-    public ApiKeyLoader(final Context context) {
+    /**
+     * Constructor.
+     */
+    private ApiKeyLoader() {
         super();
-        mCashedKey = "";
-        mMovesNum = 0;
-        mContext = context;
-        mIndex = ApiKeyLoaderStorage.getLastIndex(mContext);
-    }
-
-    public boolean hasNext() {
-        return mMovesNum < IDS.length - 1;
-    }
-
-    public boolean wasMovedToNext() {
-        return mMovesNum > 0;
-    }
-
-    public void moveToNext() {
-        mCashedKey = "";
-        mIndex++;
-        mMovesNum++;
-        if (mIndex > IDS.length - 1) {
-            mIndex = 0;
-        }
-        ApiKeyLoaderStorage.setLastIndex(mIndex, mContext);
     }
 
     /**
-     * Load API key from the resources.
+     * Gets API key.
      *
      * @return API key.
      */
-    public String getApiKey() {
-        if (!TextUtils.isEmpty(mCashedKey)) {
-            return mCashedKey;
+    public static String getApiKey() {
+        final int idx = RND.nextInt(KEYS.length);
+        return KEYS[idx];
+    }
+
+    /**
+     * Initialize API key loader.
+     *
+     * @param context Context of a callee.
+     */
+    public static void init(final Context context) {
+        for (int i = 0; i < IDS.length; i++) {
+            KEYS[i] = getApiKey(context, IDS[i]);
         }
-        final int resourceId = IDS[mIndex];
-        try (final InputStream stream = mContext.getResources().openRawResource(resourceId)) {
+    }
+
+    /**
+     * Load API key from the resource.
+     *
+     * @param context    Context of a callee.
+     * @param resourceId Resource ID of the key.
+     *
+     * @return API key.
+     */
+    private static String getApiKey(final Context context, final int resourceId) {
+        String key = "";
+        try (final InputStream stream = context.getResources().openRawResource(resourceId)) {
             final Writer writer = new StringWriter();
             final char[] buffer = new char[1024];
             final Reader reader = new BufferedReader(new InputStreamReader(stream, AppUtils.UTF8));
@@ -95,10 +89,10 @@ public final class ApiKeyLoader {
             while ((length = reader.read(buffer)) != -1) {
                 writer.write(buffer, 0, length);
             }
-            mCashedKey = writer.toString();
+            key = writer.toString();
         } catch (final IOException e) {
             FabricUtils.logException(e);
         }
-        return mCashedKey;
+        return key;
     }
 }

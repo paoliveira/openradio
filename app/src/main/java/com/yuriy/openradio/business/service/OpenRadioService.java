@@ -1036,10 +1036,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             final RadioStation radioStationUpdated = mApiServiceProvider
                                     .getStation(
                                             new HTTPDownloaderImpl(),
-                                            UrlBuilder.getStation(
-                                                    getApplicationContext(),
-                                                    radioStation.getIdAsString()
-                                            )
+                                            UrlBuilder.getStation(radioStation.getIdAsString())
                                     );
                             radioStation.setMediaStream(radioStationUpdated.getMediaStream());
 
@@ -1953,7 +1950,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         final List<RadioStation> list = mApiServiceProvider.getStations(
                 downloader,
-                UrlBuilder.getSearchUrl(getApplicationContext()),
+                UrlBuilder.getSearchUrl(),
                 ApiServiceProviderImpl.getSearchQueryParameters(query)
         );
 

@@ -21,13 +21,13 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 /**
  * Created by Yuriy Chernyshov
@@ -78,7 +78,7 @@ public final class MediaItemStation implements MediaItemCommand {
 
         final RadioStation radioStation = shareObject.getServiceProvider().getStation(
                 shareObject.getDownloader(),
-                UrlBuilder.getStation(shareObject.getContext(), radioStationId));
+                UrlBuilder.getStation(radioStationId));
 
         if (radioStation.isMediaStreamEmpty()) {
             if (playbackStateListener != null) {

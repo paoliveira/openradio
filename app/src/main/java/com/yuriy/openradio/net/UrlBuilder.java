@@ -16,9 +16,10 @@
 
 package com.yuriy.openradio.net;
 
-import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import android.text.TextUtils;
+
+import com.yuriy.openradio.utils.ApiKeyLoader;
 
 /**
  * Created by Yuriy Chernyshov
@@ -61,7 +62,10 @@ public final class UrlBuilder {
      */
     static final String NEW_IMG_BASE_URL = "img.dirble.com";
 
-    private static final String TOKEN_KEY = "token=";
+    /**
+     *
+     */
+    static final String TOKEN_KEY = "token=";
 
     /**
      * Private constructor.
@@ -69,20 +73,6 @@ public final class UrlBuilder {
      */
     private UrlBuilder() {
         super();
-    }
-
-    /**
-     *
-     * @param uri
-     * @param apiKey
-     * @return
-     */
-    public static Uri injectApiKey(@NonNull final Uri uri, final String apiKey) {
-        final String uriStr = uri.toString();
-        if (!uriStr.contains(TOKEN_KEY)) {
-            return uri;
-        }
-        return Uri.parse(uriStr.replace(TOKEN_KEY, TOKEN_KEY + apiKey));
     }
 
     /**
@@ -99,120 +89,111 @@ public final class UrlBuilder {
     /**
      * Get Uri for the All Categories list.
      *
-     * @param context Context of the application.
      * @return {@link Uri}
      */
-    public static Uri getAllCategoriesUrl(final Context context) {
-        return Uri.parse(BASE_URL + "categories?" + TOKEN_KEY);
+    public static Uri getAllCategoriesUrl() {
+        return Uri.parse(BASE_URL + "categories?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
     }
 
     /**
      * Get Uri for the All Countries list.
      *
-     * @param context Context of the application.
      * @return {@link Uri}
      */
-    public static Uri getAllCountriesUrl(final Context context) {
-        return Uri.parse(BASE_URL + "countries?" + TOKEN_KEY);
+    public static Uri getAllCountriesUrl() {
+        return Uri.parse(BASE_URL + "countries?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
     }
 
     /**
      * Get Uri for the Child Category's list (list of the categories in the main menu item).
      *
-     * @param context   Context of the application.
      * @param primaryId Id of the primary Menu Item
      * @return {@link Uri}
      */
-    public static Uri getChildCategoriesUrl(final Context context, final String primaryId) {
-        return Uri.parse(BASE_URL + "category/" + primaryId + "/childs" + "?" + TOKEN_KEY);
-    }
-
-    /**
-     * Get Uri for the list of the Radio Stations in concrete Category.
-     *
-     * @param context    Context of the application.
-     * @param categoryId Id of the Category.
-     * @return {@link Uri}
-     */
-    public static Uri getStationsInCategory(final Context context, final String categoryId,
-                                            final int pageNumber, final int numberPerPage) {
+    public static Uri getChildCategoriesUrl(final String primaryId) {
         return Uri.parse(
-                BASE_URL + "category/" + categoryId + "/stations"
-                        + "?" + TOKEN_KEY
-                        + "&page=" + pageNumber
-                        + "&per_page=" + numberPerPage
+                BASE_URL + "category/" + primaryId + "/childs" + "?" + TOKEN_KEY + ApiKeyLoader.getApiKey()
         );
     }
 
     /**
      * Get Uri for the list of the Radio Stations in concrete Category.
      *
-     * @param context     Context of the application.
+     * @param categoryId Id of the Category.
+     * @return {@link Uri}
+     */
+    public static Uri getStationsInCategory(final String categoryId, final int pageNumber, final int numberPerPage) {
+        return Uri.parse(
+                BASE_URL + "category/" + categoryId + "/stations"
+                        + "?page=" + pageNumber
+                        + "&per_page=" + numberPerPage
+                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
+        );
+    }
+
+    /**
+     * Get Uri for the list of the Radio Stations in concrete Category.
+     *
      * @param countryCode Country Code.
      * @return {@link Uri}
      */
-    public static Uri getStationsInCountry(final Context context, final String countryCode,
-                                           final int pageNumber, final int numberPerPage) {
+    public static Uri getStationsInCountry(final String countryCode, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "countries/" + countryCode + "/stations"
-                        + "?" + TOKEN_KEY
-                        + "&page=" + pageNumber
+                        + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
+                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
         );
     }
 
     /**
      * Get Uri for the list of the popular Radio Stations.
      *
-     * @param context       Context of the application.
      * @param pageNumber    Id of the current page being requested.
      * @param numberPerPage Number of items in one response.
      * @return {@link Uri}
      */
-    public static Uri getPopularStations(final Context context, final int pageNumber, final int numberPerPage) {
+    public static Uri getPopularStations(final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "stations/popular"
-                        + "?" + TOKEN_KEY
-                        + "&page=" + pageNumber
+                        + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
+                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
         );
     }
 
     /**
      * Get Uri for the list of the recently added Radio Stations.
      *
-     * @param context       Context of the application.
      * @param numberPerPage Number of items in one response.
      * @return {@link Uri}
      */
-    public static Uri getRecentlyAddedStations(final Context context, final int pageNumber, final int numberPerPage) {
+    public static Uri getRecentlyAddedStations(final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "stations/recent"
-                        + "?" + TOKEN_KEY
-                        + "&page=" + pageNumber
+                        + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
+                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
         );
     }
 
     /**
      * Get Uri for the concrete Radio Station details.
      *
-     * @param context    Context of the application.
      * @param stationId  Id of the Radio Station.
      * @return {@link Uri}
      */
-    public static Uri getStation(final Context context, final String stationId) {
-        return Uri.parse(BASE_URL + "station/" + stationId + "?" + TOKEN_KEY);
+    public static Uri getStation(final String stationId) {
+        return Uri.parse(BASE_URL + "station/" + stationId + "?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
     }
 
     /**
      * Get Uri for the search.
      *
-     * @param context Context of the application.
      * @return {@link Uri}.
      */
-    public static Uri getSearchUrl(final Context context) {
-        return Uri.parse(BASE_URL + "search/?" + TOKEN_KEY);
+    public static Uri getSearchUrl() {
+        return Uri.parse(BASE_URL + "search/?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
     }
 
     /**
@@ -244,5 +225,21 @@ public final class UrlBuilder {
             return url.replace(OLD_IMG_BASE_URL, NEW_IMG_BASE_URL);
         }
         return url;
+    }
+
+    /**
+     * Excludes a value of API token from url.
+     *
+     * @param url Url of request.
+     * @return Url with value of API token excluded.
+     */
+    public static String excludeApiToken(final String url) {
+        if (TextUtils.isEmpty(url)) {
+            return url;
+        }
+        if (!url.contains(TOKEN_KEY)) {
+            return url;
+        }
+        return url.substring(0, url.indexOf(TOKEN_KEY) + TOKEN_KEY.length());
     }
 }

@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class InMemoryAPICache implements APICache {
+public final class InMemoryAPICache implements ApiCache {
 
     private static final String CLASS_NAME = InMemoryAPICache.class.getSimpleName();
 
