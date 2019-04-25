@@ -67,6 +67,14 @@ public final class InMemoryAPICache implements APICache {
     }
 
     @Override
+    public void remove(final String key) {
+        if (TextUtils.isEmpty(key)) {
+            return;
+        }
+        RESPONSES_MAP.remove(key);
+    }
+
+    @Override
     public void clear() {
         RESPONSES_MAP.clear();
     }

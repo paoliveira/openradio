@@ -46,8 +46,8 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.api.APIServiceProvider;
-import com.yuriy.openradio.api.APIServiceProviderImpl;
+import com.yuriy.openradio.api.ApiServiceProvider;
+import com.yuriy.openradio.api.ApiServiceProviderImpl;
 import com.yuriy.openradio.business.JSONDataParserImpl;
 import com.yuriy.openradio.business.MediaResourcesManager;
 import com.yuriy.openradio.business.RadioStationUpdateListener;
@@ -346,7 +346,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Nullable
     private RadioStation mLastKnownRadioStation;
 
-    private APIServiceProvider mApiServiceProvider;
+    private ApiServiceProvider mApiServiceProvider;
 
     /**
      * Processes Messages sent to it from onStartCommand() that
@@ -447,7 +447,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Get the HandlerThread's Looper and use it for our Handler.
         mServiceHandler = new ServiceHandler(looper);
 
-        mApiServiceProvider = new APIServiceProviderImpl(getApplicationContext(), new JSONDataParserImpl());
+        mApiServiceProvider = new ApiServiceProviderImpl(getApplicationContext(), new JSONDataParserImpl());
 
         mBTConnectionReceiver.register(context);
         mBTConnectionReceiver.locateDevice(context);
@@ -525,8 +525,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mConnectivityReceiver.unregister(context);
         mNoisyAudioStreamReceiver.unregister(context);
         mMasterVolumeBroadcastReceiver.unregister(context);
-        if (mApiServiceProvider instanceof APIServiceProviderImpl) {
-            ((APIServiceProviderImpl) mApiServiceProvider).close();
+        if (mApiServiceProvider instanceof ApiServiceProviderImpl) {
+            ((ApiServiceProviderImpl) mApiServiceProvider).close();
         }
 
         stopService();
@@ -1954,7 +1954,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final List<RadioStation> list = mApiServiceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchUrl(getApplicationContext()),
-                APIServiceProviderImpl.getSearchQueryParameters(query)
+                ApiServiceProviderImpl.getSearchQueryParameters(query)
         );
 
         if (list == null || list.isEmpty()) {

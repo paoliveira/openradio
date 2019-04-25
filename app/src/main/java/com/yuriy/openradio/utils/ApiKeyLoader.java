@@ -20,6 +20,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.business.storage.ApiKeyLoaderStorage;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,40 +42,61 @@ import java.io.Writer;
 public final class ApiKeyLoader {
 
     /**
-     * Cashed value pf the Api key.
+     * Cashed value of the API key.
      */
-    private static String sCashedKey = "";
+    private String mCashedKey = "";
+    private int mIndex;
+    private int mMovesNum = 0;
+    private Context mContext;
+
+    private static final int[] IDS = new int[]{R.raw.api_key_1, R.raw.api_key_2};
+
+    public ApiKeyLoader(final Context context) {
+        super();
+        mContext = context;
+        mIndex = ApiKeyLoaderStorage.getLastIndex(mContext);
+    }
+
+    public boolean hasNext() {
+        return mMovesNum <= IDS.length - 1;
+    }
+
+    public boolean wasMovedToNext() {
+        return mMovesNum != 0;
+    }
+
+    public void moveToNext() {
+        mCashedKey = "";
+        mIndex++;
+        mMovesNum++;
+        if (mIndex > IDS.length - 1) {
+            mIndex = 0;
+        }
+        ApiKeyLoaderStorage.setLastIndex(mIndex, mContext);
+    }
 
     /**
      * Load API key from the resources.
      *
-     * @param context Context of the application.
      * @return API key.
      */
-    public static String getApiKey(final Context context) {
-        if (!TextUtils.isEmpty(sCashedKey)) {
-            return sCashedKey;
+    public String getApiKey() {
+        if (!TextUtils.isEmpty(mCashedKey)) {
+            return mCashedKey;
         }
-        final int resourceId;
-        if (AppLogger.isDebug(context)) {
-            AppLogger.i("API key is debug");
-            resourceId = R.raw.api_key_debug;
-        } else {
-            AppLogger.i("API key is release");
-            resourceId = R.raw.api_key;
-        }
-        try (InputStream stream = context.getResources().openRawResource(resourceId)) {
+        final int resourceId = IDS[mIndex];
+        try (final InputStream stream = mContext.getResources().openRawResource(resourceId)) {
             final Writer writer = new StringWriter();
             final char[] buffer = new char[1024];
-            final Reader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"));
+            final Reader reader = new BufferedReader(new InputStreamReader(stream, AppUtils.UTF8));
             int length;
             while ((length = reader.read(buffer)) != -1) {
                 writer.write(buffer, 0, length);
             }
-            sCashedKey = writer.toString();
+            mCashedKey = writer.toString();
         } catch (final IOException e) {
             FabricUtils.logException(e);
         }
-        return sCashedKey;
+        return mCashedKey;
     }
 }

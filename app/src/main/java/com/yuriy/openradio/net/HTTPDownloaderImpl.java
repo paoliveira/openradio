@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 
 import java.io.BufferedInputStream;
@@ -44,7 +45,7 @@ import java.util.List;
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link com.yuriy.openradio.net.HTTPDownloaderImpl} allows to download data from the
  * resource over HTTP protocol.
  */
@@ -130,32 +131,14 @@ public final class HTTPDownloaderImpl implements Downloader {
 
             // If POST is supported:
             if (result) {
-                OutputStream outputStream = null;
-                BufferedWriter writer = null;
-
-                try {
-                    outputStream = urlConnection.getOutputStream();
-                    writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                try (final OutputStream outputStream = urlConnection.getOutputStream();
+                     final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, AppUtils.UTF8))) {
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
                 } catch (final IOException exception) {
                     FabricUtils.logException(
-                            new DownloaderException(
-                                    createExceptionMessage(uri, parameters),
-                                    exception
-                            )
+                            new DownloaderException(createExceptionMessage(uri, parameters), exception)
                     );
-                } finally {
-                    try {
-                        if (writer != null) {
-                            writer.close();
-                        }
-                        if (outputStream != null) {
-                            outputStream.close();
-                        }
-                    } catch (final IOException e) {
-                        /* Ignore */
-                    }
                 }
             }
         }
@@ -224,7 +207,7 @@ public final class HTTPDownloaderImpl implements Downloader {
      * number of bytes cannot be returned as an int. For large streams
      * use the <code>copyLarge(InputStream, OutputStream)</code> method.
      *
-     * @param input the <code>InputStream</code> to read from
+     * @param input  the <code>InputStream</code> to read from
      * @param output the <code>OutputStream</code> to write to
      * @return the number of bytes copied, or -1 if &gt; Integer.MAX_VALUE
      * @throws NullPointerException if the input or output is null
@@ -248,7 +231,7 @@ public final class HTTPDownloaderImpl implements Downloader {
      * <p>
      * The buffer size is given by {@link #DEFAULT_BUFFER_SIZE}.
      *
-     * @param input the <code>InputStream</code> to read from
+     * @param input  the <code>InputStream</code> to read from
      * @param output the <code>OutputStream</code> to write to
      * @return the number of bytes copied
      * @throws NullPointerException if the input or output is null
@@ -268,8 +251,8 @@ public final class HTTPDownloaderImpl implements Downloader {
      * a <code>BufferedInputStream</code>.
      * <p>
      *
-     * @param input the <code>InputStream</code> to read from
-     * @param output the <code>OutputStream</code> to write to
+     * @param input      the <code>InputStream</code> to read from
+     * @param output     the <code>OutputStream</code> to write to
      * @param bufferSize the bufferSize used to copy from the input to the output
      * @return the number of bytes copied
      * @throws NullPointerException if the input or output is null
@@ -290,7 +273,7 @@ public final class HTTPDownloaderImpl implements Downloader {
      * <code>BufferedInputStream</code>.
      * <p>
      *
-     * @param input the <code>InputStream</code> to read from
+     * @param input  the <code>InputStream</code> to read from
      * @param output the <code>OutputStream</code> to write to
      * @param buffer the buffer to use for the copy
      * @return the number of bytes copied
@@ -328,16 +311,15 @@ public final class HTTPDownloaderImpl implements Downloader {
             } else {
                 result.append("&");
             }
-            result.append(URLEncoder.encode(pair.first, "UTF-8"));
+            result.append(URLEncoder.encode(pair.first, AppUtils.UTF8));
             result.append("=");
-            result.append(URLEncoder.encode(pair.second, "UTF-8"));
+            result.append(URLEncoder.encode(pair.second, AppUtils.UTF8));
         }
 
         return result.toString();
     }
 
     /**
-     *
      * @param uri
      * @param parameters
      * @return

@@ -30,6 +30,8 @@ import com.yuriy.openradio.cache.api.PersistentAPICache;
 import com.yuriy.openradio.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
+import com.yuriy.openradio.net.UrlBuilder;
+import com.yuriy.openradio.utils.ApiKeyLoader;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
@@ -57,16 +59,16 @@ import java.util.concurrent.Executors;
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
  * <p>
- * {@link com.yuriy.openradio.api.APIServiceProviderImpl} is the implementation of the
- * {@link com.yuriy.openradio.api.APIServiceProvider} interface.
+ * {@link ApiServiceProviderImpl} is the implementation of the
+ * {@link ApiServiceProvider} interface.
  */
-public final class APIServiceProviderImpl implements APIServiceProvider {
+public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
     /**
      * Tag string to use in logging messages.
      */
     @SuppressWarnings("unused")
-    private static final String CLASS_NAME = APIServiceProviderImpl.class.getSimpleName();
+    private static final String CLASS_NAME = ApiServiceProviderImpl.class.getSimpleName();
 
     /**
      * Key for the search "key-value" pairs.
@@ -91,14 +93,18 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
     @NonNull
     private final APICache mApiCache;
 
+    @NonNull
+    private final ApiKeyLoader mApiKeyLoader;
+
     /**
      * Constructor.
      *
      * @param context    Context of a callee.
      * @param dataParser Implementation of the {@link com.yuriy.openradio.business.DataParser}
      */
-    public APIServiceProviderImpl(@NonNull final Context context, final DataParser dataParser) {
+    public ApiServiceProviderImpl(@NonNull final Context context, final DataParser dataParser) {
         super();
+        mApiKeyLoader = new ApiKeyLoader(context);
         mApiCache = new PersistentAPICache(context, PersistentAPIDbHelper.DATABASE_NAME);
         mContext = context;
         mDataParser = dataParser;
@@ -335,6 +341,57 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
             return array;
         }
 
+        // Inject API key initially, based on last known key.
+        Uri uriWithApiKey = UrlBuilder.injectApiKey(uri, mApiKeyLoader.getApiKey());
+        // Create key to associate response with.
+        String responsesMapKey = createResponseKey(uriWithApiKey, parameters);
+        // Try to get cache first and return it in case of success.
+        array = mApiCache.get(responsesMapKey);
+        if (array != null) {
+            return array;
+        }
+        // Declare nd initialize variable for response.
+        String response = "";
+        // Keep requests in a loop until either response success or number of keys ended.
+        while (response.isEmpty() && mApiKeyLoader.hasNext()) {
+            // Download response from the server.
+            response = new String(downloader.downloadDataFromUri(uriWithApiKey, parameters));
+            // Move to next key in case of empty response.
+            if (response.isEmpty()) {
+                mApiKeyLoader.moveToNext();
+                // Inject next API key.
+                uriWithApiKey = UrlBuilder.injectApiKey(uri, mApiKeyLoader.getApiKey());
+            }
+        }
+
+        // Ignore empty response finally.
+        if (response.isEmpty()) {
+            array = new JSONArray();
+            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
+            return array;
+        }
+
+        // In case we moved to next API key, recreate map key for cache.
+        if (mApiKeyLoader.wasMovedToNext()) {
+            // Remove previous record.
+            mApiCache.remove(responsesMapKey);
+            responsesMapKey = createResponseKey(uriWithApiKey, parameters);
+            // Jut in case, try to remove record with new map key.
+            mApiCache.remove(responsesMapKey);
+        }
+
+        try {
+            array = new JSONArray(response);
+            // Finally, cache new response.
+            mApiCache.put(responsesMapKey, array);
+        } catch (final JSONException e) {
+            FabricUtils.logException(e);
+        }
+
+        return array;
+    }
+
+    private String createResponseKey(final Uri uri, final List<Pair<String, String>> parameters) {
         String responsesMapKey = uri.toString();
         try {
             responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
@@ -343,31 +400,7 @@ public final class APIServiceProviderImpl implements APIServiceProvider {
 
             responsesMapKey = null;
         }
-
-        array = mApiCache.get(responsesMapKey);
-        if (array != null) {
-            return array;
-        }
-
-        // Download response from the server
-        final String response = new String(downloader.downloadDataFromUri(uri, parameters));
-
-        // Ignore empty response
-        if (response.isEmpty()) {
-            array = new JSONArray();
-            AppLogger.w(CLASS_NAME + " Can not parse data, response is empty");
-            return array;
-        }
-
-        try {
-            array = new JSONArray(response);
-        } catch (JSONException e) {
-            FabricUtils.logException(e);
-        }
-
-        mApiCache.put(responsesMapKey, array);
-
-        return array;
+        return responsesMapKey;
     }
 
     /**

@@ -18,8 +18,7 @@ package com.yuriy.openradio.net;
 
 import android.content.Context;
 import android.net.Uri;
-
-import com.yuriy.openradio.utils.ApiKeyLoader;
+import android.support.annotation.NonNull;
 
 /**
  * Created by Yuriy Chernyshov
@@ -53,16 +52,6 @@ public final class UrlBuilder {
     private static final String GOOGLE_GEO_URL = "https://maps.googleapis.com/maps/api/geocode";
 
     /**
-     * IP-API url.
-     */
-    private static final String IP_API_URL = "http://ip-api.com/json";
-
-    /**
-     * URL of the Geo Names service to obtain country's flag.
-     */
-    private static final String GEO_NAMES_FLAGS = "http://www.geonames.org/flags/";
-
-    /**
      * Base url for the icons used previously by Dirble.
      */
     static final String OLD_IMG_BASE_URL = "cdn.devality.com";
@@ -72,12 +61,28 @@ public final class UrlBuilder {
      */
     static final String NEW_IMG_BASE_URL = "img.dirble.com";
 
+    private static final String TOKEN_KEY = "token=";
+
     /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
     private UrlBuilder() {
         super();
+    }
+
+    /**
+     *
+     * @param uri
+     * @param apiKey
+     * @return
+     */
+    public static Uri injectApiKey(@NonNull final Uri uri, final String apiKey) {
+        final String uriStr = uri.toString();
+        if (!uriStr.contains(TOKEN_KEY)) {
+            return uri;
+        }
+        return Uri.parse(uriStr.replace(TOKEN_KEY, TOKEN_KEY + apiKey));
     }
 
     /**
@@ -92,22 +97,13 @@ public final class UrlBuilder {
     }
 
     /**
-     * Get Uri for the IP API Geo API which returns location.
-     *
-     * @return {@link Uri}.
-     */
-    public static Uri getIPAPIUrl() {
-        return Uri.parse(IP_API_URL);
-    }
-
-    /**
      * Get Uri for the All Categories list.
      *
      * @param context Context of the application.
      * @return {@link Uri}
      */
     public static Uri getAllCategoriesUrl(final Context context) {
-        return Uri.parse(BASE_URL + "categories?token=" + ApiKeyLoader.getApiKey(context));
+        return Uri.parse(BASE_URL + "categories?" + TOKEN_KEY);
     }
 
     /**
@@ -117,7 +113,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getAllCountriesUrl(final Context context) {
-        return Uri.parse(BASE_URL + "countries?token=" + ApiKeyLoader.getApiKey(context));
+        return Uri.parse(BASE_URL + "countries?" + TOKEN_KEY);
     }
 
     /**
@@ -128,10 +124,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getChildCategoriesUrl(final Context context, final String primaryId) {
-        return Uri.parse(
-                BASE_URL + "category/" + primaryId + "/childs"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-        );
+        return Uri.parse(BASE_URL + "category/" + primaryId + "/childs" + "?" + TOKEN_KEY);
     }
 
     /**
@@ -145,9 +138,9 @@ public final class UrlBuilder {
                                             final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "category/" + categoryId + "/stations"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-                        + "&page=" + String.valueOf(pageNumber)
-                        + "&per_page=" + String.valueOf(numberPerPage)
+                        + "?" + TOKEN_KEY
+                        + "&page=" + pageNumber
+                        + "&per_page=" + numberPerPage
         );
     }
 
@@ -162,9 +155,9 @@ public final class UrlBuilder {
                                            final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "countries/" + countryCode + "/stations"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-                        + "&page=" + String.valueOf(pageNumber)
-                        + "&per_page=" + String.valueOf(numberPerPage)
+                        + "?" + TOKEN_KEY
+                        + "&page=" + pageNumber
+                        + "&per_page=" + numberPerPage
         );
     }
 
@@ -179,9 +172,9 @@ public final class UrlBuilder {
     public static Uri getPopularStations(final Context context, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "stations/popular"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-                        + "&page=" + String.valueOf(pageNumber)
-                        + "&per_page=" + String.valueOf(numberPerPage)
+                        + "?" + TOKEN_KEY
+                        + "&page=" + pageNumber
+                        + "&per_page=" + numberPerPage
         );
     }
 
@@ -195,9 +188,9 @@ public final class UrlBuilder {
     public static Uri getRecentlyAddedStations(final Context context, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
                 BASE_URL + "stations/recent"
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-                        + "&page=" + String.valueOf(pageNumber)
-                        + "&per_page=" + String.valueOf(numberPerPage)
+                        + "?" + TOKEN_KEY
+                        + "&page=" + pageNumber
+                        + "&per_page=" + numberPerPage
         );
     }
 
@@ -209,10 +202,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getStation(final Context context, final String stationId) {
-        return Uri.parse(
-                BASE_URL + "station/" + stationId
-                        + "?token=" + ApiKeyLoader.getApiKey(context)
-        );
+        return Uri.parse(BASE_URL + "station/" + stationId + "?" + TOKEN_KEY);
     }
 
     /**
@@ -222,19 +212,7 @@ public final class UrlBuilder {
      * @return {@link Uri}.
      */
     public static Uri getSearchUrl(final Context context) {
-        return Uri.parse(
-                BASE_URL + "search/?token=" + ApiKeyLoader.getApiKey(context)
-        );
-    }
-
-    /**
-     * Get Uri for the provided country flag of the small size for the usage in Geo Names service.
-     *
-     * @param countryCode Country code.
-     * @return {@link Uri}
-     */
-    public static Uri getCountryFlagSmall(final String countryCode) {
-        return getCountryFlag(countryCode.toLowerCase(), "l");
+        return Uri.parse(BASE_URL + "search/?" + TOKEN_KEY);
     }
 
     /**
@@ -266,17 +244,5 @@ public final class UrlBuilder {
             return url.replace(OLD_IMG_BASE_URL, NEW_IMG_BASE_URL);
         }
         return url;
-    }
-
-    /**
-     * Get Uri for the provided country flag and flag size for the usage in Geo Names service.
-     *
-     * @param countryCode Country code.
-     * @param size        Size of the flag's image. Could be "l" for the small size and
-     *                    "x" for the big size.
-     * @return {@link Uri}
-     */
-    private static Uri getCountryFlag(final String countryCode, final String size) {
-        return Uri.parse(GEO_NAMES_FLAGS + size + "/" + countryCode.toLowerCase() + ".gif");
     }
 }

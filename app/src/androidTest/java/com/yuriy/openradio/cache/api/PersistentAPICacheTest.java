@@ -5,7 +5,6 @@ import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -68,7 +67,24 @@ public class PersistentAPICacheTest {
         mApiCache.put(key1, in1);
         mApiCache.put(key2, in2);
 
-        ((PersistentAPICache)mApiCache).delete(key1);
+        mApiCache.remove(key1);
+    }
+
+    @Test
+    public void newRecordOverridePrevious() throws Exception {
+        JSONArray in1 = getJsonArray(1);
+        JSONArray in2 = getJsonArray(2);
+        JSONArray in3 = getJsonArray(3);
+        String key = "1234567890";
+
+        mApiCache.put(key, in1);
+        mApiCache.remove(key);
+        mApiCache.put(key, in2);
+        mApiCache.remove(key);
+        mApiCache.put(key, in3);
+
+        assertThat(((PersistentAPICache)mApiCache).getCount(key), is(1));
+        assertThat(mApiCache.get(key).toString().equals(in3.toString()), is(true));
     }
 
     private JSONArray getJsonArray(int factor) throws Exception {

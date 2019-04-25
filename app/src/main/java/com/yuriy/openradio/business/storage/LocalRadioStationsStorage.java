@@ -65,7 +65,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     private static void setId(final Context context, final int value) {
         final SharedPreferences.Editor editor = getEditor(context, FILE_NAME);
         editor.putInt(KEY_ID, value);
-        editor.commit();
+        editor.apply();
     }
 
     /**

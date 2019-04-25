@@ -73,7 +73,7 @@ public final class GeoAPIStorage extends AbstractRadioStationsStorage {
     public static void setLastUseTime(final long time, final Context context) {
         final SharedPreferences.Editor editor = getEditor(context, FILE_NAME);
         editor.putLong(KEY_LAST_USE_TIME, time);
-        editor.commit();
+        editor.apply();
     }
 
     /**
@@ -95,7 +95,7 @@ public final class GeoAPIStorage extends AbstractRadioStationsStorage {
     public static void setLastKnownCountryCode(final String countryCode, final Context context) {
         final SharedPreferences.Editor editor = getEditor(context, FILE_NAME);
         editor.putString(KEY_LAST_KNOWN_COUNTRY_CODE, countryCode);
-        editor.commit();
+        editor.apply();
     }
 
     /**
@@ -119,7 +119,7 @@ public final class GeoAPIStorage extends AbstractRadioStationsStorage {
     public static void setLastKnownCountryName(final String countryName, final Context context) {
         final SharedPreferences.Editor editor = getEditor(context, FILE_NAME);
         editor.putString(KEY_LAST_KNOWN_COUNTRY_NAME, countryName);
-        editor.commit();
+        editor.apply();
     }
 
     /**

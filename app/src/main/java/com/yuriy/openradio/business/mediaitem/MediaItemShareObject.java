@@ -21,7 +21,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 
-import com.yuriy.openradio.api.APIServiceProvider;
+import com.yuriy.openradio.api.ApiServiceProvider;
 import com.yuriy.openradio.business.service.OpenRadioService;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.vo.Category;
@@ -74,7 +74,7 @@ public final class MediaItemShareObject {
      * TODO : must be final mandatory
      */
     @NonNull
-    private APIServiceProvider mServiceProvider;
+    private ApiServiceProvider mServiceProvider;
 
     /**
      * TODO : must be final mandatory
@@ -201,7 +201,7 @@ public final class MediaItemShareObject {
      * @return
      */
     @NonNull
-    public APIServiceProvider getServiceProvider() {
+    public ApiServiceProvider getServiceProvider() {
         return mServiceProvider;
     }
 
@@ -209,7 +209,7 @@ public final class MediaItemShareObject {
      *
      * @param value
      */
-    public void setServiceProvider(@NonNull APIServiceProvider value) {
+    public void setServiceProvider(@NonNull ApiServiceProvider value) {
         mServiceProvider = value;
     }
 

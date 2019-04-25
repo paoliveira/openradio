@@ -51,6 +51,8 @@ import java.util.concurrent.Executors;
  */
 public final class AppUtils {
 
+    public static final String UTF8 = "UTF-8";
+
     /**
      * Executor of the API requests.
      */

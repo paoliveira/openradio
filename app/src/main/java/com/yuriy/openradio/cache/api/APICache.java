@@ -30,5 +30,7 @@ public interface APICache {
 
     void put(final String key, final JSONArray data);
 
+    void remove(final String key);
+
     void clear();
 }

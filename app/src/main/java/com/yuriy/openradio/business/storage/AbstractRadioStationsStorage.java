@@ -111,7 +111,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
                                               final String name) {
         final SharedPreferences.Editor editor = getEditor(context, name);
         editor.remove(mediaId);
-        editor.commit();
+        editor.apply();
         AppLogger.i("Radio Station removed, media id:" + mediaId);
     }
 
@@ -256,7 +256,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
         final RadioStationSerializer serializer = new RadioStationJSONSerializer();
         final SharedPreferences.Editor editor = getEditor(context, name);
         editor.putString(key, serializer.serialize(radioStation));
-        editor.commit();
+        editor.apply();
         AppLogger.i("Radio Station added " + radioStation);
     }
 

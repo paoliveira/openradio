@@ -33,7 +33,7 @@ import com.yuriy.openradio.vo.GeoLocation;
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * {@link GeoAPIImpl} is the implementation of the
- * {@link APIServiceProvider} interface.
+ * {@link ApiServiceProvider} interface.
  */
 public final class GeoAPIImpl implements GeoAPI {
 

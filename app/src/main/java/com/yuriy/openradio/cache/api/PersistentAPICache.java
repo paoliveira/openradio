@@ -87,8 +87,7 @@ public final class PersistentAPICache implements APICache {
             AppLogger.d(CLASS_NAME + "Get id:" + cId + ", key:" + cKey + ", data:" + cData + ", time:" + cTime);
 
             if (getTime() - cTime > SEC_IN_DAY) {
-                AppLogger.d(CLASS_NAME + "Remove cached response");
-                delete(key);
+                // Do not return data, return null if time is expired.
                 break;
             }
 
@@ -116,25 +115,47 @@ public final class PersistentAPICache implements APICache {
 
         // Insert the new row, returning the primary key value of the new row
         long newRowId = db.replace(PersistentAPIContract.APIEntry.TABLE_NAME, null, values);
-        AppLogger.d(CLASS_NAME + "Put::new row::" + newRowId);
+        AppLogger.d(CLASS_NAME + "New row:" + newRowId);
     }
 
     @Override
     public void clear() {
         final SQLiteDatabase db = mDbHelper.getWritableDatabase();
         int deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, null, null);
-        AppLogger.d(CLASS_NAME + "Put::clear rows::" + deletedRows);
+        AppLogger.d(CLASS_NAME + "Clear rows:" + deletedRows);
+    }
+
+    @Override
+    public void remove(final String key) {
+        final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        final String[] selectionArgs = { key };
+        final int deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, SELECTION, selectionArgs);
+        AppLogger.d(CLASS_NAME + "Remove row:" + deletedRows + ", key:" + key);
     }
 
     public void close() {
         mDbHelper.close();
     }
 
-    protected void delete(final String key) {
-        final SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    int getCount(final String key) {
+        final SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
         final String[] selectionArgs = { key };
-        final int deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, SELECTION, selectionArgs);
-        AppLogger.d(CLASS_NAME + "Put::del row::" + deletedRows + ", key:" + key);
+
+        final Cursor cursor = db.query(
+                PersistentAPIContract.APIEntry.TABLE_NAME,   // The table to query
+                PROJECTION,            // The array of columns to return (pass null to get all)
+                SELECTION,              // The columns for the WHERE clause
+                selectionArgs,          // The values for the WHERE clause
+                null,           // don't group the rows
+                null,            // don't filter by row groups
+                null            // The sort order
+        );
+
+        final int count = cursor.getCount();
+        cursor.close();
+
+        return count;
     }
 
     private static int getTime() {
