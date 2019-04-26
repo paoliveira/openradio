@@ -39,7 +39,12 @@ import java.util.Random;
  */
 public final class ApiKeyLoader {
 
-    private static final int[] IDS = new int[]{R.raw.api_key_1, R.raw.api_key_2};
+    private static final int[] IDS = new int[]{
+            R.raw.api_key_1,
+            R.raw.api_key_2,
+            R.raw.api_key_3,
+            R.raw.api_key_4
+    };
     private static final String[] KEYS = new String[IDS.length];
     private static final Random RND = new Random();
 
@@ -57,6 +62,7 @@ public final class ApiKeyLoader {
      */
     public static String getApiKey() {
         final int idx = RND.nextInt(KEYS.length);
+        AppLogger.i("Api key idx:" + idx);
         return KEYS[idx];
     }
 
