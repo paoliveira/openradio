@@ -1,6 +1,23 @@
+/*
+ * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.File;
@@ -11,10 +28,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Utility class to handle operations over files.
+ */
 public final class FileUtils {
 
     private static final int FILE_BUFFER = 1024;
 
+    /**
+     * Private constructor to prevent this class instantiation.
+     */
     private FileUtils() {
         super();
     }
@@ -33,10 +56,20 @@ public final class FileUtils {
         }
     }
 
+    /**
+     *
+     * @param filePath
+     * @return
+     */
     public static boolean deleteFile(final String filePath) {
         return deleteFile(new File(filePath));
     }
 
+    /**
+     *
+     * @param file
+     * @return
+     */
     public static boolean deleteFile(final File file) {
         if (file == null) {
             return false;
@@ -64,6 +97,9 @@ public final class FileUtils {
      * @return
      */
     public static String copyExtFileToIntDir(final Context context, final String filePath) {
+        if (TextUtils.isEmpty(filePath)) {
+            return filePath;
+        }
         final File directory = getFilesDir(context);
         final File file = new File(directory, AppUtils.generateRandomHexToken(16));
         boolean isException = false;
