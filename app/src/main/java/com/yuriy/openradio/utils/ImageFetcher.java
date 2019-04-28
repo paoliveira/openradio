@@ -50,18 +50,6 @@ public class ImageFetcher extends ImageResizer {
     private Context mContext;
 
     /**
-     * Initialize providing a target image width and height for the processing images.
-     *
-     * @param context
-     * @param imageWidth
-     * @param imageHeight
-     */
-    public ImageFetcher(Context context, int imageWidth, int imageHeight) {
-        super(context, imageWidth, imageHeight);
-        init(context);
-    }
-
-    /**
      * Initialize providing a single target image size (used for both width and height);
      *
      * @param context
@@ -215,7 +203,8 @@ public class ImageFetcher extends ImageResizer {
                     if (fileDescriptor == null && fileInputStream != null) {
                         try {
                             fileInputStream.close();
-                        } catch (IOException ignored) {}
+                        } catch (IOException ignored) {
+                        }
                     }
                 }
             }
@@ -244,20 +233,20 @@ public class ImageFetcher extends ImageResizer {
     /**
      * Download a bitmap from a URL and write the content to an output stream.
      *
-     * @param urlString The URL to fetch
+     * @param context      Context of a callee.
+     * @param urlString    The URL to fetch.
+     * @param outputStream
      * @return true if successful, false otherwise
      */
-    private boolean downloadUrlToStream(final Context context,
-                                        final String urlString,
-                                        final OutputStream outputStream) {
+    public static boolean downloadUrlToStream(final Context context,
+                                              final String urlString,
+                                              final OutputStream outputStream) {
         HttpURLConnection urlConnection = null;
         BufferedOutputStream out = null;
         BufferedInputStream in = null;
 
         try {
-            if (urlString.toLowerCase().startsWith("www")
-                    || urlString.toLowerCase().startsWith("http")) {
-
+            if (AppUtils.isWebUrl(urlString)) {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
                     final URL url = new URL(urlString);
                     urlConnection = (HttpURLConnection) url.openConnection();

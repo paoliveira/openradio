@@ -26,6 +26,7 @@ import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
 import com.google.android.exoplayer2.util.Util;
@@ -536,6 +537,13 @@ public final class AppUtils {
             FabricUtils.logException(e);
         }
         return null;
+    }
+
+    public static boolean isWebUrl(final String url) {
+        if (TextUtils.isEmpty(url)) {
+            return false;
+        }
+        return url.toLowerCase().startsWith("www") || url.toLowerCase().startsWith("http");
     }
 
     static boolean hasKitKat() {

@@ -96,8 +96,7 @@ public final class BitmapHelper {
         InputStream inputStream;
         int scaleFactor;
 
-        if (uri.toLowerCase().startsWith("www")
-                || uri.toLowerCase().startsWith("http")) {
+        if (AppUtils.isWebUrl(uri)) {
             final URL url = new URL(uri);
             HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
             httpConnection.setDoInput(true);

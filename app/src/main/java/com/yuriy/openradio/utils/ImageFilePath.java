@@ -23,6 +23,8 @@ public final class ImageFilePath {
         super();
     }
 
+    private static final String DATA_COLUMN = MediaStore.Images.Media.DATA;
+
     /**
      * Method for return file path of Gallery image
      *
@@ -115,13 +117,11 @@ public final class ImageFilePath {
                                        final Uri originalUri,
                                        final String selection,
                                        final String[] selectionArgs) {
-
-        final String column = "_data";
-        final String[] projection = {column};
+        final String[] projection = {DATA_COLUMN};
         try (final Cursor cursor = context.getContentResolver()
                 .query(uri, projection, selection, selectionArgs, null)) {
             if (cursor != null && cursor.moveToFirst()) {
-                final int index = cursor.getColumnIndexOrThrow(column);
+                final int index = cursor.getColumnIndexOrThrow(DATA_COLUMN);
                 return cursor.getString(index);
             }
         } catch (final Exception e) {
