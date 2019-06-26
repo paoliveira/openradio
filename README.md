@@ -8,7 +8,7 @@
        I am currently looking for alternatives ...
   
 * Graphics are provided by [Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes](http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html)
-* Android requirements : Android 4.0 (API level 14) (new APIs for implementing audio playback that is compatible with Auto) or newer.
+* Android requirements : Android 4.1 (API level 16) (new APIs for implementing audio playback that is compatible with Auto) or newer.
 
 ### Delivery files ###
 
