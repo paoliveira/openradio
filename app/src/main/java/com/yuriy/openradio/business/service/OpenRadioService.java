@@ -1962,7 +1962,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final List<RadioStation> list = mApiServiceProvider.getStations(
                 downloader,
                 UrlBuilder.getSearchUrl(),
-                ApiServiceProviderImpl.getSearchQueryParameters(query)
+                UrlBuilder.getSearchQueryParameters(query)
         );
 
         if (list == null || list.isEmpty()) {

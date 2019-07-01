@@ -21,6 +21,7 @@ import android.support.annotation.NonNull;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.Utils;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;
@@ -57,17 +58,16 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    // Load all categories into menu
                     final List<RadioStation> list = new ArrayList<>();
                     if (!shareObject.isUseCache()) {
                         list.addAll(
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
                                         UrlBuilder.getStationsInCountry(
-                                                shareObject.getCountryCode(),
-                                                getPageNumber(),
-                                                UrlBuilder.ITEMS_PER_PAGE
-                                        )
+                                                shareObject.getCountryCode()
+                                        ),
+                                        // Get search query from the holder util.
+                                        UrlBuilder.getOffsetLimitParameters(getPageNumber(), UrlBuilder.ITEMS_PER_PAGE)
                                 )
                         );
                     }

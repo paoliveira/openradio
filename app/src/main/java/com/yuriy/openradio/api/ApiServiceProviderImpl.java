@@ -30,7 +30,6 @@ import com.yuriy.openradio.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.cache.api.PersistentApiCache;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
-import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
@@ -68,11 +67,6 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      */
     @SuppressWarnings("unused")
     private static final String CLASS_NAME = ApiServiceProviderImpl.class.getSimpleName() + " ";
-
-    /**
-     * Key for the search "key-value" pairs.
-     */
-    private static final String SEARCH_PARAMETER_KEY = "query";
 
     /**
      * Implementation of the {@link com.yuriy.openradio.business.DataParser} allows to
@@ -337,7 +331,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         }
 
         // Create key to associate response with.
-        String responsesMapKey = UrlBuilder.excludeApiToken(uri.toString());
+        String responsesMapKey = uri.toString();
         try {
             responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
         } catch (final UnsupportedEncodingException e) {
@@ -471,6 +465,12 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             radioStation.setMediaStream(mediaStream);
         }
 
+        if (object.has(JSONDataParserImpl.KEY_URL)) {
+            final MediaStream mediaStream = MediaStream.makeDefaultInstance();
+            mediaStream.setVariant(128, object.getString(JSONDataParserImpl.KEY_URL));
+            radioStation.setMediaStream(mediaStream);
+        }
+
         if (object.has(JSONDataParserImpl.KEY_ID)) {
             radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
         }
@@ -492,18 +492,10 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                 }
             }
         }
-    }
 
-    /**
-     * Creates and returns list of the quesry search parameters to attach to http connection.
-     *
-     * @param searchQuery String to use as query.
-     * @return List of the query search parameters.
-     */
-    @NonNull
-    public static List<Pair<String, String>> getSearchQueryParameters(final String searchQuery) {
-        final List<Pair<String, String>> result = new ArrayList<>();
-        result.add(new Pair<>(SEARCH_PARAMETER_KEY, searchQuery));
-        return result;
+        if (object.has(JSONDataParserImpl.KEY_FAV_ICON)) {
+            radioStation.setImageUrl(object.getString(JSONDataParserImpl.KEY_FAV_ICON));
+            radioStation.setThumbUrl(object.getString(JSONDataParserImpl.KEY_FAV_ICON));
+        }
     }
 }

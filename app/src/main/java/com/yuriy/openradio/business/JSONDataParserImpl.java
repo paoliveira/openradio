@@ -76,4 +76,6 @@ public class JSONDataParserImpl implements DataParser {
     public static final String KEY_THUMB = "thumb";
 
     public static final String KEY_URL = "url";
+
+    public static final String KEY_FAV_ICON = "favicon";
 }

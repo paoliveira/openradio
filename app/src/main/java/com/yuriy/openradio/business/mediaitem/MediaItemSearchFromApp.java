@@ -18,7 +18,6 @@ package com.yuriy.openradio.business.mediaitem;
 
 import android.support.annotation.NonNull;
 
-import com.yuriy.openradio.api.ApiServiceProviderImpl;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -65,7 +64,7 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
                                         shareObject.getDownloader(),
                                         UrlBuilder.getSearchUrl(),
                                         // Get search query from the holder util.
-                                        ApiServiceProviderImpl.getSearchQueryParameters(Utils.getSearchQuery())
+                                        UrlBuilder.getSearchQueryParameters(Utils.getSearchQuery())
                                 )
                         );
                     }
