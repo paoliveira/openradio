@@ -1115,15 +1115,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         final String trackId = track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
         // TODO: Check whether we can use media id from Radio Station
-        if (!mediaId.equals(trackId)) {
-            AppLogger.w(CLASS_NAME + "track ID '" + trackId + "' should match mediaId '" + mediaId + "'");
+        if (!TextUtils.equals(mediaId, trackId)) {
+            AppLogger.w(
+                    CLASS_NAME + "track ID '" + trackId
+                            + "' should match mediaId '" + mediaId + "'"
+            );
             return;
         }
-        AppLogger.d(
-                CLASS_NAME +
-                        " Updating metadata for MusicId:" + mediaId + ", title:" + streamTitle
-        );
-        mSession.setMetadata(track);
+        AppLogger.d(CLASS_NAME + "Updating metadata for MusicId:" + mediaId + ", title:" + streamTitle);
+        try {
+            mSession.setMetadata(track);
+        } catch (final IllegalStateException e) {
+            AppLogger.e(CLASS_NAME + "Can not set metadata:" + e);
+        }
     }
 
     /**
@@ -1139,7 +1143,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return null;
         }
         if (queueItem.getDescription() == null) {
-            AppLogger.w(CLASS_NAME + "Can not get current Radio Station - Description of the QueueItem is null");
+            AppLogger.w(
+                    CLASS_NAME + "Can not get current Radio Station - Description of the QueueItem is null"
+            );
             return null;
         }
         final String mediaId = queueItem.getDescription().getMediaId();
@@ -1222,7 +1228,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Handle a request to play Radio Station
      */
     private void handlePlayRequest() {
-        AppLogger.d(CLASS_NAME + "Handle PlayRequest: mState=" + mState + " started:" + mServiceStarted);
+        AppLogger.d(
+                CLASS_NAME + "Handle PlayRequest: mState=" + mState
+                        + " started:" + mServiceStarted
+        );
         mCurrentStreamTitle = null;
         final Context context = getApplicationContext();
         if (!ConnectivityReceiver.checkConnectivityAndNotify(context)) {
@@ -1419,7 +1428,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // Pause media player and cancel the 'foreground service' state.
             mState = PlaybackStateCompat.STATE_PAUSED;
             mPauseReason = reason;
-            if (mExoPlayer.isPlaying()) {
+            if (mExoPlayer != null && mExoPlayer.isPlaying()) {
                 mExoPlayer.pause();
             }
             // while paused, retain the ExoPlayer but give up audio focus
@@ -1483,7 +1492,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         AppLogger.d(CLASS_NAME + "state:" + mState);
-        if (mState == PlaybackStateCompat.STATE_BUFFERING || mState == PlaybackStateCompat.STATE_PLAYING || mState == PlaybackStateCompat.STATE_PAUSED) {
+        if (mState == PlaybackStateCompat.STATE_BUFFERING
+                || mState == PlaybackStateCompat.STATE_PLAYING
+                || mState == PlaybackStateCompat.STATE_PAUSED) {
             mMediaNotification.startNotification(getApplicationContext(), getCurrentPlayingRadioStation());
         }
     }

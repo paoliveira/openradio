@@ -20,7 +20,7 @@ project.ext {
     googlePlayServicesAuthVersion = "16.0.1"
     constraintLayoutVersion = "1.1.3"
     log4jVersion = "1.2.17"
-    crashlyticsVersion = "2.9.9"
+    crashlyticsVersion = "2.10.1"
     junitVersion = "4.12"
     // https://mvnrepository.com/artifact/org.json/json
     jsonTestVersion = "20171018"
