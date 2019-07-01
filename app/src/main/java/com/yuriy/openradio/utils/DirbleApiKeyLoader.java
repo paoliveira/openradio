@@ -35,9 +35,9 @@ import java.util.Random;
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * {@link ApiKeyLoader} is a helper class to provide Dirble API key.
+ * {@link DirbleApiKeyLoader} is a helper class to provide Dirble API key.
  */
-public final class ApiKeyLoader {
+public final class DirbleApiKeyLoader {
 
     private static final int[] IDS = new int[]{
             R.raw.api_key_1,
@@ -51,7 +51,7 @@ public final class ApiKeyLoader {
     /**
      * Constructor.
      */
-    private ApiKeyLoader() {
+    private DirbleApiKeyLoader() {
         super();
     }
 

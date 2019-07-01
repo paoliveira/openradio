@@ -27,15 +27,15 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
-public class ApiKeyLoaderTest {
+public class DirbleApiKeyLoaderTest {
 
-    public ApiKeyLoaderTest() {
+    public DirbleApiKeyLoaderTest() {
         super();
     }
 
     @Before
     public void setUp() throws Exception {
-        ApiKeyLoader.init(InstrumentationRegistry.getTargetContext());
+        DirbleApiKeyLoader.init(InstrumentationRegistry.getTargetContext());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class ApiKeyLoaderTest {
         int num = 100;
         int c = 0;
         for (int i = 0; i <= num; i++) {
-            ApiKeyLoader.getApiKey();
+            DirbleApiKeyLoader.getApiKey();
             c = i;
         }
 

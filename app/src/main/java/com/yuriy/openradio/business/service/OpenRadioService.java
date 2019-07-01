@@ -1018,7 +1018,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
 
         // This indicates that Radio Station's url was not downloaded.
-        // In version Dirble v2 when list of the stations received they comes without stream url
+        // Currently, when list of the stations received they comes without stream url
         // and bitrate, upon selecting one - it is necessary to load additional data.
         if (radioStation.isMediaStreamEmpty()) {
 

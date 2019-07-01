@@ -34,8 +34,7 @@ import com.yuriy.openradio.vo.RadioStation;
 import java.util.List;
 
 /**
- * {@link ApiServiceProvider} is an interface which provide
- * various methods of the Dirble's API.
+ * {@link ApiServiceProvider} is an interface which provide various methods of API.
  */
 public interface ApiServiceProvider {
 

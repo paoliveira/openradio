@@ -25,7 +25,7 @@ import com.crashlytics.android.Crashlytics;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.business.storage.AppPreferencesManager;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
-import com.yuriy.openradio.utils.ApiKeyLoader;
+import com.yuriy.openradio.utils.DirbleApiKeyLoader;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FileUtils;
@@ -62,7 +62,7 @@ public final class MainApp extends Application {
         final Context context = getApplicationContext();
         final Thread thread = new Thread(
                 () -> {
-                    ApiKeyLoader.init(context);
+                    DirbleApiKeyLoader.init(context);
                     final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled(
                             context
                     );

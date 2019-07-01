@@ -29,7 +29,7 @@ public abstract class IndexableMediaItemCommand implements MediaItemCommand {
     private static final String CLASS_NAME = IndexableMediaItemCommand.class.getSimpleName();
 
     /**
-     * Index of the current page (refer to Dirble API for more info) of the Radio Stations List.
+     * Index of the current page of the Radio Stations List.
      */
     private AtomicInteger mPageIndex;
 

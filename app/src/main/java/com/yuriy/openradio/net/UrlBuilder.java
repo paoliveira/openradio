@@ -19,7 +19,7 @@ package com.yuriy.openradio.net;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.utils.ApiKeyLoader;
+import com.yuriy.openradio.utils.DirbleApiKeyLoader;
 
 /**
  * Created by Yuriy Chernyshov
@@ -33,12 +33,12 @@ import com.yuriy.openradio.utils.ApiKeyLoader;
 public final class UrlBuilder {
 
     /**
-     * Id of the first page (refer to Dirble API for more info) of the Radio Stations List.
+     * Id of the first page of the Radio Stations List.
      */
     public static final int FIRST_PAGE_INDEX = 1;
 
     /**
-     * Number of Radio Stations in each page (refer to Dirble API for more info).
+     * Number of Radio Stations in each page.
      */
     public static final int ITEMS_PER_PAGE = 30;
 
@@ -53,12 +53,12 @@ public final class UrlBuilder {
     private static final String GOOGLE_GEO_URL = "https://maps.googleapis.com/maps/api/geocode";
 
     /**
-     * Base url for the icons used previously by Dirble.
+     * Base url for the icons used previously.
      */
     static final String OLD_IMG_BASE_URL = "cdn.devality.com";
 
     /**
-     * Base url for the icons using currently by Dirble.
+     * Base url for the icons using currently.
      */
     static final String NEW_IMG_BASE_URL = "img.dirble.com";
 
@@ -92,7 +92,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getAllCategoriesUrl() {
-        return Uri.parse(BASE_URL + "categories?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
+        return Uri.parse(BASE_URL + "categories?" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey());
     }
 
     /**
@@ -101,7 +101,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getAllCountriesUrl() {
-        return Uri.parse(BASE_URL + "countries?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
+        return Uri.parse(BASE_URL + "countries?" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey());
     }
 
     /**
@@ -112,7 +112,7 @@ public final class UrlBuilder {
      */
     public static Uri getChildCategoriesUrl(final String primaryId) {
         return Uri.parse(
-                BASE_URL + "category/" + primaryId + "/childs" + "?" + TOKEN_KEY + ApiKeyLoader.getApiKey()
+                BASE_URL + "category/" + primaryId + "/childs" + "?" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey()
         );
     }
 
@@ -127,7 +127,7 @@ public final class UrlBuilder {
                 BASE_URL + "category/" + categoryId + "/stations"
                         + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
-                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
+                        + "&" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey()
         );
     }
 
@@ -142,7 +142,7 @@ public final class UrlBuilder {
                 BASE_URL + "countries/" + countryCode + "/stations"
                         + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
-                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
+                        + "&" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey()
         );
     }
 
@@ -158,7 +158,7 @@ public final class UrlBuilder {
                 BASE_URL + "stations/popular"
                         + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
-                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
+                        + "&" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey()
         );
     }
 
@@ -173,7 +173,7 @@ public final class UrlBuilder {
                 BASE_URL + "stations/recent"
                         + "?page=" + pageNumber
                         + "&per_page=" + numberPerPage
-                        + "&" + TOKEN_KEY + ApiKeyLoader.getApiKey()
+                        + "&" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey()
         );
     }
 
@@ -184,7 +184,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getStation(final String stationId) {
-        return Uri.parse(BASE_URL + "station/" + stationId + "?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
+        return Uri.parse(BASE_URL + "station/" + stationId + "?" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey());
     }
 
     /**
@@ -193,7 +193,7 @@ public final class UrlBuilder {
      * @return {@link Uri}.
      */
     public static Uri getSearchUrl() {
-        return Uri.parse(BASE_URL + "search/?" + TOKEN_KEY + ApiKeyLoader.getApiKey());
+        return Uri.parse(BASE_URL + "search/?" + TOKEN_KEY + DirbleApiKeyLoader.getApiKey());
     }
 
     /**
