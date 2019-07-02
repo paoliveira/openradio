@@ -39,7 +39,7 @@ public final class UrlBuilder {
     /**
      * Id of the first page of the Radio Stations List.
      */
-    public static final int FIRST_PAGE_INDEX = 1;
+    public static final int FIRST_PAGE_INDEX = 0;
 
     /**
      * Number of Radio Stations in each page.
@@ -145,40 +145,30 @@ public final class UrlBuilder {
      * @param countryCode Country Code.
      * @return {@link Uri}
      */
-    public static Uri getStationsInCountry(final String countryCode) {
+    public static Uri getStationsInCountry(final String countryCode,
+                                           final int pageNumber, final int numberPerPage) {
         final String countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
-        return Uri.parse(BASE_URL + "stations/bycountry/" + countryName);
+        return Uri.parse(BASE_URL + "stations/bycountry/" + countryName
+                + "?offset=" + pageNumber
+                + "&limit=" + numberPerPage);
     }
 
     /**
      * Get Uri for the list of the popular Radio Stations.
      *
-     * @param pageNumber    Id of the current page being requested.
-     * @param numberPerPage Number of items in one response.
      * @return {@link Uri}
      */
-    public static Uri getPopularStations(final int pageNumber, final int numberPerPage) {
-        return Uri.parse(
-                BASE_URL + "stations/popular"
-                        + "?page=" + pageNumber
-                        + "&per_page=" + numberPerPage
-                        + "&"
-        );
+    public static Uri getPopularStations() {
+        return Uri.parse(BASE_URL + "stations/topclick/50");
     }
 
     /**
      * Get Uri for the list of the recently added Radio Stations.
      *
-     * @param numberPerPage Number of items in one response.
      * @return {@link Uri}
      */
-    public static Uri getRecentlyAddedStations(final int pageNumber, final int numberPerPage) {
-        return Uri.parse(
-                BASE_URL + "stations/recent"
-                        + "?page=" + pageNumber
-                        + "&per_page=" + numberPerPage
-                        + "&"
-        );
+    public static Uri getRecentlyAddedStations() {
+        return Uri.parse(BASE_URL + "stations/lastchange/50");
     }
 
     /**
@@ -188,7 +178,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getStation(final String stationId) {
-        return Uri.parse(BASE_URL + "station/" + stationId + "?");
+        return Uri.parse(BASE_URL + "station/" + stationId);
     }
 
     /**
@@ -246,23 +236,9 @@ public final class UrlBuilder {
 
     /**
      *
-     * @param offset
-     * @param limit
      * @return
      */
-    @NonNull
-    public static List<Pair<String, String>> getOffsetLimitParameters(final int offset, final int limit) {
-        final List<Pair<String, String>> result = getBaseParameters();
-        result.add(new Pair<>(OFFSET_PARAMETER_KEY, String.valueOf(offset)));
-        result.add(new Pair<>(LIMIT_PARAMETER_KEY, String.valueOf(limit)));
-        return result;
-    }
-
-    /**
-     *
-     * @return
-     */
-    private static List<Pair<String, String>> getBaseParameters() {
+    public static List<Pair<String, String>> getBaseParameters() {
         final List<Pair<String, String>> result = new ArrayList<>();
         result.add(new Pair<>(USER_AGENT_PARAMETER_KEY, "Open Radio App"));
         return result;

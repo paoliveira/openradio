@@ -63,10 +63,8 @@ public final class MediaItemPopularStations extends IndexableMediaItemCommand {
                         list.addAll(
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
-                                        UrlBuilder.getPopularStations(
-                                                getPageNumber(),
-                                                UrlBuilder.ITEMS_PER_PAGE
-                                        )
+                                        UrlBuilder.getPopularStations(),
+                                        UrlBuilder.getBaseParameters()
                                 )
                         );
                     }

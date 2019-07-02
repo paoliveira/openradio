@@ -23,6 +23,7 @@ public class ImageFetcherFactory {
     /**
      * Create {@link ImageFetcher} instance to fetch
      * small images for the List View
+     *
      * @param context {@link android.content.Context}
      * @return {@link ImageFetcher} instance
      */
@@ -34,6 +35,7 @@ public class ImageFetcherFactory {
     /**
      * Create {@link ImageFetcher} instance to fetch
      * small images for the Details View
+     *
      * @param context {@link android.content.Context}
      * @return {@link ImageFetcher} instance
      */
@@ -46,13 +48,14 @@ public class ImageFetcherFactory {
 
     /**
      * Create {@link ImageFetcher} instance
+     *
      * @param context        {@link android.content.Context}
      * @param imageThumbSize desired size of the fetched image
      * @param imageDir       directory to addToLocals images at
      * @return {@link ImageFetcher} instance
      */
     private static ImageFetcher getImageFetcher(FragmentActivity context, int imageThumbSize,
-                                               String imageDir) {
+                                                String imageDir) {
 
         final ImageCache.ImageCacheParams cacheParams =
                 new ImageCache.ImageCacheParams(context, imageDir);
@@ -61,9 +64,9 @@ public class ImageFetcherFactory {
 
         // The ImageFetcher takes care of loading images into our ImageView children asynchronously
         final ImageFetcher imageFetcher = new ImageFetcher(context, imageThumbSize);
-        //imageFetcher.setLoadingImage(R.drawable.radio_station_alpha_bg);
+        imageFetcher.setLoadingImage(R.drawable.radio_station_alpha_bg);
         imageFetcher.addImageCache(context.getSupportFragmentManager(), cacheParams);
-        imageFetcher.setImageFadeIn(true);
+        imageFetcher.setImageFadeIn(false);
 
         return imageFetcher;
     }
