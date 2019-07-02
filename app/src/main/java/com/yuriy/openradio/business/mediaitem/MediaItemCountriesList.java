@@ -39,9 +39,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ * <p>
  * {@link MediaItemCountriesList} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display list of all Countries.
  */

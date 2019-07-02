@@ -31,6 +31,7 @@ import com.yuriy.openradio.cache.api.PersistentApiCache;
 import com.yuriy.openradio.net.Downloader;
 import com.yuriy.openradio.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.RadioStationChecker;
 import com.yuriy.openradio.vo.Category;
@@ -167,19 +168,23 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             try {
                 object = (JSONObject) array.get(i);
 
-                if (object.has(JSONDataParserImpl.KEY_COUNTRY_CODE)
-                        && object.has(JSONDataParserImpl.KEY_NAME)) {
+                if (object.has(JSONDataParserImpl.KEY_NAME)) {
                     countryName = object.getString(JSONDataParserImpl.KEY_NAME);
-                    countryCode = object.getString(JSONDataParserImpl.KEY_COUNTRY_CODE);
 
-                    if (TextUtils.isEmpty(countryName) || TextUtils.isEmpty(countryCode)) {
+                    if (TextUtils.isEmpty(countryName)) {
                         AppLogger.w(
-                                CLASS_NAME + "Can not parse Country name and or Code, " +
-                                        "one or both values are not valid"
+                                CLASS_NAME + "Can not parse Country name:" + countryName
                         );
                         continue;
                     }
 
+                    countryCode = AppUtils.COUNTRY_NAME_TO_CODE.get(countryName);
+                    if (TextUtils.isEmpty(countryCode)) {
+                        AppLogger.w(
+                                CLASS_NAME + "Can not find Country code for:" + countryName
+                        );
+                        continue;
+                    }
                     allCountries.add(new Country(countryName, countryCode));
                 }
             } catch (final JSONException e) {

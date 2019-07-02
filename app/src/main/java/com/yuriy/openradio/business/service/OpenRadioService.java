@@ -586,7 +586,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (TextUtils.isEmpty(countryCode)) {
             // If no Country Code founded - use device native one.
             countryCode = mLocationService.getCountryCode();
-            AppLogger.d(CLASS_NAME + "country code:" + countryCode);
         }
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIDHelper.getId(mCurrentParentId));

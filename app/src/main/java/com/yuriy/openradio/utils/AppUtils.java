@@ -47,7 +47,7 @@ import java.util.concurrent.Executors;
  * At Android Studio
  * On 11/29/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link AppUtils} is a helper class which holds various help-methods
  */
 public final class AppUtils {
@@ -60,9 +60,14 @@ public final class AppUtils {
     public static final ExecutorService API_CALL_EXECUTOR = Executors.newSingleThreadExecutor();
 
     /**
-     * Map of the Countries Code and Name.
+     * Map of the Countries Codes and Names.
      */
     public static final Map<String, String> COUNTRY_CODE_TO_NAME = new TreeMap<>();
+
+    /**
+     * Map of the Countries Names to Codes.
+     */
+    public static final Map<String, String> COUNTRY_NAME_TO_CODE = new TreeMap<>();
 
     // http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
     static {
@@ -316,6 +321,10 @@ public final class AppUtils {
         COUNTRY_CODE_TO_NAME.put("VI", "Virgin Islands, U.S.");
         COUNTRY_CODE_TO_NAME.put("WF", "Wallis and Futuna");
         COUNTRY_CODE_TO_NAME.put("YT", "Mayotte");
+
+        for (final Map.Entry<String, String> entry : COUNTRY_CODE_TO_NAME.entrySet()) {
+            COUNTRY_NAME_TO_CODE.put(entry.getValue(), entry.getKey());
+        }
     }
 
     /**
@@ -324,9 +333,11 @@ public final class AppUtils {
     private static final String CLASS_NAME = AppUtils.class.getSimpleName();
 
     /**
-     * Private constructor
+     * Private constructor.
      */
-    private AppUtils() {}
+    private AppUtils() {
+        super();
+    }
 
     /**
      * Get application's version name.
@@ -429,10 +440,10 @@ public final class AppUtils {
     /**
      * Return {@link java.io.File} object legal to call on API 8.
      *
-     * @param type The type of files directory to return. May be null for the root of the
-     *             files directory or one of the following Environment constants for a subdirectory:
-     *             DIRECTORY_MUSIC, DIRECTORY_PODCASTS, DIRECTORY_RINGTONES, DIRECTORY_ALARMS,
-     *             DIRECTORY_NOTIFICATIONS, DIRECTORY_PICTURES, or DIRECTORY_MOVIES.
+     * @param type    The type of files directory to return. May be null for the root of the
+     *                files directory or one of the following Environment constants for a subdirectory:
+     *                DIRECTORY_MUSIC, DIRECTORY_PODCASTS, DIRECTORY_RINGTONES, DIRECTORY_ALARMS,
+     *                DIRECTORY_NOTIFICATIONS, DIRECTORY_PICTURES, or DIRECTORY_MOVIES.
      * @param context Context of the callee.
      * @return {@link java.io.File} object.
      */
@@ -455,7 +466,6 @@ public final class AppUtils {
     }
 
     /**
-     *
      * @param context
      * @return
      */

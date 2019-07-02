@@ -132,7 +132,8 @@ public final class HTTPDownloaderImpl implements Downloader {
             // If POST is supported:
             if (result) {
                 try (final OutputStream outputStream = urlConnection.getOutputStream();
-                     final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, AppUtils.UTF8))) {
+                     final BufferedWriter writer
+                             = new BufferedWriter(new OutputStreamWriter(outputStream, AppUtils.UTF8))) {
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
                 } catch (final IOException exception) {

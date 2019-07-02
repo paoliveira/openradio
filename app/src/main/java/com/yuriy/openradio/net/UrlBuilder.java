@@ -20,6 +20,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 
+import com.yuriy.openradio.utils.AppUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,6 +73,7 @@ public final class UrlBuilder {
 
     private static final String OFFSET_PARAMETER_KEY = "offset";
     private static final String LIMIT_PARAMETER_KEY = "limit";
+    private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
 
     /**
      * Private constructor.
@@ -106,7 +109,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getAllCountriesUrl() {
-        return Uri.parse(BASE_URL + "countries?");
+        return Uri.parse(BASE_URL + "countries");
     }
 
     /**
@@ -137,13 +140,14 @@ public final class UrlBuilder {
     }
 
     /**
-     * Get Uri for the list of the Radio Stations in concrete Category.
+     * Get Uri for the list of the Radio Stations in country.
      *
      * @param countryCode Country Code.
      * @return {@link Uri}
      */
     public static Uri getStationsInCountry(final String countryCode) {
-        return Uri.parse(BASE_URL + "stations/bycountry/" + countryCode);
+        final String countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
+        return Uri.parse(BASE_URL + "stations/bycountry/" + countryName);
     }
 
     /**
@@ -235,7 +239,7 @@ public final class UrlBuilder {
      */
     @NonNull
     public static List<Pair<String, String>> getSearchQueryParameters(final String searchQuery) {
-        final List<Pair<String, String>> result = new ArrayList<>();
+        final List<Pair<String, String>> result = getBaseParameters();
         result.add(new Pair<>(SEARCH_PARAMETER_KEY, searchQuery));
         return result;
     }
@@ -248,9 +252,19 @@ public final class UrlBuilder {
      */
     @NonNull
     public static List<Pair<String, String>> getOffsetLimitParameters(final int offset, final int limit) {
-        final List<Pair<String, String>> result = new ArrayList<>();
+        final List<Pair<String, String>> result = getBaseParameters();
         result.add(new Pair<>(OFFSET_PARAMETER_KEY, String.valueOf(offset)));
         result.add(new Pair<>(LIMIT_PARAMETER_KEY, String.valueOf(limit)));
+        return result;
+    }
+
+    /**
+     *
+     * @return
+     */
+    private static List<Pair<String, String>> getBaseParameters() {
+        final List<Pair<String, String>> result = new ArrayList<>();
+        result.add(new Pair<>(USER_AGENT_PARAMETER_KEY, "Open Radio App"));
         return result;
     }
 }
