@@ -46,6 +46,9 @@ public final class UrlBuilder {
      */
     public static final int ITEMS_PER_PAGE = 30;
 
+
+    public static final int RECENT_POPULAR_PER_PAGE = 50;
+
     /**
      * Base URL for the API requests.
      */
@@ -100,7 +103,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getAllCategoriesUrl() {
-        return Uri.parse(BASE_URL + "categories?");
+        return Uri.parse(BASE_URL + "tags?reverse=true&order=stationcount");
     }
 
     /**
@@ -120,7 +123,9 @@ public final class UrlBuilder {
      */
     public static Uri getChildCategoriesUrl(final String primaryId) {
         return Uri.parse(
-                BASE_URL + "category/" + primaryId + "/childs" + "?"
+                BASE_URL + "tags/" + primaryId + "?reverse=true&order=stationcount"
+                        + "&offset=" + 0
+                        + "&limit=" + 5
         );
     }
 
@@ -132,10 +137,9 @@ public final class UrlBuilder {
      */
     public static Uri getStationsInCategory(final String categoryId, final int pageNumber, final int numberPerPage) {
         return Uri.parse(
-                BASE_URL + "category/" + categoryId + "/stations"
-                        + "?page=" + pageNumber
-                        + "&per_page=" + numberPerPage
-                        + "&"
+                BASE_URL + "stations/bytag/" + categoryId + "?reverse=true&order=stationcount"
+                        + "&offset=" + pageNumber
+                        + "&limit=" + numberPerPage
         );
     }
 
@@ -159,7 +163,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getPopularStations() {
-        return Uri.parse(BASE_URL + "stations/topclick/50");
+        return Uri.parse(BASE_URL + "stations/topclick/" + RECENT_POPULAR_PER_PAGE);
     }
 
     /**
@@ -168,7 +172,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getRecentlyAddedStations() {
-        return Uri.parse(BASE_URL + "stations/lastchange/50");
+        return Uri.parse(BASE_URL + "stations/lastchange/" + RECENT_POPULAR_PER_PAGE);
     }
 
     /**

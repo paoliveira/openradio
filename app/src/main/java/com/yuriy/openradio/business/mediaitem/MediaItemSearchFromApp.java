@@ -58,7 +58,7 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isUseCache()) {
+                    if (!shareObject.isRestoreInstance()) {
                         list.addAll(
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),

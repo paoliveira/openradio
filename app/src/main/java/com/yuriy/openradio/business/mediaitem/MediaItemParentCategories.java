@@ -16,20 +16,15 @@
 
 package com.yuriy.openradio.business.mediaitem;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
 
-import com.yuriy.openradio.R;
 import com.yuriy.openradio.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
-import com.yuriy.openradio.utils.QueueHelper;
-import com.yuriy.openradio.vo.Category;
+import com.yuriy.openradio.vo.RadioStation;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,7 +36,7 @@ import java.util.List;
  * {@link MediaItemParentCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of Parent Categories.
  */
-public final class MediaItemParentCategories implements MediaItemCommand {
+public final class MediaItemParentCategories extends IndexableMediaItemCommand {
 
     private static final String LOG_TAG = MediaItemParentCategories.class.getSimpleName();
 
@@ -52,65 +47,30 @@ public final class MediaItemParentCategories implements MediaItemCommand {
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
                         @NonNull final MediaItemShareObject shareObject) {
+        super.execute(playbackStateListener, shareObject);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
-                    // Load child categories into menu
-                    loadChildCategories(playbackStateListener, shareObject);
+                    final List<RadioStation> list = new ArrayList<>();
+                    if (!shareObject.isRestoreInstance()) {
+                        final String childMenuId = shareObject.getParentId()
+                                .replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
+                        list.addAll(
+                                shareObject.getServiceProvider().getStations(
+                                        shareObject.getDownloader(),
+                                        UrlBuilder.getStationsInCategory(
+                                                childMenuId,
+                                                getPageNumber(),
+                                                UrlBuilder.ITEMS_PER_PAGE
+                                        )
+                                )
+                        );
+                    }
+                    handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );
-    }
-
-    /**
-     * Load Parent Categories into Menu.
-     *
-     * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
-     *                              references needed to execute command.
-     */
-    private void loadChildCategories(final IUpdatePlaybackState playbackStateListener,
-                                     @NonNull final MediaItemShareObject shareObject) {
-
-        final String primaryMenuId
-                = shareObject.getParentId().replace(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, "");
-
-        shareObject.setCurrentCategory(primaryMenuId);
-
-        final List<Category> list = shareObject.getServiceProvider().getCategories(
-                shareObject.getDownloader(),
-                UrlBuilder.getChildCategoriesUrl(primaryMenuId));
-
-        if (list.isEmpty() && playbackStateListener != null) {
-            playbackStateListener.updatePlaybackState(
-                    shareObject.getContext().getString(R.string.no_data_message)
-            );
-            return;
-        }
-
-        Collections.sort(list, (lhs, rhs) -> lhs.getTitle().compareTo(rhs.getTitle()));
-
-        QueueHelper.clearAndCopyCollection(shareObject.getChildCategories(), list);
-
-        final String iconUrl = "android.resource://" +
-                shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
-
-        for (final Category category : shareObject.getChildCategories()) {
-            shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES
-                                            + String.valueOf(category.getId())
-                            )
-                            .setTitle(category.getTitle())
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(category.getDescription())
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
-        }
-
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
     }
 }

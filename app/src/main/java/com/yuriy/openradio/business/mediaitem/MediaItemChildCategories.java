@@ -57,10 +57,8 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
 
         AppUtils.API_CALL_EXECUTOR.submit(
                 () -> {
-                    // Load Radio Stations into menu
-                    // Load all categories into menu
                     final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isUseCache()) {
+                    if (!shareObject.isRestoreInstance()) {
                         final String childMenuId = shareObject.getParentId()
                                 .replace(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, "");
                         list.addAll(

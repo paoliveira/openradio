@@ -58,7 +58,7 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
                 () -> {
                     // Load all categories into menu
                     final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isUseCache()) {
+                    if (!shareObject.isRestoreInstance()) {
                         list.addAll(
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),

@@ -52,7 +52,6 @@ public final class MediaItemAllCategories implements MediaItemCommand {
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
                         @NonNull final MediaItemShareObject shareObject) {
-
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
@@ -85,24 +84,19 @@ public final class MediaItemAllCategories implements MediaItemCommand {
             return;
         }
 
-        Collections.sort(list, (lhs, rhs) -> lhs.getTitle().compareTo(rhs.getTitle()));
-
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
-        final Set<String> predefinedCategories = AppUtils.predefinedCategories();
+//        final Set<String> predefinedCategories = AppUtils.predefinedCategories();
         for (final Category category : list) {
 
-            if (!predefinedCategories.contains(category.getTitle())) {
-                continue;
-            }
+//            if (!predefinedCategories.contains(category.getTitle())) {
+//                continue;
+//            }
 
             shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
-                            .setMediaId(
-                                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES
-                                            + String.valueOf(category.getId())
-                            )
+                            .setMediaId(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + category.getId())
                             .setTitle(category.getTitle())
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())

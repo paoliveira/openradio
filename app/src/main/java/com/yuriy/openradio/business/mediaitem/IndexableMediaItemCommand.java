@@ -75,7 +75,7 @@ public abstract class IndexableMediaItemCommand implements MediaItemCommand {
                           @NonNull final MediaItemShareObject shareObject,
                           final List<RadioStation> list) {
         AppLogger.d(CLASS_NAME + " Loaded " + list.size() + " items, index " + mPageIndex.get());
-        if (!shareObject.isUseCache() && list.isEmpty()) {
+        if (!shareObject.isRestoreInstance() && list.isEmpty()) {
 
             if (mPageIndex.get() == UrlBuilder.FIRST_PAGE_INDEX + 1) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(

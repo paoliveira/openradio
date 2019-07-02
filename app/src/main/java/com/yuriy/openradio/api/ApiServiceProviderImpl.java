@@ -128,14 +128,9 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
                 // TODO: Use data parser to parse JSON to value object
 
-                if (object.has(JSONDataParserImpl.KEY_ID)) {
-                    category.setId(object.getInt(JSONDataParserImpl.KEY_ID));
-                }
-                if (object.has(JSONDataParserImpl.KEY_TITLE)) {
-                    category.setTitle(object.getString(JSONDataParserImpl.KEY_TITLE));
-                }
-                if (object.has(JSONDataParserImpl.KEY_DESCRIPTION)) {
-                    category.setDescription(object.getString(JSONDataParserImpl.KEY_DESCRIPTION));
+                if (object.has(JSONDataParserImpl.KEY_NAME)) {
+                    category.setId(object.getString(JSONDataParserImpl.KEY_NAME));
+                    category.setTitle(object.getString(JSONDataParserImpl.KEY_NAME));
                 }
 
                 allCategories.add(category);

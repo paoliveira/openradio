@@ -602,7 +602,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
             shareObject.isSameCatalogue(isSameCatalogue);
-            shareObject.setUseCache(mIsRestoreInstance);
+            shareObject.setRestoreInstance(mIsRestoreInstance);
             shareObject.setRemotePlay(this::handleLastRadioStation);
 
             command.execute(mPlaybackStateListener, shareObject);

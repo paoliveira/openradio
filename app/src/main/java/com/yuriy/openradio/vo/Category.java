@@ -32,7 +32,7 @@ public final class Category {
 
     private static final String CLASS_NAME = Category.class.getSimpleName();
 
-    private int mId;
+    private String mId;
 
     private int mAmount;
 
@@ -48,11 +48,11 @@ public final class Category {
      */
     private Category() { }
 
-    public int getId() {
+    public String getId() {
         return mId;
     }
 
-    public void setId(final int value) {
+    public void setId(final String value) {
         mId = value;
     }
 

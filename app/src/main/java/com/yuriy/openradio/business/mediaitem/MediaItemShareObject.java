@@ -107,7 +107,7 @@ public final class MediaItemShareObject {
 
     private volatile boolean mIsSameCatalogue;
 
-    private volatile boolean mIsUseCache;
+    private volatile boolean mIsRestoreInstance;
 
     /**
      * Private constructor.
@@ -303,12 +303,12 @@ public final class MediaItemShareObject {
         mIsSameCatalogue = value;
     }
 
-    public boolean isUseCache() {
-        return mIsUseCache;
+    public boolean isRestoreInstance() {
+        return mIsRestoreInstance;
     }
 
-    public void setUseCache(final boolean value) {
-        mIsUseCache = value;
+    public void setRestoreInstance(final boolean value) {
+        mIsRestoreInstance = value;
     }
 
     /**
