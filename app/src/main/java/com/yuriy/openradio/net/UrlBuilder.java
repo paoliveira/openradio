@@ -17,20 +17,19 @@
 package com.yuriy.openradio.net;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.v4.util.Pair;
 
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link com.yuriy.openradio.net.UrlBuilder} is a helper class which performs
  * build URL of the different API calls.
  */
@@ -47,7 +46,7 @@ public final class UrlBuilder {
     public static final int ITEMS_PER_PAGE = 30;
 
 
-    public static final int RECENT_POPULAR_PER_PAGE = 50;
+    private static final int RECENT_POPULAR_PER_PAGE = 50;
 
     /**
      * Base URL for the API requests.
@@ -88,7 +87,7 @@ public final class UrlBuilder {
 
     /**
      * Get Uri for the Google Geo API which returns location.
-     * 
+     *
      * @param latitude  Latitude of the location.
      * @param longitude Longitude of the location.
      * @return {@link Uri}.
@@ -116,28 +115,16 @@ public final class UrlBuilder {
     }
 
     /**
-     * Get Uri for the Child Category's list (list of the categories in the main menu item).
-     *
-     * @param primaryId Id of the primary Menu Item
-     * @return {@link Uri}
-     */
-    public static Uri getChildCategoriesUrl(final String primaryId) {
-        return Uri.parse(
-                BASE_URL + "tags/" + primaryId + "?reverse=true&order=stationcount"
-                        + "&offset=" + 0
-                        + "&limit=" + 5
-        );
-    }
-
-    /**
      * Get Uri for the list of the Radio Stations in concrete Category.
      *
      * @param categoryId Id of the Category.
      * @return {@link Uri}
      */
-    public static Uri getStationsInCategory(final String categoryId, final int pageNumber, final int numberPerPage) {
+    public static Uri getStationsInCategory(final String categoryId,
+                                            final int pageNumber,
+                                            final int numberPerPage) {
         return Uri.parse(
-                BASE_URL + "stations/bytag/" + categoryId + "?reverse=true&order=stationcount"
+                BASE_URL + "stations/bytag/" + encodeValue(categoryId) + "?reverse=true&order=stationcount"
                         + "&offset=" + pageNumber
                         + "&limit=" + numberPerPage
         );
@@ -150,11 +137,14 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getStationsInCountry(final String countryCode,
-                                           final int pageNumber, final int numberPerPage) {
+                                           final int pageNumber,
+                                           final int numberPerPage) {
         final String countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
-        return Uri.parse(BASE_URL + "stations/bycountry/" + countryName
-                + "?offset=" + pageNumber
-                + "&limit=" + numberPerPage);
+        return Uri.parse(
+                BASE_URL + "stations/bycountry/" + encodeValue(countryName)
+                        + "?offset=" + pageNumber
+                        + "&limit=" + numberPerPage
+        );
     }
 
     /**
@@ -178,11 +168,11 @@ public final class UrlBuilder {
     /**
      * Get Uri for the concrete Radio Station details.
      *
-     * @param stationId  Id of the Radio Station.
+     * @param stationId Id of the Radio Station.
      * @return {@link Uri}
      */
     public static Uri getStation(final String stationId) {
-        return Uri.parse(BASE_URL + "station/" + stationId);
+        return Uri.parse(BASE_URL + "station/" + encodeValue(stationId));
     }
 
     /**
@@ -190,8 +180,13 @@ public final class UrlBuilder {
      *
      * @return {@link Uri}.
      */
-    public static Uri getSearchUrl() {
-        return Uri.parse(BASE_URL + "search/?");
+    public static Uri getSearchUrl(final String query) {
+        return Uri.parse(
+                BASE_URL + "stations/search?name=" + encodeValue(query)
+                        + "&offset=" + 0
+                        + "&limit=" + ITEMS_PER_PAGE
+                        + "reverse=true&order=clickcount"
+        );
     }
 
     /**
@@ -226,25 +221,19 @@ public final class UrlBuilder {
     }
 
     /**
-     * Creates and returns list of the query search parameters to attach to http connection.
+     * Method to encode a string value using UTF-8 encoding scheme.
      *
-     * @param searchQuery String to use as query.
-     * @return List of the query search parameters.
-     */
-    @NonNull
-    public static List<Pair<String, String>> getSearchQueryParameters(final String searchQuery) {
-        final List<Pair<String, String>> result = getBaseParameters();
-        result.add(new Pair<>(SEARCH_PARAMETER_KEY, searchQuery));
-        return result;
-    }
-
-    /**
-     *
+     * @param value
      * @return
      */
-    public static List<Pair<String, String>> getBaseParameters() {
-        final List<Pair<String, String>> result = new ArrayList<>();
-        result.add(new Pair<>(USER_AGENT_PARAMETER_KEY, "Open Radio App"));
-        return result;
+    private static String encodeValue(final String value) {
+        try {
+            return URLEncoder.encode(value, AppUtils.UTF8);
+        } catch (final UnsupportedEncodingException ex) {
+            FabricUtils.logException(
+                    new Exception("Can not url-encode value of '" + value + "'", ex)
+            );
+        }
+        return value;
     }
 }

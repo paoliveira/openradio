@@ -130,7 +130,9 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
                 if (object.has(JSONDataParserImpl.KEY_NAME)) {
                     category.setId(object.getString(JSONDataParserImpl.KEY_NAME));
-                    category.setTitle(object.getString(JSONDataParserImpl.KEY_NAME));
+                    category.setTitle(
+                            AppUtils.capitalize(object.getString(JSONDataParserImpl.KEY_NAME))
+                    );
                 }
 
                 allCategories.add(category);

@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.business.mediaitem;
 
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -71,8 +70,7 @@ public final class MediaItemPopularStations implements MediaItemCommand {
                         list.addAll(
                                 shareObject.getServiceProvider().getStations(
                                         shareObject.getDownloader(),
-                                        UrlBuilder.getPopularStations(),
-                                        UrlBuilder.getBaseParameters()
+                                        UrlBuilder.getPopularStations()
                                 )
                         );
                     }
@@ -95,7 +93,7 @@ public final class MediaItemPopularStations implements MediaItemCommand {
 
             final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     shareObject.getContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
+                    MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES + shareObject.getCurrentCategory()
             );
             final MediaDescriptionCompat mediaDescription = track.getDescription();
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(

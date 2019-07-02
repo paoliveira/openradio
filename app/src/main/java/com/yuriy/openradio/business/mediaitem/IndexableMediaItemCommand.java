@@ -80,7 +80,7 @@ public abstract class IndexableMediaItemCommand implements MediaItemCommand {
             if (mPageIndex.get() == UrlBuilder.FIRST_PAGE_INDEX + 1) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                         shareObject.getContext(),
-                        MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
+                        MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES + shareObject.getCurrentCategory()
                 );
                 final MediaDescriptionCompat mediaDescription = track.getDescription();
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(

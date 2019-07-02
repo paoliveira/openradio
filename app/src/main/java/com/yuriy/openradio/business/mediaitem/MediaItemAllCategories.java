@@ -28,9 +28,7 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.MediaIDHelper;
 import com.yuriy.openradio.vo.Category;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Yuriy Chernyshov
@@ -87,16 +85,10 @@ public final class MediaItemAllCategories implements MediaItemCommand {
         final String iconUrl = "android.resource://" +
                 shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
 
-//        final Set<String> predefinedCategories = AppUtils.predefinedCategories();
         for (final Category category : list) {
-
-//            if (!predefinedCategories.contains(category.getTitle())) {
-//                continue;
-//            }
-
             shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + category.getId())
+                            .setMediaId(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES + category.getId())
                             .setTitle(category.getTitle())
                             .setIconUri(Uri.parse(iconUrl))
                             .setSubtitle(category.getDescription())

@@ -32,17 +32,14 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- * <p>
+ *
  * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
- * designed to prepare data to display radio stations of Child Category.
+ * designed to prepare data to display radio stations of child categories of category.
  */
 public final class MediaItemChildCategories extends IndexableMediaItemCommand {
 
     private static final String LOG_TAG = MediaItemChildCategories.class.getSimpleName();
 
-    /**
-     * Default constructor.
-     */
     public MediaItemChildCategories() {
         super();
     }

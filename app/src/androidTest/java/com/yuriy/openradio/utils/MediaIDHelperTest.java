@@ -15,8 +15,8 @@ import static org.hamcrest.Matchers.nullValue;
 public class MediaIDHelperTest extends TestCase {
 
     public void testGetId() {
-        final String id = MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES;
-        final String startsWith = MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + "11";
+        final String id = MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES;
+        final String startsWith = MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES + "11";
 
         assertThat(MediaIDHelper.getId(startsWith), is(id));
     }

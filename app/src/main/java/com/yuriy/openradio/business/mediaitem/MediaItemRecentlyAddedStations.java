@@ -92,7 +92,7 @@ public final class MediaItemRecentlyAddedStations implements MediaItemCommand {
 
             final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     shareObject.getContext(),
-                    MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES + shareObject.getCurrentCategory()
+                    MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES + shareObject.getCurrentCategory()
             );
             final MediaDescriptionCompat mediaDescription = track.getDescription();
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(

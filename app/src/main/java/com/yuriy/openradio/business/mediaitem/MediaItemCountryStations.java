@@ -66,8 +66,7 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
                                                 shareObject.getCountryCode(),
                                                 getPageNumber() * (UrlBuilder.ITEMS_PER_PAGE + 1),
                                                 UrlBuilder.ITEMS_PER_PAGE
-                                        ),
-                                        UrlBuilder.getBaseParameters()
+                                        )
                                 )
                         );
                     }

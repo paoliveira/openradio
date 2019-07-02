@@ -42,8 +42,6 @@ public final class MediaIDHelper {
     public static final String MEDIA_ID_LOCAL_RADIO_STATIONS_LIST
             = "__MEDIA_ID_LOCAL_RADIO_STATIONS_LIST__";
 
-    public static final String MEDIA_ID_PARENT_CATEGORIES = "__PARENT_CATEGORIES__";
-
     public static final String MEDIA_ID_CHILD_CATEGORIES = "__CHILD_CATEGORIES__";
 
     public static final String MEDIA_ID_RADIO_STATIONS_IN_CATEGORY
@@ -66,12 +64,11 @@ public final class MediaIDHelper {
      */
     private static final String[] IDS = {
             MEDIA_ID_ALL_CATEGORIES,
-            MEDIA_ID_CHILD_CATEGORIES,
             MEDIA_ID_COUNTRIES_LIST,
             MEDIA_ID_COUNTRY_STATIONS,
             MEDIA_ID_FAVORITES_LIST,
             MEDIA_ID_LOCAL_RADIO_STATIONS_LIST,
-            MEDIA_ID_PARENT_CATEGORIES,
+            MEDIA_ID_CHILD_CATEGORIES,
             MEDIA_ID_RADIO_STATIONS_IN_CATEGORY,
             MEDIA_ID_ROOT,
             MEDIA_ID_SEARCH_FROM_APP,
@@ -156,10 +153,8 @@ public final class MediaIDHelper {
         return !TextUtils.isEmpty(categoryMediaId)
                 && (MEDIA_ID_ALL_STATIONS.equals(categoryMediaId)
                 || MEDIA_ID_COUNTRY_STATIONS.equals(categoryMediaId)
-                || MEDIA_ID_POPULAR_STATIONS.equals(categoryMediaId)
                 || MEDIA_ID_RADIO_STATIONS_IN_CATEGORY.equals(categoryMediaId)
-                || MEDIA_ID_RECENT_ADDED_STATIONS.equals(categoryMediaId)
-                || MEDIA_ID_RECENT_PLAYED_SONGS.equals(categoryMediaId)
+                || categoryMediaId.contains(MEDIA_ID_COUNTRIES_LIST)
                 || categoryMediaId.contains(MEDIA_ID_CHILD_CATEGORIES));
     }
 }

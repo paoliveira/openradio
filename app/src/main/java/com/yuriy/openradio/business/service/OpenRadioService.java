@@ -60,13 +60,12 @@ import com.yuriy.openradio.business.broadcast.MasterVolumeReceiver;
 import com.yuriy.openradio.business.broadcast.MasterVolumeReceiverListener;
 import com.yuriy.openradio.business.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
-import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
 import com.yuriy.openradio.business.mediaitem.MediaItemCountriesList;
 import com.yuriy.openradio.business.mediaitem.MediaItemCountryStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemFavoritesList;
 import com.yuriy.openradio.business.mediaitem.MediaItemLocalsList;
-import com.yuriy.openradio.business.mediaitem.MediaItemParentCategories;
+import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemPopularStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemRecentlyAddedStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
@@ -457,7 +456,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_ALL_CATEGORIES, new MediaItemAllCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
-        mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_PARENT_CATEGORIES, new MediaItemParentCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStation());
         mMediaItemCommands.put(MediaIDHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
@@ -1960,8 +1958,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         final List<RadioStation> list = mApiServiceProvider.getStations(
                 downloader,
-                UrlBuilder.getSearchUrl(),
-                UrlBuilder.getSearchQueryParameters(query)
+                UrlBuilder.getSearchUrl(query)
         );
 
         if (list == null || list.isEmpty()) {
