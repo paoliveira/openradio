@@ -21,16 +21,15 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
-import com.yuriy.openradio.business.storage.FavoritesStorage;
-import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.vo.RadioStation;
 import com.yuriy.openradio.business.MediaItemsComparator;
+import com.yuriy.openradio.business.storage.FavoritesStorage;
 import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
