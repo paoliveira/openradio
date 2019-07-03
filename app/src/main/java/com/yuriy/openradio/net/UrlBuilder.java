@@ -69,15 +69,6 @@ public final class UrlBuilder {
     static final String NEW_IMG_BASE_URL = "img.dirble.com";
 
     /**
-     * Key for the search "key-value" pairs.
-     */
-    private static final String SEARCH_PARAMETER_KEY = "query";
-
-    private static final String OFFSET_PARAMETER_KEY = "offset";
-    private static final String LIMIT_PARAMETER_KEY = "limit";
-    private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
-
-    /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
