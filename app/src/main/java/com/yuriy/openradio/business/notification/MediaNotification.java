@@ -140,16 +140,6 @@ public final class MediaNotification extends BroadcastReceiver {
         return notificationColor;
     }
 
-    public void doInitialNotification(final Context context, final RadioStation radioStation) {
-        mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
-        if (mMetadata == null) {
-            FabricUtils.log(
-                    "StartNotification null metadata, after created from RadioStation."
-            );
-        }
-        updateNotificationMetadata();
-    }
-
     /**
      * Posts the notification and starts tracking the session to keep it
      * updated. The notification will automatically be removed if the session is
@@ -312,21 +302,19 @@ public final class MediaNotification extends BroadcastReceiver {
     }
 
     public void updateNotificationMetadata() {
-        AppLogger.d(CLASS_NAME + " Update Notification Metadata : " + mMetadata);
+        AppLogger.d(
+                CLASS_NAME + " Update Notification " +
+                        "metadata:" + mMetadata +
+                        "state:" + mPlaybackState +
+                        "service:" + mService
+        );
         if (mMetadata == null) {
-            showNoStreamNotification();
-            FabricUtils.log("UpdateNotificationMetadata stopped, metadata is null");
             return;
         }
-
         if (mPlaybackState == null) {
-            showNoStreamNotification();
-            FabricUtils.log("UpdateNotificationMetadata stopped, playback state is null");
             return;
         }
-
         if (mService == null) {
-            FabricUtils.log("UpdateNotificationMetadata stopped, service is null");
             return;
         }
 
@@ -406,35 +394,6 @@ public final class MediaNotification extends BroadcastReceiver {
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
-    }
-
-    private void showNoStreamNotification() {
-        // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        final String notificationChannelId = MediaNotificationManager.createNotificationChannelNoStream(
-                mService.getApplicationContext(),
-                new NoMediaNotificationData()
-        );
-        // Build the style.
-        android.support.v4.media.app.NotificationCompat.MediaStyle mediaStyle
-                = new android.support.v4.media.app.NotificationCompat.MediaStyle()
-                .setMediaSession(mSessionToken);
-
-        mNotificationBuilder = new NotificationCompat.Builder(
-                mService.getApplicationContext(), notificationChannelId
-        );
-        mNotificationBuilder
-                .setStyle(mediaStyle)
-                .setColor(mNotificationColor)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setUsesChronometer(false)
-                .setContentTitle("No Radio Station")
-                .setContentText("No Radio Station available")
-                .setLargeIcon(BitmapFactory.decodeResource(
-                        mService.getResources(), R.drawable.ic_radio_station
-                ));
-        FabricUtils.log("UpdateNotificationMetadata Start Foreground No Media");
-        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
     private void updatePlayPauseAction() {

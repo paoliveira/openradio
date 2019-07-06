@@ -60,12 +60,12 @@ import com.yuriy.openradio.business.broadcast.MasterVolumeReceiver;
 import com.yuriy.openradio.business.broadcast.MasterVolumeReceiverListener;
 import com.yuriy.openradio.business.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.business.mediaitem.MediaItemAllCategories;
+import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemCommand;
 import com.yuriy.openradio.business.mediaitem.MediaItemCountriesList;
 import com.yuriy.openradio.business.mediaitem.MediaItemCountryStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemFavoritesList;
 import com.yuriy.openradio.business.mediaitem.MediaItemLocalsList;
-import com.yuriy.openradio.business.mediaitem.MediaItemChildCategories;
 import com.yuriy.openradio.business.mediaitem.MediaItemPopularStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemRecentlyAddedStations;
 import com.yuriy.openradio.business.mediaitem.MediaItemRoot;
@@ -714,10 +714,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (radioStation != null) {
                 LatestRadioStationStorage.addToLocals(radioStation, getApplicationContext());
             }
-
             configMediaPlayerState();
-
-            mMediaNotification.doInitialNotification(getApplicationContext(), getCurrentPlayingRadioStation());
             updateMetadata(mCurrentStreamTitle);
         } else {
             handleStopRequest(null);
