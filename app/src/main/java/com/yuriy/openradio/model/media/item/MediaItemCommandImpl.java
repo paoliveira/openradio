@@ -22,6 +22,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaIdHelper;
@@ -51,8 +52,14 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
     }
 
     @Override
-    public abstract void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject);
+    public void execute(final IUpdatePlaybackState playbackStateListener,
+                        @NonNull final MediaItemShareObject shareObject) {
+        AppLogger.d(CLASS_NAME + " invoked");
+        if (!shareObject.isSameCatalogue()) {
+            AppLogger.d("Not the same catalogue, clear list");
+            shareObject.getRadioStations().clear();
+        }
+    }
 
     public abstract boolean doLoadNoDataReceived();
 

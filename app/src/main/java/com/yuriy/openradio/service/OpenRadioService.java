@@ -46,10 +46,6 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.model.api.ApiServiceProvider;
-import com.yuriy.openradio.model.api.ApiServiceProviderImpl;
-import com.yuriy.openradio.model.parser.JSONDataParserImpl;
-import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.broadcast.AbstractReceiver;
 import com.yuriy.openradio.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.broadcast.BTConnectionReceiver;
@@ -58,6 +54,10 @@ import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.broadcast.MasterVolumeReceiver;
 import com.yuriy.openradio.broadcast.MasterVolumeReceiverListener;
 import com.yuriy.openradio.broadcast.RemoteControlReceiver;
+import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
+import com.yuriy.openradio.model.api.ApiServiceProvider;
+import com.yuriy.openradio.model.api.ApiServiceProviderImpl;
+import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.model.media.item.MediaItemAllCategories;
 import com.yuriy.openradio.model.media.item.MediaItemChildCategories;
 import com.yuriy.openradio.model.media.item.MediaItemCommand;
@@ -71,15 +71,15 @@ import com.yuriy.openradio.model.media.item.MediaItemRoot;
 import com.yuriy.openradio.model.media.item.MediaItemSearchFromApp;
 import com.yuriy.openradio.model.media.item.MediaItemShareObject;
 import com.yuriy.openradio.model.media.item.MediaItemStation;
-import com.yuriy.openradio.notification.MediaNotification;
+import com.yuriy.openradio.model.net.Downloader;
+import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
+import com.yuriy.openradio.model.net.UrlBuilder;
+import com.yuriy.openradio.model.parser.JSONDataParserImpl;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
-import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
-import com.yuriy.openradio.model.net.Downloader;
-import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
-import com.yuriy.openradio.model.net.UrlBuilder;
+import com.yuriy.openradio.notification.MediaNotification;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.FileUtils;
@@ -565,7 +565,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Override
     public final void onLoadChildren(@NonNull final String parentId,
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
-        AppLogger.i(CLASS_NAME + "OnLoadChildren:" + parentId + ", res:" + result);
+        AppLogger.i(CLASS_NAME + "OnLoadChildren:" + parentId);
         boolean isSameCatalogue = false;
         // Check whether category had changed.
         if (TextUtils.equals(mCurrentParentId, parentId)) {

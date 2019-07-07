@@ -50,6 +50,7 @@ public final class MediaItemPopularStations extends MediaItemCommandImpl {
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
                         @NonNull final MediaItemShareObject shareObject) {
+        super.execute(playbackStateListener, shareObject);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();

@@ -47,11 +47,10 @@ public abstract class IndexableMediaItemCommand extends MediaItemCommandImpl {
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
                         @NonNull final MediaItemShareObject shareObject) {
+        super.execute(playbackStateListener, shareObject);
         AppLogger.d(CLASS_NAME + " invoked");
         if (!shareObject.isSameCatalogue()) {
-            AppLogger.d("Not the same catalogue, clear list");
             mPageIndex.set(UrlBuilder.FIRST_PAGE_INDEX);
-            shareObject.getRadioStations().clear();
         }
     }
 

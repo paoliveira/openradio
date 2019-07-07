@@ -22,18 +22,17 @@ import android.support.annotation.NonNull;
 import android.support.v4.util.Pair;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.model.parser.DataParser;
-import com.yuriy.openradio.model.parser.JSONDataParserImpl;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.model.net.Downloader;
 import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
+import com.yuriy.openradio.model.parser.DataParser;
+import com.yuriy.openradio.model.parser.JSONDataParserImpl;
 import com.yuriy.openradio.model.storage.cache.api.ApiCache;
 import com.yuriy.openradio.model.storage.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.model.storage.cache.api.PersistentApiCache;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
-import com.yuriy.openradio.utils.RadioStationChecker;
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.MediaStream;
@@ -46,11 +45,6 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Yuriy Chernyshov
@@ -231,42 +225,6 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                 FabricUtils.logException(e);
             }
         }
-
-        //
-        // Begin workaround section against dead Radio Stations
-        //
-
-        final CountDownLatch completeLatch = new CountDownLatch(radioStations.size());
-        final Set<String> passedUrls = new TreeSet<>();
-        final ExecutorService executor = Executors.newFixedThreadPool(5);
-        for (final RadioStation radioStationVO : radioStations) {
-            executor.submit(
-                    new RadioStationChecker(
-                            // TODO: Probably check all variants
-                            radioStationVO.getMediaStream().getVariant(0).getUrl(), completeLatch, passedUrls
-                    )
-            );
-        }
-        try {
-            completeLatch.await();
-        } catch (final InterruptedException e) {
-            /* Ignore */
-        }
-
-        // Clear "dead" Radio Stations
-        for (int i = 0; i < radioStations.size(); i++) {
-            radioStation = radioStations.get(i);
-            // TODO: Probably check all variants
-            if (!passedUrls.contains(radioStation.getMediaStream().getVariant(0).getUrl())) {
-                radioStations.remove(radioStation);
-                i--;
-            }
-        }
-        passedUrls.clear();
-
-        //
-        // End workaround section against dead Radio Stations
-        //
 
         return radioStations;
     }

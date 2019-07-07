@@ -22,8 +22,8 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.model.api.ApiServiceProvider;
-import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.model.net.Downloader;
+import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.RadioStation;
 
