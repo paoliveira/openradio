@@ -281,6 +281,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      * @param parameters List of parameters to attach to connection.
      * @return {@link org.json.JSONArray}
      */
+    // TODO: Refactor this method to download raw response. Then Use parser to get data.
     private JSONArray downloadJsonArray(final Downloader downloader,
                                         final Uri uri,
                                         final List<Pair<String, String>> parameters) {

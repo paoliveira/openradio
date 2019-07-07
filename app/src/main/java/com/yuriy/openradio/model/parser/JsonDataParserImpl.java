@@ -25,7 +25,8 @@ package com.yuriy.openradio.model.parser;
  * {@link JsonDataParserImpl} is the implementation of {@link DataParser} that designed to parse
  * input into JSON format.
  *
- * TODO : Currently holds only constants.
+ * TODO : Currently holds only constants. Need to crete interface and use this impl in API data
+ *        provider impl.
  */
 public class JsonDataParserImpl implements DataParser {
 

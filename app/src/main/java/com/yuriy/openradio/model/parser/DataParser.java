@@ -21,11 +21,10 @@ package com.yuriy.openradio.model.parser;
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
- /** {@link DataParser} is an interface which provides common methods
+ * {@link DataParser} is an interface which provides common methods
  * for the data parsing. Different implementation can parse raw string data into JSON,
  * XML or any other format.
  */
 public interface DataParser {
-
+ // TODO: Create interface and use it in API service provider impl.
 }
