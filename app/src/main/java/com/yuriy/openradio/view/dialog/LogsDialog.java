@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
@@ -37,6 +37,9 @@ import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
+import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.SafeToast;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;

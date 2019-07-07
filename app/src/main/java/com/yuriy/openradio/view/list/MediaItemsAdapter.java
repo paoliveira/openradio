@@ -38,7 +38,7 @@ import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaItemHelper;
-import com.yuriy.openradio.view.MainActivity;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 import java.util.List;
 

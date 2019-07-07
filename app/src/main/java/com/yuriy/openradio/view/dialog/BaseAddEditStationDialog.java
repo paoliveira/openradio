@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.Manifest;
 import android.app.Activity;
@@ -41,6 +41,7 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.ImageFilePath;
 import com.yuriy.openradio.utils.IntentsHelper;
 import com.yuriy.openradio.permission.PermissionChecker;
+import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;

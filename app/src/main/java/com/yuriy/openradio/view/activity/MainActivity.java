@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.activity;
 
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -70,12 +70,13 @@ import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.model.media.MediaResourceManagerListener;
 import com.yuriy.openradio.model.media.MediaResourcesManager;
-import com.yuriy.openradio.permission.PermissionStatusListener;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveError;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
+import com.yuriy.openradio.permission.PermissionChecker;
+import com.yuriy.openradio.permission.PermissionStatusListener;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -84,7 +85,19 @@ import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
-import com.yuriy.openradio.permission.PermissionChecker;
+import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.SafeToast;
+import com.yuriy.openradio.view.dialog.AboutDialog;
+import com.yuriy.openradio.view.dialog.AddStationDialog;
+import com.yuriy.openradio.view.dialog.EditStationDialog;
+import com.yuriy.openradio.view.dialog.FeatureSortDialog;
+import com.yuriy.openradio.view.dialog.GeneralSettingsDialog;
+import com.yuriy.openradio.view.dialog.GoogleDriveDialog;
+import com.yuriy.openradio.view.dialog.LogsDialog;
+import com.yuriy.openradio.view.dialog.RemoveStationDialog;
+import com.yuriy.openradio.view.dialog.SearchDialog;
+import com.yuriy.openradio.view.dialog.StreamBufferingDialog;
+import com.yuriy.openradio.view.dialog.UseLocationDialog;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 import com.yuriy.openradio.vo.RadioStation;
 

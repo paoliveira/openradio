@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.app.Dialog;
 import android.os.Bundle;
@@ -23,6 +23,8 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov

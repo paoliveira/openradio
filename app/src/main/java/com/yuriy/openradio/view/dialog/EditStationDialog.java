@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -28,6 +28,8 @@ import android.widget.Button;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.view.SafeToast;
+import com.yuriy.openradio.view.activity.MainActivity;
 import com.yuriy.openradio.vo.RadioStation;
 
 /**

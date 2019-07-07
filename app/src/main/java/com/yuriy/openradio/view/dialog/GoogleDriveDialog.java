@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -25,6 +25,8 @@ import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
+import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov

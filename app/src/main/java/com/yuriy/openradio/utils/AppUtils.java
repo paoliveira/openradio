@@ -31,6 +31,7 @@ import android.util.DisplayMetrics;
 
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -618,7 +619,7 @@ public final class AppUtils {
 
     /**
      * Holder for the Search query. Up to now I found it as quick solution to pass query
-     * from {@link com.yuriy.openradio.view.MainActivity} to the
+     * from {@link MainActivity} to the
      * {@link OpenRadioService}
      */
     private static StringBuilder sSearchQuery = new StringBuilder();

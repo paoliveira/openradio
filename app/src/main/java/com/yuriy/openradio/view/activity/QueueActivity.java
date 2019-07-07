@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.activity;
 
 import android.content.Context;
 import android.content.Intent;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -22,6 +22,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.view.activity.MainActivity;
 import com.yuriy.openradio.vo.RadioStation;
 
 /**

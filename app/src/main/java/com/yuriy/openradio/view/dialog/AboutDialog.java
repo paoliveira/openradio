@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.view;
+package com.yuriy.openradio.view.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -25,6 +25,8 @@ import android.widget.TextView;
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.IntentsHelper;
+import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov
