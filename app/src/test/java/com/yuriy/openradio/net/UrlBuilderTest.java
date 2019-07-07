@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.net;
 
+import com.yuriy.openradio.model.net.UrlBuilder;
+
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;

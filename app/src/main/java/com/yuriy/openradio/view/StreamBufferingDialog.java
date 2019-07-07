@@ -28,7 +28,7 @@ import android.widget.TextView;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.storage.AppPreferencesManager;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
 
 /**
  * Created by Yuriy Chernyshov

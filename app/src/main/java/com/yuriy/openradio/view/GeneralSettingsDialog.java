@@ -27,8 +27,8 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.business.storage.AppPreferencesManager;
+import com.yuriy.openradio.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
 
 /**
  * Created by Yuriy Chernyshov

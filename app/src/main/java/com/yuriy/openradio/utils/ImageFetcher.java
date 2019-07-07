@@ -21,7 +21,7 @@ import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 
 import com.yuriy.openradio.BuildConfig;
-import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
+import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

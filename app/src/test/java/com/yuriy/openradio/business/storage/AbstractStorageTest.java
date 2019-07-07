@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.business.storage;
 
+import com.yuriy.openradio.model.storage.AbstractRadioStationsStorage;
 import com.yuriy.openradio.vo.RadioStation;
 
 import org.junit.Test;

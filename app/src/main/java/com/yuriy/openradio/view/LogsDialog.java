@@ -33,7 +33,7 @@ import android.widget.Toast;
 
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.storage.AppPreferencesManager;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;

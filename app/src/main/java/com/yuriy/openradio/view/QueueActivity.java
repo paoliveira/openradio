@@ -32,8 +32,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.MediaResourceManagerListener;
-import com.yuriy.openradio.business.MediaResourcesManager;
+import com.yuriy.openradio.model.media.MediaResourceManagerListener;
+import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.list.QueueAdapter;

@@ -15,39 +15,39 @@ import static org.hamcrest.Matchers.nullValue;
 public class MediaIDHelperTest extends TestCase {
 
     public void testGetId() {
-        final String id = MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES;
-        final String startsWith = MediaIDHelper.MEDIA_ID_CHILD_CATEGORIES + "11";
+        final String id = MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES;
+        final String startsWith = MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + "11";
 
-        assertThat(MediaIDHelper.getId(startsWith), is(id));
+        assertThat(MediaIdHelper.getId(startsWith), is(id));
     }
 
     public void testGetValidCountryCode() {
-        final String id = MediaIDHelper.MEDIA_ID_COUNTRIES_LIST + "BR";
+        final String id = MediaIdHelper.MEDIA_ID_COUNTRIES_LIST + "BR";
 
-        assertThat(MediaIDHelper.getCountryCode(id), is("BR"));
+        assertThat(MediaIdHelper.getCountryCode(id), is("BR"));
     }
 
     public void testGetInvalidCountryCodeFromValidValueSameSubName() {
-        final String id = MediaIDHelper.MEDIA_ID_COUNTRIES_LIST;
+        final String id = MediaIdHelper.MEDIA_ID_COUNTRIES_LIST;
 
-        assertThat(MediaIDHelper.getCountryCode(id), nullValue());
+        assertThat(MediaIdHelper.getCountryCode(id), nullValue());
     }
 
     public void testGetInvalidCountryCodeFromValidValueDifferentSubName() {
-        final String id = MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP;
+        final String id = MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP;
 
-        assertThat(MediaIDHelper.getCountryCode(id), nullValue());
+        assertThat(MediaIdHelper.getCountryCode(id), nullValue());
     }
 
     public void testGetInvalidCountryCodeFromNullValue() {
         final String id = null;
 
-        assertThat(MediaIDHelper.getCountryCode(id), nullValue());
+        assertThat(MediaIdHelper.getCountryCode(id), nullValue());
     }
 
     public void testStartsWithAndEquals() {
-        final String name = MediaIDHelper.MEDIA_ID_COUNTRIES_LIST;
-        final String id = MediaIDHelper.MEDIA_ID_COUNTRIES_LIST;
+        final String name = MediaIdHelper.MEDIA_ID_COUNTRIES_LIST;
+        final String id = MediaIdHelper.MEDIA_ID_COUNTRIES_LIST;
 
         assertThat(name.startsWith(id), is(true));
         assertThat(name.equals(id), is(true));

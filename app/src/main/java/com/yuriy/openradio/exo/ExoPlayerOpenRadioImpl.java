@@ -54,7 +54,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.Util;
-import com.yuriy.openradio.business.storage.AppPreferencesManager;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;

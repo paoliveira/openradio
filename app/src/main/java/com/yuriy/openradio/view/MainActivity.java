@@ -63,29 +63,28 @@ import com.google.android.gms.auth.GoogleAuthUtil;
 import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.MediaResourceManagerListener;
-import com.yuriy.openradio.business.MediaResourcesManager;
-import com.yuriy.openradio.business.PermissionStatusListener;
-import com.yuriy.openradio.business.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.business.broadcast.AppLocalReceiver;
-import com.yuriy.openradio.business.broadcast.AppLocalReceiverCallback;
-import com.yuriy.openradio.business.broadcast.ConnectivityReceiver;
-import com.yuriy.openradio.business.broadcast.ScreenReceiver;
-import com.yuriy.openradio.business.service.OpenRadioService;
-import com.yuriy.openradio.business.storage.AppPreferencesManager;
-import com.yuriy.openradio.business.storage.FavoritesStorage;
-import com.yuriy.openradio.business.storage.LatestRadioStationStorage;
-import com.yuriy.openradio.drive.GoogleDriveError;
-import com.yuriy.openradio.drive.GoogleDriveManager;
+import com.yuriy.openradio.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.broadcast.AppLocalReceiver;
+import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
+import com.yuriy.openradio.broadcast.ConnectivityReceiver;
+import com.yuriy.openradio.broadcast.ScreenReceiver;
+import com.yuriy.openradio.model.media.MediaResourceManagerListener;
+import com.yuriy.openradio.model.media.MediaResourcesManager;
+import com.yuriy.openradio.permission.PermissionStatusListener;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.model.storage.FavoritesStorage;
+import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveError;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
+import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
-import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
-import com.yuriy.openradio.utils.PermissionChecker;
-import com.yuriy.openradio.utils.Utils;
+import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 import com.yuriy.openradio.vo.RadioStation;
 
@@ -477,9 +476,9 @@ public final class MainActivity extends AppCompatActivity {
         super.onCreateContextMenu(menu, v, menuInfo);
 
         final MenuInflater inflater = getMenuInflater();
-        if (MediaIDHelper.MEDIA_ID_FAVORITES_LIST.equals(mCurrentParentId)) {
+        if (MediaIdHelper.MEDIA_ID_FAVORITES_LIST.equals(mCurrentParentId)) {
             inflater.inflate(R.menu.context_menu_favorites_stations, menu);
-        } else if (MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(mCurrentParentId)) {
+        } else if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(mCurrentParentId)) {
             inflater.inflate(R.menu.context_menu_local_stations, menu);
         }
     }
@@ -709,11 +708,11 @@ public final class MainActivity extends AppCompatActivity {
      */
     public void onSearchDialogClick(final String queryString) {
         // Un-subscribe from previous Search
-        unsubscribeFromItem(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+        unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
 
         // Save search query string, retrieve it later in the service
-        Utils.setSearchQuery(queryString);
-        addMediaItemToStack(MediaIDHelper.MEDIA_ID_SEARCH_FROM_APP);
+        AppUtils.setSearchQuery(queryString);
+        addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
     /**
@@ -1364,7 +1363,7 @@ public final class MainActivity extends AppCompatActivity {
 
             // In case of Catalog is sortable and user do not know about it - show
             // help dialog to guide through functionality.
-            if (MediaIDHelper.isMediaIdSortable(parentId)) {
+            if (MediaIdHelper.isMediaIdSortable(parentId)) {
                 final boolean isSortDialogShown = AppPreferencesManager.isSortDialogShown(
                         activity.getApplicationContext()
                 );
@@ -1381,7 +1380,7 @@ public final class MainActivity extends AppCompatActivity {
             activity.hideProgressBar();
 
             final FloatingActionButton addBtn = activity.findViewById(R.id.add_station_btn);
-            if (parentId.equals(MediaIDHelper.MEDIA_ID_ROOT)) {
+            if (parentId.equals(MediaIdHelper.MEDIA_ID_ROOT)) {
                 addBtn.setVisibility(View.VISIBLE);
             } else {
                 addBtn.setVisibility(View.GONE);
@@ -1514,7 +1513,7 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             // Do drag and drop sort only for Favorites and Local Radio Stations
-            if (!MediaIDHelper.isMediaIdSortable(mainActivity.mCurrentParentId)) {
+            if (!MediaIdHelper.isMediaIdSortable(mainActivity.mCurrentParentId)) {
                 return false;
             }
 
@@ -1551,16 +1550,16 @@ public final class MainActivity extends AppCompatActivity {
      * Update List only if parent is Root or Favorites or Locals.
      */
     private void updateListAfterDownloadFromGoogleDrive() {
-        if (TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_ROOT)
-                || TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_FAVORITES_LIST)
-                || TextUtils.equals(mCurrentParentId, MediaIDHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
+        if (TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)
+                || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
+                || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
             mMediaResourcesManager.disconnect();
             mMediaResourcesManager.connect();
         }
     }
 
     private void onScrolledToEnd() {
-        if (MediaIDHelper.isMediaIdRefreshable(mCurrentParentId)) {
+        if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
             addMediaItemToStack(mCurrentParentId);
         } else {

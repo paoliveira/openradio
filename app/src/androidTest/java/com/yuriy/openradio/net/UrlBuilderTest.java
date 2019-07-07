@@ -19,6 +19,8 @@ package com.yuriy.openradio.net;
 import android.net.Uri;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.yuriy.openradio.model.net.UrlBuilder;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.yuriy.openradio.model.storage.cache.api.ApiCache;
+import com.yuriy.openradio.model.storage.cache.api.PersistentApiCache;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.After;

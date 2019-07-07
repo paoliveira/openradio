@@ -30,6 +30,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
 import com.google.android.exoplayer2.util.Util;
+import com.yuriy.openradio.service.OpenRadioService;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -560,7 +561,7 @@ public final class AppUtils {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 
-    static boolean hasVersionM() {
+    public static boolean hasVersionM() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 
@@ -613,5 +614,29 @@ public final class AppUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * Holder for the Search query. Up to now I found it as quick solution to pass query
+     * from {@link com.yuriy.openradio.view.MainActivity} to the
+     * {@link OpenRadioService}
+     */
+    private static StringBuilder sSearchQuery = new StringBuilder();
+
+    /**
+     * Save Search query string.
+     *
+     * @param searchQuery Search query string.
+     */
+    public static void setSearchQuery(final String searchQuery) {
+        sSearchQuery.setLength(0);
+        sSearchQuery.append(searchQuery);
+    }
+
+    /**
+     * @return Gets the Search query string.
+     */
+    public static String getSearchQuery() {
+        return sSearchQuery.toString();
     }
 }

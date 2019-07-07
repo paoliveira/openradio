@@ -26,8 +26,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.business.storage.FavoritesStorage;
-import com.yuriy.openradio.business.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.model.storage.FavoritesStorage;
+import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.vo.RadioStation;
 
 /**

@@ -24,7 +24,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.drive.GoogleDriveManager;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
 
 /**
  * Created by Yuriy Chernyshov

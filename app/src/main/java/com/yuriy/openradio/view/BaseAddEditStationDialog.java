@@ -40,7 +40,7 @@ import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.ImageFilePath;
 import com.yuriy.openradio.utils.IntentsHelper;
-import com.yuriy.openradio.utils.PermissionChecker;
+import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;

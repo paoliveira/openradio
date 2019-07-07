@@ -20,7 +20,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
-import com.yuriy.openradio.utils.MediaIDHelper;
+import com.yuriy.openradio.utils.MediaIdHelper;
 
 /**
  * Created by Chernyshov Yurii
@@ -37,7 +37,7 @@ public class MediaItemListEnded extends MediaBrowserCompat.MediaItem {
      */
     public MediaItemListEnded() {
         this(new MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIDHelper.MEDIA_ID_LIST_ENDED)
+                .setMediaId(MediaIdHelper.MEDIA_ID_LIST_ENDED)
                 .build(), 1);
     }
 
