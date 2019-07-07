@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.business.storage;
+package com.yuriy.openradio.model.storage;
 
-import com.yuriy.openradio.model.storage.AbstractRadioStationsStorage;
 import com.yuriy.openradio.vo.RadioStation;
 
 import org.junit.Test;
