@@ -74,7 +74,7 @@ import com.yuriy.openradio.model.media.item.MediaItemStation;
 import com.yuriy.openradio.model.net.Downloader;
 import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.model.net.UrlBuilder;
-import com.yuriy.openradio.model.parser.JSONDataParserImpl;
+import com.yuriy.openradio.model.parser.JsonDataParserImpl;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
@@ -445,7 +445,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Get the HandlerThread's Looper and use it for our Handler.
         mServiceHandler = new ServiceHandler(looper);
 
-        mApiServiceProvider = new ApiServiceProviderImpl(getApplicationContext(), new JSONDataParserImpl());
+        mApiServiceProvider = new ApiServiceProviderImpl(getApplicationContext(), new JsonDataParserImpl());
 
         mBTConnectionReceiver.register(context);
         mBTConnectionReceiver.locateDevice(context);

@@ -26,7 +26,7 @@ import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.model.net.Downloader;
 import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.model.parser.DataParser;
-import com.yuriy.openradio.model.parser.JSONDataParserImpl;
+import com.yuriy.openradio.model.parser.JsonDataParserImpl;
 import com.yuriy.openradio.model.storage.cache.api.ApiCache;
 import com.yuriy.openradio.model.storage.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.model.storage.cache.api.PersistentApiCache;
@@ -110,7 +110,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return allCategories;
         }
 
-        final JSONArray array = downloadJSONArray(downloader, uri);
+        final JSONArray array = downloadJsonArray(downloader, uri);
 
         JSONObject object;
         Category category;
@@ -122,10 +122,10 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
                 // TODO: Use data parser to parse JSON to value object
 
-                if (object.has(JSONDataParserImpl.KEY_NAME)) {
-                    category.setId(object.getString(JSONDataParserImpl.KEY_NAME));
+                if (object.has(JsonDataParserImpl.KEY_NAME)) {
+                    category.setId(object.getString(JsonDataParserImpl.KEY_NAME));
                     category.setTitle(
-                            AppUtils.capitalize(object.getString(JSONDataParserImpl.KEY_NAME))
+                            AppUtils.capitalize(object.getString(JsonDataParserImpl.KEY_NAME))
                     );
                 }
 
@@ -149,7 +149,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return allCountries;
         }
 
-        final JSONArray array = downloadJSONArray(downloader, uri);
+        final JSONArray array = downloadJsonArray(downloader, uri);
 
         JSONObject object;
         String countryName;
@@ -159,8 +159,8 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             try {
                 object = (JSONObject) array.get(i);
 
-                if (object.has(JSONDataParserImpl.KEY_NAME)) {
-                    countryName = object.getString(JSONDataParserImpl.KEY_NAME);
+                if (object.has(JsonDataParserImpl.KEY_NAME)) {
+                    countryName = object.getString(JsonDataParserImpl.KEY_NAME);
 
                     if (TextUtils.isEmpty(countryName)) {
                         AppLogger.w(
@@ -203,7 +203,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return radioStations;
         }
 
-        final JSONArray array = downloadJSONArray(downloader, uri, parameters);
+        final JSONArray array = downloadJsonArray(downloader, uri, parameters);
 
         JSONObject object;
         RadioStation radioStation;
@@ -268,9 +268,9 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      * @param uri        Uri to download from.
      * @return {@link org.json.JSONArray}
      */
-    private JSONArray downloadJSONArray(final Downloader downloader,
+    private JSONArray downloadJsonArray(final Downloader downloader,
                                         final Uri uri) {
-        return downloadJSONArray(downloader, uri, new ArrayList<>());
+        return downloadJsonArray(downloader, uri, new ArrayList<>());
     }
 
     /**
@@ -281,7 +281,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      * @param parameters List of parameters to attach to connection.
      * @return {@link org.json.JSONArray}
      */
-    private JSONArray downloadJSONArray(final Downloader downloader,
+    private JSONArray downloadJsonArray(final Downloader downloader,
                                         final Uri uri,
                                         final List<Pair<String, String>> parameters) {
         JSONArray array = new JSONArray();
@@ -358,10 +358,10 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                     continue;
                 }
 
-                if (object.has(JSONDataParserImpl.KEY_BIT_RATE)) {
-                    final Object bitrateObj = object.get(JSONDataParserImpl.KEY_BIT_RATE);
+                if (object.has(JsonDataParserImpl.KEY_BIT_RATE)) {
+                    final Object bitrateObj = object.get(JsonDataParserImpl.KEY_BIT_RATE);
                     if (bitrateObj instanceof Integer) {
-                        bitrate = object.getInt(JSONDataParserImpl.KEY_BIT_RATE);
+                        bitrate = object.getInt(JsonDataParserImpl.KEY_BIT_RATE);
                     }
                     if (bitrateObj instanceof String) {
                         final String bitrateStr = String.valueOf(bitrateObj);
@@ -370,8 +370,8 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                         }
                     }
                 }
-                if (object.has(JSONDataParserImpl.KEY_STREAM)) {
-                    url = object.getString(JSONDataParserImpl.KEY_STREAM);
+                if (object.has(JsonDataParserImpl.KEY_STREAM)) {
+                    url = object.getString(JsonDataParserImpl.KEY_STREAM);
                 }
 
                 if (url == null || url.isEmpty()) {
@@ -406,56 +406,56 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     private void updateRadioStation(final RadioStation radioStation, final JSONObject object)
             throws JSONException {
 
-        if (object.has(JSONDataParserImpl.KEY_STATUS)) {
-            radioStation.setStatus(object.getInt(JSONDataParserImpl.KEY_STATUS));
+        if (object.has(JsonDataParserImpl.KEY_STATUS)) {
+            radioStation.setStatus(object.getInt(JsonDataParserImpl.KEY_STATUS));
         }
-        if (object.has(JSONDataParserImpl.KEY_NAME)) {
-            radioStation.setName(object.getString(JSONDataParserImpl.KEY_NAME));
+        if (object.has(JsonDataParserImpl.KEY_NAME)) {
+            radioStation.setName(object.getString(JsonDataParserImpl.KEY_NAME));
         }
-        if (object.has(JSONDataParserImpl.KEY_WEBSITE)) {
-            radioStation.setWebSite(object.getString(JSONDataParserImpl.KEY_WEBSITE));
+        if (object.has(JsonDataParserImpl.KEY_WEBSITE)) {
+            radioStation.setWebSite(object.getString(JsonDataParserImpl.KEY_WEBSITE));
         }
-        if (object.has(JSONDataParserImpl.KEY_COUNTRY)) {
-            radioStation.setCountry(object.getString(JSONDataParserImpl.KEY_COUNTRY));
+        if (object.has(JsonDataParserImpl.KEY_COUNTRY)) {
+            radioStation.setCountry(object.getString(JsonDataParserImpl.KEY_COUNTRY));
         }
 
-        if (object.has(JSONDataParserImpl.KEY_STREAMS)) {
+        if (object.has(JsonDataParserImpl.KEY_STREAMS)) {
             final MediaStream mediaStream
-                    = selectStream(object.getJSONArray(JSONDataParserImpl.KEY_STREAMS));
+                    = selectStream(object.getJSONArray(JsonDataParserImpl.KEY_STREAMS));
             radioStation.setMediaStream(mediaStream);
         }
 
-        if (object.has(JSONDataParserImpl.KEY_URL)) {
+        if (object.has(JsonDataParserImpl.KEY_URL)) {
             final MediaStream mediaStream = MediaStream.makeDefaultInstance();
-            mediaStream.setVariant(128, object.getString(JSONDataParserImpl.KEY_URL));
+            mediaStream.setVariant(128, object.getString(JsonDataParserImpl.KEY_URL));
             radioStation.setMediaStream(mediaStream);
         }
 
-        if (object.has(JSONDataParserImpl.KEY_ID)) {
-            radioStation.setId(object.getInt(JSONDataParserImpl.KEY_ID));
+        if (object.has(JsonDataParserImpl.KEY_ID)) {
+            radioStation.setId(object.getInt(JsonDataParserImpl.KEY_ID));
         }
 
-        if (object.has(JSONDataParserImpl.KEY_IMAGE)) {
+        if (object.has(JsonDataParserImpl.KEY_IMAGE)) {
             // TODO : Encapsulate Image in the same way as Stream.
-            final JSONObject imageObject = object.getJSONObject(JSONDataParserImpl.KEY_IMAGE);
+            final JSONObject imageObject = object.getJSONObject(JsonDataParserImpl.KEY_IMAGE);
 
-            if (imageObject.has(JSONDataParserImpl.KEY_URL)) {
-                radioStation.setImageUrl(imageObject.getString(JSONDataParserImpl.KEY_URL));
+            if (imageObject.has(JsonDataParserImpl.KEY_URL)) {
+                radioStation.setImageUrl(imageObject.getString(JsonDataParserImpl.KEY_URL));
             }
 
-            if (imageObject.has(JSONDataParserImpl.KEY_THUMB)) {
+            if (imageObject.has(JsonDataParserImpl.KEY_THUMB)) {
                 final JSONObject imageThumbObject = imageObject.getJSONObject(
-                        JSONDataParserImpl.KEY_THUMB
+                        JsonDataParserImpl.KEY_THUMB
                 );
-                if (imageThumbObject.has(JSONDataParserImpl.KEY_URL)) {
-                    radioStation.setThumbUrl(imageThumbObject.getString(JSONDataParserImpl.KEY_URL));
+                if (imageThumbObject.has(JsonDataParserImpl.KEY_URL)) {
+                    radioStation.setThumbUrl(imageThumbObject.getString(JsonDataParserImpl.KEY_URL));
                 }
             }
         }
 
-        if (object.has(JSONDataParserImpl.KEY_FAV_ICON)) {
-            radioStation.setImageUrl(object.getString(JSONDataParserImpl.KEY_FAV_ICON));
-            radioStation.setThumbUrl(object.getString(JSONDataParserImpl.KEY_FAV_ICON));
+        if (object.has(JsonDataParserImpl.KEY_FAV_ICON)) {
+            radioStation.setImageUrl(object.getString(JsonDataParserImpl.KEY_FAV_ICON));
+            radioStation.setThumbUrl(object.getString(JsonDataParserImpl.KEY_FAV_ICON));
         }
     }
 }
