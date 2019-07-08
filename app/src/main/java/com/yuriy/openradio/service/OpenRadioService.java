@@ -1235,8 +1235,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (!mServiceStarted) {
             AppLogger.i(CLASS_NAME + "Starting service");
             // The MusicService needs to keep running even after the calling MediaBrowser
-            // is disconnected. Call startService(Intent) and then stopSelf(..) when we no longer
-            // need to play media.
+            // is disconnected. Call startForegroundService(Intent) and then stopSelf(..)
+            // when we no longer need to play media.
             ContextCompat.startForegroundService(
                     context,
                     new Intent(context, OpenRadioService.class)
@@ -1389,7 +1389,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
         final float volume = getNormalVolume();
-        AppLogger.d("TRACE::" + volume + ", " + mAudioFocus);
         if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
             mExoPlayer.setVolume(volume * 0.2F); // we'll be relatively quiet
         } else {
@@ -2020,7 +2019,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
      * @param command
      * @param intent
      */

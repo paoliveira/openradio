@@ -41,8 +41,8 @@ import android.text.TextUtils;
 import android.util.LruCache;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.model.net.UrlBuilder;
+import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapHelper;
@@ -72,6 +72,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private static final int MAX_ALBUM_ART_CACHE_SIZE = 1024 * 1024;
 
+    @NonNull
     private final OpenRadioService mService;
     private MediaSessionCompat.Token mSessionToken;
     private MediaControllerCompat mController;
@@ -92,7 +93,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private AtomicBoolean mStarted = new AtomicBoolean(false);
 
-    public MediaNotification(final OpenRadioService service) {
+    public MediaNotification(@NonNull final OpenRadioService service) {
         super();
 
         mCb = new MediaControllerCompatCallback(this);
@@ -301,6 +302,13 @@ public final class MediaNotification extends BroadcastReceiver {
         }
     }
 
+    private boolean isMediaReady() {
+        if (mMetadata == null) {
+            return false;
+        }
+        return mPlaybackState != null;
+    }
+
     public void updateNotificationMetadata() {
         AppLogger.d(
                 CLASS_NAME + " Update Notification " +
@@ -308,13 +316,8 @@ public final class MediaNotification extends BroadcastReceiver {
                         "state:" + mPlaybackState +
                         "service:" + mService
         );
-        if (mMetadata == null) {
-            return;
-        }
-        if (mPlaybackState == null) {
-            return;
-        }
-        if (mService == null) {
+        if (!isMediaReady()) {
+            showNoStreamNotification();
             return;
         }
 
@@ -378,6 +381,7 @@ public final class MediaNotification extends BroadcastReceiver {
                     mNextIntent
             );
         }
+
         mNotificationBuilder.addAction(mPlayPauseAction);
         mNotificationBuilder
                 .setStyle(mediaStyle)
@@ -389,11 +393,42 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);
 
-        updateNotificationPlaybackState();
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
+    }
+
+    private void showNoStreamNotification() {
+        // Create/Retrieve Notification Channel for O and beyond devices (26+).
+        final String notificationChannelId = MediaNotificationManager.createNotificationChannelNoStream(
+                mService.getApplicationContext(),
+                new NoMediaNotificationData()
+        );
+
+        // Build the style.
+        android.support.v4.media.app.NotificationCompat.MediaStyle mediaStyle
+                = new android.support.v4.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(mSessionToken);
+
+        mNotificationBuilder = new NotificationCompat.Builder(
+                mService.getApplicationContext(), notificationChannelId
+        );
+
+        mNotificationBuilder
+                .setAutoCancel(true)
+                .setStyle(mediaStyle)
+                .setColor(mNotificationColor)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setUsesChronometer(false)
+                .setContentTitle("Open Radio")
+                .setContentText("No Radio Station selected")
+                .setLargeIcon(BitmapFactory.decodeResource(
+                        mService.getResources(), R.drawable.ic_radio_station
+                ));
+
+        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
     private void updatePlayPauseAction() {
