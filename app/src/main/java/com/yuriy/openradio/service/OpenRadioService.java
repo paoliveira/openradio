@@ -714,6 +714,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 LatestRadioStationStorage.addToLocals(radioStation, getApplicationContext());
             }
             configMediaPlayerState();
+            mMediaNotification.doInitialNotification(
+                    getApplicationContext(), getCurrentPlayingRadioStation()
+            );
             updateMetadata(mCurrentStreamTitle);
         } else {
             handleStopRequest(null);

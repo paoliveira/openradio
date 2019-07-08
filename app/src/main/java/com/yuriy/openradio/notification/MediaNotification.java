@@ -163,21 +163,13 @@ public final class MediaNotification extends BroadcastReceiver {
         if (metadata != null) {
             mMetadata = metadata;
         } else {
-            FabricUtils.log(
-                    "StartNotification null metadata, prev metadata " + mMetadata + ". Create from RadioStation ..."
-            );
             mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
-            if (mMetadata == null) {
-                FabricUtils.log(
-                        "StartNotification null metadata, after created from RadioStation."
-                );
-            }
         }
         PlaybackStateCompat playbackState = mController.getPlaybackState();
         if (playbackState != null) {
             mPlaybackState = playbackState;
         } else {
-            FabricUtils.log("StartNotification with null playback state");
+            AppLogger.e("StartNotification with null playback state");
         }
 
         mStarted.set(true);
@@ -284,7 +276,7 @@ public final class MediaNotification extends BroadcastReceiver {
             if (metadata != null) {
                 reference.mMetadata = metadata;
             } else {
-                FabricUtils.log("OnMetadataChanged null metadata, prev metadata " + reference.mMetadata);
+                AppLogger.e("OnMetadataChanged null metadata, prev metadata " + reference.mMetadata);
             }
             reference.updateNotificationMetadata();
         }
@@ -302,13 +294,6 @@ public final class MediaNotification extends BroadcastReceiver {
         }
     }
 
-    private boolean isMediaReady() {
-        if (mMetadata == null) {
-            return false;
-        }
-        return mPlaybackState != null;
-    }
-
     public void updateNotificationMetadata() {
         AppLogger.d(
                 CLASS_NAME + " Update Notification " +
@@ -316,7 +301,15 @@ public final class MediaNotification extends BroadcastReceiver {
                         "state:" + mPlaybackState +
                         "service:" + mService
         );
-        if (!isMediaReady()) {
+        if (mMetadata == null) {
+            showNoStreamNotification();
+            return;
+        }
+        if (mPlaybackState == null) {
+            showNoStreamNotification();
+            return;
+        }
+        if (mService == null) {
             showNoStreamNotification();
             return;
         }
@@ -359,7 +352,6 @@ public final class MediaNotification extends BroadcastReceiver {
             // This sample assumes the iconUri will be a valid URL formatted String, but
             // it can actually be any valid Android Uri formatted String.
             // async fetch the album art icon
-            FabricUtils.log(MediaNotification.class.getSimpleName() + " icon:" + description.getIconUri().toString());
             final String artUrl = UrlBuilder.preProcessIconUrl(
                     description.getIconUri().toString()
             );
@@ -397,6 +389,16 @@ public final class MediaNotification extends BroadcastReceiver {
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
+    }
+
+    public void doInitialNotification(final Context context, final RadioStation radioStation) {
+        mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+        if (mMetadata == null) {
+            AppLogger.e(
+                    "StartNotification null metadata, after created from RadioStation."
+            );
+        }
+        updateNotificationMetadata();
     }
 
     private void showNoStreamNotification() {

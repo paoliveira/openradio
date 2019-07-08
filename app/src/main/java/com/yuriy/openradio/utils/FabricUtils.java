@@ -59,25 +59,13 @@ public final class FabricUtils {
     }
 
     /**
-     *
-     * @param message
-     */
-    public static void log(final String message) {
-        AppLogger.d("FabricUtils msg::" + message);
-        if (!Fabric.isInitialized()) {
-            return;
-        }
-        Crashlytics.log(message);
-    }
-
-    /**
      * Logs custom event to the Fabric dashboard.
      *
      * @param name Event name.
      */
     public static void logCustomEvent(final String name, final String key, final String value) {
         final boolean isFabricInit = Fabric.isInitialized();
-        AppLogger.w("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
+        AppLogger.d("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
         if (!isFabricInit) {
             return;
         }
@@ -86,7 +74,7 @@ public final class FabricUtils {
 
     public static void logCustomEvent(final String name, final String key, final Number value) {
         final boolean isFabricInit = Fabric.isInitialized();
-        AppLogger.w("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
+        AppLogger.d("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
         if (!isFabricInit) {
             return;
         }
