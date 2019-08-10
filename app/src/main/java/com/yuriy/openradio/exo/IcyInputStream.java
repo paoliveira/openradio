@@ -20,7 +20,7 @@
 
 package com.yuriy.openradio.exo;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;

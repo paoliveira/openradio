@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.model.storage.drive;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.MetadataChangeSet;

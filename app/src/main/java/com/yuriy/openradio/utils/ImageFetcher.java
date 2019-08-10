@@ -18,7 +18,7 @@ package com.yuriy.openradio.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;

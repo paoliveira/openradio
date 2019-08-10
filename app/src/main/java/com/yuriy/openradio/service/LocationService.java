@@ -25,23 +25,24 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
 
-import com.yuriy.openradio.model.api.GeoAPI;
-import com.yuriy.openradio.model.api.GeoAPIImpl;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
 import com.yuriy.openradio.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
-import com.yuriy.openradio.model.parser.GeoDataParser;
-import com.yuriy.openradio.model.parser.GoogleGeoDataParserJson;
-import com.yuriy.openradio.model.storage.GeoAPIStorage;
+import com.yuriy.openradio.model.api.GeoAPI;
+import com.yuriy.openradio.model.api.GeoAPIImpl;
 import com.yuriy.openradio.model.net.Downloader;
 import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.model.net.UrlBuilder;
+import com.yuriy.openradio.model.parser.GeoDataParser;
+import com.yuriy.openradio.model.parser.GoogleGeoDataParserJson;
+import com.yuriy.openradio.model.storage.GeoAPIStorage;
+import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
-import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.vo.Country;
 
 import java.lang.ref.WeakReference;

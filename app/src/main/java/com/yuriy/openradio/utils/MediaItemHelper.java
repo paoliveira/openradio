@@ -19,12 +19,13 @@ package com.yuriy.openradio.utils;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.vo.MediaItemListEnded;
@@ -199,9 +200,9 @@ public final class MediaItemHelper {
     }
 
     /**
-     * Extracts Sort Id field from the {@link android.support.v4.media.MediaBrowserCompat.MediaItem}.
+     * Extracts Sort Id field from the {@link MediaBrowserCompat.MediaItem}.
      *
-     * @param mediaItem {@link android.support.v4.media.MediaBrowserCompat.MediaItem} to extract
+     * @param mediaItem {@link MediaBrowserCompat.MediaItem} to extract
      *                  Sort Id from.
      * @return Extracted Sort Id or -1.
      */
@@ -213,9 +214,9 @@ public final class MediaItemHelper {
     }
 
     /**
-     * Extracts Sort Id field from the {@link android.support.v4.media.session.MediaSessionCompat.QueueItem}.
+     * Extracts Sort Id field from the {@link MediaSessionCompat.QueueItem}.
      *
-     * @param queueItem {@link android.support.v4.media.session.MediaSessionCompat.QueueItem} to extract
+     * @param queueItem {@link MediaSessionCompat.QueueItem} to extract
      *                  Sort Id from.
      * @return Extracted Sort Id or -1.
      */

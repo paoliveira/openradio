@@ -24,7 +24,8 @@ package com.yuriy.openradio.model.api;
  */
 
 import android.net.Uri;
-import android.support.v4.util.Pair;
+
+import androidx.core.util.Pair;
 
 import com.yuriy.openradio.model.net.Downloader;
 import com.yuriy.openradio.vo.Category;

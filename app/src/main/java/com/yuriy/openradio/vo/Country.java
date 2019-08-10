@@ -1,6 +1,6 @@
 package com.yuriy.openradio.vo;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Created by Chernyshov Yurii

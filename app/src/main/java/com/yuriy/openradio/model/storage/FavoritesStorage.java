@@ -18,7 +18,7 @@ package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.vo.RadioStation;
 

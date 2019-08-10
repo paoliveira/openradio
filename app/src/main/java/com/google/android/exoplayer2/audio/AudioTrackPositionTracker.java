@@ -18,7 +18,7 @@ package com.google.android.exoplayer2.audio;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
 import android.os.SystemClock;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;

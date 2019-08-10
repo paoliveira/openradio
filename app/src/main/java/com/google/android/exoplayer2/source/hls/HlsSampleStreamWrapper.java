@@ -16,7 +16,7 @@
 package com.google.android.exoplayer2.source.hls;
 
 import android.os.Handler;
-import android.support.annotation.IntDef;
+import androidx.annotation.IntDef;
 import android.util.Log;
 
 import com.google.android.exoplayer2.C;

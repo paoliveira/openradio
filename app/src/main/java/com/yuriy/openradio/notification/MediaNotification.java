@@ -29,9 +29,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.RemoteException;
-import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -39,6 +36,10 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.util.LruCache;
+
+import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
@@ -132,7 +133,7 @@ public final class MediaNotification extends BroadcastReceiver {
             ApplicationInfo applicationInfo = mService.getPackageManager().getApplicationInfo(packageName, 0);
             packageContext.setTheme(applicationInfo.theme);
             Resources.Theme theme = packageContext.getTheme();
-            TypedArray ta = theme.obtainStyledAttributes(new int[]{android.support.v7.appcompat.R.attr.colorPrimary});
+            TypedArray ta = theme.obtainStyledAttributes(new int[]{android.R.attr.colorPrimary});
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (final Exception e) {
@@ -338,8 +339,8 @@ public final class MediaNotification extends BroadcastReceiver {
         }
 
         // Build the style.
-        android.support.v4.media.app.NotificationCompat.MediaStyle mediaStyle
-                = new android.support.v4.media.app.NotificationCompat.MediaStyle()
+        androidx.media.app.NotificationCompat.MediaStyle mediaStyle
+                = new androidx.media.app.NotificationCompat.MediaStyle()
                 // only show play/pause in compact view
                 .setShowActionsInCompactView(playPauseActionIndex)
                 .setMediaSession(mSessionToken);
@@ -409,8 +410,8 @@ public final class MediaNotification extends BroadcastReceiver {
         );
 
         // Build the style.
-        android.support.v4.media.app.NotificationCompat.MediaStyle mediaStyle
-                = new android.support.v4.media.app.NotificationCompat.MediaStyle()
+        androidx.media.app.NotificationCompat.MediaStyle mediaStyle
+                = new androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(mSessionToken);
 
         mNotificationBuilder = new NotificationCompat.Builder(

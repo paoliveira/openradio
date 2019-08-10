@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.model.storage.drive;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveFolder;

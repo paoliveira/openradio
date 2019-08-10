@@ -26,9 +26,10 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.util.LruCache;
+
+import androidx.collection.LruCache;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.yuriy.openradio.BuildConfig;
 
@@ -49,9 +50,9 @@ import java.util.Set;
 /**
  * This class handles disk and memory caching of bitmaps in conjunction with the
  * {@link ImageWorker} class and its subclasses. Use
- * {@link com.yuriy.openradio.utils.ImageCache#getInstance(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to get an instance of this
+ * {@link com.yuriy.openradio.utils.ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to get an instance of this
  * class, although usually a cache should be added directly to an {@link ImageWorker} by calling
- * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
+ * {@link ImageWorker#addImageCache(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
  */
 public class ImageCache {
     private static final String TAG = "ImageCache";
@@ -83,7 +84,7 @@ public class ImageCache {
     /**
      * Create a new ImageCache object using the specified parameters. This should not be
      * called directly by other classes, instead use
-     * {@link com.yuriy.openradio.utils.ImageCache#getInstance(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to fetch an ImageCache
+     * {@link com.yuriy.openradio.utils.ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to fetch an ImageCache
      * instance.
      *
      * @param cacheParams The cache parameters to use to initialize the cache
@@ -469,8 +470,8 @@ public class ImageCache {
 
         /**
          * Create a set of image cache parameters that can be provided to
-         * {@link com.yuriy.openradio.utils.ImageCache#getInstance(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} or
-         * {@link ImageWorker#addImageCache(android.support.v4.app.FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
+         * {@link com.yuriy.openradio.utils.ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} or
+         * {@link ImageWorker#addImageCache(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
          * @param context A context to use.
          * @param diskCacheDirectoryName A unique subdirectory name that will be appended to the
          *                               application cache directory. Usually "cache" or "images"

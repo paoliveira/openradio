@@ -17,7 +17,7 @@
 package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.vo.RadioStation;
 

@@ -17,9 +17,10 @@
 package com.yuriy.openradio.model.media.item;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaBrowserServiceCompat;
+
+import androidx.annotation.NonNull;
+import androidx.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.model.api.ApiServiceProvider;
 import com.yuriy.openradio.model.net.Downloader;

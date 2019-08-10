@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.model.media.item;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 

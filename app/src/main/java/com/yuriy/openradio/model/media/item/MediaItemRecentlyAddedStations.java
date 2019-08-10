@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.model.media.item;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;

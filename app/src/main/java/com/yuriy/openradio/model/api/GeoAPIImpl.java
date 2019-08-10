@@ -17,7 +17,7 @@
 package com.yuriy.openradio.model.api;
 
 import android.net.Uri;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.model.parser.DataParser;
 import com.yuriy.openradio.model.parser.GeoDataParser;

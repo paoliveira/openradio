@@ -24,7 +24,8 @@ package com.yuriy.openradio.model.net;
  */
 
 import android.net.Uri;
-import android.support.v4.util.Pair;
+
+import androidx.core.util.Pair;
 
 import java.util.List;
 

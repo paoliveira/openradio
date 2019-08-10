@@ -19,7 +19,6 @@ package com.yuriy.openradio.view.list;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.session.MediaSessionCompat;
@@ -30,6 +29,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+
+import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
@@ -175,19 +176,19 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     /**
-     * Add {@link android.support.v4.media.MediaBrowserCompat.MediaItem}s into the collection.
-     * @param value {@link android.support.v4.media.MediaBrowserCompat.MediaItem}s.
+     * Add {@link MediaBrowserCompat.MediaItem}s into the collection.
+     * @param value {@link MediaBrowserCompat.MediaItem}s.
      */
     public final void addAll(final List<MediaBrowserCompat.MediaItem> value) {
         mAdapterData.addAll(value);
     }
 
     /**
-     * Add {@link android.support.v4.media.MediaBrowserCompat.MediaItem} into the collection
+     * Add {@link MediaBrowserCompat.MediaItem} into the collection
      * at specified position.
      *
      * @param position  Position to add.
-     * @param mediaItem {@link android.support.v4.media.MediaBrowserCompat.MediaItem} to add.
+     * @param mediaItem {@link MediaBrowserCompat.MediaItem} to add.
      */
     public final void addAt(final int position, final MediaBrowserCompat.MediaItem mediaItem) {
         mAdapterData.addAt(position, mediaItem);
