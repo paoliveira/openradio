@@ -99,8 +99,8 @@ configurations.all {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.0.2'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation "androidx.appcompat:appcompat:$appcompatVersion"
+    implementation "com.google.android.material:material:$materialVersion"
     implementation "com.android.support:support-v4:$supportVersion"
     implementation("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
         transitive = true
@@ -115,7 +115,7 @@ dependencies {
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
 
     androidTestImplementation(
-            'com.android.support.test.espresso:espresso-core:2.2.2',
+            "androidx.test.espresso:espresso-core:$espressoVersion",
             {exclude group: 'com.android.support', module: 'support-annotations'}
     )
 
