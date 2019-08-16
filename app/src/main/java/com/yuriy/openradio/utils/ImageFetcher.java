@@ -18,6 +18,7 @@ package com.yuriy.openradio.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.BuildConfig;
@@ -250,6 +251,7 @@ public class ImageFetcher extends ImageResizer {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
                     final URL url = new URL(urlString);
                     urlConnection = (HttpURLConnection) url.openConnection();
+                    urlConnection.setConnectTimeout(1000);
                     in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
                 }
             } else {
