@@ -720,6 +720,11 @@ public final class ExoPlayerOpenRadioImpl {
         mListener.onProgress(position, bufferedPosition, duration);
 
         // Cancel any pending updates and schedule a new one if necessary.
+        if (mUpdateProgressHandler == null) {
+            // TODO: Investigate why this callback's loop still exists even after destroy()
+            AppLogger.w(LOG_TAG + " update progress with null handler");
+            return;
+        }
         mUpdateProgressHandler.removeCallbacks(mUpdateProgressAction);
         final int playbackState = mExoPlayer.getPlaybackState();
         if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {

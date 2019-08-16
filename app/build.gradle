@@ -124,7 +124,7 @@ dependencies {
 }
 
 tasks.whenTaskAdded { task ->
-    if (task.name == "assembleRelease") {
+    if (task.name == "signReleaseBundle") {
         task.doLast() {
             println "Get And Increment Version code"
 

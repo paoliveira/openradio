@@ -627,16 +627,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void handleUnrecognizedInputFormatException() {
         handleStopRequest(null);
-
-        mApiCallExecutor.submit(
-                () -> {
-                    final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
-                    final Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(
-                            () -> OpenRadioService.this.handlePlayListUrlsExtracted(urls)
-                    );
-                }
-        );
+        final ExecutorService executorService = getApiCallExecutor();
+        if (executorService != null) {
+            executorService.submit(
+                    () -> {
+                        final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
+                        final Handler handler = new Handler(Looper.getMainLooper());
+                        handler.post(
+                                () -> OpenRadioService.this.handlePlayListUrlsExtracted(urls)
+                        );
+                    }
+            );
+        }
     }
 
     private void handlePlayListUrlsExtracted(final String[] urls) {
@@ -2009,14 +2011,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * @return
+     * @return Reference to executor service or {@code null} in case of the one unavailable.
      */
     @Nullable
     private ExecutorService getApiCallExecutor() {
-        if (mApiCallExecutor.isShutdown()) {
-            FabricUtils.logCustomEvent(
-                    FabricUtils.EVENT_NAME_API_EXEC, "Error", "API executor is shut down"
-            );
+        if (mApiCallExecutor.isShutdown() || mApiCallExecutor.isTerminated()) {
             return null;
         }
         return mApiCallExecutor;
