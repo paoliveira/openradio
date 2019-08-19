@@ -39,7 +39,7 @@ public final class AutoDetectParserTest {
     }
 
     @Test
-    public void getFileExtension() throws Exception {
+    public void getFileExtension() {
         final AutoDetectParser parser = new AutoDetectParser(0);
         String url = "http://s06.hktoolbar.com/radio-HTTP/cr2-hd.3gp/chunklist.m3u8?nimblesessionid=41472102";
 

@@ -1,4 +1,4 @@
-package com.yuriy.openradio.cache.api;
+package com.yuriy.openradio.model.storage.cache.api;
 
 import android.content.Context;
 
@@ -31,14 +31,14 @@ public class PersistentApiCacheTest {
     private ApiCache mApiCache;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Context context = InstrumentationRegistry.getTargetContext();
         mApiCache = new PersistentApiCache(context, DB_NAME);
         mApiCache.clear();
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         mApiCache.clear();
     }
 

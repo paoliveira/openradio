@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.net;
+package com.yuriy.openradio.model.net;
 
 import android.net.Uri;
 

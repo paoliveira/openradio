@@ -40,7 +40,7 @@ public final class QueueHelperTest {
     }
 
     @Test
-    public void merge() throws Exception {
+    public void merge() {
         final List<RadioStation> listA = new ArrayList<>();
         final List<RadioStation> listB = new ArrayList<>();
         final RadioStation[] radioStations = new RadioStation[10];
