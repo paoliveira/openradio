@@ -1,8 +1,9 @@
 package com.yuriy.openradio.cache.api;
 
 import android.content.Context;
-import android.support.test.InstrumentationRegistry;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.runner.AndroidJUnit4;
 
 import com.yuriy.openradio.model.storage.cache.api.ApiCache;
 import com.yuriy.openradio.model.storage.cache.api.PersistentApiCache;

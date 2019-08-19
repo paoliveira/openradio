@@ -17,7 +17,8 @@
 package com.yuriy.openradio.net;
 
 import android.net.Uri;
-import android.support.test.runner.AndroidJUnit4;
+
+import androidx.test.runner.AndroidJUnit4;
 
 import com.yuriy.openradio.model.net.UrlBuilder;
 
@@ -38,40 +39,21 @@ import static org.hamcrest.Matchers.nullValue;
 public class UrlBuilderTest {
 
     @Test
-    public void preProcessIconUrl() throws Exception {
-        final String oldUrl = "https://" + UrlBuilder.OLD_IMG_BASE_URL + "/station/49314/c175.png";
-        final String newUrl = UrlBuilder.preProcessIconUrl(oldUrl);
-
-        assertThat(newUrl.contains(UrlBuilder.NEW_IMG_BASE_URL), is(true));
-        assertThat(newUrl.contains(UrlBuilder.OLD_IMG_BASE_URL), is(false));
-    }
-
-    @Test
-    public void preProcessIconUrlNullInput() throws Exception {
+    public void preProcessIconUrlNullInput() {
         final String newUrl = UrlBuilder.preProcessIconUrl(null);
 
         assertThat(newUrl, nullValue());
     }
 
     @Test
-    public void preProcessIconUrlEmptyInput() throws Exception {
+    public void preProcessIconUrlEmptyInput() {
         final String newUrl = UrlBuilder.preProcessIconUrl("");
 
         assertThat(newUrl, is(""));
     }
 
     @Test
-    public void preProcessIconUri() throws Exception {
-        final String oldUrl = "https://" + UrlBuilder.OLD_IMG_BASE_URL + "/station/49314/c175.png";
-        final Uri oldUri = Uri.parse(oldUrl);
-        final Uri newUri = UrlBuilder.preProcessIconUri(oldUri);
-
-        assertThat(newUri.toString().contains(UrlBuilder.NEW_IMG_BASE_URL), is(true));
-        assertThat(newUri.toString().contains(UrlBuilder.OLD_IMG_BASE_URL), is(false));
-    }
-
-    @Test
-    public void preProcessIconUriNullInput() throws Exception {
+    public void preProcessIconUriNullInput() {
         final Uri newUri = UrlBuilder.preProcessIconUri(null);
 
         assertThat(newUri, nullValue());
