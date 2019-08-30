@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link BitmapHelper} is a helper class that provides different methods to operate over Bitmap.
@@ -35,12 +37,16 @@ import java.net.URL;
 public final class BitmapHelper {
 
     // Bitmap size for album art in media notifications when there are more than 3 playback actions
-    public static final int MEDIA_ART_SMALL_WIDTH  = 64;
+    public static final int MEDIA_ART_SMALL_WIDTH = 64;
     public static final int MEDIA_ART_SMALL_HEIGHT = 64;
 
     // Bitmap size for album art in media notifications when there are no more than 3 playback actions
-    public static final int MEDIA_ART_BIG_WIDTH  = 128;
+    public static final int MEDIA_ART_BIG_WIDTH = 128;
     public static final int MEDIA_ART_BIG_HEIGHT = 128;
+
+    private static final String IMAGE_URL_EXP = "([^\\s]+(\\.(?i)(jpg|jpeg|png|gif|bmp))$)";
+
+    private static final Pattern IMAGE_URL_PATTERN = Pattern.compile(IMAGE_URL_EXP);
 
     /**
      * Scale Bitmap.
@@ -157,7 +163,6 @@ public final class BitmapHelper {
     }
 
     /**
-     *
      * @param options
      * @param reqWidth
      * @param reqHeight
@@ -190,7 +195,7 @@ public final class BitmapHelper {
      * Overlay one Bitmap over other Bitmap.
      *
      * @param baseBitmap Base Bitmap.
-     * @param topBitmap Bitmap that is use to overlay.
+     * @param topBitmap  Bitmap that is use to overlay.
      * @return Overlay Bitmap.
      */
     public static Bitmap overlayWithBitmap(final Bitmap baseBitmap, final Bitmap topBitmap) {
@@ -209,11 +214,21 @@ public final class BitmapHelper {
     }
 
     /**
-     *
      * @param url
      * @return
      */
     public static boolean isUrlLocalResource(final String url) {
         return !TextUtils.isEmpty(url) && url.startsWith("android.resource");
+    }
+
+    /**
+     * Validate path to image with regular expression.
+     *
+     * @param image Path to validate.
+     * @return true if path is valid, false otherwise
+     */
+    public static boolean isImageUrl(final String image) {
+        return IMAGE_URL_PATTERN.matcher(image).matches();
+
     }
 }

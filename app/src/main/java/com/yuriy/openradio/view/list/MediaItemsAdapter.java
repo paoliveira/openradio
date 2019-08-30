@@ -29,13 +29,17 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.MediaItemsComparator;
 import com.yuriy.openradio.view.activity.MainActivity;
@@ -57,6 +61,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private MainActivity mCurrentActivity;
     private ImageFetcher mImageFetcher;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
+    private String mParentId;
 
     /**
      * The currently selected / active Item Id.
@@ -71,6 +76,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      */
     public MediaItemsAdapter(final MainActivity activity, final ImageFetcher imageFetcher) {
         super();
+        mParentId = MediaIdHelper.MEDIA_ID_ROOT;
         mAdapterData = new ListAdapterData<>(new MediaItemsComparator());
         mCurrentActivity = activity;
         mImageFetcher = imageFetcher;
@@ -96,7 +102,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * get index of the Item by provided Media Id.
      *
      * @param mediaId Media Id of the Radio Station.
-     *
      * @return Index of the Radio Station in the adapter, or -1 if nothing founded.
      */
     public int getIndexForMediaId(final String mediaId) {
@@ -114,8 +119,17 @@ public final class MediaItemsAdapter extends BaseAdapter {
         return -1;
     }
 
+    private String getParentId() {
+        return mParentId;
+    }
+
+    public void setParentId(final String value) {
+        mParentId = value;
+    }
+
     /**
      * Set active Id from the items list.
+     *
      * @param id Id of the Item.
      */
     public void setActiveItemId(final int id) {
@@ -142,8 +156,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         final MediaDescriptionCompat description = mediaItem.getDescription();
 
-        mViewHolder.mNameView.setText(description.getTitle());
-        mViewHolder.mDescriptionView.setText(description.getSubtitle());
+        handleNameAndDescriptionView(mViewHolder.mNameView, mViewHolder.mDescriptionView, description, getParentId());
 
         updateImage(description, mediaItem.isPlayable(), mViewHolder.mImageView, mImageFetcher);
 
@@ -177,6 +190,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
     /**
      * Add {@link MediaBrowserCompat.MediaItem}s into the collection.
+     *
      * @param value {@link MediaBrowserCompat.MediaItem}s.
      */
     public final void addAll(final List<MediaBrowserCompat.MediaItem> value) {
@@ -231,7 +245,37 @@ public final class MediaItemsAdapter extends BaseAdapter {
     }
 
     /**
+     * Handle view of list item responsible to display Title and Description.<p>
+     * Different categories requires different handle approaches.
+     *
+     * @param nameView
+     * @param descriptionView
+     * @param description
+     * @param parentId
+     */
+    private static void handleNameAndDescriptionView(@NonNull final TextView nameView,
+                                                     @NonNull final TextView descriptionView,
+                                                     final MediaDescriptionCompat description,
+                                                     @NonNull final String parentId) {
+        nameView.setText(description.getTitle());
+        descriptionView.setText(description.getSubtitle());
+
+        final RelativeLayout.LayoutParams layoutParams =
+                (RelativeLayout.LayoutParams) nameView.getLayoutParams();
+
+        if (MediaIdHelper.MEDIA_ID_ROOT.equals(parentId)) {
+            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
+            descriptionView.setVisibility(View.GONE);
+        } else {
+            layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.LEFT_OF);
+            descriptionView.setVisibility(View.VISIBLE);
+        }
+        nameView.setLayoutParams(layoutParams);
+    }
+
+    /**
      * Create View holder to keep reference to the layout items
+     *
      * @param view {@link android.view.View}
      * @return {@link ListAdapterViewHolder} object
      */

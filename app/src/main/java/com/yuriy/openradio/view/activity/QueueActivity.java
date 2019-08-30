@@ -288,24 +288,31 @@ public final class QueueActivity extends AppCompatActivity {
     }
 
     /**
-     * Skip to previous handler
+     * Handler of "Skip to previous" event.
      */
     private void skipToPrevious() {
-        final int position = mQueueAdapter.getActivePosition();
+        final int count = mQueueAdapter.getCount();
+        int position = mQueueAdapter.getActivePosition();
         if (position > 0) {
-            skipToQueueItem(position - 1);
+            position--;
+        } else {
+            position = count - 1;
         }
+        skipToQueueItem(position);
     }
 
     /**
-     * Skip to next handler
+     * Handler of "Skip to next" event.
      */
     private void skipToNext() {
         final int count = mQueueAdapter.getCount();
-        final int position = mQueueAdapter.getActivePosition();
+        int position = mQueueAdapter.getActivePosition();
         if (position < count - 1) {
-            skipToQueueItem(position + 1);
+            position++;
+        } else {
+            position = 0;
         }
+        skipToQueueItem(position);
     }
 
     /**

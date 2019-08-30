@@ -1405,6 +1405,7 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
+            activity.mBrowserAdapter.setParentId(parentId);
             activity.mBrowserAdapter.clear();
             activity.mBrowserAdapter.notifyDataSetInvalidated();
             activity.mBrowserAdapter.addAll(children);
