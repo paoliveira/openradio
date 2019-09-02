@@ -118,7 +118,6 @@ import wseemann.media.jplaylistparser.playlist.PlaylistEntry;
 public final class OpenRadioService extends MediaBrowserServiceCompat
         implements AudioManager.OnAudioFocusChangeListener {
 
-    @SuppressWarnings("unused")
     private static final String CLASS_NAME = OpenRadioService.class.getSimpleName() + " ";
 
     private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
@@ -1497,6 +1496,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
+    /**
+     * Get available actions from media control buttons.
+     *
+     * @return Actions encoded in integer.
+     */
     private long getAvailableActions() {
         long actions = PlaybackStateCompat.ACTION_PLAY
                 | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
@@ -1507,12 +1511,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             actions |= PlaybackStateCompat.ACTION_PAUSE;
         }
-        if (mCurrentIndexOnQueue > 0) {
-            actions |= PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
-        }
-        if (mCurrentIndexOnQueue < mPlayingQueue.size() - 1) {
-            actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
-        }
+        // Always show Prev and Next buttons, play index is handling on each listener (for instance, to handle loop
+        // once end or beginning reached).
+        actions |= PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
+        actions |= PlaybackStateCompat.ACTION_SKIP_TO_NEXT;
         return actions;
     }
 
@@ -1693,6 +1695,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private static final class MediaSessionCallback extends MediaSessionCompat.Callback {
 
+        private static final String CLASS_NAME = MediaSessionCallback.class.getSimpleName() + " ";
+
         /**
          * Reference to the enclosing class.
          */
@@ -1840,7 +1844,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (service.mCurrentIndexOnQueue < 0) {
                 // This sample's behavior: skipping to previous when in first song restarts the
                 // first song.
-                service.mCurrentIndexOnQueue = 0;
+                service.mCurrentIndexOnQueue = service.mPlayingQueue.size() - 1;
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mPlayingQueue)) {

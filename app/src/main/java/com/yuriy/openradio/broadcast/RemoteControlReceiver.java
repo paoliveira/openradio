@@ -22,7 +22,6 @@ import android.content.Intent;
 import android.view.KeyEvent;
 
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.FabricUtils;
 
 /**
  * Created by Yuriy Chernyshov
@@ -45,14 +44,26 @@ public final class RemoteControlReceiver extends BroadcastReceiver {
         }
         final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
         final int keyCode = event != null ? event.getKeyCode() : Integer.MIN_VALUE;
-        FabricUtils.logCustomEvent(
-                FabricUtils.EVENT_NAME_REMOTE_CONTROL_RECEIVER_RECEIVED, "KeyCode", (keyCode)
-        );
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
 
                 break;
             case KeyEvent.KEYCODE_MEDIA_PAUSE:
+
+                break;
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+
+                break;
+            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
+
+                break;
+            case KeyEvent.KEYCODE_MEDIA_REWIND:
+
+                break;
+            case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+
+                break;
+            case KeyEvent.KEYCODE_MEDIA_STOP:
 
                 break;
             default:

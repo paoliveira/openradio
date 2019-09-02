@@ -34,9 +34,7 @@ import io.fabric.sdk.android.Fabric;
  */
 public final class FabricUtils {
 
-    public static final String EVENT_NAME_API_EXEC = "ApiExecutor";
     public static final String EVENT_NAME_GOOGLE_DRIVE = "GoogleDrive";
-    public static final String EVENT_NAME_REMOTE_CONTROL_RECEIVER_RECEIVED = "RemoteControlReceiver received";
 
     /**
      * Default constructor.
