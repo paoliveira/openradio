@@ -20,21 +20,23 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.vo.RadioStation;
-import com.yuriy.openradio.utils.BitmapsOverlay;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.BitmapsOverlay;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.QueueHelper;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
 
@@ -43,7 +45,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link MediaItemRoot} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display root menu items.
  */
@@ -68,23 +70,31 @@ public final class MediaItemRoot implements MediaItemCommand {
                 context.getPackageName() + "/drawable/ic_all_categories";
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
-        // Get lat know Radio Station.
-        final RadioStation latestRadioStation = LatestRadioStationStorage.load(shareObject.getContext());
-        if (latestRadioStation != null) {
-            // Add Radio Station to queue.
-            QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
-            // Add Radio Station to Menu
-            final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(shareObject.getContext(), latestRadioStation),
-                    MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-            );
-            MediaItemHelper.updateFavoriteField(
-                    mediaItem, FavoritesStorage.isFavorite(latestRadioStation, shareObject.getContext())
-            );
-            MediaItemHelper.updateLastPlayedField(mediaItem, true);
-            // In case of Android Auto, display latest played Radio Station on top of Menu.
-            if (shareObject.isAndroidAuto()) {
-                mediaItems.add(mediaItem);
+        // Get lat known Radio Station.
+        // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
+        // exposed.
+        RadioStation latestRadioStation = null;
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
+            latestRadioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (latestRadioStation != null) {
+                // Add Radio Station to queue.
+                QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
+                // Add Radio Station to Menu
+                final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
+                        MediaItemHelper.buildMediaDescriptionFromRadioStation(
+                                shareObject.getContext(),
+                                latestRadioStation
+                        ),
+                        MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                );
+                MediaItemHelper.updateFavoriteField(
+                        mediaItem, FavoritesStorage.isFavorite(latestRadioStation, shareObject.getContext())
+                );
+                MediaItemHelper.updateLastPlayedField(mediaItem, true);
+                // In case of Android Auto, display latest played Radio Station on top of Menu.
+                if (shareObject.isAndroidAuto()) {
+                    mediaItems.add(mediaItem);
+                }
             }
         }
 
@@ -103,7 +113,6 @@ public final class MediaItemRoot implements MediaItemCommand {
                             context.getResources(),
                             R.drawable.ic_all_categories
                     ));
-            final int itemsLength = mediaItems.size();
             mediaItems.add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)

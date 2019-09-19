@@ -1036,21 +1036,12 @@ public final class MainActivity extends AppCompatActivity {
             addMediaItemToStack(mediaId);
         } else if (item.isPlayable()) {
             // Else - we play an item
-            boolean result = false;
             final MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
             if (mediaController != null) {
                 final MediaControllerCompat.TransportControls transportControls = mediaController.getTransportControls();
                 if (transportControls != null) {
                     transportControls.playFromMediaId(mediaId, null);
-                    // Call appropriate activity for the items playing
-                    startActivity(
-                            QueueActivity.makeIntent(getApplicationContext())
-                    );
-                    result = true;
                 }
-            }
-            if (!result) {
-                SafeToast.showAnyThread(getApplicationContext(), getString(R.string.can_not_play_station));
             }
         }
     }
@@ -1117,20 +1108,6 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
 
-    private RadioStation getLastKnowRadioStationAndUpdateView() {
-        if (mCurrentRadioStationView == null) {
-            return null;
-        }
-
-        final RadioStation radioStation = LatestRadioStationStorage.load(getApplicationContext());
-        if (radioStation == null) {
-            mCurrentRadioStationView.setVisibility(View.GONE);
-            return null;
-        }
-        mCurrentRadioStationView.setVisibility(View.VISIBLE);
-        return radioStation;
-    }
-
     private void handlePlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
         final View playBtn = findViewById(R.id.crs_play_btn_view);
         final View pauseBtn = findViewById(R.id.crs_pause_btn_view);
@@ -1184,10 +1161,14 @@ public final class MainActivity extends AppCompatActivity {
      * @param metadata Metadata related to currently playing Radio Station.
      */
     private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
+        if (metadata != null) {
+            if (mCurrentRadioStationView.getVisibility() != View.VISIBLE) {
+                mCurrentRadioStationView.setVisibility(View.VISIBLE);
+            }
+        }
         mLastKnownMetadata = metadata;
-        // TODO: Probably no need to have this check as currently playing Radio Station is the only one relates to
-        //       metadata change.
-        final RadioStation radioStation = getLastKnowRadioStationAndUpdateView();
+
+        final RadioStation radioStation = LatestRadioStationStorage.get(getApplicationContext());
         if (radioStation == null) {
             return;
         }

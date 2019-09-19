@@ -102,7 +102,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
 import wseemann.media.jplaylistparser.parser.AutoDetectParser;
@@ -268,11 +267,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
     private boolean mIsAndroidAuto = false;
-
-    /**
-     *
-     */
-    private final AtomicBoolean mIsPlayWhenReady = new AtomicBoolean(true);
 
     /**
      * Enumeration for the Audio Focus states.
@@ -600,7 +594,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
             shareObject.isSameCatalogue(isSameCatalogue);
             shareObject.setRestoreInstance(mIsRestoreInstance);
-            shareObject.setRemotePlay(this::handleLastRadioStation);
+            shareObject.setRemotePlay(this::handlePlayFromMediaId);
 
             command.execute(mPlaybackStateListener, shareObject);
         } else {
@@ -704,26 +698,21 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void onPrepared() {
-        AppLogger.i(CLASS_NAME + "ExoPlayer prepared (mIsPlayWhenReady):" + mIsPlayWhenReady);
+        AppLogger.i(CLASS_NAME + "ExoPlayer prepared");
 
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
-        if (mIsPlayWhenReady.get()) {
-            final RadioStation radioStation = getCurrentPlayingRadioStation();
-            // Save latest selected Radio Station.
-            // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
-            if (radioStation != null) {
-                LatestRadioStationStorage.addToLocals(radioStation, getApplicationContext());
-            }
-            configMediaPlayerState();
-            mMediaNotification.doInitialNotification(
-                    getApplicationContext(), getCurrentPlayingRadioStation()
-            );
-            updateMetadata(mCurrentStreamTitle);
-        } else {
-            handleStopRequest(null);
-            mIsPlayWhenReady.set(true);
+        final RadioStation radioStation = getCurrentPlayingRadioStation();
+        // Save latest selected Radio Station.
+        // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
+        if (radioStation != null) {
+            LatestRadioStationStorage.add(radioStation, getApplicationContext());
         }
+        configMediaPlayerState();
+        mMediaNotification.doInitialNotification(
+                getApplicationContext(), getCurrentPlayingRadioStation()
+        );
+        updateMetadata(mCurrentStreamTitle);
     }
 
     @Override
@@ -1574,11 +1563,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
         mServiceStarted = false;
-    }
-
-    private void handleLastRadioStation(final String mediaId) {
-        mIsPlayWhenReady.set(!mIsAndroidAuto);
-        handlePlayFromMediaId(mediaId);
     }
 
     /**

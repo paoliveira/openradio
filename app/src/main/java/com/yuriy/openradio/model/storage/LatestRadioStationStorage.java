@@ -17,6 +17,7 @@
 package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
+
 import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.vo.RadioStation;
@@ -49,12 +50,18 @@ public final class LatestRadioStationStorage extends AbstractRadioStationsStorag
     private static final String KEY = "LatestRadioStationKey";
 
     /**
+     * Cache object in order to prevent use of storage.
+     */
+    private static RadioStation sRadioStation;
+
+    /**
      * Save provided {@link RadioStation} to the Latest Radio Station preferences.
      *
      * @param radioStation {@link RadioStation} to add as Latest Radio Station.
      * @param context      Context of the callee.
      */
-    public static synchronized void addToLocals(final RadioStation radioStation, final Context context) {
+    public static synchronized void add(final RadioStation radioStation, final Context context) {
+        sRadioStation = RadioStation.makeCopyInstance(radioStation);
         add(KEY, radioStation, context, FILE_NAME);
     }
 
@@ -65,18 +72,16 @@ public final class LatestRadioStationStorage extends AbstractRadioStationsStorag
      * @return Collection of the Local Radio Stations.
      */
     @Nullable
-    public static synchronized RadioStation load(final Context context) {
-        // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
-        // exposed.
-        if (!AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            return null;
+    public static synchronized RadioStation get(final Context context) {
+        if (sRadioStation != null) {
+            return sRadioStation;
         }
-
         final List<RadioStation> list = getAll(context, FILE_NAME);
         // There is only one Radio Station in collection.
         if (!list.isEmpty()) {
             list.get(0).setLastKnown(true);
-            return list.get(0);
+            sRadioStation = RadioStation.makeCopyInstance(list.get(0));
+            return sRadioStation;
         }
         return null;
     }

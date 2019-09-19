@@ -88,7 +88,20 @@ public final class MediaStream {
      * Disallow instantiation of this helper class.
      */
     private MediaStream() {
+        super();
         mVariants = new ArrayList<>();
+    }
+
+    /**
+     * Copy constructor.
+     *
+     * @param mediaStream Object to be copied.
+     */
+    private MediaStream(final MediaStream mediaStream) {
+        this();
+        for (final Variant variant : mediaStream.mVariants) {
+            mVariants.add(new Variant(variant.mBitrate, variant.mUrl));
+        }
     }
 
     public static final class Variant {
@@ -151,5 +164,15 @@ public final class MediaStream {
      */
     public static MediaStream makeDefaultInstance() {
         return new MediaStream();
+    }
+
+    /**
+     * Factory method to create copy-instance of the {@link MediaStream}.
+     *
+     * @param mediaStream Object to be copied.
+     * @return Copied instance of {@link MediaStream}.
+     */
+    public static MediaStream makeCopyInstance(final MediaStream mediaStream) {
+        return new MediaStream(mediaStream);
     }
 }

@@ -72,6 +72,27 @@ public final class RadioStation implements Serializable {
         mMediaStream = MediaStream.makeDefaultInstance();
     }
 
+    /**
+     * Copy constructor.
+     *
+     * @param radioStation Object to be copied.
+     */
+    private RadioStation(@NonNull final RadioStation radioStation) {
+        super();
+        mCountry = radioStation.mCountry;
+        mGenre = radioStation.mGenre;
+        mId = radioStation.mId;
+        mImageUrl = radioStation.mImageUrl;
+        mIsLocal = radioStation.mIsLocal;
+        mIsLastKnown = radioStation.mIsLastKnown;
+        mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream);
+        mName = radioStation.mName;
+        mSortId = radioStation.mSortId;
+        mStatus = radioStation.mStatus;
+        mThumbUrl = radioStation.mThumbUrl;
+        mWebSite = radioStation.mWebSite;
+    }
+
     public final int getId() {
         return mId;
     }
@@ -225,5 +246,15 @@ public final class RadioStation implements Serializable {
      */
     public static RadioStation makeDefaultInstance() {
         return new RadioStation();
+    }
+
+    /**
+     * Factory method to create copy-instance of the {@link RadioStation}.
+     *
+     * @param radioStation Object to be copied.
+     * @return Copied instance of {@link RadioStation}.
+     */
+    public static RadioStation makeCopyInstance(final RadioStation radioStation) {
+        return new RadioStation(radioStation);
     }
 }

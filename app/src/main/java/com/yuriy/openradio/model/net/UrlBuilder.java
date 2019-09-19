@@ -19,10 +19,6 @@ package com.yuriy.openradio.model.net;
 import android.net.Uri;
 
 import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.FabricUtils;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 
 /**
  * Created by Yuriy Chernyshov
@@ -61,12 +57,12 @@ public final class UrlBuilder {
     /**
      * Base url for the icons used previously.
      */
-    static final String OLD_IMG_BASE_URL = "cdn.devality.com";
+    private static final String OLD_IMG_BASE_URL = "cdn.devality.com";
 
     /**
      * Base url for the icons using currently.
      */
-    static final String NEW_IMG_BASE_URL = "img.dirble.com";
+    private static final String NEW_IMG_BASE_URL = "img.dirble.com";
 
     /**
      * Private constructor.
@@ -218,13 +214,6 @@ public final class UrlBuilder {
      * @return
      */
     private static String encodeValue(final String value) {
-        try {
-            return URLEncoder.encode(value, AppUtils.UTF8);
-        } catch (final UnsupportedEncodingException ex) {
-            FabricUtils.logException(
-                    new Exception("Can not url-encode value of '" + value + "'", ex)
-            );
-        }
-        return value;
+        return value.replaceAll(" ", "%20");
     }
 }
