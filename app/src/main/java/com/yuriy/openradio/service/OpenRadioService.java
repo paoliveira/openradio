@@ -892,7 +892,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (radioStation != null) {
             // This call just overrides existing Radio Station in the storage.
             if (TextUtils.equals(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
-                FavoritesStorage.addToFavorites(radioStation, getApplicationContext());
+                FavoritesStorage.add(radioStation, getApplicationContext());
             } else if (TextUtils.equals(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
                 LocalRadioStationsStorage.add(radioStation, getApplicationContext());
             }
@@ -1646,7 +1646,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param mediaId Media Id of the {@link RadioStation}.
      */
     private void removeFromFavorites(final String mediaId) {
-        FavoritesStorage.removeFromFavorites(
+        FavoritesStorage.remove(
                 mediaId,
                 getApplicationContext()
         );
@@ -1846,7 +1846,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                 if (isFavorite) {
                                     service.removeFromFavorites(radioStation.getIdAsString());
                                 } else {
-                                    FavoritesStorage.addToFavorites(
+                                    FavoritesStorage.add(
                                             radioStation, service.getApplicationContext()
                                     );
                                 }
@@ -2013,7 +2013,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     break;
                 }
                 if (isFavorite) {
-                    FavoritesStorage.addToFavorites(radioStation, context);
+                    FavoritesStorage.add(radioStation, context);
                 } else {
                     removeFromFavorites(radioStation.getIdAsString());
                 }
@@ -2086,7 +2086,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                 LocalRadioStationsStorage.add(radioStationLocal, context);
                 if (addToFav) {
-                    FavoritesStorage.addToFavorites(radioStationLocal, context);
+                    FavoritesStorage.add(radioStationLocal, context);
                 }
 
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);

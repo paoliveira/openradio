@@ -58,8 +58,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * @param radioStation {@link RadioStation} to add to Favorites.
      * @param context      Context of the callee.
      */
-    public static synchronized void addToFavorites(final RadioStation radioStation,
-                                                   final Context context) {
+    public static synchronized void add(final RadioStation radioStation, final Context context) {
         add(radioStation, context, FILE_NAME);
     }
 
@@ -70,8 +69,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * @param mediaId Media Id of the {@link RadioStation}.
      * @param context Context of the callee.
      */
-    public static synchronized void removeFromFavorites(final String mediaId,
-                                                        final Context context) {
+    public static synchronized void remove(final String mediaId, final Context context) {
         remove(mediaId, context, FILE_NAME);
     }
 
@@ -81,7 +79,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * @param context Context of the callee.
      * @return Collection of the Favorites Radio stations.
      */
-    public static List<RadioStation> getAllFavorites(final Context context) {
+    public static List<RadioStation> getAll(final Context context) {
         return getAll(context, FILE_NAME);
     }
 
@@ -117,7 +115,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
         if (sharedPreferences.contains(radioStation.getIdAsString())) {
             return true;
         }
-        final List<RadioStation> list = getAllFavorites(context);
+        final List<RadioStation> list = getAll(context);
         for (final RadioStation station : list) {
             if (station == null) {
                 continue;

@@ -62,7 +62,7 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.clearAndCopyCollection(
                     shareObject.getRadioStations(),
-                    FavoritesStorage.getAllFavorites(context)
+                    FavoritesStorage.getAll(context)
             );
         }
 

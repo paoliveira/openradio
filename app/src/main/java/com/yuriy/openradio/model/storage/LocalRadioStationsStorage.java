@@ -147,9 +147,9 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
                 radioStation.setCountry(country);
 
                 if (addToFav) {
-                    FavoritesStorage.addToFavorites(radioStation, context);
+                    FavoritesStorage.add(radioStation, context);
                 } else {
-                    FavoritesStorage.removeFromFavorites(mediaId, context);
+                    FavoritesStorage.remove(mediaId, context);
                 }
 
                 add(radioStation, context);
