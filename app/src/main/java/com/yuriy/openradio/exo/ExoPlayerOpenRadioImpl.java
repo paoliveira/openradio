@@ -20,8 +20,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.PowerManager;
-import androidx.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -105,7 +106,6 @@ public final class ExoPlayerOpenRadioImpl {
         void onProgress(long position, long bufferedPosition, long duration);
 
         /**
-         *
          * @param playWhenReady
          * @param playbackState
          */
@@ -115,7 +115,7 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * String tag to use in logs.
      */
-    private static final String LOG_TAG = ExoPlayerOpenRadioImpl.class.getSimpleName();
+    private static final String LOG_TAG = "ExoPlayerORImpl";
 
     /**
      *
@@ -494,8 +494,8 @@ public final class ExoPlayerOpenRadioImpl {
             mWakeLock = null;
         }
 
-        final PowerManager pm = (PowerManager)context.getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(mode|PowerManager.ON_AFTER_RELEASE, ExoPlayer.class.getName());
+        final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoPlayer.class.getName());
         mWakeLock.setReferenceCounted(false);
         if (washeld) {
             mWakeLock.acquire();
@@ -569,8 +569,8 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onAudioSinkUnderrun(final int bufferSize,
-                                         final long bufferSizeMs,
-                                         final long elapsedSinceLastFeedMs) {
+                                        final long bufferSizeMs,
+                                        final long elapsedSinceLastFeedMs) {
 
         }
 

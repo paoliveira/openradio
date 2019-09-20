@@ -1134,8 +1134,6 @@ public final class MainActivity extends AppCompatActivity {
      * Updates buffered value of the currently playing radio station.
      *
      * @param value Buffered time in seconds.
-     *
-     * TODO: Reuse the same code here and in QueueActivity
      */
     private void updateBufferedTime(double value) {
         if (mBufferedTextView == null) {

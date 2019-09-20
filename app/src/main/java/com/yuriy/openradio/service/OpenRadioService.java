@@ -117,7 +117,7 @@ import wseemann.media.jplaylistparser.playlist.PlaylistEntry;
 public final class OpenRadioService extends MediaBrowserServiceCompat
         implements AudioManager.OnAudioFocusChangeListener {
 
-    private static final String CLASS_NAME = OpenRadioService.class.getSimpleName() + " ";
+    private static final String CLASS_NAME = "ORS ";
 
     private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
@@ -432,7 +432,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't
         // want to block.
-        final HandlerThread thread = new HandlerThread("OpenRadioService-Thread");
+        final HandlerThread thread = new HandlerThread("ORS-Thread");
         thread.start();
         // Looper associated with the HandlerThread.
         final Looper looper = thread.getLooper();
@@ -1294,6 +1294,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         " PlayQueue.size=" + service.mPlayingQueue.size());
                 return;
             }
+            if (service.mLastKnownRadioStation != null && service.mLastKnownRadioStation.equals(radioStation)) {
+                return;
+            }
+
             service.mLastKnownRadioStation = radioStation;
             final MediaMetadataCompat metadata = service.buildMetadata(radioStation);
             if (metadata == null) {
@@ -1382,17 +1386,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.e(CLASS_NAME + "can not set player volume, player null");
             return;
         }
-        final float volume = getNormalVolume();
+        float volume = AppPreferencesManager.getMasterVolume(getApplicationContext()) / 100.0F;
         if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
-            mExoPlayer.setVolume(volume * 0.2F); // we'll be relatively quiet
-        } else {
-            mExoPlayer.setVolume(volume); // we can be loud again
+            volume = (volume * 0.2F);
         }
-    }
-
-    private float getNormalVolume() {
-        final int masterVolume = AppPreferencesManager.getMasterVolume(getApplicationContext());
-        return masterVolume / 100.0F;
+        mExoPlayer.setVolume(volume);
     }
 
     /**
@@ -1625,21 +1623,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
         getCurrentPlayingRadioStationAsync(
                 (radioStation) -> {
-
-//                    if (radioStation1 == null) {
-//                        return;
-//                    }
-                    // Set appropriate "Favorite" icon on Custom action:
-//                    final String mediaId = radioStation1.getString(
-//                            MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-//                    );
-//                    final RadioStation radioStation = QueueHelper.getRadioStationById(
-//                            mediaId, mRadioStations
-//                    );
                     if (radioStation == null) {
-//                        final String msg = "Set custom action on null Radio Station. MediaId:" + mediaId
-//                                + ". " + QueueHelper.queueToString(mRadioStations);
-//                        FabricUtils.logException(new RuntimeException(msg));
                         return;
                     }
 
@@ -1856,18 +1840,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         (radioStation) -> {
 
                             if (radioStation != null) {
-//                                final String mediaId = radioStation.getString(
-//                                        MediaMetadataCompat.METADATA_KEY_MEDIA_ID
-//                                );
-//                                final RadioStation radioStation = QueueHelper.getRadioStationById(
-//                                        mediaId, service.mRadioStations
-//                                );
-
-//                                if (radioStation == null) {
-//                                    AppLogger.w(CLASS_NAME + "OnCustomAction radioStation is null");
-//                                    return;
-//                                }
-
                                 final boolean isFavorite = FavoritesStorage.isFavorite(
                                         radioStation, service.getApplicationContext()
                                 );
