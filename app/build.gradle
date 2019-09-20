@@ -71,14 +71,23 @@ android {
             signingConfig signingConfigs.config
         }
         release {
+            // TODO:
+//            minifyEnabled true
+//            shrinkResources true
             signingConfig signingConfigs.config
         }
     }
+
     lintOptions {
         abortOnError false
     }
+
     testOptions {
         unitTests.returnDefaultValues = true
+    }
+
+    aaptOptions {
+        cruncherEnabled = true
     }
 }
 
