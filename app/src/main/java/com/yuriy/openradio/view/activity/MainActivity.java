@@ -17,6 +17,7 @@
 package com.yuriy.openradio.view.activity;
 
 import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.Fragment;
@@ -582,6 +583,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
         if (resultCode != Activity.RESULT_OK) {
             return;
@@ -1341,6 +1343,7 @@ public final class MainActivity extends AppCompatActivity {
             mReference = new WeakReference<>(reference);
         }
 
+        @SuppressLint("RestrictedApi")
         @Override
         public void onChildrenLoaded(@NonNull final String parentId,
                                      @NonNull final List<MediaBrowserCompat.MediaItem> children) {

@@ -214,10 +214,6 @@ public final class MediaType implements Comparable<MediaType> {
     }
 
     private MediaType(String string, int slash) {
-        assert slash != -1;
-        assert string.charAt(slash) == '/';
-        assert isSimpleName(string.substring(0, slash));
-        assert isSimpleName(string.substring(slash + 1));
         this.string = string;
     }
 
