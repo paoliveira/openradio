@@ -50,9 +50,9 @@ import java.util.Set;
 /**
  * This class handles disk and memory caching of bitmaps in conjunction with the
  * {@link ImageWorker} class and its subclasses. Use
- * {@link com.yuriy.openradio.utils.ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to get an instance of this
+ * {@link ImageCache#getInstance(FragmentManager, ImageCache.ImageCacheParams)} to get an instance of this
  * class, although usually a cache should be added directly to an {@link ImageWorker} by calling
- * {@link ImageWorker#addImageCache(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
+ * {@link ImageWorker#addImageCache(FragmentManager, ImageCache.ImageCacheParams)}.
  */
 public class ImageCache {
     private static final String TAG = "ImageCache";
@@ -84,7 +84,7 @@ public class ImageCache {
     /**
      * Create a new ImageCache object using the specified parameters. This should not be
      * called directly by other classes, instead use
-     * {@link com.yuriy.openradio.utils.ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} to fetch an ImageCache
+     * {@link ImageCache#getInstance(FragmentManager, ImageCache.ImageCacheParams)} to fetch an ImageCache
      * instance.
      *
      * @param cacheParams The cache parameters to use to initialize the cache
@@ -94,7 +94,7 @@ public class ImageCache {
     }
 
     /**
-     * Return an {@link com.yuriy.openradio.utils.ImageCache} instance. A {@link com.yuriy.openradio.utils.ImageCache.RetainFragment} is used to retain the
+     * Return an {@link ImageCache} instance. A {@link ImageCache.RetainFragment} is used to retain the
      * ImageCache object across configuration changes such as a change in device orientation.
      *
      * @param fragmentManager The fragment manager to use when dealing with the retained fragment.
@@ -470,7 +470,7 @@ public class ImageCache {
 
         /**
          * Create a set of image cache parameters that can be provided to
-         * {@link com.yuriy.openradio.utils.ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} or
+         * {@link ImageCache#getInstance(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)} or
          * {@link ImageWorker#addImageCache(FragmentManager, com.yuriy.openradio.utils.ImageCache.ImageCacheParams)}.
          * @param context A context to use.
          * @param diskCacheDirectoryName A unique subdirectory name that will be appended to the

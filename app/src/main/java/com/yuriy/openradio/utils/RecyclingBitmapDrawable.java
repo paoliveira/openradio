@@ -19,14 +19,11 @@ package com.yuriy.openradio.utils;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.util.Log;
-
-import com.yuriy.openradio.BuildConfig;
 
 /**
  * A BitmapDrawable that keeps track of whether it is being displayed or cached.
  * When the drawable is no longer being displayed or cached,
- * {@link android.graphics.Bitmap#recycle() recycle()} will be called on this drawable's bitmap.
+ * {@link Bitmap#recycle()} will be called on this drawable's bitmap.
  */
 class RecyclingBitmapDrawable extends BitmapDrawable {
 

@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -64,9 +65,9 @@ public abstract class ImageWorker {
 
     /**
      * Load an image specified by the data parameter into an ImageView (override
-     * {@link com.yuriy.openradio.utils.ImageWorker#processBitmap(Object)} to define the processing logic). A memory and
+     * {@link ImageWorker#processBitmap(Object)} to define the processing logic). A memory and
      * disk cache will be used if an {@link ImageCache} has been added using
-     * {@link com.yuriy.openradio.utils.ImageWorker#addImageCache(FragmentManager, ImageCache.ImageCacheParams)}. If the
+     * {@link ImageWorker#addImageCache(FragmentManager, ImageCache.ImageCacheParams)}. If the
      * image is found in the memory cache, it is set immediately, otherwise an {@link AsyncTask}
      * will be created to asynchronously load the bitmap.
      *
@@ -120,21 +121,20 @@ public abstract class ImageWorker {
     }
 
     /**
-     * Adds an {@link ImageCache} to this {@link com.yuriy.openradio.utils.ImageWorker} to handle disk and memory bitmap
+     * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
      * caching.
      *
      * @param fragmentManager
      * @param cacheParams     The cache parameters to use for the image cache.
      */
-    public void addImageCache(FragmentManager fragmentManager,
-                              ImageCache.ImageCacheParams cacheParams) {
+    public void addImageCache(FragmentManager fragmentManager, ImageCache.ImageCacheParams cacheParams) {
         mImageCacheParams = cacheParams;
         mImageCache = ImageCache.getInstance(fragmentManager, mImageCacheParams);
         new CacheAsyncTask(this).execute(MESSAGE_INIT_DISK_CACHE);
     }
 
     /**
-     * Adds an {@link ImageCache} to this {@link com.yuriy.openradio.utils.ImageWorker} to handle disk and memory bitmap
+     * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
      * caching.
      *
      * @param activity
@@ -165,7 +165,7 @@ public abstract class ImageWorker {
      * example, you could resize a large bitmap here, or pull down an image from the network.
      *
      * @param data The data to identify which image to process, as provided by
-     *             {@link com.yuriy.openradio.utils.ImageWorker#loadImage(Object, android.widget.ImageView)}
+     *             {@link ImageWorker#loadImage(Object, android.widget.ImageView)}
      * @return The processed bitmap
      */
     protected abstract Bitmap processBitmap(Object data);
@@ -279,6 +279,7 @@ public abstract class ImageWorker {
                     try {
                         reference.mPauseWorkLock.wait();
                     } catch (InterruptedException e) {
+                        // Ignore
                     }
                 }
             }
@@ -432,7 +433,7 @@ public abstract class ImageWorker {
      * <p>
      * If work is paused, be sure setPauseWork(false) is called again
      * before your fragment or activity is destroyed (for example during
-     * {@link android.app.Activity#onPause()}), or there is a risk the
+     * {@link Activity#onPause()}), or there is a risk the
      * background thread will never finish.
      */
     private void setPauseWork(boolean pauseWork) {
