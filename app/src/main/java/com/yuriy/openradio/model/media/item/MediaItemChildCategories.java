@@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.ConcurrentUtils;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.vo.RadioStation;
 
@@ -52,7 +52,7 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 
-        AppUtils.API_CALL_EXECUTOR.submit(
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     final List<RadioStation> list = new ArrayList<>();
                     if (!shareObject.isRestoreInstance()) {

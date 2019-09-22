@@ -9,9 +9,7 @@ import com.yuriy.openradio.R;
  * User: Chernyshov Yuriy
  * Date: 18.05.14
  * Time: 21:14
- */
-
-/**
+ *
  * This class provides factory methods to create
  * {@link ImageFetcher} instance
  */

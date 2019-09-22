@@ -17,14 +17,15 @@
 package com.yuriy.openradio.model.media.item;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
+
+import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.ConcurrentUtils;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.vo.Category;
 
@@ -54,7 +55,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         shareObject.getResult().detach();
 
-        AppUtils.API_CALL_EXECUTOR.submit(
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
                     loadAllCategories(playbackStateListener, shareObject);

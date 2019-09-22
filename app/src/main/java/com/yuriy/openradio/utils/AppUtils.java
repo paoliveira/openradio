@@ -42,8 +42,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Yuriy Chernyshov
@@ -56,11 +54,6 @@ import java.util.concurrent.Executors;
 public final class AppUtils {
 
     public static final String UTF8 = "UTF-8";
-
-    /**
-     * Executor of the API requests.
-     */
-    public static final ExecutorService API_CALL_EXECUTOR = Executors.newSingleThreadExecutor();
 
     /**
      * Map of the Countries Codes and Names.
