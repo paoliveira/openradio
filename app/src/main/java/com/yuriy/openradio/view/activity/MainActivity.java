@@ -1408,8 +1408,10 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             // Restore position for the Catalogue list
-            int position = activity.mListPositionMap.get(parentId);
-            activity.setSelectedItem(position);
+            Integer position = activity.mListPositionMap.get(parentId);
+            if (position != null) {
+                activity.setSelectedItem(position);
+            }
             // Restore position for the Catalogue of the Playable items
             if (!TextUtils.isEmpty(activity.mCurrentMediaId)) {
                 position = activity.mBrowserAdapter.getIndexForMediaId(activity.mCurrentMediaId);
