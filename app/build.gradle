@@ -116,6 +116,7 @@ dependencies {
     }
     implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
     implementation "log4j:log4j:$log4jVersion"
     // https://mvnrepository.com/artifact/org.jdom/jdom2

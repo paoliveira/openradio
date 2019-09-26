@@ -36,11 +36,6 @@ public final class AppLocalReceiver extends BroadcastReceiver {
     private static final String CLASS_NAME = AppLocalReceiver.class.getSimpleName();
 
     /**
-     * Key value for the Country Code in the Intent's bundles.
-     */
-    private static final String KEY_COUNTRY_CODE = "KEY_COUNTRY_CODE";
-
-    /**
      * Key value for the Currently selected index in the Intent's bundles.
      */
     private static final String KEY_CURRENT_INDEX_ON_QUEUE = "KEY_CURRENT_INDEX_ON_QUEUE";
@@ -96,13 +91,6 @@ public final class AppLocalReceiver extends BroadcastReceiver {
         if (action.equals(AppLocalBroadcast.getActionLocationDisabled())) {
             if (mCallback != null) {
                 mCallback.onLocationDisabled();
-            }
-        }
-
-        if (action.equals(AppLocalBroadcast.getActionLocationCountryCode())) {
-            final String countryCode = intent.getStringExtra(KEY_COUNTRY_CODE);
-            if (countryCode != null && mCallback != null) {
-                mCallback.onLocationCountryCode(countryCode);
             }
         }
 

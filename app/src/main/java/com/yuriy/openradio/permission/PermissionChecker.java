@@ -46,13 +46,14 @@ public final class PermissionChecker {
      */
     private static final List<WeakReference<PermissionStatusListener>> PERMISSION_STATUS_LISTENERS
             = new ArrayList<>();
+
     /**
      * Checks whether provided permission is granted or not.
      *
      * @param context    Application's context.
      * @param permission Permission name to check.
      * @return <b>TRUE</b> in case of provided permission is granted,
-     *         <b>FALSE</b> otherwise.
+     * <b>FALSE</b> otherwise.
      */
     public static boolean isGranted(final Context context, final String permission) {
         if (!AppUtils.hasVersionM()) {
@@ -61,7 +62,7 @@ public final class PermissionChecker {
         final boolean result = context != null
                 && !TextUtils.isEmpty(permission)
                 && ActivityCompat.checkSelfPermission(context, permission)
-                    == PackageManager.PERMISSION_GRANTED;
+                == PackageManager.PERMISSION_GRANTED;
         if (!result) {
             dispatch(permission);
         }
@@ -74,7 +75,7 @@ public final class PermissionChecker {
      * @param context    Weak reference to the Application's context.
      * @param permission Permission name to check.
      * @return <b>TRUE</b> in case of provided permission is granted,
-     *         <b>FALSE</b> otherwise.
+     * <b>FALSE</b> otherwise.
      */
     public static boolean isGranted(final WeakReference<Context> context, final String permission) {
         if (!AppUtils.hasVersionM()) {
@@ -84,7 +85,7 @@ public final class PermissionChecker {
                 && context.get() != null
                 && !TextUtils.isEmpty(permission)
                 && ActivityCompat.checkSelfPermission(context.get(), permission)
-                    == PackageManager.PERMISSION_GRANTED;
+                == PackageManager.PERMISSION_GRANTED;
         if (!result) {
             dispatch(permission);
         }
@@ -126,7 +127,7 @@ public final class PermissionChecker {
         AppLogger.e(LOG_TAG + " '" + permissionName + "' not granted, "
                 + PERMISSION_STATUS_LISTENERS.size() + " listeners");
         synchronized (PERMISSION_STATUS_LISTENERS) {
-            for (WeakReference<PermissionStatusListener> reference : PERMISSION_STATUS_LISTENERS) {
+            for (final WeakReference<PermissionStatusListener> reference : PERMISSION_STATUS_LISTENERS) {
                 final PermissionStatusListener callback = reference.get();
                 if (callback != null) {
                     AppLogger.i(LOG_TAG + " Dispatch to:" + callback);

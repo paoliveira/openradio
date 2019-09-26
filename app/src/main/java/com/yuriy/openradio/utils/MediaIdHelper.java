@@ -125,7 +125,7 @@ public final class MediaIdHelper {
         if (!value.startsWith(MEDIA_ID_COUNTRIES_LIST) || value.equals(MEDIA_ID_COUNTRIES_LIST)) {
             return null;
         }
-        final String result = value.substring(value.length() - 2, value.length());
+        final String result = value.substring(value.length() - 2);
         if (!TextUtils.isEmpty(value) && result.length() == 2) {
             return result.toUpperCase();
         }

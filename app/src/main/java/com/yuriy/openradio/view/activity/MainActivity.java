@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.view.activity;
 
+import android.Manifest;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -28,6 +29,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -79,6 +82,7 @@ import com.yuriy.openradio.model.storage.drive.GoogleDriveError;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.permission.PermissionStatusListener;
+import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
@@ -101,6 +105,7 @@ import com.yuriy.openradio.view.dialog.SearchDialog;
 import com.yuriy.openradio.view.dialog.StreamBufferingDialog;
 import com.yuriy.openradio.view.dialog.UseLocationDialog;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
+import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.io.Serializable;
@@ -268,6 +273,13 @@ public final class MainActivity extends AppCompatActivity {
     private TextView mBufferedTextView;
 
     /**
+     * Stores an instance of {@link LocationHandler} that inherits from
+     * Handler and uses its handleMessage() hook method to process
+     * Messages sent to it from the {@link LocationService}.
+     */
+    private Handler mLocationHandler = null;
+
+    /**
      * Default constructor.
      */
     public MainActivity() {
@@ -281,6 +293,7 @@ public final class MainActivity extends AppCompatActivity {
 
         // Set content.
         setContentView(R.layout.main_drawer);
+        final Context context = getApplicationContext();
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -346,15 +359,18 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        final String versionText = AppUtils.getApplicationVersion(getApplicationContext()) + "." +
-                AppUtils.getApplicationVersionCode(getApplicationContext());
+        final String versionText = AppUtils.getApplicationVersion(context) + "." +
+                AppUtils.getApplicationVersionCode(context);
         final TextView versionView = navigationView.getHeaderView(0).findViewById(R.id.drawer_ver_code_view);
         versionView.setText(versionText);
 
         mLastKnownMetadata = null;
 
+        // Initialize the Location Handler.
+        mLocationHandler = new LocationHandler(this);
+
         mGoogleDriveManager = new GoogleDriveManager(
-                getApplicationContext(), new GoogleDriveManagerListenerImpl(this)
+                context, new GoogleDriveManagerListenerImpl(this)
         );
 
         mMediaResourcesManager = new MediaResourcesManager(
@@ -382,7 +398,7 @@ public final class MainActivity extends AppCompatActivity {
 
         mCurrentRadioStationView = findViewById(R.id.current_radio_station_view);
         mCurrentRadioStationView.setOnClickListener(
-                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(getApplicationContext()))
+                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(context))
         );
 
         hideProgressBar();
@@ -419,7 +435,17 @@ public final class MainActivity extends AppCompatActivity {
 
         restoreState(savedInstanceState);
 
-        mMediaResourcesManager.connect();
+        final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        );
+        if (isLocationPermissionGranted) {
+            // Create an Intent to get Location in the background via a Service.
+            final Intent intent = LocationService.makeIntent(context, mLocationHandler);
+
+            // Start the Location Service.
+            startService(intent);
+        }
     }
 
     @Override
@@ -653,6 +679,9 @@ public final class MainActivity extends AppCompatActivity {
                 AppLogger.d(CLASS_NAME + "Back to " + previousMediaId);
                 mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
             }
+        } else {
+            // perform android frameworks lifecycle
+            super.onBackPressed();
         }
     }
 
@@ -685,7 +714,7 @@ public final class MainActivity extends AppCompatActivity {
      * just request Location via Android API and return result via Broadcast event.
      */
     public final void processLocationCallback() {
-        startService(OpenRadioService.makeRequestLocationIntent(getApplicationContext()));
+        // TODO:
     }
 
     /**
@@ -976,7 +1005,6 @@ public final class MainActivity extends AppCompatActivity {
         // Create filter and add actions
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(AppLocalBroadcast.getActionLocationDisabled());
-        intentFilter.addAction(AppLocalBroadcast.getActionLocationCountryCode());
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
         // Register receiver
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
@@ -1254,17 +1282,6 @@ public final class MainActivity extends AppCompatActivity {
             useLocationServiceDialog.show(reference.getFragmentManager(), UseLocationDialog.DIALOG_TAG);
 
             AppPreferencesManager.setLocationDialogShown(reference.getApplicationContext(), true);
-        }
-
-        @Override
-        public void onLocationCountryCode(final String countryCode) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            // Disconnect and connect back to media browser
-            reference.mMediaResourcesManager.disconnect();
-            reference.mMediaResourcesManager.connect();
         }
 
         @Override
@@ -1833,6 +1850,48 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             reference.onScrolledToEnd();
+        }
+    }
+
+    /**
+     * A nested class that inherits from Handler and uses its
+     * handleMessage() hook method to process Messages sent to
+     * it from the Location Service.
+     */
+    private static final class LocationHandler extends Handler {
+        /**
+         * Allows {@link MainActivity} to be garbage collected properly.
+         */
+        private final WeakReference<MainActivity> mActivity;
+
+        /**
+         * Class constructor constructs mActivity as weak reference to
+         * the {@link MainActivity}.
+         *
+         * @param activity The corresponding activity.
+         */
+        private LocationHandler(final MainActivity activity) {
+            super();
+            mActivity = new WeakReference<>(activity);
+        }
+
+        /**
+         * This hook method is dispatched in response to receiving the
+         * Location back from the {@link com.yuriy.openradio.service.LocationService}.
+         */
+        @Override
+        public void handleMessage(final Message message) {
+            // Bail out if the {@link MainActivity} is gone.
+            if (mActivity.get() == null)
+                return;
+
+            // Try to extract the location from the message.
+            String countryCode = LocationService.getCountryCode(message);
+            // See if the get Location worked or not.
+            if (countryCode == null) {
+                countryCode = Country.COUNTRY_CODE_DEFAULT;
+            }
+            mActivity.get().mMediaResourcesManager.connect();
         }
     }
 }

@@ -82,7 +82,6 @@ public final class PermissionsDialogActivity extends Activity {
     }
 
     /**
-     *
      * @param context
      * @param permissionName
      * @return
@@ -95,7 +94,6 @@ public final class PermissionsDialogActivity extends Activity {
     }
 
     /**
-     *
      * @param intent
      * @return
      */
@@ -107,7 +105,6 @@ public final class PermissionsDialogActivity extends Activity {
     }
 
     /**
-     *
      * @param name
      * @param permissions
      * @param results

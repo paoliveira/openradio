@@ -17,20 +17,29 @@
 package com.yuriy.openradio.service;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.IntentService;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.yuriy.openradio.broadcast.AppLocalBroadcast;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.model.api.GeoAPI;
 import com.yuriy.openradio.model.api.GeoAPIImpl;
@@ -42,6 +51,7 @@ import com.yuriy.openradio.model.parser.GoogleGeoDataParserJson;
 import com.yuriy.openradio.model.storage.GeoAPIStorage;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.ConcurrentUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.vo.Country;
 
@@ -49,8 +59,8 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Yuriy Chernyshov
@@ -58,144 +68,160 @@ import java.util.concurrent.TimeUnit;
  * On 4/27/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class LocationService {
+public final class LocationService extends IntentService {
 
-    private static final String CLASS_NAME = LocationService.class.getSimpleName();
+    private static final String CLASS_NAME = LocationService.class.getSimpleName() + " ";
 
     public static final int COUNTRY_REQUEST_MIN_WAIT = 60000;
 
     /**
-     * Obtained value of the Country Code.
+     * String constant used to extract the Messenger "extra" from an intent.
      */
-    private String mCountryCode = Country.COUNTRY_CODE_DEFAULT;
+    private static final String MESSENGER = "MESSENGER";
 
-    private final ExecutorService mExecutorService;
+    /**
+     * String constant used to extract the country code "extra" from an intent.
+     */
+    private static final String COUNTRY_CODE = "COUNTRY_CODE";
+
+    private FusedLocationProviderClient mFusedLocationClient;
+
+    // TODO - quick and dirty solution to test
+    public static String sCountryCode;
 
     /**
      * Private constructor.
      */
-    private LocationService(final ExecutorService executorService) {
-        super();
-        mExecutorService = executorService;
+    public LocationService() {
+        super("LocationService");
     }
 
     /**
-     * Factory method to return default instance of the {@link LocationService}.
-     *
-     * @return Instance of the {@link LocationService}.
+     * Factory method to make the desired Intent.
      */
-    public static LocationService getInstance(final ExecutorService executorService) {
-        return new LocationService(executorService);
+    public static Intent makeIntent(final Context context, final Handler handler) {
+        // Create an intent associated with the Location Service class.
+        return new Intent(context, LocationService.class)
+                // Create and pass a Messenger as an "extra" so the
+                // Location Service can send back the Location.
+                .putExtra(MESSENGER, new Messenger(handler));
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
     }
 
     /**
-     * @return Country code for the current user's location.
+     * Hook method called each time the Location Service is sent an
+     * Intent via startService() to retrieve the country code and
+     * reply to the client via the Messenger sent with the
+     * Intent.
      */
-    String getCountryCode() {
-        return mCountryCode;
-    }
-
-    /**
-     * Check whether location service is enabled on the phone. It dispatch appropriate local
-     * event in case of negative result.
-     *
-     * @param context {@link Context} of the callee.
-     */
-    void checkLocationEnable(final Context context) {
-        final LocationManager locationManager
-                = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-        final String locationProvider = LocationManager.NETWORK_PROVIDER;
-
-        if (locationManager.isProviderEnabled(locationProvider)) {
-            return;
-        }
-
-        LocalBroadcastManager.getInstance(context).sendBroadcast(
-                AppLocalBroadcast.createIntentLocationDisabled()
-        );
-    }
-
-    /**
-     * Request last know user's country code.
-     *
-     * @param context {@link Context} of the callee.
-     */
-    @SuppressWarnings("ResourceType")
-    void requestCountryCodeLastKnownSync(final Context context,
-                                         final ExecutorService executorService) {
-        final LocationManager locationManager
-                = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        if (locationManager == null) {
-            AppLogger.w(CLASS_NAME + " Location Manager unavailable");
-            return;
-        }
-
-        final String locationProvider = LocationManager.NETWORK_PROVIDER;
-        // Or use LocationManager.GPS_PROVIDER
-
-        if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            AppLogger.w("Location permission not granted");
-            return;
-        }
-
-        final Location lastKnownLocation = locationManager.getLastKnownLocation(locationProvider);
-        if (lastKnownLocation == null) {
-            AppLogger.w(CLASS_NAME + " Last known Location unavailable");
-
-            requestCountryCode(context, null);
-
-            return;
-        }
+    @Override
+    public void onHandleIntent(final Intent intent) {
+        final String[] result = new String[1];
 
         final CountDownLatch latch = new CountDownLatch(1);
-        executorService.submit(
+        ConcurrentUtils.LOCATION_EXECUTOR.submit(
                 () -> {
-                    try {
-                        mCountryCode = getCountryCodeGeocoder(
-                                context, lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()
-                        );
-                    } finally {
-                        latch.countDown();
-                    }
+                    Looper.prepare();
+                    requestCountryCode(
+                            getApplicationContext(),
+                            countryCode -> {
+                                // Get current country code.
+                                result[0] = countryCode;
 
-                    AppLogger.d(CLASS_NAME + " Last known Location:" + mCountryCode);
+                                sCountryCode = countryCode;
+
+                                Looper.myLooper().quit();
+                                latch.countDown();
+                            },
+                            Looper.myLooper()
+                    );
+                    Looper.loop();
                 }
         );
+
         try {
-            latch.await(1, TimeUnit.SECONDS);
-        } catch (final InterruptedException e) {
-            mCountryCode = Country.COUNTRY_CODE_DEFAULT;
-            FabricUtils.logException(e);
+            latch.await(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            //
+        }
+        // Send the country code back to client.
+        sendCountryCode(intent, result[0]);
+    }
+
+    /**
+     * Send the country code back to the client via the
+     * messenger that's stored in the intent.
+     */
+    private void sendCountryCode(final Intent intent, final String countryCode) {
+        // Extract the Messenger.
+        final Messenger messenger = (Messenger) intent.getExtras().get(MESSENGER);
+
+        // Call factory method to create Message.
+        final Message message = makeReplyMessage(countryCode);
+
+        try {
+            // Send country code to back to the client.
+            messenger.send(message);
+        } catch (final RemoteException e) {
+            AppLogger.e(CLASS_NAME + "Exception while sending Location back to client:" + e);
         }
     }
 
-    @SuppressWarnings("ResourceType")
-    void requestCountryCode(final Context context, final LocationServiceListener listener) {
-        // Acquire a reference to the system Location Manager
-        final LocationManager locationManager
-                = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+    /**
+     * A factory method that creates a Message to return to the client with the country code.
+     */
+    private Message makeReplyMessage(final String countryCode) {
+        final Message message = Message.obtain();
+        // Return the result to indicate whether the get country code succeeded or failed.
+        if (countryCode != null) {
+            message.arg1 = Activity.RESULT_OK;
+            final Bundle data = new Bundle();
 
-        if (!PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            return;
+            // Current user's country code.
+            data.putString(COUNTRY_CODE, countryCode);
+            message.setData(data);
+            AppLogger.d(CLASS_NAME + "put country code into message");
+        } else {
+            message.arg1 = Activity.RESULT_CANCELED;
         }
 
-        final LocationListener locationListener = new LocationListenerImpl(
-                this, listener, context, locationManager
+        return message;
+    }
+
+    /**
+     * Helper method that returns country code if succeeded.
+     */
+    public static String getCountryCode(final Message message) {
+        // Extract the data from Message, which is in the form
+        // of a Bundle that can be passed across processes.
+        final Bundle data = message.getData();
+
+        // Extract the country code from the Bundle.
+        final String countryCode = data.getString(COUNTRY_CODE);
+
+        // Check to see if the get Location succeeded.
+        if (message.arg1 != Activity.RESULT_OK || countryCode == null) {
+            return null;
+        } else {
+            return countryCode;
+        }
+    }
+
+    void requestCountryCode(final Context context, final LocationServiceListener listener,
+                            final Looper looper) {
+        final LocationCallback locationListener = new LocationListenerImpl(
+                this, listener, context, mFusedLocationClient
         );
-        // Register the listener with the Location Manager to receive location updates
-        try {
-            locationManager.requestLocationUpdates(
-                    LocationManager.NETWORK_PROVIDER, 0, 0, locationListener
-            );
-        } catch (final Exception e) {
-            FabricUtils.logException(e);
-
-            mCountryCode = Country.COUNTRY_CODE_DEFAULT;
-            if (listener != null) {
-                listener.onCountryCodeLocated(mCountryCode);
-            }
-        }
+        mFusedLocationClient.requestLocationUpdates(
+                createLocationRequest(),
+                locationListener,
+                looper
+        );
     }
 
     private static String getCountryCodeGeocoder(final Context context,
@@ -259,39 +285,51 @@ public final class LocationService {
         return country.getCode();
     }
 
+    private LocationRequest createLocationRequest() {
+        final LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setInterval(0);
+        locationRequest.setFastestInterval(0);
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        return locationRequest;
+    }
+
     /**
-     *  Define a listener that responds to location updates.
+     * Define a listener that responds to location updates.
      */
-    private static final class LocationListenerImpl implements LocationListener {
+    private static final class LocationListenerImpl extends LocationCallback {
 
         private final WeakReference<LocationService> mReference;
         @Nullable
         private final LocationServiceListener mListener;
         private final Context mContext;
         @NonNull
-        private final LocationManager mLocationManager;
+        private final FusedLocationProviderClient mFusedLocationClient;
+        private final AtomicInteger mCounter;
+        private static final int MAX_COUNT = 0;
 
         private LocationListenerImpl(final LocationService reference,
-                                     @Nullable
-                                     final LocationServiceListener listener,
+                                     @Nullable final LocationServiceListener listener,
                                      final Context context,
-                                     @NonNull final LocationManager locationManager) {
+                                     @NonNull final FusedLocationProviderClient fusedLocationClient) {
             super();
             mReference = new WeakReference<>(reference);
             mListener = listener;
             mContext = context;
-            mLocationManager = locationManager;
+            mFusedLocationClient = fusedLocationClient;
+            mCounter = new AtomicInteger(0);
         }
 
         @Override
-        public void onLocationChanged(final Location location) {
-            AppLogger.d("On Location changed:" + location);
+        public void onLocationResult(final LocationResult result) {
+            super.onLocationResult(result);
+            AppLogger.d(
+                    "On Location changed (" + mCounter.get() + "):" + result.getLastLocation()
+            );
+            if (mCounter.getAndIncrement() < MAX_COUNT) {
+                return;
+            }
             if (PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                try {
-                    mLocationManager.removeUpdates(this);
-                } catch (final IllegalArgumentException e) {
-                    FabricUtils.logException(e);
-                }
+                mFusedLocationClient.removeLocationUpdates(this);
             }
 
             final LocationService reference = mReference.get();
@@ -299,36 +337,20 @@ public final class LocationService {
                 return;
             }
 
-            if (!reference.mExecutorService.isShutdown()
-                    && !reference.mExecutorService.isTerminated()) {
-                reference.mExecutorService.submit(
-                        () -> {
-                            reference.mCountryCode = getCountryCodeGeocoder(
-                                    mContext, location.getLatitude(), location.getLongitude()
-                            );
-                            if (mListener != null) {
-                                mListener.onCountryCodeLocated(reference.mCountryCode);
-                            }
-                        }
-                );
+            final Location location = result.getLastLocation();
+            if (location == null) {
+                return;
             }
-        }
 
-        @Override
-        public void onStatusChanged(final String provider,
-                                    final int status,
-                                    final Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(final String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(final String provider) {
-
+            String countryCode = getCountryCodeGeocoder(
+                    mContext, location.getLatitude(), location.getLongitude()
+            );
+            AppLogger.d(
+                    "On Location changed (" + mCounter.get() + "):" + countryCode
+            );
+            if (mListener != null) {
+                mListener.onCountryCodeLocated(countryCode);
+            }
         }
     }
 }

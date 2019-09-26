@@ -32,11 +32,6 @@ public final class AppLocalBroadcast {
     private static final String ACTION_LOCATION_DISABLED = "ACTION_LOCATION_DISABLED";
 
     /**
-     * Action name for the "Location receive country code" on the mobile device.
-     */
-    private static final String ACTION_LOCATION_COUNTRY_CODE = "ACTION_LOCATION_COUNTRY_CODE";
-
-    /**
      * Action name for the "Current index on queue" changed,
      * when currently selected Radio Station was changed.
      */
@@ -48,11 +43,6 @@ public final class AppLocalBroadcast {
      * when volume of application's player was changed.
      */
     private static final String ACTION_MASTER_VOLUME_CHANGED = "ACTION_MASTER_VOLUME_CHANGED";
-
-    /**
-     * Key value for the Country Code in the Intent's bundles.
-     */
-    private static final String KEY_COUNTRY_CODE = "KEY_COUNTRY_CODE";
 
     /**
      * Key value for the Currently selected index in the Intent's bundles.
@@ -77,13 +67,6 @@ public final class AppLocalBroadcast {
     }
 
     /**
-     * @return Name for the Location Country code action.
-     */
-    public static String getActionLocationCountryCode() {
-        return ACTION_LOCATION_COUNTRY_CODE;
-    }
-
-    /**
      * @return Name for the Current Index on Queue Changed action.
      */
     public static String getActionCurrentIndexOnQueueChanged() {
@@ -102,18 +85,6 @@ public final class AppLocalBroadcast {
      */
     public static Intent createIntentLocationDisabled() {
         return new Intent(ACTION_LOCATION_DISABLED);
-    }
-
-    /**
-     * @return Instance of the {@link Intent} that indicates about country code received from
-     * the Location Service.
-     *
-     * @param countryCode Country code.
-     */
-    public static Intent createIntentLocationCountryCode(final String countryCode) {
-        final Intent intent = new Intent(ACTION_LOCATION_COUNTRY_CODE);
-        intent.putExtra(KEY_COUNTRY_CODE, countryCode);
-        return intent;
     }
 
     /**

@@ -123,9 +123,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
 
-    private static final String VALUE_NAME_REQUEST_LOCATION_COMMAND
-            = "VALUE_NAME_REQUEST_LOCATION_COMMAND";
-
     private static final String VALUE_NAME_GET_RADIO_STATION_COMMAND
             = "VALUE_NAME_GET_RADIO_STATION_COMMAND";
 
@@ -252,11 +249,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Notification object.
      */
     private MediaNotification mMediaNotification;
-
-    /**
-     * Service class to provide information about current location.
-     */
-    private final LocationService mLocationService = LocationService.getInstance(mApiCallExecutor);
 
     /**
      * Listener of the Playback State changes.
@@ -439,7 +431,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Get the HandlerThread's Looper and use it for our Handler.
         mServiceHandler = new ServiceHandler(looper);
 
-        mApiServiceProvider = new ApiServiceProviderImpl(getApplicationContext(), new JsonDataParserImpl());
+        mApiServiceProvider = new ApiServiceProviderImpl(context, new JsonDataParserImpl());
 
         mBTConnectionReceiver.register(context);
         mBTConnectionReceiver.locateDevice(context);
@@ -459,30 +451,34 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mCurrentIndexOnQueue = -1;
 
-        mLocationService.checkLocationEnable(context);
-        mLocationService.requestCountryCodeLastKnownSync(context, mApiCallExecutor);
-
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
         mWifiLock = ((WifiManager) context
                 .getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL, "OpenRadio_lock");
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        final ComponentName mediaButtonReceiver = new ComponentName(context, RemoteControlReceiver.class);
+        final ComponentName mediaButtonReceiver = new ComponentName(
+                context, RemoteControlReceiver.class
+        );
 
         // Start a new MediaSession
-        mSession = new MediaSessionCompat(context, "OpenRadioService", mediaButtonReceiver, null);
+        mSession = new MediaSessionCompat(
+                context,
+                "OpenRadioService", mediaButtonReceiver,
+                null
+        );
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback(this));
         mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
+
+        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
         mMasterVolumeBroadcastReceiver.register(context);
 
         // Registers BroadcastReceiver to track network connection changes.
-        mConnectivityReceiver.register(getApplicationContext());
+        mConnectivityReceiver.register(context);
     }
 
     @Override
@@ -495,10 +491,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
 
-        // Create a Message that will be sent to ServiceHandler.
-        final Message message = mServiceHandler.makeMessage(intent);
-        // Send the Message to ServiceHandler.
-        mServiceHandler.sendMessage(message);
+        sendMessage(intent);
 
         return super.onStartCommand(intent, flags, startId);
     }
@@ -576,7 +569,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         String countryCode = MediaIdHelper.getCountryCode(mCurrentParentId);
         if (TextUtils.isEmpty(countryCode)) {
             // If no Country Code founded - use device native one.
-            countryCode = mLocationService.getCountryCode();
+            // TODO:
+            countryCode = LocationService.sCountryCode;
         }
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
@@ -605,11 +599,30 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mIsRestoreInstance = false;
     }
 
+    /**
+     *
+     * @param intent
+     */
+    private void sendMessage(final Intent intent) {
+        // Create a Message that will be sent to ServiceHandler.
+        final Message message = mServiceHandler.makeMessage(intent);
+        // Send the Message to ServiceHandler.
+        mServiceHandler.sendMessage(message);
+    }
+
+    /**
+     *
+     * @param exception
+     */
     private void onError(final ExoPlaybackException exception) {
         AppLogger.e(CLASS_NAME + "ExoPlayer exception:" + exception);
         handleStopRequest(getString(R.string.media_player_error));
     }
 
+    /**
+     *
+     * @param exception
+     */
     private void onHandledError(final ExoPlaybackException exception) {
         AppLogger.e(CLASS_NAME + "ExoPlayer handled exception:" + exception);
         final Throwable throwable = exception.getCause();
@@ -618,6 +631,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
+    /**
+     *
+     */
     private void handleUnrecognizedInputFormatException() {
         handleStopRequest(null);
         final ExecutorService executorService = getApiCallExecutor();
@@ -742,18 +758,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         configMediaPlayerState();
-    }
-
-    /**
-     * Factory method to make intent to use for the request location procedure.
-     *
-     * @param context Context of the callee.
-     * @return {@link Intent}.
-     */
-    public static Intent makeRequestLocationIntent(final Context context) {
-        final Intent intent = new Intent(context, OpenRadioService.class);
-        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REQUEST_LOCATION_COMMAND);
-        return intent;
     }
 
     /**
@@ -907,7 +911,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         // In particular, always release the MediaSession to clean up resources
         // and notify associated MediaController(s).
-        mSession.release();
+        if (mSession != null) {
+            mSession.release();
+        }
 
         releaseExoPlayer();
     }
@@ -1554,9 +1560,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // let go of all resources...
         relaxResources(true);
         giveUpAudioFocus();
-        updatePlaybackState(withError);
 
-        mMediaNotification.stopNotification();
+        if (mMediaNotification != null) {
+            updatePlaybackState(withError);
+            mMediaNotification.stopNotification();
+        }
 
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
@@ -1988,14 +1996,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handleMessageInternal(@NonNull final String command, @NonNull final Intent intent) {
         final Context context = getApplicationContext();
         switch (command) {
-            case VALUE_NAME_REQUEST_LOCATION_COMMAND:
-                mLocationService.requestCountryCode(
-                        context,
-                        countryCode -> LocalBroadcastManager.getInstance(context).sendBroadcast(
-                                AppLocalBroadcast.createIntentLocationCountryCode(countryCode)
-                        )
-                );
-                break;
             case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
                 // Update Favorites Radio station: whether add it or remove it from the storage
                 final boolean isFavorite = getIsFavoriteFromIntent(intent);

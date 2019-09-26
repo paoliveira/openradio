@@ -23,6 +23,8 @@ public final class ConcurrentUtils {
      */
     public static final ExecutorService API_CALL_EXECUTOR = Executors.newSingleThreadExecutor();
 
+    public static final ExecutorService LOCATION_EXECUTOR = Executors.newSingleThreadExecutor();
+
     private static final int CORE_POOL_SIZE = 1;
     private static final int MAXIMUM_POOL_SIZE = 20;
     private static final int KEEP_ALIVE_SECONDS = 3;

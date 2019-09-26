@@ -21,9 +21,7 @@ package com.yuriy.openradio.broadcast;
  * At Android Studio
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-/**
+ *
  * {@link AppLocalReceiverCallback} is an interface that provides various callback methods
  * of the Local Broadcast Receiver.
  */
@@ -33,13 +31,6 @@ public interface AppLocalReceiverCallback {
      * Dispatches when Location Services detects as disabled.
      */
     void onLocationDisabled();
-
-    /**
-     * Dispatches when Location Services detects country code.
-     *
-     * @param countryCode Country code.
-     */
-    void onLocationCountryCode(final String countryCode);
 
     /**
      * Dispatches when Index of the current Radio station changed.
