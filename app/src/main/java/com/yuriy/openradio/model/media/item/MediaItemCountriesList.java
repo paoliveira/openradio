@@ -25,8 +25,8 @@ import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
+import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapsOverlay;
 import com.yuriy.openradio.utils.ConcurrentUtils;
 import com.yuriy.openradio.utils.MediaIdHelper;
@@ -100,7 +100,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
 
         for (final Country country : list) {
 
-            if (!AppUtils.COUNTRY_CODE_TO_NAME.containsKey(country.getCode())) {
+            if (!LocationService.COUNTRY_CODE_TO_NAME.containsKey(country.getCode())) {
                 // Add missing country to the Map of the existing ones.
                 AppLogger.w(CLASS_NAME + " Missing country:" + country);
                 continue;

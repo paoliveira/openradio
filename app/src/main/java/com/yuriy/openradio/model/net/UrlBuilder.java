@@ -18,7 +18,7 @@ package com.yuriy.openradio.model.net;
 
 import android.net.Uri;
 
-import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.service.LocationService;
 
 /**
  * Created by Yuriy Chernyshov
@@ -126,7 +126,7 @@ public final class UrlBuilder {
     public static Uri getStationsInCountry(final String countryCode,
                                            final int pageNumber,
                                            final int numberPerPage) {
-        final String countryName = AppUtils.COUNTRY_CODE_TO_NAME.get(countryCode);
+        final String countryName = LocationService.COUNTRY_CODE_TO_NAME.get(countryCode);
         return Uri.parse(
                 BASE_URL + "stations/bycountry/" + encodeValue(countryName)
                         + "?offset=" + pageNumber

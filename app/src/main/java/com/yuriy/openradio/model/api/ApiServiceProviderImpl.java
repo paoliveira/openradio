@@ -31,6 +31,7 @@ import com.yuriy.openradio.model.parser.JsonDataParserImpl;
 import com.yuriy.openradio.model.storage.cache.api.ApiCache;
 import com.yuriy.openradio.model.storage.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.model.storage.cache.api.PersistentApiCache;
+import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -170,7 +171,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                         continue;
                     }
 
-                    countryCode = AppUtils.COUNTRY_NAME_TO_CODE.get(countryName);
+                    countryCode = LocationService.COUNTRY_NAME_TO_CODE.get(countryName);
                     if (TextUtils.isEmpty(countryCode)) {
                         AppLogger.w(
                                 CLASS_NAME + "Can not find Country code for:" + countryName

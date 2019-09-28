@@ -568,9 +568,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // If Parent Id contains Country Code - use it in the API.
         String countryCode = MediaIdHelper.getCountryCode(mCurrentParentId);
         if (TextUtils.isEmpty(countryCode)) {
-            // If no Country Code founded - use device native one.
-            // TODO:
-            countryCode = LocationService.sCountryCode;
+            // At this point in time, Location Service must got country code and informed activity to
+            // start this service.
+            countryCode = LocationService.getCountryCode();
         }
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));

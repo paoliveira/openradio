@@ -36,11 +36,12 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.permission.PermissionChecker;
+import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.ImageFilePath;
 import com.yuriy.openradio.utils.IntentsHelper;
-import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.vo.RadioStation;
 
@@ -86,7 +87,7 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
         mUrlEdit = view.findViewById(R.id.add_edit_station_stream_url_edit);
         mImageUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit);
 
-        final List<String> countries = new ArrayList<>(AppUtils.COUNTRY_CODE_TO_NAME.values());
+        final List<String> countries = new ArrayList<>(LocationService.COUNTRY_CODE_TO_NAME.values());
         Collections.sort(countries);
 
         mCountriesSpinner = view.findViewById(R.id.add_edit_station_country_spin);

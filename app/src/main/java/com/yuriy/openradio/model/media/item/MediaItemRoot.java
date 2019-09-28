@@ -166,9 +166,8 @@ public final class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        // If the Country code is known but not in Auto mode
-        if (!shareObject.isAndroidAuto()
-                && !TextUtils.isEmpty(shareObject.getCountryCode())) {
+        // If the Country code is known:
+        if (!TextUtils.isEmpty(shareObject.getCountryCode())) {
 
             final int identifier = context.getResources().getIdentifier(
                     "flag_" + shareObject.getCountryCode().toLowerCase(),
