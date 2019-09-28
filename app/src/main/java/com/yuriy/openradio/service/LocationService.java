@@ -22,7 +22,6 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -38,14 +37,6 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.yuriy.openradio.model.api.GeoAPI;
-import com.yuriy.openradio.model.api.GeoAPIImpl;
-import com.yuriy.openradio.model.net.Downloader;
-import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
-import com.yuriy.openradio.model.net.UrlBuilder;
-import com.yuriy.openradio.model.parser.GeoDataParser;
-import com.yuriy.openradio.model.parser.GoogleGeoDataParserJson;
-import com.yuriy.openradio.model.storage.GeoAPIStorage;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.vo.Country;
@@ -339,8 +330,6 @@ public final class LocationService extends IntentService {
         }
     }
 
-    public static final int COUNTRY_REQUEST_MIN_WAIT = 60000;
-
     /**
      * String constant used to extract the Messenger "extra" from an intent.
      */
@@ -517,42 +506,6 @@ public final class LocationService extends IntentService {
                 locationListener,
                 looper
         );
-    }
-
-    /**
-     * Call Geo API to get current country.
-     *
-     * @param context   Context of the application.
-     * @param latitude  Latitude of the location.
-     * @param longitude Longitude of the location.
-     * @return Country code.
-     */
-    private static String getCountryCode(final Context context,
-                                         final double latitude, final double longitude) {
-        Country country;
-
-        final long lastUsedTime = GeoAPIStorage.getLastUseTime(context);
-        final long currentTime = System.currentTimeMillis();
-        if (lastUsedTime != GeoAPIStorage.LAST_USE_TIME_DEFAULT
-                && currentTime - lastUsedTime < COUNTRY_REQUEST_MIN_WAIT) {
-            country = new Country(
-                    GeoAPIStorage.getLastKnownCountryName(context),
-                    GeoAPIStorage.getLastKnownCountryCode(context)
-            );
-            return country.getCode();
-        }
-
-        final GeoDataParser parser = new GoogleGeoDataParserJson();
-        final GeoAPI geoAPI = new GeoAPIImpl(parser);
-        final Downloader downloader = new HTTPDownloaderImpl();
-        final Uri uri = UrlBuilder.getGoogleGeoAPIUrl(latitude, longitude);
-        country = geoAPI.getCountry(downloader, uri);
-
-        GeoAPIStorage.setLastUseTime(currentTime, context);
-        GeoAPIStorage.setLastKnownCountryName(country.getName(), context);
-        GeoAPIStorage.setLastKnownCountryCode(country.getCode(), context);
-
-        return country.getCode();
     }
 
     private LocationRequest createLocationRequest() {

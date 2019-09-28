@@ -38,9 +38,7 @@ import java.io.File;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -109,7 +107,7 @@ public final class AppUtils {
             AppLogger.w(CLASS_NAME + " Package manager is NULL");
             return null;
         }
-        String packageName = "";
+        String packageName;
         try {
             packageName = context.getPackageName();
             return packageManager.getPackageInfo(packageName, 0);
