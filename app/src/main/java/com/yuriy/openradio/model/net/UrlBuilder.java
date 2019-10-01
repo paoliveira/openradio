@@ -50,11 +50,6 @@ public final class UrlBuilder {
     private static final String BASE_URL = "http://www.radio-browser.info/webservice/json/";
 
     /**
-     * Google Geo API base url.
-     */
-    private static final String GOOGLE_GEO_URL = "https://maps.googleapis.com/maps/api/geocode";
-
-    /**
      * Base url for the icons used previously.
      */
     private static final String OLD_IMG_BASE_URL = "cdn.devality.com";
@@ -70,17 +65,6 @@ public final class UrlBuilder {
      */
     private UrlBuilder() {
         super();
-    }
-
-    /**
-     * Get Uri for the Google Geo API which returns location.
-     *
-     * @param latitude  Latitude of the location.
-     * @param longitude Longitude of the location.
-     * @return {@link Uri}.
-     */
-    public static Uri getGoogleGeoAPIUrl(final double latitude, final double longitude) {
-        return Uri.parse(GOOGLE_GEO_URL + "/json?latlng=" + latitude + "," + longitude);
     }
 
     /**
@@ -126,9 +110,8 @@ public final class UrlBuilder {
     public static Uri getStationsInCountry(final String countryCode,
                                            final int pageNumber,
                                            final int numberPerPage) {
-        final String countryName = LocationService.COUNTRY_CODE_TO_NAME.get(countryCode);
         return Uri.parse(
-                BASE_URL + "stations/bycountry/" + encodeValue(countryName)
+                BASE_URL + "stations/bycountrycodeexact/" + countryCode
                         + "?offset=" + pageNumber
                         + "&limit=" + numberPerPage
         );

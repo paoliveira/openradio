@@ -290,10 +290,6 @@ public final class AppUtils {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
     }
 
-    public static boolean isVersionM() {
-        return Build.VERSION.SDK_INT == Build.VERSION_CODES.M;
-    }
-
     /**
      * See Apache utils for more details.
      * https://github.com/apache/commons-lang/blob/master/src/main/java/org/apache/commons/lang3/text/WordUtils.java

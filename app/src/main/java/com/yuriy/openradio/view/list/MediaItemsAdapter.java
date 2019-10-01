@@ -34,6 +34,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
@@ -344,7 +345,10 @@ public final class MediaItemsAdapter extends BaseAdapter {
                             isChecked
                     );
                     // Send Intent to the OpenRadioService.
-                    activity.startService(intent);
+                    ContextCompat.startForegroundService(
+                            activity.getApplicationContext(),
+                            intent
+                    );
                 }
         );
     }

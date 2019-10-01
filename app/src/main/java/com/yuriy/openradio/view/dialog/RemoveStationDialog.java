@@ -74,7 +74,9 @@ public final class RemoveStationDialog extends BaseDialogFragment {
         final Button removeBtn = view.findViewById(R.id.remove_station_dialog_add_btn_view);
         removeBtn.setOnClickListener(
                 viewBtn -> {
-                    activity.processRemoveStationCallback(mediaId);
+                    activity.processRemoveStationCallback(
+                            mediaId
+                    );
                     getDialog().dismiss();
                 }
         );

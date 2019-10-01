@@ -190,17 +190,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private MediaSessionCompat mSession;
 
+    // TODO: reconsider Queue fields. This queue was intended to handle music files, not live stream.
+    //       It has no sense in live stream.
     /**
      * Index of the current playing song.
      */
     private int mCurrentIndexOnQueue = -1;
 
-    private String mCurrentStreamTitle;
-
     /**
      * Queue of the Radio Stations in the Category
      */
     private final List<MediaSessionCompat.QueueItem> mPlayingQueue = new ArrayList<>();
+
+    private String mCurrentStreamTitle;
 
     /**
      * Current local media player state
@@ -1604,10 +1606,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        final String queueTitle = getString(R.string.queue);
-        mSession.setQueueTitle(queueTitle);
-        mSession.setQueue(mPlayingQueue);
-
         final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
                 mPlayingQueue, mediaId
         );
@@ -1947,15 +1945,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             );
         }
 
-        mSession.setQueue(mPlayingQueue);
-
         // immediately start playing from the beginning of the search results
         mCurrentIndexOnQueue = 0;
 
         final Handler uiHandler = new Handler(Looper.getMainLooper());
-        uiHandler.post(
-                this::handlePlayRequest
-        );
+        uiHandler.post(this::handlePlayRequest);
     }
 
     /**

@@ -78,7 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="35dp"
-                android:text="@string/playbck_buffer_after_rebuffer_description"
+                android:text="@string/playback_buffer_after_rebuffer_description"
                 android:textSize="18sp"/>
 
             <EditText

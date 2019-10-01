@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.notification;
 
+import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -45,7 +46,6 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapHelper;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -494,15 +494,15 @@ public final class MediaNotification extends BroadcastReceiver {
         mNotificationBuilder.setDefaults(0);
         mNotificationBuilder.setSound(null);
 
-        if (AppUtils.isVersionM()) {
-            // Address https://bitbucket.org/ChernyshovYuriy/openradio/issues/64/npe-when-notificationmanager-do-notify
-            try {
-                mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
-            } catch (final Exception e) {
-                AppLogger.e("Can not do notification:" + e);
-            }
-        } else {
-            mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+        doNotifySafely(mNotificationBuilder.build());
+    }
+
+    private void doNotifySafely(final Notification notification) {
+        // Address https://bitbucket.org/ChernyshovYuriy/openradio/issues/64/npe-when-notificationmanager-do-notify
+        try {
+            mNotificationManager.notify(NOTIFICATION_ID, notification);
+        } catch (final Exception e) {
+            AppLogger.e("Can not do notification:" + e);
         }
     }
 
@@ -594,9 +594,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 reference.mNotificationBuilder.setDefaults(0);
                 reference.mNotificationBuilder.setSound(null);
 
-                reference.mNotificationManager.notify(
-                        NOTIFICATION_ID, reference.mNotificationBuilder.build()
-                );
+                reference.doNotifySafely(reference.mNotificationBuilder.build());
             }
         }
     }
