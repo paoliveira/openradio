@@ -171,7 +171,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
         }
 
         int color;
-        AppLogger.d(CLASS_NAME + " Pos:" + position + " " + getActiveItemId());
         if (position == getActiveItemId()
                 || (mActivity.mDragMediaItem != null && mActivity.mDragMediaItem == mediaItem)) {
             color = R.color.list_item_selected_bg_color;
@@ -336,6 +335,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
         checkBox.setOnClickListener(
 
                 view -> {
+                    AppLogger.d("TRACE::fav click:" + view.getTag());
                     final boolean isChecked = ((CheckBox) view).isChecked();
 
                     MediaItemHelper.updateFavoriteField(mediaItem, isChecked);

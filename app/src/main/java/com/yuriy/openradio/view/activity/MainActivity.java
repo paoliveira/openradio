@@ -285,6 +285,7 @@ public final class MainActivity extends AppCompatActivity {
         super();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -1032,12 +1033,10 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param position Position of the clicked item.
      */
-    private void handleOnItemClick(final AdapterView<?> parent, final View view, final int position,
-                                   final long id) {
+    private void handleOnItemClick(final int position) {
         if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
-        AppLogger.d("TRACE::" + parent + "::" + view);
 
         // Current selected media item
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
@@ -1485,7 +1484,7 @@ public final class MainActivity extends AppCompatActivity {
                 AppLogger.w(CLASS_NAME + "OnItemClick return, reference to MainActivity is null");
                 return;
             }
-            mainActivity.handleOnItemClick(parent, view, position, id);
+            mainActivity.handleOnItemClick(position);
         }
     }
 
