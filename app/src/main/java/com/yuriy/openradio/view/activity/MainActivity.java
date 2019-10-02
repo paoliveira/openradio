@@ -225,8 +225,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener for the List view click event.
      */
-    private final AdapterView.OnItemClickListener mOnItemClickListener
-            = new OnItemClickListener(this);
+    private final AdapterView.OnItemClickListener mOnItemClickListener = new OnItemClickListener(this);
 
     /**
      * Listener for the List touch event.
@@ -1033,10 +1032,12 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param position Position of the clicked item.
      */
-    private void handleOnItemClick(final int position) {
+    private void handleOnItemClick(final AdapterView<?> parent, final View view, final int position,
+                                   final long id) {
         if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
+        AppLogger.d("TRACE::" + parent + "::" + view);
 
         // Current selected media item
         final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
@@ -1195,15 +1196,16 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
         mLastKnownMetadata = metadata;
+        final Context context = getApplicationContext();
 
-        final RadioStation radioStation = LatestRadioStationStorage.get(getApplicationContext());
+        final RadioStation radioStation = LatestRadioStationStorage.get(context);
         if (radioStation == null) {
             return;
         }
 
         final MediaDescriptionCompat description = mLastKnownMetadata != null
                 ? mLastKnownMetadata.getDescription()
-                : MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), radioStation);
+                : MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation);
 
         final TextView nameView = findViewById(R.id.crs_name_view);
         if (nameView != null) {
@@ -1220,12 +1222,12 @@ public final class MainActivity extends AppCompatActivity {
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(getApplicationContext(), radioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             );
             MediaItemHelper.updateFavoriteField(
                     mediaItem,
-                    FavoritesStorage.isFavorite(radioStation, getApplicationContext())
+                    FavoritesStorage.isFavorite(radioStation, context)
             );
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, this);
         }
@@ -1483,7 +1485,7 @@ public final class MainActivity extends AppCompatActivity {
                 AppLogger.w(CLASS_NAME + "OnItemClick return, reference to MainActivity is null");
                 return;
             }
-            mainActivity.handleOnItemClick(position);
+            mainActivity.handleOnItemClick(parent, view, position, id);
         }
     }
 

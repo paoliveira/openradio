@@ -39,6 +39,7 @@ import androidx.core.content.ContextCompat;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -56,7 +57,7 @@ import java.util.List;
 public final class MediaItemsAdapter extends BaseAdapter {
 
     @SuppressWarnings("unused")
-    private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName();
+    private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName() + " ";
 
     private ListAdapterViewHolder mViewHolder;
     private MainActivity mCurrentActivity;
@@ -167,24 +168,24 @@ public final class MediaItemsAdapter extends BaseAdapter {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
         }
 
+        int color;
+        AppLogger.d(CLASS_NAME + " Pos:" + position + " " + getActiveItemId());
         if (position == getActiveItemId()
                 || (mCurrentActivity.mDragMediaItem != null && mCurrentActivity.mDragMediaItem == mediaItem)) {
-            int color = R.color.list_item_selected_bg_color;
+            color = R.color.list_item_selected_bg_color;
             if (mCurrentActivity.mIsSortMode) {
                 color = R.color.item_bg_color_selected_sort_mode;
             }
-            mViewHolder.mRootView.setBackgroundColor(
-                    mCurrentActivity.getResources().getColor(color)
-            );
         } else {
-            int color = R.color.transparent_color;
+            color = R.color.transparent_color;
             if (mCurrentActivity.mIsSortMode) {
                 color = R.color.item_bg_color_sort_mode;
             }
-            mViewHolder.mRootView.setBackgroundColor(
-                    mCurrentActivity.getResources().getColor(color)
-            );
         }
+
+        mViewHolder.mRootView.setBackgroundColor(
+                mCurrentActivity.getResources().getColor(color)
+        );
 
         return convertView;
     }
@@ -321,16 +322,16 @@ public final class MediaItemsAdapter extends BaseAdapter {
     /**
      * Handle "Add | Remove to | from Favorites".
      *
-     * @param favoriteCheckView Favorite check box view.
+     * @param checkBox Favorite check box view.
      * @param description       Media aItem description.
      * @param mediaItem         Media Item.
      * @param activity          Current activity.
      */
-    public static void handleFavoriteAction(final CheckBox favoriteCheckView, final MediaDescriptionCompat description,
+    public static void handleFavoriteAction(final CheckBox checkBox, final MediaDescriptionCompat description,
                                             final MediaBrowserCompat.MediaItem mediaItem, final Activity activity) {
-        favoriteCheckView.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
-        favoriteCheckView.setVisibility(View.VISIBLE);
-        favoriteCheckView.setOnClickListener(
+        checkBox.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
+        checkBox.setVisibility(View.VISIBLE);
+        checkBox.setOnClickListener(
 
                 view -> {
                     final boolean isChecked = ((CheckBox) view).isChecked();

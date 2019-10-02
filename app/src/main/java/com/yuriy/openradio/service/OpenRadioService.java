@@ -330,7 +330,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Radio Station is not actually in any lists, it is single entity.
      */
     @Nullable
-    private RadioStation mLastKnownRadioStation;
+    private RadioStation mLastKnownRS;
 
     private ApiServiceProvider mApiServiceProvider;
 
@@ -1151,7 +1151,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             RadioStation radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
             if (radioStation == null) {
-                radioStation = mLastKnownRadioStation;
+                radioStation = mLastKnownRS;
             }
             return radioStation;
         }
@@ -1302,11 +1302,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         " PlayQueue.size=" + service.mPlayingQueue.size());
                 return;
             }
-            if (service.mLastKnownRadioStation != null && service.mLastKnownRadioStation.equals(radioStation)) {
+            if (service.mLastKnownRS != null && service.mLastKnownRS.equals(radioStation)) {
                 return;
             }
 
-            service.mLastKnownRadioStation = radioStation;
+            service.mLastKnownRS = radioStation;
             final MediaMetadataCompat metadata = service.buildMetadata(radioStation);
             if (metadata == null) {
                 AppLogger.e(CLASS_NAME + "Play Radio Station: ignoring request to play next song, " +
@@ -1646,18 +1646,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         );
     }
 
-    /**
-     * Remove {@link RadioStation} from the Favorites store by the provided Media Id.
-     *
-     * @param mediaId Media Id of the {@link RadioStation}.
-     */
-    private void removeFromFavorites(final String mediaId) {
-        FavoritesStorage.remove(
-                mediaId,
-                getApplicationContext()
-        );
-    }
-
     private void handleConnectivityChange(final boolean isConnected) {
         if (isConnected) {
             handlePlayRequest();
@@ -1850,10 +1838,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                         radioStation, service.getApplicationContext()
                                 );
                                 if (isFavorite) {
-                                    service.removeFromFavorites(radioStation.getIdAsString());
+                                    FavoritesStorage.remove(
+                                            radioStation,
+                                            service.getApplicationContext()
+                                    );
                                 } else {
                                     FavoritesStorage.add(
-                                            radioStation, service.getApplicationContext()
+                                            radioStation,
+                                            service.getApplicationContext()
                                     );
                                 }
                             }
@@ -1989,27 +1981,36 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void handleMessageInternal(@NonNull final String command, @NonNull final Intent intent) {
         final Context context = getApplicationContext();
+        AppLogger.d(CLASS_NAME + "rsv cmd:" + command);
         switch (command) {
             case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
+                final MediaDescriptionCompat description = extractMediaDescription(intent);
+                if (description == null) {
+                    break;
+                }
+                RadioStation rs = QueueHelper.getRadioStationById(
+                        description.getMediaId(), mRadioStations
+                );
+                // This can the a case when last known Radio Station is playing.
+                // In this case it is not in a list of radio stations.
+                // If it exists, let's compare its id with the id provided by intent.
+                if (rs == null) {
+                    if (mLastKnownRS != null
+                            && TextUtils.equals(mLastKnownRS.getIdAsString(), description.getMediaId())) {
+                        rs = RadioStation.makeCopyInstance(mLastKnownRS);
+                    }
+                    // We failed both cases, something went wrong ...
+                    if (rs == null) {
+                        break;
+                    }
+
+                }
                 // Update Favorites Radio station: whether add it or remove it from the storage
                 final boolean isFavorite = getIsFavoriteFromIntent(intent);
-                final MediaDescriptionCompat mediaDescription = extractMediaDescription(intent);
-                if (mediaDescription == null) {
-                    break;
-                }
-                final RadioStation radioStation = QueueHelper.getRadioStationById(
-                        mediaDescription.getMediaId(), mRadioStations
-                );
-                if (radioStation == null) {
-                    if (!isFavorite) {
-                        removeFromFavorites(mediaDescription.getMediaId());
-                    }
-                    break;
-                }
                 if (isFavorite) {
-                    FavoritesStorage.add(radioStation, context);
+                    FavoritesStorage.add(rs, context);
                 } else {
-                    removeFromFavorites(radioStation.getIdAsString());
+                    FavoritesStorage.remove(rs, context);
                 }
                 break;
             }
@@ -2093,12 +2094,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     AppLogger.w(CLASS_NAME + "Can not remove Station, Media Id is empty");
                     break;
                 }
-                LocalRadioStationsStorage.removeFromLocal(mediaId, context);
                 final RadioStation radioStation = QueueHelper.removeRadioStation(
                         mediaId, mRadioStations
                 );
                 if (radioStation != null) {
                     FileUtils.deleteFile(radioStation.getImageUrl());
+                    LocalRadioStationsStorage.removeFromLocal(radioStation, context);
                 }
 
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);

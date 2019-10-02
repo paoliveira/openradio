@@ -18,15 +18,16 @@ package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import androidx.annotation.NonNull;
 import android.text.TextUtils;
 
-import com.yuriy.openradio.vo.RadioStation;
+import androidx.annotation.NonNull;
+
 import com.yuriy.openradio.model.translation.RadioStationDeserializer;
 import com.yuriy.openradio.model.translation.RadioStationJsonDeserializer;
 import com.yuriy.openradio.model.translation.RadioStationJsonSerializer;
 import com.yuriy.openradio.model.translation.RadioStationSerializer;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,16 +104,16 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
     /**
      * Remove provided {@link RadioStation} from the storage by the provided Media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStation}.
-     * @param context Context of the callee.
-     * @param name    Name of the file for the preferences.
+     * @param radioStation {@link RadioStation} to remove from the storage.
+     * @param context      Context of the callee.
+     * @param name         Name of the file for the preferences.
      */
-    protected static synchronized void remove(final String mediaId, final Context context,
+    protected static synchronized void remove(final RadioStation radioStation, final Context context,
                                               final String name) {
         final SharedPreferences.Editor editor = getEditor(context, name);
-        editor.remove(mediaId);
+        editor.remove(createKeyForRadioStation(radioStation));
         editor.apply();
-        AppLogger.i("Radio Station removed, media id:" + mediaId);
+        AppLogger.i("Radio Station " + radioStation + " removed");
     }
 
     /**
@@ -266,7 +267,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      * @param radioStation {@link RadioStation} to create key for.
      * @return Key associated with Radio Station.
      */
-    private static String createKeyForRadioStation(@NonNull final RadioStation radioStation) {
+    static String createKeyForRadioStation(@NonNull final RadioStation radioStation) {
         return radioStation.getIdAsString();
     }
 }

@@ -17,12 +17,14 @@
 package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
-import android.content.SharedPreferences;
+
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.vo.RadioStation;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Yuriy Chernyshov
@@ -45,6 +47,11 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
     private static final String FILE_NAME = "FavoritesPreferences";
 
     /**
+     * Cache key of the Favorite Radio Station in order to ease load from preferences.
+     */
+    private static final Set<String> sSet = new HashSet<>();
+
+    /**
      * {@inheritDoc}
      */
     @NonNull
@@ -59,6 +66,8 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * @param context      Context of the callee.
      */
     public static synchronized void add(final RadioStation radioStation, final Context context) {
+        final String key = createKeyForRadioStation(radioStation);
+        sSet.add(key);
         add(radioStation, context, FILE_NAME);
     }
 
@@ -66,11 +75,13 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * Remove provided {@link RadioStation} from the Favorites preferences
      * by the provided media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStation}.
+     * @param radioStation {@link RadioStation} to remove from Favorites.
      * @param context Context of the callee.
      */
-    public static synchronized void remove(final String mediaId, final Context context) {
-        remove(mediaId, context, FILE_NAME);
+    public static synchronized void remove(final RadioStation radioStation, final Context context) {
+        final String key = createKeyForRadioStation(radioStation);
+        sSet.remove(key);
+        remove(radioStation, context, FILE_NAME);
     }
 
     /**
@@ -111,8 +122,8 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * @return True in case of success, False - otherwise.
      */
     public static boolean isFavorite(final RadioStation radioStation, final Context context) {
-        final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
-        if (sharedPreferences.contains(radioStation.getIdAsString())) {
+        final String key = createKeyForRadioStation(radioStation);
+        if (sSet.contains(key)) {
             return true;
         }
         final List<RadioStation> list = getAll(context);
@@ -121,6 +132,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
                 continue;
             }
             if (station.getId() == radioStation.getId()) {
+                sSet.add(key);
                 return true;
             }
         }

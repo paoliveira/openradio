@@ -70,7 +70,7 @@ public final class PersistentApiCache implements ApiCache {
                 null            // The sort order
         );
 
-        JSONArray jsonArray = null;
+        JSONArray data = null;
         while (cursor.moveToNext()) {
             final long cId = cursor.getLong(
                     cursor.getColumnIndexOrThrow(BaseColumns._ID)
@@ -92,14 +92,14 @@ public final class PersistentApiCache implements ApiCache {
             }
 
             try {
-                jsonArray = new JSONArray(cData);
+                data = new JSONArray(cData);
             } catch (JSONException e) {
                 AppLogger.e(CLASS_NAME + "Can not re-create JSON Array:" + e);
             }
         }
         cursor.close();
-
-        return jsonArray;
+        AppLogger.d(CLASS_NAME + "Cached response:" + data);
+        return data;
     }
 
     @Override

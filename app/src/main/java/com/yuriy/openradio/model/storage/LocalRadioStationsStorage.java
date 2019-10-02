@@ -112,11 +112,11 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * Remove provided {@link RadioStation} from the Local radio Stations preferences
      * by the provided media Id.
      *
-     * @param mediaId Media Id of the {@link RadioStation}.
+     * @param radioStation {@link RadioStation} to remove from the Local Radio Stations.
      * @param context Context of the callee.
      */
-    public static synchronized void removeFromLocal(final String mediaId, final Context context) {
-        remove(mediaId, context, FILE_NAME);
+    public static synchronized void removeFromLocal(final RadioStation radioStation, final Context context) {
+        remove(radioStation, context, FILE_NAME);
     }
 
     /**
@@ -149,7 +149,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
                 if (addToFav) {
                     FavoritesStorage.add(radioStation, context);
                 } else {
-                    FavoritesStorage.remove(mediaId, context);
+                    FavoritesStorage.remove(radioStation, context);
                 }
 
                 add(radioStation, context);

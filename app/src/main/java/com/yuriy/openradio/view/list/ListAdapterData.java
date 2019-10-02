@@ -72,7 +72,7 @@ final class ListAdapterData<T> implements Serializable {
      * @param position Position to add item at.
      * @param item     Item to add.
      */
-    public void addAt(final int position, final T item) {
+    void addAt(final int position, final T item) {
         mItems.add(position, item);
     }
 
@@ -92,7 +92,7 @@ final class ListAdapterData<T> implements Serializable {
      * @return Item at the specified position or {@code null} if index is out of bounds.
      */
     @Nullable
-    public T getItem(final int position) {
+    T getItem(final int position) {
         if (position < 0 || position >= getItemsCount()) {
             return null;
         }
@@ -104,7 +104,7 @@ final class ListAdapterData<T> implements Serializable {
      *
      * @return The count of the items in the collection.
      */
-    public int getItemsCount() {
+    int getItemsCount() {
         return mItems.size();
     }
 
