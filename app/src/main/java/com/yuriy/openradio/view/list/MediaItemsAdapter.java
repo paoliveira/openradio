@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.view.list;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.media.MediaBrowserCompat;
@@ -60,7 +60,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName() + " ";
 
     private ListAdapterViewHolder mViewHolder;
-    private MainActivity mCurrentActivity;
+    private MainActivity mActivity;
     private ImageFetcher mImageFetcher;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
     private String mParentId;
@@ -80,7 +80,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
         super();
         mParentId = MediaIdHelper.MEDIA_ID_ROOT;
         mAdapterData = new ListAdapterData<>(new MediaItemsComparator());
-        mCurrentActivity = activity;
+        mActivity = activity;
         mImageFetcher = imageFetcher;
     }
 
@@ -163,7 +163,9 @@ public final class MediaItemsAdapter extends BaseAdapter {
         updateImage(description, mediaItem.isPlayable(), mViewHolder.mImageView, mImageFetcher);
 
         if (mediaItem.isPlayable()) {
-            handleFavoriteAction(mViewHolder.mFavoriteCheckView, description, mediaItem, mCurrentActivity);
+            handleFavoriteAction(
+                    mViewHolder.mFavoriteCheckView, description, mediaItem, mActivity.getApplicationContext()
+            );
         } else {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
         }
@@ -171,20 +173,20 @@ public final class MediaItemsAdapter extends BaseAdapter {
         int color;
         AppLogger.d(CLASS_NAME + " Pos:" + position + " " + getActiveItemId());
         if (position == getActiveItemId()
-                || (mCurrentActivity.mDragMediaItem != null && mCurrentActivity.mDragMediaItem == mediaItem)) {
+                || (mActivity.mDragMediaItem != null && mActivity.mDragMediaItem == mediaItem)) {
             color = R.color.list_item_selected_bg_color;
-            if (mCurrentActivity.mIsSortMode) {
+            if (mActivity.mIsSortMode) {
                 color = R.color.item_bg_color_selected_sort_mode;
             }
         } else {
             color = R.color.transparent_color;
-            if (mCurrentActivity.mIsSortMode) {
+            if (mActivity.mIsSortMode) {
                 color = R.color.item_bg_color_sort_mode;
             }
         }
 
         mViewHolder.mRootView.setBackgroundColor(
-                mCurrentActivity.getResources().getColor(color)
+                mActivity.getResources().getColor(color)
         );
 
         return convertView;
@@ -236,7 +238,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     private View prepareViewAndHolder(View convertView, final int inflateViewResId) {
         // If there is no View created - create it here and set it's Tag
         if (convertView == null) {
-            convertView = LayoutInflater.from(mCurrentActivity).inflate(inflateViewResId, null);
+            convertView = LayoutInflater.from(mActivity).inflate(inflateViewResId, null);
             mViewHolder = createViewHolder(convertView);
             convertView.setTag(mViewHolder);
         } else {
@@ -322,13 +324,13 @@ public final class MediaItemsAdapter extends BaseAdapter {
     /**
      * Handle "Add | Remove to | from Favorites".
      *
-     * @param checkBox Favorite check box view.
-     * @param description       Media aItem description.
-     * @param mediaItem         Media Item.
-     * @param activity          Current activity.
+     * @param checkBox    Favorite check box view.
+     * @param description Media aItem description.
+     * @param mediaItem   Media Item.
+     * @param context     Current context.
      */
     public static void handleFavoriteAction(final CheckBox checkBox, final MediaDescriptionCompat description,
-                                            final MediaBrowserCompat.MediaItem mediaItem, final Activity activity) {
+                                            final MediaBrowserCompat.MediaItem mediaItem, final Context context) {
         checkBox.setChecked(MediaItemHelper.isFavoriteField(mediaItem));
         checkBox.setVisibility(View.VISIBLE);
         checkBox.setOnClickListener(
@@ -341,15 +343,12 @@ public final class MediaItemsAdapter extends BaseAdapter {
                     // Make Intent to update Favorite RadioStation object associated with
                     // the Media Description
                     final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
-                            activity.getApplicationContext(),
+                            context,
                             description,
                             isChecked
                     );
                     // Send Intent to the OpenRadioService.
-                    ContextCompat.startForegroundService(
-                            activity.getApplicationContext(),
-                            intent
-                    );
+                    ContextCompat.startForegroundService(context, intent);
                 }
         );
     }

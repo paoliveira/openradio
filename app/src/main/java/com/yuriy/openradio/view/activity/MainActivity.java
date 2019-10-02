@@ -1229,7 +1229,7 @@ public final class MainActivity extends AppCompatActivity {
                     mediaItem,
                     FavoritesStorage.isFavorite(radioStation, context)
             );
-            MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, this);
+            MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, context);
         }
     }
 
