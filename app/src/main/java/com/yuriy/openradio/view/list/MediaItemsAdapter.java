@@ -39,7 +39,6 @@ import androidx.core.content.ContextCompat;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
-import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -335,7 +334,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
         checkBox.setOnClickListener(
 
                 view -> {
-                    AppLogger.d("TRACE::fav click:" + view.getTag());
                     final boolean isChecked = ((CheckBox) view).isChecked();
 
                     MediaItemHelper.updateFavoriteField(mediaItem, isChecked);

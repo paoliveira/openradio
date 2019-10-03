@@ -271,6 +271,8 @@ public final class MainActivity extends AppCompatActivity {
 
     private TextView mBufferedTextView;
 
+    private ListView mListView;
+
     /**
      * Stores an instance of {@link LocationHandler} that inherits from
      * Handler and uses its handleMessage() hook method to process
@@ -410,15 +412,15 @@ public final class MainActivity extends AppCompatActivity {
         updateBufferedTime(0);
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
+        mListView = findViewById(R.id.list_view);
         // Set adapter
-        listView.setAdapter(mBrowserAdapter);
+        mListView.setAdapter(mBrowserAdapter);
         // Set click listener
-        listView.setOnItemClickListener(mOnItemClickListener);
+        mListView.setOnItemClickListener(mOnItemClickListener);
         // Set touch listener.
-        listView.setOnTouchListener(mOnTouchListener);
+        mListView.setOnTouchListener(mOnTouchListener);
         // Set scroll listener.
-        listView.setOnScrollListener(new OnScrollListener(this));
+        mListView.setOnScrollListener(new OnScrollListener(this));
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
@@ -456,9 +458,8 @@ public final class MainActivity extends AppCompatActivity {
         super.onPause();
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
-        if (listView != null) {
-            unregisterForContextMenu(listView);
+        if (mListView != null) {
+            unregisterForContextMenu(mListView);
         }
     }
 
@@ -467,9 +468,8 @@ public final class MainActivity extends AppCompatActivity {
         super.onResume();
 
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
-        if (listView != null) {
-            registerForContextMenu(listView);
+        if (mListView != null) {
+            registerForContextMenu(mListView);
         }
 
         // Set OnSaveInstanceState to false
@@ -581,9 +581,6 @@ public final class MainActivity extends AppCompatActivity {
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
 
-        // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
-
         // Save Media Stack
         outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
 
@@ -595,7 +592,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         // Get first visible item id
-        int firstVisiblePosition = listView.getFirstVisiblePosition();
+        int firstVisiblePosition = mListView.getFirstVisiblePosition();
         // Just in case ...
         if (firstVisiblePosition < 0) {
             firstVisiblePosition = 0;
@@ -980,15 +977,25 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the item in the list.
      */
     private void setSelectedItem(final int position) {
+        setSelectedItem(position, true);
+    }
+
+    /**
+     *
+     * @param position
+     * @param doScrollToPosition
+     */
+    private void setSelectedItem(final int position, final boolean doScrollToPosition) {
         AppLogger.d(CLASS_NAME + "Set selected:" + position);
         // Get list view reference from the inflated xml
-        final ListView listView = findViewById(R.id.list_view);
-        if (listView == null) {
+        if (mListView == null) {
             return;
         }
 
-        listView.setSelection(position);
-        listView.smoothScrollToPositionFromTop(position, 0);
+        mListView.setSelection(position);
+        if (doScrollToPosition) {
+            mListView.smoothScrollToPositionFromTop(position, 0);
+        }
 
         mBrowserAdapter.notifyDataSetInvalidated();
         mBrowserAdapter.setActiveItemId(position);
@@ -1034,6 +1041,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the clicked item.
      */
     private void handleOnItemClick(final int position) {
+        setSelectedItem(position, false);
         if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }

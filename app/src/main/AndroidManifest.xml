@@ -13,16 +13,15 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
 
+    <!-- Declare Leanback support -->
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
 
-    <supports-screens
-        android:anyDensity="true"
-        android:largeScreens="true"
-        android:normalScreens="true"
-        android:resizeable="true"
-        android:smallScreens="true"/>
+    <!-- Declare touchscreen not required -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
 
     <application
         android:name=".MainApp"
@@ -52,6 +51,7 @@
                 <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
+            <!-- This filter identifies app as being enabled for TV, and lets Google Play identify it as a TV app. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
