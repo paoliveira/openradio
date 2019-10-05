@@ -65,6 +65,9 @@ public final class MediaItemRoot implements MediaItemCommand {
                         @NonNull final MediaItemShareObject shareObject) {
         AppLogger.d(LOG_TAG + " invoked");
         final Context context = shareObject.getContext();
+        shareObject.getRadioStations().clear();
+
+        shareObject.getResult().detach();
 
         final String iconUrl = "android.resource://" +
                 context.getPackageName() + "/drawable/ic_all_categories";
@@ -218,7 +221,8 @@ public final class MediaItemRoot implements MediaItemCommand {
             ));
         }
 
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
+        AppLogger.d(LOG_TAG + " invocation completed");
+        shareObject.getResult().sendResult(mediaItems);
 
         // If there is no Android Auto and there is latest Radio Station
         // (the one that played the last time Open Radio used) detected, play it.

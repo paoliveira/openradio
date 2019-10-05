@@ -381,7 +381,7 @@ public final class MediaItemHelper {
         final String id = String.valueOf(radioStation.getId());
         final Bundle bundle = new Bundle();
 
-        AppLogger.d(CLASS_NAME + " Media Description for " + radioStation);
+        AppLogger.d(CLASS_NAME + " Media Dscr. " + radioStation);
 
         return new MediaDescriptionCompat.Builder()
                 .setDescription(genre)

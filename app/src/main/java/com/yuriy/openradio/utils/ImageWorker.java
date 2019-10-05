@@ -94,11 +94,11 @@ public abstract class ImageWorker {
                     new AsyncDrawable(mResources, mLoadingBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
 
-            if (ConcurrentUtils.isThreadPoolFull()) {
+            if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
                 return;
             }
             try {
-                task.executeOnExecutor(ConcurrentUtils.THREAD_POOL_EXECUTOR);
+                task.executeOnExecutor(ConcurrentUtils.IMAGE_WORKER_EXECUTOR);
             } catch (final Exception e) {
                 /* Ignore */
             }
@@ -133,11 +133,11 @@ public abstract class ImageWorker {
     public void addImageCache(FragmentManager fragmentManager, ImageCache.ImageCacheParams cacheParams) {
         mImageCacheParams = cacheParams;
         mImageCache = ImageCache.getInstance(fragmentManager, mImageCacheParams);
-        if (ConcurrentUtils.isThreadPoolFull()) {
+        if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
             return;
         }
         new CacheAsyncTask(this).executeOnExecutor(
-                ConcurrentUtils.THREAD_POOL_EXECUTOR,
+                ConcurrentUtils.IMAGE_WORKER_EXECUTOR,
                 MESSAGE_INIT_DISK_CACHE
         );
     }
@@ -153,7 +153,7 @@ public abstract class ImageWorker {
     public void addImageCache(FragmentActivity activity, String diskCacheDirectoryName) {
         mImageCacheParams = new ImageCache.ImageCacheParams(activity, diskCacheDirectoryName);
         mImageCache = ImageCache.getInstance(activity.getSupportFragmentManager(), mImageCacheParams);
-        if (ConcurrentUtils.isThreadPoolFull()) {
+        if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
             return;
         }
         new CacheAsyncTask(this).execute(MESSAGE_INIT_DISK_CACHE);
@@ -516,21 +516,21 @@ public abstract class ImageWorker {
     }
 
     public void clearCache() {
-        if (ConcurrentUtils.isThreadPoolFull()) {
+        if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
             return;
         }
         new CacheAsyncTask(this).execute(MESSAGE_CLEAR);
     }
 
     public void flushCache() {
-        if (ConcurrentUtils.isThreadPoolFull()) {
+        if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
             return;
         }
         new CacheAsyncTask(this).execute(MESSAGE_FLUSH);
     }
 
     public void closeCache() {
-        if (ConcurrentUtils.isThreadPoolFull()) {
+        if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
             return;
         }
         new CacheAsyncTask(this).execute(MESSAGE_CLOSE);

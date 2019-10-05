@@ -171,6 +171,8 @@ public final class MainActivity extends AppCompatActivity {
      */
     private static final String BUNDLE_ARG_LIST_POSITION_MAP = "BUNDLE_ARG_LIST_POSITION_MAP";
 
+    private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
+
     /**
      * Key value for the first visible ID in the List for the store Bundle
      */
@@ -216,6 +218,8 @@ public final class MainActivity extends AppCompatActivity {
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
     private String mCurrentParentId = "";
+
+    private int mListFirstVisiblePosition = -1;
 
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
@@ -477,20 +481,6 @@ public final class MainActivity extends AppCompatActivity {
 
         // Hide any progress bar
         hideProgressBar();
-
-        // Restore position for the Catalogue list.
-        if (!TextUtils.isEmpty(mCurrentParentId)
-                && mListPositionMap.containsKey(mCurrentParentId)) {
-            final int position = mListPositionMap.get(mCurrentParentId);
-            setSelectedItem(position);
-        }
-        // Restore position for the Catalogue of the Playable items
-        if (!TextUtils.isEmpty(mCurrentMediaId)) {
-            final int position = mBrowserAdapter.getIndexForMediaId(mCurrentMediaId);
-            if (position != -1) {
-                setSelectedItem(position);
-            }
-        }
     }
 
     @Override
@@ -591,6 +581,8 @@ public final class MainActivity extends AppCompatActivity {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
         }
 
+        outState.putString(BUNDLE_ARG_CATALOGUE_ID, mCurrentParentId);
+
         // Get first visible item id
         int firstVisiblePosition = mListView.getFirstVisiblePosition();
         // Just in case ...
@@ -600,7 +592,7 @@ public final class MainActivity extends AppCompatActivity {
 
         // Save first visible ID of the List
         outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
-
+        AppLogger.d(CLASS_NAME + "SaveState:" + outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -679,6 +671,26 @@ public final class MainActivity extends AppCompatActivity {
         } else {
             // perform android frameworks lifecycle
             super.onBackPressed();
+        }
+    }
+
+    private void restoreSelectedPosition() {
+        int position = MediaSessionCompat.QueueItem.UNKNOWN_ID;
+        // Restore position for the Catalogue list.
+        if (!TextUtils.isEmpty(mCurrentParentId)
+                && mListPositionMap.containsKey(mCurrentParentId)) {
+            position = mListPositionMap.get(mCurrentParentId);
+        }
+        // Restore position for the Catalogue of the Playable items
+        if (!TextUtils.isEmpty(mCurrentMediaId)) {
+            position = mBrowserAdapter.getIndexForMediaId(mCurrentMediaId);
+        }
+        // This will make selected item highlighted.
+        setActiveItem(position);
+        // This actually do scroll to the position.
+        if (mListFirstVisiblePosition != -1) {
+            mListView.setSelection(mListFirstVisiblePosition);
+            mListFirstVisiblePosition = -1;
         }
     }
 
@@ -814,7 +826,7 @@ public final class MainActivity extends AppCompatActivity {
                     continue;
                 }
                 if (TextUtils.equals(mediaItem.getMediaId(), mStartDragSelectedItem.getMediaId())) {
-                    setSelectedItem(i);
+                    setActiveItem(i);
                     break;
                 }
             }
@@ -960,10 +972,15 @@ public final class MainActivity extends AppCompatActivity {
             mMediaItemsStack.addAll(mediaItemsStackRestored);
         }
 
+        mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
+        if (!TextUtils.isEmpty(mCurrentParentId)) {
+            startService(
+                    OpenRadioService.makeCurrentParentIdIntent(getApplicationContext(), mCurrentParentId)
+            );
+        }
+
         // Restore List's position
-        final int listFirstVisiblePosition
-                = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
-        setSelectedItem(listFirstVisiblePosition);
+        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
 
         final MediaMetadataCompat lastKnownMetadata = savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA);
         if (lastKnownMetadata != null) {
@@ -972,31 +989,14 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Sets the item on the provided index as selected.
+     * Sets the item on the provided index as active.
      *
      * @param position Position of the item in the list.
      */
-    private void setSelectedItem(final int position) {
-        setSelectedItem(position, true);
-    }
-
-    /**
-     *
-     * @param position
-     * @param doScrollToPosition
-     */
-    private void setSelectedItem(final int position, final boolean doScrollToPosition) {
-        AppLogger.d(CLASS_NAME + "Set selected:" + position);
-        // Get list view reference from the inflated xml
+    private void setActiveItem(final int position) {
         if (mListView == null) {
             return;
         }
-
-        mListView.setSelection(position);
-        if (doScrollToPosition) {
-            mListView.smoothScrollToPositionFromTop(position, 0);
-        }
-
         mBrowserAdapter.notifyDataSetInvalidated();
         mBrowserAdapter.setActiveItemId(position);
         mBrowserAdapter.notifyDataSetChanged();
@@ -1041,7 +1041,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param position Position of the clicked item.
      */
     private void handleOnItemClick(final int position) {
-        setSelectedItem(position, false);
+        setActiveItem(position);
         if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
@@ -1303,7 +1303,7 @@ public final class MainActivity extends AppCompatActivity {
 
             final int position = reference.mBrowserAdapter.getIndexForMediaId(mediaId);
             if (position != -1) {
-                reference.setSelectedItem(position);
+                reference.setActiveItem(position);
             }
         }
     }
@@ -1423,28 +1423,7 @@ public final class MainActivity extends AppCompatActivity {
                 activity.showNoDataMessage();
             }
 
-            activity.mMediaResourcesManager.dump();
-
-            if (!activity.mListPositionMap.containsKey(parentId)) {
-                AppLogger.d(CLASS_NAME + "No key");
-                activity.mBrowserAdapter.notifyDataSetInvalidated();
-                activity.mBrowserAdapter.setActiveItemId(MediaSessionCompat.QueueItem.UNKNOWN_ID);
-                activity.mBrowserAdapter.notifyDataSetInvalidated();
-                return;
-            }
-
-            // Restore position for the Catalogue list
-            Integer position = activity.mListPositionMap.get(parentId);
-            if (position != null) {
-                activity.setSelectedItem(position);
-            }
-            // Restore position for the Catalogue of the Playable items
-            if (!TextUtils.isEmpty(activity.mCurrentMediaId)) {
-                position = activity.mBrowserAdapter.getIndexForMediaId(activity.mCurrentMediaId);
-                if (position != -1) {
-                    activity.setSelectedItem(position);
-                }
-            }
+            activity.restoreSelectedPosition();
         }
 
         @Override

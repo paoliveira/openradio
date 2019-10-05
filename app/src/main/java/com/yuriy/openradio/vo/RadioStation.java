@@ -223,7 +223,7 @@ public final class RadioStation implements Serializable {
 
     @Override
     public String toString() {
-        return "RadioStation " + hashCode() + " {" +
+        return "RS " + hashCode() + " {" +
                 "id=" + mId +
                 ", status=" + mStatus +
                 ", name='" + mName + '\'' +

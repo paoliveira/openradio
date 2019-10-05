@@ -39,6 +39,7 @@ import com.yuriy.openradio.vo.RadioStation;
  * {@link MediaItemStation} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio station by its Id.
  */
+// TODO: Is this still usable?
 public final class MediaItemStation implements MediaItemCommand {
 
     private static final String LOG_TAG = MediaItemStation.class.getSimpleName();

@@ -141,9 +141,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private static final String VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM";
 
+    private static final String VALUE_NAME_CURRENT_PARENT_ID = "VALUE_NAME_CURRENT_PARENT_ID";
+
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
 
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
+
+    private static final String EXTRA_KEY_CURRENT_PARENT_ID = "EXTRA_KEY_CURRENT_PARENT_ID";
 
     private static final String EXTRA_KEY_STATION_NAME = "EXTRA_KEY_STATION_NAME";
 
@@ -444,6 +448,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
+        // TODO: Still usable?
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStation());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, new MediaItemLocalsList());
@@ -554,7 +559,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Override
     public final void onLoadChildren(@NonNull final String parentId,
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
-        AppLogger.i(CLASS_NAME + "OnLoadChildren:" + parentId);
+        AppLogger.i(CLASS_NAME + "OnLoadChildren " + parentId);
         boolean isSameCatalogue = false;
         // Check whether category had changed.
         if (TextUtils.equals(mCurrentParentId, parentId)) {
@@ -878,6 +883,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public static Intent makeToggleLastPlayedItemIntent(final Context context) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM);
+        return intent;
+    }
+
+    public static Intent makeCurrentParentIdIntent(final Context context, final String currentParentId) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_CURRENT_PARENT_ID);
+        intent.putExtra(EXTRA_KEY_CURRENT_PARENT_ID, currentParentId);
         return intent;
     }
 
@@ -1506,6 +1518,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             actions |= PlaybackStateCompat.ACTION_PAUSE;
         }
+        if (mPlayingQueue.size() == 1) {
+            return actions;
+        }
         // Always show Prev and Next buttons, play index is handling on each listener (for instance, to handle loop
         // once end or beginning reached).
         actions |= PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS;
@@ -1931,9 +1946,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.clearAndCopyCollection(mRadioStations, list);
-            QueueHelper.clearAndCopyCollection(mPlayingQueue, QueueHelper.getPlayingQueue(
-                    getApplicationContext(),
-                    mRadioStations)
+            QueueHelper.clearAndCopyCollection(
+                    mPlayingQueue, QueueHelper.getPlayingQueue(
+                            getApplicationContext(),
+                            mRadioStations
+                    )
             );
         }
 
@@ -2127,6 +2144,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 break;
             case VALUE_NAME_STOP_SERVICE:
                 stopService();
+                break;
+            case VALUE_NAME_CURRENT_PARENT_ID:
+                mCurrentParentId = intent.getStringExtra(EXTRA_KEY_CURRENT_PARENT_ID);
                 break;
             default:
                 AppLogger.w(CLASS_NAME + "Unknown command:" + command);
