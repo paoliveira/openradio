@@ -165,6 +165,28 @@
             android:text="@string/about_playlist_url"
             android:textStyle="bold"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/about_offline_countries_boundaries_title"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:text="@string/about_offline_countries_boundaries_name"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginBottom="15dp"
+            android:autoLink="web"
+            android:text="@string/about_offline_countries_boundaries_url"
+            android:textStyle="bold"/>
+
     </LinearLayout>
 
 </ScrollView>

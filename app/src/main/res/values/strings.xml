@@ -108,6 +108,9 @@
     <string name="about_playlist_title">Playlist is parsed by:</string>
     <string name="about_playlist_name">"Java Playlist Parser" of William Seemann</string>
     <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+    <string name="about_offline_countries_boundaries_title">Offline counties boundaries are provided by:</string>
+    <string name="about_offline_countries_boundaries_name">Tobias Zwick</string>
+    <string name="about_offline_countries_boundaries_url">https://github.com/westnordost/countryboundaries</string>
     <string name="settings_master_volume">Master sound volume:</string>
     <string name="edit_station_menu_label">Edit Radio Station</string>
     <string name="edit_station_dialog_title">Edit Radio Station</string>
