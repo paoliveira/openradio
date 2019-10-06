@@ -27,7 +27,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
@@ -107,8 +106,7 @@ public final class LogsDialog extends BaseDialogFragment {
                     String message = result
                             ? "All logs deleted"
                             : "Can not delete logs";
-                    Toast.makeText(activity, message, Toast.LENGTH_LONG).show();
-
+                    SafeToast.showAnyThread(activity, message);
                     AppLogger.initLogger(activity);
                 }
         );

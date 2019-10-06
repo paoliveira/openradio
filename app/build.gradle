@@ -108,6 +108,7 @@ configurations.all {
 }
 
 dependencies {
+    implementation "androidx.leanback:leanback:1.0.0"
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
     implementation "com.google.android.material:material:$materialVersion"
     implementation "com.android.support:support-v4:$supportVersion"
@@ -121,8 +122,8 @@ dependencies {
     implementation "log4j:log4j:$log4jVersion"
     // https://mvnrepository.com/artifact/org.jdom/jdom2
     implementation group: 'org.jdom', name: 'jdom2', version: '2.0.6'
-
     implementation 'de.westnordost:countryboundaries:1.5'
+    implementation 'com.github.bumptech.glide:glide:4.3.1'
 
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
 

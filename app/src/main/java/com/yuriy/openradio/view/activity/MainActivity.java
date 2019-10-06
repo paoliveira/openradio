@@ -51,7 +51,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -1435,11 +1434,9 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             activity.hideProgressBar();
-
-            Toast.makeText(
-                    activity.getApplicationContext(),
-                    R.string.error_loading_media, Toast.LENGTH_LONG
-            ).show();
+            SafeToast.showAnyThread(
+                    activity.getApplicationContext(), activity.getString(R.string.error_loading_media)
+            );
         }
     }
 
