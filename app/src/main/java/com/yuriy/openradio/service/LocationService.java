@@ -18,7 +18,6 @@ package com.yuriy.openradio.service;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -31,6 +30,7 @@ import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.JobIntentService;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -58,7 +58,7 @@ import de.westnordost.countryboundaries.CountryBoundaries;
  * On 4/27/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class LocationService extends IntentService {
+public final class LocationService extends JobIntentService {
 
     private static final String CLASS_NAME = LocationService.class.getSimpleName() + " ";
 
@@ -340,6 +340,8 @@ public final class LocationService extends IntentService {
      */
     private static final String COUNTRY_CODE = "COUNTRY_CODE";
 
+    private static final int JOB_ID = 1000;
+
     private FusedLocationProviderClient mFusedLocationClient;
 
     /**
@@ -353,18 +355,30 @@ public final class LocationService extends IntentService {
      * Private constructor.
      */
     public LocationService() {
-        super("LocationService");
+        super();
     }
 
     /**
      * Factory method to make the desired Intent.
      */
-    public static Intent makeIntent(final Context context, final Handler handler) {
+    private static Intent makeIntent(final Context context, final Handler handler) {
         // Create an intent associated with the Location Service class.
         return new Intent(context, LocationService.class)
                 // Create and pass a Messenger as an "extra" so the
                 // Location Service can send back the Location.
                 .putExtra(MESSENGER, new Messenger(handler));
+    }
+
+    /**
+     * Factory method to enqueue work for Location Service.
+     *
+     * @param context Context of callee.
+     * @param handler Handler reference to replay data on.
+     */
+    public static void doEnqueueWork(final Context context, final Handler handler) {
+        // Create an Intent to get Location in the background via a Service.
+        final Intent intent = makeIntent(context, handler);
+        enqueueWork(context, LocationService.class, JOB_ID, intent);
     }
 
     @Override
@@ -373,7 +387,7 @@ public final class LocationService extends IntentService {
         try {
             mCountryBoundaries = CountryBoundaries.load(getAssets().open("boundaries.ser"));
         } catch (final IOException e) {
-            //
+            // Ignore up to now ...
         }
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
     }
@@ -385,7 +399,7 @@ public final class LocationService extends IntentService {
      * Intent.
      */
     @Override
-    public void onHandleIntent(final Intent intent) {
+    protected void onHandleWork(@NonNull Intent intent) {
         AppLogger.d(CLASS_NAME + "Handle Location intent:" + intent);
         final String[] result = new String[1];
         // Max time to await for country code to be detected, in sec.

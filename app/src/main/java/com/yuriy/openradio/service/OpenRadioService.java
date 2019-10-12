@@ -1248,7 +1248,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         if (!mServiceStarted) {
             AppLogger.i(CLASS_NAME + "Starting service");
-            // The MusicService needs to keep running even after the calling MediaBrowser
+            // The OpenRadioService needs to keep running even after the calling MediaBrowser
             // is disconnected. Call startForegroundService(Intent) and then stopSelf(..)
             // when we no longer need to play media.
             ContextCompat.startForegroundService(

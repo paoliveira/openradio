@@ -318,7 +318,7 @@ public final class MediaNotification extends BroadcastReceiver {
         updatePlayPauseAction();
 
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        final String notificationChannelId = MediaNotificationManager.createNotificationChannel(
+        final String notificationChannelId = NotificationChannelFactory.createChannel(
                 mService.getApplicationContext(),
                 new MediaNotificationData(mMetadata)
         );
@@ -404,7 +404,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private void showNoStreamNotification() {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        final String notificationChannelId = MediaNotificationManager.createNotificationChannelNoStream(
+        final String notificationChannelId = NotificationChannelFactory.createChannelNoStream(
                 mService.getApplicationContext(),
                 new NoMediaNotificationData()
         );

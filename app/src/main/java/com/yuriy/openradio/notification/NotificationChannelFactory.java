@@ -23,17 +23,15 @@ import android.content.Context;
 import android.os.Build;
 
 /**
- * Simplifies common {@link Notification} tasks.
+ * Factory to build Notification Channels.
  */
-public final class MediaNotificationManager {
+public final class NotificationChannelFactory {
 
-    public MediaNotificationManager() {
+    public NotificationChannelFactory() {
         super();
     }
 
-    static String createNotificationChannel(
-            final Context context,
-            final MediaNotificationData notificationData) {
+    static String createChannel(final Context context, final NotificationData notificationData) {
         // NotificationChannels are required for Notifications on O (API 26) and above.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // The id of the channel.
@@ -69,9 +67,8 @@ public final class MediaNotificationManager {
         }
     }
 
-    static String createNotificationChannelNoStream(
-            final Context context,
-            final NoMediaNotificationData notificationData) {
+    static String createChannelNoStream(final Context context,
+                                        final NoMediaNotificationData notificationData) {
 
         // NotificationChannels are required for Notifications on O (API 26) and above.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
