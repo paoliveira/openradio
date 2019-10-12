@@ -58,6 +58,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
@@ -439,18 +440,14 @@ public final class MainActivity extends AppCompatActivity {
 
         mMediaResourcesManager.create(savedInstanceState);
 
-        restoreState(savedInstanceState);
+        restoreState(context, savedInstanceState);
 
         final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
         );
         if (isLocationPermissionGranted) {
-            // Create an Intent to get Location in the background via a Service.
-            final Intent intent = LocationService.makeIntent(context, mLocationHandler);
-
-            // Start the Location Service.
-            startService(intent);
+            LocationService.doEnqueueWork(context, mLocationHandler);
         }
     }
 
@@ -592,7 +589,6 @@ public final class MainActivity extends AppCompatActivity {
 
         // Save first visible ID of the List
         outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
-        AppLogger.d(CLASS_NAME + "SaveState:" + outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -948,7 +944,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("unchecked")
-    private void restoreState(final Bundle savedInstanceState) {
+    private void restoreState(final Context context, final Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             // Nothing to restore
             return;
@@ -974,8 +970,9 @@ public final class MainActivity extends AppCompatActivity {
 
         mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
         if (!TextUtils.isEmpty(mCurrentParentId)) {
-            startService(
-                    OpenRadioService.makeCurrentParentIdIntent(getApplicationContext(), mCurrentParentId)
+            ContextCompat.startForegroundService(
+                    context,
+                    OpenRadioService.makeCurrentParentIdIntent(context, mCurrentParentId)
             );
         }
 
@@ -1380,6 +1377,11 @@ public final class MainActivity extends AppCompatActivity {
             final MainActivity activity = mReference.get();
             if (activity == null) {
                 AppLogger.w(CLASS_NAME + "On children loaded -> activity ref is null");
+                return;
+            }
+
+            if (activity.mIsOnSaveInstancePassed.get()) {
+                AppLogger.w(CLASS_NAME + "Can perform on children loaded after OnSaveInstanceState");
                 return;
             }
 
