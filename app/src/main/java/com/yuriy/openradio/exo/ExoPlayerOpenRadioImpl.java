@@ -698,18 +698,21 @@ public final class ExoPlayerOpenRadioImpl {
      * Handle playback update progress.
      */
     private void updateProgress() {
-        long position;
-        long bufferedPosition;
-        long duration;
-        if (mExoPlayer != null) {
-            position = mExoPlayer.getCurrentPosition();
-            bufferedPosition = mExoPlayer.getBufferedPosition();
-            duration = mExoPlayer.getDuration();
-        } else {
+        if (mExoPlayer == null) {
             // TODO: Investigate why this callback's loop still exists even after destroy()
             AppLogger.w(LOG_TAG + " update progress with null player");
             return;
         }
+
+        if (mExoPlayer.getCurrentTimeline() == Timeline.EMPTY) {
+            // TODO: Investigate why an empty timeline is here, probably because if obsolete reference to player
+            AppLogger.w(LOG_TAG + " update progress with empty timeline");
+            return;
+        }
+
+        final long position = mExoPlayer.getCurrentPosition();
+        final long bufferedPosition = mExoPlayer.getBufferedPosition();
+        final long duration = mExoPlayer.getDuration();
 
         AppLogger.d(
                 "Pos:" + position

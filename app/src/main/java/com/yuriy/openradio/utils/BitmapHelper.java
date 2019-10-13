@@ -198,8 +198,7 @@ public final class BitmapHelper {
      * @param topBitmap  Bitmap that is use to overlay.
      * @return Overlay Bitmap.
      */
-    public static Bitmap overlayWithBitmap(final Bitmap baseBitmap, final Bitmap topBitmap) {
-        // %
+    static Bitmap overlayWithBitmap(final Bitmap baseBitmap, final Bitmap topBitmap) {
         final double scaleToUse = 60.0;
         final double scaledW = baseBitmap.getWidth() * scaleToUse / 100;
         final double scaledH = topBitmap.getHeight() * (Math.abs(scaledW / topBitmap.getWidth()));
