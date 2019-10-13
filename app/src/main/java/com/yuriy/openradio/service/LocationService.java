@@ -591,11 +591,16 @@ public final class LocationService extends JobIntentService {
                 return;
             }
 
-            countryCode = extractCountryCode(
-                    reference.mCountryBoundaries.getIds(
-                            location.getLongitude(), location.getLatitude()
-                    )
-            );
+            try {
+                countryCode = extractCountryCode(
+                        reference.mCountryBoundaries.getIds(
+                                location.getLongitude(), location.getLatitude()
+                        )
+                );
+            } catch (final Exception e) {
+                countryCode = Country.COUNTRY_CODE_DEFAULT;
+                // TODO: Maybe report to analytics system
+            }
 
             if (mListener != null) {
                 mListener.onCountryCodeLocated(countryCode);
