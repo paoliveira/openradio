@@ -12,6 +12,10 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import androidx.annotation.NonNull;
 import androidx.leanback.app.VerticalGridSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
+import androidx.leanback.widget.OnItemViewClickedListener;
+import androidx.leanback.widget.Presenter;
+import androidx.leanback.widget.Row;
+import androidx.leanback.widget.RowPresenter;
 import androidx.leanback.widget.VerticalGridPresenter;
 
 import com.yuriy.openradio.R;
@@ -19,6 +23,8 @@ import com.yuriy.openradio.model.media.MediaResourceManagerListener;
 import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.presenter.CardPresenter;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.view.activity.SearchTvActivity;
@@ -55,9 +61,12 @@ public final class MainTvFragment extends VerticalGridSupportFragment {
             prepareEntranceTransition();
         }
 
+         // Handles loading the  image in a background thread.
+        final ImageFetcher imageFetcher = ImageFetcherFactory.getSmallImageFetcher(getActivity());
+
         // Map category results from the database to ListRow objects.
         // This Adapter is used to render the main TV Fragment sidebar labels.
-        mAdapter = new ArrayObjectAdapter(new CardPresenter());
+        mAdapter = new ArrayObjectAdapter(new CardPresenter(getContext(), imageFetcher));
         setAdapter(mAdapter);
 
         mMediaResourcesManager = new MediaResourcesManager(
@@ -93,6 +102,32 @@ public final class MainTvFragment extends VerticalGridSupportFragment {
 
 //        setOnItemViewClickedListener(new ItemViewClickedListener());
 //        setOnItemViewSelectedListener(new ItemViewSelectedListener());
+    }
+
+    private final class ItemViewClickedListener implements OnItemViewClickedListener {
+
+        private ItemViewClickedListener() {
+            super();
+        }
+
+        @Override
+        public void onItemClicked(final Presenter.ViewHolder itemViewHolder,
+                                  final Object item,
+                                  final RowPresenter.ViewHolder rowViewHolder,
+                                  final Row row) {
+            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem)item;
+            if (mediaItem == null) {
+                return;
+            }
+//                final Intent intent = new Intent(getActivity(), VideoDetailsActivity.class);
+//                intent.putExtra(VideoDetailsActivity.VIDEO, video);
+//
+//                final Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(
+//                        getActivity(),
+//                        ((ImageCardView) itemViewHolder.view).getMainImageView(),
+//                        VideoDetailsActivity.SHARED_ELEMENT_NAME).toBundle();
+//                getActivity().startActivity(intent, bundle);
+        }
     }
 
     private static final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
@@ -131,11 +166,8 @@ public final class MainTvFragment extends VerticalGridSupportFragment {
                 return;
             }
 
-            fragment.mAdapter.add(new Object());
-            fragment.mAdapter.add(new Object());
-            fragment.mAdapter.add(new Object());
-            fragment.mAdapter.add(new Object());
-            fragment.mAdapter.add(new Object());
+            fragment.mAdapter.clear();
+            fragment.mAdapter.addAll(0, children);
         }
 
         @Override
