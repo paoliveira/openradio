@@ -13,5 +13,6 @@ public final class MainTvActivity extends LeanbackActivity {
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_tv);
+        getWindow().setBackgroundDrawableResource(R.drawable.main_tv_bg);
     }
 }

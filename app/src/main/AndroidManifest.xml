@@ -27,7 +27,8 @@
         </activity>
         <activity
             android:name=".view.activity.MainTvActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Leanback.VerticalGrid">
             <!-- This filter identifies app as being enabled for TV, and lets Google Play identify it as a TV app. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,6 +37,7 @@
         </activity>
 
         <activity android:name=".view.activity.PermissionsDialogActivity" />
+        <activity android:name=".view.activity.SearchTvActivity" />
 
         <meta-data
             android:name="com.google.android.gms.car.application"
