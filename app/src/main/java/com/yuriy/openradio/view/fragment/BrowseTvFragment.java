@@ -62,7 +62,7 @@ public final class BrowseTvFragment extends VerticalGridSupportFragment {
             prepareEntranceTransition();
         }
 
-         // Handles loading the  image in a background thread.
+        // Handles loading the  image in a background thread.
         final ImageFetcher imageFetcher = ImageFetcherFactory.getSmallImageFetcher(getActivity());
 
         // Map category results from the database to ListRow objects.
@@ -89,7 +89,7 @@ public final class BrowseTvFragment extends VerticalGridSupportFragment {
     }
 
     private void setupFragment() {
-        VerticalGridPresenter gridPresenter = new VerticalGridPresenter();
+        final VerticalGridPresenter gridPresenter = new VerticalGridPresenter();
         gridPresenter.setNumberOfColumns(NUM_COLUMNS);
         setGridPresenter(gridPresenter);
 
