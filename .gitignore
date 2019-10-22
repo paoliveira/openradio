@@ -1,7 +1,7 @@
 .gradle
 /build
 /.idea
-/app/release
+/app/release/output.json
 /local.properties
 *.iml
 .DS_Store
