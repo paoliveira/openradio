@@ -102,7 +102,9 @@ public class CardPresenter extends Presenter {
                 } else {
                     // Load the image asynchronously into the ImageView, this also takes care of
                     // setting a placeholder image while the background thread runs
-                    mImageFetcher.loadImage(iconUri, cardView.getMainImageView());
+                    if (mImageFetcher != null) {
+                        mImageFetcher.loadImage(iconUri, cardView.getMainImageView());
+                    }
                 }
             } else {
                 cardView.setMainImageScaleType(ImageView.ScaleType.CENTER_INSIDE);

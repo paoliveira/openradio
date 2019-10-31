@@ -38,10 +38,6 @@
 
         <activity android:name=".view.activity.PermissionsDialogActivity" />
         <activity android:name=".view.activity.SearchTvActivity" />
-        <activity
-            android:name=".view.activity.BrowseTvActivity"
-            android:parentActivityName=".view.activity.MainTvActivity"
-            android:theme="@style/Theme.Leanback.VerticalGrid" />
 
         <meta-data
             android:name="com.google.android.gms.car.application"
