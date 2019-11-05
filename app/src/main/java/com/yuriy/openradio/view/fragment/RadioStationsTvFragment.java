@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.NonNull;
@@ -13,9 +12,9 @@ import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.VerticalGridPresenter;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.model.media.MediaResourceManagerListener;
-import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.presenter.CardPresenter;
+import com.yuriy.openradio.presenter.MediaPresenter;
+import com.yuriy.openradio.presenter.MediaPresenterListener;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
@@ -33,28 +32,61 @@ public final class RadioStationsTvFragment extends GridTvFragment {
      */
     private final MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCallback
             = new MediaBrowserSubscriptionCallback(this);
-    /**
-     * Manager object that acts as interface between Media Resources and current Activity.
-     */
-    private MediaResourcesManager mMediaResourcesManager;
+
+    private MediaPresenter mMediaPresenter;
 
     public RadioStationsTvFragment() {
         super();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setupAdapter();
 
-        mMediaResourcesManager = new MediaResourcesManager(
+        mMediaPresenter = new MediaPresenter();
+        mMediaPresenter.init(
                 getActivity(),
-                new MediaResourceManagerListenerImpl(this)
+                savedInstanceState,
+                mMedSubscriptionCallback,
+                new MediaPresenterListener() {
+
+                    @Override
+                    public void showProgressBar() {
+
+                    }
+
+                    @Override
+                    public void handleMetadataChanged(final MediaMetadataCompat metadata) {
+
+                    }
+
+                    @Override
+                    public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
+
+                    }
+                }
         );
-        mMediaResourcesManager.create(null);
-        mMediaResourcesManager.connect();
+
+        mMediaPresenter.restoreState(savedInstanceState);
 
         getMainFragmentAdapter().getFragmentHost().notifyDataReady(getMainFragmentAdapter());
+
+        mMediaPresenter.connect();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        mMediaPresenter.destroy();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        mMediaPresenter.saveState(outState);
     }
 
     private void setupAdapter() {
@@ -66,13 +98,29 @@ public final class RadioStationsTvFragment extends GridTvFragment {
         mAdapter = new ArrayObjectAdapter(cardPresenter);
         setAdapter(mAdapter);
 
-        setOnItemViewClickedListener((itemViewHolder, item, rowViewHolder, row) -> {
-            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
-            AppLogger.d(CLASS_NAME + " clicked:" + mediaItem);
-            if (mediaItem == null) {
-                return;
-            }
-        });
+        setOnItemViewClickedListener(
+                (itemViewHolder, item, rowViewHolder, row) -> {
+                    final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
+                    if (mediaItem == null) {
+                        return;
+                    }
+                    //TODO: Get real position id
+                    int position = 0;
+                    mMediaPresenter.handleItemClick(mediaItem, position);
+                    if (mMediaPresenter.getNumItemsInStack() > 1) {
+                        showBackButton();
+                    }
+                }
+        );
+
+        setOnBackClickListener(
+                v -> {
+                    mMediaPresenter.handleBackPressed(getActivity());
+                    if (mMediaPresenter.getNumItemsInStack() <= 1) {
+                        hideBackButton();
+                    }
+                }
+        );
     }
 
     private static final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
@@ -97,12 +145,12 @@ public final class RadioStationsTvFragment extends GridTvFragment {
         public void onChildrenLoaded(@NonNull final String parentId,
                                      @NonNull final List<MediaBrowserCompat.MediaItem> children) {
             AppLogger.i(
-                    CLASS_NAME + "Children loaded:" + parentId + ", children:" + children.size()
+                    CLASS_NAME + " Children loaded:" + parentId + ", children:" + children.size()
             );
 
             final RadioStationsTvFragment fragment = mReference.get();
             if (fragment == null) {
-                AppLogger.w(CLASS_NAME + "On children loaded -> fragment ref is null");
+                AppLogger.w(CLASS_NAME + " On children loaded -> fragment ref is null");
                 return;
             }
 
@@ -113,6 +161,7 @@ public final class RadioStationsTvFragment extends GridTvFragment {
 
             fragment.mAdapter.clear();
             fragment.mAdapter.addAll(0, children);
+            fragment.onDataLoaded();
         }
 
         @Override
@@ -125,69 +174,6 @@ public final class RadioStationsTvFragment extends GridTvFragment {
             SafeToast.showAnyThread(
                     fragment.getContext(), fragment.getString(R.string.error_loading_media)
             );
-        }
-    }
-
-    /**
-     * Listener for the Media Resources related events.
-     */
-    private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private final WeakReference<RadioStationsTvFragment> mReference;
-
-        /**
-         * Constructor
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaResourceManagerListenerImpl(final RadioStationsTvFragment reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
-            final RadioStationsTvFragment activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
-                return;
-            }
-
-            activity.mMediaResourcesManager.subscribe(
-                    activity.mMediaResourcesManager.getRoot(),
-                    activity.mMedSubscriptionCallback
-            );
-        }
-
-        @Override
-        public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
-            final RadioStationsTvFragment activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onPlaybackStateChanged reference to MainActivity is null");
-                return;
-            }
-        }
-
-        @Override
-        public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + "Queue changed to:" + queue);
-        }
-
-        @Override
-        public void onMetadataChanged(final MediaMetadataCompat metadata,
-                                      final List<MediaSessionCompat.QueueItem> queue) {
-            final RadioStationsTvFragment activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onMetadataChanged reference to MainActivity is null");
-                return;
-            }
-            if (metadata == null) {
-                return;
-            }
         }
     }
 }

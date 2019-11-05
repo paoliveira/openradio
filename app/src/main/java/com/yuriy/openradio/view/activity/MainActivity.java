@@ -34,7 +34,6 @@ import android.os.Message;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
@@ -71,10 +70,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
-import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
-import com.yuriy.openradio.model.media.MediaResourceManagerListener;
-import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
@@ -82,6 +78,8 @@ import com.yuriy.openradio.model.storage.drive.GoogleDriveError;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.permission.PermissionStatusListener;
+import com.yuriy.openradio.presenter.MediaPresenter;
+import com.yuriy.openradio.presenter.MediaPresenterListener;
 import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
@@ -108,10 +106,7 @@ import com.yuriy.openradio.view.list.MediaItemsAdapter;
 import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.RadioStation;
 
-import java.io.Serializable;
 import java.lang.ref.WeakReference;
-import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -148,28 +143,7 @@ public final class MainActivity extends AppCompatActivity {
     @Nullable
     private MediaMetadataCompat mLastKnownMetadata;
 
-    /**
-     * Stack of the media items.
-     * It is used when navigating back and forth via list.
-     */
-    private final List<String> mMediaItemsStack = new LinkedList<>();
-
-    /**
-     * Map of the last used list position for the given list of the media items.
-     */
-    private final Map<String, Integer> mListPositionMap = new Hashtable<>();
-
-    /**
-     * Key value for the Media Stack for the store Bundle.
-     */
-    private static final String BUNDLE_ARG_MEDIA_ITEMS_STACK = "BUNDLE_ARG_MEDIA_ITEMS_STACK";
-
     private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
-
-    /**
-     * Key value for the List-Position map for the store Bundle.
-     */
-    private static final String BUNDLE_ARG_LIST_POSITION_MAP = "BUNDLE_ARG_LIST_POSITION_MAP";
 
     private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
 
@@ -268,11 +242,6 @@ public final class MainActivity extends AppCompatActivity {
      */
     private GoogleDriveManager mGoogleDriveManager;
 
-    /**
-     * Manager object that acts as interface between Media Resources and current Activity.
-     */
-    private MediaResourcesManager mMediaResourcesManager;
-
     private TextView mBufferedTextView;
 
     private ListView mListView;
@@ -283,6 +252,8 @@ public final class MainActivity extends AppCompatActivity {
      * Messages sent to it from the {@link LocationService}.
      */
     private Handler mLocationHandler = null;
+
+    private MediaPresenter mMediaPresenter;
 
     /**
      * Default constructor.
@@ -379,9 +350,28 @@ public final class MainActivity extends AppCompatActivity {
                 context, new GoogleDriveManagerListenerImpl(this)
         );
 
-        mMediaResourcesManager = new MediaResourcesManager(
+        mMediaPresenter = new MediaPresenter();
+        mMediaPresenter.init(
                 this,
-                new MediaResourceManagerListenerImpl(this)
+                savedInstanceState,
+                mMedSubscriptionCallback,
+                new MediaPresenterListener() {
+
+                    @Override
+                    public void showProgressBar() {
+                        MainActivity.this.showProgressBar();
+                    }
+
+                    @Override
+                    public void handleMetadataChanged(final MediaMetadataCompat metadata) {
+                        MainActivity.this.handleMetadataChanged(metadata);
+                    }
+
+                    @Override
+                    public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
+                        MainActivity.this.handlePlaybackStateChanged(state);
+                    }
+                }
         );
 
         // Register local receivers.
@@ -437,8 +427,6 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        mMediaResourcesManager.create(savedInstanceState);
-
         restoreState(context, savedInstanceState);
 
         final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
@@ -488,8 +476,8 @@ public final class MainActivity extends AppCompatActivity {
 
         // Unregister local receivers
         unregisterReceivers();
-        // Disconnect Media Browser
-        mMediaResourcesManager.disconnect();
+
+        mMediaPresenter.destroy();
 
         if (mGoogleDriveManager != null) {
             mGoogleDriveManager.release();
@@ -567,11 +555,7 @@ public final class MainActivity extends AppCompatActivity {
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
 
-        // Save Media Stack
-        outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
-
-        // Save List-Position Map
-        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mListPositionMap);
+        mMediaPresenter.saveState(outState);
 
         if (mLastKnownMetadata != null) {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
@@ -627,43 +611,7 @@ public final class MainActivity extends AppCompatActivity {
         hideNoDataMessage();
         hideProgressBar();
 
-        // If there is root category - close activity
-        if (mMediaItemsStack.size() == 1) {
-
-            // Un-subscribe from item
-            mMediaResourcesManager.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
-            // Clear stack
-            mMediaItemsStack.clear();
-
-            startService(OpenRadioService.makeStopServiceIntent(getApplicationContext()));
-
-            // perform android frameworks lifecycle
-            super.onBackPressed();
-            return;
-        }
-
-        int location = mMediaItemsStack.size() - 1;
-        if (location >= 0) {
-            // Get current media item and un-subscribe.
-            final String currentMediaId = mMediaItemsStack.remove(location);
-            mMediaResourcesManager.unsubscribe(currentMediaId);
-        }
-
-        // Un-subscribe from all items.
-        for (final String mediaItemId : mMediaItemsStack) {
-            mMediaResourcesManager.unsubscribe(mediaItemId);
-        }
-
-        // Subscribe to the previous item.
-        location = mMediaItemsStack.size() - 1;
-        if (location >= 0) {
-            final String previousMediaId = mMediaItemsStack.get(location);
-            if (!TextUtils.isEmpty(previousMediaId)) {
-                showProgressBar();
-                AppLogger.d(CLASS_NAME + "Back to " + previousMediaId);
-                mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
-            }
-        } else {
+        if (mMediaPresenter.handleBackPressed(this)) {
             // perform android frameworks lifecycle
             super.onBackPressed();
         }
@@ -672,9 +620,9 @@ public final class MainActivity extends AppCompatActivity {
     private void restoreSelectedPosition() {
         int position = MediaSessionCompat.QueueItem.UNKNOWN_ID;
         // Restore position for the Catalogue list.
-        if (!TextUtils.isEmpty(mCurrentParentId)
-                && mListPositionMap.containsKey(mCurrentParentId)) {
-            position = mListPositionMap.get(mCurrentParentId);
+        final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
+        if (positionObj != null) {
+            position = positionObj;
         }
         // Restore position for the Catalogue of the Playable items
         if (!TextUtils.isEmpty(mCurrentMediaId)) {
@@ -872,16 +820,7 @@ public final class MainActivity extends AppCompatActivity {
         hideNoDataMessage();
         hideProgressBar();
 
-        // Remove provided media item (and it's duplicates, if any)
-        for (int i = 0; i < mMediaItemsStack.size(); i++) {
-            if (mMediaItemsStack.get(i).equals(mediaItemId)) {
-                mMediaItemsStack.remove(i);
-                i--;
-            }
-        }
-
-        // Un-subscribe from item
-        mMediaResourcesManager.unsubscribe(mediaItemId);
+        mMediaPresenter.unsubscribeFromItem(mediaItemId);
     }
 
     /**
@@ -890,16 +829,7 @@ public final class MainActivity extends AppCompatActivity {
      * @param mediaId Id of the {@link android.view.MenuItem}
      */
     private void addMediaItemToStack(final String mediaId) {
-        AppLogger.i(CLASS_NAME + "MediaItem Id added:" + mediaId);
-        if (TextUtils.isEmpty(mediaId)) {
-            return;
-        }
-
-        if (!mMediaItemsStack.contains(mediaId)) {
-            mMediaItemsStack.add(mediaId);
-        }
-        showProgressBar();
-        mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
+        mMediaPresenter.unsubscribeFromItem(mediaId);
     }
 
     /**
@@ -949,23 +879,7 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Restore map of the List - Position values
-        final Map<String, Integer> listPositionMapRestored
-                = (Map<String, Integer>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
-        if (listPositionMapRestored != null) {
-            mListPositionMap.clear();
-            for (String key : listPositionMapRestored.keySet()) {
-                mListPositionMap.put(key, listPositionMapRestored.get(key));
-            }
-        }
-
-        // Restore Media Items stack
-        final List<String> mediaItemsStackRestored
-                = (List<String>) savedInstanceState.getSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK);
-        if (mediaItemsStackRestored != null) {
-            mMediaItemsStack.clear();
-            mMediaItemsStack.addAll(mediaItemsStackRestored);
-        }
+        mMediaPresenter.restoreState(savedInstanceState);
 
         mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
         if (!TextUtils.isEmpty(mCurrentParentId)) {
@@ -1038,46 +952,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     private void handleOnItemClick(final int position) {
         setActiveItem(position);
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
-            return;
-        }
-
-        // Current selected media item
-        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
-        if (item == null) {
-            SafeToast.showAnyThread(getApplicationContext(), getString(R.string.can_not_play_station));
-            return;
-        }
-        if (item.isBrowsable()) {
-            if (item.getDescription().getTitle() != null
-                    && item.getDescription().getTitle().equals(getString(R.string.category_empty))) {
-                return;
-            }
-        }
-
-        // Keep last selected position for the given category.
-        // We will use it when back to this category
-        final int mediaItemsStackSize = mMediaItemsStack.size();
-        if (mediaItemsStackSize >= 1) {
-            final String children = mMediaItemsStack.get(mediaItemsStackSize - 1);
-            mListPositionMap.put(children, position);
-        }
-
-        final String mediaId = item.getMediaId();
-
-        // If it is browsable - then we navigate to the next category
-        if (item.isBrowsable()) {
-            addMediaItemToStack(mediaId);
-        } else if (item.isPlayable()) {
-            // Else - we play an item
-            final MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
-            if (mediaController != null) {
-                final MediaControllerCompat.TransportControls transportControls = mediaController.getTransportControls();
-                if (transportControls != null) {
-                    transportControls.playFromMediaId(mediaId, null);
-                }
-            }
-        }
+        mMediaPresenter.handleItemClick(mBrowserAdapter.getItem(position), position);
     }
 
     /**
@@ -1556,8 +1431,7 @@ public final class MainActivity extends AppCompatActivity {
         if (TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
-            mMediaResourcesManager.disconnect();
-            mMediaResourcesManager.connect();
+            mMediaPresenter.update();
         }
     }
 
@@ -1567,83 +1441,6 @@ public final class MainActivity extends AppCompatActivity {
             addMediaItemToStack(mCurrentParentId);
         } else {
             AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
-        }
-    }
-
-    /**
-     * Listener for the Media Resources related events.
-     */
-    private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private final WeakReference<MainActivity> mReference;
-
-        /**
-         * Constructor
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaResourceManagerListenerImpl(final MainActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
-                return;
-            }
-
-            AppLogger.i(CLASS_NAME + "Stack empty:" + activity.mMediaItemsStack.isEmpty());
-
-            // If stack is empty - assume that this is a start point
-            if (activity.mMediaItemsStack.isEmpty()) {
-                activity.addMediaItemToStack(activity.mMediaResourcesManager.getRoot());
-            }
-
-            activity.showProgressBar();
-            // Subscribe to the media item
-            activity.mMediaResourcesManager.subscribe(
-                    activity.mMediaItemsStack.get(activity.mMediaItemsStack.size() - 1),
-                    activity.mMedSubscriptionCallback
-            );
-
-            // Update metadata in case of UI started on and media service was already created and stream played.
-            activity.handleMetadataChanged(activity.mMediaResourcesManager.getMediaMetadata());
-        }
-
-        @Override
-        public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onPlaybackStateChanged reference to MainActivity is null");
-                return;
-            }
-            activity.handlePlaybackStateChanged(state);
-        }
-
-        @Override
-        public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + "Queue changed to:" + queue);
-        }
-
-        @Override
-        public void onMetadataChanged(final MediaMetadataCompat metadata,
-                                      final List<MediaSessionCompat.QueueItem> queue) {
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onMetadataChanged reference to MainActivity is null");
-                return;
-            }
-            if (metadata == null) {
-                return;
-            }
-            activity.handleMetadataChanged(metadata);
         }
     }
 
@@ -1878,7 +1675,7 @@ public final class MainActivity extends AppCompatActivity {
             if (countryCode == null) {
                 countryCode = Country.COUNTRY_CODE_DEFAULT;
             }
-            mActivity.get().mMediaResourcesManager.connect();
+            mActivity.get().mMediaPresenter.connect();
         }
     }
 }

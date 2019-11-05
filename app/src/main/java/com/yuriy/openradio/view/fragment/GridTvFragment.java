@@ -1,28 +1,14 @@
-/*
- * Copyright (C) 2015 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
- * the License.
- */
-
 package com.yuriy.openradio.view.fragment;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
-import androidx.leanback.transition.TransitionHelper;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ObjectAdapter;
 import androidx.leanback.widget.OnChildLaidOutListener;
@@ -32,26 +18,33 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.Row;
 import androidx.leanback.widget.RowPresenter;
+import androidx.leanback.widget.ShadowOverlayContainer;
 import androidx.leanback.widget.VerticalGridPresenter;
+import androidx.leanback.widget.VerticalGridView;
 
 import com.yuriy.openradio.R;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A fragment for rendering items in a vertical grids.
  */
-public class GridTvFragment extends Fragment implements BrowseSupportFragment.MainFragmentAdapterProvider {
+public class GridTvFragment
+        extends Fragment
+        implements BrowseSupportFragment.MainFragmentAdapterProvider {
 
-    private static final String TAG = GridTvFragment.class.getSimpleName();
+    private static final String CLASS_NAME = GridTvFragment.class.getSimpleName();
 
     private ObjectAdapter mAdapter;
     private VerticalGridPresenter mGridPresenter;
     private VerticalGridPresenter.ViewHolder mGridViewHolder;
     private OnItemViewSelectedListener mOnItemViewSelectedListener;
     private OnItemViewClickedListener mOnItemViewClickedListener;
-    private Object mSceneAfterEntranceTransition;
+    private View.OnClickListener mOnBackClickListener;
     private int mSelectedPosition = -1;
-    private BrowseSupportFragment.MainFragmentAdapter mMainFragmentAdapter =
-            new BrowseSupportFragment.MainFragmentAdapter(this) {
+    private AtomicBoolean mIsBackBtnInit;
+    private final BrowseSupportFragment.MainFragmentAdapter<Fragment> mMainFragmentAdapter =
+            new BrowseSupportFragment.MainFragmentAdapter<Fragment>(this) {
                 @Override
                 public void setEntranceTransitionState(boolean state) {
                     GridTvFragment.this.setEntranceTransitionState(state);
@@ -64,51 +57,35 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
 
     public GridTvFragment() {
         super();
+        mIsBackBtnInit = new AtomicBoolean(false);
     }
 
     /**
      * Sets the grid presenter.
      */
-    void setGridPresenter(VerticalGridPresenter gridPresenter) {
+    void setGridPresenter(final VerticalGridPresenter gridPresenter) {
         if (gridPresenter == null) {
             throw new IllegalArgumentException("Grid presenter may not be null");
         }
         mGridPresenter = gridPresenter;
         mGridPresenter.setOnItemViewSelectedListener(mViewSelectedListener);
-        if (mOnItemViewClickedListener != null) {
-            mGridPresenter.setOnItemViewClickedListener(mOnItemViewClickedListener);
-        }
-    }
-
-    /**
-     * Returns the grid presenter.
-     */
-    public VerticalGridPresenter getGridPresenter() {
-        return mGridPresenter;
+        mGridPresenter.setOnItemViewClickedListener(mViewClickedListener);
     }
 
     /**
      * Sets the object adapter for the fragment.
      */
-    public void setAdapter(ObjectAdapter adapter) {
+    public void setAdapter(final ObjectAdapter adapter) {
         mAdapter = adapter;
         updateAdapter();
     }
 
-    /**
-     * Returns the object adapter.
-     */
-    public ObjectAdapter getAdapter() {
-        return mAdapter;
-    }
-
-    final private OnItemViewSelectedListener mViewSelectedListener =
+    private final OnItemViewSelectedListener mViewSelectedListener =
             new OnItemViewSelectedListener() {
                 @Override
                 public void onItemSelected(Presenter.ViewHolder itemViewHolder, Object item,
                                            RowPresenter.ViewHolder rowViewHolder, Row row) {
                     int position = mGridViewHolder.getGridView().getSelectedPosition();
-                    Log.v(TAG, "grid selected position " + position);
                     gridOnItemSelected(position);
                     if (mOnItemViewSelectedListener != null) {
                         mOnItemViewSelectedListener.onItemSelected(itemViewHolder, item,
@@ -117,7 +94,20 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
                 }
             };
 
-    final private OnChildLaidOutListener mChildLaidOutListener =
+    private final OnItemViewClickedListener mViewClickedListener =
+            new OnItemViewClickedListener() {
+
+                @Override
+                public void onItemClicked(Presenter.ViewHolder itemViewHolder, Object item,
+                                          RowPresenter.ViewHolder rowViewHolder, Row row) {
+                    if (mOnItemViewClickedListener != null) {
+                        mOnItemViewClickedListener.onItemClicked(itemViewHolder, item,
+                                rowViewHolder, row);
+                    }
+                }
+            };
+
+    private final OnChildLaidOutListener mChildLaidOutListener =
             (parent, view, position, id) -> {
                 if (position == 0) {
                     showOrHideTitle();
@@ -127,8 +117,73 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
     /**
      * Sets an item selection listener.
      */
-    public void setOnItemViewSelectedListener(OnItemViewSelectedListener listener) {
-        mOnItemViewSelectedListener = listener;
+    public void setOnItemViewSelectedListener(final OnItemViewSelectedListener value) {
+        mOnItemViewSelectedListener = value;
+    }
+
+    /**
+     * Sets an item clicked listener.
+     */
+    public void setOnItemViewClickedListener(final OnItemViewClickedListener value) {
+        mOnItemViewClickedListener = value;
+    }
+
+    public void setOnBackClickListener(final View.OnClickListener value) {
+        mOnBackClickListener = value;
+    }
+
+    public void onDataLoaded() {
+        if (!mIsBackBtnInit.get()) {
+            new Handler().postDelayed(this::initBackButton, 1000);
+        }
+    }
+
+    public void showBackButton() {
+        if (getView() == null) {
+            return;
+        }
+        final ImageView backBtn = getView().findViewById(R.id.tv_back_btn_view);
+        if (backBtn == null) {
+            return;
+        }
+        backBtn.setVisibility(View.VISIBLE);
+    }
+
+    public void hideBackButton() {
+        if (getView() == null) {
+            return;
+        }
+        final ImageView backBtn = getView().findViewById(R.id.tv_back_btn_view);
+        if (backBtn == null) {
+            return;
+        }
+        backBtn.setVisibility(View.INVISIBLE);
+    }
+
+    private void initBackButton() {
+        if (getView() == null) {
+            return;
+        }
+        final ImageView backBtn = getView().findViewById(R.id.tv_back_btn_view);
+        final VerticalGridView view = getView().findViewById(R.id.browse_grid);
+        ShadowOverlayContainer nextChild;
+        for (int i = 0; i < view.getChildCount(); ++i) {
+            nextChild = (ShadowOverlayContainer)view.getChildAt(i);
+            if (nextChild == null) {
+                continue;
+            }
+            backBtn.setX(nextChild.getX() + 5);
+            backBtn.setY(nextChild.getY() - backBtn.getHeight());
+            break;
+        }
+        backBtn.setOnClickListener(
+                v -> {
+                    if (mOnBackClickListener != null) {
+                        mOnBackClickListener.onClick(v);
+                    }
+                }
+        );
+        mIsBackBtnInit.set(true);
     }
 
     private void gridOnItemSelected(int position) {
@@ -139,8 +194,7 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
     }
 
     private void showOrHideTitle() {
-        if (mGridViewHolder.getGridView().findViewHolderForAdapterPosition(mSelectedPosition)
-                == null) {
+        if (mGridViewHolder.getGridView().findViewHolderForAdapterPosition(mSelectedPosition) == null) {
             return;
         }
         if (!mGridViewHolder.getGridView().hasPreviousViewInSameRow(mSelectedPosition)) {
@@ -150,23 +204,6 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
         }
     }
 
-    /**
-     * Sets an item clicked listener.
-     */
-    public void setOnItemViewClickedListener(OnItemViewClickedListener listener) {
-        mOnItemViewClickedListener = listener;
-        if (mGridPresenter != null) {
-            mGridPresenter.setOnItemViewClickedListener(mOnItemViewClickedListener);
-        }
-    }
-
-    /**
-     * Returns the item clicked listener.
-     */
-    public OnItemViewClickedListener getOnItemViewClickedListener() {
-        return mOnItemViewClickedListener;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -174,23 +211,15 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
     }
 
     @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+    public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ViewGroup gridDock = view.findViewById(R.id.browse_grid_dock);
         mGridViewHolder = mGridPresenter.onCreateViewHolder(gridDock);
         gridDock.addView(mGridViewHolder.view);
         mGridViewHolder.getGridView().setOnChildLaidOutListener(mChildLaidOutListener);
 
-        mSceneAfterEntranceTransition = TransitionHelper.createScene(gridDock, new Runnable() {
-            @Override
-            public void run() {
-                setEntranceTransitionState(true);
-            }
-        });
-
         getMainFragmentAdapter().getFragmentHost().notifyViewCreated(mMainFragmentAdapter);
         updateAdapter();
-
     }
 
     @Override
@@ -209,21 +238,22 @@ public class GridTvFragment extends Fragment implements BrowseSupportFragment.Ma
      */
     public void setSelectedPosition(int position) {
         mSelectedPosition = position;
-        if(mGridViewHolder != null && mGridViewHolder.getGridView().getAdapter() != null) {
+        if (mGridViewHolder != null && mGridViewHolder.getGridView().getAdapter() != null) {
             mGridViewHolder.getGridView().setSelectedPositionSmooth(position);
         }
     }
 
     private void updateAdapter() {
-        if (mGridViewHolder != null) {
-            mGridPresenter.onBindViewHolder(mGridViewHolder, mAdapter);
-            if (mSelectedPosition != -1) {
-                mGridViewHolder.getGridView().setSelectedPosition(mSelectedPosition);
-            }
+        if (mGridViewHolder == null) {
+            return;
+        }
+        mGridPresenter.onBindViewHolder(mGridViewHolder, mAdapter);
+        if (mSelectedPosition != -1) {
+            mGridViewHolder.getGridView().setSelectedPosition(mSelectedPosition);
         }
     }
 
-    void setEntranceTransitionState(boolean afterTransition) {
+    private void setEntranceTransitionState(boolean afterTransition) {
         mGridPresenter.setEntranceTransitionState(mGridViewHolder, afterTransition);
     }
 }
