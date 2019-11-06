@@ -15,10 +15,11 @@
  */
 package com.google.android.exoplayer2.text.subrip;
 
-import androidx.annotation.Nullable;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.SimpleSubtitleDecoder;
@@ -113,11 +114,13 @@ public final class SubripDecoder extends SimpleSubtitleDecoder {
       // Read and parse the text and tags.
       textBuilder.setLength(0);
       tags.clear();
-      while (!TextUtils.isEmpty(currentLine = subripData.readLine())) {
+      currentLine = subripData.readLine();
+      while (!TextUtils.isEmpty(currentLine)) {
         if (textBuilder.length() > 0) {
           textBuilder.append("<br>");
         }
         textBuilder.append(processLine(currentLine, tags));
+        currentLine = subripData.readLine();
       }
 
       Spanned text = Html.fromHtml(textBuilder.toString());
@@ -134,7 +137,7 @@ public final class SubripDecoder extends SimpleSubtitleDecoder {
       cues.add(buildCue(text, alignmentTag));
 
       if (haveEndTimecode) {
-        cues.add(null);
+        cues.add(Cue.EMPTY);
       }
     }
 
@@ -249,8 +252,11 @@ public final class SubripDecoder extends SimpleSubtitleDecoder {
       case Cue.ANCHOR_TYPE_MIDDLE:
         return SubripDecoder.MID_FRACTION;
       case Cue.ANCHOR_TYPE_END:
-      default:
         return SubripDecoder.END_FRACTION;
+      case Cue.TYPE_UNSET:
+      default:
+        // Should never happen.
+        throw new IllegalArgumentException();
     }
   }
 }

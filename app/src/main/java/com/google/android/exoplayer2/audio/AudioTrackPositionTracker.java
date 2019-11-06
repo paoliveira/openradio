@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.audio;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
 import android.os.SystemClock;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 
@@ -521,7 +522,7 @@ import static com.google.android.exoplayer2.util.Util.castNonNull;
       rawPlaybackHeadPosition += passthroughWorkaroundPauseOffset;
     }
 
-    if (Util.SDK_INT <= 28) {
+    if (Util.SDK_INT <= 29) {
       if (rawPlaybackHeadPosition == 0
           && lastRawPlaybackHeadPosition > 0
           && state == PLAYSTATE_PLAYING) {

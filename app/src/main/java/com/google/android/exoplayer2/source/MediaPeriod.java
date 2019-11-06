@@ -19,9 +19,14 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.offline.StreamKey;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 
+import org.checkerframework.checker.nullness.compatqual.NullableType;
+
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Loads media corresponding to a {@link Timeline.Period}, and allows that media to be read. All
@@ -84,15 +89,34 @@ public interface MediaPeriod extends SequenceableLoader {
   TrackGroupArray getTrackGroups();
 
   /**
+   * Returns a list of {@link StreamKey StreamKeys} which allow to filter the media in this period
+   * to load only the parts needed to play the provided {@link TrackSelection TrackSelections}.
+   *
+   * <p>This method is only called after the period has been prepared.
+   *
+   * @param trackSelections The {@link TrackSelection TrackSelections} describing the tracks for
+   *     which stream keys are requested.
+   * @return The corresponding {@link StreamKey StreamKeys} for the selected tracks, or an empty
+   *     list if filtering is not possible and the entire media needs to be loaded to play the
+   *     selected tracks.
+   */
+  default List<StreamKey> getStreamKeys(List<TrackSelection> trackSelections) {
+    return Collections.emptyList();
+  }
+
+  /**
    * Performs a track selection.
    *
    * <p>The call receives track {@code selections} for each renderer, {@code mayRetainStreamFlags}
-   * indicating whether the existing {@code SampleStream} can be retained for each selection, and
+   * indicating whether the existing {@link SampleStream} can be retained for each selection, and
    * the existing {@code stream}s themselves. The call will update {@code streams} to reflect the
    * provided selections, clearing, setting and replacing entries as required. If an existing sample
    * stream is retained but with the requirement that the consuming renderer be reset, then the
    * corresponding flag in {@code streamResetFlags} will be set to true. This flag will also be set
    * if a new sample stream is created.
+   *
+   * <p>Note that previously received {@link TrackSelection TrackSelections} are no longer valid and
+   * references need to be replaced even if the corresponding {@link SampleStream} is kept.
    *
    * <p>This method is only called after the period has been prepared.
    *
@@ -109,9 +133,9 @@ public interface MediaPeriod extends SequenceableLoader {
    * @return The actual position at which the tracks were enabled, in microseconds.
    */
   long selectTracks(
-          TrackSelection[] selections,
+          @NullableType TrackSelection[] selections,
           boolean[] mayRetainStreamFlags,
-          SampleStream[] streams,
+          @NullableType SampleStream[] streams,
           boolean[] streamResetFlags,
           long positionUs);
 

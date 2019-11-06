@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.upstream;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;

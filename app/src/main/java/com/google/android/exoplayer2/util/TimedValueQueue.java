@@ -17,6 +17,8 @@ package com.google.android.exoplayer2.util;
 
 import androidx.annotation.Nullable;
 
+import org.checkerframework.checker.nullness.compatqual.NullableType;
+
 import java.util.Arrays;
 
 /** A utility class to keep a queue of values with timestamps. This class is thread safe. */
@@ -25,7 +27,7 @@ public final class TimedValueQueue<V> {
 
   // Looping buffer for timestamps and values
   private long[] timestamps;
-  private V[] values;
+  private @NullableType V[] values;
   private int first;
   private int size;
 

@@ -17,13 +17,13 @@ package com.google.android.exoplayer2.source;
 
 import android.os.Handler;
 import android.os.Message;
+import android.util.Pair;
+
 import androidx.annotation.GuardedBy;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.util.Pair;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ConcatenatingMediaSource.MediaSourceHolder;
 import com.google.android.exoplayer2.source.ShuffleOrder.DefaultShuffleOrder;
@@ -430,10 +430,8 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
 
   @Override
   public final synchronized void prepareSourceInternal(
-      ExoPlayer player,
-      boolean isTopLevelSource,
       @Nullable TransferListener mediaTransferListener) {
-    super.prepareSourceInternal(player, isTopLevelSource, mediaTransferListener);
+    super.prepareSourceInternal(mediaTransferListener);
     playbackThreadHandler = new Handler(/* callback= */ this::handleMessage);
     if (mediaSourcesPublic.isEmpty()) {
       updateTimelineAndScheduleOnCompletionActions();
@@ -903,6 +901,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
 
     public final MediaSource mediaSource;
     public final Object uid;
+    public final List<DeferredMediaPeriod> activeMediaPeriods;
 
     public DeferredTimeline timeline;
     public int childIndex;
@@ -911,7 +910,6 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
     public boolean hasStartedPreparing;
     public boolean isPrepared;
     public boolean isRemoved;
-    public List<DeferredMediaPeriod> activeMediaPeriods;
 
     public MediaSourceHolder(MediaSource mediaSource) {
       this.mediaSource = mediaSource;
@@ -1166,10 +1164,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
   private static final class DummyMediaSource extends BaseMediaSource {
 
     @Override
-    protected void prepareSourceInternal(
-        ExoPlayer player,
-        boolean isTopLevelSource,
-        @Nullable TransferListener mediaTransferListener) {
+    protected void prepareSourceInternal(@Nullable TransferListener mediaTransferListener) {
       // Do nothing.
     }
 

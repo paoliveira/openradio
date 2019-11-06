@@ -246,7 +246,7 @@ public final class ExoPlayerOpenRadioImpl {
                         DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
                         DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
                 ),
-                ExoPlayerFactory.getDefaultBandwidthMeter(),
+                ExoPlayerFactory.getDefaultBandwidthMeter(context),
                 Clock.DEFAULT,
                 Util.getLooper()
         );

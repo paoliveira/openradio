@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+
 import androidx.annotation.CheckResult;
 import androidx.annotation.Nullable;
 
@@ -191,7 +192,7 @@ public interface MediaSourceEventListener {
    */
   void onLoadStarted(
           int windowIndex,
-          @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+          @Nullable MediaPeriodId mediaPeriodId,
           LoadEventInfo loadEventInfo,
           MediaLoadData mediaLoadData);
 
@@ -209,7 +210,7 @@ public interface MediaSourceEventListener {
    */
   void onLoadCompleted(
           int windowIndex,
-          @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+          @Nullable MediaPeriodId mediaPeriodId,
           LoadEventInfo loadEventInfo,
           MediaLoadData mediaLoadData);
 
@@ -227,7 +228,7 @@ public interface MediaSourceEventListener {
    */
   void onLoadCanceled(
           int windowIndex,
-          @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+          @Nullable MediaPeriodId mediaPeriodId,
           LoadEventInfo loadEventInfo,
           MediaLoadData mediaLoadData);
 
@@ -258,7 +259,7 @@ public interface MediaSourceEventListener {
    */
   void onLoadError(
           int windowIndex,
-          @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+          @Nullable MediaPeriodId mediaPeriodId,
           LoadEventInfo loadEventInfo,
           MediaLoadData mediaLoadData,
           IOException error,
@@ -292,7 +293,7 @@ public interface MediaSourceEventListener {
    * @param mediaLoadData The {@link MediaLoadData} defining the newly selected downstream data.
    */
   void onDownstreamFormatChanged(
-          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData);
+          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData);
 
   /** Dispatches events to {@link MediaSourceEventListener}s. */
   final class EventDispatcher {
@@ -301,7 +302,7 @@ public interface MediaSourceEventListener {
     public final int windowIndex;
     /** The {@link MediaPeriodId} reported with the events. */
     public final @Nullable
-    MediaSource.MediaPeriodId mediaPeriodId;
+    MediaPeriodId mediaPeriodId;
 
     private final CopyOnWriteArrayList<ListenerAndHandler> listenerAndHandlers;
     private final long mediaTimeOffsetMs;
@@ -318,7 +319,7 @@ public interface MediaSourceEventListener {
     private EventDispatcher(
         CopyOnWriteArrayList<ListenerAndHandler> listenerAndHandlers,
         int windowIndex,
-        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+        @Nullable MediaPeriodId mediaPeriodId,
         long mediaTimeOffsetMs) {
       this.listenerAndHandlers = listenerAndHandlers;
       this.windowIndex = windowIndex;
@@ -337,7 +338,7 @@ public interface MediaSourceEventListener {
      */
     @CheckResult
     public EventDispatcher withParameters(
-            int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, long mediaTimeOffsetMs) {
+            int windowIndex, @Nullable MediaPeriodId mediaPeriodId, long mediaTimeOffsetMs) {
       return new EventDispatcher(
           listenerAndHandlers, windowIndex, mediaPeriodId, mediaTimeOffsetMs);
     }

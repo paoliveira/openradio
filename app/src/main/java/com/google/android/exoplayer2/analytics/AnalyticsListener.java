@@ -15,8 +15,9 @@
  */
 package com.google.android.exoplayer2.analytics;
 
-import androidx.annotation.Nullable;
 import android.view.Surface;
+
+import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -24,13 +25,14 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Player.DiscontinuityReason;
+import com.google.android.exoplayer2.Player.PlaybackSuppressionReason;
 import com.google.android.exoplayer2.Player.TimelineChangeReason;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioSink;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
 import com.google.android.exoplayer2.source.MediaSourceEventListener.LoadEventInfo;
 import com.google.android.exoplayer2.source.MediaSourceEventListener.MediaLoadData;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -61,7 +63,7 @@ public interface AnalyticsListener {
     public final Timeline timeline;
 
     /**
-     * Window index in the {@code timeline} this event belongs to, or the prospective window index
+     * Window index in the {@link #timeline} this event belongs to, or the prospective window index
      * if the timeline is not yet known and empty.
      */
     public final int windowIndex;
@@ -71,7 +73,7 @@ public interface AnalyticsListener {
      * event is not associated with a specific media period.
      */
     public final @Nullable
-    MediaSource.MediaPeriodId mediaPeriodId;
+    MediaPeriodId mediaPeriodId;
 
     /**
      * Position in the window or ad this event belongs to at the time of the event, in milliseconds.
@@ -79,7 +81,7 @@ public interface AnalyticsListener {
     public final long eventPlaybackPositionMs;
 
     /**
-     * Position in the current timeline window ({@code timeline.getCurrentWindowIndex()} or the
+     * Position in the current timeline window ({@link Player#getCurrentWindowIndex()}) or the
      * currently playing ad at the time of the event, in milliseconds.
      */
     public final long currentPlaybackPositionMs;
@@ -94,15 +96,15 @@ public interface AnalyticsListener {
      * @param realtimeMs Elapsed real-time as returned by {@code SystemClock.elapsedRealtime()} at
      *     the time of the event, in milliseconds.
      * @param timeline Timeline at the time of the event.
-     * @param windowIndex Window index in the {@code timeline} this event belongs to, or the
+     * @param windowIndex Window index in the {@link #timeline} this event belongs to, or the
      *     prospective window index if the timeline is not yet known and empty.
      * @param mediaPeriodId Media period identifier for the media period this event belongs to, or
      *     {@code null} if the event is not associated with a specific media period.
      * @param eventPlaybackPositionMs Position in the window or ad this event belongs to at the time
      *     of the event, in milliseconds.
-     * @param currentPlaybackPositionMs Position in the current timeline window ({@code
-     *     timeline.getCurrentWindowIndex()} or the currently playing ad at the time of the event,
-     *     in milliseconds.
+     * @param currentPlaybackPositionMs Position in the current timeline window ({@link
+     *     Player#getCurrentWindowIndex()}) or the currently playing ad at the time of the event, in
+     *     milliseconds.
      * @param totalBufferedDurationMs Total buffered duration from {@link
      *     #currentPlaybackPositionMs} at the time of the event, in milliseconds. This includes
      *     pre-buffered data for subsequent ads and windows.
@@ -111,7 +113,7 @@ public interface AnalyticsListener {
         long realtimeMs,
         Timeline timeline,
         int windowIndex,
-        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+        @Nullable MediaPeriodId mediaPeriodId,
         long eventPlaybackPositionMs,
         long currentPlaybackPositionMs,
         long totalBufferedDurationMs) {
@@ -134,6 +136,23 @@ public interface AnalyticsListener {
    */
   default void onPlayerStateChanged(
           EventTime eventTime, boolean playWhenReady, int playbackState) {}
+
+  /**
+   * Called when playback suppression reason changed.
+   *
+   * @param eventTime The event time.
+   * @param playbackSuppressionReason The new {@link PlaybackSuppressionReason}.
+   */
+  default void onPlaybackSuppressionReasonChanged(
+          EventTime eventTime, @PlaybackSuppressionReason int playbackSuppressionReason) {}
+
+  /**
+   * Called when the player starts or stops playing.
+   *
+   * @param eventTime The event time.
+   * @param isPlaying Whether the player is playing.
+   */
+  default void onIsPlayingChanged(EventTime eventTime, boolean isPlaying) {}
 
   /**
    * Called when the timeline changed.

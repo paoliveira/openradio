@@ -16,10 +16,10 @@
 package com.google.android.exoplayer2.source;
 
 import android.os.Handler;
+
 import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Assertions;
@@ -38,8 +38,6 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
   private final HashMap<T, MediaSourceAndListener> childSources;
 
   private @Nullable
-  ExoPlayer player;
-  private @Nullable
   Handler eventHandler;
   private @Nullable
   TransferListener mediaTransferListener;
@@ -51,11 +49,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
 
   @Override
   @CallSuper
-  public void prepareSourceInternal(
-      ExoPlayer player,
-      boolean isTopLevelSource,
-      @Nullable TransferListener mediaTransferListener) {
-    this.player = player;
+  public void prepareSourceInternal(@Nullable TransferListener mediaTransferListener) {
     this.mediaTransferListener = mediaTransferListener;
     eventHandler = new Handler();
   }
@@ -76,7 +70,6 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
       childSource.mediaSource.removeEventListener(childSource.eventListener);
     }
     childSources.clear();
-    player = null;
   }
 
   /**
@@ -110,11 +103,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
     MediaSourceEventListener eventListener = new ForwardingEventListener(id);
     childSources.put(id, new MediaSourceAndListener(mediaSource, sourceListener, eventListener));
     mediaSource.addEventListener(Assertions.checkNotNull(eventHandler), eventListener);
-    mediaSource.prepareSource(
-        Assertions.checkNotNull(player),
-        /* isTopLevelSource= */ false,
-        sourceListener,
-        mediaTransferListener);
+    mediaSource.prepareSource(sourceListener, mediaTransferListener);
   }
 
   /**
@@ -151,7 +140,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
    *     corresponding media period id can be determined.
    */
   protected @Nullable
-  MediaSource.MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(
+  MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(
       T id, MediaPeriodId mediaPeriodId) {
     return mediaPeriodId;
   }
@@ -211,7 +200,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
     @Override
     public void onLoadStarted(
         int windowIndex,
-        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+        @Nullable MediaPeriodId mediaPeriodId,
         LoadEventInfo loadEventData,
         MediaLoadData mediaLoadData) {
       if (maybeUpdateEventDispatcher(windowIndex, mediaPeriodId)) {
@@ -222,7 +211,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
     @Override
     public void onLoadCompleted(
         int windowIndex,
-        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+        @Nullable MediaPeriodId mediaPeriodId,
         LoadEventInfo loadEventData,
         MediaLoadData mediaLoadData) {
       if (maybeUpdateEventDispatcher(windowIndex, mediaPeriodId)) {
@@ -233,7 +222,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
     @Override
     public void onLoadCanceled(
         int windowIndex,
-        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+        @Nullable MediaPeriodId mediaPeriodId,
         LoadEventInfo loadEventData,
         MediaLoadData mediaLoadData) {
       if (maybeUpdateEventDispatcher(windowIndex, mediaPeriodId)) {
@@ -244,7 +233,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
     @Override
     public void onLoadError(
         int windowIndex,
-        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+        @Nullable MediaPeriodId mediaPeriodId,
         LoadEventInfo loadEventData,
         MediaLoadData mediaLoadData,
         IOException error,
@@ -264,7 +253,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
 
     @Override
     public void onUpstreamDiscarded(
-            int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+            int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
       if (maybeUpdateEventDispatcher(windowIndex, mediaPeriodId)) {
         eventDispatcher.upstreamDiscarded(maybeUpdateMediaLoadData(mediaLoadData));
       }
@@ -272,7 +261,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
 
     @Override
     public void onDownstreamFormatChanged(
-            int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+            int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
       if (maybeUpdateEventDispatcher(windowIndex, mediaPeriodId)) {
         eventDispatcher.downstreamFormatChanged(maybeUpdateMediaLoadData(mediaLoadData));
       }
@@ -280,7 +269,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
 
     /** Updates the event dispatcher and returns whether the event should be dispatched. */
     private boolean maybeUpdateEventDispatcher(
-        int childWindowIndex, @Nullable MediaSource.MediaPeriodId childMediaPeriodId) {
+        int childWindowIndex, @Nullable MediaPeriodId childMediaPeriodId) {
       MediaPeriodId mediaPeriodId = null;
       if (childMediaPeriodId != null) {
         mediaPeriodId = getMediaPeriodIdForChildMediaPeriodId(id, childMediaPeriodId);

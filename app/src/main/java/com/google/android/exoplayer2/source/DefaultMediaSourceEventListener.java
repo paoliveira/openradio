@@ -40,7 +40,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadStarted(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     // Do nothing.
@@ -49,7 +49,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadCompleted(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     // Do nothing.
@@ -58,7 +58,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadCanceled(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     // Do nothing.
@@ -67,7 +67,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadError(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData,
       IOException error,
@@ -82,13 +82,13 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
 
   @Override
   public void onUpstreamDiscarded(
-          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     // Do nothing.
   }
 
   @Override
   public void onDownstreamFormatChanged(
-          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     // Do nothing.
   }
 }

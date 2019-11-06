@@ -15,9 +15,10 @@
  */
 package com.google.android.exoplayer2.util;
 
+import android.text.TextUtils;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -89,8 +90,7 @@ public final class Log {
   public static void d(String tag, String message, @Nullable Throwable throwable) {
     if (!logStackTraces) {
       d(tag, appendThrowableMessage(message, throwable));
-    }
-    if (logLevel == LOG_LEVEL_ALL) {
+    } else if (logLevel == LOG_LEVEL_ALL) {
       android.util.Log.d(tag, message, throwable);
     }
   }
@@ -106,8 +106,7 @@ public final class Log {
   public static void i(String tag, String message, @Nullable Throwable throwable) {
     if (!logStackTraces) {
       i(tag, appendThrowableMessage(message, throwable));
-    }
-    if (logLevel <= LOG_LEVEL_INFO) {
+    } else if (logLevel <= LOG_LEVEL_INFO) {
       android.util.Log.i(tag, message, throwable);
     }
   }
@@ -123,8 +122,7 @@ public final class Log {
   public static void w(String tag, String message, @Nullable Throwable throwable) {
     if (!logStackTraces) {
       w(tag, appendThrowableMessage(message, throwable));
-    }
-    if (logLevel <= LOG_LEVEL_WARNING) {
+    } else if (logLevel <= LOG_LEVEL_WARNING) {
       android.util.Log.w(tag, message, throwable);
     }
   }
@@ -140,8 +138,7 @@ public final class Log {
   public static void e(String tag, String message, @Nullable Throwable throwable) {
     if (!logStackTraces) {
       e(tag, appendThrowableMessage(message, throwable));
-    }
-    if (logLevel <= LOG_LEVEL_ERROR) {
+    } else if (logLevel <= LOG_LEVEL_ERROR) {
       android.util.Log.e(tag, message, throwable);
     }
   }

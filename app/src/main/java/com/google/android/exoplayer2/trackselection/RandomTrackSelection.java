@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.trackselection;
 
 import android.os.SystemClock;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
@@ -23,6 +24,8 @@ import com.google.android.exoplayer2.source.TrackGroup;
 import com.google.android.exoplayer2.source.chunk.MediaChunk;
 import com.google.android.exoplayer2.source.chunk.MediaChunkIterator;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
+
+import org.checkerframework.checker.nullness.compatqual.NullableType;
 
 import java.util.List;
 import java.util.Random;
@@ -51,9 +54,11 @@ public final class RandomTrackSelection extends BaseTrackSelection {
     }
 
     @Override
-    public RandomTrackSelection createTrackSelection(
-        TrackGroup group, BandwidthMeter bandwidthMeter, int... tracks) {
-      return new RandomTrackSelection(group, tracks, random);
+    public @NullableType TrackSelection[] createTrackSelections(
+            @NullableType Definition[] definitions, BandwidthMeter bandwidthMeter) {
+      return TrackSelectionUtil.createTrackSelectionsForDefinitions(
+          definitions,
+          definition -> new RandomTrackSelection(definition.group, definition.tracks, random));
     }
   }
 

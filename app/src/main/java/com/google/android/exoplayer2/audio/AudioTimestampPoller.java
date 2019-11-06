@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.audio;
 import android.annotation.TargetApi;
 import android.media.AudioTimestamp;
 import android.media.AudioTrack;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 

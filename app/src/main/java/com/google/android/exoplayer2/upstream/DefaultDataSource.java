@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.upstream;
 
 import android.content.Context;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.util.Assertions;
@@ -44,6 +45,7 @@ import java.util.Map;
  *   <li>rtmp: For fetching data over RTMP. Only supported if the project using ExoPlayer has an
  *       explicit dependency on ExoPlayer's RTMP extension.
  *   <li>data: For parsing data inlined in the URI as defined in RFC 2397.
+ *   <li>udp: For fetching data over UDP (e.g. udp://something.com/media).
  *   <li>http(s): For fetching data over HTTP and HTTPS (e.g. https://www.something.com/media.mp4),
  *       if constructed using {@link #DefaultDataSource(Context, TransferListener, String,
  *       boolean)}, or any other schemes supported by a base data source if constructed using {@link
@@ -57,6 +59,7 @@ public final class DefaultDataSource implements DataSource {
   private static final String SCHEME_ASSET = "asset";
   private static final String SCHEME_CONTENT = "content";
   private static final String SCHEME_RTMP = "rtmp";
+  private static final String SCHEME_UDP = "udp";
   private static final String SCHEME_RAW = RawResourceDataSource.RAW_RESOURCE_SCHEME;
 
   private final Context context;
@@ -64,18 +67,13 @@ public final class DefaultDataSource implements DataSource {
   private final DataSource baseDataSource;
 
   // Lazily initialized.
-  private @Nullable
-  DataSource fileDataSource;
-  private @Nullable
-  DataSource assetDataSource;
-  private @Nullable
-  DataSource contentDataSource;
-  private @Nullable
-  DataSource rtmpDataSource;
-  private @Nullable
-  DataSource dataSchemeDataSource;
-  private @Nullable
-  DataSource rawResourceDataSource;
+  @Nullable private DataSource fileDataSource;
+  @Nullable private DataSource assetDataSource;
+  @Nullable private DataSource contentDataSource;
+  @Nullable private DataSource rtmpDataSource;
+  @Nullable private DataSource udpDataSource;
+  @Nullable private DataSource dataSchemeDataSource;
+  @Nullable private DataSource rawResourceDataSource;
 
   private @Nullable
   DataSource dataSource;
@@ -227,6 +225,7 @@ public final class DefaultDataSource implements DataSource {
     maybeAddListenerToDataSource(assetDataSource, transferListener);
     maybeAddListenerToDataSource(contentDataSource, transferListener);
     maybeAddListenerToDataSource(rtmpDataSource, transferListener);
+    maybeAddListenerToDataSource(udpDataSource, transferListener);
     maybeAddListenerToDataSource(dataSchemeDataSource, transferListener);
     maybeAddListenerToDataSource(rawResourceDataSource, transferListener);
   }
@@ -237,7 +236,8 @@ public final class DefaultDataSource implements DataSource {
     // Choose the correct source for the scheme.
     String scheme = dataSpec.uri.getScheme();
     if (Util.isLocalFileUri(dataSpec.uri)) {
-      if (dataSpec.uri.getPath().startsWith("/android_asset/")) {
+      String uriPath = dataSpec.uri.getPath();
+      if (uriPath != null && uriPath.startsWith("/android_asset/")) {
         dataSource = getAssetDataSource();
       } else {
         dataSource = getFileDataSource();
@@ -248,6 +248,8 @@ public final class DefaultDataSource implements DataSource {
       dataSource = getContentDataSource();
     } else if (SCHEME_RTMP.equals(scheme)) {
       dataSource = getRtmpDataSource();
+    } else if (SCHEME_UDP.equals(scheme)) {
+      dataSource = getUdpDataSource();
     } else if (DataSchemeDataSource.SCHEME_DATA.equals(scheme)) {
       dataSource = getDataSchemeDataSource();
     } else if (SCHEME_RAW.equals(scheme)) {
@@ -284,6 +286,14 @@ public final class DefaultDataSource implements DataSource {
         dataSource = null;
       }
     }
+  }
+
+  private DataSource getUdpDataSource() {
+    if (udpDataSource == null) {
+      udpDataSource = new UdpDataSource();
+      addListenersToDataSource(udpDataSource);
+    }
+    return udpDataSource;
   }
 
   private DataSource getFileDataSource() {

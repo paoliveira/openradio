@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.metadata.id3;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.util.Util;
@@ -68,7 +69,7 @@ public final class TextInformationFrame extends Id3Frame {
 
   @Override
   public String toString() {
-    return id + ": value=" + value;
+    return id + ": description=" + description + ": value=" + value;
   }
 
   // Parcelable implementation.

@@ -21,6 +21,7 @@ import android.media.MediaDrm;
 import android.media.MediaDrmException;
 import android.media.NotProvisionedException;
 import android.os.Handler;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.drm.DrmInitData.SchemeData;
@@ -82,7 +83,7 @@ public interface ExoMediaDrm<T extends ExoMediaCrypto> {
      */
     void onEvent(
             ExoMediaDrm<? extends T> mediaDrm,
-            byte[] sessionId,
+            @Nullable byte[] sessionId,
             int event,
             int extra,
             @Nullable byte[] data);
@@ -217,6 +218,7 @@ public interface ExoMediaDrm<T extends ExoMediaCrypto> {
       throws NotProvisionedException;
 
   /** @see MediaDrm#provideKeyResponse(byte[], byte[]) */
+  @Nullable
   byte[] provideKeyResponse(byte[] scope, byte[] response)
       throws NotProvisionedException, DeniedByServerException;
 
@@ -267,11 +269,9 @@ public interface ExoMediaDrm<T extends ExoMediaCrypto> {
 
   /**
    * @see android.media.MediaCrypto#MediaCrypto(UUID, byte[])
-   *
-   * @param initData Opaque initialization data specific to the crypto scheme.
+   * @param sessionId The DRM session ID.
    * @return An object extends {@link ExoMediaCrypto}, using opaque crypto scheme specific data.
    * @throws MediaCryptoException If the instance can't be created.
    */
-  T createMediaCrypto(byte[] initData) throws MediaCryptoException;
-
+  T createMediaCrypto(byte[] sessionId) throws MediaCryptoException;
 }

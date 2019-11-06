@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.extractor.mp4;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.metadata.Metadata;

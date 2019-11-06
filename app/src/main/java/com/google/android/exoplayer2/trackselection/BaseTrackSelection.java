@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.trackselection;
 
 import android.os.SystemClock;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
