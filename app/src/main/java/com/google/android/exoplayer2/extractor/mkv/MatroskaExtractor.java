@@ -17,9 +17,9 @@ package com.google.android.exoplayer2.extractor.mkv;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
-import android.util.Log;
 import android.util.Pair;
 import android.util.SparseArray;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.ParserException;
@@ -36,6 +36,7 @@ import com.google.android.exoplayer2.extractor.PositionHolder;
 import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.util.Assertions;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.LongArray;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.NalUnitUtil;
@@ -44,7 +45,9 @@ import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.video.AvcConfig;
 import com.google.android.exoplayer2.video.ColorInfo;
 import com.google.android.exoplayer2.video.HevcConfig;
+
 import java.io.IOException;
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.nio.ByteBuffer;
@@ -61,23 +64,18 @@ import java.util.UUID;
  */
 public final class MatroskaExtractor implements Extractor {
 
-  /**
-   * Factory for {@link MatroskaExtractor} instances.
-   */
-  public static final ExtractorsFactory FACTORY = new ExtractorsFactory() {
-
-    @Override
-    public Extractor[] createExtractors() {
-      return new Extractor[] {new MatroskaExtractor()};
-    }
-
-  };
+  /** Factory for {@link MatroskaExtractor} instances. */
+  public static final ExtractorsFactory FACTORY = () -> new Extractor[] {new MatroskaExtractor()};
 
   /**
-   * Flags controlling the behavior of the extractor.
+   * Flags controlling the behavior of the extractor. Possible flag value is {@link
+   * #FLAG_DISABLE_SEEK_FOR_CUES}.
    */
+  @Documented
   @Retention(RetentionPolicy.SOURCE)
-  @IntDef(flag = true, value = {FLAG_DISABLE_SEEK_FOR_CUES})
+  @IntDef(
+      flag = true,
+      value = {FLAG_DISABLE_SEEK_FOR_CUES})
   public @interface Flags {}
   /**
    * Flag to disable seeking for cues.
@@ -161,6 +159,7 @@ public final class MatroskaExtractor implements Extractor {
   private static final int ID_FLAG_DEFAULT = 0x88;
   private static final int ID_FLAG_FORCED = 0x55AA;
   private static final int ID_DEFAULT_DURATION = 0x23E383;
+  private static final int ID_NAME = 0x536E;
   private static final int ID_CODEC_ID = 0x86;
   private static final int ID_CODEC_PRIVATE = 0x63A2;
   private static final int ID_CODEC_DELAY = 0x56AA;
@@ -194,7 +193,11 @@ public final class MatroskaExtractor implements Extractor {
   private static final int ID_CUE_CLUSTER_POSITION = 0xF1;
   private static final int ID_LANGUAGE = 0x22B59C;
   private static final int ID_PROJECTION = 0x7670;
+  private static final int ID_PROJECTION_TYPE = 0x7671;
   private static final int ID_PROJECTION_PRIVATE = 0x7672;
+  private static final int ID_PROJECTION_POSE_YAW = 0x7673;
+  private static final int ID_PROJECTION_POSE_PITCH = 0x7674;
+  private static final int ID_PROJECTION_POSE_ROLL = 0x7675;
   private static final int ID_STEREO_MODE = 0x53B8;
   private static final int ID_COLOUR = 0x55B0;
   private static final int ID_COLOUR_RANGE = 0x55B9;
@@ -430,7 +433,7 @@ public final class MatroskaExtractor implements Extractor {
 
   @Override
   public int read(ExtractorInput input, PositionHolder seekPosition) throws IOException,
-      InterruptedException {
+          InterruptedException {
     sampleRead = false;
     boolean continueReading = true;
     while (continueReading && !sampleRead) {
@@ -616,10 +619,10 @@ public final class MatroskaExtractor implements Extractor {
         currentTrack.number = (int) value;
         break;
       case ID_FLAG_DEFAULT:
-        currentTrack.flagForced = value == 1;
+        currentTrack.flagDefault = value == 1;
         break;
       case ID_FLAG_FORCED:
-        currentTrack.flagDefault = value == 1;
+        currentTrack.flagForced = value == 1;
         break;
       case ID_TRACK_TYPE:
         currentTrack.type = (int) value;
@@ -763,6 +766,24 @@ public final class MatroskaExtractor implements Extractor {
       case ID_MAX_FALL:
         currentTrack.maxFrameAverageLuminance = (int) value;
         break;
+      case ID_PROJECTION_TYPE:
+        switch ((int) value) {
+          case 0:
+            currentTrack.projectionType = C.PROJECTION_RECTANGULAR;
+            break;
+          case 1:
+            currentTrack.projectionType = C.PROJECTION_EQUIRECTANGULAR;
+            break;
+          case 2:
+            currentTrack.projectionType = C.PROJECTION_CUBEMAP;
+            break;
+          case 3:
+            currentTrack.projectionType = C.PROJECTION_MESH;
+            break;
+          default:
+            break;
+        }
+        break;
       default:
         break;
     }
@@ -806,6 +827,15 @@ public final class MatroskaExtractor implements Extractor {
       case ID_LUMNINANCE_MIN:
         currentTrack.minMasteringLuminance = (float) value;
         break;
+      case ID_PROJECTION_POSE_YAW:
+        currentTrack.projectionPoseYaw = (float) value;
+        break;
+      case ID_PROJECTION_POSE_PITCH:
+        currentTrack.projectionPosePitch = (float) value;
+        break;
+      case ID_PROJECTION_POSE_ROLL:
+        currentTrack.projectionPoseRoll = (float) value;
+        break;
       default:
         break;
     }
@@ -818,6 +848,9 @@ public final class MatroskaExtractor implements Extractor {
         if (!DOC_TYPE_WEBM.equals(value) && !DOC_TYPE_MATROSKA.equals(value)) {
           throw new ParserException("DocType " + value + " not supported");
         }
+        break;
+      case ID_NAME:
+        currentTrack.name = value;
         break;
       case ID_CODEC_ID:
         currentTrack.codecId = value;
@@ -1222,7 +1255,7 @@ public final class MatroskaExtractor implements Extractor {
   }
 
   private void commitSubtitleSample(Track track, String timecodeFormat, int endTimecodeOffset,
-      long lastTimecodeValueScalingFactor, byte[] emptyTimecode) {
+                                    long lastTimecodeValueScalingFactor, byte[] emptyTimecode) {
     setSampleDuration(subtitleSample.data, blockDurationUs, timecodeFormat, endTimecodeOffset,
         lastTimecodeValueScalingFactor, emptyTimecode);
     // Note: If we ever want to support DRM protected subtitles then we'll need to output the
@@ -1232,8 +1265,8 @@ public final class MatroskaExtractor implements Extractor {
   }
 
   private static void setSampleDuration(byte[] subripSampleData, long durationUs,
-      String timecodeFormat, int endTimecodeOffset, long lastTimecodeValueScalingFactor,
-      byte[] emptyTimecode) {
+                                        String timecodeFormat, int endTimecodeOffset, long lastTimecodeValueScalingFactor,
+                                        byte[] emptyTimecode) {
     byte[] timeCodeData;
     if (durationUs == C.TIME_UNSET) {
       timeCodeData = emptyTimecode;
@@ -1465,8 +1498,10 @@ public final class MatroskaExtractor implements Extractor {
         case ID_COLOUR_PRIMARIES:
         case ID_MAX_CLL:
         case ID_MAX_FALL:
+        case ID_PROJECTION_TYPE:
           return TYPE_UNSIGNED_INT;
         case ID_DOC_TYPE:
+        case ID_NAME:
         case ID_CODEC_ID:
         case ID_LANGUAGE:
           return TYPE_STRING;
@@ -1490,6 +1525,9 @@ public final class MatroskaExtractor implements Extractor {
         case ID_WHITE_POINT_CHROMATICITY_Y:
         case ID_LUMNINANCE_MAX:
         case ID_LUMNINANCE_MIN:
+        case ID_PROJECTION_POSE_YAW:
+        case ID_PROJECTION_POSE_PITCH:
+        case ID_PROJECTION_POSE_ROLL:
           return TYPE_FLOAT;
         default:
           return TYPE_UNKNOWN;
@@ -1560,7 +1598,7 @@ public final class MatroskaExtractor implements Extractor {
       if (!foundSyncframe) {
         input.peekFully(syncframePrefix, 0, Ac3Util.TRUEHD_SYNCFRAME_PREFIX_LENGTH);
         input.resetPeekPosition();
-        if ((Ac3Util.parseTrueHdSyncframeAudioSampleCount(syncframePrefix) == C.INDEX_UNSET)) {
+        if (Ac3Util.parseTrueHdSyncframeAudioSampleCount(syncframePrefix) == 0) {
           return;
         }
         foundSyncframe = true;
@@ -1613,6 +1651,7 @@ public final class MatroskaExtractor implements Extractor {
     private static final int DEFAULT_MAX_FALL = 200;  // nits.
 
     // Common elements.
+    public String name;
     public String codecId;
     public int number;
     public int type;
@@ -1629,6 +1668,10 @@ public final class MatroskaExtractor implements Extractor {
     public int displayWidth = Format.NO_VALUE;
     public int displayHeight = Format.NO_VALUE;
     public int displayUnit = DISPLAY_UNIT_PIXELS;
+    @C.Projection public int projectionType = Format.NO_VALUE;
+    public float projectionPoseYaw = 0f;
+    public float projectionPosePitch = 0f;
+    public float projectionPoseRoll = 0f;
     public byte[] projectionData = null;
     @C.StereoMode
     public int stereoMode = Format.NO_VALUE;
@@ -1837,10 +1880,49 @@ public final class MatroskaExtractor implements Extractor {
           byte[] hdrStaticInfo = getHdrStaticInfo();
           colorInfo = new ColorInfo(colorSpace, colorRange, colorTransfer, hdrStaticInfo);
         }
-        format = Format.createVideoSampleFormat(Integer.toString(trackId), mimeType, null,
-            Format.NO_VALUE, maxInputSize, width, height, Format.NO_VALUE, initializationData,
-            Format.NO_VALUE, pixelWidthHeightRatio, projectionData, stereoMode, colorInfo,
-            drmInitData);
+        int rotationDegrees = Format.NO_VALUE;
+        // Some HTC devices signal rotation in track names.
+        if ("htc_video_rotA-000".equals(name)) {
+          rotationDegrees = 0;
+        } else if ("htc_video_rotA-090".equals(name)) {
+          rotationDegrees = 90;
+        } else if ("htc_video_rotA-180".equals(name)) {
+          rotationDegrees = 180;
+        } else if ("htc_video_rotA-270".equals(name)) {
+          rotationDegrees = 270;
+        }
+        if (projectionType == C.PROJECTION_RECTANGULAR
+            && Float.compare(projectionPoseYaw, 0f) == 0
+            && Float.compare(projectionPosePitch, 0f) == 0) {
+          // The range of projectionPoseRoll is [-180, 180].
+          if (Float.compare(projectionPoseRoll, 0f) == 0) {
+            rotationDegrees = 0;
+          } else if (Float.compare(projectionPosePitch, 90f) == 0) {
+            rotationDegrees = 90;
+          } else if (Float.compare(projectionPosePitch, -180f) == 0
+              || Float.compare(projectionPosePitch, 180f) == 0) {
+            rotationDegrees = 180;
+          } else if (Float.compare(projectionPosePitch, -90f) == 0) {
+            rotationDegrees = 270;
+          }
+        }
+        format =
+            Format.createVideoSampleFormat(
+                Integer.toString(trackId),
+                mimeType,
+                /* codecs= */ null,
+                /* bitrate= */ Format.NO_VALUE,
+                maxInputSize,
+                width,
+                height,
+                /* frameRate= */ Format.NO_VALUE,
+                initializationData,
+                rotationDegrees,
+                pixelWidthHeightRatio,
+                projectionData,
+                stereoMode,
+                colorInfo,
+                drmInitData);
       } else if (MimeTypes.APPLICATION_SUBRIP.equals(mimeType)) {
         type = C.TRACK_TYPE_TEXT;
         format = Format.createTextSampleFormat(Integer.toString(trackId), mimeType, selectionFlags,

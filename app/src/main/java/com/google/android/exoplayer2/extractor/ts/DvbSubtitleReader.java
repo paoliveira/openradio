@@ -23,8 +23,11 @@ import com.google.android.exoplayer2.extractor.ts.TsPayloadReader.DvbSubtitleInf
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader.TrackIdGenerator;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.util.Collections;
 import java.util.List;
+
+import static com.google.android.exoplayer2.extractor.ts.TsPayloadReader.FLAG_DATA_ALIGNMENT_INDICATOR;
 
 /**
  * Parses DVB subtitle data and extracts individual frames.
@@ -73,8 +76,8 @@ public final class DvbSubtitleReader implements ElementaryStreamReader {
   }
 
   @Override
-  public void packetStarted(long pesTimeUs, boolean dataAlignmentIndicator) {
-    if (!dataAlignmentIndicator) {
+  public void packetStarted(long pesTimeUs, @TsPayloadReader.Flags int flags) {
+    if ((flags & FLAG_DATA_ALIGNMENT_INDICATOR) == 0) {
       return;
     }
     writingSample = true;

@@ -124,6 +124,7 @@ dependencies {
 
     implementation 'de.westnordost:countryboundaries:1.5'
 
+    compileOnly 'org.checkerframework:checker-compat-qual:2.5.3'
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
 
     androidTestImplementation(

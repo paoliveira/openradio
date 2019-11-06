@@ -24,6 +24,7 @@ import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.extractor.PositionHolder;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.io.IOException;
 
 /**
@@ -31,17 +32,8 @@ import java.io.IOException;
  */
 public class OggExtractor implements Extractor {
 
-  /**
-   * Factory for {@link OggExtractor} instances.
-   */
-  public static final ExtractorsFactory FACTORY = new ExtractorsFactory() {
-
-    @Override
-    public Extractor[] createExtractors() {
-      return new Extractor[] {new OggExtractor()};
-    }
-
-  };
+  /** Factory for {@link OggExtractor} instances. */
+  public static final ExtractorsFactory FACTORY = () -> new Extractor[] {new OggExtractor()};
 
   private static final int MAX_VERIFICATION_BYTES = 8;
 

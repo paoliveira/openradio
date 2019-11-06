@@ -17,8 +17,9 @@ package com.google.android.exoplayer2.text.webvtt;
 
 import android.text.Layout.Alignment;
 import android.text.SpannableStringBuilder;
-import android.util.Log;
+
 import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.util.Log;
 
 /**
  * A representation of a WebVTT cue.
@@ -38,8 +39,8 @@ public final class WebvttCue extends Cue {
   }
 
   public WebvttCue(long startTime, long endTime, CharSequence text, Alignment textAlignment,
-      float line, @Cue.LineType int lineType, @Cue.AnchorType int lineAnchor, float position,
-      @Cue.AnchorType int positionAnchor, float width) {
+                   float line, @Cue.LineType int lineType, @Cue.AnchorType int lineAnchor, float position,
+                   @Cue.AnchorType int positionAnchor, float width) {
     super(text, textAlignment, line, lineType, lineAnchor, position, positionAnchor, width);
     this.startTime = startTime;
     this.endTime = endTime;

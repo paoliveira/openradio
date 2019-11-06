@@ -24,6 +24,7 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.IOException;
 
 /**
@@ -96,7 +97,7 @@ public final class ClippingMediaPeriod implements MediaPeriod, MediaPeriod.Callb
 
   @Override
   public long selectTracks(TrackSelection[] selections, boolean[] mayRetainStreamFlags,
-      SampleStream[] streams, boolean[] streamResetFlags, long positionUs) {
+                           SampleStream[] streams, boolean[] streamResetFlags, long positionUs) {
     sampleStreams = new ClippingSampleStream[streams.length];
     SampleStream[] childStreams = new SampleStream[streams.length];
     for (int i = 0; i < streams.length; i++) {
@@ -290,7 +291,7 @@ public final class ClippingMediaPeriod implements MediaPeriod, MediaPeriod.Callb
 
     @Override
     public int readData(FormatHolder formatHolder, DecoderInputBuffer buffer,
-        boolean requireFormat) {
+                        boolean requireFormat) {
       if (isPendingInitialDiscontinuity()) {
         return C.RESULT_NOTHING_READ;
       }

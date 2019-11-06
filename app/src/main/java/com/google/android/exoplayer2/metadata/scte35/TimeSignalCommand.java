@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.metadata.scte35;
 
 import android.os.Parcel;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
@@ -40,7 +41,7 @@ public final class TimeSignalCommand extends SpliceCommand {
   }
 
   /* package */ static TimeSignalCommand parseFromSection(ParsableByteArray sectionData,
-      long ptsAdjustment, TimestampAdjuster timestampAdjuster) {
+                                                          long ptsAdjustment, TimestampAdjuster timestampAdjuster) {
     long ptsTime = parseSpliceTime(sectionData, ptsAdjustment);
     long playbackPositionUs = timestampAdjuster.adjustTsTimestamp(ptsTime);
     return new TimeSignalCommand(ptsTime, playbackPositionUs);

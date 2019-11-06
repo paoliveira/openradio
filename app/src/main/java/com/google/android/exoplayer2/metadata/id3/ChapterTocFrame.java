@@ -16,9 +16,14 @@
 package com.google.android.exoplayer2.metadata.id3;
 
 import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.Arrays;
+
+import static com.google.android.exoplayer2.util.Util.castNonNull;
 
 /**
  * Chapter table of contents ID3 frame.
@@ -34,7 +39,7 @@ public final class ChapterTocFrame extends Id3Frame {
   private final Id3Frame[] subFrames;
 
   public ChapterTocFrame(String elementId, boolean isRoot, boolean isOrdered, String[] children,
-      Id3Frame[] subFrames) {
+                         Id3Frame[] subFrames) {
     super(ID);
     this.elementId = elementId;
     this.isRoot = isRoot;
@@ -45,7 +50,7 @@ public final class ChapterTocFrame extends Id3Frame {
 
   /* package */ ChapterTocFrame(Parcel in) {
     super(ID);
-    this.elementId = in.readString();
+    this.elementId = castNonNull(in.readString());
     this.isRoot = in.readByte() != 0;
     this.isOrdered = in.readByte() != 0;
     this.children = in.createStringArray();
@@ -107,7 +112,7 @@ public final class ChapterTocFrame extends Id3Frame {
     }
   }
 
-  public static final Creator<ChapterTocFrame> CREATOR = new Creator<ChapterTocFrame>() {
+  public static final Parcelable.Creator<ChapterTocFrame> CREATOR = new Parcelable.Creator<ChapterTocFrame>() {
 
     @Override
     public ChapterTocFrame createFromParcel(Parcel in) {

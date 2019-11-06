@@ -20,6 +20,7 @@ import com.google.android.exoplayer2.text.SimpleSubtitleDecoder;
 import com.google.android.exoplayer2.text.SubtitleDecoderException;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -68,7 +69,7 @@ public final class Mp4WebvttDecoder extends SimpleSubtitleDecoder {
   }
 
   private static Cue parseVttCueBox(ParsableByteArray sampleData, WebvttCue.Builder builder,
-        int remainingCueBoxBytes) throws SubtitleDecoderException {
+                                    int remainingCueBoxBytes) throws SubtitleDecoderException {
     builder.reset();
     while (remainingCueBoxBytes > 0) {
       if (remainingCueBoxBytes < BOX_HEADER_SIZE) {
@@ -78,14 +79,14 @@ public final class Mp4WebvttDecoder extends SimpleSubtitleDecoder {
       int boxType = sampleData.readInt();
       remainingCueBoxBytes -= BOX_HEADER_SIZE;
       int payloadLength = boxSize - BOX_HEADER_SIZE;
-      String boxPayload = new String(sampleData.data, sampleData.getPosition(), payloadLength);
+      String boxPayload =
+          Util.fromUtf8Bytes(sampleData.data, sampleData.getPosition(), payloadLength);
       sampleData.skipBytes(payloadLength);
       remainingCueBoxBytes -= payloadLength;
       if (boxType == TYPE_sttg) {
         WebvttCueParser.parseCueSettingsList(boxPayload, builder);
       } else if (boxType == TYPE_payl) {
-        WebvttCueParser.parseCueText(null, boxPayload.trim(), builder,
-            Collections.<WebvttCssStyle>emptyList());
+        WebvttCueParser.parseCueText(null, boxPayload.trim(), builder, Collections.emptyList());
       } else {
         // Other VTTCueBox children are still not supported and are ignored.
       }

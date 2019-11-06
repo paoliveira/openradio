@@ -16,9 +16,12 @@
 package com.google.android.exoplayer2.extractor.mkv;
 
 import androidx.annotation.IntDef;
+
 import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.extractor.ExtractorInput;
+
 import java.io.IOException;
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -27,7 +30,11 @@ import java.lang.annotation.RetentionPolicy;
  */
 /* package */ interface EbmlReaderOutput {
 
-  /** EBML element types. */
+  /**
+   * EBML element types. One of {@link #TYPE_UNKNOWN}, {@link #TYPE_MASTER}, {@link
+   * #TYPE_UNSIGNED_INT}, {@link #TYPE_STRING}, {@link #TYPE_BINARY} or {@link #TYPE_FLOAT}.
+   */
+  @Documented
   @Retention(RetentionPolicy.SOURCE)
   @IntDef({TYPE_UNKNOWN, TYPE_MASTER, TYPE_UNSIGNED_INT, TYPE_STRING, TYPE_BINARY, TYPE_FLOAT})
   @interface ElementType {}

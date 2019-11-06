@@ -20,6 +20,7 @@ import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.extractor.ExtractorInput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.EOFException;
 import java.io.IOException;
 
@@ -71,13 +72,13 @@ import java.io.IOException;
   /**
    * Peeks an Ogg page header and updates this {@link OggPageHeader}.
    *
-   * @param input the {@link ExtractorInput} to read from.
-   * @param quiet if {@code true} no Exceptions are thrown but {@code false} is return if something
-   *    goes wrong.
-   * @return {@code true} if the read was successful. {@code false} if the end of the input was
-   *    encountered having read no data.
-   * @throws IOException thrown if reading data fails or the stream is invalid.
-   * @throws InterruptedException thrown if thread is interrupted when reading/peeking.
+   * @param input The {@link ExtractorInput} to read from.
+   * @param quiet If {@code true}, no exceptions are thrown but {@code false} is returned if
+   *     something goes wrong.
+   * @return {@code true} if the read was successful. The read fails if the end of the input is
+   *     encountered without reading data.
+   * @throws IOException If reading data fails or the stream is invalid.
+   * @throws InterruptedException If the thread is interrupted.
    */
   public boolean populate(ExtractorInput input, boolean quiet)
       throws IOException, InterruptedException {

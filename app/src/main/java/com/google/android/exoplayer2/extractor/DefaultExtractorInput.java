@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
@@ -130,16 +131,16 @@ public final class DefaultExtractorInput implements ExtractorInput {
   public boolean advancePeekPosition(int length, boolean allowEndOfInput)
       throws IOException, InterruptedException {
     ensureSpaceForPeek(length);
-    int bytesPeeked = Math.min(peekBufferLength - peekBufferPosition, length);
+    int bytesPeeked = peekBufferLength - peekBufferPosition;
     while (bytesPeeked < length) {
       bytesPeeked = readFromDataSource(peekBuffer, peekBufferPosition, length, bytesPeeked,
           allowEndOfInput);
       if (bytesPeeked == C.RESULT_END_OF_INPUT) {
         return false;
       }
+      peekBufferLength = peekBufferPosition + bytesPeeked;
     }
     peekBufferPosition += length;
-    peekBufferLength = Math.max(peekBufferLength, peekBufferPosition);
     return true;
   }
 

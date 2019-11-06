@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.extractor.mp4;
 
 import com.google.android.exoplayer2.extractor.ExtractorInput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.io.IOException;
 
 /**
@@ -190,4 +191,8 @@ import java.io.IOException;
     return sampleDecodingTimeTable[index] + sampleCompositionTimeOffsetTable[index];
   }
 
+  /** Returns whether the sample at the given index has a subsample encryption table. */
+  public boolean sampleHasSubsampleEncryptionTable(int index) {
+    return definesEncryptionData && sampleHasSubsampleEncryptionTable[index];
+  }
 }

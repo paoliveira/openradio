@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.android.exoplayer2.metadata;
+package com.google.android.exoplayer2.drm;
 
 /**
- * Thrown when an error occurs decoding metadata.
+ * Thrown when a non-platform component fails to decrypt data.
  */
-public class MetadataDecoderException extends Exception {
+public class DecryptionException extends Exception {
 
   /**
-   * @param message The detail message for this exception.
+   * A component specific error code.
    */
-  public MetadataDecoderException(String message) {
+  public final int errorCode;
+
+  /**
+   * @param errorCode A component specific error code.
+   * @param message The detail message.
+   */
+  public DecryptionException(int errorCode, String message) {
     super(message);
-  }
-
-  /**
-   * @param message The detail message for this exception.
-   * @param cause The cause of this exception.
-   */
-  public MetadataDecoderException(String message, Throwable cause) {
-    super(message, cause);
+    this.errorCode = errorCode;
   }
 
 }

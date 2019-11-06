@@ -16,10 +16,12 @@
 package com.google.android.exoplayer2.source.ads;
 
 import android.view.ViewGroup;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.source.ads.AdsMediaSource.AdLoadException;
 import com.google.android.exoplayer2.upstream.DataSpec;
+
 import java.io.IOException;
 
 /**
@@ -88,7 +90,9 @@ public interface AdsLoader {
    * Attaches a player that will play ads loaded using this instance. Called on the main thread by
    * {@link AdsMediaSource}.
    *
-   * @param player The player instance that will play the loaded ads.
+   * @param player The player instance that will play the loaded ads. Only players which are
+   *     accessed on the main thread are supported ({@code player.getApplicationLooper() ==
+   *     Looper.getMainLooper()}).
    * @param eventListener Listener for ads loader events.
    * @param adUiViewGroup A {@link ViewGroup} on top of the player that will show any ad UI.
    */

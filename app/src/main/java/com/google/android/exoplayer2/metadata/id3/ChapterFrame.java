@@ -16,10 +16,15 @@
 package com.google.android.exoplayer2.metadata.id3;
 
 import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.Arrays;
+
+import static com.google.android.exoplayer2.util.Util.castNonNull;
 
 /**
  * Chapter information ID3 frame.
@@ -42,7 +47,7 @@ public final class ChapterFrame extends Id3Frame {
   private final Id3Frame[] subFrames;
 
   public ChapterFrame(String chapterId, int startTimeMs, int endTimeMs, long startOffset,
-      long endOffset, Id3Frame[] subFrames) {
+                      long endOffset, Id3Frame[] subFrames) {
     super(ID);
     this.chapterId = chapterId;
     this.startTimeMs = startTimeMs;
@@ -54,7 +59,7 @@ public final class ChapterFrame extends Id3Frame {
 
   /* package */ ChapterFrame(Parcel in) {
     super(ID);
-    this.chapterId = in.readString();
+    this.chapterId = castNonNull(in.readString());
     this.startTimeMs = in.readInt();
     this.endTimeMs = in.readInt();
     this.startOffset = in.readLong();
@@ -126,7 +131,7 @@ public final class ChapterFrame extends Id3Frame {
     return 0;
   }
 
-  public static final Creator<ChapterFrame> CREATOR = new Creator<ChapterFrame>() {
+  public static final Parcelable.Creator<ChapterFrame> CREATOR = new Parcelable.Creator<ChapterFrame>() {
 
     @Override
     public ChapterFrame createFromParcel(Parcel in) {

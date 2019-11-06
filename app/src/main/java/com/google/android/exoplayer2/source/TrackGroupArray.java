@@ -18,7 +18,9 @@ package com.google.android.exoplayer2.source;
 import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
+
 import java.util.Arrays;
 
 /** An array of {@link TrackGroup}s exposed by a {@link MediaPeriod}. */

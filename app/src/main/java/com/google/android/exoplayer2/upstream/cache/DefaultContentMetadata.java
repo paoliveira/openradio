@@ -16,7 +16,9 @@
 package com.google.android.exoplayer2.upstream.cache;
 
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -34,7 +36,7 @@ public final class DefaultContentMetadata implements ContentMetadata {
 
   /** An empty DefaultContentMetadata. */
   public static final DefaultContentMetadata EMPTY =
-      new DefaultContentMetadata(Collections.<String, byte[]>emptyMap());
+      new DefaultContentMetadata(Collections.emptyMap());
 
   private static final int MAX_VALUE_LENGTH = 10 * 1024 * 1024;
   private int hashCode;
@@ -169,7 +171,7 @@ public final class DefaultContentMetadata implements ContentMetadata {
   }
 
   private static Map<String, byte[]> applyMutations(
-      Map<String, byte[]> otherMetadata, ContentMetadataMutations mutations) {
+          Map<String, byte[]> otherMetadata, ContentMetadataMutations mutations) {
     HashMap<String, byte[]> metadata = new HashMap<>(otherMetadata);
     removeValues(metadata, mutations.getRemovedValues());
     addValues(metadata, mutations.getEditedValues());
@@ -188,9 +190,12 @@ public final class DefaultContentMetadata implements ContentMetadata {
       byte[] bytes = getBytes(value);
       if (bytes.length > MAX_VALUE_LENGTH) {
         throw new IllegalArgumentException(
-            String.format(
-                "The size of %s (%d) is greater than maximum allowed: %d",
-                name, bytes.length, MAX_VALUE_LENGTH));
+            "The size of "
+                + name
+                + " ("
+                + bytes.length
+                + ") is greater than maximum allowed: "
+                + MAX_VALUE_LENGTH);
       }
       metadata.put(name, bytes);
     }

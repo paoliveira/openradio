@@ -23,6 +23,7 @@ import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.text.style.UnderlineSpan;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.SimpleSubtitleDecoder;
@@ -30,6 +31,7 @@ import com.google.android.exoplayer2.text.Subtitle;
 import com.google.android.exoplayer2.text.SubtitleDecoderException;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -56,8 +58,8 @@ public final class Tx3gDecoder extends SimpleSubtitleDecoder {
   private static final int FONT_FACE_ITALIC = 0x0002;
   private static final int FONT_FACE_UNDERLINE = 0x0004;
 
-  private static final int SPAN_PRIORITY_LOW = (0xFF << Spanned.SPAN_PRIORITY_SHIFT);
-  private static final int SPAN_PRIORITY_HIGH = (0x00 << Spanned.SPAN_PRIORITY_SHIFT);
+  private static final int SPAN_PRIORITY_LOW = 0xFF << Spanned.SPAN_PRIORITY_SHIFT;
+  private static final int SPAN_PRIORITY_HIGH = 0;
 
   private static final int DEFAULT_FONT_FACE = 0;
   private static final int DEFAULT_COLOR = Color.WHITE;
@@ -92,7 +94,8 @@ public final class Tx3gDecoder extends SimpleSubtitleDecoder {
           | ((initializationBytes[27] & 0xFF) << 16)
           | ((initializationBytes[28] & 0xFF) << 8)
           | (initializationBytes[29] & 0xFF);
-      String fontFamily = new String(initializationBytes, 43, initializationBytes.length - 43);
+      String fontFamily =
+          Util.fromUtf8Bytes(initializationBytes, 43, initializationBytes.length - 43);
       defaultFontFamily = TX3G_SERIF.equals(fontFamily) ? C.SERIF_NAME : C.SANS_SERIF_NAME;
       //font size (initializationBytes[25]) is 5% of video height
       calculatedVideoTrackHeight = 20 * initializationBytes[25];
@@ -184,7 +187,7 @@ public final class Tx3gDecoder extends SimpleSubtitleDecoder {
   }
 
   private static void attachFontFace(SpannableStringBuilder cueText, int fontFace,
-      int defaultFontFace, int start, int end, int spanPriority) {
+                                     int defaultFontFace, int start, int end, int spanPriority) {
     if (fontFace != defaultFontFace) {
       final int flags = Spanned.SPAN_EXCLUSIVE_EXCLUSIVE | spanPriority;
       boolean isBold = (fontFace & FONT_FACE_BOLD) != 0;
@@ -209,7 +212,7 @@ public final class Tx3gDecoder extends SimpleSubtitleDecoder {
   }
 
   private static void attachColor(SpannableStringBuilder cueText, int colorRgba,
-      int defaultColorRgba, int start, int end, int spanPriority) {
+                                  int defaultColorRgba, int start, int end, int spanPriority) {
     if (colorRgba != defaultColorRgba) {
       int colorArgb = ((colorRgba & 0xFF) << 24) | (colorRgba >>> 8);
       cueText.setSpan(new ForegroundColorSpan(colorArgb), start, end,
@@ -219,7 +222,7 @@ public final class Tx3gDecoder extends SimpleSubtitleDecoder {
 
   @SuppressWarnings("ReferenceEquality")
   private static void attachFontFamily(SpannableStringBuilder cueText, String fontFamily,
-      String defaultFontFamily, int start, int end, int spanPriority) {
+                                       String defaultFontFamily, int start, int end, int spanPriority) {
     if (fontFamily != defaultFontFamily) {
       cueText.setSpan(new TypefaceSpan(fontFamily), start, end,
           Spanned.SPAN_EXCLUSIVE_EXCLUSIVE | spanPriority);

@@ -16,9 +16,11 @@
 package com.google.android.exoplayer2.upstream.cache;
 
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -158,7 +160,7 @@ import java.util.regex.Pattern;
    * @param file The file corresponding to this {@link CacheSpan}, or null if it's a hole.
    */
   private SimpleCacheSpan(
-      String key, long position, long length, long lastAccessTimestamp, @Nullable File file) {
+          String key, long position, long length, long lastAccessTimestamp, @Nullable File file) {
     super(key, position, length, lastAccessTimestamp, file);
   }
 

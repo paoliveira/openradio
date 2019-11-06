@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.audio;
 
 import android.annotation.TargetApi;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 
 /**
@@ -39,12 +40,9 @@ public final class AudioAttributes {
    */
   public static final class Builder {
 
-    @C.AudioContentType
-    private int contentType;
-    @C.AudioFlags
-    private int flags;
-    @C.AudioUsage
-    private int usage;
+    private @C.AudioContentType int contentType;
+    private @C.AudioFlags int flags;
+    private @C.AudioUsage int usage;
 
     /**
      * Creates a new builder for {@link AudioAttributes}.
@@ -91,14 +89,11 @@ public final class AudioAttributes {
 
   }
 
-  @C.AudioContentType
-  public final int contentType;
-  @C.AudioFlags
-  public final int flags;
-  @C.AudioUsage
-  public final int usage;
+  public final @C.AudioContentType int contentType;
+  public final @C.AudioFlags int flags;
+  public final @C.AudioUsage int usage;
 
-  private android.media.AudioAttributes audioAttributesV21;
+  private @Nullable android.media.AudioAttributes audioAttributesV21;
 
   private AudioAttributes(@C.AudioContentType int contentType, @C.AudioFlags int flags,
       @C.AudioUsage int usage) {
@@ -108,7 +103,7 @@ public final class AudioAttributes {
   }
 
   @TargetApi(21)
-  /* package */ android.media.AudioAttributes getAudioAttributesV21() {
+  public android.media.AudioAttributes getAudioAttributesV21() {
     if (audioAttributesV21 == null) {
       audioAttributesV21 = new android.media.AudioAttributes.Builder()
           .setContentType(contentType)

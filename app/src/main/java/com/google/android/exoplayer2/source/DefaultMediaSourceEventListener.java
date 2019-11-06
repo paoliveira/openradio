@@ -16,7 +16,9 @@
 package com.google.android.exoplayer2.source;
 
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
+
 import java.io.IOException;
 
 /**
@@ -38,7 +40,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadStarted(
       int windowIndex,
-      @Nullable MediaPeriodId mediaPeriodId,
+      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     // Do nothing.
@@ -47,7 +49,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadCompleted(
       int windowIndex,
-      @Nullable MediaPeriodId mediaPeriodId,
+      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     // Do nothing.
@@ -56,7 +58,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadCanceled(
       int windowIndex,
-      @Nullable MediaPeriodId mediaPeriodId,
+      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     // Do nothing.
@@ -65,7 +67,7 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
   @Override
   public void onLoadError(
       int windowIndex,
-      @Nullable MediaPeriodId mediaPeriodId,
+      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData,
       IOException error,
@@ -80,13 +82,13 @@ public abstract class DefaultMediaSourceEventListener implements MediaSourceEven
 
   @Override
   public void onUpstreamDiscarded(
-      int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     // Do nothing.
   }
 
   @Override
   public void onDownstreamFormatChanged(
-      int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     // Do nothing.
   }
 }

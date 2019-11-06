@@ -22,11 +22,13 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Region;
-import android.util.Log;
 import android.util.SparseArray;
+
 import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.ParsableBitArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -580,7 +582,7 @@ import java.util.List;
    * Draws a pixel data sub-block, as defined by ETSI EN 300 743 7.2.5.1, into a canvas.
    */
   private static void paintPixelDataSubBlocks(ObjectData objectData, ClutDefinition clutDefinition,
-      int regionDepth, int horizontalAddress, int verticalAddress, Paint paint, Canvas canvas) {
+                                              int regionDepth, int horizontalAddress, int verticalAddress, Paint paint, Canvas canvas) {
     int[] clutEntries;
     if (regionDepth == REGION_DEPTH_8_BIT) {
       clutEntries = clutDefinition.clutEntries8Bit;
@@ -599,7 +601,7 @@ import java.util.List;
    * Draws a pixel data sub-block, as defined by ETSI EN 300 743 7.2.5.1, into a canvas.
    */
   private static void paintPixelDataSubBlock(byte[] pixelData, int[] clutEntries, int regionDepth,
-      int horizontalAddress, int verticalAddress, Paint paint, Canvas canvas) {
+                                             int horizontalAddress, int verticalAddress, Paint paint, Canvas canvas) {
     ParsableBitArray data = new ParsableBitArray(pixelData);
     int column = horizontalAddress;
     int line = verticalAddress;
@@ -661,7 +663,7 @@ import java.util.List;
    * Paint a 2-bit/pixel code string, as defined by ETSI EN 300 743 7.2.5.2, to a canvas.
    */
   private static int paint2BitPixelCodeString(ParsableBitArray data, int[] clutEntries,
-      byte[] clutMapTable, int column, int line, Paint paint, Canvas canvas) {
+                                              byte[] clutMapTable, int column, int line, Paint paint, Canvas canvas) {
     boolean endOfPixelCodeString = false;
     do {
       int runLength = 0;
@@ -709,7 +711,7 @@ import java.util.List;
    * Paint a 4-bit/pixel code string, as defined by ETSI EN 300 743 7.2.5.2, to a canvas.
    */
   private static int paint4BitPixelCodeString(ParsableBitArray data, int[] clutEntries,
-      byte[] clutMapTable, int column, int line, Paint paint, Canvas canvas) {
+                                              byte[] clutMapTable, int column, int line, Paint paint, Canvas canvas) {
     boolean endOfPixelCodeString = false;
     do {
       int runLength = 0;
@@ -763,7 +765,7 @@ import java.util.List;
    * Paint an 8-bit/pixel code string, as defined by ETSI EN 300 743 7.2.5.2, to a canvas.
    */
   private static int paint8BitPixelCodeString(ParsableBitArray data, int[] clutEntries,
-      byte[] clutMapTable, int column, int line, Paint paint, Canvas canvas) {
+                                              byte[] clutMapTable, int column, int line, Paint paint, Canvas canvas) {
     boolean endOfPixelCodeString = false;
     do {
       int runLength = 0;
