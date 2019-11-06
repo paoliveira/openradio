@@ -26,7 +26,6 @@ import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.drm.DrmInitData;
 import com.google.android.exoplayer2.extractor.Extractor;
 import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.offline.StreamKey;
 import com.google.android.exoplayer2.source.CompositeSequenceableLoaderFactory;
 import com.google.android.exoplayer2.source.MediaPeriod;
 import com.google.android.exoplayer2.source.MediaSourceEventListener.EventDispatcher;
@@ -166,89 +165,6 @@ public final class HlsMediaPeriod implements MediaPeriod, HlsSampleStreamWrapper
   @Override
   public TrackGroupArray getTrackGroups() {
     return trackGroups;
-  }
-
-  // TODO: When the master playlist does not de-duplicate variants by URL and allows Renditions with
-  // null URLs, this method must be updated to calculate stream keys that are compatible with those
-  // that may already be persisted for offline.
-  @Override
-  public List<StreamKey> getStreamKeys(List<TrackSelection> trackSelections) {
-    // See HlsMasterPlaylist.copy for interpretation of StreamKeys.
-    HlsMasterPlaylist masterPlaylist = Assertions.checkNotNull(playlistTracker.getMasterPlaylist());
-    boolean hasVariants = !masterPlaylist.variants.isEmpty();
-    int audioWrapperOffset = hasVariants ? 1 : 0;
-    // Subtitle sample stream wrappers are held last.
-    int subtitleWrapperOffset = sampleStreamWrappers.length - masterPlaylist.subtitles.size();
-
-    TrackGroupArray mainWrapperTrackGroups;
-    int mainWrapperPrimaryGroupIndex;
-    int[] mainWrapperVariantIndices;
-    if (hasVariants) {
-      HlsSampleStreamWrapper mainWrapper = sampleStreamWrappers[0];
-      mainWrapperVariantIndices = manifestUrlIndicesPerWrapper[0];
-      mainWrapperTrackGroups = mainWrapper.getTrackGroups();
-      mainWrapperPrimaryGroupIndex = mainWrapper.getPrimaryTrackGroupIndex();
-    } else {
-      mainWrapperVariantIndices = new int[0];
-      mainWrapperTrackGroups = TrackGroupArray.EMPTY;
-      mainWrapperPrimaryGroupIndex = 0;
-    }
-
-    List<StreamKey> streamKeys = new ArrayList<>();
-    boolean needsPrimaryTrackGroupSelection = false;
-    boolean hasPrimaryTrackGroupSelection = false;
-    for (TrackSelection trackSelection : trackSelections) {
-      TrackGroup trackSelectionGroup = trackSelection.getTrackGroup();
-      int mainWrapperTrackGroupIndex = mainWrapperTrackGroups.indexOf(trackSelectionGroup);
-      if (mainWrapperTrackGroupIndex != C.INDEX_UNSET) {
-        if (mainWrapperTrackGroupIndex == mainWrapperPrimaryGroupIndex) {
-          // Primary group in main wrapper.
-          hasPrimaryTrackGroupSelection = true;
-          for (int i = 0; i < trackSelection.length(); i++) {
-            int variantIndex = mainWrapperVariantIndices[trackSelection.getIndexInTrackGroup(i)];
-            streamKeys.add(new StreamKey(HlsMasterPlaylist.GROUP_INDEX_VARIANT, variantIndex));
-          }
-        } else {
-          // Embedded group in main wrapper.
-          needsPrimaryTrackGroupSelection = true;
-        }
-      } else {
-        // Audio or subtitle group.
-        for (int i = audioWrapperOffset; i < sampleStreamWrappers.length; i++) {
-          TrackGroupArray wrapperTrackGroups = sampleStreamWrappers[i].getTrackGroups();
-          int selectedTrackGroupIndex = wrapperTrackGroups.indexOf(trackSelectionGroup);
-          if (selectedTrackGroupIndex != C.INDEX_UNSET) {
-            int groupIndexType =
-                i < subtitleWrapperOffset
-                    ? HlsMasterPlaylist.GROUP_INDEX_AUDIO
-                    : HlsMasterPlaylist.GROUP_INDEX_SUBTITLE;
-            int[] selectedWrapperUrlIndices = manifestUrlIndicesPerWrapper[i];
-            for (int trackIndex = 0; trackIndex < trackSelection.length(); trackIndex++) {
-              int renditionIndex =
-                  selectedWrapperUrlIndices[trackSelection.getIndexInTrackGroup(trackIndex)];
-              streamKeys.add(new StreamKey(groupIndexType, renditionIndex));
-            }
-            break;
-          }
-        }
-      }
-    }
-    if (needsPrimaryTrackGroupSelection && !hasPrimaryTrackGroupSelection) {
-      // A track selection includes a variant-embedded track, but no variant is added yet. We use
-      // the valid variant with the lowest bitrate to reduce overhead.
-      int lowestBitrateIndex = mainWrapperVariantIndices[0];
-      int lowestBitrate = masterPlaylist.variants.get(mainWrapperVariantIndices[0]).format.bitrate;
-      for (int i = 1; i < mainWrapperVariantIndices.length; i++) {
-        int variantBitrate =
-            masterPlaylist.variants.get(mainWrapperVariantIndices[i]).format.bitrate;
-        if (variantBitrate < lowestBitrate) {
-          lowestBitrate = variantBitrate;
-          lowestBitrateIndex = mainWrapperVariantIndices[i];
-        }
-      }
-      streamKeys.add(new StreamKey(HlsMasterPlaylist.GROUP_INDEX_VARIANT, lowestBitrateIndex));
-    }
-    return streamKeys;
   }
 
   @Override

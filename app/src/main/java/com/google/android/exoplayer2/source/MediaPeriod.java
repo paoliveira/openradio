@@ -19,14 +19,11 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.offline.StreamKey;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 
 import org.checkerframework.checker.nullness.compatqual.NullableType;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Loads media corresponding to a {@link Timeline.Period}, and allows that media to be read. All
@@ -87,22 +84,6 @@ public interface MediaPeriod extends SequenceableLoader {
    * @return The {@link TrackGroup}s.
    */
   TrackGroupArray getTrackGroups();
-
-  /**
-   * Returns a list of {@link StreamKey StreamKeys} which allow to filter the media in this period
-   * to load only the parts needed to play the provided {@link TrackSelection TrackSelections}.
-   *
-   * <p>This method is only called after the period has been prepared.
-   *
-   * @param trackSelections The {@link TrackSelection TrackSelections} describing the tracks for
-   *     which stream keys are requested.
-   * @return The corresponding {@link StreamKey StreamKeys} for the selected tracks, or an empty
-   *     list if filtering is not possible and the entire media needs to be loaded to play the
-   *     selected tracks.
-   */
-  default List<StreamKey> getStreamKeys(List<TrackSelection> trackSelections) {
-    return Collections.emptyList();
-  }
 
   /**
    * Performs a track selection.
