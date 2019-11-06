@@ -15,8 +15,6 @@
  */
 package com.google.android.exoplayer2.analytics;
 
-import android.view.Surface;
-
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
@@ -43,8 +41,6 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Clock;
-import com.google.android.exoplayer2.video.VideoListener;
-import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
@@ -65,11 +61,9 @@ public class AnalyticsCollector
     implements Player.EventListener,
         MetadataOutput,
         AudioRendererEventListener,
-        VideoRendererEventListener,
         MediaSourceEventListener,
         BandwidthMeter.EventListener,
         DefaultDrmSessionEventListener,
-        VideoListener,
         AudioListener {
 
   /** Factory for an analytics collector. */
@@ -254,86 +248,6 @@ public class AnalyticsCollector
     EventTime eventTime = generateReadingMediaPeriodEventTime();
     for (AnalyticsListener listener : listeners) {
       listener.onVolumeChanged(eventTime, audioVolume);
-    }
-  }
-
-  // VideoRendererEventListener implementation.
-
-  @Override
-  public final void onVideoEnabled(DecoderCounters counters) {
-    // The renderers are only enabled after we changed the playing media period.
-    EventTime eventTime = generatePlayingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onDecoderEnabled(eventTime, C.TRACK_TYPE_VIDEO, counters);
-    }
-  }
-
-  @Override
-  public final void onVideoDecoderInitialized(
-          String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-    EventTime eventTime = generateReadingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onDecoderInitialized(
-          eventTime, C.TRACK_TYPE_VIDEO, decoderName, initializationDurationMs);
-    }
-  }
-
-  @Override
-  public final void onVideoInputFormatChanged(Format format) {
-    EventTime eventTime = generateReadingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onDecoderInputFormatChanged(eventTime, C.TRACK_TYPE_VIDEO, format);
-    }
-  }
-
-  @Override
-  public final void onDroppedFrames(int count, long elapsedMs) {
-    EventTime eventTime = generateLastReportedPlayingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onDroppedVideoFrames(eventTime, count, elapsedMs);
-    }
-  }
-
-  @Override
-  public final void onVideoDisabled(DecoderCounters counters) {
-    // The renderers are disabled after we changed the playing media period on the playback thread
-    // but before this change is reported to the app thread.
-    EventTime eventTime = generateLastReportedPlayingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onDecoderDisabled(eventTime, C.TRACK_TYPE_VIDEO, counters);
-    }
-  }
-
-  @Override
-  public final void onRenderedFirstFrame(@Nullable Surface surface) {
-    EventTime eventTime = generateReadingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onRenderedFirstFrame(eventTime, surface);
-    }
-  }
-
-  // VideoListener implementation.
-
-  @Override
-  public final void onRenderedFirstFrame() {
-    // Do nothing. Already reported in VideoRendererEventListener.onRenderedFirstFrame.
-  }
-
-  @Override
-  public final void onVideoSizeChanged(
-      int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-    EventTime eventTime = generateReadingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onVideoSizeChanged(
-          eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
-    }
-  }
-
-  @Override
-  public void onSurfaceSizeChanged(int width, int height) {
-    EventTime eventTime = generateReadingMediaPeriodEventTime();
-    for (AnalyticsListener listener : listeners) {
-      listener.onSurfaceSizeChanged(eventTime, width, height);
     }
   }
 

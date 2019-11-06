@@ -57,7 +57,6 @@ import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.drm.FrameworkMediaCrypto;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import org.checkerframework.checker.initialization.qual.UnknownInitialization;
 import org.checkerframework.checker.nullness.compatqual.NullableType;
@@ -1909,7 +1908,6 @@ public final class Util {
     Renderer[] renderers =
         renderersFactory.createRenderers(
             new Handler(),
-            new VideoRendererEventListener() {},
             new AudioRendererEventListener() {},
             (cues) -> {},
             (metadata) -> {},

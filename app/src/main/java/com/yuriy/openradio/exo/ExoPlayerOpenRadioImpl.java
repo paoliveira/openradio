@@ -361,11 +361,6 @@ public final class ExoPlayerOpenRadioImpl {
         if (mExoPlayer != null) {
             mExoPlayer.stop();
         }
-        mMediaSource.releaseSource(
-                (source, timeline, manifest) -> AppLogger.d(
-                        "OnSourceInfoRefreshed:" + source + " " + manifest
-                )
-        );
     }
 
     /**
@@ -385,6 +380,7 @@ public final class ExoPlayerOpenRadioImpl {
         mExoPlayer = null;
         mUpdateProgressHandler = null;
         mUpdateProgressAction = null;
+        mMediaSource = null;
     }
 
     /**
@@ -555,7 +551,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onMetadata(final Metadata metadata) {
-            AppLogger.d(LOG_TAG + " metadata:" + metadata);
+//            AppLogger.d(LOG_TAG + " metadata:" + metadata);
         }
 
         @Override
