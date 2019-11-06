@@ -20,6 +20,7 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
+
 import java.io.IOException;
 
 /**
@@ -108,11 +109,11 @@ public interface MediaPeriod extends SequenceableLoader {
    * @return The actual position at which the tracks were enabled, in microseconds.
    */
   long selectTracks(
-      TrackSelection[] selections,
-      boolean[] mayRetainStreamFlags,
-      SampleStream[] streams,
-      boolean[] streamResetFlags,
-      long positionUs);
+          TrackSelection[] selections,
+          boolean[] mayRetainStreamFlags,
+          SampleStream[] streams,
+          boolean[] streamResetFlags,
+          long positionUs);
 
   /**
    * Discards buffered media up to the specified position.

@@ -16,8 +16,10 @@
 package com.google.android.exoplayer2.upstream.cache;
 
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.upstream.cache.Cache.CacheException;
 import com.google.android.exoplayer2.util.Assertions;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -185,16 +187,13 @@ import java.util.TreeSet;
    * @throws CacheException If renaming of the underlying span file failed.
    */
   public SimpleCacheSpan touch(SimpleCacheSpan cacheSpan) throws CacheException {
-    // Remove the old span from the in-memory representation.
-    Assertions.checkState(cachedSpans.remove(cacheSpan));
-    // Obtain a new span with updated last access timestamp.
     SimpleCacheSpan newCacheSpan = cacheSpan.copyWithUpdatedLastAccessTime(id);
-    // Rename the cache file
     if (!cacheSpan.file.renameTo(newCacheSpan.file)) {
       throw new CacheException("Renaming of " + cacheSpan.file + " to " + newCacheSpan.file
           + " failed.");
     }
-    // Add the updated span back into the in-memory representation.
+    // Replace the in-memory representation of the span.
+    Assertions.checkState(cachedSpans.remove(cacheSpan));
     cachedSpans.add(newCacheSpan);
     return newCacheSpan;
   }

@@ -16,12 +16,14 @@
 package com.google.android.exoplayer2;
 
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.decoder.DecoderInputBuffer;
 import com.google.android.exoplayer2.drm.DrmInitData;
 import com.google.android.exoplayer2.drm.DrmSessionManager;
 import com.google.android.exoplayer2.source.SampleStream;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.MediaClock;
+
 import java.io.IOException;
 
 /**
@@ -76,7 +78,7 @@ public abstract class BaseRenderer implements Renderer, RendererCapabilities {
 
   @Override
   public final void enable(RendererConfiguration configuration, Format[] formats,
-      SampleStream stream, long positionUs, boolean joining, long offsetUs)
+                           SampleStream stream, long positionUs, boolean joining, long offsetUs)
       throws ExoPlaybackException {
     Assertions.checkState(state == STATE_DISABLED);
     this.configuration = configuration;
@@ -163,7 +165,7 @@ public abstract class BaseRenderer implements Renderer, RendererCapabilities {
   // PlayerMessage.Target implementation.
 
   @Override
-  public void handleMessage(int what, Object object) throws ExoPlaybackException {
+  public void handleMessage(int what, @Nullable Object object) throws ExoPlaybackException {
     // Do nothing.
   }
 
@@ -284,7 +286,7 @@ public abstract class BaseRenderer implements Renderer, RendererCapabilities {
    *     {@link C#RESULT_BUFFER_READ}.
    */
   protected final int readSource(FormatHolder formatHolder, DecoderInputBuffer buffer,
-      boolean formatRequired) {
+                                 boolean formatRequired) {
     int result = stream.readData(formatHolder, buffer, formatRequired);
     if (result == C.RESULT_BUFFER_READ) {
       if (buffer.isEndOfStream()) {

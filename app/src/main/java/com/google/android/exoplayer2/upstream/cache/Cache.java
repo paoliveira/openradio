@@ -15,8 +15,8 @@
  */
 package com.google.android.exoplayer2.upstream.cache;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.NavigableSet;
@@ -83,7 +83,7 @@ public interface Cache {
    * Releases the cache. This method must be called when the cache is no longer required. The cache
    * must not be used after calling this method.
    */
-  void release() throws CacheException;
+  void release();
 
   /**
    * Registers a listener to listen for changes to a given key.
@@ -96,7 +96,6 @@ public interface Cache {
    * @param listener The listener to add.
    * @return The current spans for the key.
    */
-  @NonNull
   NavigableSet<CacheSpan> addListener(String key, Listener listener);
 
   /**
@@ -113,7 +112,6 @@ public interface Cache {
    * @param key The key for which spans should be returned.
    * @return The spans for the key.
    */
-  @NonNull
   NavigableSet<CacheSpan> getCachedSpans(String key);
 
   /**

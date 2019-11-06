@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.Subtitle;
 import com.google.android.exoplayer2.util.Assertions;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -54,7 +55,7 @@ import java.util.List;
 
   @Override
   public List<Cue> getCues(long timeUs) {
-    return timeUs >= 0 ? cues : Collections.<Cue>emptyList();
+    return timeUs >= 0 ? cues : Collections.emptyList();
   }
 
 }

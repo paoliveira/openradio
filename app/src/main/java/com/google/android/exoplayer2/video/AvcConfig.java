@@ -21,6 +21,7 @@ import com.google.android.exoplayer2.util.CodecSpecificDataUtil;
 import com.google.android.exoplayer2.util.NalUnitUtil;
 import com.google.android.exoplayer2.util.NalUnitUtil.SpsData;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +80,7 @@ public final class AvcConfig {
   }
 
   private AvcConfig(List<byte[]> initializationData, int nalUnitLengthFieldLength,
-      int width, int height, float pixelWidthAspectRatio) {
+                    int width, int height, float pixelWidthAspectRatio) {
     this.initializationData = initializationData;
     this.nalUnitLengthFieldLength = nalUnitLengthFieldLength;
     this.width = width;

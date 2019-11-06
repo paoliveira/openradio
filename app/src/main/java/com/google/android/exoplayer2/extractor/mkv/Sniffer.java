@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.extractor.mkv;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.extractor.ExtractorInput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.io.IOException;
 
 /**
@@ -78,8 +79,9 @@ import java.io.IOException;
         return false;
       }
       if (size != 0) {
-        input.advancePeekPosition((int) size);
-        peekLength += size;
+        int sizeInt = (int) size;
+        input.advancePeekPosition(sizeInt);
+        peekLength += sizeInt;
       }
     }
     return peekLength == headerStart + headerSize;

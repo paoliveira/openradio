@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.metadata.scte35;
 
 import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * Represents a splice null command as defined in SCTE35, Section 9.3.1.
@@ -29,8 +30,8 @@ public final class SpliceNullCommand extends SpliceCommand {
     // Do nothing.
   }
 
-  public static final Creator<SpliceNullCommand> CREATOR =
-      new Creator<SpliceNullCommand>() {
+  public static final Parcelable.Creator<SpliceNullCommand> CREATOR =
+      new Parcelable.Creator<SpliceNullCommand>() {
 
     @Override
     public SpliceNullCommand createFromParcel(Parcel in) {

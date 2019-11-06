@@ -17,7 +17,9 @@ package com.google.android.exoplayer2.upstream.cache;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
+
 import java.io.File;
 
 /**
@@ -44,7 +46,8 @@ public class CacheSpan implements Comparable<CacheSpan> {
   /**
    * The file corresponding to this {@link CacheSpan}, or null if {@link #isCached} is false.
    */
-  public final @Nullable File file;
+  public final @Nullable
+  File file;
   /**
    * The last access timestamp, or {@link C#TIME_UNSET} if {@link #isCached} is false.
    */
@@ -74,7 +77,7 @@ public class CacheSpan implements Comparable<CacheSpan> {
    * @param file The file corresponding to this {@link CacheSpan}, or null if it's a hole.
    */
   public CacheSpan(
-      String key, long position, long length, long lastAccessTimestamp, @Nullable File file) {
+          String key, long position, long length, long lastAccessTimestamp, @Nullable File file) {
     this.key = key;
     this.position = position;
     this.length = length;

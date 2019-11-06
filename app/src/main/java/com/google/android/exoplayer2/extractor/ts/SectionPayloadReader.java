@@ -35,7 +35,7 @@ public interface SectionPayloadReader {
    *     {@link TrackOutput}s.
    */
   void init(TimestampAdjuster timestampAdjuster, ExtractorOutput extractorOutput,
-      TrackIdGenerator idGenerator);
+            TrackIdGenerator idGenerator);
 
   /**
    * Called by a {@link SectionReader} when a full section is received.

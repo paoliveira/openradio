@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.source;
 
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.util.Assertions;
@@ -35,7 +36,8 @@ public final class SinglePeriodTimeline extends Timeline {
   private final long windowDefaultStartPositionUs;
   private final boolean isSeekable;
   private final boolean isDynamic;
-  private final @Nullable Object tag;
+  private final @Nullable
+  Object tag;
 
   /**
    * Creates a timeline containing a single period and a window that spans it.
@@ -147,7 +149,7 @@ public final class SinglePeriodTimeline extends Timeline {
 
   @Override
   public Window getWindow(
-      int windowIndex, Window window, boolean setTag, long defaultPositionProjectionUs) {
+          int windowIndex, Window window, boolean setTag, long defaultPositionProjectionUs) {
     Assertions.checkIndex(windowIndex, 0, 1);
     Object tag = setTag ? this.tag : null;
     long windowDefaultStartPositionUs = this.windowDefaultStartPositionUs;
@@ -193,4 +195,9 @@ public final class SinglePeriodTimeline extends Timeline {
     return UID.equals(uid) ? 0 : C.INDEX_UNSET;
   }
 
+  @Override
+  public Object getUidOfPeriod(int periodIndex) {
+    Assertions.checkIndex(periodIndex, 0, 1);
+    return UID;
+  }
 }

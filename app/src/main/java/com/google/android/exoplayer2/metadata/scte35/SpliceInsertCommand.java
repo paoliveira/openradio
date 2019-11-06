@@ -17,9 +17,11 @@ package com.google.android.exoplayer2.metadata.scte35;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.TimestampAdjuster;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -92,10 +94,10 @@ public final class SpliceInsertCommand extends SpliceCommand {
   public final int availsExpected;
 
   private SpliceInsertCommand(long spliceEventId, boolean spliceEventCancelIndicator,
-      boolean outOfNetworkIndicator, boolean programSpliceFlag, boolean spliceImmediateFlag,
-      long programSplicePts, long programSplicePlaybackPositionUs,
-      List<ComponentSplice> componentSpliceList, boolean autoReturn, long breakDurationUs,
-      int uniqueProgramId, int availNum, int availsExpected) {
+                              boolean outOfNetworkIndicator, boolean programSpliceFlag, boolean spliceImmediateFlag,
+                              long programSplicePts, long programSplicePlaybackPositionUs,
+                              List<ComponentSplice> componentSpliceList, boolean autoReturn, long breakDurationUs,
+                              int uniqueProgramId, int availNum, int availsExpected) {
     this.spliceEventId = spliceEventId;
     this.spliceEventCancelIndicator = spliceEventCancelIndicator;
     this.outOfNetworkIndicator = outOfNetworkIndicator;
@@ -133,7 +135,7 @@ public final class SpliceInsertCommand extends SpliceCommand {
   }
 
   /* package */ static SpliceInsertCommand parseFromSection(ParsableByteArray sectionData,
-      long ptsAdjustment, TimestampAdjuster timestampAdjuster) {
+                                                            long ptsAdjustment, TimestampAdjuster timestampAdjuster) {
     long spliceEventId = sectionData.readUnsignedInt();
     // splice_event_cancel_indicator(1), reserved(7).
     boolean spliceEventCancelIndicator = (sectionData.readUnsignedByte() & 0x80) != 0;

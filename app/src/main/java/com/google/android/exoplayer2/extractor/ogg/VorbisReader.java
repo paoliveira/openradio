@@ -20,6 +20,7 @@ import com.google.android.exoplayer2.ParserException;
 import com.google.android.exoplayer2.extractor.ogg.VorbisUtil.Mode;
 import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -153,7 +154,7 @@ import java.util.ArrayList;
     buffer.setLimit(buffer.limit() + 4);
     // The vorbis decoder expects the number of samples in the packet
     // to be appended to the audio data as an int32
-    buffer.data[buffer.limit() - 4] = (byte) ((packetSampleCount) & 0xFF);
+    buffer.data[buffer.limit() - 4] = (byte) (packetSampleCount & 0xFF);
     buffer.data[buffer.limit() - 3] = (byte) ((packetSampleCount >>> 8) & 0xFF);
     buffer.data[buffer.limit() - 2] = (byte) ((packetSampleCount >>> 16) & 0xFF);
     buffer.data[buffer.limit() - 1] = (byte) ((packetSampleCount >>> 24) & 0xFF);

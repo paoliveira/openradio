@@ -17,8 +17,11 @@ package com.google.android.exoplayer2.extractor.mp4;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.Format;
+
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -28,8 +31,10 @@ import java.lang.annotation.RetentionPolicy;
 public final class Track {
 
   /**
-   * The transformation to apply to samples in the track, if any.
+   * The transformation to apply to samples in the track, if any. One of {@link
+   * #TRANSFORMATION_NONE} or {@link #TRANSFORMATION_CEA608_CDAT}.
    */
+  @Documented
   @Retention(RetentionPolicy.SOURCE)
   @IntDef({TRANSFORMATION_NONE, TRANSFORMATION_CEA608_CDAT})
   public @interface Transformation {}
@@ -97,9 +102,9 @@ public final class Track {
   @Nullable private final TrackEncryptionBox[] sampleDescriptionEncryptionBoxes;
 
   public Track(int id, int type, long timescale, long movieTimescale, long durationUs,
-      Format format, @Transformation int sampleTransformation,
-      @Nullable TrackEncryptionBox[] sampleDescriptionEncryptionBoxes, int nalUnitLengthFieldLength,
-      @Nullable long[] editListDurations, @Nullable long[] editListMediaTimes) {
+               Format format, @Transformation int sampleTransformation,
+               @Nullable TrackEncryptionBox[] sampleDescriptionEncryptionBoxes, int nalUnitLengthFieldLength,
+               @Nullable long[] editListDurations, @Nullable long[] editListMediaTimes) {
     this.id = id;
     this.type = type;
     this.timescale = timescale;

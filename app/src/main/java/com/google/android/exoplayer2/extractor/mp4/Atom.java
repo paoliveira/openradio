@@ -15,13 +15,17 @@
  */
 package com.google.android.exoplayer2.extractor.mp4;
 
+import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/* package*/ abstract class Atom {
+@SuppressWarnings({"ConstantField", "ConstantCaseForConstants"})
+/* package */ abstract class Atom {
 
   /**
    * Size of an atom header, in bytes.
@@ -128,6 +132,7 @@ import java.util.List;
   public static final int TYPE_sawb = Util.getIntegerCodeForString("sawb");
   public static final int TYPE_udta = Util.getIntegerCodeForString("udta");
   public static final int TYPE_meta = Util.getIntegerCodeForString("meta");
+  public static final int TYPE_keys = Util.getIntegerCodeForString("keys");
   public static final int TYPE_ilst = Util.getIntegerCodeForString("ilst");
   public static final int TYPE_mean = Util.getIntegerCodeForString("mean");
   public static final int TYPE_name = Util.getIntegerCodeForString("name");
@@ -141,6 +146,12 @@ import java.util.List;
   public static final int TYPE_vpcC = Util.getIntegerCodeForString("vpcC");
   public static final int TYPE_camm = Util.getIntegerCodeForString("camm");
   public static final int TYPE_alac = Util.getIntegerCodeForString("alac");
+  public static final int TYPE_alaw = Util.getIntegerCodeForString("alaw");
+  public static final int TYPE_ulaw = Util.getIntegerCodeForString("ulaw");
+  public static final int TYPE_Opus = Util.getIntegerCodeForString("Opus");
+  public static final int TYPE_dOps = Util.getIntegerCodeForString("dOps");
+  public static final int TYPE_fLaC = Util.getIntegerCodeForString("fLaC");
+  public static final int TYPE_dfLa = Util.getIntegerCodeForString("dfLa");
 
   public final int type;
 
@@ -214,14 +225,15 @@ import java.util.List;
 
     /**
      * Returns the child leaf of the given type.
-     * <p>
-     * If no child exists with the given type then null is returned. If multiple children exist with
-     * the given type then the first one to have been added is returned.
+     *
+     * <p>If no child exists with the given type then null is returned. If multiple children exist
+     * with the given type then the first one to have been added is returned.
      *
      * @param type The leaf type.
      * @return The child leaf of the given type, or null if no such child exists.
      */
-    public LeafAtom getLeafAtomOfType(int type) {
+    public @Nullable
+    Atom.LeafAtom getLeafAtomOfType(int type) {
       int childrenSize = leafChildren.size();
       for (int i = 0; i < childrenSize; i++) {
         LeafAtom atom = leafChildren.get(i);
@@ -234,14 +246,15 @@ import java.util.List;
 
     /**
      * Returns the child container of the given type.
-     * <p>
-     * If no child exists with the given type then null is returned. If multiple children exist with
-     * the given type then the first one to have been added is returned.
+     *
+     * <p>If no child exists with the given type then null is returned. If multiple children exist
+     * with the given type then the first one to have been added is returned.
      *
      * @param type The container type.
      * @return The child container of the given type, or null if no such child exists.
      */
-    public ContainerAtom getContainerAtomOfType(int type) {
+    public @Nullable
+    Atom.ContainerAtom getContainerAtomOfType(int type) {
       int childrenSize = containerChildren.size();
       for (int i = 0; i < childrenSize; i++) {
         ContainerAtom atom = containerChildren.get(i);

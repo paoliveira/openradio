@@ -17,8 +17,10 @@ package com.google.android.exoplayer2.metadata.scte35;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,9 +88,9 @@ public final class SpliceScheduleCommand extends SpliceCommand {
     public final int availsExpected;
 
     private Event(long spliceEventId, boolean spliceEventCancelIndicator,
-        boolean outOfNetworkIndicator, boolean programSpliceFlag,
-        List<ComponentSplice> componentSpliceList, long utcSpliceTime, boolean autoReturn,
-        long breakDurationUs, int uniqueProgramId, int availNum, int availsExpected) {
+                  boolean outOfNetworkIndicator, boolean programSpliceFlag,
+                  List<ComponentSplice> componentSpliceList, long utcSpliceTime, boolean autoReturn,
+                  long breakDurationUs, int uniqueProgramId, int availNum, int availsExpected) {
       this.spliceEventId = spliceEventId;
       this.spliceEventCancelIndicator = spliceEventCancelIndicator;
       this.outOfNetworkIndicator = outOfNetworkIndicator;

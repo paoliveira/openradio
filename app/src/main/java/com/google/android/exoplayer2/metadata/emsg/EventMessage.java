@@ -18,9 +18,13 @@ package com.google.android.exoplayer2.metadata.emsg;
 import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.Arrays;
+
+import static com.google.android.exoplayer2.util.Util.castNonNull;
 
 /**
  * An Event Message (emsg) as defined in ISO 23009-1.
@@ -71,7 +75,7 @@ public final class EventMessage implements Metadata.Entry {
    * @param presentationTimeUs The presentation time value of this event message in microseconds.
    */
   public EventMessage(String schemeIdUri, String value, long durationMs, long id,
-      byte[] messageData, long presentationTimeUs) {
+                      byte[] messageData, long presentationTimeUs) {
     this.schemeIdUri = schemeIdUri;
     this.value = value;
     this.durationMs = durationMs;
@@ -81,12 +85,12 @@ public final class EventMessage implements Metadata.Entry {
   }
 
   /* package */ EventMessage(Parcel in) {
-    schemeIdUri = in.readString();
-    value = in.readString();
+    schemeIdUri = castNonNull(in.readString());
+    value = castNonNull(in.readString());
     presentationTimeUs = in.readLong();
     durationMs = in.readLong();
     id = in.readLong();
-    messageData = in.createByteArray();
+    messageData = castNonNull(in.createByteArray());
   }
 
   @Override

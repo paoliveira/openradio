@@ -26,24 +26,18 @@ import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.ts.TsPayloadReader.TrackIdGenerator;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.IOException;
+
+import static com.google.android.exoplayer2.extractor.ts.TsPayloadReader.FLAG_DATA_ALIGNMENT_INDICATOR;
 
 /**
  * Extracts data from (E-)AC-3 bitstreams.
  */
 public final class Ac3Extractor implements Extractor {
 
-  /**
-   * Factory for {@link Ac3Extractor} instances.
-   */
-  public static final ExtractorsFactory FACTORY = new ExtractorsFactory() {
-
-    @Override
-    public Extractor[] createExtractors() {
-      return new Extractor[] {new Ac3Extractor()};
-    }
-
-  };
+  /** Factory for {@link Ac3Extractor} instances. */
+  public static final ExtractorsFactory FACTORY = () -> new Extractor[] {new Ac3Extractor()};
 
   /**
    * The maximum number of bytes to search when sniffing, excluding ID3 information, before giving
@@ -94,7 +88,7 @@ public final class Ac3Extractor implements Extractor {
     int headerPosition = startPosition;
     int validFramesCount = 0;
     while (true) {
-      input.peekFully(scratch.data, 0, 5);
+      input.peekFully(scratch.data, 0, 6);
       scratch.setPosition(0);
       int syncBytes = scratch.readUnsignedShort();
       if (syncBytes != AC3_SYNC_WORD) {
@@ -112,7 +106,7 @@ public final class Ac3Extractor implements Extractor {
         if (frameSize == C.LENGTH_UNSET) {
           return false;
         }
-        input.advancePeekPosition(frameSize - 5);
+        input.advancePeekPosition(frameSize - 6);
       }
     }
   }
@@ -137,7 +131,7 @@ public final class Ac3Extractor implements Extractor {
 
   @Override
   public int read(ExtractorInput input, PositionHolder seekPosition) throws IOException,
-      InterruptedException {
+          InterruptedException {
     int bytesRead = input.read(sampleData.data, 0, MAX_SYNC_FRAME_SIZE);
     if (bytesRead == C.RESULT_END_OF_INPUT) {
       return RESULT_END_OF_INPUT;
@@ -149,7 +143,7 @@ public final class Ac3Extractor implements Extractor {
 
     if (!startedPacket) {
       // Pass data to the reader as though it's contained within a single infinitely long packet.
-      reader.packetStarted(firstSampleTimestampUs, true);
+      reader.packetStarted(firstSampleTimestampUs, FLAG_DATA_ALIGNMENT_INDICATOR);
       startedPacket = true;
     }
     // TODO: Make it possible for the reader to consume the dataSource directly, so that it becomes

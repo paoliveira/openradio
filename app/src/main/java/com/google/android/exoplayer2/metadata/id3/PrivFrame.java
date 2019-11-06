@@ -18,8 +18,12 @@ package com.google.android.exoplayer2.metadata.id3;
 import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.Arrays;
+
+import static com.google.android.exoplayer2.util.Util.castNonNull;
 
 /**
  * PRIV (Private) ID3 frame.
@@ -39,8 +43,8 @@ public final class PrivFrame extends Id3Frame {
 
   /* package */ PrivFrame(Parcel in) {
     super(ID);
-    owner = in.readString();
-    privateData = in.createByteArray();
+    owner = castNonNull(in.readString());
+    privateData = castNonNull(in.createByteArray());
   }
 
   @Override

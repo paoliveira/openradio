@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.text.cea;
 
 import androidx.annotation.NonNull;
 import android.text.Layout.Alignment;
+
 import com.google.android.exoplayer2.text.Cue;
 
 /**
@@ -48,8 +49,8 @@ import com.google.android.exoplayer2.text.Cue;
    * @param priority See (@link #priority}.
    */
   public Cea708Cue(CharSequence text, Alignment textAlignment, float line, @LineType int lineType,
-      @AnchorType int lineAnchor, float position, @AnchorType int positionAnchor, float size,
-      boolean windowColorSet, int windowColor, int priority) {
+                   @AnchorType int lineAnchor, float position, @AnchorType int positionAnchor, float size,
+                   boolean windowColorSet, int windowColor, int priority) {
     super(text, textAlignment, line, lineType, lineAnchor, position, positionAnchor, size,
         windowColorSet, windowColor);
     this.priority = priority;

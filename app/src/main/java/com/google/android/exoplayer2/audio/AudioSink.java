@@ -17,8 +17,11 @@ package com.google.android.exoplayer2.audio;
 
 import android.media.AudioTrack;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -165,12 +168,13 @@ public interface AudioSink {
   void setListener(Listener listener);
 
   /**
-   * Returns whether it's possible to play audio in the specified encoding.
+   * Returns whether the sink supports the audio format.
    *
-   * @param encoding The audio encoding.
-   * @return Whether it's possible to play audio in the specified encoding.
+   * @param channelCount The number of channels, or {@link Format#NO_VALUE} if not known.
+   * @param encoding The audio encoding, or {@link Format#NO_VALUE} if not known.
+   * @return Whether the sink supports the audio format.
    */
-  boolean isEncodingSupported(@C.Encoding int encoding);
+  boolean supportsOutput(int channelCount, @C.Encoding int encoding);
 
   /**
    * Returns the playback position in the stream starting at zero, in microseconds, or
@@ -201,13 +205,13 @@ public interface AudioSink {
    * @throws ConfigurationException If an error occurs configuring the sink.
    */
   void configure(
-      @C.Encoding int inputEncoding,
-      int inputChannelCount,
-      int inputSampleRate,
-      int specifiedBufferSize,
-      @Nullable int[] outputChannels,
-      int trimStartFrames,
-      int trimEndFrames)
+          @C.Encoding int inputEncoding,
+          int inputChannelCount,
+          int inputSampleRate,
+          int specifiedBufferSize,
+          @Nullable int[] outputChannels,
+          int trimStartFrames,
+          int trimEndFrames)
       throws ConfigurationException;
 
   /**
@@ -215,9 +219,7 @@ public interface AudioSink {
    */
   void play();
 
-  /**
-   * Signals to the sink that the next buffer is discontinuous with the previous buffer.
-   */
+  /** Signals to the sink that the next buffer may be discontinuous with the previous buffer. */
   void handleDiscontinuity();
 
   /**
@@ -283,10 +285,11 @@ public interface AudioSink {
    */
   void setAudioAttributes(AudioAttributes audioAttributes);
 
-  /**
-   * Sets the audio session id.
-   */
+  /** Sets the audio session id. */
   void setAudioSessionId(int audioSessionId);
+
+  /** Sets the auxiliary effect. */
+  void setAuxEffectInfo(AuxEffectInfo auxEffectInfo);
 
   /**
    * Enables tunneling, if possible. The sink is reset if tunneling was previously disabled or if

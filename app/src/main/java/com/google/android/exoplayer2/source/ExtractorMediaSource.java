@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.source;
 import android.net.Uri;
 import android.os.Handler;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Player;
@@ -27,7 +28,11 @@ import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.ads.AdsMediaSource;
 import com.google.android.exoplayer2.upstream.Allocator;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultLoadErrorHandlingPolicy;
+import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy;
+import com.google.android.exoplayer2.upstream.TransferListener;
 import com.google.android.exoplayer2.util.Assertions;
+
 import java.io.IOException;
 
 /**
@@ -43,6 +48,7 @@ import java.io.IOException;
  */
 public final class ExtractorMediaSource extends BaseMediaSource
     implements ExtractorMediaPeriod.Listener {
+
   /**
    * Listener of {@link ExtractorMediaSource} events.
    *
@@ -67,49 +73,18 @@ public final class ExtractorMediaSource extends BaseMediaSource
 
   }
 
-  /**
-   * The default minimum number of times to retry loading prior to failing for on-demand streams.
-   */
-  public static final int DEFAULT_MIN_LOADABLE_RETRY_COUNT_ON_DEMAND = 3;
-
-  /**
-   * The default minimum number of times to retry loading prior to failing for live streams.
-   */
-  public static final int DEFAULT_MIN_LOADABLE_RETRY_COUNT_LIVE = 6;
-
-  /**
-   * Value for {@code minLoadableRetryCount} that causes the loader to retry
-   * {@link #DEFAULT_MIN_LOADABLE_RETRY_COUNT_LIVE} times for live streams and
-   * {@link #DEFAULT_MIN_LOADABLE_RETRY_COUNT_ON_DEMAND} for on-demand streams.
-   */
-  public static final int MIN_RETRY_COUNT_DEFAULT_FOR_MEDIA = -1;
-
-  /**
-   * The default number of bytes that should be loaded between each each invocation of
-   * {@link MediaPeriod.Callback#onContinueLoadingRequested(SequenceableLoader)}.
-   */
-  public static final int DEFAULT_LOADING_CHECK_INTERVAL_BYTES = 1024 * 1024;
-
-  private final Uri uri;
-  private final DataSource.Factory dataSourceFactory;
-  private final ExtractorsFactory extractorsFactory;
-  private final int minLoadableRetryCount;
-  private final String customCacheKey;
-  private final int continueLoadingCheckIntervalBytes;
-  private final @Nullable Object tag;
-
-  private long timelineDurationUs;
-  private boolean timelineIsSeekable;
-
   /** Factory for {@link ExtractorMediaSource}s. */
   public static final class Factory implements AdsMediaSource.MediaSourceFactory {
 
     private final DataSource.Factory dataSourceFactory;
 
-    private @Nullable ExtractorsFactory extractorsFactory;
-    private @Nullable String customCacheKey;
-    private @Nullable Object tag;
-    private int minLoadableRetryCount;
+    private @Nullable
+    ExtractorsFactory extractorsFactory;
+    private @Nullable
+    String customCacheKey;
+    private @Nullable
+    Object tag;
+    private LoadErrorHandlingPolicy loadErrorHandlingPolicy;
     private int continueLoadingCheckIntervalBytes;
     private boolean isCreateCalled;
 
@@ -120,7 +95,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
      */
     public Factory(DataSource.Factory dataSourceFactory) {
       this.dataSourceFactory = dataSourceFactory;
-      minLoadableRetryCount = MIN_RETRY_COUNT_DEFAULT_FOR_MEDIA;
+      loadErrorHandlingPolicy = new DefaultLoadErrorHandlingPolicy();
       continueLoadingCheckIntervalBytes = DEFAULT_LOADING_CHECK_INTERVAL_BYTES;
     }
 
@@ -171,16 +146,36 @@ public final class ExtractorMediaSource extends BaseMediaSource
     }
 
     /**
-     * Sets the minimum number of times to retry if a loading error occurs. The default value is
-     * {@link #MIN_RETRY_COUNT_DEFAULT_FOR_MEDIA}.
+     * Sets the minimum number of times to retry if a loading error occurs. See {@link
+     * #setLoadErrorHandlingPolicy} for the default value.
+     *
+     * <p>Calling this method is equivalent to calling {@link #setLoadErrorHandlingPolicy} with
+     * {@link DefaultLoadErrorHandlingPolicy#DefaultLoadErrorHandlingPolicy(int)
+     * DefaultLoadErrorHandlingPolicy(minLoadableRetryCount)}
      *
      * @param minLoadableRetryCount The minimum number of times to retry if a loading error occurs.
      * @return This factory, for convenience.
      * @throws IllegalStateException If one of the {@code create} methods has already been called.
+     * @deprecated Use {@link #setLoadErrorHandlingPolicy(LoadErrorHandlingPolicy)} instead.
      */
+    @Deprecated
     public Factory setMinLoadableRetryCount(int minLoadableRetryCount) {
+      return setLoadErrorHandlingPolicy(new DefaultLoadErrorHandlingPolicy(minLoadableRetryCount));
+    }
+
+    /**
+     * Sets the {@link LoadErrorHandlingPolicy}. The default value is created by calling {@link
+     * DefaultLoadErrorHandlingPolicy#DefaultLoadErrorHandlingPolicy()}.
+     *
+     * <p>Calling this method overrides any calls to {@link #setMinLoadableRetryCount(int)}.
+     *
+     * @param loadErrorHandlingPolicy A {@link LoadErrorHandlingPolicy}.
+     * @return This factory, for convenience.
+     * @throws IllegalStateException If one of the {@code create} methods has already been called.
+     */
+    public Factory setLoadErrorHandlingPolicy(LoadErrorHandlingPolicy loadErrorHandlingPolicy) {
       Assertions.checkState(!isCreateCalled);
-      this.minLoadableRetryCount = minLoadableRetryCount;
+      this.loadErrorHandlingPolicy = loadErrorHandlingPolicy;
       return this;
     }
 
@@ -217,7 +212,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
           uri,
           dataSourceFactory,
           extractorsFactory,
-          minLoadableRetryCount,
+          loadErrorHandlingPolicy,
           customCacheKey,
           continueLoadingCheckIntervalBytes,
           tag);
@@ -229,7 +224,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
      */
     @Deprecated
     public ExtractorMediaSource createMediaSource(
-        Uri uri, @Nullable Handler eventHandler, @Nullable MediaSourceEventListener eventListener) {
+            Uri uri, @Nullable Handler eventHandler, @Nullable MediaSourceEventListener eventListener) {
       ExtractorMediaSource mediaSource = createMediaSource(uri);
       if (eventHandler != null && eventListener != null) {
         mediaSource.addEventListener(eventHandler, eventListener);
@@ -244,6 +239,26 @@ public final class ExtractorMediaSource extends BaseMediaSource
   }
 
   /**
+   * The default number of bytes that should be loaded between each each invocation of {@link
+   * MediaPeriod.Callback#onContinueLoadingRequested(SequenceableLoader)}.
+   */
+  public static final int DEFAULT_LOADING_CHECK_INTERVAL_BYTES = 1024 * 1024;
+
+  private final Uri uri;
+  private final DataSource.Factory dataSourceFactory;
+  private final ExtractorsFactory extractorsFactory;
+  private final LoadErrorHandlingPolicy loadableLoadErrorHandlingPolicy;
+  private final String customCacheKey;
+  private final int continueLoadingCheckIntervalBytes;
+  private final @Nullable
+  Object tag;
+
+  private long timelineDurationUs;
+  private boolean timelineIsSeekable;
+  private @Nullable
+  TransferListener transferListener;
+
+  /**
    * @param uri The {@link Uri} of the media stream.
    * @param dataSourceFactory A factory for {@link DataSource}s to read the media.
    * @param extractorsFactory A factory for {@link Extractor}s to process the media stream. If the
@@ -254,6 +269,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
    * @deprecated Use {@link Factory} instead.
    */
   @Deprecated
+  @SuppressWarnings("deprecation")
   public ExtractorMediaSource(
       Uri uri,
       DataSource.Factory dataSourceFactory,
@@ -276,6 +292,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
    * @deprecated Use {@link Factory} instead.
    */
   @Deprecated
+  @SuppressWarnings("deprecation")
   public ExtractorMediaSource(
       Uri uri,
       DataSource.Factory dataSourceFactory,
@@ -283,8 +300,14 @@ public final class ExtractorMediaSource extends BaseMediaSource
       Handler eventHandler,
       EventListener eventListener,
       String customCacheKey) {
-    this(uri, dataSourceFactory, extractorsFactory, MIN_RETRY_COUNT_DEFAULT_FOR_MEDIA, eventHandler,
-        eventListener, customCacheKey, DEFAULT_LOADING_CHECK_INTERVAL_BYTES);
+    this(
+        uri,
+        dataSourceFactory,
+        extractorsFactory,
+        eventHandler,
+        eventListener,
+        customCacheKey,
+        DEFAULT_LOADING_CHECK_INTERVAL_BYTES);
   }
 
   /**
@@ -293,7 +316,6 @@ public final class ExtractorMediaSource extends BaseMediaSource
    * @param extractorsFactory A factory for {@link Extractor}s to process the media stream. If the
    *     possible formats are known, pass a factory that instantiates extractors for those formats.
    *     Otherwise, pass a {@link DefaultExtractorsFactory} to use default extractors.
-   * @param minLoadableRetryCount The minimum number of times to retry if a loading error occurs.
    * @param eventHandler A handler for events. May be null if delivery of events is not required.
    * @param eventListener A listener of events. May be null if delivery of events is not required.
    * @param customCacheKey A custom key that uniquely identifies the original stream. Used for cache
@@ -303,11 +325,11 @@ public final class ExtractorMediaSource extends BaseMediaSource
    * @deprecated Use {@link Factory} instead.
    */
   @Deprecated
+  @SuppressWarnings("deprecation")
   public ExtractorMediaSource(
       Uri uri,
       DataSource.Factory dataSourceFactory,
       ExtractorsFactory extractorsFactory,
-      int minLoadableRetryCount,
       Handler eventHandler,
       EventListener eventListener,
       String customCacheKey,
@@ -316,7 +338,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
         uri,
         dataSourceFactory,
         extractorsFactory,
-        minLoadableRetryCount,
+        new DefaultLoadErrorHandlingPolicy(),
         customCacheKey,
         continueLoadingCheckIntervalBytes,
         /* tag= */ null);
@@ -329,14 +351,14 @@ public final class ExtractorMediaSource extends BaseMediaSource
       Uri uri,
       DataSource.Factory dataSourceFactory,
       ExtractorsFactory extractorsFactory,
-      int minLoadableRetryCount,
+      LoadErrorHandlingPolicy loadableLoadErrorHandlingPolicy,
       @Nullable String customCacheKey,
       int continueLoadingCheckIntervalBytes,
       @Nullable Object tag) {
     this.uri = uri;
     this.dataSourceFactory = dataSourceFactory;
     this.extractorsFactory = extractorsFactory;
-    this.minLoadableRetryCount = minLoadableRetryCount;
+    this.loadableLoadErrorHandlingPolicy = loadableLoadErrorHandlingPolicy;
     this.customCacheKey = customCacheKey;
     this.continueLoadingCheckIntervalBytes = continueLoadingCheckIntervalBytes;
     this.timelineDurationUs = C.TIME_UNSET;
@@ -344,8 +366,18 @@ public final class ExtractorMediaSource extends BaseMediaSource
   }
 
   @Override
-  public void prepareSourceInternal(ExoPlayer player, boolean isTopLevelSource) {
-    notifySourceInfoRefreshed(timelineDurationUs, /* isSeekable= */ false);
+  @Nullable
+  public Object getTag() {
+    return tag;
+  }
+
+  @Override
+  public void prepareSourceInternal(
+      ExoPlayer player,
+      boolean isTopLevelSource,
+      @Nullable TransferListener mediaTransferListener) {
+    transferListener = mediaTransferListener;
+    notifySourceInfoRefreshed(timelineDurationUs, timelineIsSeekable);
   }
 
   @Override
@@ -354,13 +386,16 @@ public final class ExtractorMediaSource extends BaseMediaSource
   }
 
   @Override
-  public MediaPeriod createPeriod(MediaPeriodId id, Allocator allocator) {
-    Assertions.checkArgument(id.periodIndex == 0);
+  public MediaPeriod createPeriod(MediaPeriodId id, Allocator allocator, long startPositionUs) {
+    DataSource dataSource = dataSourceFactory.createDataSource();
+    if (transferListener != null) {
+      dataSource.addTransferListener(transferListener);
+    }
     return new ExtractorMediaPeriod(
         uri,
-        dataSourceFactory.createDataSource(),
+        dataSource,
         extractorsFactory.createExtractors(),
-        minLoadableRetryCount,
+        loadableLoadErrorHandlingPolicy,
         createEventDispatcher(id),
         this,
         allocator,
@@ -407,6 +442,8 @@ public final class ExtractorMediaSource extends BaseMediaSource
    * Wraps a deprecated {@link EventListener}, invoking its callback from the equivalent callback in
    * {@link MediaSourceEventListener}.
    */
+  @Deprecated
+  @SuppressWarnings("deprecation")
   private static final class EventListenerWrapper extends DefaultMediaSourceEventListener {
     private final EventListener eventListener;
 
@@ -417,7 +454,7 @@ public final class ExtractorMediaSource extends BaseMediaSource
     @Override
     public void onLoadError(
         int windowIndex,
-        @Nullable MediaPeriodId mediaPeriodId,
+        @Nullable MediaSource.MediaPeriodId mediaPeriodId,
         LoadEventInfo loadEventInfo,
         MediaLoadData mediaLoadData,
         IOException error,

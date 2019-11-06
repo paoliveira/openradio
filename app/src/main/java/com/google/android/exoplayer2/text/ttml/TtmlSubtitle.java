@@ -19,6 +19,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.Subtitle;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,13 +33,18 @@ import java.util.Map;
   private final long[] eventTimesUs;
   private final Map<String, TtmlStyle> globalStyles;
   private final Map<String, TtmlRegion> regionMap;
+  private final Map<String, String> imageMap;
 
-  public TtmlSubtitle(TtmlNode root, Map<String, TtmlStyle> globalStyles,
-      Map<String, TtmlRegion> regionMap) {
+  public TtmlSubtitle(
+      TtmlNode root,
+      Map<String, TtmlStyle> globalStyles,
+      Map<String, TtmlRegion> regionMap,
+      Map<String, String> imageMap) {
     this.root = root;
     this.regionMap = regionMap;
-    this.globalStyles = globalStyles != null
-        ? Collections.unmodifiableMap(globalStyles) : Collections.<String, TtmlStyle>emptyMap();
+    this.imageMap = imageMap;
+    this.globalStyles =
+        globalStyles != null ? Collections.unmodifiableMap(globalStyles) : Collections.emptyMap();
     this.eventTimesUs = root.getEventTimesUs();
   }
 
@@ -65,7 +71,7 @@ import java.util.Map;
 
   @Override
   public List<Cue> getCues(long timeUs) {
-    return root.getCues(timeUs, globalStyles, regionMap);
+    return root.getCues(timeUs, globalStyles, regionMap, imageMap);
   }
 
   /* @VisibleForTesting */

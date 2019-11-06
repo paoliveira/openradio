@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.metadata.scte35;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import com.google.android.exoplayer2.util.ParsableByteArray;
 
 /**
@@ -51,7 +52,7 @@ public final class PrivateCommand extends SpliceCommand {
   }
 
   /* package */ static PrivateCommand parseFromSection(ParsableByteArray sectionData,
-      int commandLength, long ptsAdjustment) {
+                                                       int commandLength, long ptsAdjustment) {
     long identifier = sectionData.readUnsignedInt();
     byte[] privateBytes = new byte[commandLength - 4 /* identifier size */];
     sectionData.readBytes(privateBytes, 0, privateBytes.length);

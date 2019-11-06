@@ -17,6 +17,7 @@ package com.google.android.exoplayer2;
 
 import android.os.Looper;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
 import com.google.android.exoplayer2.source.ClippingMediaSource;
@@ -30,9 +31,10 @@ import com.google.android.exoplayer2.text.TextRenderer;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
 
 /**
- * An extensible media player that plays {@link MediaSource}s. Instances can be obtained from {
+ * An extensible media player that plays {@link MediaSource}s. Instances can be obtained from {@link
  * ExoPlayerFactory}.
  *
  * <h3>Player components</h3>
@@ -54,7 +56,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
  *       complex MediaSources from simpler ones ({@link MergingMediaSource}, {@link
  *       ConcatenatingMediaSource}, {@link LoopingMediaSource} and {@link ClippingMediaSource}).
  *   <li><b>{@link Renderer}</b>s that render individual components of the media. The library
- *       provides default implementations for common media types ({ MediaCodecVideoRenderer},
+ *       provides default implementations for common media types ({@link MediaCodecVideoRenderer},
  *       {@link MediaCodecAudioRenderer}, {@link TextRenderer} and {@link MetadataRenderer}). A
  *       Renderer consumes media from the MediaSource being played. Renderers are injected when the
  *       player is created.
@@ -88,12 +90,18 @@ import com.google.android.exoplayer2.upstream.DataSource;
  * model">
  *
  * <ul>
- *   <li>It is strongly recommended that ExoPlayer instances are created and accessed from a single
- *       application thread. The application's main thread is ideal. Accessing an instance from
- *       multiple threads is discouraged as it may cause synchronization problems.
- *   <li>Registered listeners are called on the thread that created the ExoPlayer instance, unless
- *       the thread that created the ExoPlayer instance does not have a {@link Looper}. In that
- *       case, registered listeners will be called on the application's main thread.
+ *   <li>ExoPlayer instances must be accessed from a single application thread. For the vast
+ *       majority of cases this should be the application's main thread. Using the application's
+ *       main thread is also a requirement when using ExoPlayer's UI components or the IMA
+ *       extension. The thread on which an ExoPlayer instance must be accessed can be explicitly
+ *       specified by passing a `Looper` when creating the player. If no `Looper` is specified, then
+ *       the `Looper` of the thread that the player is created on is used, or if that thread does
+ *       not have a `Looper`, the `Looper` of the application's main thread is used. In all cases
+ *       the `Looper` of the thread from which the player must be accessed can be queried using
+ *       {@link #getApplicationLooper()}.
+ *   <li>Registered listeners are called on the thread associated with {@link
+ *       #getApplicationLooper()}. Note that this means registered listeners are called on the same
+ *       thread which must be used to access the player.
  *   <li>An internal playback thread is responsible for playback. Injected player components such as
  *       Renderers, MediaSources, TrackSelectors and LoadControls are called by the player on this
  *       thread.
@@ -177,12 +185,14 @@ public interface ExoPlayer extends Player {
   @Deprecated
   @RepeatMode int REPEAT_MODE_ALL = Player.REPEAT_MODE_ALL;
 
-  /**
-   * Gets the {@link Looper} associated with the playback thread.
-   *
-   * @return The {@link Looper} associated with the playback thread.
-   */
+  /** Returns the {@link Looper} associated with the playback thread. */
   Looper getPlaybackLooper();
+
+  /**
+   * Retries a failed or stopped playback. Does nothing if the player has been reset, or if playback
+   * has not failed or been stopped.
+   */
+  void retry();
 
   /**
    * Prepares the player to play the provided {@link MediaSource}. Equivalent to
@@ -223,6 +233,7 @@ public interface ExoPlayer extends Player {
 
   /** @deprecated Use {@link #createMessage(PlayerMessage.Target)} instead. */
   @Deprecated
+  @SuppressWarnings("deprecation")
   void sendMessages(ExoPlayerMessage... messages);
 
   /**
@@ -230,6 +241,7 @@ public interface ExoPlayer extends Player {
    *     PlayerMessage#blockUntilDelivered()}.
    */
   @Deprecated
+  @SuppressWarnings("deprecation")
   void blockingSendMessages(ExoPlayerMessage... messages);
 
   /**
@@ -238,4 +250,7 @@ public interface ExoPlayer extends Player {
    * @param seekParameters The seek parameters, or {@code null} to use the defaults.
    */
   void setSeekParameters(@Nullable SeekParameters seekParameters);
+
+  /** Returns the currently active {@link SeekParameters} of the player. */
+  SeekParameters getSeekParameters();
 }

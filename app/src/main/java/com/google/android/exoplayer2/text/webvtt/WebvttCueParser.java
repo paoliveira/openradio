@@ -31,14 +31,17 @@ import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.text.style.UnderlineSpan;
-import android.util.Log;
+
 import com.google.android.exoplayer2.text.Cue;
+import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.ParsableByteArray;
+import com.google.android.exoplayer2.util.Util;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -122,7 +125,7 @@ public final class WebvttCueParser {
    * @param builder The {@link WebvttCue.Builder} where incremental construction takes place.
    */
   /* package */ static void parseCueSettingsList(String cueSettingsList,
-      WebvttCue.Builder builder) {
+                                                 WebvttCue.Builder builder) {
     // Parse the cue settings list.
     Matcher cueSettingMatcher = CUE_SETTING_PATTERN.matcher(cueSettingsList);
     while (cueSettingMatcher.find()) {
@@ -155,9 +158,9 @@ public final class WebvttCueParser {
    * @param builder Output builder.
    */
   /* package */ static void parseCueText(String id, String markup, WebvttCue.Builder builder,
-      List<WebvttCssStyle> styles) {
+                                         List<WebvttCssStyle> styles) {
     SpannableStringBuilder spannedText = new SpannableStringBuilder();
-    Stack<StartTag> startTagStack = new Stack<>();
+    ArrayDeque<StartTag> startTagStack = new ArrayDeque<>();
     List<StyleMatch> scratchStyleMatches = new ArrayList<>();
     int pos = 0;
     while (pos < markup.length()) {
@@ -224,7 +227,7 @@ public final class WebvttCueParser {
   }
 
   private static boolean parseCue(String id, Matcher cueHeaderMatcher, ParsableByteArray webvttData,
-      WebvttCue.Builder builder, StringBuilder textBuilder, List<WebvttCssStyle> styles) {
+                                  WebvttCue.Builder builder, StringBuilder textBuilder, List<WebvttCssStyle> styles) {
     try {
       // Parse the cue start and end times.
       builder.setStartTime(WebvttParserUtil.parseTimestampUs(cueHeaderMatcher.group(1)))
@@ -364,7 +367,7 @@ public final class WebvttCueParser {
   }
 
   private static void applySpansForTag(String cueId, StartTag startTag, SpannableStringBuilder text,
-      List<WebvttCssStyle> styles, List<StyleMatch> scratchStyleMatches) {
+                                       List<WebvttCssStyle> styles, List<StyleMatch> scratchStyleMatches) {
     int start = startTag.position;
     int end = text.length();
     switch(startTag.name) {
@@ -396,7 +399,7 @@ public final class WebvttCueParser {
   }
 
   private static void applyStyleToText(SpannableStringBuilder spannedText, WebvttCssStyle style,
-      int start, int end) {
+                                       int start, int end) {
     if (style == null) {
       return;
     }
@@ -456,11 +459,11 @@ public final class WebvttCueParser {
     if (tagExpression.isEmpty()) {
       return null;
     }
-    return tagExpression.split("[ \\.]")[0];
+    return Util.splitAtFirst(tagExpression, "[ \\.]")[0];
   }
 
   private static void getApplicableStyles(List<WebvttCssStyle> declaredStyles, String id,
-      StartTag tag, List<StyleMatch> output) {
+                                          StartTag tag, List<StyleMatch> output) {
     int styleCount = declaredStyles.size();
     for (int i = 0; i < styleCount; i++) {
       WebvttCssStyle style = declaredStyles.get(i);
@@ -518,7 +521,7 @@ public final class WebvttCueParser {
         voice = fullTagExpression.substring(voiceStartIndex).trim();
         fullTagExpression = fullTagExpression.substring(0, voiceStartIndex);
       }
-      String[] nameAndClasses = fullTagExpression.split("\\.");
+      String[] nameAndClasses = Util.split(fullTagExpression, "\\.");
       String name = nameAndClasses[0];
       String[] classes;
       if (nameAndClasses.length > 1) {

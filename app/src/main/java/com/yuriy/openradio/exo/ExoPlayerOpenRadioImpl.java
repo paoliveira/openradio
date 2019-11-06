@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.ExoPlayerImpl;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -245,7 +246,9 @@ public final class ExoPlayerOpenRadioImpl {
                         DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
                         DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
                 ),
-                Clock.DEFAULT
+                ExoPlayerFactory.getDefaultBandwidthMeter(),
+                Clock.DEFAULT,
+                Util.getLooper()
         );
         mExoPlayer.addListener(mComponentListener);
     }

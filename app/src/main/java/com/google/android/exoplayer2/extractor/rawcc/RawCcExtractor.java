@@ -26,6 +26,7 @@ import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.TrackOutput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 import com.google.android.exoplayer2.util.Util;
+
 import java.io.IOException;
 
 /**
@@ -132,7 +133,7 @@ public final class RawCcExtractor implements Extractor {
   }
 
   private boolean parseTimestampAndSampleCount(ExtractorInput input) throws IOException,
-      InterruptedException {
+          InterruptedException {
     dataScratch.reset();
     if (version == 0) {
       if (!input.readFully(dataScratch.data, 0, TIMESTAMP_SIZE_V0 + 1, true)) {

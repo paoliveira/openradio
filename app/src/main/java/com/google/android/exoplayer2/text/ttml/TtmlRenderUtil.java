@@ -27,6 +27,7 @@ import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.text.style.UnderlineSpan;
+
 import java.util.Map;
 
 /**
@@ -64,7 +65,7 @@ import java.util.Map;
   }
 
   public static void applyStylesToSpan(SpannableStringBuilder builder,
-      int start, int end, TtmlStyle style) {
+                                       int start, int end, TtmlStyle style) {
 
     if (style.getStyle() != TtmlStyle.UNSPECIFIED) {
       builder.setSpan(new StyleSpan(style.getStyle()), start, end,

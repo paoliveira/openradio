@@ -18,26 +18,30 @@ package com.google.android.exoplayer2.metadata.id3;
 import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.util.Util;
+
+import static com.google.android.exoplayer2.util.Util.castNonNull;
 
 /**
  * Text information ID3 frame.
  */
 public final class TextInformationFrame extends Id3Frame {
 
-  public final String description;
+  public final @Nullable
+  String description;
   public final String value;
 
-  public TextInformationFrame(String id, String description, String value) {
+  public TextInformationFrame(String id, @Nullable String description, String value) {
     super(id);
     this.description = description;
     this.value = value;
   }
 
   /* package */ TextInformationFrame(Parcel in) {
-    super(in.readString());
+    super(castNonNull(in.readString()));
     description = in.readString();
-    value = in.readString();
+    value = castNonNull(in.readString());
   }
 
   @Override

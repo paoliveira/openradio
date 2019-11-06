@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.upstream;
 
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Util;
+
 import java.util.Arrays;
 
 /**
@@ -117,9 +118,6 @@ public final class DefaultAllocator implements Allocator {
           Math.max(availableAllocations.length * 2, availableCount + allocations.length));
     }
     for (Allocation allocation : allocations) {
-      // Weak sanity check that the allocation probably originated from this pool.
-      Assertions.checkArgument(allocation.data == initialAllocationBlock
-          || allocation.data.length == individualAllocationSize);
       availableAllocations[availableCount++] = allocation;
     }
     allocatedCount -= allocations.length;
