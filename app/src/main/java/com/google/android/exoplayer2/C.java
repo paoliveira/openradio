@@ -28,7 +28,6 @@ import androidx.annotation.IntDef;
 import com.google.android.exoplayer2.PlayerMessage.Target;
 import com.google.android.exoplayer2.audio.AuxEffectInfo;
 import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.video.VideoFrameMetadataListener;
 import com.google.android.exoplayer2.video.spherical.CameraMotionListener;
 
 import java.lang.annotation.Documented;

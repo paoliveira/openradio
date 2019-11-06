@@ -37,8 +37,6 @@ import com.google.android.exoplayer2.text.TextOutput;
 import com.google.android.exoplayer2.text.TextRenderer;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.util.Log;
-import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
-import com.google.android.exoplayer2.video.VideoRendererEventListener;
 import com.google.android.exoplayer2.video.spherical.CameraMotionRenderer;
 
 import java.lang.annotation.Documented;
@@ -87,12 +85,9 @@ public class DefaultRenderersFactory implements RenderersFactory {
 
   private static final String TAG = "DefaultRenderersFactory";
 
-  protected static final int MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY = 50;
-
   private final Context context;
   @Nullable private DrmSessionManager<FrameworkMediaCrypto> drmSessionManager;
   @ExtensionRendererMode private int extensionRendererMode;
-  private long allowedVideoJoiningTimeMs;
   private boolean playClearSamplesWithoutKeys;
   private boolean enableDecoderFallback;
   private MediaCodecSelector mediaCodecSelector;
@@ -101,7 +96,6 @@ public class DefaultRenderersFactory implements RenderersFactory {
   public DefaultRenderersFactory(Context context) {
     this.context = context;
     extensionRendererMode = EXTENSION_RENDERER_MODE_OFF;
-    allowedVideoJoiningTimeMs = DEFAULT_ALLOWED_VIDEO_JOINING_TIME_MS;
     mediaCodecSelector = MediaCodecSelector.DEFAULT;
   }
 
@@ -167,7 +161,6 @@ public class DefaultRenderersFactory implements RenderersFactory {
       long allowedVideoJoiningTimeMs) {
     this.context = context;
     this.extensionRendererMode = extensionRendererMode;
-    this.allowedVideoJoiningTimeMs = allowedVideoJoiningTimeMs;
     this.drmSessionManager = drmSessionManager;
     mediaCodecSelector = MediaCodecSelector.DEFAULT;
   }
@@ -244,14 +237,12 @@ public class DefaultRenderersFactory implements RenderersFactory {
    * @return This factory, for convenience.
    */
   public DefaultRenderersFactory setAllowedVideoJoiningTimeMs(long allowedVideoJoiningTimeMs) {
-    this.allowedVideoJoiningTimeMs = allowedVideoJoiningTimeMs;
     return this;
   }
 
   @Override
   public Renderer[] createRenderers(
       Handler eventHandler,
-      VideoRendererEventListener videoRendererEventListener,
       AudioRendererEventListener audioRendererEventListener,
       TextOutput textRendererOutput,
       MetadataOutput metadataRendererOutput,
@@ -260,17 +251,6 @@ public class DefaultRenderersFactory implements RenderersFactory {
       drmSessionManager = this.drmSessionManager;
     }
     ArrayList<Renderer> renderersList = new ArrayList<>();
-    buildVideoRenderers(
-        context,
-        extensionRendererMode,
-        mediaCodecSelector,
-        drmSessionManager,
-        playClearSamplesWithoutKeys,
-        enableDecoderFallback,
-        eventHandler,
-        videoRendererEventListener,
-        allowedVideoJoiningTimeMs,
-        renderersList);
     buildAudioRenderers(
         context,
         extensionRendererMode,
@@ -289,85 +269,6 @@ public class DefaultRenderersFactory implements RenderersFactory {
     buildCameraMotionRenderers(context, extensionRendererMode, renderersList);
     buildMiscellaneousRenderers(context, eventHandler, extensionRendererMode, renderersList);
     return renderersList.toArray(new Renderer[0]);
-  }
-
-  /**
-   * Builds video renderers for use by the player.
-   *
-   * @param context The {@link Context} associated with the player.
-   * @param extensionRendererMode The extension renderer mode.
-   * @param mediaCodecSelector A decoder selector.
-   * @param drmSessionManager An optional {@link DrmSessionManager}. May be null if the player will
-   *     not be used for DRM protected playbacks.
-   * @param playClearSamplesWithoutKeys Whether renderers are permitted to play clear regions of
-   *     encrypted media prior to having obtained the keys necessary to decrypt encrypted regions of
-   *     the media.
-   * @param enableDecoderFallback Whether to enable fallback to lower-priority decoders if decoder
-   *     initialization fails. This may result in using a decoder that is slower/less efficient than
-   *     the primary decoder.
-   * @param eventHandler A handler associated with the main thread's looper.
-   * @param eventListener An event listener.
-   * @param allowedVideoJoiningTimeMs The maximum duration for which video renderers can attempt to
-   *     seamlessly join an ongoing playback, in milliseconds.
-   * @param out An array to which the built renderers should be appended.
-   */
-  protected void buildVideoRenderers(
-      Context context,
-      @ExtensionRendererMode int extensionRendererMode,
-      MediaCodecSelector mediaCodecSelector,
-      @Nullable DrmSessionManager<FrameworkMediaCrypto> drmSessionManager,
-      boolean playClearSamplesWithoutKeys,
-      boolean enableDecoderFallback,
-      Handler eventHandler,
-      VideoRendererEventListener eventListener,
-      long allowedVideoJoiningTimeMs,
-      ArrayList<Renderer> out) {
-    out.add(
-        new MediaCodecVideoRenderer(
-            context,
-            mediaCodecSelector,
-            allowedVideoJoiningTimeMs,
-            drmSessionManager,
-            playClearSamplesWithoutKeys,
-            enableDecoderFallback,
-            eventHandler,
-            eventListener,
-            MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY));
-
-    if (extensionRendererMode == EXTENSION_RENDERER_MODE_OFF) {
-      return;
-    }
-    int extensionRendererIndex = out.size();
-    if (extensionRendererMode == EXTENSION_RENDERER_MODE_PREFER) {
-      extensionRendererIndex--;
-    }
-
-    try {
-      // Full class names used for constructor args so the LINT rule triggers if any of them move.
-      // LINT.IfChange
-      Class<?> clazz = Class.forName("com.google.android.exoplayer2.ext.vp9.LibvpxVideoRenderer");
-      Constructor<?> constructor =
-          clazz.getConstructor(
-              long.class,
-              android.os.Handler.class,
-              com.google.android.exoplayer2.video.VideoRendererEventListener.class,
-              int.class);
-      // LINT.ThenChange(../../../../../../../proguard-rules.txt)
-      Renderer renderer =
-          (Renderer)
-              constructor.newInstance(
-                  allowedVideoJoiningTimeMs,
-                  eventHandler,
-                  eventListener,
-                  MAX_DROPPED_VIDEO_FRAME_COUNT_TO_NOTIFY);
-      out.add(extensionRendererIndex++, renderer);
-      Log.i(TAG, "Loaded LibvpxVideoRenderer.");
-    } catch (ClassNotFoundException e) {
-      // Expected if the app was built without the extension.
-    } catch (Exception e) {
-      // The extension is present, but instantiation failed.
-      throw new RuntimeException("Error instantiating VP9 extension", e);
-    }
   }
 
   /**

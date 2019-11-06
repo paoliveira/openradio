@@ -155,12 +155,6 @@ public final class ExoPlayerImpl extends BasePlayer implements ExoPlayer {
 
   @Override
   @Nullable
-  public VideoComponent getVideoComponent() {
-    return null;
-  }
-
-  @Override
-  @Nullable
   public TextComponent getTextComponent() {
     return null;
   }
