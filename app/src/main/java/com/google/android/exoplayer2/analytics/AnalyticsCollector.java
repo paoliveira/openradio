@@ -15,14 +15,16 @@
  */
 package com.google.android.exoplayer2.analytics;
 
-import androidx.annotation.Nullable;
 import android.view.Surface;
+
+import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.Player.PlaybackSuppressionReason;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.Timeline.Period;
 import com.google.android.exoplayer2.Timeline.Window;
@@ -34,7 +36,6 @@ import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionEventListener;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
-import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSource.MediaPeriodId;
 import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.TrackGroupArray;
@@ -133,12 +134,13 @@ public class AnalyticsCollector
 
   /**
    * Sets the player for which data will be collected. Must only be called if no player has been set
-   * yet.
+   * yet or the current player is idle.
    *
    * @param player The {@link Player} for which data will be collected.
    */
   public void setPlayer(Player player) {
-    Assertions.checkState(this.player == null);
+    Assertions.checkState(
+        this.player == null || mediaPeriodQueueTracker.mediaPeriodInfoQueue.isEmpty());
     this.player = Assertions.checkNotNull(player);
   }
 
@@ -359,7 +361,7 @@ public class AnalyticsCollector
   @Override
   public final void onLoadStarted(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
@@ -371,7 +373,7 @@ public class AnalyticsCollector
   @Override
   public final void onLoadCompleted(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
@@ -383,7 +385,7 @@ public class AnalyticsCollector
   @Override
   public final void onLoadCanceled(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
@@ -395,7 +397,7 @@ public class AnalyticsCollector
   @Override
   public final void onLoadError(
       int windowIndex,
-      @Nullable MediaSource.MediaPeriodId mediaPeriodId,
+      @Nullable MediaPeriodId mediaPeriodId,
       LoadEventInfo loadEventInfo,
       MediaLoadData mediaLoadData,
       IOException error,
@@ -417,7 +419,7 @@ public class AnalyticsCollector
 
   @Override
   public final void onUpstreamDiscarded(
-          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
     for (AnalyticsListener listener : listeners) {
       listener.onUpstreamDiscarded(eventTime, mediaLoadData);
@@ -426,7 +428,7 @@ public class AnalyticsCollector
 
   @Override
   public final void onDownstreamFormatChanged(
-          int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
     for (AnalyticsListener listener : listeners) {
       listener.onDownstreamFormatChanged(eventTime, mediaLoadData);
@@ -471,6 +473,23 @@ public class AnalyticsCollector
     EventTime eventTime = generatePlayingMediaPeriodEventTime();
     for (AnalyticsListener listener : listeners) {
       listener.onPlayerStateChanged(eventTime, playWhenReady, playbackState);
+    }
+  }
+
+  @Override
+  public void onPlaybackSuppressionReasonChanged(
+      @PlaybackSuppressionReason int playbackSuppressionReason) {
+    EventTime eventTime = generatePlayingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onPlaybackSuppressionReasonChanged(eventTime, playbackSuppressionReason);
+    }
+  }
+
+  @Override
+  public void onIsPlayingChanged(boolean isPlaying) {
+    EventTime eventTime = generatePlayingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onIsPlayingChanged(eventTime, isPlaying);
     }
   }
 
@@ -599,7 +618,7 @@ public class AnalyticsCollector
   /** Returns a new {@link EventTime} for the specified timeline, window and media period id. */
   @RequiresNonNull("player")
   protected EventTime generateEventTime(
-          Timeline timeline, int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId) {
+          Timeline timeline, int windowIndex, @Nullable MediaPeriodId mediaPeriodId) {
     if (timeline.isEmpty()) {
       // Ensure media period id is only reported together with a valid timeline.
       mediaPeriodId = null;
@@ -666,7 +685,7 @@ public class AnalyticsCollector
   }
 
   private EventTime generateMediaPeriodEventTime(
-      int windowIndex, @Nullable MediaSource.MediaPeriodId mediaPeriodId) {
+      int windowIndex, @Nullable MediaPeriodId mediaPeriodId) {
     Assertions.checkNotNull(player);
     if (mediaPeriodId != null) {
       MediaPeriodInfo mediaPeriodInfo = mediaPeriodQueueTracker.getMediaPeriodInfo(mediaPeriodId);

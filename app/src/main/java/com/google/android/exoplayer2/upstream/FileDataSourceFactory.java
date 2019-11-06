@@ -34,7 +34,7 @@ public final class FileDataSourceFactory implements DataSource.Factory {
   }
 
   @Override
-  public DataSource createDataSource() {
+  public FileDataSource createDataSource() {
     FileDataSource dataSource = new FileDataSource();
     if (listener != null) {
       dataSource.addTransferListener(listener);

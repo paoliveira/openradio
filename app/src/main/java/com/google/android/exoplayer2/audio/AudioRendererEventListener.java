@@ -17,6 +17,7 @@ package com.google.android.exoplayer2.audio;
 
 import android.os.Handler;
 import android.os.SystemClock;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
@@ -148,6 +149,7 @@ public interface AudioRendererEventListener {
      * Invokes {@link AudioRendererEventListener#onAudioDisabled(DecoderCounters)}.
      */
     public void disabled(final DecoderCounters counters) {
+      counters.ensureUpdated();
       if (listener != null) {
         handler.post(
             () -> {

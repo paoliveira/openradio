@@ -19,6 +19,7 @@ import android.media.audiofx.Virtualizer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 
@@ -108,8 +109,8 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
         ? extends AudioDecoderException> decoder;
   private DecoderInputBuffer inputBuffer;
   private SimpleOutputBuffer outputBuffer;
-  private DrmSession<ExoMediaCrypto> drmSession;
-  private DrmSession<ExoMediaCrypto> pendingDrmSession;
+  @Nullable private DrmSession<ExoMediaCrypto> decoderDrmSession;
+  @Nullable private DrmSession<ExoMediaCrypto> sourceDrmSession;
 
   @ReinitializationState private int decoderReinitializationState;
   private boolean decoderReceivedBuffers;
@@ -464,12 +465,12 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
   }
 
   private boolean shouldWaitForKeys(boolean bufferEncrypted) throws ExoPlaybackException {
-    if (drmSession == null || (!bufferEncrypted && playClearSamplesWithoutKeys)) {
+    if (decoderDrmSession == null || (!bufferEncrypted && playClearSamplesWithoutKeys)) {
       return false;
     }
-    @DrmSession.State int drmSessionState = drmSession.getState();
+    @DrmSession.State int drmSessionState = decoderDrmSession.getState();
     if (drmSessionState == DrmSession.STATE_ERROR) {
-      throw ExoPlaybackException.createForRenderer(drmSession.getError(), getIndex());
+      throw ExoPlaybackException.createForRenderer(decoderDrmSession.getError(), getIndex());
     }
     return drmSessionState != DrmSession.STATE_OPENED_WITH_KEYS;
   }
@@ -542,7 +543,7 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
 
   @Override
   protected void onPositionReset(long positionUs, boolean joining) throws ExoPlaybackException {
-    audioSink.reset();
+    audioSink.flush();
     currentPositionUs = positionUs;
     allowFirstBufferPositionDiscontinuity = true;
     allowPositionDiscontinuity = true;
@@ -570,25 +571,11 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
     audioTrackNeedsConfigure = true;
     waitingForKeys = false;
     try {
+      setSourceDrmSession(null);
       releaseDecoder();
-      audioSink.release();
+      audioSink.reset();
     } finally {
-      try {
-        if (drmSession != null) {
-          drmSessionManager.releaseSession(drmSession);
-        }
-      } finally {
-        try {
-          if (pendingDrmSession != null && pendingDrmSession != drmSession) {
-            drmSessionManager.releaseSession(pendingDrmSession);
-          }
-        } finally {
-          drmSession = null;
-          pendingDrmSession = null;
-          decoderCounters.ensureUpdated();
-          eventDispatcher.disabled(decoderCounters);
-        }
-      }
+      eventDispatcher.disabled(decoderCounters);
     }
   }
 
@@ -617,12 +604,13 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
       return;
     }
 
-    drmSession = pendingDrmSession;
+    setDecoderDrmSession(sourceDrmSession);
+
     ExoMediaCrypto mediaCrypto = null;
-    if (drmSession != null) {
-      mediaCrypto = drmSession.getMediaCrypto();
+    if (decoderDrmSession != null) {
+      mediaCrypto = decoderDrmSession.getMediaCrypto();
       if (mediaCrypto == null) {
-        DrmSessionException drmError = drmSession.getError();
+        DrmSessionException drmError = decoderDrmSession.getError();
         if (drmError != null) {
           // Continue for now. We may be able to avoid failure if the session recovers, or if a new
           // input format causes the session to be replaced before it's used.
@@ -648,17 +636,34 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
   }
 
   private void releaseDecoder() {
-    if (decoder == null) {
-      return;
-    }
-
     inputBuffer = null;
     outputBuffer = null;
-    decoder.release();
-    decoder = null;
-    decoderCounters.decoderReleaseCount++;
     decoderReinitializationState = REINITIALIZATION_STATE_NONE;
     decoderReceivedBuffers = false;
+    if (decoder != null) {
+      decoder.release();
+      decoder = null;
+      decoderCounters.decoderReleaseCount++;
+    }
+    setDecoderDrmSession(null);
+  }
+
+  private void setSourceDrmSession(@Nullable DrmSession<ExoMediaCrypto> session) {
+    DrmSession<ExoMediaCrypto> previous = sourceDrmSession;
+    sourceDrmSession = session;
+    releaseDrmSessionIfUnused(previous);
+  }
+
+  private void setDecoderDrmSession(@Nullable DrmSession<ExoMediaCrypto> session) {
+    DrmSession<ExoMediaCrypto> previous = decoderDrmSession;
+    decoderDrmSession = session;
+    releaseDrmSessionIfUnused(previous);
+  }
+
+  private void releaseDrmSessionIfUnused(@Nullable DrmSession<ExoMediaCrypto> session) {
+    if (session != null && session != decoderDrmSession && session != sourceDrmSession) {
+      drmSessionManager.releaseSession(session);
+    }
   }
 
   private void onInputFormatChanged(Format newFormat) throws ExoPlaybackException {
@@ -673,13 +678,16 @@ public abstract class SimpleDecoderAudioRenderer extends BaseRenderer implements
           throw ExoPlaybackException.createForRenderer(
               new IllegalStateException("Media requires a DrmSessionManager"), getIndex());
         }
-        pendingDrmSession = drmSessionManager.acquireSession(Looper.myLooper(),
-            inputFormat.drmInitData);
-        if (pendingDrmSession == drmSession) {
-          drmSessionManager.releaseSession(pendingDrmSession);
+        DrmSession<ExoMediaCrypto> session =
+            drmSessionManager.acquireSession(Looper.myLooper(), newFormat.drmInitData);
+        if (session == decoderDrmSession || session == sourceDrmSession) {
+          // We already had this session. The manager must be reference counting, so release it once
+          // to get the count attributed to this renderer back down to 1.
+          drmSessionManager.releaseSession(session);
         }
+        setSourceDrmSession(session);
       } else {
-        pendingDrmSession = null;
+        setSourceDrmSession(null);
       }
     }
 

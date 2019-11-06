@@ -17,8 +17,9 @@ package com.google.android.exoplayer2.text;
 
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import androidx.annotation.IntDef;
 import android.text.Layout.Alignment;
+
+import androidx.annotation.IntDef;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
@@ -29,9 +30,10 @@ import java.lang.annotation.RetentionPolicy;
  */
 public class Cue {
 
-  /**
-   * An unset position or width.
-   */
+  /** The empty cue. */
+  public static final Cue EMPTY = new Cue("");
+
+  /** An unset position or width. */
   public static final float DIMEN_UNSET = Float.MIN_VALUE;
 
   /**

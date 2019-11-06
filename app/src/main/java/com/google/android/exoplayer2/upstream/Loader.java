@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
 
@@ -213,6 +214,19 @@ public final class Loader implements LoaderErrorThrower {
     return new LoadErrorAction(
         resetErrorCount ? ACTION_TYPE_RETRY_AND_RESET_ERROR_COUNT : ACTION_TYPE_RETRY,
         retryDelayMillis);
+  }
+
+  /**
+   * Whether the last call to {@link #startLoading} resulted in a fatal error. Calling {@link
+   * #maybeThrowError()} will throw the fatal error.
+   */
+  public boolean hasFatalError() {
+    return fatalError != null;
+  }
+
+  /** Clears any stored fatal error. */
+  public void clearFatalError() {
+    fatalError = null;
   }
 
   /**

@@ -18,9 +18,10 @@ package com.google.android.exoplayer2.text;
 import android.annotation.TargetApi;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import androidx.annotation.IntDef;
 import android.view.accessibility.CaptioningManager;
 import android.view.accessibility.CaptioningManager.CaptionStyle;
+
+import androidx.annotation.IntDef;
 
 import com.google.android.exoplayer2.util.Util;
 

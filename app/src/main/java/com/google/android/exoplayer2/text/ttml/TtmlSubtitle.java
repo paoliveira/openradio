@@ -15,6 +15,8 @@
  */
 package com.google.android.exoplayer2.text.ttml;
 
+import androidx.annotation.VisibleForTesting;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.text.Subtitle;
@@ -64,7 +66,7 @@ import java.util.Map;
     return eventTimesUs[index];
   }
 
-  /* @VisibleForTesting */
+  @VisibleForTesting
   /* package */ TtmlNode getRoot() {
     return root;
   }
@@ -74,7 +76,7 @@ import java.util.Map;
     return root.getCues(timeUs, globalStyles, regionMap, imageMap);
   }
 
-  /* @VisibleForTesting */
+  @VisibleForTesting
   /* package */ Map<String, TtmlStyle> getGlobalStyles() {
     return globalStyles;
   }

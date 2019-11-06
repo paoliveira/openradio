@@ -17,9 +17,10 @@ package com.google.android.exoplayer2.video;
 
 import android.os.Handler;
 import android.os.SystemClock;
-import androidx.annotation.Nullable;
 import android.view.Surface;
 import android.view.TextureView;
+
+import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.Renderer;
@@ -180,6 +181,7 @@ public interface VideoRendererEventListener {
 
     /** Invokes {@link VideoRendererEventListener#onVideoDisabled(DecoderCounters)}. */
     public void disabled(DecoderCounters counters) {
+      counters.ensureUpdated();
       if (listener != null) {
         handler.post(
             () -> {

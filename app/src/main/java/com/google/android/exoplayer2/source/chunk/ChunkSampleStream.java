@@ -340,6 +340,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
       if (loader.isLoading()) {
         loader.cancelLoading();
       } else {
+        loader.clearFatalError();
         primarySampleQueue.reset();
         for (SampleQueue embeddedSampleQueue : embeddedSampleQueues) {
           embeddedSampleQueue.reset();
@@ -551,7 +552,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
 
   @Override
   public boolean continueLoading(long positionUs) {
-    if (loadingFinished || loader.isLoading()) {
+    if (loadingFinished || loader.isLoading() || loader.hasFatalError()) {
       return false;
     }
 
@@ -618,7 +619,7 @@ public class ChunkSampleStream<T extends ChunkSource> implements SampleStream, S
 
   @Override
   public void reevaluateBuffer(long positionUs) {
-    if (loader.isLoading() || isPendingReset()) {
+    if (loader.isLoading() || loader.hasFatalError() || isPendingReset()) {
       return;
     }
 

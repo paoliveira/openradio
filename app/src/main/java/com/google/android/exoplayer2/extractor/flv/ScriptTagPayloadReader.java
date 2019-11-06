@@ -15,8 +15,11 @@
  */
 package com.google.android.exoplayer2.extractor.flv;
 
+import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ParserException;
+import com.google.android.exoplayer2.extractor.DummyTrackOutput;
 import com.google.android.exoplayer2.util.ParsableByteArray;
 
 import java.util.ArrayList;
@@ -45,7 +48,7 @@ import java.util.Map;
   private long durationUs;
 
   public ScriptTagPayloadReader() {
-    super(null);
+    super(new DummyTrackOutput());
     durationUs = C.TIME_UNSET;
   }
 
@@ -64,7 +67,7 @@ import java.util.Map;
   }
 
   @Override
-  protected void parsePayload(ParsableByteArray data, long timeUs) throws ParserException {
+  protected boolean parsePayload(ParsableByteArray data, long timeUs) throws ParserException {
     int nameType = readAmfType(data);
     if (nameType != AMF_TYPE_STRING) {
       // Should never happen.
@@ -73,12 +76,12 @@ import java.util.Map;
     String name = readAmfString(data);
     if (!NAME_METADATA.equals(name)) {
       // We're only interested in metadata.
-      return;
+      return false;
     }
     int type = readAmfType(data);
     if (type != AMF_TYPE_ECMA_ARRAY) {
       // We're not interested in this metadata.
-      return;
+      return false;
     }
     // Set the duration to the value contained in the metadata, if present.
     Map<String, Object> metadata = readAmfEcmaArray(data);
@@ -88,6 +91,7 @@ import java.util.Map;
         durationUs = (long) (durationSeconds * C.MICROS_PER_SECOND);
       }
     }
+    return false;
   }
 
   private static int readAmfType(ParsableByteArray data) {
@@ -138,7 +142,10 @@ import java.util.Map;
     ArrayList<Object> list = new ArrayList<>(count);
     for (int i = 0; i < count; i++) {
       int type = readAmfType(data);
-      list.add(readAmfData(data, type));
+      Object value = readAmfData(data, type);
+      if (value != null) {
+        list.add(value);
+      }
     }
     return list;
   }
@@ -157,7 +164,10 @@ import java.util.Map;
       if (type == AMF_TYPE_END_MARKER) {
         break;
       }
-      array.put(key, readAmfData(data, type));
+      Object value = readAmfData(data, type);
+      if (value != null) {
+        array.put(key, value);
+      }
     }
     return array;
   }
@@ -174,7 +184,10 @@ import java.util.Map;
     for (int i = 0; i < count; i++) {
       String key = readAmfString(data);
       int type = readAmfType(data);
-      array.put(key, readAmfData(data, type));
+      Object value = readAmfData(data, type);
+      if (value != null) {
+        array.put(key, value);
+      }
     }
     return array;
   }
@@ -191,6 +204,7 @@ import java.util.Map;
     return date;
   }
 
+  @Nullable
   private static Object readAmfData(ParsableByteArray data, int type) {
     switch (type) {
       case AMF_TYPE_NUMBER:
@@ -208,8 +222,8 @@ import java.util.Map;
       case AMF_TYPE_DATE:
         return readAmfDate(data);
       default:
+        // We don't log a warning because there are types that we knowingly don't support.
         return null;
     }
   }
-
 }

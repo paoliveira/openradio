@@ -15,6 +15,11 @@
  */
 package com.google.android.exoplayer2.upstream.cache;
 
+import android.net.Uri;
+
+import androidx.annotation.Nullable;
+
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.Assertions;
 
 import java.util.ArrayList;
@@ -31,6 +36,36 @@ import java.util.Map.Entry;
  */
 public class ContentMetadataMutations {
 
+  /**
+   * Adds a mutation to set the {@link ContentMetadata#KEY_CONTENT_LENGTH} value, or to remove any
+   * existing value if {@link C#LENGTH_UNSET} is passed.
+   *
+   * @param mutations The mutations to modify.
+   * @param length The length value, or {@link C#LENGTH_UNSET} to remove any existing entry.
+   * @return The mutations instance, for convenience.
+   */
+  public static ContentMetadataMutations setContentLength(
+          ContentMetadataMutations mutations, long length) {
+    return mutations.set(ContentMetadata.KEY_CONTENT_LENGTH, length);
+  }
+
+  /**
+   * Adds a mutation to set the {@link ContentMetadata#KEY_REDIRECTED_URI} value, or to remove any
+   * existing entry if {@code null} is passed.
+   *
+   * @param mutations The mutations to modify.
+   * @param uri The {@link Uri} value, or {@code null} to remove any existing entry.
+   * @return The mutations instance, for convenience.
+   */
+  public static ContentMetadataMutations setRedirectedUri(
+          ContentMetadataMutations mutations, @Nullable Uri uri) {
+    if (uri == null) {
+      return mutations.remove(ContentMetadata.KEY_REDIRECTED_URI);
+    } else {
+      return mutations.set(ContentMetadata.KEY_REDIRECTED_URI, uri.toString());
+    }
+  }
+
   private final Map<String, Object> editedValues;
   private final List<String> removedValues;
 
@@ -46,7 +81,7 @@ public class ContentMetadataMutations {
    *
    * @param name The name of the metadata value.
    * @param value The value to be set.
-   * @return This Editor instance, for convenience.
+   * @return This instance, for convenience.
    */
   public ContentMetadataMutations set(String name, String value) {
     return checkAndSet(name, value);
@@ -57,7 +92,7 @@ public class ContentMetadataMutations {
    *
    * @param name The name of the metadata value.
    * @param value The value to be set.
-   * @return This Editor instance, for convenience.
+   * @return This instance, for convenience.
    */
   public ContentMetadataMutations set(String name, long value) {
     return checkAndSet(name, value);
@@ -69,7 +104,7 @@ public class ContentMetadataMutations {
    *
    * @param name The name of the metadata value.
    * @param value The value to be set.
-   * @return This Editor instance, for convenience.
+   * @return This instance, for convenience.
    */
   public ContentMetadataMutations set(String name, byte[] value) {
     return checkAndSet(name, Arrays.copyOf(value, value.length));
@@ -79,7 +114,7 @@ public class ContentMetadataMutations {
    * Adds a mutation to remove a metadata value.
    *
    * @param name The name of the metadata value.
-   * @return This Editor instance, for convenience.
+   * @return This instance, for convenience.
    */
   public ContentMetadataMutations remove(String name) {
     removedValues.add(name);

@@ -17,7 +17,10 @@ package com.google.android.exoplayer2.metadata.id3;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
 import androidx.annotation.Nullable;
+
+import com.google.android.exoplayer2.util.Util;
 
 import java.util.Arrays;
 
@@ -46,13 +49,14 @@ public final class MlltFrame extends Id3Frame {
     this.millisecondsDeviations = millisecondsDeviations;
   }
 
-  /* package */ MlltFrame(Parcel in) {
+  /* package */
+  MlltFrame(Parcel in) {
     super(ID);
     this.mpegFramesBetweenReference = in.readInt();
     this.bytesBetweenReference = in.readInt();
     this.millisecondsBetweenReference = in.readInt();
-    this.bytesDeviations = in.createIntArray();
-    this.millisecondsDeviations = in.createIntArray();
+    this.bytesDeviations = Util.castNonNull(in.createIntArray());
+    this.millisecondsDeviations = Util.castNonNull(in.createIntArray());
   }
 
   @Override

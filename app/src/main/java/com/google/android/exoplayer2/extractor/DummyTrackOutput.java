@@ -58,7 +58,7 @@ public final class DummyTrackOutput implements TrackOutput {
       @C.BufferFlags int flags,
       int size,
       int offset,
-      @Nullable TrackOutput.CryptoData cryptoData) {
+      @Nullable CryptoData cryptoData) {
     // Do nothing.
   }
 }

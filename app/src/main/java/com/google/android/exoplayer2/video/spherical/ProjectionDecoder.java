@@ -167,7 +167,7 @@ public final class ProjectionDecoder {
   }
 
   private static @Nullable
-  Projection.Mesh parseMesh(ParsableByteArray input) {
+  Mesh parseMesh(ParsableByteArray input) {
     // Read the coordinates.
     int coordinateCount = input.readInt();
     if (coordinateCount > MAX_COORDINATE_COUNT) {
