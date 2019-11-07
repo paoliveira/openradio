@@ -232,13 +232,14 @@ public final class MediaPresenter {
             addMediaItemToStack(mediaId);
         } else if (item.isPlayable()) {
             // Else - we play an item
-            final MediaControllerCompat controller = MediaControllerCompat.getMediaController(mActivity);
-            if (controller != null) {
-                final MediaControllerCompat.TransportControls controls = controller.getTransportControls();
-                if (controls != null) {
-                    controls.playFromMediaId(mediaId, null);
-                }
-            }
+            // TODO:
+//            final MediaControllerCompat controller = MediaControllerCompat.getMediaController(mActivity);
+//            if (controller != null) {
+//                final MediaControllerCompat.TransportControls controls = controller.getTransportControls();
+//                if (controls != null) {
+//                    controls.playFromMediaId(mediaId, null);
+//                }
+//            }
         }
     }
 

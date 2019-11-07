@@ -10,12 +10,15 @@ import androidx.annotation.NonNull;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.FocusHighlight;
 import androidx.leanback.widget.VerticalGridPresenter;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.presenter.CardPresenter;
 import com.yuriy.openradio.presenter.MediaPresenter;
 import com.yuriy.openradio.presenter.MediaPresenterListener;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
 
@@ -27,6 +30,7 @@ public final class RadioStationsTvFragment extends GridTvFragment {
     private static final String CLASS_NAME = RadioStationsTvFragment.class.getSimpleName();
     private static final int COLUMNS = 4;
     private ArrayObjectAdapter mAdapter;
+    private int mScrollDelta;
     /**
      * Listener for the Media Browser Subscription callback
      */
@@ -37,6 +41,7 @@ public final class RadioStationsTvFragment extends GridTvFragment {
 
     public RadioStationsTvFragment() {
         super();
+        mScrollDelta = 0;
     }
 
     @Override
@@ -94,7 +99,8 @@ public final class RadioStationsTvFragment extends GridTvFragment {
         presenter.setNumberOfColumns(COLUMNS);
         setGridPresenter(presenter);
 
-        final CardPresenter cardPresenter = new CardPresenter(getActivity(), null);
+        final ImageFetcher imageFetcher = ImageFetcherFactory.getLargeImageFetcher(getActivity());
+        final CardPresenter cardPresenter = new CardPresenter(getActivity(), imageFetcher);
         mAdapter = new ArrayObjectAdapter(cardPresenter);
         setAdapter(mAdapter);
 
@@ -107,9 +113,7 @@ public final class RadioStationsTvFragment extends GridTvFragment {
                     //TODO: Get real position id
                     int position = 0;
                     mMediaPresenter.handleItemClick(mediaItem, position);
-                    if (mMediaPresenter.getNumItemsInStack() > 1) {
-                        showBackButton();
-                    }
+                    showBackButton();
                 }
         );
 
@@ -121,6 +125,29 @@ public final class RadioStationsTvFragment extends GridTvFragment {
                     }
                 }
         );
+
+        setOnScrollListener(
+                new RecyclerView.OnScrollListener() {
+
+                    @Override
+                    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                        mScrollDelta += dy;
+                        if (mScrollDelta > 0) {
+                            hideBackButton();
+                        } else {
+                            showBackButton();
+                        }
+                    }
+                }
+        );
+    }
+
+    @Override
+    public void showBackButton() {
+        if (mMediaPresenter.getNumItemsInStack() <= 1) {
+            return;
+        }
+        super.showBackButton();
     }
 
     private static final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
@@ -159,6 +186,7 @@ public final class RadioStationsTvFragment extends GridTvFragment {
                 return;
             }
 
+            fragment.mScrollDelta = 0;
             fragment.mAdapter.clear();
             fragment.mAdapter.addAll(0, children);
             fragment.onDataLoaded();

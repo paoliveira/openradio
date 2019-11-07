@@ -37,7 +37,7 @@ public class ImageFetcherFactory {
      * @param context {@link android.content.Context}
      * @return {@link ImageFetcher} instance
      */
-    public static ImageFetcher getLargeImageFetcher(FragmentActivity context) {
+    public static ImageFetcher getLargeImageFetcher(final FragmentActivity context) {
         return getImageFetcher(
                 context, AppUtils.getLongestScreenSize(context),
                 LARGE_IMAGE_CACHE_DIR

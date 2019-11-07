@@ -1,5 +1,6 @@
 package com.yuriy.openradio.view.fragment;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -7,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.HeaderItem;
@@ -21,6 +24,7 @@ import androidx.leanback.widget.RowPresenter;
 import androidx.leanback.widget.ShadowOverlayContainer;
 import androidx.leanback.widget.VerticalGridPresenter;
 import androidx.leanback.widget.VerticalGridView;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
 
@@ -33,14 +37,13 @@ public class GridTvFragment
         extends Fragment
         implements BrowseSupportFragment.MainFragmentAdapterProvider {
 
-    private static final String CLASS_NAME = GridTvFragment.class.getSimpleName();
-
     private ObjectAdapter mAdapter;
     private VerticalGridPresenter mGridPresenter;
     private VerticalGridPresenter.ViewHolder mGridViewHolder;
     private OnItemViewSelectedListener mOnItemViewSelectedListener;
     private OnItemViewClickedListener mOnItemViewClickedListener;
     private View.OnClickListener mOnBackClickListener;
+    private RecyclerView.OnScrollListener mOnScrollListener;
     private int mSelectedPosition = -1;
     private AtomicBoolean mIsBackBtnInit;
     private final BrowseSupportFragment.MainFragmentAdapter<Fragment> mMainFragmentAdapter =
@@ -75,7 +78,7 @@ public class GridTvFragment
     /**
      * Sets the object adapter for the fragment.
      */
-    public void setAdapter(final ObjectAdapter adapter) {
+    void setAdapter(final ObjectAdapter adapter) {
         mAdapter = adapter;
         updateAdapter();
     }
@@ -114,25 +117,41 @@ public class GridTvFragment
                 }
             };
 
+    private final RecyclerView.OnScrollListener mOnScrollListenerIntrnl
+            = new RecyclerView.OnScrollListener() {
+
+        @Override
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+            if (mOnScrollListener != null) {
+                mOnScrollListener.onScrolled(recyclerView, dx, dy);
+            }
+        }
+    };
+
     /**
      * Sets an item selection listener.
      */
-    public void setOnItemViewSelectedListener(final OnItemViewSelectedListener value) {
+    void setOnItemViewSelectedListener(final OnItemViewSelectedListener value) {
         mOnItemViewSelectedListener = value;
     }
 
     /**
      * Sets an item clicked listener.
      */
-    public void setOnItemViewClickedListener(final OnItemViewClickedListener value) {
+    void setOnItemViewClickedListener(final OnItemViewClickedListener value) {
         mOnItemViewClickedListener = value;
     }
 
-    public void setOnBackClickListener(final View.OnClickListener value) {
+    void setOnBackClickListener(final View.OnClickListener value) {
         mOnBackClickListener = value;
     }
 
-    public void onDataLoaded() {
+    void setOnScrollListener(final RecyclerView.OnScrollListener value) {
+        mOnScrollListener = value;
+    }
+
+    void onDataLoaded() {
         if (!mIsBackBtnInit.get()) {
             new Handler().postDelayed(this::initBackButton, 1000);
         }
@@ -149,7 +168,7 @@ public class GridTvFragment
         backBtn.setVisibility(View.VISIBLE);
     }
 
-    public void hideBackButton() {
+    void hideBackButton() {
         if (getView() == null) {
             return;
         }
@@ -168,7 +187,7 @@ public class GridTvFragment
         final VerticalGridView view = getView().findViewById(R.id.browse_grid);
         ShadowOverlayContainer nextChild;
         for (int i = 0; i < view.getChildCount(); ++i) {
-            nextChild = (ShadowOverlayContainer)view.getChildAt(i);
+            nextChild = (ShadowOverlayContainer) view.getChildAt(i);
             if (nextChild == null) {
                 continue;
             }
@@ -210,6 +229,7 @@ public class GridTvFragment
         return inflater.inflate(R.layout.grid_fragment, container, false);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onViewCreated(final View view, final Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -217,6 +237,7 @@ public class GridTvFragment
         mGridViewHolder = mGridPresenter.onCreateViewHolder(gridDock);
         gridDock.addView(mGridViewHolder.view);
         mGridViewHolder.getGridView().setOnChildLaidOutListener(mChildLaidOutListener);
+        mGridViewHolder.getGridView().addOnScrollListener(mOnScrollListenerIntrnl);
 
         getMainFragmentAdapter().getFragmentHost().notifyViewCreated(mMainFragmentAdapter);
         updateAdapter();
