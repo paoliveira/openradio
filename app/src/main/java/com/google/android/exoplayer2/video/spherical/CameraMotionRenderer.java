@@ -41,8 +41,7 @@ public class CameraMotionRenderer extends BaseRenderer {
   private final ParsableByteArray scratch;
 
   private long offsetUs;
-  private @Nullable
-  CameraMotionListener listener;
+  private @Nullable CameraMotionListener listener;
   private long lastTimestampUs;
 
   public CameraMotionRenderer() {

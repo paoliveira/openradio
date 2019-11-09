@@ -78,8 +78,7 @@ public class DefaultHttpDataSource extends BaseDataSource implements HttpDataSou
   private final int readTimeoutMillis;
   private final String userAgent;
   private final @Nullable Predicate<String> contentTypePredicate;
-  private final @Nullable
-  RequestProperties defaultRequestProperties;
+  private final @Nullable RequestProperties defaultRequestProperties;
   private final RequestProperties requestProperties;
 
   private @Nullable DataSpec dataSpec;

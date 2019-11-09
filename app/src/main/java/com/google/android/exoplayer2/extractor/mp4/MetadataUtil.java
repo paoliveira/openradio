@@ -248,7 +248,7 @@ import java.nio.ByteBuffer;
    */
   @Nullable
   public static MdtaMetadataEntry parseMdtaMetadataEntryFromIlst(
-      ParsableByteArray ilst, int endPosition, String key) {
+          ParsableByteArray ilst, int endPosition, String key) {
     int atomPosition;
     while ((atomPosition = ilst.getPosition()) < endPosition) {
       int atomSize = ilst.readInt();

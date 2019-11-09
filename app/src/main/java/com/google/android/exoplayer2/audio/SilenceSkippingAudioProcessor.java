@@ -122,9 +122,9 @@ public final class SilenceSkippingAudioProcessor extends BaseAudioProcessor {
 
   @Override
   public boolean configure(int sampleRateHz, int channelCount, @C.PcmEncoding int encoding)
-      throws AudioProcessor.UnhandledFormatException {
+      throws UnhandledFormatException {
     if (encoding != C.ENCODING_PCM_16BIT) {
-      throw new AudioProcessor.UnhandledFormatException(sampleRateHz, channelCount, encoding);
+      throw new UnhandledFormatException(sampleRateHz, channelCount, encoding);
     }
     bytesPerFrame = channelCount * 2;
     return setInputFormat(sampleRateHz, channelCount, encoding);

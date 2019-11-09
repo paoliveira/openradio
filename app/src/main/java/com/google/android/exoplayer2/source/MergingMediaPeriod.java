@@ -43,7 +43,7 @@ import java.util.IdentityHashMap;
   private SequenceableLoader compositeSequenceableLoader;
 
   public MergingMediaPeriod(CompositeSequenceableLoaderFactory compositeSequenceableLoaderFactory,
-      MediaPeriod... periods) {
+                            MediaPeriod... periods) {
     this.compositeSequenceableLoaderFactory = compositeSequenceableLoaderFactory;
     this.periods = periods;
     childrenPendingPreparation = new ArrayList<>();
@@ -75,7 +75,7 @@ import java.util.IdentityHashMap;
 
   @Override
   public long selectTracks(TrackSelection[] selections, boolean[] mayRetainStreamFlags,
-      SampleStream[] streams, boolean[] streamResetFlags, long positionUs) {
+                           SampleStream[] streams, boolean[] streamResetFlags, long positionUs) {
     // Map each selection and stream onto a child period index.
     int[] streamChildIndices = new int[selections.length];
     int[] selectionChildIndices = new int[selections.length];

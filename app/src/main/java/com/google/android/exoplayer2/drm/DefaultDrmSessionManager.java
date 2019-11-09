@@ -120,7 +120,7 @@ public class DefaultDrmSessionManager<T extends ExoMediaCrypto> implements DrmSe
    * @throws UnsupportedDrmException If the specified DRM scheme is not supported.
    */
   public static DefaultDrmSessionManager<FrameworkMediaCrypto> newWidevineInstance(
-      MediaDrmCallback callback, @Nullable HashMap<String, String> optionalKeyRequestParameters)
+          MediaDrmCallback callback, @Nullable HashMap<String, String> optionalKeyRequestParameters)
       throws UnsupportedDrmException {
     return newFrameworkInstance(C.WIDEVINE_UUID, callback, optionalKeyRequestParameters);
   }
@@ -136,7 +136,7 @@ public class DefaultDrmSessionManager<T extends ExoMediaCrypto> implements DrmSe
    * @throws UnsupportedDrmException If the specified DRM scheme is not supported.
    */
   public static DefaultDrmSessionManager<FrameworkMediaCrypto> newPlayReadyInstance(
-      MediaDrmCallback callback, @Nullable String customData) throws UnsupportedDrmException {
+          MediaDrmCallback callback, @Nullable String customData) throws UnsupportedDrmException {
     HashMap<String, String> optionalKeyRequestParameters;
     if (!TextUtils.isEmpty(customData)) {
       optionalKeyRequestParameters = new HashMap<>();

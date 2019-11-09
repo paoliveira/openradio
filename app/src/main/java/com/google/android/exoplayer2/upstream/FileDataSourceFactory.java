@@ -22,8 +22,7 @@ import androidx.annotation.Nullable;
  */
 public final class FileDataSourceFactory implements DataSource.Factory {
 
-  private final @Nullable
-  TransferListener listener;
+  private final @Nullable TransferListener listener;
 
   public FileDataSourceFactory() {
     this(null);

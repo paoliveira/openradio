@@ -78,7 +78,7 @@ import java.io.IOException;
    * @throws InterruptedException If the thread was interrupted.
    */
   public @Extractor.ReadResult int readDuration(
-      ExtractorInput input, PositionHolder seekPositionHolder, int pcrPid)
+          ExtractorInput input, PositionHolder seekPositionHolder, int pcrPid)
       throws IOException, InterruptedException {
     if (pcrPid <= 0) {
       return finishReadDuration(input);

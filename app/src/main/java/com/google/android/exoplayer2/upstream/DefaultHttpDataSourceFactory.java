@@ -25,8 +25,7 @@ import com.google.android.exoplayer2.util.Assertions;
 public final class DefaultHttpDataSourceFactory extends BaseFactory {
 
   private final String userAgent;
-  private final @Nullable
-  TransferListener listener;
+  private final @Nullable TransferListener listener;
   private final int connectTimeoutMillis;
   private final int readTimeoutMillis;
   private final boolean allowCrossProtocolRedirects;

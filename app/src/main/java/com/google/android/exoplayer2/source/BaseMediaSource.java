@@ -101,7 +101,7 @@ public abstract class BaseMediaSource implements MediaSource {
    * @return An event dispatcher with pre-configured media period id and time offset.
    */
   protected final MediaSourceEventListener.EventDispatcher createEventDispatcher(
-          MediaPeriodId mediaPeriodId, long mediaTimeOffsetMs) {
+      MediaPeriodId mediaPeriodId, long mediaTimeOffsetMs) {
     Assertions.checkArgument(mediaPeriodId != null);
     return eventDispatcher.withParameters(/* windowIndex= */ 0, mediaPeriodId, mediaTimeOffsetMs);
   }
@@ -117,7 +117,7 @@ public abstract class BaseMediaSource implements MediaSource {
    * @return An event dispatcher with pre-configured media period id and time offset.
    */
   protected final MediaSourceEventListener.EventDispatcher createEventDispatcher(
-          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, long mediaTimeOffsetMs) {
+      int windowIndex, @Nullable MediaPeriodId mediaPeriodId, long mediaTimeOffsetMs) {
     return eventDispatcher.withParameters(windowIndex, mediaPeriodId, mediaTimeOffsetMs);
   }
 

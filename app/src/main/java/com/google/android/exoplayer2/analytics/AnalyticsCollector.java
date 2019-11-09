@@ -15,6 +15,8 @@
  */
 package com.google.android.exoplayer2.analytics;
 
+import android.view.Surface;
+
 import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
@@ -41,6 +43,8 @@ import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.Clock;
+import com.google.android.exoplayer2.video.VideoListener;
+import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.RequiresNonNull;
@@ -61,9 +65,11 @@ public class AnalyticsCollector
     implements Player.EventListener,
         MetadataOutput,
         AudioRendererEventListener,
+        VideoRendererEventListener,
         MediaSourceEventListener,
         BandwidthMeter.EventListener,
         DefaultDrmSessionEventListener,
+        VideoListener,
         AudioListener {
 
   /** Factory for an analytics collector. */
@@ -251,6 +257,86 @@ public class AnalyticsCollector
     }
   }
 
+  // VideoRendererEventListener implementation.
+
+  @Override
+  public final void onVideoEnabled(DecoderCounters counters) {
+    // The renderers are only enabled after we changed the playing media period.
+    EventTime eventTime = generatePlayingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onDecoderEnabled(eventTime, C.TRACK_TYPE_VIDEO, counters);
+    }
+  }
+
+  @Override
+  public final void onVideoDecoderInitialized(
+          String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+    EventTime eventTime = generateReadingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onDecoderInitialized(
+          eventTime, C.TRACK_TYPE_VIDEO, decoderName, initializationDurationMs);
+    }
+  }
+
+  @Override
+  public final void onVideoInputFormatChanged(Format format) {
+    EventTime eventTime = generateReadingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onDecoderInputFormatChanged(eventTime, C.TRACK_TYPE_VIDEO, format);
+    }
+  }
+
+  @Override
+  public final void onDroppedFrames(int count, long elapsedMs) {
+    EventTime eventTime = generateLastReportedPlayingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onDroppedVideoFrames(eventTime, count, elapsedMs);
+    }
+  }
+
+  @Override
+  public final void onVideoDisabled(DecoderCounters counters) {
+    // The renderers are disabled after we changed the playing media period on the playback thread
+    // but before this change is reported to the app thread.
+    EventTime eventTime = generateLastReportedPlayingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onDecoderDisabled(eventTime, C.TRACK_TYPE_VIDEO, counters);
+    }
+  }
+
+  @Override
+  public final void onRenderedFirstFrame(@Nullable Surface surface) {
+    EventTime eventTime = generateReadingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onRenderedFirstFrame(eventTime, surface);
+    }
+  }
+
+  // VideoListener implementation.
+
+  @Override
+  public final void onRenderedFirstFrame() {
+    // Do nothing. Already reported in VideoRendererEventListener.onRenderedFirstFrame.
+  }
+
+  @Override
+  public final void onVideoSizeChanged(
+      int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+    EventTime eventTime = generateReadingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onVideoSizeChanged(
+          eventTime, width, height, unappliedRotationDegrees, pixelWidthHeightRatio);
+    }
+  }
+
+  @Override
+  public void onSurfaceSizeChanged(int width, int height) {
+    EventTime eventTime = generateReadingMediaPeriodEventTime();
+    for (AnalyticsListener listener : listeners) {
+      listener.onSurfaceSizeChanged(eventTime, width, height);
+    }
+  }
+
   // MediaSourceEventListener implementation.
 
   @Override
@@ -333,7 +419,7 @@ public class AnalyticsCollector
 
   @Override
   public final void onUpstreamDiscarded(
-          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+      int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
     for (AnalyticsListener listener : listeners) {
       listener.onUpstreamDiscarded(eventTime, mediaLoadData);
@@ -342,7 +428,7 @@ public class AnalyticsCollector
 
   @Override
   public final void onDownstreamFormatChanged(
-          int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
+      int windowIndex, @Nullable MediaPeriodId mediaPeriodId, MediaLoadData mediaLoadData) {
     EventTime eventTime = generateMediaPeriodEventTime(windowIndex, mediaPeriodId);
     for (AnalyticsListener listener : listeners) {
       listener.onDownstreamFormatChanged(eventTime, mediaLoadData);
@@ -367,7 +453,7 @@ public class AnalyticsCollector
 
   @Override
   public final void onTracksChanged(
-          TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+      TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
     EventTime eventTime = generatePlayingMediaPeriodEventTime();
     for (AnalyticsListener listener : listeners) {
       listener.onTracksChanged(eventTime, trackGroups, trackSelections);
@@ -532,7 +618,7 @@ public class AnalyticsCollector
   /** Returns a new {@link EventTime} for the specified timeline, window and media period id. */
   @RequiresNonNull("player")
   protected EventTime generateEventTime(
-          Timeline timeline, int windowIndex, @Nullable MediaPeriodId mediaPeriodId) {
+      Timeline timeline, int windowIndex, @Nullable MediaPeriodId mediaPeriodId) {
     if (timeline.isEmpty()) {
       // Ensure media period id is only reported together with a valid timeline.
       mediaPeriodId = null;

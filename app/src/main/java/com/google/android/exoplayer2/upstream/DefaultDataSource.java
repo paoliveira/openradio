@@ -75,8 +75,7 @@ public final class DefaultDataSource implements DataSource {
   @Nullable private DataSource dataSchemeDataSource;
   @Nullable private DataSource rawResourceDataSource;
 
-  private @Nullable
-  DataSource dataSource;
+  private @Nullable DataSource dataSource;
 
   /**
    * Constructs a new instance, optionally configured to follow cross-protocol redirects.
@@ -365,7 +364,7 @@ public final class DefaultDataSource implements DataSource {
   }
 
   private void maybeAddListenerToDataSource(
-          @Nullable DataSource dataSource, TransferListener listener) {
+      @Nullable DataSource dataSource, TransferListener listener) {
     if (dataSource != null) {
       dataSource.addTransferListener(listener);
     }

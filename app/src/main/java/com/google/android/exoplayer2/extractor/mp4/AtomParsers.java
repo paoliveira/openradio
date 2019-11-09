@@ -351,9 +351,7 @@ import static com.google.android.exoplayer2.util.MimeTypes.getMimeTypeFromMp4Obj
     }
     long durationUs = Util.scaleLargeTimestamp(duration, C.MICROS_PER_SECOND, track.timescale);
 
-    if (track.editListDurations == null || gaplessInfoHolder.hasGaplessInfo()) {
-      // There is no edit list, or we are ignoring it as we already have gapless metadata to apply.
-      // This implementation does not support applying both gapless metadata and an edit list.
+    if (track.editListDurations == null) {
       Util.scaleLargeTimestampsInPlace(timestamps, C.MICROS_PER_SECOND, track.timescale);
       return new TrackSampleTable(
           track, offsets, sizes, maximumSize, timestamps, flags, durationUs);
@@ -1249,7 +1247,7 @@ import static com.google.android.exoplayer2.util.MimeTypes.getMimeTypeFromMp4Obj
    * encryption sinf atom was present.
    */
   private static Pair<Integer, TrackEncryptionBox> parseSampleEntryEncryptionData(
-      ParsableByteArray parent, int position, int size) {
+          ParsableByteArray parent, int position, int size) {
     int childPosition = parent.getPosition();
     while (childPosition - position < size) {
       parent.setPosition(childPosition);
@@ -1269,7 +1267,7 @@ import static com.google.android.exoplayer2.util.MimeTypes.getMimeTypeFromMp4Obj
   }
 
   /* package */ static Pair<Integer, TrackEncryptionBox> parseCommonEncryptionSinfFromParent(
-      ParsableByteArray parent, int position, int size) {
+          ParsableByteArray parent, int position, int size) {
     int childPosition = position + Atom.HEADER_SIZE;
     int schemeInformationBoxPosition = C.POSITION_UNSET;
     int schemeInformationBoxSize = 0;
@@ -1407,7 +1405,7 @@ import static com.google.android.exoplayer2.util.MimeTypes.getMimeTypeFromMp4Obj
     private int remainingSamplesPerChunkChanges;
 
     public ChunkIterator(ParsableByteArray stsc, ParsableByteArray chunkOffsets,
-        boolean chunkOffsetsAreLongs) {
+                         boolean chunkOffsetsAreLongs) {
       this.stsc = stsc;
       this.chunkOffsets = chunkOffsets;
       this.chunkOffsetsAreLongs = chunkOffsetsAreLongs;

@@ -34,7 +34,8 @@ public abstract class BaseDataSource implements DataSource {
   private final ArrayList<TransferListener> listeners;
 
   private int listenerCount;
-  private @Nullable DataSpec dataSpec;
+  private @Nullable
+  DataSpec dataSpec;
 
   /**
    * Creates base data source.

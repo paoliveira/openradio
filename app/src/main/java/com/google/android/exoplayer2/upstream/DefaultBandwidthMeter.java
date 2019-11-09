@@ -141,7 +141,7 @@ public final class DefaultBandwidthMeter implements BandwidthMeter, TransferList
      * @return This builder.
      */
     public Builder setInitialBitrateEstimate(
-            @C.NetworkType int networkType, long initialBitrateEstimate) {
+        @C.NetworkType int networkType, long initialBitrateEstimate) {
       initialBitrateEstimates.put(networkType, initialBitrateEstimate);
       return this;
     }
@@ -315,7 +315,7 @@ public final class DefaultBandwidthMeter implements BandwidthMeter, TransferList
 
   @Override
   public synchronized void onTransferStart(
-          DataSource source, DataSpec dataSpec, boolean isNetwork) {
+      DataSource source, DataSpec dataSpec, boolean isNetwork) {
     if (!isNetwork) {
       return;
     }
@@ -327,7 +327,7 @@ public final class DefaultBandwidthMeter implements BandwidthMeter, TransferList
 
   @Override
   public synchronized void onBytesTransferred(
-          DataSource source, DataSpec dataSpec, boolean isNetwork, int bytes) {
+      DataSource source, DataSpec dataSpec, boolean isNetwork, int bytes) {
     if (!isNetwork) {
       return;
     }

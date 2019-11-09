@@ -236,7 +236,7 @@ import java.io.IOException;
    * @return Whether the packet contains header data.
    */
   protected abstract boolean readHeaders(ParsableByteArray packet, long position,
-      SetupData setupData) throws IOException, InterruptedException;
+                                         SetupData setupData) throws IOException, InterruptedException;
 
   /**
    * Called on end of seeking.

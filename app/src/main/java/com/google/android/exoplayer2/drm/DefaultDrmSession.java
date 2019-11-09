@@ -108,15 +108,12 @@ import java.util.UUID;
   private HandlerThread requestHandlerThread;
   private PostRequestHandler postRequestHandler;
   private @Nullable T mediaCrypto;
-  private @Nullable
-  DrmSessionException lastException;
+  private @Nullable DrmSessionException lastException;
   private byte @MonotonicNonNull [] sessionId;
   private byte @MonotonicNonNull [] offlineLicenseKeySetId;
 
-  private @Nullable
-  KeyRequest currentKeyRequest;
-  private @Nullable
-  ProvisionRequest currentProvisionRequest;
+  private @Nullable KeyRequest currentKeyRequest;
+  private @Nullable ProvisionRequest currentProvisionRequest;
 
   /**
    * Instantiates a new DRM session.
@@ -252,8 +249,7 @@ import java.util.UUID;
   }
 
   @Override
-  public final @Nullable
-  DrmSessionException getError() {
+  public final @Nullable DrmSessionException getError() {
     return state == STATE_ERROR ? lastException : null;
   }
 

@@ -42,7 +42,8 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
   /** Factory for {@link AdaptiveTrackSelection} instances. */
   public static class Factory implements TrackSelection.Factory {
 
-    private final @Nullable BandwidthMeter bandwidthMeter;
+    private final @Nullable
+    BandwidthMeter bandwidthMeter;
     private final int minDurationForQualityIncreaseMs;
     private final int maxDurationForQualityDecreaseMs;
     private final int minDurationToRetainAfterDiscardMs;
@@ -232,7 +233,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
 
     @Override
     public final @NullableType TrackSelection[] createTrackSelections(
-            @NullableType Definition[] definitions, BandwidthMeter bandwidthMeter) {
+            TrackSelection.Definition[] definitions, BandwidthMeter bandwidthMeter) {
       if (this.bandwidthMeter != null) {
         bandwidthMeter = this.bandwidthMeter;
       }
@@ -240,7 +241,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
       List<AdaptiveTrackSelection> adaptiveSelections = new ArrayList<>();
       int totalFixedBandwidth = 0;
       for (int i = 0; i < definitions.length; i++) {
-        Definition definition = definitions[i];
+        TrackSelection.Definition definition = definitions[i];
         if (definition == null) {
           continue;
         }
@@ -294,7 +295,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
      * @return An {@link AdaptiveTrackSelection} for the specified tracks.
      */
     protected AdaptiveTrackSelection createAdaptiveTrackSelection(
-        TrackGroup group, BandwidthMeter bandwidthMeter, int[] tracks) {
+            TrackGroup group, BandwidthMeter bandwidthMeter, int[] tracks) {
       return new AdaptiveTrackSelection(
           group,
           tracks,
@@ -339,7 +340,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
    * @param bandwidthMeter Provides an estimate of the currently available bandwidth.
    */
   public AdaptiveTrackSelection(TrackGroup group, int[] tracks,
-      BandwidthMeter bandwidthMeter) {
+                                BandwidthMeter bandwidthMeter) {
     this(
         group,
         tracks,
@@ -600,7 +601,7 @@ public class AdaptiveTrackSelection extends BaseTrackSelection {
    */
   @SuppressWarnings("unused")
   protected boolean canSelectFormat(
-      Format format, int trackBitrate, float playbackSpeed, long effectiveBitrate) {
+          Format format, int trackBitrate, float playbackSpeed, long effectiveBitrate) {
     return Math.round(trackBitrate * playbackSpeed) <= effectiveBitrate;
   }
 

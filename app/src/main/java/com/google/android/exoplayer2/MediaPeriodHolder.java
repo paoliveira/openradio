@@ -239,7 +239,7 @@ import org.checkerframework.checker.nullness.compatqual.NullableType;
    *     selections are applied.
    */
   public long applyTrackSelection(
-          TrackSelectorResult trackSelectorResult, long positionUs, boolean forceRecreateStreams) {
+      TrackSelectorResult trackSelectorResult, long positionUs, boolean forceRecreateStreams) {
     return applyTrackSelection(
         trackSelectorResult,
         positionUs,
@@ -427,7 +427,7 @@ import org.checkerframework.checker.nullness.compatqual.NullableType;
 
   /** Releases the given {@code mediaPeriod}, logging and suppressing any errors. */
   private static void releaseMediaPeriod(
-          long endPositionUs, MediaSource mediaSource, MediaPeriod mediaPeriod) {
+      long endPositionUs, MediaSource mediaSource, MediaPeriod mediaPeriod) {
     try {
       if (endPositionUs != C.TIME_UNSET && endPositionUs != C.TIME_END_OF_SOURCE) {
         mediaSource.releasePeriod(((ClippingMediaPeriod) mediaPeriod).mediaPeriod);

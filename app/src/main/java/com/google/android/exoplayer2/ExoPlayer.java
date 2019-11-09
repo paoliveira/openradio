@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.text.TextRenderer;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.video.MediaCodecVideoRenderer;
 
 /**
  * An extensible media player that plays {@link MediaSource}s. Instances can be obtained from {@link

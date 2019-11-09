@@ -624,7 +624,7 @@ public final class TtmlDecoder extends SimpleSubtitleDecoder {
   }
 
   private static void parseFontSize(String expression, TtmlStyle out) throws
-          SubtitleDecoderException {
+      SubtitleDecoderException {
     String[] expressions = Util.split(expression, "\\s+");
     Matcher matcher;
     if (expressions.length == 1) {

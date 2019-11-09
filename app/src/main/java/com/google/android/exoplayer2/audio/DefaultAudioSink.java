@@ -1037,7 +1037,7 @@ public final class DefaultAudioSink implements AudioSink {
   }
 
   private void applyPlaybackParameters(
-      PlaybackParameters playbackParameters, long presentationTimeUs) {
+          PlaybackParameters playbackParameters, long presentationTimeUs) {
     PlaybackParameters newPlaybackParameters =
         configuration.canApplyPlaybackParameters
             ? audioProcessorChain.applyPlaybackParameters(playbackParameters)
@@ -1251,7 +1251,7 @@ public final class DefaultAudioSink implements AudioSink {
     private final long positionUs;
 
     private PlaybackParametersCheckpoint(PlaybackParameters playbackParameters, long mediaTimeUs,
-        long positionUs) {
+                                         long positionUs) {
       this.playbackParameters = playbackParameters;
       this.mediaTimeUs = mediaTimeUs;
       this.positionUs = positionUs;

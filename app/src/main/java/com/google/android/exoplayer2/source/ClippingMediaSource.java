@@ -348,7 +348,7 @@ public final class ClippingMediaSource extends CompositeMediaSource<Void> {
 
     @Override
     public Window getWindow(
-        int windowIndex, Window window, boolean setTag, long defaultPositionProjectionUs) {
+            int windowIndex, Window window, boolean setTag, long defaultPositionProjectionUs) {
       timeline.getWindow(
           /* windowIndex= */ 0, window, setTag, /* defaultPositionProjectionUs= */ 0);
       window.positionInFirstPeriodUs += startUs;

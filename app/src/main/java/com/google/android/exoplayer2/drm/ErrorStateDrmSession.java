@@ -36,8 +36,7 @@ public final class ErrorStateDrmSession<T extends ExoMediaCrypto> implements Drm
   }
 
   @Override
-  public @Nullable
-  DrmSessionException getError() {
+  public @Nullable DrmSessionException getError() {
     return error;
   }
 

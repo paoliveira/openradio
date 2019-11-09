@@ -60,8 +60,7 @@ public final class ProjectionDecoder {
    * @param stereoMode A {@link C.StereoMode} value.
    * @return The projection or null if the data can't be decoded.
    */
-  public static @Nullable
-  Projection decode(byte[] projectionData, @C.StereoMode int stereoMode) {
+  public static @Nullable Projection decode(byte[] projectionData, @C.StereoMode int stereoMode) {
     ParsableByteArray input = new ParsableByteArray(projectionData);
     // MP4 containers include the proj box but webm containers do not.
     // Both containers use mshp.
@@ -166,8 +165,7 @@ public final class ProjectionDecoder {
     return meshes;
   }
 
-  private static @Nullable
-  Mesh parseMesh(ParsableByteArray input) {
+  private static @Nullable Mesh parseMesh(ParsableByteArray input) {
     // Read the coordinates.
     int coordinateCount = input.readInt();
     if (coordinateCount > MAX_COORDINATE_COUNT) {

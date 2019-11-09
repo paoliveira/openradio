@@ -79,7 +79,7 @@ public final class SilenceMediaSource extends BaseMediaSource {
   public void maybeThrowSourceInfoRefreshError() {}
 
   @Override
-  public MediaPeriod createPeriod(MediaSource.MediaPeriodId id, Allocator allocator, long startPositionUs) {
+  public MediaPeriod createPeriod(MediaPeriodId id, Allocator allocator, long startPositionUs) {
     return new SilenceMediaPeriod(durationUs);
   }
 
@@ -209,7 +209,7 @@ public final class SilenceMediaSource extends BaseMediaSource {
 
     @Override
     public int readData(
-        FormatHolder formatHolder, DecoderInputBuffer buffer, boolean formatRequired) {
+            FormatHolder formatHolder, DecoderInputBuffer buffer, boolean formatRequired) {
       if (!sentFormat || formatRequired) {
         formatHolder.format = FORMAT;
         sentFormat = true;

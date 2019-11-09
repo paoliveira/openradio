@@ -85,7 +85,7 @@ import java.io.IOException;
    * @throws InterruptedException If the thread was interrupted.
    */
   public @Extractor.ReadResult int readDuration(
-      ExtractorInput input, PositionHolder seekPositionHolder)
+          ExtractorInput input, PositionHolder seekPositionHolder)
       throws IOException, InterruptedException {
     if (!isLastScrValueRead) {
       return readLastScrValue(input, seekPositionHolder);

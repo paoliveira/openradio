@@ -1828,7 +1828,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
   }
 
   private void updateLoadControlTrackSelection(
-          TrackGroupArray trackGroups, TrackSelectorResult trackSelectorResult) {
+      TrackGroupArray trackGroups, TrackSelectorResult trackSelectorResult) {
     loadControl.onTracksSelected(renderers, trackGroups, trackSelectorResult.selections);
   }
 
@@ -1911,7 +1911,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
     private PlaybackInfo lastPlaybackInfo;
     private int operationAcks;
     private boolean positionDiscontinuity;
-    private @DiscontinuityReason int discontinuityReason;
+    private @DiscontinuityReason
+    int discontinuityReason;
 
     public boolean hasPendingUpdate(PlaybackInfo playbackInfo) {
       return playbackInfo != lastPlaybackInfo || operationAcks > 0 || positionDiscontinuity;

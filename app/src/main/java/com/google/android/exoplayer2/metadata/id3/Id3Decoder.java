@@ -210,7 +210,7 @@ public final class Id3Decoder implements MetadataDecoder {
   }
 
   private static boolean validateFrames(ParsableByteArray id3Data, int majorVersion,
-      int frameHeaderSize, boolean unsignedIntFrameSizeHack) {
+                                        int frameHeaderSize, boolean unsignedIntFrameSizeHack) {
     int startPosition = id3Data.getPosition();
     try {
       while (id3Data.bytesLeft() >= frameHeaderSize) {
@@ -272,7 +272,8 @@ public final class Id3Decoder implements MetadataDecoder {
     }
   }
 
-  private static @Nullable Id3Frame decodeFrame(
+  private static @Nullable
+  Id3Frame decodeFrame(
       int majorVersion,
       ParsableByteArray id3Data,
       boolean unsignedIntFrameSizeHack,
@@ -407,8 +408,9 @@ public final class Id3Decoder implements MetadataDecoder {
     }
   }
 
-  private static @Nullable TextInformationFrame decodeTxxxFrame(
-      ParsableByteArray id3Data, int frameSize) throws UnsupportedEncodingException {
+  private static @Nullable
+  TextInformationFrame decodeTxxxFrame(
+          ParsableByteArray id3Data, int frameSize) throws UnsupportedEncodingException {
     if (frameSize < 1) {
       // Frame is malformed.
       return null;
@@ -430,8 +432,9 @@ public final class Id3Decoder implements MetadataDecoder {
     return new TextInformationFrame("TXXX", description, value);
   }
 
-  private static @Nullable TextInformationFrame decodeTextInformationFrame(
-      ParsableByteArray id3Data, int frameSize, String id) throws UnsupportedEncodingException {
+  private static @Nullable
+  TextInformationFrame decodeTextInformationFrame(
+          ParsableByteArray id3Data, int frameSize, String id) throws UnsupportedEncodingException {
     if (frameSize < 1) {
       // Frame is malformed.
       return null;
@@ -473,7 +476,7 @@ public final class Id3Decoder implements MetadataDecoder {
   }
 
   private static UrlLinkFrame decodeUrlLinkFrame(ParsableByteArray id3Data, int frameSize,
-      String id) throws UnsupportedEncodingException {
+                                                 String id) throws UnsupportedEncodingException {
     byte[] data = new byte[frameSize];
     id3Data.readBytes(data, 0, frameSize);
 
@@ -524,7 +527,7 @@ public final class Id3Decoder implements MetadataDecoder {
   }
 
   private static ApicFrame decodeApicFrame(ParsableByteArray id3Data, int frameSize,
-      int majorVersion) throws UnsupportedEncodingException {
+                                           int majorVersion) throws UnsupportedEncodingException {
     int encoding = id3Data.readUnsignedByte();
     String charset = getCharsetName(encoding);
 
@@ -700,7 +703,7 @@ public final class Id3Decoder implements MetadataDecoder {
   }
 
   private static BinaryFrame decodeBinaryFrame(ParsableByteArray id3Data, int frameSize,
-      String id) {
+                                               String id) {
     byte[] frame = new byte[frameSize];
     id3Data.readBytes(frame, 0, frameSize);
 

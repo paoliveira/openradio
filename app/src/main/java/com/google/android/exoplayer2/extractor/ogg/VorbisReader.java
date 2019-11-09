@@ -151,7 +151,7 @@ import java.util.ArrayList;
 
   @VisibleForTesting
   /* package */ static void appendNumberOfSamples(
-      ParsableByteArray buffer, long packetSampleCount) {
+          ParsableByteArray buffer, long packetSampleCount) {
 
     buffer.setLimit(buffer.limit() + 4);
     // The vorbis decoder expects the number of samples in the packet

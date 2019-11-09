@@ -126,8 +126,7 @@ public final class CacheDataSource implements DataSource {
 
   private final Cache cache;
   private final DataSource cacheReadDataSource;
-  private final @Nullable
-  DataSource cacheWriteDataSource;
+  private final @Nullable DataSource cacheWriteDataSource;
   private final DataSource upstreamDataSource;
   private final CacheKeyFactory cacheKeyFactory;
   @Nullable private final EventListener eventListener;
@@ -136,19 +135,18 @@ public final class CacheDataSource implements DataSource {
   private final boolean ignoreCacheOnError;
   private final boolean ignoreCacheForUnsetLengthRequests;
 
-  private @Nullable
-  DataSource currentDataSource;
+  private @Nullable DataSource currentDataSource;
   private boolean currentDataSpecLengthUnset;
   @Nullable private Uri uri;
   @Nullable private Uri actualUri;
-  @HttpMethod private int httpMethod;
+  @HttpMethod
+  private int httpMethod;
   private int flags;
   private @Nullable
   String key;
   private long readPosition;
   private long bytesRemaining;
-  private @Nullable
-  CacheSpan currentHoleSpan;
+  private @Nullable CacheSpan currentHoleSpan;
   private boolean seenCacheError;
   private boolean currentRequestIgnoresCache;
   private long totalCachedBytesRead;

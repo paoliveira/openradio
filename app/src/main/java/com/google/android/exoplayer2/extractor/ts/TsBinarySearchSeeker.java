@@ -39,7 +39,7 @@ import java.io.IOException;
   private static final int TIMESTAMP_SEARCH_BYTES = 600 * TsExtractor.TS_PACKET_SIZE;
 
   public TsBinarySearchSeeker(
-          TimestampAdjuster pcrTimestampAdjuster, long streamDurationUs, long inputLength, int pcrPid) {
+      TimestampAdjuster pcrTimestampAdjuster, long streamDurationUs, long inputLength, int pcrPid) {
     super(
         new DefaultSeekTimestampConverter(),
         new TsPcrSeeker(pcrPid, pcrTimestampAdjuster),
@@ -75,7 +75,7 @@ import java.io.IOException;
 
     @Override
     public TimestampSearchResult searchForTimestamp(
-            ExtractorInput input, long targetTimestamp, OutputFrameHolder outputFrameHolder)
+        ExtractorInput input, long targetTimestamp, OutputFrameHolder outputFrameHolder)
         throws IOException, InterruptedException {
       long inputPosition = input.getPosition();
       int bytesToSearch = (int) Math.min(TIMESTAMP_SEARCH_BYTES, input.getLength() - inputPosition);
@@ -87,7 +87,7 @@ import java.io.IOException;
     }
 
     private TimestampSearchResult searchForPcrValueInBuffer(
-        ParsableByteArray packetBuffer, long targetPcrTimeUs, long bufferStartOffset) {
+            ParsableByteArray packetBuffer, long targetPcrTimeUs, long bufferStartOffset) {
       int limit = packetBuffer.limit();
 
       long startOfLastPacketPosition = C.POSITION_UNSET;

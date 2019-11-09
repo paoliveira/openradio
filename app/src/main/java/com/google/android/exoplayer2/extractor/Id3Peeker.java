@@ -49,7 +49,7 @@ public final class Id3Peeker {
    */
   @Nullable
   public Metadata peekId3Data(
-      ExtractorInput input, @Nullable Id3Decoder.FramePredicate id3FramePredicate)
+          ExtractorInput input, @Nullable Id3Decoder.FramePredicate id3FramePredicate)
       throws IOException, InterruptedException {
     int peekedId3Bytes = 0;
     Metadata metadata = null;

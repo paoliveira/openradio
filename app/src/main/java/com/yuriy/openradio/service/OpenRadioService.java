@@ -979,12 +979,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     getApplicationContext(),
                     mListener,
                     metadata -> {
-                        AppLogger.d(CLASS_NAME + "Metadata map:" + metadata);
-                        String streamTitle = metadata.get("StreamTitle");
-                        if (TextUtils.isEmpty(streamTitle)) {
-                            streamTitle = "";
-                        }
-                        updateMetadata(streamTitle);
+                        AppLogger.d(CLASS_NAME + "Metadata title:" + metadata);
+                        updateMetadata(metadata);
                     }
             );
 

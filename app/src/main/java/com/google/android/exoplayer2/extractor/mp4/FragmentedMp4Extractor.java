@@ -131,7 +131,8 @@ public class FragmentedMp4Extractor implements Extractor {
 
   // Sideloaded data.
   private final List<Format> closedCaptionFormats;
-  private final @Nullable DrmInitData sideloadedDrmInitData;
+  private final @Nullable
+  DrmInitData sideloadedDrmInitData;
 
   // Track-linked data bundle, accessible as a whole through trackID.
   private final SparseArray<TrackBundle> trackBundles;
@@ -869,7 +870,7 @@ public class FragmentedMp4Extractor implements Extractor {
    *     does not refer to any {@link TrackBundle}.
    */
   private static TrackBundle parseTfhd(
-      ParsableByteArray tfhd, SparseArray<TrackBundle> trackBundles) {
+          ParsableByteArray tfhd, SparseArray<TrackBundle> trackBundles) {
     tfhd.setPosition(Atom.HEADER_SIZE);
     int fullAtom = tfhd.readInt();
     int atomFlags = Atom.parseFullAtomFlags(fullAtom);
@@ -935,7 +936,7 @@ public class FragmentedMp4Extractor implements Extractor {
    * @return The starting position of samples for the next run.
    */
   private static int parseTrun(TrackBundle trackBundle, int index, long decodeTime,
-      @Flags int flags, ParsableByteArray trun, int trackRunStart) {
+                               @Flags int flags, ParsableByteArray trun, int trackRunStart) {
     trun.setPosition(Atom.HEADER_SIZE);
     int fullAtom = trun.readInt();
     int atomFlags = Atom.parseFullAtomFlags(fullAtom);
@@ -1017,7 +1018,7 @@ public class FragmentedMp4Extractor implements Extractor {
   }
 
   private static void parseUuid(ParsableByteArray uuid, TrackFragment out,
-      byte[] extendedTypeScratch) throws ParserException {
+                                byte[] extendedTypeScratch) throws ParserException {
     uuid.setPosition(Atom.HEADER_SIZE);
     uuid.readBytes(extendedTypeScratch, 0, 16);
 
@@ -1059,7 +1060,7 @@ public class FragmentedMp4Extractor implements Extractor {
   }
 
   private static void parseSgpd(ParsableByteArray sbgp, ParsableByteArray sgpd, String schemeType,
-      TrackFragment out) throws ParserException {
+                                TrackFragment out) throws ParserException {
     sbgp.setPosition(Atom.HEADER_SIZE);
     int sbgpFullAtom = sbgp.readInt();
     if (sbgp.readInt() != SAMPLE_GROUP_TYPE_seig) {

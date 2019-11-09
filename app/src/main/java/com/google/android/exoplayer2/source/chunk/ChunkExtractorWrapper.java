@@ -79,7 +79,7 @@ public final class ChunkExtractorWrapper implements ExtractorOutput {
    *     into any sample {@link Format} output from the {@link Extractor} for the primary track.
    */
   public ChunkExtractorWrapper(Extractor extractor, int primaryTrackType,
-                               Format primaryTrackManifestFormat) {
+      Format primaryTrackManifestFormat) {
     this.extractor = extractor;
     this.primaryTrackType = primaryTrackType;
     this.primaryTrackManifestFormat = primaryTrackManifestFormat;
@@ -211,7 +211,7 @@ public final class ChunkExtractorWrapper implements ExtractorOutput {
 
     @Override
     public void sampleMetadata(long timeUs, @C.BufferFlags int flags, int size, int offset,
-                               CryptoData cryptoData) {
+        CryptoData cryptoData) {
       if (endTimeUs != C.TIME_UNSET && timeUs >= endTimeUs) {
         trackOutput = dummyTrackOutput;
       }

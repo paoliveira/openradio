@@ -16,7 +16,6 @@
 package com.google.android.exoplayer2.metadata.id3;
 
 import android.os.Parcel;
-import android.os.Parcelable;
 
 import androidx.annotation.Nullable;
 
@@ -114,7 +113,7 @@ public final class ChapterTocFrame extends Id3Frame {
     }
   }
 
-  public static final Parcelable.Creator<ChapterTocFrame> CREATOR = new Parcelable.Creator<ChapterTocFrame>() {
+  public static final Creator<ChapterTocFrame> CREATOR = new Creator<ChapterTocFrame>() {
 
     @Override
     public ChapterTocFrame createFromParcel(Parcel in) {
