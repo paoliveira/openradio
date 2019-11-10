@@ -59,7 +59,6 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Clock;
@@ -217,8 +216,8 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Main constructor.
      *
-     * @param context                Application context.
-     * @param listener               Listener for the wrapper's events.
+     * @param context          Application context.
+     * @param listener         Listener for the wrapper's events.
      * @param metadataListener Listener for the stream events.
      */
     public ExoPlayerOpenRadioImpl(@NonNull final Context context,
@@ -249,15 +248,14 @@ public final class ExoPlayerOpenRadioImpl {
         mExoPlayer = new ExoPlayerImpl(
                 mRenderers,
                 new DefaultTrackSelector(trackSelectionFactory),
-                new DefaultLoadControl(
-                        new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
-                        AppPreferencesManager.getMinBuffer(context),
-                        AppPreferencesManager.getMaxBuffer(context),
-                        AppPreferencesManager.getPlayBuffer(context),
-                        AppPreferencesManager.getPlayBufferRebuffer(context),
-                        DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
-                        DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
-                ),
+                new DefaultLoadControl.Builder()
+                        .setBufferDurationsMs(
+                                AppPreferencesManager.getMinBuffer(context),
+                                AppPreferencesManager.getMaxBuffer(context),
+                                AppPreferencesManager.getPlayBuffer(context),
+                                AppPreferencesManager.getPlayBufferRebuffer(context)
+                        )
+                        .createDefaultLoadControl(),
                 ExoPlayerFactory.getDefaultBandwidthMeter(context),
                 Clock.DEFAULT,
                 Util.getLooper()
@@ -309,18 +307,11 @@ public final class ExoPlayerOpenRadioImpl {
      */
     public void setVolume(final float value) {
         AppLogger.d(LOG_TAG + " volume to " + value);
-        final ExoPlayer.ExoPlayerMessage[] messages
-                = new ExoPlayer.ExoPlayerMessage[mAudioRendererCount];
-        int count = 0;
         for (final Renderer renderer : mRenderers) {
-            if (renderer.getTrackType() == C.TRACK_TYPE_AUDIO) {
-                messages[count++] = new ExoPlayer.ExoPlayerMessage(
-                        renderer, C.MSG_SET_VOLUME, value
-                );
+            if (renderer.getTrackType() != C.TRACK_TYPE_AUDIO) {
+                continue;
             }
-        }
-        if (mExoPlayer != null) {
-            mExoPlayer.sendMessages(messages);
+            mExoPlayer.createMessage(renderer).setType(C.MSG_SET_VOLUME).setPayload(value).send();
         }
     }
 
