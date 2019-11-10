@@ -67,8 +67,10 @@ public final class ExoPlayerImpl extends BasePlayer implements ExoPlayer {
 
   private MediaSource mediaSource;
   private boolean playWhenReady;
-  @PlaybackSuppressionReason private int playbackSuppressionReason;
-  @RepeatMode private int repeatMode;
+  @PlaybackSuppressionReason
+  private int playbackSuppressionReason;
+  @RepeatMode
+  private int repeatMode;
   private boolean shuffleModeEnabled;
   private int pendingOperationAcks;
   private boolean hasPendingPrepare;
@@ -150,6 +152,12 @@ public final class ExoPlayerImpl extends BasePlayer implements ExoPlayer {
   @Override
   @Nullable
   public AudioComponent getAudioComponent() {
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public VideoComponent getVideoComponent() {
     return null;
   }
 
@@ -294,7 +302,8 @@ public final class ExoPlayerImpl extends BasePlayer implements ExoPlayer {
   }
 
   @Override
-  public @RepeatMode int getRepeatMode() {
+  public @RepeatMode
+  int getRepeatMode() {
     return repeatMode;
   }
 

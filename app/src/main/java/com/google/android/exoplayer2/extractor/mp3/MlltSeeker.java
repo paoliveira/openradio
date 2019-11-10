@@ -18,6 +18,7 @@ package com.google.android.exoplayer2.extractor.mp3;
 import android.util.Pair;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.SeekPoint;
 import com.google.android.exoplayer2.metadata.id3.MlltFrame;
 import com.google.android.exoplayer2.util.Util;
@@ -67,13 +68,13 @@ import com.google.android.exoplayer2.util.Util;
   }
 
   @Override
-  public SeekPoints getSeekPoints(long timeUs) {
+  public SeekMap.SeekPoints getSeekPoints(long timeUs) {
     timeUs = Util.constrainValue(timeUs, 0, durationUs);
     Pair<Long, Long> timeMsAndPosition =
         linearlyInterpolate(C.usToMs(timeUs), referenceTimesMs, referencePositions);
     timeUs = C.msToUs(timeMsAndPosition.first);
     long position = timeMsAndPosition.second;
-    return new SeekPoints(new SeekPoint(timeUs, position));
+    return new SeekMap.SeekPoints(new SeekPoint(timeUs, position));
   }
 
   @Override

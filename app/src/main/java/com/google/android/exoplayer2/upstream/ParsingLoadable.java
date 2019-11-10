@@ -83,7 +83,7 @@ public final class ParsingLoadable<T> implements Loadable {
    * @throws IOException Thrown if there is an error while loading or parsing.
    */
   public static <T> T load(
-      DataSource dataSource, Parser<? extends T> parser, DataSpec dataSpec, int type)
+          DataSource dataSource, Parser<? extends T> parser, DataSpec dataSpec, int type)
       throws IOException {
     ParsingLoadable<T> loadable = new ParsingLoadable<>(dataSource, dataSpec, type, parser);
     loadable.load();
@@ -122,7 +122,7 @@ public final class ParsingLoadable<T> implements Loadable {
    * @param parser Parses the object from the response.
    */
   public ParsingLoadable(DataSource dataSource, DataSpec dataSpec, int type,
-      Parser<? extends T> parser) {
+                         Parser<? extends T> parser) {
     this.dataSource = new StatsDataSource(dataSource);
     this.dataSpec = dataSpec;
     this.type = type;

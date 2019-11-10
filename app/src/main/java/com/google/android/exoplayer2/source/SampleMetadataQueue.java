@@ -402,7 +402,7 @@ import com.google.android.exoplayer2.util.Util;
   }
 
   public synchronized void commitSample(long timeUs, @C.BufferFlags int sampleFlags, long offset,
-                                        int size, CryptoData cryptoData) {
+      int size, CryptoData cryptoData) {
     if (upstreamKeyframeRequired) {
       if ((sampleFlags & C.BUFFER_FLAG_KEY_FRAME) == 0) {
         return;

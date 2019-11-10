@@ -190,8 +190,7 @@ public final class SingleSampleMediaSource extends BaseMediaSource {
   private final Timeline timeline;
   @Nullable private final Object tag;
 
-  private @Nullable
-  TransferListener transferListener;
+  private @Nullable TransferListener transferListener;
 
   /**
    * @param uri The {@link Uri} of the media stream.

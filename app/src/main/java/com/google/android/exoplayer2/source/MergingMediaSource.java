@@ -91,7 +91,7 @@ public final class MergingMediaSource extends CompositeMediaSource<Integer> {
    * @param mediaSources The {@link MediaSource}s to merge.
    */
   public MergingMediaSource(CompositeSequenceableLoaderFactory compositeSequenceableLoaderFactory,
-                            MediaSource... mediaSources) {
+      MediaSource... mediaSources) {
     this.mediaSources = mediaSources;
     this.compositeSequenceableLoaderFactory = compositeSequenceableLoaderFactory;
     pendingTimelineSources = new ArrayList<>(Arrays.asList(mediaSources));
@@ -122,11 +122,11 @@ public final class MergingMediaSource extends CompositeMediaSource<Integer> {
   }
 
   @Override
-  public MediaPeriod createPeriod(MediaSource.MediaPeriodId id, Allocator allocator, long startPositionUs) {
+  public MediaPeriod createPeriod(MediaPeriodId id, Allocator allocator, long startPositionUs) {
     MediaPeriod[] periods = new MediaPeriod[mediaSources.length];
     int periodIndex = timelines[0].getIndexOfPeriod(id.periodUid);
     for (int i = 0; i < periods.length; i++) {
-      MediaSource.MediaPeriodId childMediaPeriodId =
+      MediaPeriodId childMediaPeriodId =
           id.copyWithPeriodUid(timelines[i].getUidOfPeriod(periodIndex));
       periods[i] = mediaSources[i].createPeriod(childMediaPeriodId, allocator, startPositionUs);
     }
@@ -172,9 +172,8 @@ public final class MergingMediaSource extends CompositeMediaSource<Integer> {
   }
 
   @Override
-  protected @Nullable
-  MediaSource.MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(
-          Integer id, MediaSource.MediaPeriodId mediaPeriodId) {
+  protected @Nullable MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(
+          Integer id, MediaPeriodId mediaPeriodId) {
     return id == 0 ? mediaPeriodId : null;
   }
 

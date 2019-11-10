@@ -79,7 +79,7 @@ public final class CacheUtil {
    * @return A pair containing the request length and the number of bytes that are already cached.
    */
   public static Pair<Long, Long> getCached(
-      DataSpec dataSpec, Cache cache, @Nullable CacheKeyFactory cacheKeyFactory) {
+          DataSpec dataSpec, Cache cache, @Nullable CacheKeyFactory cacheKeyFactory) {
     String key = buildCacheKey(dataSpec, cacheKeyFactory);
     long position = dataSpec.absoluteStreamPosition;
     long requestLength = getRequestLength(dataSpec, cache, key);
@@ -341,7 +341,7 @@ public final class CacheUtil {
    * @param cacheKeyFactory An optional factory for cache keys.
    */
   public static void remove(
-      DataSpec dataSpec, Cache cache, @Nullable CacheKeyFactory cacheKeyFactory) {
+          DataSpec dataSpec, Cache cache, @Nullable CacheKeyFactory cacheKeyFactory) {
     remove(cache, buildCacheKey(dataSpec, cacheKeyFactory));
   }
 
@@ -377,7 +377,7 @@ public final class CacheUtil {
   }
 
   private static String buildCacheKey(
-      DataSpec dataSpec, @Nullable CacheKeyFactory cacheKeyFactory) {
+          DataSpec dataSpec, @Nullable CacheKeyFactory cacheKeyFactory) {
     return (cacheKeyFactory != null ? cacheKeyFactory : DEFAULT_CACHE_KEY_FACTORY)
         .buildCacheKey(dataSpec);
   }

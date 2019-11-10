@@ -180,7 +180,7 @@ public final class Tx3gDecoder extends SimpleSubtitleDecoder {
   }
 
   private void applyStyleRecord(ParsableByteArray parsableByteArray,
-      SpannableStringBuilder cueText) throws SubtitleDecoderException {
+                                SpannableStringBuilder cueText) throws SubtitleDecoderException {
     assertTrue(parsableByteArray.bytesLeft() >= SIZE_STYLE_RECORD);
     int start = parsableByteArray.readUnsignedShort();
     int end = parsableByteArray.readUnsignedShort();

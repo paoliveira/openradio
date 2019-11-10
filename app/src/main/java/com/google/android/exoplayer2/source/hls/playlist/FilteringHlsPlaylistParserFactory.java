@@ -36,7 +36,7 @@ public final class FilteringHlsPlaylistParserFactory implements HlsPlaylistParse
    * @param streamKeys The stream keys. If null or empty then filtering will not occur.
    */
   public FilteringHlsPlaylistParserFactory(
-      HlsPlaylistParserFactory hlsPlaylistParserFactory, List<StreamKey> streamKeys) {
+          HlsPlaylistParserFactory hlsPlaylistParserFactory, List<StreamKey> streamKeys) {
     this.hlsPlaylistParserFactory = hlsPlaylistParserFactory;
     this.streamKeys = streamKeys;
   }

@@ -448,7 +448,7 @@ public final class Mp4Extractor implements Extractor, SeekMap {
   }
 
   private ArrayList<TrackSampleTable> getTrackSampleTables(
-      ContainerAtom moov, GaplessInfoHolder gaplessInfoHolder, boolean ignoreEditLists)
+          ContainerAtom moov, GaplessInfoHolder gaplessInfoHolder, boolean ignoreEditLists)
       throws ParserException {
     ArrayList<TrackSampleTable> trackSampleTables = new ArrayList<>();
     for (int i = 0; i < moov.containerChildren.size(); i++) {

@@ -48,9 +48,12 @@ import com.google.android.exoplayer2.util.Assertions;
   private Timeline timeline;
   private @RepeatMode int repeatMode;
   private boolean shuffleModeEnabled;
-  private @Nullable MediaPeriodHolder playing;
-  private @Nullable MediaPeriodHolder reading;
-  private @Nullable MediaPeriodHolder loading;
+  private @Nullable
+  MediaPeriodHolder playing;
+  private @Nullable
+  MediaPeriodHolder reading;
+  private @Nullable
+  MediaPeriodHolder loading;
   private int length;
   private @Nullable
   Object oldFrontPeriodUid;
@@ -122,8 +125,7 @@ import com.google.android.exoplayer2.util.Assertions;
    * @return The {@link MediaPeriodInfo} for the next media period to load, or {@code null} if not
    *     yet known.
    */
-  public @Nullable
-  MediaPeriodInfo getNextMediaPeriodInfo(
+  public @Nullable MediaPeriodInfo getNextMediaPeriodInfo(
       long rendererPositionUs, PlaybackInfo playbackInfo) {
     return loading == null
         ? getFirstMediaPeriodInfo(playbackInfo)
@@ -543,9 +545,8 @@ import com.google.android.exoplayer2.util.Assertions;
    * @return The following media period's info, or {@code null} if it is not yet possible to get the
    *     next media period info.
    */
-  private @Nullable
-  MediaPeriodInfo getFollowingMediaPeriodInfo(
-      MediaPeriodHolder mediaPeriodHolder, long rendererPositionUs) {
+  private @Nullable MediaPeriodInfo getFollowingMediaPeriodInfo(
+          MediaPeriodHolder mediaPeriodHolder, long rendererPositionUs) {
     // TODO: This method is called repeatedly from ExoPlayerImplInternal.maybeUpdateLoadingPeriod
     // but if the timeline is not ready to provide the next period it can't return a non-null value
     // until the timeline is updated. Store whether the next timeline period is ready when the
@@ -669,7 +670,7 @@ import com.google.android.exoplayer2.util.Assertions;
   }
 
   private MediaPeriodInfo getMediaPeriodInfo(
-          MediaPeriodId id, long contentPositionUs, long startPositionUs) {
+      MediaPeriodId id, long contentPositionUs, long startPositionUs) {
     timeline.getPeriodByUid(id.periodUid, period);
     if (id.isAd()) {
       if (!period.isAdAvailable(id.adGroupIndex, id.adIndexInAdGroup)) {

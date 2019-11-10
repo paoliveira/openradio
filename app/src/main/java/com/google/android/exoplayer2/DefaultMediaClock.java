@@ -46,7 +46,8 @@ import com.google.android.exoplayer2.util.StandaloneMediaClock;
 
   private @Nullable
   Renderer rendererClockSource;
-  private @Nullable MediaClock rendererClock;
+  private @Nullable
+  MediaClock rendererClock;
 
   /**
    * Creates a new instance with listener for playback parameter changes and a {@link Clock} to use

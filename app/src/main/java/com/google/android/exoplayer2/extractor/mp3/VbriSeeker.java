@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.extractor.MpegAudioHeader;
+import com.google.android.exoplayer2.extractor.SeekMap;
 import com.google.android.exoplayer2.extractor.SeekPoint;
 import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.ParsableByteArray;
@@ -44,7 +45,7 @@ import com.google.android.exoplayer2.util.Util;
    */
   public static @Nullable
   VbriSeeker create(
-          long inputLength, long position, MpegAudioHeader mpegAudioHeader, ParsableByteArray frame) {
+      long inputLength, long position, MpegAudioHeader mpegAudioHeader, ParsableByteArray frame) {
     frame.skipBytes(10);
     int numFrames = frame.readInt();
     if (numFrames <= 0) {
@@ -110,14 +111,14 @@ import com.google.android.exoplayer2.util.Util;
   }
 
   @Override
-  public SeekPoints getSeekPoints(long timeUs) {
+  public SeekMap.SeekPoints getSeekPoints(long timeUs) {
     int tableIndex = Util.binarySearchFloor(timesUs, timeUs, true, true);
     SeekPoint seekPoint = new SeekPoint(timesUs[tableIndex], positions[tableIndex]);
     if (seekPoint.timeUs >= timeUs || tableIndex == timesUs.length - 1) {
-      return new SeekPoints(seekPoint);
+      return new SeekMap.SeekPoints(seekPoint);
     } else {
       SeekPoint nextSeekPoint = new SeekPoint(timesUs[tableIndex + 1], positions[tableIndex + 1]);
-      return new SeekPoints(seekPoint, nextSeekPoint);
+      return new SeekMap.SeekPoints(seekPoint, nextSeekPoint);
     }
   }
 

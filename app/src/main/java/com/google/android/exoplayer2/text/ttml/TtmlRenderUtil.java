@@ -36,7 +36,7 @@ import java.util.Map;
 /* package */ final class TtmlRenderUtil {
 
   public static TtmlStyle resolveStyle(TtmlStyle style, String[] styleIds,
-      Map<String, TtmlStyle> globalStyles) {
+                                       Map<String, TtmlStyle> globalStyles) {
     if (style == null && styleIds == null) {
       // No styles at all.
       return null;

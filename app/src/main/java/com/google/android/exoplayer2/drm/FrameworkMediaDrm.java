@@ -131,7 +131,7 @@ public final class FrameworkMediaDrm implements ExoMediaDrm<FrameworkMediaCrypto
   @Override
   public KeyRequest getKeyRequest(
       byte[] scope,
-      @Nullable List<SchemeData> schemeDatas,
+      @Nullable List<DrmInitData.SchemeData> schemeDatas,
       int keyType,
       @Nullable HashMap<String, String> optionalParameters)
       throws NotProvisionedException {

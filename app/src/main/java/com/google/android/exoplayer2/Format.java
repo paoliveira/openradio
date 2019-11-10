@@ -65,8 +65,7 @@ public final class Format implements Parcelable {
   public final @Nullable
   String codecs;
   /** Metadata, or null if unknown or not applicable. */
-  public final @Nullable
-  Metadata metadata;
+  public final @Nullable Metadata metadata;
 
   // Container specific.
 

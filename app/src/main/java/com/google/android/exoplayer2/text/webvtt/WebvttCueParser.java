@@ -95,7 +95,7 @@ public final class WebvttCueParser {
    * @return Whether a valid Cue was found.
    */
   public boolean parseCue(ParsableByteArray webvttData, WebvttCue.Builder builder,
-      List<WebvttCssStyle> styles) {
+                          List<WebvttCssStyle> styles) {
     String firstLine = webvttData.readLine();
     if (firstLine == null) {
       return false;

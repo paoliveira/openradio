@@ -251,8 +251,7 @@ public final class TsExtractor implements Extractor {
   }
 
   @Override
-  public @ReadResult
-  int read(ExtractorInput input, PositionHolder seekPosition)
+  public @ReadResult int read(ExtractorInput input, PositionHolder seekPosition)
       throws IOException, InterruptedException {
     long inputLength = input.getLength();
     if (tracksEnded) {
@@ -454,7 +453,7 @@ public final class TsExtractor implements Extractor {
 
     @Override
     public void init(TimestampAdjuster timestampAdjuster, ExtractorOutput extractorOutput,
-                     TrackIdGenerator idGenerator) {
+        TrackIdGenerator idGenerator) {
       // Do nothing.
     }
 
@@ -519,7 +518,7 @@ public final class TsExtractor implements Extractor {
 
     @Override
     public void init(TimestampAdjuster timestampAdjuster, ExtractorOutput extractorOutput,
-                     TrackIdGenerator idGenerator) {
+        TrackIdGenerator idGenerator) {
       // Do nothing.
     }
 

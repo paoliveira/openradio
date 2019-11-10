@@ -87,7 +87,7 @@ public final class CeaUtil {
    * @param outputs The outputs to which any samples should be written.
    */
   public static void consumeCcData(
-      long presentationTimeUs, ParsableByteArray ccDataBuffer, TrackOutput[] outputs) {
+          long presentationTimeUs, ParsableByteArray ccDataBuffer, TrackOutput[] outputs) {
     // First byte contains: reserved (1), process_cc_data_flag (1), zero_bit (1), cc_count (5).
     int firstByte = ccDataBuffer.readUnsignedByte();
     boolean processCcDataFlag = (firstByte & 0x40) != 0;

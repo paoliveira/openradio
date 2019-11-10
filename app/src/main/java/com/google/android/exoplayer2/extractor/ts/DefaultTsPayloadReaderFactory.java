@@ -209,13 +209,13 @@ public final class DefaultTsPayloadReaderFactory implements TsPayloadReader.Fact
   }
 
   /**
-   * If {@link #FLAG_OVERRIDE_CAPTION_DESCRIPTORS} is set, returns a {@link List < Format >} of {@link
+   * If {@link #FLAG_OVERRIDE_CAPTION_DESCRIPTORS} is set, returns a {@link List <Format>} of {@link
    * #closedCaptionFormats}. If unset, parses the PMT descriptor information and returns a {@link
-   * List < Format >} for the declared formats, or {@link #closedCaptionFormats} if the descriptor is
+   * List <Format>} for the declared formats, or {@link #closedCaptionFormats} if the descriptor is
    * not present.
    *
    * @param esInfo The {@link EsInfo} passed to {@link #createPayloadReader(int, EsInfo)}.
-   * @return A {@link List < Format >} containing list of closed caption formats.
+   * @return A {@link List <Format>} containing list of closed caption formats.
    */
   private List<Format> getClosedCaptionFormats(EsInfo esInfo) {
     if (isSet(FLAG_OVERRIDE_CAPTION_DESCRIPTORS)) {

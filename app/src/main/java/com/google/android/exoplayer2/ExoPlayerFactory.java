@@ -35,7 +35,8 @@ import com.google.android.exoplayer2.util.Util;
  */
 public final class ExoPlayerFactory {
 
-  private static @Nullable BandwidthMeter singletonBandwidthMeter;
+  private static @Nullable
+  BandwidthMeter singletonBandwidthMeter;
 
   private ExoPlayerFactory() {}
 

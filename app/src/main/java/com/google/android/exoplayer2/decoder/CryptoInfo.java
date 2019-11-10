@@ -71,7 +71,7 @@ public final class CryptoInfo {
    * @see android.media.MediaCodec.CryptoInfo#set(int, int[], int[], byte[], byte[], int)
    */
   public void set(int numSubSamples, int[] numBytesOfClearData, int[] numBytesOfEncryptedData,
-                  byte[] key, byte[] iv, @C.CryptoMode int mode, int encryptedBlocks, int clearBlocks) {
+      byte[] key, byte[] iv, @C.CryptoMode int mode, int encryptedBlocks, int clearBlocks) {
     this.numSubSamples = numSubSamples;
     this.numBytesOfClearData = numBytesOfClearData;
     this.numBytesOfEncryptedData = numBytesOfEncryptedData;

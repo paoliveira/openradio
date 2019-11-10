@@ -43,7 +43,7 @@ public final class TsUtil {
    *     contains a valid PCR value. Returns {@link C#TIME_UNSET} otherwise.
    */
   public static long readPcrFromPacket(
-      ParsableByteArray packetBuffer, int startOfPacket, int pcrPid) {
+          ParsableByteArray packetBuffer, int startOfPacket, int pcrPid) {
     packetBuffer.setPosition(startOfPacket);
     if (packetBuffer.bytesLeft() < 5) {
       // Header = 4 bytes, adaptationFieldLength = 1 byte.

@@ -16,6 +16,7 @@
 package com.google.android.exoplayer2.metadata.scte35;
 
 import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.util.ParsableByteArray;
@@ -76,8 +77,8 @@ public final class TimeSignalCommand extends SpliceCommand {
     dest.writeLong(playbackPositionUs);
   }
 
-  public static final Creator<TimeSignalCommand> CREATOR =
-      new Creator<TimeSignalCommand>() {
+  public static final Parcelable.Creator<TimeSignalCommand> CREATOR =
+      new Parcelable.Creator<TimeSignalCommand>() {
 
     @Override
     public TimeSignalCommand createFromParcel(Parcel in) {

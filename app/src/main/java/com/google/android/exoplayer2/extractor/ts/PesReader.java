@@ -62,7 +62,7 @@ public final class PesReader implements TsPayloadReader {
 
   @Override
   public void init(TimestampAdjuster timestampAdjuster, ExtractorOutput extractorOutput,
-                   TrackIdGenerator idGenerator) {
+      TrackIdGenerator idGenerator) {
     this.timestampAdjuster = timestampAdjuster;
     reader.createTracks(extractorOutput, idGenerator);
   }

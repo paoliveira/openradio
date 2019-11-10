@@ -38,8 +38,7 @@ public final class AesCipherDataSource implements DataSource {
   private final DataSource upstream;
   private final byte[] secretKey;
 
-  private @Nullable
-  AesFlushingCipher cipher;
+  private @Nullable AesFlushingCipher cipher;
 
   public AesCipherDataSource(byte[] secretKey, DataSource upstream) {
     this.upstream = upstream;

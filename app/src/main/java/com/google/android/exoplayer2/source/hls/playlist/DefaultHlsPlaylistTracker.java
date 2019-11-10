@@ -169,7 +169,8 @@ public final class DefaultHlsPlaylistTracker
   }
 
   @Override
-  public @Nullable HlsMasterPlaylist getMasterPlaylist() {
+  public @Nullable
+  HlsMasterPlaylist getMasterPlaylist() {
     return masterPlaylist;
   }
 

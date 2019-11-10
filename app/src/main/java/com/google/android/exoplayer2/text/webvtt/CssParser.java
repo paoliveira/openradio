@@ -152,7 +152,7 @@ import java.util.regex.Pattern;
   }
 
   private static void parseStyleDeclaration(ParsableByteArray input, WebvttCssStyle style,
-      StringBuilder stringBuilder) {
+                                            StringBuilder stringBuilder) {
     skipWhitespaceAndComments(input);
     String property = parseIdentifier(input, stringBuilder);
     if ("".equals(property)) {

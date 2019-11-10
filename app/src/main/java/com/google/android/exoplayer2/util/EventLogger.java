@@ -123,7 +123,7 @@ public class EventLogger implements AnalyticsListener {
 
   @Override
   public void onPlaybackParametersChanged(
-      EventTime eventTime, PlaybackParameters playbackParameters) {
+          EventTime eventTime, PlaybackParameters playbackParameters) {
     logd(
         eventTime,
         "playbackParameters",
@@ -302,7 +302,7 @@ public class EventLogger implements AnalyticsListener {
 
   @Override
   public void onAudioUnderrun(
-      EventTime eventTime, int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+          EventTime eventTime, int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
     loge(
         eventTime,
         "audioTrackUnderrun",
@@ -375,7 +375,7 @@ public class EventLogger implements AnalyticsListener {
 
   @Override
   public void onBandwidthEstimate(
-      EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
+          EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
     // Do nothing.
   }
 

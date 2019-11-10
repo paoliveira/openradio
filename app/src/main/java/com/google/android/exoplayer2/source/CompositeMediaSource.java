@@ -39,8 +39,7 @@ public abstract class CompositeMediaSource<T> extends BaseMediaSource {
 
   private @Nullable
   Handler eventHandler;
-  private @Nullable
-  TransferListener mediaTransferListener;
+  private @Nullable TransferListener mediaTransferListener;
 
   /** Create composite media source without child sources. */
   protected CompositeMediaSource() {

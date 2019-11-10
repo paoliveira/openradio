@@ -199,7 +199,7 @@ public abstract class BinarySearchSeeker {
    * @throws InterruptedException If the thread was interrupted.
    */
   public int handlePendingSeek(
-          ExtractorInput input, PositionHolder seekPositionHolder, OutputFrameHolder outputFrameHolder)
+      ExtractorInput input, PositionHolder seekPositionHolder, OutputFrameHolder outputFrameHolder)
       throws InterruptedException, IOException {
     TimestampSeeker timestampSeeker = Assertions.checkNotNull(this.timestampSeeker);
     while (true) {
@@ -280,7 +280,7 @@ public abstract class BinarySearchSeeker {
   }
 
   protected final int seekToPosition(
-          ExtractorInput input, long position, PositionHolder seekPositionHolder) {
+      ExtractorInput input, long position, PositionHolder seekPositionHolder) {
     if (position == input.getPosition()) {
       return Extractor.RESULT_CONTINUE;
     } else {

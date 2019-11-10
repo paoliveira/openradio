@@ -39,7 +39,7 @@ import java.io.IOException;
   private static final int TIMESTAMP_SEARCH_BYTES = 20000;
 
   public PsBinarySearchSeeker(
-          TimestampAdjuster scrTimestampAdjuster, long streamDurationUs, long inputLength) {
+      TimestampAdjuster scrTimestampAdjuster, long streamDurationUs, long inputLength) {
     super(
         new DefaultSeekTimestampConverter(),
         new PsScrSeeker(scrTimestampAdjuster),
@@ -88,7 +88,7 @@ import java.io.IOException;
     }
 
     private TimestampSearchResult searchForScrValueInBuffer(
-        ParsableByteArray packetBuffer, long targetScrTimeUs, long bufferStartOffset) {
+            ParsableByteArray packetBuffer, long targetScrTimeUs, long bufferStartOffset) {
       int startOfLastPacketPosition = C.POSITION_UNSET;
       int endOfLastPacketPosition = C.POSITION_UNSET;
       long lastScrTimeUsInRange = C.TIME_UNSET;

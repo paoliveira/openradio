@@ -252,7 +252,7 @@ public final class H264Reader implements ElementaryStreamReader {
     private final TrackOutput output;
     private final boolean allowNonIdrKeyframes;
     private final boolean detectAccessUnits;
-    private final SparseArray<NalUnitUtil.SpsData> sps;
+    private final SparseArray<SpsData> sps;
     private final SparseArray<NalUnitUtil.PpsData> pps;
     private final ParsableNalUnitBitArray bitArray;
 

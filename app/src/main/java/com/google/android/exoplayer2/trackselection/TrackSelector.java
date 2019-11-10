@@ -100,7 +100,8 @@ public abstract class TrackSelector {
   }
 
   private @Nullable InvalidationListener listener;
-  private @Nullable BandwidthMeter bandwidthMeter;
+  private @Nullable
+  BandwidthMeter bandwidthMeter;
 
   /**
    * Called by the player to initialize the selector.

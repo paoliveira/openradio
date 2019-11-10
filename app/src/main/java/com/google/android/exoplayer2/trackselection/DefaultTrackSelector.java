@@ -620,7 +620,7 @@ public class DefaultTrackSelector extends MappingTrackSelector {
      * @return This builder.
      */
     public final ParametersBuilder setSelectionOverride(
-            int rendererIndex, TrackGroupArray groups, SelectionOverride override) {
+        int rendererIndex, TrackGroupArray groups, SelectionOverride override) {
       Map<TrackGroupArray, SelectionOverride> overrides = selectionOverrides.get(rendererIndex);
       if (overrides == null) {
         overrides = new HashMap<>();
@@ -1461,7 +1461,7 @@ public class DefaultTrackSelector extends MappingTrackSelector {
    */
   @Deprecated
   public final void setSelectionOverride(
-          int rendererIndex, TrackGroupArray groups, SelectionOverride override) {
+      int rendererIndex, TrackGroupArray groups, SelectionOverride override) {
     setParameters(buildUponParameters().setSelectionOverride(rendererIndex, groups, override));
   }
 
@@ -1907,7 +1907,7 @@ public class DefaultTrackSelector extends MappingTrackSelector {
 
   @Nullable
   private static TrackSelection.Definition selectFixedVideoTrack(
-          TrackGroupArray groups, int[][] formatSupports, Parameters params) {
+      TrackGroupArray groups, int[][] formatSupports, Parameters params) {
     TrackGroup selectedGroup = null;
     int selectedTrackIndex = 0;
     int selectedTrackScore = 0;
@@ -2222,7 +2222,7 @@ public class DefaultTrackSelector extends MappingTrackSelector {
    */
   @Nullable
   protected TrackSelection.Definition selectOtherTrack(
-          int trackType, TrackGroupArray groups, int[][] formatSupport, Parameters params)
+      int trackType, TrackGroupArray groups, int[][] formatSupport, Parameters params)
       throws ExoPlaybackException {
     TrackGroup selectedGroup = null;
     int selectedTrackIndex = 0;
@@ -2324,7 +2324,7 @@ public class DefaultTrackSelector extends MappingTrackSelector {
    * @return Whether the renderer supports tunneling for the {@link TrackSelection}.
    */
   private static boolean rendererSupportsTunneling(
-          int[][] formatSupports, TrackGroupArray trackGroups, TrackSelection selection) {
+      int[][] formatSupports, TrackGroupArray trackGroups, TrackSelection selection) {
     if (selection == null) {
       return false;
     }

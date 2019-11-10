@@ -19,7 +19,9 @@ package com.yuriy.openradio.exo;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.PowerManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -38,22 +40,27 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
 import com.google.android.exoplayer2.audio.AudioProcessor;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.audio.DefaultAudioSink;
 import com.google.android.exoplayer2.audio.MediaCodecAudioRenderer;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.mediacodec.MediaCodecSelector;
 import com.google.android.exoplayer2.metadata.Metadata;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.metadata.MetadataRenderer;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.metadata.icy.IcyHeaders;
+import com.google.android.exoplayer2.metadata.icy.IcyInfo;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultAllocator;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
@@ -204,23 +211,26 @@ public final class ExoPlayerOpenRadioImpl {
      */
     private Handler mUpdateProgressHandler = new Handler();
 
+    private final MetadataListener mMetadataListener;
+
     /**
      * Main constructor.
      *
-     * @param context                Application context.
-     * @param listener               Listener for the wrapper's events.
-     * @param icyInputStreamListener ICY listener for the stream events.
+     * @param context          Application context.
+     * @param listener         Listener for the wrapper's events.
+     * @param metadataListener Listener for the stream events.
      */
     public ExoPlayerOpenRadioImpl(@NonNull final Context context,
                                   @NonNull final Listener listener,
-                                  @NonNull final IcyInputStreamListener icyInputStreamListener) {
+                                  @NonNull final MetadataListener metadataListener) {
         super();
 
-        mMainHandler = new Handler();
+        mMainHandler = new Handler(Looper.getMainLooper());
         mComponentListener = new ComponentListener(this);
         mListener = listener;
+        mMetadataListener = metadataListener;
 
-        mMediaDataSourceFactory = buildDataSourceFactory(context, icyInputStreamListener);
+        mMediaDataSourceFactory = buildDataSourceFactory(context);
 
         final List<Renderer> renderersList = new ArrayList<>();
         buildRenderers(context, mMainHandler, renderersList);
@@ -234,18 +244,18 @@ public final class ExoPlayerOpenRadioImpl {
         }
         mAudioRendererCount = audioRendererCount;
 
+        final TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
         mExoPlayer = new ExoPlayerImpl(
                 mRenderers,
-                new DefaultTrackSelector(),
-                new DefaultLoadControl(
-                        new DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
-                        AppPreferencesManager.getMinBuffer(context),
-                        AppPreferencesManager.getMaxBuffer(context),
-                        AppPreferencesManager.getPlayBuffer(context),
-                        AppPreferencesManager.getPlayBufferRebuffer(context),
-                        DefaultLoadControl.DEFAULT_TARGET_BUFFER_BYTES,
-                        DefaultLoadControl.DEFAULT_PRIORITIZE_TIME_OVER_SIZE_THRESHOLDS
-                ),
+                new DefaultTrackSelector(trackSelectionFactory),
+                new DefaultLoadControl.Builder()
+                        .setBufferDurationsMs(
+                                AppPreferencesManager.getMinBuffer(context),
+                                AppPreferencesManager.getMaxBuffer(context),
+                                AppPreferencesManager.getPlayBuffer(context),
+                                AppPreferencesManager.getPlayBufferRebuffer(context)
+                        )
+                        .createDefaultLoadControl(),
                 ExoPlayerFactory.getDefaultBandwidthMeter(context),
                 Clock.DEFAULT,
                 Util.getLooper()
@@ -274,7 +284,7 @@ public final class ExoPlayerOpenRadioImpl {
                         .createMediaSource(mUri);
                 break;
             case C.TYPE_OTHER:
-                mMediaSource = new ExtractorMediaSource.Factory(mMediaDataSourceFactory)
+                mMediaSource = new ProgressiveMediaSource.Factory(mMediaDataSourceFactory)
                         .createMediaSource(mUri);
                 break;
             default:
@@ -297,18 +307,11 @@ public final class ExoPlayerOpenRadioImpl {
      */
     public void setVolume(final float value) {
         AppLogger.d(LOG_TAG + " volume to " + value);
-        final ExoPlayer.ExoPlayerMessage[] messages
-                = new ExoPlayer.ExoPlayerMessage[mAudioRendererCount];
-        int count = 0;
         for (final Renderer renderer : mRenderers) {
-            if (renderer.getTrackType() == C.TRACK_TYPE_AUDIO) {
-                messages[count++] = new ExoPlayer.ExoPlayerMessage(
-                        renderer, C.MSG_SET_VOLUME, value
-                );
+            if (renderer.getTrackType() != C.TRACK_TYPE_AUDIO) {
+                continue;
             }
-        }
-        if (mExoPlayer != null) {
-            mExoPlayer.sendMessages(messages);
+            mExoPlayer.createMessage(renderer).setType(C.MSG_SET_VOLUME).setPayload(value).send();
         }
     }
 
@@ -423,11 +426,12 @@ public final class ExoPlayerOpenRadioImpl {
                         context,
                         MediaCodecSelector.DEFAULT,
                         null,
-                        true,
+                        false,
+                        false,
                         mainHandler,
                         eventListener,
-                        AudioCapabilities.getCapabilities(context),
-                        audioProcessors)
+                        new DefaultAudioSink(AudioCapabilities.getCapabilities(context), audioProcessors)
+                )
         );
     }
 
@@ -439,7 +443,7 @@ public final class ExoPlayerOpenRadioImpl {
      * @param out         An array to which the built renderers should be appended.
      */
     private void buildMetadataRenderers(final Handler mainHandler,
-                                        final MetadataRenderer.Output output,
+                                        final MetadataOutput output,
                                         final List<Renderer> out) {
         out.add(new MetadataRenderer(output, mainHandler.getLooper()));
     }
@@ -449,21 +453,13 @@ public final class ExoPlayerOpenRadioImpl {
      *
      * @return A new DataSource factory.
      */
-    private DataSource.Factory buildDataSourceFactory(@NonNull final Context context,
-                                                      @NonNull final IcyInputStreamListener icyInputStreamListener) {
-        final int timeOut = DefaultHttpDataSource.DEFAULT_READ_TIMEOUT_MILLIS;
+    private DataSource.Factory buildDataSourceFactory(@NonNull final Context context) {
         final String userAgent = AppPreferencesManager.isCustomUserAgent(context)
                 ? AppPreferencesManager.getCustomUserAgent(context)
                 : AppUtils.getDefaultUserAgent(context);
         AppLogger.d("UserAgent:" + userAgent);
         return new DefaultDataSourceFactory(
-                context,
-                null,
-                new IcyHttpDataSourceFactory(
-                        userAgent,
-                        icyInputStreamListener,
-                        timeOut
-                )
+                context, new DefaultHttpDataSourceFactory(userAgent)
         );
     }
 
@@ -520,7 +516,7 @@ public final class ExoPlayerOpenRadioImpl {
      * Listener class for the players components events.
      */
     private static final class ComponentListener implements
-            AudioRendererEventListener, MetadataRenderer.Output, Player.EventListener {
+            AudioRendererEventListener, MetadataOutput, Player.EventListener {
 
         /**
          * Reference to enclosing class.
@@ -551,7 +547,43 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onMetadata(final Metadata metadata) {
-//            AppLogger.d(LOG_TAG + " metadata:" + metadata);
+
+            // TODO: REFACTOR THIS QUICK CODE!!
+
+            if (metadata == null) {
+                return;
+            }
+            Metadata.Entry entry;
+            for (int i = 0; i < metadata.length(); ++i) {
+                entry = metadata.get(i);
+                if (entry == null) {
+                    return;
+                }
+                if (entry instanceof IcyInfo) {
+                    final IcyInfo info = (IcyInfo) metadata.get(i);
+                    if (info != null) {
+                        AppLogger.d(LOG_TAG + " IcyInfo title:" + info);
+                        final ExoPlayerOpenRadioImpl reference = mReference.get();
+                        if (reference == null) {
+                            return;
+                        }
+                        String title = info.title;
+                        if (TextUtils.isEmpty(title)) {
+                            return;
+                        }
+                        if (title.startsWith(" ")) {
+                            title = title.replaceFirst(" ", "");
+                        }
+                        reference.mMetadataListener.onMetaData(title);
+                    }
+                }
+                if (entry instanceof IcyHeaders) {
+                    final IcyHeaders headers = (IcyHeaders) metadata.get(i);
+                    if (headers != null) {
+                        AppLogger.d(LOG_TAG + " IcyHeaders name:" + headers);
+                    }
+                }
+            }
         }
 
         @Override

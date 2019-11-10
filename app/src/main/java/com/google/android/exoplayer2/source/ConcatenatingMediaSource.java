@@ -110,7 +110,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
    *     MediaSource} instance to be present more than once in the array.
    */
   public ConcatenatingMediaSource(
-      boolean isAtomic, ShuffleOrder shuffleOrder, MediaSource... mediaSources) {
+          boolean isAtomic, ShuffleOrder shuffleOrder, MediaSource... mediaSources) {
     this(isAtomic, /* useLazyPreparation= */ false, shuffleOrder, mediaSources);
   }
 
@@ -451,7 +451,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
 
   @Override
   public final MediaPeriod createPeriod(
-          MediaSource.MediaPeriodId id, Allocator allocator, long startPositionUs) {
+          MediaPeriodId id, Allocator allocator, long startPositionUs) {
     Object mediaSourceHolderUid = getMediaSourceHolderUid(id.periodUid);
     MediaSourceHolder holder = mediaSourceByUid.get(mediaSourceHolderUid);
     if (holder == null) {
@@ -467,7 +467,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
       holder.hasStartedPreparing = true;
       prepareChildSource(holder, holder.mediaSource);
     } else if (holder.isPrepared) {
-      MediaSource.MediaPeriodId idInSource = id.copyWithPeriodUid(getChildPeriodUid(holder, id.periodUid));
+      MediaPeriodId idInSource = id.copyWithPeriodUid(getChildPeriodUid(holder, id.periodUid));
       mediaPeriod.createPeriod(idInSource);
     }
     return mediaPeriod;
@@ -510,8 +510,8 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
 
   @Override
   protected @Nullable
-  MediaSource.MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(
-      MediaSourceHolder mediaSourceHolder, MediaSource.MediaPeriodId mediaPeriodId) {
+  MediaPeriodId getMediaPeriodIdForChildMediaPeriodId(
+      MediaSourceHolder mediaSourceHolder, MediaPeriodId mediaPeriodId) {
     for (int i = 0; i < mediaSourceHolder.activeMediaPeriods.size(); i++) {
       // Ensure the reported media period id has the same window sequence number as the one created
       // by this media source. Otherwise it does not belong to this child source.
@@ -819,7 +819,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
       mediaSourceHolder.timeline = DeferredTimeline.createWithRealTimeline(timeline, periodUid);
       if (deferredMediaPeriod != null) {
         deferredMediaPeriod.overridePreparePositionUs(periodPositionUs);
-        MediaSource.MediaPeriodId idInSource =
+        MediaPeriodId idInSource =
             deferredMediaPeriod.id.copyWithPeriodUid(
                 getChildPeriodUid(mediaSourceHolder, deferredMediaPeriod.id.periodUid));
         deferredMediaPeriod.createPeriod(idInSource);
@@ -1083,7 +1083,7 @@ public class ConcatenatingMediaSource extends CompositeMediaSource<MediaSourceHo
     }
 
     @Override
-    public Timeline.Period getPeriod(int periodIndex, Timeline.Period period, boolean setIds) {
+    public Period getPeriod(int periodIndex, Period period, boolean setIds) {
       timeline.getPeriod(periodIndex, period, setIds);
       if (Util.areEqual(period.uid, replacedId)) {
         period.uid = DUMMY_ID;

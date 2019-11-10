@@ -52,8 +52,7 @@ import java.util.Arrays;
 
   private final DataSpec dataSpec;
   private final DataSource.Factory dataSourceFactory;
-  private final @Nullable
-  TransferListener transferListener;
+  private final @Nullable TransferListener transferListener;
   private final LoadErrorHandlingPolicy loadErrorHandlingPolicy;
   private final EventDispatcher eventDispatcher;
   private final TrackGroupArray tracks;

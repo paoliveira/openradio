@@ -70,8 +70,7 @@ public final class HlsMediaSource extends BaseMediaSource
     private CompositeSequenceableLoaderFactory compositeSequenceableLoaderFactory;
     private LoadErrorHandlingPolicy loadErrorHandlingPolicy;
     private boolean allowChunklessPreparation;
-    @HlsMetadataType
-    private int metadataType;
+    @HlsMetadataType private int metadataType;
     private boolean useSessionKeys;
     private boolean isCreateCalled;
     @Nullable private Object tag;
@@ -337,8 +336,7 @@ public final class HlsMediaSource extends BaseMediaSource
   private final CompositeSequenceableLoaderFactory compositeSequenceableLoaderFactory;
   private final LoadErrorHandlingPolicy loadErrorHandlingPolicy;
   private final boolean allowChunklessPreparation;
-  private final @HlsMetadataType
-  int metadataType;
+  private final @HlsMetadataType int metadataType;
   private final boolean useSessionKeys;
   private final HlsPlaylistTracker playlistTracker;
   private final @Nullable

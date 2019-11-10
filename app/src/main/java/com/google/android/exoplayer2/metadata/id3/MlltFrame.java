@@ -16,7 +16,6 @@
 package com.google.android.exoplayer2.metadata.id3;
 
 import android.os.Parcel;
-import android.os.Parcelable;
 
 import androidx.annotation.Nullable;
 
@@ -102,8 +101,8 @@ public final class MlltFrame extends Id3Frame {
     return 0;
   }
 
-  public static final Parcelable.Creator<MlltFrame> CREATOR =
-      new Parcelable.Creator<MlltFrame>() {
+  public static final Creator<MlltFrame> CREATOR =
+      new Creator<MlltFrame>() {
 
         @Override
         public MlltFrame createFromParcel(Parcel in) {
