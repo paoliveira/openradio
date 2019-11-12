@@ -18,7 +18,6 @@ package com.yuriy.openradio.view.dialog;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -34,6 +33,8 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+
+import androidx.fragment.app.DialogFragment;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.permission.PermissionChecker;

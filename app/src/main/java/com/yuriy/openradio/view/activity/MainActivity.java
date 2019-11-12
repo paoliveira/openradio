@@ -20,9 +20,6 @@ import android.Manifest;
 import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.DialogFragment;
-import android.app.Fragment;
-import android.app.FragmentTransaction;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -51,6 +48,7 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -59,6 +57,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.auth.GoogleAuthUtil;
@@ -243,8 +244,10 @@ public final class MainActivity extends AppCompatActivity {
     private GoogleDriveManager mGoogleDriveManager;
 
     private TextView mBufferedTextView;
-
     private ListView mListView;
+    private View mPlayBtn;
+    private View mPauseBtn;
+    private ProgressBar mProgressBarCrs;
 
     /**
      * Stores an instance of {@link LocationHandler} that inherits from
@@ -272,6 +275,10 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(R.layout.main_drawer);
         final Context context = getApplicationContext();
 
+        mPlayBtn = findViewById(R.id.crs_play_btn_view);
+        mPauseBtn = findViewById(R.id.crs_pause_btn_view);
+        mProgressBarCrs = findViewById(R.id.crs_progress_view);
+
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -285,7 +292,8 @@ public final class MainActivity extends AppCompatActivity {
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
-                    final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+                    final FragmentTransaction fragmentTransaction = getSupportFragmentManager()
+                            .beginTransaction();
                     clearDialogs(fragmentTransaction);
                     menuItem.setChecked(false);
                     // Handle navigation view item clicks here.
@@ -421,7 +429,7 @@ public final class MainActivity extends AppCompatActivity {
         addBtn.setOnClickListener(
                 view -> {
                     // Show Add Station Dialog
-                    final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                     final DialogFragment dialog = AddStationDialog.newInstance();
                     dialog.show(transaction, AddStationDialog.DIALOG_TAG);
                 }
@@ -536,7 +544,7 @@ public final class MainActivity extends AppCompatActivity {
         // DialogFragment.show() will take care of adding the fragment
         // in a transaction.  We also want to remove any currently showing
         // dialog, so make our own transaction and take care of that here.
-        final FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         clearDialogs(fragmentTransaction);
         if (id == R.id.action_search) {
             // Show Search Dialog
@@ -642,19 +650,19 @@ public final class MainActivity extends AppCompatActivity {
      * @param fragmentTransaction
      */
     private void clearDialogs(final FragmentTransaction fragmentTransaction) {
-        Fragment fragmentByTag = getFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
+        Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
-        fragmentByTag = getFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
+        fragmentByTag = getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
-        fragmentByTag = getFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        fragmentByTag = getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
-        fragmentByTag = getFragmentManager().findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG);
+        fragmentByTag = getSupportFragmentManager().findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
@@ -982,7 +990,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         // Show Remove Station Dialog
-        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         final Bundle bundle = RemoveStationDialog.createBundle(item.getMediaId(), name);
         final DialogFragment dialog = BaseDialogFragment.newInstance(
                 RemoveStationDialog.class.getName(), bundle
@@ -1012,30 +1020,26 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         // Show Edit Station Dialog
-        final FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         final DialogFragment dialog = EditStationDialog.newInstance(item.getMediaId());
         dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
 
+    @MainThread
     private void handlePlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-        final View playBtn = findViewById(R.id.crs_play_btn_view);
-        final View pauseBtn = findViewById(R.id.crs_pause_btn_view);
-        final ProgressBar progressBar = findViewById(R.id.crs_progress_view);
-
         switch (state.getState()) {
             case PlaybackStateCompat.STATE_PLAYING:
-                playBtn.setVisibility(View.GONE);
-                pauseBtn.setVisibility(View.VISIBLE);
+                mPlayBtn.setVisibility(View.GONE);
+                mPauseBtn.setVisibility(View.VISIBLE);
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
-                playBtn.setVisibility(View.VISIBLE);
-                pauseBtn.setVisibility(View.GONE);
+                mPlayBtn.setVisibility(View.VISIBLE);
+                mPauseBtn.setVisibility(View.GONE);
                 break;
         }
+        mProgressBarCrs.setVisibility(View.GONE);
 
-        progressBar.setVisibility(View.GONE);
-
-        final double bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000.0;
+        final int bufferedDuration = (int) ((state.getBufferedPosition() - state.getPosition()) / 1000);
         updateBufferedTime(bufferedDuration);
     }
 
@@ -1044,7 +1048,8 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param value Buffered time in seconds.
      */
-    private void updateBufferedTime(double value) {
+    @MainThread
+    private void updateBufferedTime(int value) {
         if (mBufferedTextView == null) {
             return;
         }
@@ -1052,13 +1057,8 @@ public final class MainActivity extends AppCompatActivity {
             value = 0;
         }
 
-        final double finalValue = value;
-        runOnUiThread(
-                () -> {
-                    mBufferedTextView.setVisibility(finalValue > 0 ? View.VISIBLE : View.INVISIBLE);
-                    mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %.2f sec", finalValue));
-                }
-        );
+        mBufferedTextView.setVisibility(value > 0 ? View.VISIBLE : View.INVISIBLE);
+        mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %d sec", value));
     }
 
     /**
@@ -1113,7 +1113,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Nullable
     private GoogleDriveDialog getGoogleDriveDialog() {
-        final Fragment fragment = getFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
         if (fragment instanceof GoogleDriveDialog) {
             return (GoogleDriveDialog) fragment;
         }
@@ -1159,7 +1159,7 @@ public final class MainActivity extends AppCompatActivity {
                     UseLocationDialog.class.getName()
             );
             useLocationServiceDialog.setCancelable(false);
-            useLocationServiceDialog.show(reference.getFragmentManager(), UseLocationDialog.DIALOG_TAG);
+            useLocationServiceDialog.show(reference.getSupportFragmentManager(), UseLocationDialog.DIALOG_TAG);
 
             AppPreferencesManager.setLocationDialogShown(reference.getApplicationContext(), true);
         }
@@ -1270,7 +1270,7 @@ public final class MainActivity extends AppCompatActivity {
                             FeatureSortDialog.class.getName()
                     );
                     featureSortDialog.setCancelable(false);
-                    featureSortDialog.show(activity.getFragmentManager(), FeatureSortDialog.DIALOG_TAG);
+                    featureSortDialog.show(activity.getSupportFragmentManager(), FeatureSortDialog.DIALOG_TAG);
                 }
             }
 

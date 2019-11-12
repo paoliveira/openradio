@@ -17,13 +17,14 @@
 package com.yuriy.openradio.view;
 
 import android.app.AlertDialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+
+import androidx.fragment.app.DialogFragment;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.FabricUtils;
