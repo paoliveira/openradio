@@ -129,4 +129,5 @@
     <string name="no_location_setting_desc">Can not find Location Settings</string>
     <string name="invalid_buffer_desc">Invalid value of buffer : </string>
     <string name="tv_header_menu_radio_stations">Radio Stations</string>
+    <string name="tv_header_menu_music_player">Selected Radio Station</string>
 </resources>

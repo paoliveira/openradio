@@ -15,6 +15,7 @@ public final class PageRowTvFragmentFactory extends BrowseSupportFragment.Fragme
     private static final byte RADIO_STATIONS_HEADER_ID = 1;
     private static final byte SETTINGS_HEADER_ID = 2;
     private static final byte ADD_RADIO_STATION_HEADER_ID = 3;
+    private static final byte MUSIC_PLAYER_HEADER_ID = 4;
 
     private final BackgroundManager mBackgroundManager;
 
@@ -36,6 +37,8 @@ public final class PageRowTvFragmentFactory extends BrowseSupportFragment.Fragme
                 return new SettingsTvFragment();
             case ADD_RADIO_STATION_HEADER_ID:
                 return new AddRadioStationTvFragment();
+            case MUSIC_PLAYER_HEADER_ID:
+                return new MusicPlayerTvFragment();
         }
 
         throw new IllegalArgumentException(String.format("Invalid row %s", rowObj));
@@ -59,6 +62,13 @@ public final class PageRowTvFragmentFactory extends BrowseSupportFragment.Fragme
         return GridTvFragment.createPageRow(
                 ADD_RADIO_STATION_HEADER_ID,
                 context.getString(R.string.add_station_dialog_title)
+        );
+    }
+
+    static PageRow createMusicPlayerRageRow(final Context context) {
+        return MusicPlayerTvFragment.createPageRow(
+                MUSIC_PLAYER_HEADER_ID,
+                context.getString(R.string.tv_header_menu_music_player)
         );
     }
 }

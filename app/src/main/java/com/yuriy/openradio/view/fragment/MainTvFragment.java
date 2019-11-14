@@ -44,6 +44,7 @@ public final class MainTvFragment extends BrowseSupportFragment {
         // This Adapter is used to render the Main TV Fragment sidebar labels.
         final ArrayObjectAdapter adapter = new ArrayObjectAdapter(new ListRowPresenter());
         adapter.add(PageRowTvFragmentFactory.createRadioStationsRageRow(context));
+        adapter.add(PageRowTvFragmentFactory.createMusicPlayerRageRow(context));
         adapter.add(PageRowTvFragmentFactory.createAddRadioStationRageRow(context));
         adapter.add(PageRowTvFragmentFactory.createSettingsRageRow(context));
         setAdapter(adapter);
