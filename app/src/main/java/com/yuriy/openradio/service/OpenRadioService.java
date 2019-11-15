@@ -1019,7 +1019,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-
         // This indicates that Radio Station's url was not downloaded.
         // Currently, when list of the stations received they comes without stream url
         // and bitrate, upon selecting one - it is necessary to load additional data.
@@ -1304,13 +1303,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             if (radioStation == null) {
-                AppLogger.e(CLASS_NAME + "Play Radio Station: ignoring request to play next song, " +
+                AppLogger.e(CLASS_NAME + "Play RS: ignoring request to play next song, " +
                         "because cannot find it." +
                         " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
                         " PlayQueue.size=" + service.mPlayingQueue.size());
                 return;
             }
             if (service.mLastKnownRS != null && service.mLastKnownRS.equals(radioStation)) {
+                AppLogger.e(CLASS_NAME + "Play RS: ignoring request to play next song, " +
+                        "because last known is the same as requested. Try to resume playback.");
                 return;
             }
 
@@ -1465,6 +1466,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // stop unexpectedly and persist until the user takes action to fix it.
             stateBuilder.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, error);
             mState = PlaybackStateCompat.STATE_ERROR;
+            mLastKnownRS = null;
+            mLastPlayedUrl = null;
         }
 
         stateBuilder.setBufferedPosition(mBufferedPosition);
@@ -2281,7 +2284,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Listener of the connectivity events.
      */
-    private static final class ConnectivityChangeListenerImpl implements ConnectivityReceiver.ConnectivityChangeListener {
+    private static final class ConnectivityChangeListenerImpl
+            implements ConnectivityReceiver.ConnectivityChangeListener {
 
         private final WeakReference<OpenRadioService> mReference;
 
