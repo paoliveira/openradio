@@ -85,7 +85,7 @@ public final class MediaNotification extends BroadcastReceiver {
     private final MediaControllerCompat.Callback mCb;
 
     private NotificationCompat.Builder mNotificationBuilder;
-    private NotificationManagerCompat mNotificationManager;
+    private final NotificationManagerCompat mNotificationManager;
     private NotificationCompat.Action mPlayPauseAction;
 
     private PendingIntent mPauseIntent, mPlayIntent, mPreviousIntent, mNextIntent;
@@ -279,6 +279,7 @@ public final class MediaNotification extends BroadcastReceiver {
             } else {
                 AppLogger.e("OnMetadataChanged null metadata, prev metadata " + reference.mMetadata);
             }
+
             reference.updateNotificationMetadata();
         }
 
@@ -296,12 +297,6 @@ public final class MediaNotification extends BroadcastReceiver {
     }
 
     public void updateNotificationMetadata() {
-        AppLogger.d(
-                CLASS_NAME + " Update Notification " +
-                        "metadata:" + mMetadata +
-                        "state:" + mPlaybackState +
-                        "service:" + mService
-        );
         if (mMetadata == null) {
             showNoStreamNotification();
             return;
@@ -386,6 +381,13 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);
 
+        AppLogger.d(
+                CLASS_NAME + " Update Notification " +
+                        "state:" + mPlaybackState +
+                        "title:" + description.getTitle() +
+                        "subtitle:" + description.getSubtitle()
+        );
+
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
@@ -431,7 +433,7 @@ public final class MediaNotification extends BroadcastReceiver {
                         mService.getResources(), R.drawable.ic_radio_station
                 ));
 
-        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
+        mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
     private void updatePlayPauseAction() {

@@ -21,9 +21,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.telephony.TelephonyManager;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.telephony.TelephonyManager;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
@@ -73,7 +74,7 @@ public final class ConnectivityReceiver extends AbstractReceiver {
             mListener.onConnectivityChange(false);
             return;
         }
-        final NetworkInfo networkInfo = manager.getNetworkInfo(0);
+        final NetworkInfo networkInfo = manager.getActiveNetworkInfo();
         if (networkInfo == null) {
             AppLogger.e(CLASS_NAME + " network info is null");
             mListener.onConnectivityChange(false);
