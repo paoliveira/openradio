@@ -69,7 +69,7 @@ public final class MediaPresenter {
         mActivity = activity;
         mListener = listener;
         mMediaResourcesManager = new MediaResourcesManager(
-                activity,
+                mActivity,
                 new MediaResourceManagerListenerImpl(this)
         );
         mMediaResourcesManager.create(savedInstanceState);
@@ -232,7 +232,6 @@ public final class MediaPresenter {
             addMediaItemToStack(mediaId);
         } else if (item.isPlayable()) {
             // Else - we play an item
-            // TODO:
             final MediaControllerCompat controller = MediaControllerCompat.getMediaController(mActivity);
             if (controller != null) {
                 final MediaControllerCompat.TransportControls controls = controller.getTransportControls();

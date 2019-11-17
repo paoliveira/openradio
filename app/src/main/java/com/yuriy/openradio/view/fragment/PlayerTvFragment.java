@@ -1,15 +1,11 @@
 package com.yuriy.openradio.view.fragment;
 
-import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.leanback.app.BrowseSupportFragment;
-import androidx.leanback.app.PlaybackFragmentGlueHost;
 import androidx.leanback.app.PlaybackSupportFragment;
 import androidx.leanback.app.PlaybackSupportFragmentGlueHost;
-import androidx.leanback.media.MediaPlayerAdapter;
-import androidx.leanback.media.MediaPlayerGlue;
 import androidx.leanback.media.PlaybackBannerControlGlue;
 import androidx.leanback.widget.BaseOnItemViewClickedListener;
 import androidx.leanback.widget.HeaderItem;
@@ -17,24 +13,24 @@ import androidx.leanback.widget.PageRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.RowPresenter;
 
-import com.yuriy.openradio.R;
+import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 
-public class MusicPlayerTvFragment
+public class PlayerTvFragment
         extends PlaybackSupportFragment
         implements BaseOnItemViewClickedListener, BrowseSupportFragment.MainFragmentAdapterProvider {
 
-    private PlaybackBannerControlGlue<MediaPlayerAdapter> mMediaPlayerGlue;
+    private PlaybackBannerControlGlue<ServicePlayerTvAdapter> mMediaPlayerGlue;
 
     private final BrowseSupportFragment.MainFragmentAdapter<Fragment> mMainFragmentAdapter =
 
             new BrowseSupportFragment.MainFragmentAdapter<Fragment>(this) {
                 @Override
                 public void setEntranceTransitionState(boolean state) {
-                    //MusicPlayerTvFragment.this.setEntranceTransitionState(state);
+                    //PlayerTvFragment.this.setEntranceTransitionState(state);
                 }
             };
 
-    public MusicPlayerTvFragment() {
+    public PlayerTvFragment() {
         super();
         setControlsOverlayAutoHideEnabled(false);
     }
@@ -50,7 +46,7 @@ public class MusicPlayerTvFragment
         mMediaPlayerGlue = new PlaybackBannerControlGlue<>(
                 getActivity(),
                 new int[]{0, 1},
-                new MediaPlayerAdapter(getActivity())
+                new ServicePlayerTvAdapter()
         );
         mMediaPlayerGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
@@ -58,8 +54,8 @@ public class MusicPlayerTvFragment
         mMediaPlayerGlue.setSubtitle("SubTitle");
 //        mMediaPlayerGlue.setArt(getResources().getDrawable(R.drawable.ic_launcher));
         String uriPath = "android.resource://com.example.android.leanback/raw/video";
-        mMediaPlayerGlue.getPlayerAdapter().setDataSource(Uri.parse(uriPath));
-        mMediaPlayerGlue.playWhenPrepared();
+//        mMediaPlayerGlue.getPlayerAdapter().setDataSource(Uri.parse(uriPath));
+//        mMediaPlayerGlue.playWhenPrepared();
     }
 
     @Override

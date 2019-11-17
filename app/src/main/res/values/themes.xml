@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <style name="Theme.Example.Leanback" parent="Theme.Leanback">
+        <item name="android:colorPrimary">#00A2B8</item>
+        <item name="android:colorAccent">@color/accent</item>
+    </style>
+
+    <style name="Theme.Example.LeanbackMusic" parent="Theme.Example.Leanback">
+        <item name="android:windowBackground">@drawable/background_sax</item>
+     </style>
+
+    <style name="radio_station_regular">
+        <item name="playbackMediaItemNumberStyle">@style/RegularMediaItemNumberStyle</item>
+        <item name="playbackMediaItemNameStyle">@style/RegularMediaItemNameStyle</item>
+        <item name="playbackMediaItemDurationStyle">@style/RegularMediaItemDurationStyle</item>
+    </style>
+
+    <style name="radio_station_selected">
+        <item name="playbackMediaItemNumberStyle">@style/FavoriteMediaItemNumberStyle</item>
+        <item name="playbackMediaItemNameStyle">@style/FavoriteMediaItemNameStyle</item>
+        <item name="playbackMediaItemDurationStyle">@style/FavoriteMediaItemDurationStyle</item>
+    </style>
+
+</resources>

@@ -38,7 +38,7 @@ public final class PageRowTvFragmentFactory extends BrowseSupportFragment.Fragme
             case ADD_RADIO_STATION_HEADER_ID:
                 return new AddRadioStationTvFragment();
             case MUSIC_PLAYER_HEADER_ID:
-                return new MusicPlayerTvFragment();
+                return new PlayerTvFragment();
         }
 
         throw new IllegalArgumentException(String.format("Invalid row %s", rowObj));
@@ -66,7 +66,7 @@ public final class PageRowTvFragmentFactory extends BrowseSupportFragment.Fragme
     }
 
     static PageRow createMusicPlayerRageRow(final Context context) {
-        return MusicPlayerTvFragment.createPageRow(
+        return PlayerTvFragment.createPageRow(
                 MUSIC_PLAYER_HEADER_ID,
                 context.getString(R.string.tv_header_menu_music_player)
         );
