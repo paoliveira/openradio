@@ -12,9 +12,7 @@ import androidx.leanback.app.PlaybackFragment;
 import androidx.leanback.app.PlaybackFragmentGlueHost;
 import androidx.leanback.media.PlaybackBannerControlGlue;
 import androidx.leanback.widget.AbstractMediaItemPresenter;
-import androidx.leanback.widget.AbstractMediaListHeaderPresenter;
 import androidx.leanback.widget.ArrayObjectAdapter;
-import androidx.leanback.widget.BaseOnItemViewClickedListener;
 import androidx.leanback.widget.ClassPresenterSelector;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
@@ -27,14 +25,11 @@ import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
-import com.yuriy.openradio.view.TrackListTvHeader;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
 
-public class MainTvFragment2
-        extends PlaybackFragment
-        implements BaseOnItemViewClickedListener {
+public class MainTvFragment2 extends PlaybackFragment {
 
     private static final String CLASS_NAME = MainTvFragment2.class.getSimpleName();
     /**
@@ -99,20 +94,6 @@ public class MainTvFragment2
     }
 
     @Override
-    public void onItemClicked(final Presenter.ViewHolder itemViewHolder,
-                              final Object item,
-                              final RowPresenter.ViewHolder rowViewHolder,
-                              final Object row) {
-        AppLogger.d(CLASS_NAME + " clicked:" + row);
-        if (row instanceof MediaBrowserCompat.MediaItem) {
-            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) row;
-            // TODO: Real position
-            final int position = 0;
-            mMediaPresenter.handleItemClick(mediaItem, position);
-        }
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         showControlsOverlay(true);
@@ -149,58 +130,54 @@ public class MainTvFragment2
                                 new SongPresenter(getActivity(), R.style.radio_station_selected)
                         )
         );
-        presenterSelector.addClassPresenter(TrackListTvHeader.class, new TrackListHeaderPresenter());
         mRowsAdapter = new ArrayObjectAdapter(presenterSelector);
-        mRowsAdapter.add(new TrackListTvHeader());
         setAdapter(mRowsAdapter);
     }
 
-    private static class TrackListHeaderPresenter extends AbstractMediaListHeaderPresenter {
-
-        private TrackListHeaderPresenter() {
-            super();
-        }
-
-        @Override
-        protected void onBindMediaListHeaderViewHolder(ViewHolder viewHolder, Object item) {
-            viewHolder.getHeaderView().setText("Radio Stations:");
+    private void onItemClicked(final Presenter.ViewHolder itemViewHolder,
+                               final Object item,
+                               final RowPresenter.ViewHolder rowViewHolder,
+                               final Object row) {
+        if (row instanceof MediaBrowserCompat.MediaItem) {
+            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) row;
+            // TODO: Real position
+            final int position = 0;
+            mMediaPresenter.handleItemClick(mediaItem, position);
         }
     }
 
     private static class SongPresenter extends AbstractMediaItemPresenter {
 
-        private SongPresenter(Context context, int themeResId) {
+        private SongPresenter(final Context context, final int themeResId) {
             super(themeResId);
-            AppLogger.d(CLASS_NAME + " Song presenter");
             setHasMediaRowSeparator(true);
         }
 
         @Override
         protected void onBindMediaDetails(ViewHolder viewHolder, Object item) {
-            AppLogger.d(CLASS_NAME + " BindMediaDetails:" + item);
             int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
                     R.color.song_row_favorite_color
             );
-            MediaBrowserCompat.MediaItem song = (MediaBrowserCompat.MediaItem) item;
-            viewHolder.getMediaItemNumberView().setText(song.getMediaId());
+            MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
+            viewHolder.getMediaItemNumberView().setText(mediaItem.getMediaId());
 
-            String songTitle = song.getDescription().getTitle() + " / " + song.getDescription().getSubtitle();
+            String songTitle = mediaItem.getDescription().getTitle() + " / " + mediaItem.getDescription().getSubtitle();
             viewHolder.getMediaItemNameView().setText(songTitle);
 
             viewHolder.getMediaItemDurationView().setText("");
 
-//            if (song.isFavorite()) {
+//            if (mediaItem.isFavorite()) {
 //                viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
 //                viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
 //                viewHolder.getMediaItemDurationView().setTextColor(favoriteTextColor);
 //            } else {
-                Context context = viewHolder.getMediaItemNumberView().getContext();
-                viewHolder.getMediaItemNumberView().setTextAppearance(context,
-                        R.style.TextAppearance_Leanback_PlaybackMediaItemNumber);
-                viewHolder.getMediaItemNameView().setTextAppearance(context,
-                        R.style.TextAppearance_Leanback_PlaybackMediaItemName);
-                viewHolder.getMediaItemDurationView().setTextAppearance(context,
-                        R.style.TextAppearance_Leanback_PlaybackMediaItemDuration);
+            Context context = viewHolder.getMediaItemNumberView().getContext();
+            viewHolder.getMediaItemNumberView().setTextAppearance(context,
+                    R.style.TextAppearance_Leanback_PlaybackMediaItemNumber);
+            viewHolder.getMediaItemNameView().setTextAppearance(context,
+                    R.style.TextAppearance_Leanback_PlaybackMediaItemName);
+            viewHolder.getMediaItemDurationView().setTextAppearance(context,
+                    R.style.TextAppearance_Leanback_PlaybackMediaItemDuration);
 //            }
         }
     }
@@ -240,7 +217,6 @@ public class MainTvFragment2
 //            return ((MediaBrowserCompat.MediaItem) item).isFavorite() ? mFavoritePresenter : mRegularPresenter;
             return mRegularPresenter;
         }
-
     }
 
     private static final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
@@ -292,7 +268,6 @@ public class MainTvFragment2
 
         @Override
         public void onError(@NonNull final String id) {
-
             final MainTvFragment2 fragment = mReference.get();
             if (fragment == null) {
                 return;
