@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-
-    <style name="Theme.Example.Leanback" parent="Theme.Leanback">
-        <item name="android:colorPrimary">#00A2B8</item>
-        <item name="android:colorAccent">@color/accent</item>
-    </style>
-
-    <style name="Theme.Example.LeanbackMusic" parent="Theme.Example.Leanback">
-        <item name="android:windowBackground">@drawable/background_sax</item>
+    <style name="open_radio_tv" parent="Theme.Leanback">
+        <item name="android:windowBackground">@drawable/tv_bg_main</item>
      </style>
 
     <style name="radio_station_regular">
