@@ -2,40 +2,48 @@ package com.yuriy.openradio.view.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
-import android.view.View;
-import android.widget.Button;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.leanback.app.PlaybackSupportFragment;
 import androidx.leanback.app.PlaybackSupportFragmentGlueHost;
 import androidx.leanback.media.PlaybackBannerControlGlue;
 import androidx.leanback.widget.AbstractMediaItemPresenter;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ClassPresenterSelector;
+import androidx.leanback.widget.MultiActionsProvider;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.presenter.MediaPresenter;
 import com.yuriy.openradio.presenter.MediaPresenterListener;
+import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.view.activity.MainTvActivity;
+import com.yuriy.openradio.vo.MediaItemActionable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainTvFragment extends PlaybackSupportFragment {
 
     private static final String CLASS_NAME = MainTvFragment.class.getSimpleName();
+    private static final int PLAYLIST_ACTION_ID = 0;
+    private static final int FAVORITE_ACTION_ID = 1;
     /**
      * Listener for the Media Browser Subscription callback
      */
@@ -56,7 +64,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         setControlsOverlayAutoHideEnabled(false);
         setBackgroundType(BG_NONE);
         mGlue = new PlaybackBannerControlGlue<>(
-                getActivity(),
+                getContext(),
                 new int[]{0, 1},
                 new ServicePlayerTvAdapter()
         );
@@ -141,12 +149,12 @@ public class MainTvFragment extends PlaybackSupportFragment {
         final ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
         presenterSelector.addClassPresenterSelector(
                 MediaBrowserCompat.MediaItem.class,
-                new SongPresenterSelector()
+                new SongPresenterSelector(getContext())
                         .setSongPresenterRegular(
-                                new SongPresenter(getActivity(), R.style.radio_station_regular)
+                                new SongPresenter(getContext(), R.style.radio_station_regular)
                         )
                         .setSongPresenterFavorite(
-                                new SongPresenter(getActivity(), R.style.radio_station_selected)
+                                new SongPresenter(getContext(), R.style.radio_station_selected)
                         )
         );
         mRowsAdapter = new ArrayObjectAdapter(presenterSelector);
@@ -159,46 +167,42 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final Object row) {
         if (row instanceof MediaBrowserCompat.MediaItem) {
             final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) row;
-            // TODO: Real position
-            final int position = 0;
-            mMediaPresenter.handleItemClick(mediaItem, position);
-        }
-    }
+            if (item != null
+                    && ((MultiActionsProvider.MultiAction) item).getId() == FAVORITE_ACTION_ID) {
+                boolean isChecked = !FavoritesStorage.isFavorite(mediaItem, getContext());
 
-    public void showBackButton() {
-        if (getView() == null) {
-            return;
-        }
-        final Button backBtn = getView().findViewById(R.id.tv_back_btn);
-        if (backBtn == null) {
-            return;
-        }
-        backBtn.setVisibility(View.VISIBLE);
-    }
+                MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
-    void hideBackButton() {
-        if (getView() == null) {
-            return;
+                // Make Intent to update Favorite RadioStation object associated with
+                // the Media Description
+                final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
+                        getContext(),
+                        mediaItem.getDescription(),
+                        isChecked
+                );
+                // Send Intent to the OpenRadioService.
+                ContextCompat.startForegroundService(getContext(), intent);
+            } else {
+                // TODO: Real position
+                final int position = 0;
+                mMediaPresenter.handleItemClick(mediaItem, position);
+            }
+
         }
-        final Button backBtn = getView().findViewById(R.id.tv_back_btn);
-        if (backBtn == null) {
-            return;
-        }
-        backBtn.setVisibility(View.INVISIBLE);
     }
 
     private static class SongPresenter extends AbstractMediaItemPresenter {
 
+        private final Context mContext;
+
         private SongPresenter(final Context context, final int themeResId) {
             super(themeResId);
+            mContext = context;
             setHasMediaRowSeparator(true);
         }
 
         @Override
         protected void onBindMediaDetails(ViewHolder viewHolder, Object item) {
-            int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
-                    R.color.song_row_favorite_color
-            );
             final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
 
             String songTitle =
@@ -209,19 +213,22 @@ public class MainTvFragment extends PlaybackSupportFragment {
             viewHolder.getMediaItemDurationView().setText("");
 //            viewHolder.getMediaItemNumberView().setText(mediaItem.getMediaId());
 
-//            if (mediaItem.isFavorite()) {
-//                viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
-//                viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
-//                viewHolder.getMediaItemDurationView().setTextColor(favoriteTextColor);
-//            } else {
-            Context context = viewHolder.getMediaItemNumberView().getContext();
-            viewHolder.getMediaItemNumberView().setTextAppearance(context,
-                    R.style.TextAppearance_Leanback_PlaybackMediaItemNumber);
-            viewHolder.getMediaItemNameView().setTextAppearance(context,
-                    R.style.TextAppearance_Leanback_PlaybackMediaItemName);
-            viewHolder.getMediaItemDurationView().setTextAppearance(context,
-                    R.style.TextAppearance_Leanback_PlaybackMediaItemDuration);
-//            }
+            if (FavoritesStorage.isFavorite(mediaItem, mContext)) {
+                int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
+                        R.color.song_row_favorite_color
+                );
+                viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
+                viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
+                viewHolder.getMediaItemDurationView().setTextColor(favoriteTextColor);
+            } else {
+                final Context context = viewHolder.getMediaItemNumberView().getContext();
+                viewHolder.getMediaItemNumberView().setTextAppearance(context,
+                        R.style.TextAppearance_Leanback_PlaybackMediaItemNumber);
+                viewHolder.getMediaItemNameView().setTextAppearance(context,
+                        R.style.TextAppearance_Leanback_PlaybackMediaItemName);
+                viewHolder.getMediaItemDurationView().setTextAppearance(context,
+                        R.style.TextAppearance_Leanback_PlaybackMediaItemDuration);
+            }
         }
     }
 
@@ -229,9 +236,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         private Presenter mRegularPresenter;
         private Presenter mFavoritePresenter;
+        private Context mContext;
 
-        private SongPresenterSelector() {
+        private SongPresenterSelector(final Context context) {
             super();
+            mContext = context;
         }
 
         /**
@@ -257,8 +266,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         @Override
         public Presenter getPresenter(final Object item) {
-//            return ((MediaBrowserCompat.MediaItem) item).isFavorite() ? mFavoritePresenter : mRegularPresenter;
-            return mRegularPresenter;
+            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
+            return FavoritesStorage.isFavorite(mediaItem, mContext) ? mFavoritePresenter : mRegularPresenter;
         }
     }
 
@@ -298,15 +307,50 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 return;
             }
 
-            Object item;
-            for (int i = 0; i < fragment.mRowsAdapter.size(); ++i) {
-                item = fragment.mRowsAdapter.get(i);
-                if (item instanceof MediaBrowserCompat.MediaItem) {
-                    fragment.mRowsAdapter.remove(item);
-                    i--;
+            {
+                Object item;
+                for (int i = 0; i < fragment.mRowsAdapter.size(); ++i) {
+                    item = fragment.mRowsAdapter.get(i);
+                    if (item instanceof MediaBrowserCompat.MediaItem) {
+                        fragment.mRowsAdapter.remove(item);
+                        i--;
+                    }
                 }
             }
-            fragment.mRowsAdapter.addAll(fragment.mRowsAdapter.size(), children);
+
+            List<MediaItemActionable> items = new ArrayList<>();
+            for (MediaBrowserCompat.MediaItem mediaItem : children) {
+                MediaItemActionable item = new MediaItemActionable(mediaItem.getDescription(), mediaItem.getFlags());
+
+                MultiActionsProvider.MultiAction[] mediaRowActions = new
+                        MultiActionsProvider.MultiAction[2];
+                MultiActionsProvider.MultiAction playlistAction = new
+                        MultiActionsProvider.MultiAction(PLAYLIST_ACTION_ID);
+                Drawable[] playlistActionDrawables = new Drawable[]{
+                        fragment.getResources().getDrawable(R.drawable.ic_playlist_add_white_24dp,
+                                fragment.getActivity().getTheme()),
+                        fragment.getResources().getDrawable(R.drawable.ic_playlist_add_filled_24dp,
+                                fragment.getActivity().getTheme())};
+                playlistAction.setDrawables(playlistActionDrawables);
+                mediaRowActions[0] = playlistAction;
+
+                MultiActionsProvider.MultiAction favoriteAction = new
+                        MultiActionsProvider.MultiAction(FAVORITE_ACTION_ID);
+                Drawable[] favoriteActionDrawables = new Drawable[]{
+                        fragment.getResources().getDrawable(R.drawable.ic_favorite_border_white_24dp,
+                                fragment.getActivity().getTheme()),
+                        fragment.getResources().getDrawable(R.drawable.ic_favorite_filled_24dp,
+                                fragment.getActivity().getTheme())};
+                favoriteAction.setDrawables(favoriteActionDrawables);
+                mediaRowActions[1] = favoriteAction;
+
+                // TODO: Set action - folder or stream
+                item.setMediaRowActions(mediaRowActions);
+
+                items.add(item);
+            }
+
+            fragment.mRowsAdapter.addAll(fragment.mRowsAdapter.size(), items);
 
             if (fragment.getActivity() instanceof MainTvActivity) {
                 ((MainTvActivity) fragment.getActivity()).onDataLoaded();
@@ -320,7 +364,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 return;
             }
             SafeToast.showAnyThread(
-                    fragment.getActivity().getApplicationContext(),
+                    fragment.getContext(),
                     fragment.getString(R.string.error_loading_media)
             );
         }
