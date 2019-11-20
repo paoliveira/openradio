@@ -150,13 +150,13 @@ public class MainTvFragment extends PlaybackSupportFragment {
     private void setUpAdapter() {
         final ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
         presenterSelector.addClassPresenterSelector(
-                MediaBrowserCompat.MediaItem.class,
+                MediaItemActionable.class,
                 new RSPresenterSelector(getContext())
                         .setSongPresenterRegular(
-                                new SongPresenter(getContext(), R.style.radio_station_regular)
+                                new RSPresenter(getContext(), R.style.radio_station_regular)
                         )
                         .setSongPresenterFavorite(
-                                new SongPresenter(getContext(), R.style.radio_station_selected)
+                                new RSPresenter(getContext(), R.style.radio_station_selected)
                         )
         );
         mRowsAdapter = new ArrayObjectAdapter(presenterSelector);
@@ -167,8 +167,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final Object item,
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
-        AppLogger.d(CLASS_NAME + " on clicked row :" + row);
-        AppLogger.d(CLASS_NAME + " on clicked item:" + item);
         if (row instanceof MediaItemActionable) {
             final MediaItemActionable mediaItem = (MediaItemActionable) row;
             if (item != null
@@ -179,9 +177,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
                 final AbstractMediaItemPresenter.ViewHolder rasRowVh =
                         (AbstractMediaItemPresenter.ViewHolder) rowViewHolder;
-                rasRowVh.notifyActionChanged(action);
 
-                boolean isChecked = !mediaItem.isFavorite();
+                mediaItem.setFavorite(!mediaItem.isFavorite());
+                final boolean isChecked = mediaItem.isFavorite();
                 MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
                 // Make Intent to update Favorite RadioStation object associated with
@@ -193,6 +191,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 );
                 // Send Intent to the OpenRadioService.
                 ContextCompat.startForegroundService(getContext(), intent);
+
+                rasRowVh.notifyActionChanged(action);
+                rasRowVh.notifyDetailsChanged();
             } else {
                 // TODO: Real position
                 final int position = 0;
@@ -202,9 +203,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
         }
     }
 
-    private static class SongPresenter extends AbstractMediaItemPresenter {
+    private static class RSPresenter extends AbstractMediaItemPresenter {
 
-        private SongPresenter(final Context context, final int themeResId) {
+        private RSPresenter(final Context context, final int themeResId) {
             super(themeResId);
             setHasMediaRowSeparator(true);
         }
@@ -226,7 +227,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
                 final MultiActionsProvider.MultiAction action = mediaItem.getActions()[0];
                 action.incrementIndex();
-                viewHolder.notifyActionChanged(action);
             } else {
                 final Context context = viewHolder.getMediaItemNumberView().getContext();
                 viewHolder.getMediaItemNumberView().setTextAppearance(context,
@@ -314,7 +314,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 Object item;
                 for (int i = 0; i < fragment.mRowsAdapter.size(); ++i) {
                     item = fragment.mRowsAdapter.get(i);
-                    if (item instanceof MediaBrowserCompat.MediaItem) {
+                    if (item instanceof MediaItemActionable) {
                         fragment.mRowsAdapter.remove(item);
                         i--;
                     }
