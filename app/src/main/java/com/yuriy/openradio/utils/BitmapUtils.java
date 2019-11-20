@@ -16,11 +16,17 @@
 
 package com.yuriy.openradio.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.text.TextUtils;
+
+import com.yuriy.openradio.R;
+import com.yuriy.openradio.model.net.UrlBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,13 +34,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * {@link BitmapHelper} is a helper class that provides different methods to operate over Bitmap.
+ * {@link BitmapUtils} is a helper class that provides different methods to operate over Bitmap.
  */
-public final class BitmapHelper {
+public final class BitmapUtils {
 
     // Bitmap size for album art in media notifications when there are more than 3 playback actions
     public static final int MEDIA_ART_SMALL_WIDTH = 64;
@@ -229,5 +234,18 @@ public final class BitmapHelper {
     public static boolean isImageUrl(final String image) {
         return IMAGE_URL_PATTERN.matcher(image).matches();
 
+    }
+
+    public static Drawable drawableFromUri(final Context context, final Uri uri) {
+        Drawable drawable;
+        try {
+            InputStream inputStream = context.getContentResolver().openInputStream(
+                    UrlBuilder.preProcessIconUri(uri)
+            );
+            drawable = Drawable.createFromStream(inputStream, uri.toString());
+        } catch (final Exception e) {
+            drawable = context.getResources().getDrawable(R.drawable.ic_favorite_border_white_24dp);
+        }
+        return drawable;
     }
 }
