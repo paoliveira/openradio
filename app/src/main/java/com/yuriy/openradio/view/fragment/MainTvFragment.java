@@ -166,11 +166,19 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
         if (row instanceof MediaBrowserCompat.MediaItem) {
-            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) row;
+            final MediaItemActionable mediaItem = (MediaItemActionable) row;
             if (item != null
                     && ((MultiActionsProvider.MultiAction) item).getId() == FAVORITE_ACTION_ID) {
-                boolean isChecked = !FavoritesStorage.isFavorite(mediaItem, getContext());
+                final MultiActionsProvider.MultiAction favoriteAction =
+                        (MultiActionsProvider.MultiAction) item;
+                favoriteAction.incrementIndex();
 
+                final AbstractMediaItemPresenter.ViewHolder rasRowVh =
+                        (AbstractMediaItemPresenter.ViewHolder) rowViewHolder;
+                rasRowVh.notifyDetailsChanged();
+                rasRowVh.notifyActionChanged(favoriteAction);
+
+                boolean isChecked = !mediaItem.isFavorite();
                 MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
                 // Make Intent to update Favorite RadioStation object associated with
@@ -193,17 +201,14 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
     private static class SongPresenter extends AbstractMediaItemPresenter {
 
-        private final Context mContext;
-
         private SongPresenter(final Context context, final int themeResId) {
             super(themeResId);
-            mContext = context;
             setHasMediaRowSeparator(true);
         }
 
         @Override
         protected void onBindMediaDetails(ViewHolder viewHolder, Object item) {
-            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
+            final MediaItemActionable mediaItem = (MediaItemActionable) item;
 
             String songTitle =
                     TextUtils.isEmpty(mediaItem.getDescription().getSubtitle())
@@ -213,13 +218,16 @@ public class MainTvFragment extends PlaybackSupportFragment {
             viewHolder.getMediaItemDurationView().setText("");
 //            viewHolder.getMediaItemNumberView().setText(mediaItem.getMediaId());
 
-            if (FavoritesStorage.isFavorite(mediaItem, mContext)) {
+            if (mediaItem.isFavorite()) {
                 int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
                         R.color.song_row_favorite_color
                 );
                 viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
                 viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
                 viewHolder.getMediaItemDurationView().setTextColor(favoriteTextColor);
+                final MultiActionsProvider.MultiAction favoriteAction = mediaItem.getActions()[1];
+                favoriteAction.incrementIndex();
+                viewHolder.notifyActionChanged(favoriteAction);
             } else {
                 final Context context = viewHolder.getMediaItemNumberView().getContext();
                 viewHolder.getMediaItemNumberView().setTextAppearance(context,
@@ -236,11 +244,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         private Presenter mRegularPresenter;
         private Presenter mFavoritePresenter;
-        private Context mContext;
 
         private SongPresenterSelector(final Context context) {
             super();
-            mContext = context;
         }
 
         /**
@@ -266,8 +272,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         @Override
         public Presenter getPresenter(final Object item) {
-            final MediaBrowserCompat.MediaItem mediaItem = (MediaBrowserCompat.MediaItem) item;
-            return FavoritesStorage.isFavorite(mediaItem, mContext) ? mFavoritePresenter : mRegularPresenter;
+            final MediaItemActionable mediaItem = (MediaItemActionable) item;
+            return mediaItem.isFavorite() ? mFavoritePresenter : mRegularPresenter;
         }
     }
 
@@ -320,7 +326,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
             List<MediaItemActionable> items = new ArrayList<>();
             for (MediaBrowserCompat.MediaItem mediaItem : children) {
-                MediaItemActionable item = new MediaItemActionable(mediaItem.getDescription(), mediaItem.getFlags());
+                MediaItemActionable item = new MediaItemActionable(
+                        mediaItem.getDescription(), mediaItem.getFlags()
+                );
 
                 MultiActionsProvider.MultiAction[] mediaRowActions = new
                         MultiActionsProvider.MultiAction[2];
@@ -346,6 +354,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
                 // TODO: Set action - folder or stream
                 item.setMediaRowActions(mediaRowActions);
+                item.setFavorite(FavoritesStorage.isFavorite(mediaItem, fragment.getContext()));
 
                 items.add(item);
             }
