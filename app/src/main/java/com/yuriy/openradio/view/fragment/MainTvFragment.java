@@ -167,39 +167,36 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final Object item,
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
-        if (row instanceof MediaItemActionable) {
-            final MediaItemActionable mediaItem = (MediaItemActionable) row;
-            if (item != null
-                    && ((MultiActionsProvider.MultiAction) item).getId() == FAVORITE_ACTION_ID) {
-                final MultiActionsProvider.MultiAction action =
-                        (MultiActionsProvider.MultiAction) item;
-                action.incrementIndex();
+        final AbstractMediaItemPresenter.ViewHolder rsRowVh =
+                (AbstractMediaItemPresenter.ViewHolder) rowViewHolder;
+        final MediaItemActionable mediaItem = (MediaItemActionable) row;
+        if (item != null
+                && ((MultiActionsProvider.MultiAction) item).getId() == FAVORITE_ACTION_ID) {
 
-                final AbstractMediaItemPresenter.ViewHolder rasRowVh =
-                        (AbstractMediaItemPresenter.ViewHolder) rowViewHolder;
+            final MultiActionsProvider.MultiAction action = (MultiActionsProvider.MultiAction) item;
+            action.incrementIndex();
 
-                mediaItem.setFavorite(!mediaItem.isFavorite());
-                final boolean isChecked = mediaItem.isFavorite();
-                MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
+            mediaItem.setFavorite(!mediaItem.isFavorite());
 
-                // Make Intent to update Favorite RadioStation object associated with
-                // the Media Description
-                final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
-                        getContext(),
-                        mediaItem.getDescription(),
-                        isChecked
-                );
-                // Send Intent to the OpenRadioService.
-                ContextCompat.startForegroundService(getContext(), intent);
+            rsRowVh.notifyDetailsChanged();
+            rsRowVh.notifyActionChanged(action);
 
-                rasRowVh.notifyActionChanged(action);
-                rasRowVh.notifyDetailsChanged();
-            } else {
-                // TODO: Real position
-                final int position = 0;
-                mMediaPresenter.handleItemClick(mediaItem, position);
-            }
+            final boolean isChecked = mediaItem.isFavorite();
+            MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
+            // Make Intent to update Favorite RadioStation object associated with
+            // the Media Description
+            final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
+                    getContext(),
+                    mediaItem.getDescription(),
+                    isChecked
+            );
+            // Send Intent to the OpenRadioService.
+            ContextCompat.startForegroundService(getContext(), intent);
+        } else {
+            // TODO: Real position
+            final int position = 0;
+            mMediaPresenter.handleItemClick(mediaItem, position);
         }
     }
 
@@ -226,7 +223,10 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
                 viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
                 final MultiActionsProvider.MultiAction action = mediaItem.getActions()[0];
-                action.incrementIndex();
+                if (action.getIndex() == 0) {
+                    action.incrementIndex();
+                }
+                viewHolder.notifyActionChanged(action);
             } else {
                 final Context context = viewHolder.getMediaItemNumberView().getContext();
                 viewHolder.getMediaItemNumberView().setTextAppearance(context,
@@ -345,11 +345,12 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                 R.drawable.ic_favorite_filled_24dp,
                                 fragment.getActivity().getTheme()
                         );
+                    } else {
+                        drawables[0] = BitmapUtils.drawableFromUri(
+                                fragment.getContext(), mediaItem.getDescription().getIconUri()
+                        );
+                        drawables[1] = drawables[0];
                     }
-                    drawables[0] = BitmapUtils.drawableFromUri(
-                            fragment.getContext(), mediaItem.getDescription().getIconUri()
-                    );
-                    drawables[1] = drawables[0];
                 }
 
                 final MultiActionsProvider.MultiAction action = new
