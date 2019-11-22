@@ -21,4 +21,9 @@ public class ServicePlayerTvAdapter extends PlayerAdapter {
     public void pause() {
         AppLogger.d(CLASS_NAME + " pause");
     }
+
+    @Override
+    public boolean isPrepared() {
+        return true;
+    }
 }

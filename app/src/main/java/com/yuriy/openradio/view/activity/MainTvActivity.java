@@ -19,7 +19,6 @@ import java.util.List;
  */
 public final class MainTvActivity extends FragmentActivity {
 
-    private static final String CLASS_NAME = MainTvActivity.class.getSimpleName();
     private ImageView mBackBtn;
 
     @Override
@@ -42,7 +41,6 @@ public final class MainTvActivity extends FragmentActivity {
             numItemsInStack = ((MainTvFragment)fragment).getNumItemsInStack();
             break;
         }
-        AppLogger.d(CLASS_NAME + " num:" + numItemsInStack);
         if (numItemsInStack > 1) {
             showBackBtn();
         } else {

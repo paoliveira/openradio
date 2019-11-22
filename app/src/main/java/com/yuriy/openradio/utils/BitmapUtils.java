@@ -236,15 +236,20 @@ public final class BitmapUtils {
 
     }
 
+    /**
+     *
+     * @param context
+     * @param uri
+     * @return
+     */
     public static Drawable drawableFromUri(final Context context, final Uri uri) {
         Drawable drawable;
-        try {
-            InputStream inputStream = context.getContentResolver().openInputStream(
-                    UrlBuilder.preProcessIconUri(uri)
-            );
+        try (final InputStream inputStream = context.getContentResolver().openInputStream(
+                UrlBuilder.preProcessIconUri(uri))
+        ) {
             drawable = Drawable.createFromStream(inputStream, uri.toString());
         } catch (final Exception e) {
-            drawable = context.getResources().getDrawable(R.drawable.ic_favorite_border_white_24dp);
+            drawable = context.getResources().getDrawable(R.drawable.ic_favorites_off);
         }
         return drawable;
     }

@@ -7,11 +7,13 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.PlaybackSupportFragment;
 import androidx.leanback.app.PlaybackSupportFragmentGlueHost;
@@ -20,6 +22,7 @@ import androidx.leanback.widget.AbstractMediaItemPresenter;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ClassPresenterSelector;
 import androidx.leanback.widget.MultiActionsProvider;
+import androidx.leanback.widget.PlaybackControlsRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
@@ -73,7 +76,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
         mGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
 //        mMediaPlayerGlue.setArt(getResources().getDrawable(R.drawable.ic_launcher));
-        String uriPath = "android.resource://com.example.android.leanback/raw/video";
 //        mMediaPlayerGlue.getPlayerAdapter().setDataSource(Uri.parse(uriPath));
 //        mMediaPlayerGlue.playWhenPrepared();
 
@@ -91,12 +93,12 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
                     @Override
                     public void handleMetadataChanged(final MediaMetadataCompat metadata) {
-
+                        MainTvFragment.this.handleMetadataChanged(metadata);
                     }
 
                     @Override
                     public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
-
+                        MainTvFragment.this.handlePlaybackStateChanged(state);
                     }
                 }
         );
@@ -147,6 +149,25 @@ public class MainTvFragment extends PlaybackSupportFragment {
         return mMediaPresenter.getNumItemsInStack();
     }
 
+    private void handlePlaybackStateChanged(final PlaybackStateCompat state) {
+        if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
+            if (!mGlue.isPlaying()) {
+                mGlue.play();
+            }
+            final long bufferedDuration = ((state.getBufferedPosition() - state.getPosition()));
+            mGlue.getControlsRow().setCurrentPosition(bufferedDuration);
+        }
+    }
+
+    private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
+        if (metadata == null) {
+            return;
+        }
+        final MediaDescriptionCompat description = metadata.getDescription();
+        mGlue.setTitle(description.getTitle());
+        mGlue.setSubtitle(description.getSubtitle());
+    }
+
     private void setUpAdapter() {
         final ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
         presenterSelector.addClassPresenterSelector(
@@ -167,19 +188,41 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final Object item,
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
-        final AbstractMediaItemPresenter.ViewHolder rsRowVh =
-                (AbstractMediaItemPresenter.ViewHolder) rowViewHolder;
-        final MediaItemActionable mediaItem = (MediaItemActionable) row;
-        if (item != null
-                && ((MultiActionsProvider.MultiAction) item).getId() == FAVORITE_ACTION_ID) {
+//        AppLogger.d(CLASS_NAME + " on clicked:\n" + itemViewHolder + "\n" + item + "\n" + rowViewHolder + "\n" + row);
+        if (row instanceof MediaItemActionable) {
+            handleActionableClicked(
+                    (MediaItemActionable) row,
+                    (AbstractMediaItemPresenter.ViewHolder) rowViewHolder,
+                    (MultiActionsProvider.MultiAction) item
+            );
+        }
+        if (row instanceof PlaybackControlsRow) {
+            handleControllableClicked((PlaybackControlsRow.PlayPauseAction) item);
+        }
+    }
 
-            final MultiActionsProvider.MultiAction action = (MultiActionsProvider.MultiAction) item;
-            action.incrementIndex();
+    private void handleControllableClicked(final PlaybackControlsRow.PlayPauseAction action) {
+        final Context context = getContext();
+        if (context == null) {
+            return;
+        }
+        if (action.getIndex() == PlaybackControlsRow.PlayPauseAction.INDEX_PLAY
+                || action.getIndex() == PlaybackControlsRow.PlayPauseAction.INDEX_PAUSE) {
+            context.startService(OpenRadioService.makeToggleLastPlayedItemIntent(getContext()));
+        }
+    }
+
+    private void handleActionableClicked(final MediaItemActionable mediaItem,
+                                         final AbstractMediaItemPresenter.ViewHolder rowViewHolder,
+                                         final MultiActionsProvider.MultiAction item) {
+        if (item != null && item.getId() == FAVORITE_ACTION_ID) {
+
+            item.incrementIndex();
 
             mediaItem.setFavorite(!mediaItem.isFavorite());
 
-            rsRowVh.notifyDetailsChanged();
-            rsRowVh.notifyActionChanged(action);
+            rowViewHolder.notifyDetailsChanged();
+            rowViewHolder.notifyActionChanged(item);
 
             final boolean isChecked = mediaItem.isFavorite();
             MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
@@ -218,7 +261,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
             if (mediaItem.isFavorite()) {
                 int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
-                        R.color.song_row_favorite_color
+                        R.color.favorite_color
                 );
                 viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
                 viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
@@ -338,11 +381,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 } else {
                     if (mediaItem.isPlayable()) {
                         drawables[0] = fragment.getResources().getDrawable(
-                                R.drawable.ic_favorite_border_white_24dp,
+                                R.drawable.ic_favorites_off,
                                 fragment.getActivity().getTheme()
                         );
                         drawables[1] = fragment.getResources().getDrawable(
-                                R.drawable.ic_favorite_filled_24dp,
+                                R.drawable.ic_favorites_on,
                                 fragment.getActivity().getTheme()
                         );
                     } else {
