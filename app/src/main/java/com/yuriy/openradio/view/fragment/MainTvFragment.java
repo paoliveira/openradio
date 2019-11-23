@@ -11,6 +11,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -35,6 +36,8 @@ import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapUtils;
+import com.yuriy.openradio.utils.ImageFetcherFactory;
+import com.yuriy.openradio.utils.ImageWorker;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.view.activity.MainTvActivity;
@@ -52,12 +55,17 @@ public class MainTvFragment extends PlaybackSupportFragment {
     /**
      * Listener for the Media Browser Subscription callback
      */
-    private final MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCallback
-            = new MediaBrowserSubscriptionCallback(this);
+    private MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCallback;
 
     private MediaPresenter mMediaPresenter;
     private ArrayObjectAdapter mRowsAdapter;
     private PlaybackBannerControlGlue<ServicePlayerTvAdapter> mGlue;
+    private ImageView mDummyView;
+    /**
+     * Handles loading the  image in a background thread.
+     */
+    private ImageWorker mImageWorker;
+    private String mCurrentMediaId;
 
     public MainTvFragment() {
         super();
@@ -75,9 +83,10 @@ public class MainTvFragment extends PlaybackSupportFragment {
         );
         mGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
-//        mMediaPlayerGlue.setArt(getResources().getDrawable(R.drawable.ic_launcher));
-//        mMediaPlayerGlue.getPlayerAdapter().setDataSource(Uri.parse(uriPath));
-//        mMediaPlayerGlue.playWhenPrepared();
+        mMedSubscriptionCallback = new MediaBrowserSubscriptionCallback(this);
+        mDummyView = new ImageView(getContext());
+        // Handles loading the  image in a background thread
+        mImageWorker = ImageFetcherFactory.getLargeImageFetcher(getActivity());
 
         mMediaPresenter = new MediaPresenter();
         mMediaPresenter.init(
@@ -164,8 +173,21 @@ public class MainTvFragment extends PlaybackSupportFragment {
             return;
         }
         final MediaDescriptionCompat description = metadata.getDescription();
+
+        if (TextUtils.equals(mCurrentMediaId, description.getMediaId())) {
+            // New Song, reset fields
+            mGlue.setArt(null);
+        }
+        mCurrentMediaId = description.getMediaId();
+
         mGlue.setTitle(description.getTitle());
         mGlue.setSubtitle(description.getSubtitle());
+
+        mImageWorker.loadImage(
+                description.getIconUri(),
+                drawable -> mGlue.setArt(drawable),
+                mDummyView
+        );
     }
 
     private void setUpAdapter() {
@@ -323,6 +345,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
          * Weak reference to the outer activity.
          */
         private final WeakReference<MainTvFragment> mReference;
+        private ImageWorker mImageWorker;
+        private ImageView mDummyView;
 
         /**
          * Constructor.
@@ -332,6 +356,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
         private MediaBrowserSubscriptionCallback(final MainTvFragment reference) {
             super();
             mReference = new WeakReference<>(reference);
+            mImageWorker = ImageFetcherFactory.getSmallImageFetcher(reference.getActivity());
+            mDummyView = new ImageView(reference.getContext());
         }
 
         @SuppressLint("RestrictedApi")

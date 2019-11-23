@@ -9,7 +9,7 @@ import com.yuriy.openradio.R;
  * User: Chernyshov Yuriy
  * Date: 18.05.14
  * Time: 21:14
- *
+ * <p>
  * This class provides factory methods to create
  * {@link ImageFetcher} instance
  */
@@ -25,7 +25,7 @@ public class ImageFetcherFactory {
      * @param context {@link android.content.Context}
      * @return {@link ImageFetcher} instance
      */
-    public static ImageFetcher getSmallImageFetcher(FragmentActivity context) {
+    public static ImageWorker getSmallImageFetcher(FragmentActivity context) {
         int imageThumbSize = context.getResources().getDimensionPixelSize(R.dimen.list_item_width);
         return getImageFetcher(context, imageThumbSize, SMALL_IMAGE_CACHE_DIR);
     }
@@ -37,7 +37,7 @@ public class ImageFetcherFactory {
      * @param context {@link android.content.Context}
      * @return {@link ImageFetcher} instance
      */
-    public static ImageFetcher getLargeImageFetcher(final FragmentActivity context) {
+    public static ImageWorker getLargeImageFetcher(final FragmentActivity context) {
         return getImageFetcher(
                 context, AppUtils.getLongestScreenSize(context),
                 LARGE_IMAGE_CACHE_DIR
@@ -52,8 +52,8 @@ public class ImageFetcherFactory {
      * @param imageDir       directory to addToLocals images at
      * @return {@link ImageFetcher} instance
      */
-    private static ImageFetcher getImageFetcher(FragmentActivity context, int imageThumbSize,
-                                                String imageDir) {
+    private static ImageWorker getImageFetcher(FragmentActivity context, int imageThumbSize,
+                                               String imageDir) {
 
         final ImageCache.ImageCacheParams cacheParams =
                 new ImageCache.ImageCacheParams(context, imageDir);
@@ -61,11 +61,11 @@ public class ImageFetcherFactory {
         cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
 
         // The ImageFetcher takes care of loading images into our ImageView children asynchronously
-        final ImageFetcher imageFetcher = new ImageFetcher(context, imageThumbSize);
-        imageFetcher.setLoadingImage(R.drawable.radio_station_alpha_bg);
-        imageFetcher.addImageCache(context.getSupportFragmentManager(), cacheParams);
-        imageFetcher.setImageFadeIn(false);
+        final ImageWorker worker = new ImageFetcher(context, imageThumbSize);
+        worker.setLoadingImage(R.drawable.radio_station_alpha_bg);
+        worker.addImageCache(context.getSupportFragmentManager(), cacheParams);
+        worker.setImageFadeIn(false);
 
-        return imageFetcher;
+        return worker;
     }
 }

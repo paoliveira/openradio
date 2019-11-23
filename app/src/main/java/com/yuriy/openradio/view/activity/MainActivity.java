@@ -86,8 +86,8 @@ import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
-import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
+import com.yuriy.openradio.utils.ImageWorker;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.BaseDialogFragment;
@@ -137,7 +137,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Handles loading the  image in a background thread.
      */
-    private ImageFetcher mImageFetcher;
+    private ImageWorker mImageWorker;
 
     private View mCurrentRadioStationView;
 
@@ -389,10 +389,10 @@ public final class MainActivity extends AppCompatActivity {
         PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
 
         // Handles loading the  image in a background thread
-        mImageFetcher = ImageFetcherFactory.getSmallImageFetcher(this);
+        mImageWorker = ImageFetcherFactory.getSmallImageFetcher(this);
 
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(this, mImageFetcher);
+        mBrowserAdapter = new MediaItemsAdapter(this, mImageWorker);
 
         // Initialize progress bar
         mProgressBar = findViewById(R.id.progress_bar_view);
@@ -1095,7 +1095,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         final ImageView imageView = findViewById(R.id.crs_img_view);
         if (imageView != null) {
-            MediaItemsAdapter.updateImage(description, true, imageView, mImageFetcher);
+            MediaItemsAdapter.updateImage(description, true, imageView, mImageWorker);
         }
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
