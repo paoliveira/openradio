@@ -175,7 +175,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         final MediaDescriptionCompat description = metadata.getDescription();
 
         if (TextUtils.equals(mCurrentMediaId, description.getMediaId())) {
-            // New Song, reset fields
+            // New Radio Station, reset fields
             mGlue.setArt(null);
         }
         mCurrentMediaId = description.getMediaId();
