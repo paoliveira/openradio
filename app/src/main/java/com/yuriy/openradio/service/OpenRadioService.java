@@ -23,6 +23,7 @@ import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -39,7 +40,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media.MediaBrowserServiceCompat;
 
@@ -486,6 +486,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(context);
+
+        if (!mServiceStarted) {
+            AppLogger.i(CLASS_NAME + "Starting service");
+            if (Build.VERSION.SDK_INT >= 26) {
+                mMediaNotification.notifyServiceStarted();
+            } else {
+                // Pre-O behavior.
+                context.startService(new Intent(context, OpenRadioService.class));
+            }
+            mServiceStarted = true;
+            mMediaNotification.updateNotificationMetadata();
+        }
     }
 
     @Override
@@ -1241,18 +1253,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
-        if (!mServiceStarted) {
-            AppLogger.i(CLASS_NAME + "Starting service");
-            // The OpenRadioService needs to keep running even after the calling MediaBrowser
-            // is disconnected. Call startForegroundService(Intent) and then stopSelf(..)
-            // when we no longer need to play media.
-            ContextCompat.startForegroundService(
-                    context,
-                    new Intent(context, OpenRadioService.class)
-            );
-            mServiceStarted = true;
-            mMediaNotification.updateNotificationMetadata();
-        }
 
         mPlayOnFocusGain = true;
         tryToGetAudioFocus();

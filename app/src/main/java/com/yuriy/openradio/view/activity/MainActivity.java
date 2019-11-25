@@ -292,8 +292,7 @@ public final class MainActivity extends AppCompatActivity {
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
-                    final FragmentTransaction fragmentTransaction = getSupportFragmentManager()
-                            .beginTransaction();
+                    final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                     clearDialogs(fragmentTransaction);
                     menuItem.setChecked(false);
                     // Handle navigation view item clicks here.

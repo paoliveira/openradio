@@ -394,6 +394,35 @@ public final class MediaNotification extends BroadcastReceiver {
         }
     }
 
+    public void notifyServiceStarted() {
+        final Bitmap art = BitmapFactory.decodeResource(
+                mService.getResources(), R.drawable.ic_radio_station
+        );
+        // Build the style.
+        final androidx.media.app.NotificationCompat.MediaStyle mediaStyle
+                = new androidx.media.app.NotificationCompat.MediaStyle()
+                .setMediaSession(mSessionToken);
+        // Create/Retrieve Notification Channel for O and beyond devices (26+).
+        final String notificationChannelId = NotificationChannelFactory.createChannel(
+                mService.getApplicationContext(),
+                new ServiceStartedNotificationData()
+        );
+
+        mNotificationBuilder = new NotificationCompat.Builder(
+                mService.getApplicationContext(), notificationChannelId
+        );
+        mNotificationBuilder
+                .setStyle(mediaStyle)
+                .setColor(mNotificationColor)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setUsesChronometer(false)
+                .setContentTitle("Open Radio")
+                .setContentText("Open Radio just started")
+                .setLargeIcon(art);
+        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
+    }
+
     public void doInitialNotification(final Context context, final RadioStation radioStation) {
         mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
         if (mMetadata == null) {
@@ -421,12 +450,10 @@ public final class MediaNotification extends BroadcastReceiver {
         );
 
         mNotificationBuilder
-                .setAutoCancel(true)
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setUsesChronometer(false)
                 .setContentTitle("Open Radio")
                 .setContentText("No Radio Station selected")
                 .setLargeIcon(BitmapFactory.decodeResource(
