@@ -26,7 +26,6 @@ import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.IntentsHelper;
 import com.yuriy.openradio.view.BaseDialogFragment;
-import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov
@@ -60,16 +59,15 @@ public final class AboutDialog extends BaseDialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final MainActivity activity = (MainActivity) getActivity();
 
         final View view = getInflater().inflate(
                 R.layout.dialog_about,
-                activity.findViewById(R.id.dialog_about_root)
+                getActivity().findViewById(R.id.dialog_about_root)
         );
 
         setWindowDimensions(view, 0.9f, 0.9f);
 
-        final Context context = activity.getApplicationContext();
+        final Context context = getContext();
         final String titleText = context.getString(R.string.app_name);
         final TextView title = view.findViewById(R.id.dialog_about_title_view);
         title.setText(titleText);

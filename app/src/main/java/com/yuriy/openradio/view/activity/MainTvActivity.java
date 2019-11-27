@@ -4,12 +4,16 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.dialog.AboutDialog;
 import com.yuriy.openradio.view.fragment.MainTvFragment;
 
 import java.util.List;
@@ -88,7 +92,16 @@ public final class MainTvActivity extends FragmentActivity {
         }
         button.setOnClickListener(
                 v -> {
-                    AppLogger.e("CLICKED");
+                    final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                    Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
+                    if (fragmentByTag != null) {
+                        fragmentTransaction.remove(fragmentByTag);
+                    }
+                    // Show About Dialog
+                    final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
+                            AboutDialog.class.getName()
+                    );
+                    aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
                 }
         );
     }
