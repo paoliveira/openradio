@@ -86,7 +86,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         mMedSubscriptionCallback = new MediaBrowserSubscriptionCallback(this);
         mDummyView = new ImageView(getContext());
         // Handles loading the  image in a background thread
-        mImageWorker = ImageFetcherFactory.getLargeImageFetcher(getActivity());
+        mImageWorker = ImageFetcherFactory.getTvPlayerImageFetcher(getActivity());
 
         mMediaPresenter = new MediaPresenter();
         mMediaPresenter.init(
@@ -194,7 +194,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
         final ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
         presenterSelector.addClassPresenterSelector(
                 MediaItemActionable.class,
-                new RSPresenterSelector(getContext())
+                new RSPresenterSelector(
+                        getContext())
                         .setSongPresenterRegular(
                                 new RSPresenter(getContext(), R.style.radio_station_regular)
                         )
@@ -306,9 +307,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         private Presenter mRegularPresenter;
         private Presenter mFavoritePresenter;
+        private final Context mContext;
 
         private RSPresenterSelector(final Context context) {
             super();
+            mContext = context;
         }
 
         /**
@@ -335,6 +338,33 @@ public class MainTvFragment extends PlaybackSupportFragment {
         @Override
         public Presenter getPresenter(final Object item) {
             final MediaItemActionable mediaItem = (MediaItemActionable) item;
+
+            // There is only one action currently.
+            final MultiActionsProvider.MultiAction action = mediaItem.getActions()[0];
+            if (mediaItem.getDescription().getIconBitmap() != null) {
+                action.getDrawables()[0] = new BitmapDrawable(
+                        mContext.getResources(),
+                        mediaItem.getDescription().getIconBitmap()
+                );
+                action.getDrawables()[1] = action.getDrawables()[0];
+            } else {
+                if (mediaItem.isPlayable()) {
+                    action.getDrawables()[0] = mContext.getResources().getDrawable(
+                            R.drawable.ic_favorites_off,
+                            mContext.getTheme()
+                    );
+                    action.getDrawables()[1] = mContext.getResources().getDrawable(
+                            R.drawable.ic_favorites_on,
+                            mContext.getTheme()
+                    );
+                } else {
+                    action.getDrawables()[0] = BitmapUtils.drawableFromUri(
+                            mContext, mediaItem.getDescription().getIconUri()
+                    );
+                    action.getDrawables()[1] = action.getDrawables()[0];
+                }
+            }
+
             return mediaItem.isFavorite() ? mFavoritePresenter : mRegularPresenter;
         }
     }
@@ -345,8 +375,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
          * Weak reference to the outer activity.
          */
         private final WeakReference<MainTvFragment> mReference;
-        private ImageWorker mImageWorker;
-        private ImageView mDummyView;
 
         /**
          * Constructor.
@@ -356,8 +384,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
         private MediaBrowserSubscriptionCallback(final MainTvFragment reference) {
             super();
             mReference = new WeakReference<>(reference);
-            mImageWorker = ImageFetcherFactory.getSmallImageFetcher(reference.getActivity());
-            mDummyView = new ImageView(reference.getContext());
         }
 
         @SuppressLint("RestrictedApi")
@@ -397,31 +423,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 );
 
                 final Drawable[] drawables = new Drawable[2];
-
-                if (mediaItem.getDescription().getIconBitmap() != null) {
-                    drawables[0] = new BitmapDrawable(
-                            fragment.getResources(),
-                            mediaItem.getDescription().getIconBitmap()
-                    );
-                    drawables[1] = drawables[0];
-                } else {
-                    if (mediaItem.isPlayable()) {
-                        drawables[0] = fragment.getResources().getDrawable(
-                                R.drawable.ic_favorites_off,
-                                fragment.getActivity().getTheme()
-                        );
-                        drawables[1] = fragment.getResources().getDrawable(
-                                R.drawable.ic_favorites_on,
-                                fragment.getActivity().getTheme()
-                        );
-                    } else {
-                        drawables[0] = BitmapUtils.drawableFromUri(
-                                fragment.getContext(), mediaItem.getDescription().getIconUri()
-                        );
-                        drawables[1] = drawables[0];
-                    }
-                }
-
                 final MultiActionsProvider.MultiAction action = new
                         MultiActionsProvider.MultiAction(FAVORITE_ACTION_ID);
                 action.setDrawables(drawables);

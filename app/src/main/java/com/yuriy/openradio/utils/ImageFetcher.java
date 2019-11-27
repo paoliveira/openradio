@@ -213,16 +213,20 @@ public class ImageFetcher extends ImageResizer {
 
         Bitmap bitmap = null;
         if (fileDescriptor != null) {
-            bitmap = decodeSampledBitmapFromDescriptor(fileDescriptor, mImageWidth,
-                    mImageHeight, getImageCache());
-        }
-        if (fileInputStream != null) {
-            try {
-                fileInputStream.close();
-            } catch (IOException e) {
-                /* Ignore */
+            bitmap = decodeSampledBitmapFromDescriptor(
+                    fileDescriptor, mImageWidth, mImageHeight, getImageCache()
+            );
+
+            // This is somehow workaround for TV. In TV layout for player there is no way to set
+            // art drawable parameters, so landscape images are occupy whole player
+            if (bitmap != null && mIsTvPlayer) {
+                final int maxSide = Math.max(bitmap.getWidth(), bitmap.getHeight());
+                bitmap = overlayBitmapToCenter(
+                        Bitmap.createBitmap(maxSide, maxSide, bitmap.getConfig()), bitmap
+                );
             }
         }
+
         return bitmap;
     }
 

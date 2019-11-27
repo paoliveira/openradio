@@ -17,6 +17,7 @@ public class ImageFetcherFactory {
 
     private static final String SMALL_IMAGE_CACHE_DIR = "thumbs_small";
     private static final String LARGE_IMAGE_CACHE_DIR = "thumbs_large";
+    private static final String TV_PLAYER_IMAGE_CACHE_DIR = "thumbs_tv_player";
 
     /**
      * Create {@link ImageFetcher} instance to fetch
@@ -27,7 +28,7 @@ public class ImageFetcherFactory {
      */
     public static ImageWorker getSmallImageFetcher(FragmentActivity context) {
         int imageThumbSize = context.getResources().getDimensionPixelSize(R.dimen.list_item_width);
-        return getImageFetcher(context, imageThumbSize, SMALL_IMAGE_CACHE_DIR);
+        return getImageFetcher(context, imageThumbSize, SMALL_IMAGE_CACHE_DIR, false);
     }
 
     /**
@@ -39,8 +40,21 @@ public class ImageFetcherFactory {
      */
     public static ImageWorker getLargeImageFetcher(final FragmentActivity context) {
         return getImageFetcher(
-                context, AppUtils.getLongestScreenSize(context),
-                LARGE_IMAGE_CACHE_DIR
+                context, AppUtils.getLongestScreenSize(context), LARGE_IMAGE_CACHE_DIR, false
+        );
+    }
+
+    /**
+     *
+     * @param context
+     * @return
+     */
+    public static ImageWorker getTvPlayerImageFetcher(final FragmentActivity context) {
+        return getImageFetcher(
+                context,
+                context.getResources().getDimensionPixelSize(R.dimen.list_item_tv_width),
+                TV_PLAYER_IMAGE_CACHE_DIR,
+                true
         );
     }
 
@@ -52,19 +66,20 @@ public class ImageFetcherFactory {
      * @param imageDir       directory to addToLocals images at
      * @return {@link ImageFetcher} instance
      */
-    private static ImageWorker getImageFetcher(FragmentActivity context, int imageThumbSize,
-                                               String imageDir) {
+    private static ImageWorker getImageFetcher(final FragmentActivity context, final int imageThumbSize,
+                                               final String imageDir, final boolean isTvPlayer) {
 
-        final ImageCache.ImageCacheParams cacheParams =
+        final ImageCache.ImageCacheParams params =
                 new ImageCache.ImageCacheParams(context, imageDir);
 
-        cacheParams.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
+        params.setMemCacheSizePercent(0.25f); // Set memory cache to 25% of app memory
 
         // The ImageFetcher takes care of loading images into our ImageView children asynchronously
         final ImageWorker worker = new ImageFetcher(context, imageThumbSize);
         worker.setLoadingImage(R.drawable.radio_station_alpha_bg);
-        worker.addImageCache(context.getSupportFragmentManager(), cacheParams);
+        worker.addImageCache(context.getSupportFragmentManager(), params);
         worker.setImageFadeIn(false);
+        worker.setTvPlayer(isTvPlayer);
 
         return worker;
     }

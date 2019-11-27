@@ -16,15 +16,14 @@
 
 package com.yuriy.openradio.utils;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.os.Build;
-import androidx.annotation.Nullable;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 
-import com.yuriy.openradio.BuildConfig;
+import androidx.annotation.Nullable;
 
 import java.io.FileDescriptor;
 
@@ -34,7 +33,7 @@ import java.io.FileDescriptor;
  * memory.
  */
 public class ImageResizer extends ImageWorker {
-    private static final String TAG = "ImageResizer";
+    //    private static final String TAG = "ImageResizer";
     int mImageWidth;
     int mImageHeight;
 
@@ -89,9 +88,6 @@ public class ImageResizer extends ImageWorker {
      * @return
      */
     private Bitmap processBitmap(int resId) {
-        if (BuildConfig.DEBUG) {
-            AppLogger.d(TAG + " processBitmap - " + resId);
-        }
         return decodeSampledBitmapFromResource(mResources, resId, mImageWidth,
                 mImageHeight, getImageCache());
     }
@@ -104,13 +100,13 @@ public class ImageResizer extends ImageWorker {
     /**
      * Decode and sample down a bitmap from resources to the requested width and height.
      *
-     * @param res The resources object containing the image data
-     * @param resId The resource id of the image data
-     * @param reqWidth The requested width of the resulting bitmap
+     * @param res       The resources object containing the image data
+     * @param resId     The resource id of the image data
+     * @param reqWidth  The requested width of the resulting bitmap
      * @param reqHeight The requested height of the resulting bitmap
-     * @param cache The ImageCache used to find candidate bitmaps for use with inBitmap
+     * @param cache     The ImageCache used to find candidate bitmaps for use with inBitmap
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
-     *         that are equal to or greater than the requested width and height
+     * that are equal to or greater than the requested width and height
      */
     private static Bitmap decodeSampledBitmapFromResource(Resources res, int resId,
                                                           int reqWidth, int reqHeight, ImageCache cache) {
@@ -135,15 +131,15 @@ public class ImageResizer extends ImageWorker {
     /**
      * Decode and sample down a bitmap from a file to the requested width and height.
      *
-     * @param filename The full path of the file to decode
-     * @param reqWidth The requested width of the resulting bitmap
+     * @param filename  The full path of the file to decode
+     * @param reqWidth  The requested width of the resulting bitmap
      * @param reqHeight The requested height of the resulting bitmap
-     * @param cache The ImageCache used to find candidate bitmaps for use with inBitmap
+     * @param cache     The ImageCache used to find candidate bitmaps for use with inBitmap
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
-     *         that are equal to or greater than the requested width and height
+     * that are equal to or greater than the requested width and height
      */
     public static Bitmap decodeSampledBitmapFromFile(String filename,
-            int reqWidth, int reqHeight, ImageCache cache) {
+                                                     int reqWidth, int reqHeight, ImageCache cache) {
 
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -164,11 +160,11 @@ public class ImageResizer extends ImageWorker {
      * Decode and sample down a bitmap from a file input stream to the requested width and height.
      *
      * @param fileDescriptor The file descriptor to read from
-     * @param reqWidth The requested width of the resulting bitmap
-     * @param reqHeight The requested height of the resulting bitmap
-     * @param cache The ImageCache used to find candidate bitmaps for use with inBitmap
+     * @param reqWidth       The requested width of the resulting bitmap
+     * @param reqHeight      The requested height of the resulting bitmap
+     * @param cache          The ImageCache used to find candidate bitmaps for use with inBitmap
      * @return A bitmap sampled down from the original with the same aspect ratio and dimensions
-     *         that are equal to or greater than the requested width and height
+     * that are equal to or greater than the requested width and height
      */
     @Nullable
     public static Bitmap decodeSampledBitmapFromDescriptor(
@@ -195,7 +191,22 @@ public class ImageResizer extends ImageWorker {
         }
     }
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    static Bitmap overlayBitmapToCenter(final Bitmap bmpBg, final Bitmap bmpImg) {
+        final int bmpBgWidth = bmpBg.getWidth();
+        final int bmpBgHeight = bmpBg.getHeight();
+        final int bmpImgWidth = bmpImg.getWidth();
+        final int bmpImgHeight = bmpImg.getHeight();
+
+        final float marginLeft = (float) (bmpBgWidth * 0.5 - bmpImgWidth * 0.5);
+        final float marginTop = (float) (bmpBgHeight * 0.5 - bmpImgHeight * 0.5);
+
+        final Bitmap bmp = Bitmap.createBitmap(bmpBgWidth, bmpBgHeight, bmpBg.getConfig());
+        final Canvas canvas = new Canvas(bmp);
+        canvas.drawBitmap(bmpBg, new Matrix(), null);
+        canvas.drawBitmap(bmpImg, marginLeft, marginTop, null);
+        return bmp;
+    }
+
     private static void addInBitmapOptions(BitmapFactory.Options options, ImageCache cache) {
         //BEGIN_INCLUDE(add_bitmap_options)
         // inBitmap only works with mutable bitmaps so force the decoder to
@@ -214,14 +225,14 @@ public class ImageResizer extends ImageWorker {
     }
 
     /**
-     * Calculate an inSampleSize for use in a {@link android.graphics.BitmapFactory.Options} object when decoding
-     * bitmaps using the decode* methods from {@link android.graphics.BitmapFactory}. This implementation calculates
+     * Calculate an inSampleSize for use in a {@link BitmapFactory.Options} object when decoding
+     * bitmaps using the decode methods from {@link BitmapFactory}. This implementation calculates
      * the closest inSampleSize that is a power of 2 and will result in the final decoded bitmap
      * having a width and height equal to or larger than the requested width and height.
      *
-     * @param options An options object with out* params already populated (run through a decode*
-     *            method with inJustDecodeBounds==true
-     * @param reqWidth The requested width of the resulting bitmap
+     * @param options   An options object with out* params already populated (run through a decode*
+     *                  method with inJustDecodeBounds==true
+     * @param reqWidth  The requested width of the resulting bitmap
      * @param reqHeight The requested height of the resulting bitmap
      * @return The value to be used for inSampleSize
      */
@@ -240,8 +251,8 @@ public class ImageResizer extends ImageWorker {
 
             // Calculate the largest inSampleSize value that is a power of 2 and keeps both
             // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
+            while (halfHeight / inSampleSize > reqHeight
+                    && halfWidth / inSampleSize > reqWidth) {
                 inSampleSize *= 2;
             }
 

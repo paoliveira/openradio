@@ -20,6 +20,8 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -57,7 +59,7 @@ public abstract class ImageWorker {
     private boolean mExitTasksEarly = false;
     private boolean mPauseWork = false;
     private final Object mPauseWorkLock = new Object();
-
+    boolean mIsTvPlayer;
     Resources mResources;
 
     private static final int MESSAGE_CLEAR = 0;
@@ -67,6 +69,10 @@ public abstract class ImageWorker {
 
     ImageWorker(Context context) {
         mResources = context.getResources();
+    }
+
+    void setTvPlayer(final boolean value) {
+        mIsTvPlayer = value;
     }
 
     public void loadImage(final Object data, final Listener listener, final ImageView dummyView) {
@@ -434,6 +440,22 @@ public abstract class ImageWorker {
 
             return null;
         }
+    }
+
+    private static Bitmap overlayBitmapToCenter(final Bitmap bitmap1, final Bitmap bitmap2) {
+        final int bitmap1Width = bitmap1.getWidth();
+        final int bitmap1Height = bitmap1.getHeight();
+        final int bitmap2Width = bitmap2.getWidth();
+        final int bitmap2Height = bitmap2.getHeight();
+
+        final float marginLeft = (float) (bitmap1Width * 0.5 - bitmap2Width * 0.5);
+        final float marginTop = (float) (bitmap1Height * 0.5 - bitmap2Height * 0.5);
+
+        final Bitmap overlayBitmap = Bitmap.createBitmap(bitmap1Width, bitmap1Height, bitmap1.getConfig());
+        final Canvas canvas = new Canvas(overlayBitmap);
+        canvas.drawBitmap(bitmap1, new Matrix(), null);
+        canvas.drawBitmap(bitmap2, marginLeft, marginTop, null);
+        return overlayBitmap;
     }
 
     /**
