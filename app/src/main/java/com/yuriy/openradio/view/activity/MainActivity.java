@@ -1176,13 +1176,8 @@ public final class MainActivity extends AppCompatActivity {
             value = 0;
         }
 
-        final long finalValue = value;
-        runOnUiThread(
-                () -> {
-                    mBufferedTextView.setVisibility(finalValue > 0 ? View.VISIBLE : View.INVISIBLE);
-                    mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %d sec", finalValue));
-                }
-        );
+        mBufferedTextView.setVisibility(value > 0 ? View.VISIBLE : View.INVISIBLE);
+        mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %d sec", value));
     }
 
     /**
