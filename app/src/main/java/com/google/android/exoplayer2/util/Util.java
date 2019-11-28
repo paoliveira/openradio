@@ -15,16 +15,11 @@
  */
 package com.google.android.exoplayer2.util;
 
-import android.Manifest.permission;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.UiModeManager;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -37,7 +32,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcel;
-import android.security.NetworkSecurityPolicy;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.view.Display;
@@ -162,73 +156,6 @@ public final class Util {
       outputStream.write(buffer, 0, bytesRead);
     }
     return outputStream.toByteArray();
-  }
-
-  /**
-   * Calls {@link Context#startForegroundService(Intent)} if {@link #SDK_INT} is 26 or higher, or
-   * {@link Context#startService(Intent)} otherwise.
-   *
-   * @param context The context to call.
-   * @param intent The intent to pass to the called method.
-   * @return The result of the called method.
-   */
-  @Nullable
-  public static ComponentName startForegroundService(Context context, Intent intent) {
-    if (Util.SDK_INT >= 26) {
-      return context.startForegroundService(intent);
-    } else {
-      return context.startService(intent);
-    }
-  }
-
-  /**
-   * Checks whether it's necessary to request the {@link permission#READ_EXTERNAL_STORAGE}
-   * permission read the specified {@link Uri}s, requesting the permission if necessary.
-   *
-   * @param activity The host activity for checking and requesting the permission.
-   * @param uris {@link Uri}s that may require {@link permission#READ_EXTERNAL_STORAGE} to read.
-   * @return Whether a permission request was made.
-   */
-  @TargetApi(23)
-  public static boolean maybeRequestReadExternalStoragePermission(Activity activity, Uri... uris) {
-    if (Util.SDK_INT < 23) {
-      return false;
-    }
-    for (Uri uri : uris) {
-      if (isLocalFileUri(uri)) {
-        if (activity.checkSelfPermission(permission.READ_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
-          activity.requestPermissions(new String[] {permission.READ_EXTERNAL_STORAGE}, 0);
-          return true;
-        }
-        break;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns whether it may be possible to load the given URIs based on the network security
-   * policy's cleartext traffic permissions.
-   *
-   * @param uris A list of URIs that will be loaded.
-   * @return Whether it may be possible to load the given URIs.
-   */
-  @TargetApi(24)
-  public static boolean checkCleartextTrafficPermitted(Uri... uris) {
-    if (Util.SDK_INT < 24) {
-      // We assume cleartext traffic is permitted.
-      return true;
-    }
-    for (Uri uri : uris) {
-      if ("http".equals(uri.getScheme())
-          && !NetworkSecurityPolicy.getInstance()
-              .isCleartextTrafficPermitted(Assertions.checkNotNull(uri.getHost()))) {
-        // The security policy prevents cleartext traffic.
-        return false;
-      }
-    }
-    return true;
   }
 
   /**

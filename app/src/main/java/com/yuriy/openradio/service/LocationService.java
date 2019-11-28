@@ -424,7 +424,10 @@ public final class LocationService extends JobIntentService {
 
                                         sCountryCode = countryCode;
 
-                                        Looper.myLooper().quit();
+                                        final Looper looper = Looper.myLooper();
+                                        if (looper != null) {
+                                            looper.quit();
+                                        }
                                         latch.countDown();
                                     },
                                     Looper.myLooper()
@@ -433,6 +436,7 @@ public final class LocationService extends JobIntentService {
                     Looper.loop();
                 }
         );
+        thread.setName("LocSrvc-Thread");
         thread.start();
 
         try {

@@ -54,7 +54,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
@@ -890,8 +889,7 @@ public final class MainActivity extends AppCompatActivity {
 
         mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
         if (!TextUtils.isEmpty(mCurrentParentId)) {
-            ContextCompat.startForegroundService(
-                    context,
+            startService(
                     OpenRadioService.makeCurrentParentIdIntent(context, mCurrentParentId)
             );
         }
@@ -1038,7 +1036,9 @@ public final class MainActivity extends AppCompatActivity {
         }
         mProgressBarCrs.setVisibility(View.GONE);
 
-        final int bufferedDuration = (int) ((state.getBufferedPosition() - state.getPosition()) / 1000);
+        progressBar.setVisibility(View.GONE);
+
+        final long bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000;
         updateBufferedTime(bufferedDuration);
     }
 
@@ -1047,8 +1047,7 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param value Buffered time in seconds.
      */
-    @MainThread
-    private void updateBufferedTime(int value) {
+    private void updateBufferedTime(long value) {
         if (mBufferedTextView == null) {
             return;
         }
