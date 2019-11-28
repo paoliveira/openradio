@@ -55,7 +55,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
@@ -970,8 +969,7 @@ public final class MainActivity extends AppCompatActivity {
 
         mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
         if (!TextUtils.isEmpty(mCurrentParentId)) {
-            ContextCompat.startForegroundService(
-                    context,
+            startService(
                     OpenRadioService.makeCurrentParentIdIntent(context, mCurrentParentId)
             );
         }
@@ -1161,7 +1159,7 @@ public final class MainActivity extends AppCompatActivity {
 
         progressBar.setVisibility(View.GONE);
 
-        final double bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000.0;
+        final long bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000;
         updateBufferedTime(bufferedDuration);
     }
 
@@ -1170,7 +1168,7 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param value Buffered time in seconds.
      */
-    private void updateBufferedTime(double value) {
+    private void updateBufferedTime(long value) {
         if (mBufferedTextView == null) {
             return;
         }
@@ -1178,11 +1176,11 @@ public final class MainActivity extends AppCompatActivity {
             value = 0;
         }
 
-        final double finalValue = value;
+        final long finalValue = value;
         runOnUiThread(
                 () -> {
                     mBufferedTextView.setVisibility(finalValue > 0 ? View.VISIBLE : View.INVISIBLE);
-                    mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %.2f sec", finalValue));
+                    mBufferedTextView.setText(String.format(Locale.getDefault(), "Buffered %d sec", finalValue));
                 }
         );
     }

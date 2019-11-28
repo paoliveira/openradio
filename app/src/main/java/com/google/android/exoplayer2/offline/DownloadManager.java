@@ -58,7 +58,7 @@ import static com.google.android.exoplayer2.offline.Download.STOP_REASON_NONE;
 /**
  * Manages downloads.
  *
- * <p>Normally a download manager should be accessed via a {@link DownloadService}. When a download
+ * <p>Normally a download manager should be accessed via a { DownloadService}. When a download
  * manager is used directly instead, downloads will be initially paused and so must be resumed by
  * calling {@link #resumeDownloads()}.
  *

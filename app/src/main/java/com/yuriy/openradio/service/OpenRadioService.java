@@ -247,11 +247,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private boolean mPlayOnFocusGain;
 
     /**
-     * Indicates whether the service was started.
-     */
-    private boolean mServiceStarted;
-
-    /**
      * Notification object.
      */
     private MediaNotification mMediaNotification;
@@ -415,8 +410,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.d(CLASS_NAME + "Stopping service with delay handler.");
 
             mReference.stopSelf();
-
-            mReference.mServiceStarted = false;
         }
     }
 
@@ -461,7 +454,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Create the Wifi lock (this does not acquire the lock, this just creates it)
         mWifiLock = ((WifiManager) context
                 .getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL, "OpenRadio_lock");
+                .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "OpenRadio_lock");
 
         final ComponentName mediaButtonReceiver = new ComponentName(
                 context, RemoteControlReceiver.class
@@ -479,6 +472,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
+        if (Build.VERSION.SDK_INT >= 26) {
+            mMediaNotification.notifyServiceStarted();
+        } else {
+            // Pre-O behavior.
+            context.startService(new Intent(context, OpenRadioService.class));
+        }
+        mMediaNotification.updateNotificationMetadata();
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -486,18 +486,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(context);
-
-        if (!mServiceStarted) {
-            AppLogger.i(CLASS_NAME + "Starting service");
-            if (Build.VERSION.SDK_INT >= 26) {
-                mMediaNotification.notifyServiceStarted();
-            } else {
-                // Pre-O behavior.
-                context.startService(new Intent(context, OpenRadioService.class));
-            }
-            mServiceStarted = true;
-            mMediaNotification.updateNotificationMetadata();
-        }
     }
 
     @Override
@@ -1244,7 +1232,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handlePlayRequest() {
         AppLogger.d(
                 CLASS_NAME + "Handle PlayRequest: mState=" + mState
-                        + " started:" + mServiceStarted
         );
         mCurrentStreamTitle = null;
         final Context context = getApplicationContext();
@@ -1584,7 +1571,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
-        mServiceStarted = false;
     }
 
     /**

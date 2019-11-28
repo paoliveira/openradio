@@ -22,6 +22,7 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import com.crashlytics.android.Crashlytics;
+import com.crashlytics.android.core.CrashlyticsCore;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
@@ -68,7 +69,10 @@ public final class MainApp extends Application {
                     AppLogger.setIsLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage(context);
 
-                    Fabric.with(context, new Crashlytics());
+                    final CrashlyticsCore crashlyticsCore = new CrashlyticsCore.Builder()
+                            .disabled(BuildConfig.DEBUG)
+                            .build();
+                    Fabric.with(context, new Crashlytics.Builder().core(crashlyticsCore).build());
 
                     correctBufferSettings(context);
                     migrateImagesToIntStorage(context);
