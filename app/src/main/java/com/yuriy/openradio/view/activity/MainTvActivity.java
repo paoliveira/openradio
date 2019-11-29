@@ -11,9 +11,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.view.BaseDialogFragment;
 import com.yuriy.openradio.view.dialog.AboutDialog;
+import com.yuriy.openradio.view.dialog.SettingsTvDialog;
 import com.yuriy.openradio.view.fragment.MainTvFragment;
 
 import java.util.List;
@@ -90,19 +90,19 @@ public final class MainTvActivity extends FragmentActivity {
         if (button == null) {
             return;
         }
-        button.setOnClickListener(
-                v -> {
-                    final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                    Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
-                    if (fragmentByTag != null) {
-                        fragmentTransaction.remove(fragmentByTag);
-                    }
-                    // Show About Dialog
-                    final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
-                            AboutDialog.class.getName()
-                    );
-                    aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
-                }
+        button.setOnClickListener(v -> showTvSettings());
+    }
+
+    private void showTvSettings() {
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(SettingsTvDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
+        }
+        // Show Settings Dialog
+        final DialogFragment dialogFragment = BaseDialogFragment.newInstance(
+                SettingsTvDialog.class.getName()
         );
+        dialogFragment.show(transaction, SettingsTvDialog.DIALOG_TAG);
     }
 }
