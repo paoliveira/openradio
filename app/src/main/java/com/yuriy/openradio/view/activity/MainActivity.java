@@ -1036,7 +1036,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         mProgressBarCrs.setVisibility(View.GONE);
 
-        progressBar.setVisibility(View.GONE);
+        mProgressBar.setVisibility(View.GONE);
 
         final long bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000;
         updateBufferedTime(bufferedDuration);
