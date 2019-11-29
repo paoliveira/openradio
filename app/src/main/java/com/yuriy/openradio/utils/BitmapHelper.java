@@ -22,13 +22,13 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.text.TextUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -52,10 +52,10 @@ public final class BitmapHelper {
      * Scale Bitmap.
      *
      * @param scaleFactor Scale factor.
-     * @param inputStream Input Stream that represents a Bitmap.
+     * @param data        Bytes which represents a Bitmap.
      * @return Scaled Bitmap.
      */
-    private static Bitmap scaleBitmap(final int scaleFactor, final InputStream inputStream) {
+    private static Bitmap scaleBitmap(final int scaleFactor, final byte[] data) {
         // Get the dimensions of the bitmap
         final BitmapFactory.Options options = new BitmapFactory.Options();
 
@@ -63,23 +63,22 @@ public final class BitmapHelper {
         options.inJustDecodeBounds = false;
         options.inSampleSize = scaleFactor;
 
-        return BitmapFactory.decodeStream(inputStream, null, options);
+        return BitmapFactory.decodeByteArray(data, 0, data.length, options);
     }
 
     /**
      * Method to help find scale factor for the Bitmap vased on the desired Width and Height.
      *
-     * @param targetW     desired width.
-     * @param targetH     Desired height.
-     * @param inputStream Input Stream that represents a Bitmap.
+     * @param targetW desired width.
+     * @param targetH Desired height.
+     * @param bytes   Bytes which represents a Bitmap.
      * @return Scale factor.
      */
-    private static int findScaleFactor(final int targetW, final int targetH,
-                                       final InputStream inputStream) {
+    private static int findScaleFactor(final int targetW, final int targetH, final byte[] bytes) {
         // Get the dimensions of the bitmap
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        BitmapFactory.decodeStream(inputStream, null, options);
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
         int actualW = options.outWidth;
         int actualH = options.outHeight;
 
@@ -96,43 +95,55 @@ public final class BitmapHelper {
      * @return Downloaded and scaled Bitmap.
      * @throws IOException
      */
-    public static Bitmap fetchAndRescaleBitmap(final String uri, final int width, final int height)
+    public static Bitmap fetchAndRescaleBitmap(String uri, final int width, final int height)
             throws IOException {
-
+        HttpURLConnection connection = null;
         InputStream inputStream;
         int scaleFactor;
 
         if (AppUtils.isWebUrl(uri)) {
-            final URL url = new URL(uri);
-            HttpURLConnection httpConnection = (HttpURLConnection) url.openConnection();
-            httpConnection.setDoInput(true);
-            httpConnection.connect();
-            inputStream = httpConnection.getInputStream();
-            try {
-                scaleFactor = findScaleFactor(width, height, inputStream);
-            } finally {
-                inputStream.close();
-            }
+            connection = (HttpURLConnection) new URL(uri).openConnection();
+            doConnection(connection);
 
-            httpConnection = (HttpURLConnection) url.openConnection();
-            httpConnection.setDoInput(true);
-            httpConnection.connect();
-            inputStream = httpConnection.getInputStream();
-        } else {
-            inputStream = new FileInputStream(new File(uri));
-            try {
-                scaleFactor = findScaleFactor(width, height, inputStream);
-            } finally {
-                inputStream.close();
+            boolean redirect = false;
+            int responseCode = connection.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                if (responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+                        || responseCode == HttpURLConnection.HTTP_MOVED_PERM
+                        || responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
+                    redirect = true;
+                    connection.disconnect();
+                }
             }
+            if (redirect) {
+                // get redirect url from "Location" header field
+                uri = connection.getHeaderField("Location");
+                connection = (HttpURLConnection) new URL(uri).openConnection();
+                doConnection(connection);
+            }
+            inputStream = connection.getInputStream();
+        } else {
             inputStream = new FileInputStream(new File(uri));
         }
 
+        // Good old way to get data and use it whatever way I need to.
+        int n;
+        final byte[] buffer = new byte[1024];
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        while ((n = inputStream.read(buffer)) > 0) {
+            outputStream.write(buffer, 0, n);
+        }
+
+        scaleFactor = findScaleFactor(width, height, outputStream.toByteArray());
         Bitmap bitmap;
         try {
-            bitmap = scaleBitmap(scaleFactor, inputStream);
+            bitmap = scaleBitmap(scaleFactor, outputStream.toByteArray());
         } finally {
             inputStream.close();
+            outputStream.close();
+            if (connection != null) {
+                connection.disconnect();
+            }
         }
         if (bitmap != null) {
             AppLogger.d("FetchedAndRescaled bmp:" + bitmap.getWidth() + "x" + bitmap.getHeight());
@@ -143,6 +154,13 @@ public final class BitmapHelper {
         }
 
         return bitmap;
+    }
+
+    private static void doConnection(final HttpURLConnection connection) throws IOException {
+        connection.setInstanceFollowRedirects(true);
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0...");
+        connection.connect();
     }
 
     /**
