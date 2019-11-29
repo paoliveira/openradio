@@ -165,6 +165,12 @@ public final class HTTPDownloaderImpl implements Downloader {
         AppLogger.d("Response code:" + responseCode);
         if (responseCode < 200 || responseCode > 299) {
             urlConnection.disconnect();
+            FabricUtils.logException(
+                    new DownloaderException(
+                            createExceptionMessage(uri, parameters),
+                            new Exception("Response code is " + responseCode)
+                    )
+            );
             return response;
         }
 
