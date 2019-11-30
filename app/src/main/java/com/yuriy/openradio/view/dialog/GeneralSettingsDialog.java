@@ -31,7 +31,6 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.view.BaseDialogFragment;
-import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov
@@ -55,11 +54,10 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final MainActivity activity = (MainActivity) getActivity();
 
         final View view = getInflater().inflate(
                 R.layout.dialog_general_settings,
-                activity.findViewById(R.id.dialog_general_settings_root)
+                getActivity().findViewById(R.id.dialog_general_settings_root)
         );
 
         setWindowDimensions(view, 0.9f, 0.9f);

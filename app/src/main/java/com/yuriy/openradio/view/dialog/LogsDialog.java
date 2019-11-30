@@ -39,7 +39,6 @@ import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.view.BaseDialogFragment;
 import com.yuriy.openradio.view.SafeToast;
-import com.yuriy.openradio.view.activity.MainActivity;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -70,11 +69,10 @@ public final class LogsDialog extends BaseDialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final MainActivity activity = (MainActivity) getActivity();
 
         final View view = getInflater().inflate(
                 R.layout.dialog_settings_logs,
-                activity.findViewById(R.id.dialog_settings_logs_root)
+                getActivity().findViewById(R.id.dialog_settings_logs_root)
         );
 
         setWindowDimensions(view, 0.8f, 0.8f);
@@ -83,7 +81,7 @@ public final class LogsDialog extends BaseDialogFragment {
         final TextView title = view.findViewById(R.id.settings_logs_label_view);
         title.setText(titleText);
 
-        final Context context = activity.getApplicationContext();
+        final Context context = getActivity().getApplicationContext();
 
         final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(context);
         final CheckBox logsEnableCheckView = view.findViewById(R.id.settings_dialog_enable_logs_check_view);
@@ -100,14 +98,14 @@ public final class LogsDialog extends BaseDialogFragment {
         clearLogsBtn.setOnClickListener(
 
                 view12 -> {
-                    AppLogger.deleteZipFile(activity);
-                    AppLogger.deleteLogcatFile(activity);
-                    final boolean result = AppLogger.deleteAllLogs(activity);
+                    AppLogger.deleteZipFile(context);
+                    AppLogger.deleteLogcatFile(context);
+                    final boolean result = AppLogger.deleteAllLogs(context);
                     String message = result
                             ? "All logs deleted"
                             : "Can not delete logs";
-                    SafeToast.showAnyThread(activity, message);
-                    AppLogger.initLogger(activity);
+                    SafeToast.showAnyThread(context, message);
+                    AppLogger.initLogger(context);
                 }
         );
 

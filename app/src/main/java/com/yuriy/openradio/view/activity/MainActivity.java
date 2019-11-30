@@ -58,6 +58,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -74,8 +75,9 @@ import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveError;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerAction;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerListenerImpl;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.permission.PermissionStatusListener;
 import com.yuriy.openradio.presenter.MediaPresenter;
@@ -121,7 +123,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
-public final class MainActivity extends AppCompatActivity {
+public final class MainActivity
+        extends AppCompatActivity
+        implements GoogleDriveManagerAction {
 
     /**
      * Tag string to use in logging message.
@@ -353,7 +357,45 @@ public final class MainActivity extends AppCompatActivity {
         mLocationHandler = new LocationHandler(this);
 
         mGoogleDriveManager = new GoogleDriveManager(
-                context, new GoogleDriveManagerListenerImpl(this)
+                context,
+                new GoogleDriveManagerListenerImpl(
+                        context,
+                        new GoogleDriveManagerListenerImpl.Listener() {
+
+                            @Override
+                            public FragmentManager getSupportFragmentManager() {
+                                return MainActivity.this.getSupportFragmentManager();
+                            }
+
+                            @Override
+                            public void onAccountRequested() {
+                                try {
+                                    MainActivity.this.startActivityForResult(
+                                            AccountPicker.newChooseAccountIntent(
+                                                    null,
+                                                    null,
+                                                    new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
+                                                    true, null, null, null, null
+                                            ),
+                                            ACCOUNT_REQUEST_CODE
+                                    );
+                                } catch (final ActivityNotFoundException e) {
+                                    FabricUtils.logException(e);
+                                    MainActivity.this.mGoogleDriveManager.connect(null);
+                                }
+                            }
+
+                            @Override
+                            public void requestGoogleDriveSignIn(final ConnectionResult connectionResult) {
+                                MainActivity.this.requestGoogleDriveSignIn(connectionResult);
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                MainActivity.this.updateListAfterDownloadFromGoogleDrive();
+                            }
+                        }
+                )
         );
 
         mMediaPresenter = new MediaPresenter();
@@ -644,7 +686,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
      * @param fragmentTransaction
      */
     private void clearDialogs(final FragmentTransaction fragmentTransaction) {
@@ -721,6 +762,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      *
      */
+    @Override
     public void uploadRadioStationsToGoogleDrive() {
         mGoogleDriveManager.uploadRadioStations();
     }
@@ -728,6 +770,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      *
      */
+    @Override
     public void downloadRadioStationsFromGoogleDrive() {
         mGoogleDriveManager.downloadRadioStations();
     }
@@ -1109,15 +1152,6 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Nullable
-    private GoogleDriveDialog getGoogleDriveDialog() {
-        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
-        if (fragment instanceof GoogleDriveDialog) {
-            return (GoogleDriveDialog) fragment;
-        }
-        return null;
-    }
-
     /**
      * Callback receiver of the local application's event.
      */
@@ -1439,154 +1473,6 @@ public final class MainActivity extends AppCompatActivity {
             addMediaItemToStack(mCurrentParentId);
         } else {
             AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
-        }
-    }
-
-    private static final class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listener {
-
-        private final WeakReference<MainActivity> mReference;
-
-        private GoogleDriveManagerListenerImpl(final MainActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnectionFailed(@Nullable final ConnectionResult connectionResult) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            if (connectionResult != null) {
-                reference.requestGoogleDriveSignIn(connectionResult);
-            } else {
-                SafeToast.showAnyThread(
-                        reference.getApplicationContext(), reference.getString(R.string.google_drive_conn_error)
-                );
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideTitleProgress();
-                }
-            });
-        }
-
-        @Override
-        public void onStart(final GoogleDriveManager.Command command) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().showProgress(command);
-                }
-            });
-        }
-
-        @Override
-        public void onSuccess(final GoogleDriveManager.Command command) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            String message = null;
-            switch (command) {
-                case UPLOAD:
-                    message = reference.getString(R.string.google_drive_data_saved);
-                    break;
-                case DOWNLOAD:
-                    message = reference.getString(R.string.google_drive_data_read);
-                    reference.updateListAfterDownloadFromGoogleDrive();
-                    break;
-            }
-            if (!TextUtils.isEmpty(message)) {
-                SafeToast.showAnyThread(reference.getApplication(), message);
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideProgress(command);
-                }
-            });
-        }
-
-        @Override
-        public void onError(final GoogleDriveManager.Command command, final GoogleDriveError error) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            String message = null;
-            switch (command) {
-                case UPLOAD:
-                    message = reference.getString(R.string.google_drive_error_when_save);
-                    break;
-                case DOWNLOAD:
-                    message = reference.getString(R.string.google_drive_error_when_read);
-                    break;
-            }
-            if (!TextUtils.isEmpty(message)) {
-                SafeToast.showAnyThread(reference.getApplication(), message);
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideProgress(command);
-                }
-            });
-        }
-
-        @Override
-        public void onConnect() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().showTitleProgress();
-                }
-            });
-        }
-
-        @Override
-        public void onConnected() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideTitleProgress();
-                }
-            });
-        }
-
-        @Override
-        public void onAccountRequested() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            try {
-                reference.startActivityForResult(
-                        AccountPicker.newChooseAccountIntent(
-                                null,
-                                null,
-                                new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
-                                true, null, null, null, null
-                        ),
-                        ACCOUNT_REQUEST_CODE
-                );
-            } catch (final ActivityNotFoundException e) {
-                FabricUtils.logException(e);
-                reference.mGoogleDriveManager.connect(null);
-            }
         }
     }
 

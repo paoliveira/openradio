@@ -25,8 +25,8 @@ import android.widget.ProgressBar;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerAction;
 import com.yuriy.openradio.view.BaseDialogFragment;
-import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov
@@ -54,14 +54,15 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final MainActivity activity = (MainActivity) getActivity();
 
         final View view = getInflater().inflate(
                 R.layout.dialog_google_drive,
-                activity.findViewById(R.id.dialog_google_drive_root)
+                getActivity().findViewById(R.id.dialog_google_drive_root)
         );
 
         setWindowDimensions(view, 0.9f, 0.9f);
+
+        final GoogleDriveManagerAction activity = (GoogleDriveManagerAction) getActivity();
 
         final Button uploadTo = view.findViewById(R.id.upload_to_google_drive_btn);
         uploadTo.setOnClickListener(v -> activity.uploadRadioStationsToGoogleDrive());

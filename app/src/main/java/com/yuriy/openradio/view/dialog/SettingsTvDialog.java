@@ -20,11 +20,17 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.view.BaseDialogFragment;
 
 import java.util.ArrayList;
@@ -83,8 +89,80 @@ public final class SettingsTvDialog extends BaseDialogFragment {
                 android.R.layout.simple_list_item_1, list
         );
         listview.setAdapter(adapter);
+        listview.setOnItemClickListener(
+                (parent, view1, position, id) -> {
+                    AppLogger.d(CLASS_NAME + " click:" + values[position]);
+                    final FragmentTransaction fragmentTransaction = getActivity()
+                            .getSupportFragmentManager().beginTransaction();
+                    clearDialogs(fragmentTransaction);
+                    switch (position) {
+                        case 0:
+                            // Show Search Dialog
+                            final DialogFragment settingsDialog = BaseDialogFragment.newInstance(
+                                    GeneralSettingsDialog.class.getName()
+                            );
+                            settingsDialog.show(fragmentTransaction, GeneralSettingsDialog.DIALOG_TAG);
+                            break;
+                        case 1:
+                            // Show Stream Buffering Dialog
+                            final DialogFragment streamBufferingDialog = BaseDialogFragment.newInstance(
+                                    StreamBufferingDialog.class.getName()
+                            );
+                            streamBufferingDialog.show(fragmentTransaction, StreamBufferingDialog.DIALOG_TAG);
+                            break;
+                        case 2:
+                            // Show Google Drive Dialog
+                            final DialogFragment googleDriveDialog = BaseDialogFragment.newInstance(
+                                    GoogleDriveDialog.class.getName()
+                            );
+                            googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
+                            break;
+                        case 3:
+                            // Show Application Logs Dialog
+                            final DialogFragment applicationLogsDialog = BaseDialogFragment.newInstance(
+                                    LogsDialog.class.getName()
+                            );
+                            applicationLogsDialog.show(fragmentTransaction, LogsDialog.DIALOG_TAG);
+                            break;
+                        case 4:
+                            // Show About Dialog
+                            final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
+                                    AboutDialog.class.getName()
+                            );
+                            aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
+                            break;
+                        default:
+
+                            break;
+                    }
+                }
+        );
 
         return createAlertDialog(view);
+    }
+
+    /**
+     *
+     * @param fragmentTransaction
+     */
+    private void clearDialogs(final FragmentTransaction fragmentTransaction) {
+        Fragment fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentTransaction.addToBackStack(null);
     }
 
     private static class ArrayAdapterExt extends ArrayAdapter<String> {
