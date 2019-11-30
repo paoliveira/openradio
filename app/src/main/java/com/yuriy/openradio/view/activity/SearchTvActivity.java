@@ -1,8 +1,11 @@
 package com.yuriy.openradio.view.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
+
+import androidx.fragment.app.FragmentActivity;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.view.fragment.SearchTvFragment;
@@ -10,14 +13,18 @@ import com.yuriy.openradio.view.fragment.SearchTvFragment;
 /**
  *
  */
-public final class SearchTvActivity extends LeanbackActivity {
+public final class SearchTvActivity extends FragmentActivity {
 
     private SearchTvFragment mFragment;
+
+    public static Intent makeStartIntent(final Context context) {
+        return new Intent(context, SearchTvActivity.class);
+    }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.search);
+        setContentView(R.layout.tv_search);
         mFragment = (SearchTvFragment) getSupportFragmentManager().findFragmentById(R.id.search_fragment);
     }
 

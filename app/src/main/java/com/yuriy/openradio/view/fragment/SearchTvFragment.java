@@ -30,6 +30,16 @@ import com.yuriy.openradio.view.SafeToast;
 public class SearchTvFragment extends SearchSupportFragment
         implements SearchSupportFragment.SearchResultProvider {
 
+    /**
+     * Tag string to use in logging message.
+     */
+    private static final String CLASS_NAME = SearchTvFragment.class.getSimpleName();
+
+    /**
+     * Tag string to use in dialog transactions.
+     */
+    public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
+
     private static final String TAG = SearchTvFragment.class.getSimpleName();
     private static final boolean FINISH_ON_RECOGNIZER_CANCELED = true;
     private static final int REQUEST_SPEECH = 0x00000010;

@@ -36,6 +36,7 @@ public final class MainTvActivity extends FragmentActivity {
         setContentView(R.layout.main_tv);
 
         setUpBackBtn();
+        setUpSearchBtn();
         setUpSettingsBtn();
     }
 
@@ -116,6 +117,14 @@ public final class MainTvActivity extends FragmentActivity {
             return;
         }
         button.setOnClickListener(v -> showTvSettings());
+    }
+
+    private void setUpSearchBtn() {
+        final ImageView button = findViewById(R.id.tv_search_btn);
+        if (button == null) {
+            return;
+        }
+        button.setOnClickListener(v -> startActivity(SearchTvActivity.makeStartIntent(getApplicationContext())));
     }
 
     private void showTvSettings() {
