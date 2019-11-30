@@ -16,17 +16,34 @@
 
 package com.yuriy.openradio.view.dialog;
 
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+
+import com.google.android.gms.auth.GoogleAuthUtil;
+import com.google.android.gms.common.AccountPicker;
+import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerAction;
+import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerListenerImpl;
+import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.view.BaseDialogFragment;
+import com.yuriy.openradio.view.SafeToast;
 
 /**
  * Created by Yuriy Chernyshov
@@ -46,15 +63,74 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
+    private static final int RESOLVE_CONNECTION_REQUEST_CODE = 300;
+    private static final int ACCOUNT_REQUEST_CODE = 400;
+
     private ProgressBar mProgressBarUpload;
-
     private ProgressBar mProgressBarDownload;
-
     private ProgressBar mProgressBarTitle;
+
+    /**
+     *
+     */
+    private GoogleDriveManager mGoogleDriveManager;
+
+    public GoogleDriveDialog() {
+        super();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        final Context context = getContext();
+        final FragmentActivity activity = getActivity();
+
+        mGoogleDriveManager = new GoogleDriveManager(
+                context,
+                new GoogleDriveManagerListenerImpl(
+                        context,
+                        new GoogleDriveManagerListenerImpl.Listener() {
+
+                            @Override
+                            public FragmentManager getSupportFragmentManager() {
+                                return activity.getSupportFragmentManager();
+                            }
+
+                            @Override
+                            public void onAccountRequested() {
+                                try {
+                                    activity.startActivityForResult(
+                                            AccountPicker.newChooseAccountIntent(
+                                                    null,
+                                                    null,
+                                                    new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
+                                                    true, null, null, null, null
+                                            ),
+                                            ACCOUNT_REQUEST_CODE
+                                    );
+                                } catch (final ActivityNotFoundException e) {
+                                    FabricUtils.logException(e);
+                                    GoogleDriveDialog.this.mGoogleDriveManager.connect(null);
+                                }
+                            }
+
+                            @Override
+                            public void requestGoogleDriveSignIn(final ConnectionResult connectionResult) {
+                                GoogleDriveDialog.this.requestGoogleDriveSignIn(connectionResult);
+                            }
+
+                            @Override
+                            public void onComplete() {
+                                //GoogleDriveDialog.this.updateListAfterDownloadFromGoogleDrive();
+                            }
+                        }
+                )
+        );
+    }
 
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-
         final View view = getInflater().inflate(
                 R.layout.dialog_google_drive,
                 getActivity().findViewById(R.id.dialog_google_drive_root)
@@ -62,13 +138,11 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
 
         setWindowDimensions(view, 0.9f, 0.9f);
 
-        final GoogleDriveManagerAction activity = (GoogleDriveManagerAction) getActivity();
-
         final Button uploadTo = view.findViewById(R.id.upload_to_google_drive_btn);
-        uploadTo.setOnClickListener(v -> activity.uploadRadioStationsToGoogleDrive());
+        uploadTo.setOnClickListener(v -> uploadRadioStationsToGoogleDrive());
 
         final Button downloadFrom = view.findViewById(R.id.download_from_google_drive_btn);
-        downloadFrom.setOnClickListener(v -> activity.downloadRadioStationsFromGoogleDrive());
+        downloadFrom.setOnClickListener(v -> downloadRadioStationsFromGoogleDrive());
 
         mProgressBarUpload = view.findViewById(R.id.upload_to_google_drive_progress);
         mProgressBarDownload = view.findViewById(R.id.download_to_google_drive_progress);
@@ -79,6 +153,85 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         hideTitleProgress();
 
         return createAlertDialog(view);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        // TODO: Save state and continue with Google Drive if procedure was interrupted by device rotation.
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mGoogleDriveManager != null) {
+            mGoogleDriveManager.disconnect();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        if (mGoogleDriveManager != null) {
+            mGoogleDriveManager.release();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        AppLogger.d(CLASS_NAME + " OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+        switch (requestCode) {
+            case RESOLVE_CONNECTION_REQUEST_CODE:
+                mGoogleDriveManager.connect();
+                break;
+            case ACCOUNT_REQUEST_CODE:
+                final String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+                if (TextUtils.isEmpty(email)) {
+                    SafeToast.showAnyThread(
+                            getContext(), getString(R.string.can_not_get_account_name)
+                    );
+                    break;
+                }
+                mGoogleDriveManager.connect(email);
+                break;
+        }
+    }
+
+    /**
+     *
+     */
+    private void uploadRadioStationsToGoogleDrive() {
+        mGoogleDriveManager.uploadRadioStations();
+    }
+
+    /**
+     *
+     */
+    private void downloadRadioStationsFromGoogleDrive() {
+        mGoogleDriveManager.downloadRadioStations();
+    }
+
+    /**
+     * @param connectionResult
+     */
+    private void requestGoogleDriveSignIn(@NonNull final ConnectionResult connectionResult) {
+        try {
+            connectionResult.startResolutionForResult(
+                    getActivity(),
+                    RESOLVE_CONNECTION_REQUEST_CODE
+            );
+        } catch (IntentSender.SendIntentException e) {
+            // Unable to resolve, message user appropriately
+            AppLogger.e(CLASS_NAME + " Google Drive unable to resolve failure:" + e);
+        }
     }
 
     public void showProgress(final GoogleDriveManager.Command command) {

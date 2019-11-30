@@ -17,14 +17,10 @@
 package com.yuriy.openradio.view.activity;
 
 import android.Manifest;
-import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -58,13 +54,9 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.common.AccountPicker;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.yuriy.openradio.R;
@@ -75,9 +67,6 @@ import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerAction;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveManagerListenerImpl;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.permission.PermissionStatusListener;
 import com.yuriy.openradio.presenter.MediaPresenter;
@@ -86,7 +75,6 @@ import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.ImageWorker;
 import com.yuriy.openradio.utils.MediaIdHelper;
@@ -123,9 +111,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
-public final class MainActivity
-        extends AppCompatActivity
-        implements GoogleDriveManagerAction {
+public final class MainActivity extends AppCompatActivity {
 
     /**
      * Tag string to use in logging message.
@@ -155,9 +141,6 @@ public final class MainActivity
      * Key value for the first visible ID in the List for the store Bundle
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
-
-    private static final int RESOLVE_CONNECTION_REQUEST_CODE = 300;
-    private static final int ACCOUNT_REQUEST_CODE = 400;
 
     /**
      * Progress Bar view to indicate that data is loading.
@@ -240,11 +223,6 @@ public final class MainActivity
      * Receiver for the Screen OF/ON events.
      */
     private final ScreenReceiver mScreenBroadcastReceiver = new ScreenReceiver();
-
-    /**
-     *
-     */
-    private GoogleDriveManager mGoogleDriveManager;
 
     private TextView mBufferedTextView;
     private ListView mListView;
@@ -356,48 +334,6 @@ public final class MainActivity
         // Initialize the Location Handler.
         mLocationHandler = new LocationHandler(this);
 
-        mGoogleDriveManager = new GoogleDriveManager(
-                context,
-                new GoogleDriveManagerListenerImpl(
-                        context,
-                        new GoogleDriveManagerListenerImpl.Listener() {
-
-                            @Override
-                            public FragmentManager getSupportFragmentManager() {
-                                return MainActivity.this.getSupportFragmentManager();
-                            }
-
-                            @Override
-                            public void onAccountRequested() {
-                                try {
-                                    MainActivity.this.startActivityForResult(
-                                            AccountPicker.newChooseAccountIntent(
-                                                    null,
-                                                    null,
-                                                    new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
-                                                    true, null, null, null, null
-                                            ),
-                                            ACCOUNT_REQUEST_CODE
-                                    );
-                                } catch (final ActivityNotFoundException e) {
-                                    FabricUtils.logException(e);
-                                    MainActivity.this.mGoogleDriveManager.connect(null);
-                                }
-                            }
-
-                            @Override
-                            public void requestGoogleDriveSignIn(final ConnectionResult connectionResult) {
-                                MainActivity.this.requestGoogleDriveSignIn(connectionResult);
-                            }
-
-                            @Override
-                            public void onComplete() {
-                                MainActivity.this.updateListAfterDownloadFromGoogleDrive();
-                            }
-                        }
-                )
-        );
-
         mMediaPresenter = new MediaPresenter();
         mMediaPresenter.init(
                 this,
@@ -488,9 +424,6 @@ public final class MainActivity
 
     @Override
     protected void onPause() {
-
-        mGoogleDriveManager.disconnect();
-
         super.onPause();
 
         // Get list view reference from the inflated xml
@@ -526,10 +459,6 @@ public final class MainActivity
         unregisterReceivers();
 
         mMediaPresenter.destroy();
-
-        if (mGoogleDriveManager != null) {
-            mGoogleDriveManager.release();
-        }
     }
 
     @Override
@@ -621,30 +550,6 @@ public final class MainActivity
         // Save first visible ID of the List
         outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
-        if (resultCode != Activity.RESULT_OK) {
-            return;
-        }
-        switch (requestCode) {
-            case RESOLVE_CONNECTION_REQUEST_CODE:
-                mGoogleDriveManager.connect();
-                break;
-            case ACCOUNT_REQUEST_CODE:
-                final String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-                if (TextUtils.isEmpty(email)) {
-                    SafeToast.showAnyThread(
-                            getApplicationContext(), getString(R.string.can_not_get_account_name)
-                    );
-                    break;
-                }
-                mGoogleDriveManager.connect(email);
-                break;
-        }
     }
 
     @Override
@@ -757,37 +662,6 @@ public final class MainActivity
         // Save search query string, retrieve it later in the service
         AppUtils.setSearchQuery(queryString);
         addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-    }
-
-    /**
-     *
-     */
-    @Override
-    public void uploadRadioStationsToGoogleDrive() {
-        mGoogleDriveManager.uploadRadioStations();
-    }
-
-    /**
-     *
-     */
-    @Override
-    public void downloadRadioStationsFromGoogleDrive() {
-        mGoogleDriveManager.downloadRadioStations();
-    }
-
-    /**
-     * @param connectionResult
-     */
-    private void requestGoogleDriveSignIn(@NonNull final ConnectionResult connectionResult) {
-        try {
-            connectionResult.startResolutionForResult(
-                    this,
-                    RESOLVE_CONNECTION_REQUEST_CODE
-            );
-        } catch (IntentSender.SendIntentException e) {
-            // Unable to resolve, message user appropriately
-            AppLogger.e(CLASS_NAME + "Google Drive unable to resolve failure:" + e);
-        }
     }
 
     /**
@@ -1150,6 +1024,26 @@ public final class MainActivity
             );
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, context);
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        final GoogleDriveDialog googleDriveDialog = getGoogleDriveDialog();
+        if (googleDriveDialog != null) {
+            googleDriveDialog.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    @Nullable
+    private GoogleDriveDialog getGoogleDriveDialog() {
+        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        if (fragment instanceof GoogleDriveDialog) {
+            return (GoogleDriveDialog) fragment;
+        }
+        return null;
     }
 
     /**
