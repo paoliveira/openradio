@@ -147,7 +147,7 @@ public final class MediaPresenter {
         mMediaResourcesManager.unsubscribe(mediaId);
     }
 
-    private void addMediaItemToStack(final String mediaId) {
+    public void addMediaItemToStack(final String mediaId) {
         AppLogger.i(CLASS_NAME + " MediaItem Id added:" + mediaId);
         if (TextUtils.isEmpty(mediaId)) {
             return;

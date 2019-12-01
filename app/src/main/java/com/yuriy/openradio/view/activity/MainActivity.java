@@ -656,9 +656,10 @@ public final class MainActivity extends AppCompatActivity {
      * @param queryString String to query for.
      */
     public void onSearchDialogClick(final String queryString) {
+        unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
         // Save search query string, retrieve it later in the service
         AppUtils.setSearchQuery(queryString);
-        unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
     /**
@@ -1352,6 +1353,7 @@ public final class MainActivity extends AppCompatActivity {
     private void onScrolledToEnd() {
         if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
+            mMediaPresenter.addMediaItemToStack(mCurrentMediaId);
         } else {
             AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
         }
