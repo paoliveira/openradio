@@ -30,18 +30,14 @@ public final class SearchTvActivity extends FragmentActivity {
 
     @Override
     public boolean onSearchRequested() {
-        if (mFragment.hasResults()) {
-            startActivity(new Intent(this, SearchTvActivity.class));
-        } else {
-            mFragment.startRecognition();
-        }
+        mFragment.startRecognition();
         return true;
     }
 
     @Override
     public boolean onKeyDown(final int keyCode, final KeyEvent event) {
         // If there are no results found, press the left key to reselect the microphone
-        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT && !mFragment.hasResults()) {
+        if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
             mFragment.focusOnSearch();
         }
         return super.onKeyDown(keyCode, event);

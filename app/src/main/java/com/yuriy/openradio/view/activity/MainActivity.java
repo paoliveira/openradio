@@ -656,12 +656,9 @@ public final class MainActivity extends AppCompatActivity {
      * @param queryString String to query for.
      */
     public void onSearchDialogClick(final String queryString) {
-        // Un-subscribe from previous Search
-        unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-
         // Save search query string, retrieve it later in the service
         AppUtils.setSearchQuery(queryString);
-        addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
+        unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
     /**
@@ -744,15 +741,6 @@ public final class MainActivity extends AppCompatActivity {
         hideProgressBar();
 
         mMediaPresenter.unsubscribeFromItem(mediaItemId);
-    }
-
-    /**
-     * Add {@link android.media.browse.MediaBrowser.MediaItem} to stack.
-     *
-     * @param mediaId Id of the {@link android.view.MenuItem}
-     */
-    private void addMediaItemToStack(final String mediaId) {
-        mMediaPresenter.unsubscribeFromItem(mediaId);
     }
 
     /**
@@ -1364,7 +1352,6 @@ public final class MainActivity extends AppCompatActivity {
     private void onScrolledToEnd() {
         if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
-            addMediaItemToStack(mCurrentParentId);
         } else {
             AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
         }

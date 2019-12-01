@@ -35,9 +35,11 @@ import com.yuriy.openradio.presenter.MediaPresenterListener;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapUtils;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.ImageWorker;
+import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.view.activity.MainTvActivity;
@@ -156,6 +158,14 @@ public class MainTvFragment extends PlaybackSupportFragment {
             return 0;
         }
         return mMediaPresenter.getNumItemsInStack();
+    }
+
+    public void onSearchDialogClick(final String queryString) {
+        // Un-subscribe from previous Search
+        mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
+
+        // Save search query string, retrieve it later in the service
+        AppUtils.setSearchQuery(queryString);
     }
 
     private void handlePlaybackStateChanged(final PlaybackStateCompat state) {
