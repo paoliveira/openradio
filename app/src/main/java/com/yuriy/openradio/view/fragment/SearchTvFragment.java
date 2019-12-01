@@ -159,5 +159,4 @@ public class SearchTvFragment extends SearchSupportFragment
             SafeToast.showAnyThread(getContext().getApplicationContext(), ((String) item));
         }
     }
-
 }
