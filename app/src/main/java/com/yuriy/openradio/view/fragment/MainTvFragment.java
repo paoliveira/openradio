@@ -11,7 +11,9 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,6 +70,10 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private ImageWorker mImageWorker;
     private String mCurrentMediaId;
+    /**
+     * Progress Bar view to indicate that data is loading.
+     */
+    private ProgressBar mProgressBar;
 
     public MainTvFragment() {
         super();
@@ -78,6 +84,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         super.onCreate(savedInstanceState);
         setControlsOverlayAutoHideEnabled(false);
         setBackgroundType(BG_NONE);
+        mProgressBar = getActivity().findViewById(R.id.progress_bar_tv_view);
         mGlue = new PlaybackBannerControlGlue<>(
                 getContext(),
                 new int[]{0, 1},
@@ -99,7 +106,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
                     @Override
                     public void showProgressBar() {
-
+                        MainTvFragment.this.showProgressBar();
                     }
 
                     @Override
@@ -165,6 +172,26 @@ public class MainTvFragment extends PlaybackSupportFragment {
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
+    /**
+     * Show progress bar.
+     */
+    private void showProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hide progress bar.
+     */
+    private void hideProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.GONE);
+    }
+
     private void handlePlaybackStateChanged(final PlaybackStateCompat state) {
         if (state.getState() == PlaybackStateCompat.STATE_PLAYING) {
             if (!mGlue.isPlaying()) {
@@ -219,6 +246,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
         if (row instanceof MediaItemActionable) {
+            showProgressBar();
             handleActionableClicked(
                     (MediaItemActionable) row,
                     (AbstractMediaItemPresenter.ViewHolder) rowViewHolder,
@@ -226,6 +254,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
             );
         }
         if (row instanceof PlaybackControlsRow) {
+            showProgressBar();
             handleControllableClicked((PlaybackControlsRow.PlayPauseAction) item);
         }
     }
@@ -413,6 +442,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 AppLogger.w(CLASS_NAME + " On children loaded -> fragment ref is null");
                 return;
             }
+
+            fragment.hideProgressBar();
 
             // No need to go on if indexed list ended with last item.
             if (MediaItemHelper.isEndOfList(children)) {
