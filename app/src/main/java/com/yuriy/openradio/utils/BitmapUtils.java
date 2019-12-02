@@ -61,7 +61,7 @@ public final class BitmapUtils {
      * @param data        Bytes which represents a Bitmap.
      * @return Scaled Bitmap.
      */
-    private static Bitmap scaleBitmap(final int scaleFactor, final byte[] data) {
+    public static Bitmap scaleBitmap(final int scaleFactor, final byte[] data) {
         // Get the dimensions of the bitmap
         final BitmapFactory.Options options = new BitmapFactory.Options();
 
@@ -162,6 +162,17 @@ public final class BitmapUtils {
         return bitmap;
     }
 
+    public static Bitmap scaleDown(Bitmap realImage, float maxImageSize, boolean filter) {
+        float ratio = Math.min(
+                maxImageSize / realImage.getWidth(),
+                maxImageSize / realImage.getHeight()
+        );
+        int width = Math.round(ratio * realImage.getWidth());
+        int height = Math.round(ratio * realImage.getHeight());
+
+        return Bitmap.createScaledBitmap(realImage, width, height, filter);
+    }
+
     private static void doConnection(final HttpURLConnection connection) throws IOException {
         connection.setInstanceFollowRedirects(true);
         connection.setRequestMethod("GET");
@@ -256,7 +267,6 @@ public final class BitmapUtils {
     }
 
     /**
-     *
      * @param context
      * @param uri
      * @return

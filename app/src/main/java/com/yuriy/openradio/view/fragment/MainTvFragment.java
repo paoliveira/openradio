@@ -35,12 +35,12 @@ import com.yuriy.openradio.presenter.MediaPresenterListener;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.utils.BitmapUtils;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
 import com.yuriy.openradio.utils.ImageWorker;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
+import com.yuriy.openradio.utils.WrappedDrawable;
 import com.yuriy.openradio.view.SafeToast;
 import com.yuriy.openradio.view.activity.MainTvActivity;
 import com.yuriy.openradio.vo.MediaItemActionable;
@@ -160,12 +160,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
         return mMediaPresenter.getNumItemsInStack();
     }
 
-    public void onSearchDialogClick(final String queryString) {
-        // Un-subscribe from previous Search
+    public void onSearchDialogClick() {
         mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-
-        // Save search query string, retrieve it later in the service
-        AppUtils.setSearchQuery(queryString);
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
     private void handlePlaybackStateChanged(final PlaybackStateCompat state) {
@@ -221,7 +218,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final Object item,
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
-//        AppLogger.d(CLASS_NAME + " on clicked:\n" + itemViewHolder + "\n" + item + "\n" + rowViewHolder + "\n" + row);
         if (row instanceof MediaItemActionable) {
             handleActionableClicked(
                     (MediaItemActionable) row,
@@ -351,27 +347,35 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
             // There is only one action currently.
             final MultiActionsProvider.MultiAction action = mediaItem.getActions()[0];
+            final float density = mContext.getResources().getDisplayMetrics().density;
             if (mediaItem.getDescription().getIconBitmap() != null) {
-                action.getDrawables()[0] = new BitmapDrawable(
+                final Drawable drawable = new BitmapDrawable(
                         mContext.getResources(),
-                        mediaItem.getDescription().getIconBitmap()
+                        BitmapUtils.scaleDown(
+                                mediaItem.getDescription().getIconBitmap(), 24 * density, true
+                        )
                 );
-                action.getDrawables()[1] = action.getDrawables()[0];
+                action.getDrawables()[0] = drawable;
+                action.getDrawables()[1] = drawable;
             } else {
                 if (mediaItem.isPlayable()) {
                     action.getDrawables()[0] = mContext.getResources().getDrawable(
-                            R.drawable.ic_favorites_off,
+                            R.drawable.ic_favorites_off_24,
                             mContext.getTheme()
                     );
                     action.getDrawables()[1] = mContext.getResources().getDrawable(
-                            R.drawable.ic_favorites_on,
+                            R.drawable.ic_favorites_on_24,
                             mContext.getTheme()
                     );
                 } else {
-                    action.getDrawables()[0] = BitmapUtils.drawableFromUri(
-                            mContext, mediaItem.getDescription().getIconUri()
+                    final WrappedDrawable drawable = new WrappedDrawable(
+                            BitmapUtils.drawableFromUri(
+                                    mContext, mediaItem.getDescription().getIconUri()
+                            )
                     );
-                    action.getDrawables()[1] = action.getDrawables()[0];
+                    drawable.setBounds(0, 0, (int) (24 * density), (int) (24 * density));
+                    action.getDrawables()[0] = drawable;
+                    action.getDrawables()[1] = drawable;
                 }
             }
 

@@ -14,6 +14,8 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.view.BaseDialogFragment;
 import com.yuriy.openradio.view.dialog.GoogleDriveDialog;
 import com.yuriy.openradio.view.dialog.SettingsTvDialog;
@@ -49,6 +51,22 @@ public final class MainTvActivity extends FragmentActivity {
         if (googleDriveDialog != null) {
             googleDriveDialog.onActivityResult(requestCode, resultCode, data);
         }
+
+        switch (requestCode) {
+            case SearchTvActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE:
+                onSearchDialogClick();
+                break;
+        }
+    }
+
+    /**
+     * Process call back from the Search Dialog.
+     */
+    public void onSearchDialogClick() {
+        final MainTvFragment fragment = getMainTvFragment();
+        if (fragment != null) {
+            fragment.onSearchDialogClick();
+        }
     }
 
     @Nullable
@@ -68,7 +86,7 @@ public final class MainTvActivity extends FragmentActivity {
             if (!(fragment instanceof MainTvFragment)) {
                 continue;
             }
-            numItemsInStack = ((MainTvFragment)fragment).getNumItemsInStack();
+            numItemsInStack = ((MainTvFragment) fragment).getNumItemsInStack();
             break;
         }
         if (numItemsInStack > 1) {
@@ -76,6 +94,17 @@ public final class MainTvActivity extends FragmentActivity {
         } else {
             hideBackBtn();
         }
+    }
+
+    private MainTvFragment getMainTvFragment() {
+        final FragmentManager manager = getSupportFragmentManager();
+        final List<Fragment> list = manager.getFragments();
+        for (final Fragment fragment : list) {
+            if (fragment instanceof MainTvFragment) {
+                return (MainTvFragment) fragment;
+            }
+        }
+        return null;
     }
 
     private void showBackBtn() {
@@ -99,13 +128,9 @@ public final class MainTvActivity extends FragmentActivity {
         }
         mBackBtn.setOnClickListener(
                 v -> {
-                    final FragmentManager manager = getSupportFragmentManager();
-                    final List<Fragment> list = manager.getFragments();
-                    for (final Fragment fragment : list) {
-                        if (!(fragment instanceof MainTvFragment)) {
-                            continue;
-                        }
-                        ((MainTvFragment)fragment).handleBackButton();
+                    final MainTvFragment fragment = getMainTvFragment();
+                    if (fragment != null) {
+                        fragment.handleBackButton();
                     }
                 }
         );
@@ -124,7 +149,12 @@ public final class MainTvActivity extends FragmentActivity {
         if (button == null) {
             return;
         }
-        button.setOnClickListener(v -> startActivity(SearchTvActivity.makeStartIntent(getApplicationContext())));
+        button.setOnClickListener(
+                v -> startActivityForResult(
+                        SearchTvActivity.makeStartIntent(getApplicationContext()),
+                        SearchTvActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
+                )
+        );
     }
 
     private void showTvSettings() {

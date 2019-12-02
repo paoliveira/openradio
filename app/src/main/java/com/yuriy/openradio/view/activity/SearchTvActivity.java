@@ -8,6 +8,7 @@ import android.view.KeyEvent;
 import androidx.fragment.app.FragmentActivity;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.utils.AppUtils;
 import com.yuriy.openradio.view.fragment.SearchTvFragment;
 
 /**
@@ -15,6 +16,7 @@ import com.yuriy.openradio.view.fragment.SearchTvFragment;
  */
 public final class SearchTvActivity extends FragmentActivity {
 
+    public static final int SEARCH_TV_ACTIVITY_REQUEST_CODE = 5839;
     private SearchTvFragment mFragment;
 
     public static Intent makeStartIntent(final Context context) {
@@ -41,5 +43,12 @@ public final class SearchTvActivity extends FragmentActivity {
             mFragment.focusOnSearch();
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    public void onSearchDialogClick(final String queryString) {
+        // Save search query string, retrieve it later in the service
+        AppUtils.setSearchQuery(queryString);
+        setResult(RESULT_OK, new Intent());
+        finish();
     }
 }

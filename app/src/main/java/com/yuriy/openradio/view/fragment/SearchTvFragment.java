@@ -17,6 +17,7 @@ import androidx.leanback.widget.ObjectAdapter;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.view.activity.SearchTvActivity;
 
 /*
  * This class demonstrates how to do in-app search
@@ -66,6 +67,7 @@ public class SearchTvFragment extends SearchSupportFragment
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        AppLogger.i(CLASS_NAME + " On activity result:" + resultCode);
         switch (requestCode) {
             case REQUEST_SPEECH:
                 switch (resultCode) {
@@ -97,8 +99,15 @@ public class SearchTvFragment extends SearchSupportFragment
     }
 
     @Override
-    public boolean onQueryTextSubmit(String query) {
+    public boolean onQueryTextSubmit(final String query) {
         AppLogger.i(CLASS_NAME + String.format(" Search text submitted: %s", query));
+        if (getActivity() instanceof SearchTvActivity) {
+            final SearchTvActivity activity = (SearchTvActivity) getActivity();
+
+            if (activity != null) {
+                activity.onSearchDialogClick(query);
+            }
+        }
         return true;
     }
 
