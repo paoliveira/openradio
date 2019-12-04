@@ -13,13 +13,13 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.PlaybackSupportFragment;
 import androidx.leanback.app.PlaybackSupportFragmentGlueHost;
+import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.media.PlaybackBannerControlGlue;
 import androidx.leanback.widget.AbstractMediaItemPresenter;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -29,6 +29,7 @@ import androidx.leanback.widget.PlaybackControlsRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
@@ -48,6 +49,7 @@ import com.yuriy.openradio.view.activity.MainTvActivity;
 import com.yuriy.openradio.vo.MediaItemActionable;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,6 +72,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private ImageWorker mImageWorker;
     private String mCurrentMediaId;
+    private RowsSupportFragment mRowsSupportFragment;
 
     public MainTvFragment() {
         super();
@@ -124,9 +127,35 @@ public class MainTvFragment extends PlaybackSupportFragment {
     }
 
     @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mRowsSupportFragment = getRowsSupportFragment();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         showControlsOverlay(true);
+
+        if (mRowsSupportFragment != null && mRowsSupportFragment.getVerticalGridView() != null) {
+            mRowsSupportFragment.getVerticalGridView().setOnScrollListener(
+                    new RecyclerView.OnScrollListener() {
+                        @Override
+                        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                            super.onScrollStateChanged(recyclerView, newState);
+                            AppLogger.d(CLASS_NAME + " Scroll state:" + newState);
+                        }
+
+                        @Override
+                        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                            super.onScrolled(recyclerView, dx, dy);
+                            AppLogger.d(CLASS_NAME + " Scrolled to:" + dy);
+                        }
+                    }
+            );
+        } else {
+            AppLogger.e(CLASS_NAME + " VerticalGridView is null");
+        }
     }
 
     @Override
@@ -165,6 +194,17 @@ public class MainTvFragment extends PlaybackSupportFragment {
     public void onSearchDialogClick() {
         mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
+    }
+
+    private RowsSupportFragment getRowsSupportFragment() {
+        try {
+            final Field field = getClass().getSuperclass().getDeclaredField("mRowsSupportFragment");
+            field.setAccessible(true);
+            return (RowsSupportFragment) field.get(this);
+        } catch (final Exception e) {
+            AppLogger.e(CLASS_NAME + " Cant get RowsSupportFragment from super :" + e);
+        }
+        return null;
     }
 
     /**
@@ -223,8 +263,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         final ClassPresenterSelector presenterSelector = new ClassPresenterSelector();
         presenterSelector.addClassPresenterSelector(
                 MediaItemActionable.class,
-                new RSPresenterSelector(
-                        getContext())
+                new RSPresenterSelector(getContext())
                         .setSongPresenterRegular(
                                 new RSPresenter(getContext(), R.style.radio_station_regular)
                         )
