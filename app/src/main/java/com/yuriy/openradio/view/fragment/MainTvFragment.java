@@ -70,10 +70,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private ImageWorker mImageWorker;
     private String mCurrentMediaId;
-    /**
-     * Progress Bar view to indicate that data is loading.
-     */
-    private ProgressBar mProgressBar;
 
     public MainTvFragment() {
         super();
@@ -84,7 +80,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
         super.onCreate(savedInstanceState);
         setControlsOverlayAutoHideEnabled(false);
         setBackgroundType(BG_NONE);
-        mProgressBar = getActivity().findViewById(R.id.progress_bar_tv_view);
         mGlue = new PlaybackBannerControlGlue<>(
                 getContext(),
                 new int[]{0, 1},
@@ -176,20 +171,20 @@ public class MainTvFragment extends PlaybackSupportFragment {
      * Show progress bar.
      */
     private void showProgressBar() {
-        if (mProgressBar == null) {
+        if (!(getActivity() instanceof MainTvActivity)) {
             return;
         }
-        mProgressBar.setVisibility(View.VISIBLE);
+        ((MainTvActivity) getActivity()).showProgressBar();
     }
 
     /**
      * Hide progress bar.
      */
     private void hideProgressBar() {
-        if (mProgressBar == null) {
+        if (!(getActivity() instanceof MainTvActivity)) {
             return;
         }
-        mProgressBar.setVisibility(View.GONE);
+        ((MainTvActivity) getActivity()).hideProgressBar();
     }
 
     private void handlePlaybackStateChanged(final PlaybackStateCompat state) {

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
@@ -14,8 +15,6 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.view.BaseDialogFragment;
 import com.yuriy.openradio.view.dialog.GoogleDriveDialog;
 import com.yuriy.openradio.view.dialog.SettingsTvDialog;
@@ -31,11 +30,17 @@ public final class MainTvActivity extends FragmentActivity {
     private static final String CLASS_NAME = MainTvActivity.class.getSimpleName();
 
     private ImageView mBackBtn;
+    /**
+     * Progress Bar view to indicate that data is loading.
+     */
+    private ProgressBar mProgressBar;
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_tv);
+
+        mProgressBar = findViewById(R.id.progress_bar_tv_view);
 
         setUpBackBtn();
         setUpSearchBtn();
@@ -76,6 +81,26 @@ public final class MainTvActivity extends FragmentActivity {
             return (GoogleDriveDialog) fragment;
         }
         return null;
+    }
+
+    /**
+     * Show progress bar.
+     */
+    public void showProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Hide progress bar.
+     */
+    public void hideProgressBar() {
+        if (mProgressBar == null) {
+            return;
+        }
+        mProgressBar.setVisibility(View.GONE);
     }
 
     public void onDataLoaded() {
