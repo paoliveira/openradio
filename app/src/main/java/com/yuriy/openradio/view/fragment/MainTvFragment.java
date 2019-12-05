@@ -19,7 +19,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.PlaybackSupportFragment;
 import androidx.leanback.app.PlaybackSupportFragmentGlueHost;
-import androidx.leanback.app.RowsSupportFragment;
 import androidx.leanback.media.PlaybackBannerControlGlue;
 import androidx.leanback.widget.AbstractMediaItemPresenter;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -29,7 +28,6 @@ import androidx.leanback.widget.PlaybackControlsRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
-import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
@@ -49,7 +47,6 @@ import com.yuriy.openradio.view.activity.MainTvActivity;
 import com.yuriy.openradio.vo.MediaItemActionable;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -72,7 +69,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private ImageWorker mImageWorker;
     private String mCurrentMediaId;
-    private RowsSupportFragment mRowsSupportFragment;
+    /**
+     * ID of the parent of current item (whether it is directory or Radio Station).
+     */
+    private String mCurrentParentId = "";
+    private int mCurrentSelectedPosition;
 
     public MainTvFragment() {
         super();
@@ -121,6 +122,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         setUpAdapter();
         setOnItemViewClickedListener(this::onItemClicked);
+        setOnItemViewSelectedListener(this::onItemSelected);
 
         mMediaPresenter.restoreState(savedInstanceState);
         mMediaPresenter.connect();
@@ -129,33 +131,12 @@ public class MainTvFragment extends PlaybackSupportFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mRowsSupportFragment = getRowsSupportFragment();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         showControlsOverlay(true);
-
-        if (mRowsSupportFragment != null && mRowsSupportFragment.getVerticalGridView() != null) {
-            mRowsSupportFragment.getVerticalGridView().setOnScrollListener(
-                    new RecyclerView.OnScrollListener() {
-                        @Override
-                        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
-                            super.onScrollStateChanged(recyclerView, newState);
-                            AppLogger.d(CLASS_NAME + " Scroll state:" + newState);
-                        }
-
-                        @Override
-                        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                            super.onScrolled(recyclerView, dx, dy);
-                            AppLogger.d(CLASS_NAME + " Scrolled to:" + dy);
-                        }
-                    }
-            );
-        } else {
-            AppLogger.e(CLASS_NAME + " VerticalGridView is null");
-        }
     }
 
     @Override
@@ -194,17 +175,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
     public void onSearchDialogClick() {
         mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-    }
-
-    private RowsSupportFragment getRowsSupportFragment() {
-        try {
-            final Field field = getClass().getSuperclass().getDeclaredField("mRowsSupportFragment");
-            field.setAccessible(true);
-            return (RowsSupportFragment) field.get(this);
-        } catch (final Exception e) {
-            AppLogger.e(CLASS_NAME + " Cant get RowsSupportFragment from super :" + e);
-        }
-        return null;
     }
 
     /**
@@ -275,6 +245,21 @@ public class MainTvFragment extends PlaybackSupportFragment {
         setAdapter(mRowsAdapter);
     }
 
+    private void onItemSelected(final Presenter.ViewHolder itemViewHolder,
+                                final Object item,
+                                final RowPresenter.ViewHolder rowViewHolder,
+                                final Object row) {
+        AppLogger.d(CLASS_NAME + " ItemSelected:" + row);
+        if (row instanceof MediaItemActionable) {
+            final MediaItemActionable actionable = (MediaItemActionable) row;
+            mCurrentSelectedPosition = actionable.getListIndex();
+            // Minus two - one is for playback row and one is for zero based list
+            if (actionable.getListIndex() == mRowsAdapter.size() - 2) {
+                onScrolledToEnd();
+            }
+        }
+    }
+
     private void onItemClicked(final Presenter.ViewHolder itemViewHolder,
                                final Object item,
                                final RowPresenter.ViewHolder rowViewHolder,
@@ -329,9 +314,16 @@ public class MainTvFragment extends PlaybackSupportFragment {
             // Send Intent to the OpenRadioService.
             ContextCompat.startForegroundService(getContext(), intent);
         } else {
-            // TODO: Real position
-            final int position = 0;
-            mMediaPresenter.handleItemClick(mediaItem, position);
+            mMediaPresenter.handleItemClick(mediaItem, mediaItem.getListIndex());
+        }
+    }
+
+    private void onScrolledToEnd() {
+        if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
+            mMediaPresenter.unsubscribeFromItem(mCurrentParentId);
+            mMediaPresenter.addMediaItemToStack(mCurrentParentId);
+        } else {
+            AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
         }
     }
 
@@ -479,6 +471,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
             fragment.hideProgressBar();
 
+            fragment.mCurrentParentId = parentId;
+
             // No need to go on if indexed list ended with last item.
             if (MediaItemHelper.isEndOfList(children)) {
                 return;
@@ -495,10 +489,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
                 }
             }
 
+            int counter = 0;
             final List<MediaItemActionable> items = new ArrayList<>();
             for (final MediaBrowserCompat.MediaItem mediaItem : children) {
                 final MediaItemActionable item = new MediaItemActionable(
-                        mediaItem.getDescription(), mediaItem.getFlags()
+                        mediaItem.getDescription(), mediaItem.getFlags(), counter++
                 );
 
                 final Drawable[] drawables = new Drawable[2];
