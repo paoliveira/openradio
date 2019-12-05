@@ -219,10 +219,10 @@ public final class MediaPresenter {
 
         // Keep last selected position for the given category.
         // We will use it when back to this category
-        final int mediaItemsStackSize = mMediaItemsStack.size();
-        if (mediaItemsStackSize >= 1) {
-            final String children = mMediaItemsStack.get(mediaItemsStackSize - 1);
-            mListPositionMap.put(children, position);
+        final int size = mMediaItemsStack.size();
+        if (size >= 1) {
+            final String mediaItem = mMediaItemsStack.get(size - 1);
+            mListPositionMap.put(mediaItem, position);
         }
 
         final String mediaId = item.getMediaId();
@@ -254,11 +254,11 @@ public final class MediaPresenter {
         mMediaResourcesManager.connect();
     }
 
-    public Integer getListPosition(final String mCurrentParentId) {
+    public Integer getListPosition(final String currentParentId) {
         // Restore position for the Catalogue list.
-        if (!TextUtils.isEmpty(mCurrentParentId)
-                && mListPositionMap.containsKey(mCurrentParentId)) {
-            return mListPositionMap.get(mCurrentParentId);
+        if (!TextUtils.isEmpty(currentParentId)
+                && mListPositionMap.containsKey(currentParentId)) {
+            return mListPositionMap.get(currentParentId);
         }
         return null;
     }

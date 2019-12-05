@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.view.View;
@@ -517,6 +518,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
             if (fragment.getActivity() instanceof MainTvActivity) {
                 ((MainTvActivity) fragment.getActivity()).onDataLoaded();
             }
+
+            fragment.restoreSelectedPosition();
         }
 
         @Override
@@ -530,5 +533,26 @@ public class MainTvFragment extends PlaybackSupportFragment {
                     fragment.getString(R.string.error_loading_media)
             );
         }
+    }
+
+    private void restoreSelectedPosition() {
+        int position = 1;
+        // Restore position for the Catalogue list.
+        final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
+        if (positionObj != null) {
+            position = positionObj;
+        }
+        // Restore position for the Catalogue of the Playable items
+//        if (!TextUtils.isEmpty(mCurrentMediaId)) {
+//            position = mBrowserAdapter.getIndexForMediaId(mCurrentMediaId);
+//        }
+        // This will make selected item highlighted.
+        AppLogger.d(CLASS_NAME + " set selected:" + position);
+        setSelectedPosition(position);
+        // This actually do scroll to the position.
+//        if (mListFirstVisiblePosition != -1) {
+//            mListView.setSelection(mListFirstVisiblePosition);
+//            mListFirstVisiblePosition = -1;
+//        }
     }
 }
