@@ -35,7 +35,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme.NoActionBar"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:banner="@drawable/ic_launcher">
 
         <activity
             android:name=".view.activity.MainActivity"
