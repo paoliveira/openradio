@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 import android.view.View;
@@ -254,6 +253,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         if (row instanceof MediaItemActionable) {
             final MediaItemActionable actionable = (MediaItemActionable) row;
             mCurrentSelectedPosition = actionable.getListIndex();
+            mMediaPresenter.handleItemSelect(actionable, mCurrentSelectedPosition);
             // Minus two - one is for playback row and one is for zero based list
             if (actionable.getListIndex() == mRowsAdapter.size() - 2) {
                 onScrolledToEnd();
@@ -266,9 +266,12 @@ public class MainTvFragment extends PlaybackSupportFragment {
                                final RowPresenter.ViewHolder rowViewHolder,
                                final Object row) {
         if (row instanceof MediaItemActionable) {
-            showProgressBar();
+            final MediaItemActionable actionable = (MediaItemActionable) row;
+            if (actionable.isBrowsable()) {
+                showProgressBar();
+            }
             handleActionableClicked(
-                    (MediaItemActionable) row,
+                    actionable,
                     (AbstractMediaItemPresenter.ViewHolder) rowViewHolder,
                     (MultiActionsProvider.MultiAction) item
             );
@@ -542,17 +545,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         if (positionObj != null) {
             position = positionObj;
         }
-        // Restore position for the Catalogue of the Playable items
-//        if (!TextUtils.isEmpty(mCurrentMediaId)) {
-//            position = mBrowserAdapter.getIndexForMediaId(mCurrentMediaId);
-//        }
-        // This will make selected item highlighted.
         AppLogger.d(CLASS_NAME + " set selected:" + position);
         setSelectedPosition(position);
-        // This actually do scroll to the position.
-//        if (mListFirstVisiblePosition != -1) {
-//            mListView.setSelection(mListFirstVisiblePosition);
-//            mListFirstVisiblePosition = -1;
-//        }
     }
 }
