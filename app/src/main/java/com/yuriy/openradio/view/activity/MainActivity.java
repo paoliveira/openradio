@@ -273,6 +273,8 @@ public final class MainActivity extends AppCompatActivity {
      */
     private MediaResourcesManager mMediaResourcesManager;
 
+    private MediaResourceManagerListenerImpl mMediaResourceManagerListener;
+
     private TextView mBufferedTextView;
 
     private ListView mListView;
@@ -379,9 +381,10 @@ public final class MainActivity extends AppCompatActivity {
                 context, new GoogleDriveManagerListenerImpl(this)
         );
 
+        mMediaResourceManagerListener = new MediaResourceManagerListenerImpl(this);
         mMediaResourcesManager = new MediaResourcesManager(
                 this,
-                new MediaResourceManagerListenerImpl(this)
+                mMediaResourceManagerListener
         );
 
         // Register local receivers.
@@ -489,7 +492,14 @@ public final class MainActivity extends AppCompatActivity {
         // Unregister local receivers
         unregisterReceivers();
         // Disconnect Media Browser
-        mMediaResourcesManager.disconnect();
+        if (mMediaResourceManagerListener != null) {
+            mMediaResourceManagerListener.clear();
+            mMediaResourceManagerListener = null;
+        }
+        if (mMediaResourcesManager != null) {
+            mMediaResourcesManager.disconnect();
+            mMediaResourcesManager = null;
+        }
 
         if (mGoogleDriveManager != null) {
             mGoogleDriveManager.release();
@@ -631,7 +641,9 @@ public final class MainActivity extends AppCompatActivity {
         if (mMediaItemsStack.size() == 1) {
 
             // Un-subscribe from item
-            mMediaResourcesManager.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
+            if (mMediaResourcesManager != null) {
+                mMediaResourcesManager.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
+            }
             // Clear stack
             mMediaItemsStack.clear();
 
@@ -646,12 +658,16 @@ public final class MainActivity extends AppCompatActivity {
         if (location >= 0) {
             // Get current media item and un-subscribe.
             final String currentMediaId = mMediaItemsStack.remove(location);
-            mMediaResourcesManager.unsubscribe(currentMediaId);
+            if (mMediaResourcesManager != null) {
+                mMediaResourcesManager.unsubscribe(currentMediaId);
+            }
         }
 
         // Un-subscribe from all items.
         for (final String mediaItemId : mMediaItemsStack) {
-            mMediaResourcesManager.unsubscribe(mediaItemId);
+            if (mMediaResourcesManager != null) {
+                mMediaResourcesManager.unsubscribe(mediaItemId);
+            }
         }
 
         // Subscribe to the previous item.
@@ -661,7 +677,9 @@ public final class MainActivity extends AppCompatActivity {
             if (!TextUtils.isEmpty(previousMediaId)) {
                 showProgressBar();
                 AppLogger.d(CLASS_NAME + "Back to " + previousMediaId);
-                mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
+                if (mMediaResourcesManager != null) {
+                    mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
+                }
             }
         } else {
             // perform android frameworks lifecycle
@@ -881,7 +899,9 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         // Un-subscribe from item
-        mMediaResourcesManager.unsubscribe(mediaItemId);
+        if (mMediaResourcesManager != null) {
+            mMediaResourcesManager.unsubscribe(mediaItemId);
+        }
     }
 
     /**
@@ -899,7 +919,9 @@ public final class MainActivity extends AppCompatActivity {
             mMediaItemsStack.add(mediaId);
         }
         showProgressBar();
-        mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
+        if (mMediaResourcesManager != null) {
+            mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
+        }
     }
 
     /**
@@ -1549,6 +1571,9 @@ public final class MainActivity extends AppCompatActivity {
      * Update List only if parent is Root or Favorites or Locals.
      */
     private void updateListAfterDownloadFromGoogleDrive() {
+        if (mMediaResourcesManager == null) {
+            return;
+        }
         if (TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
@@ -1574,7 +1599,7 @@ public final class MainActivity extends AppCompatActivity {
         /**
          * Weak reference to the outer activity.
          */
-        private final WeakReference<MainActivity> mReference;
+        private WeakReference<MainActivity> mReference;
 
         /**
          * Constructor
@@ -1586,8 +1611,17 @@ public final class MainActivity extends AppCompatActivity {
             mReference = new WeakReference<>(reference);
         }
 
+        public void clear() {
+            mReference.clear();
+            mReference = null;
+        }
+
         @Override
         public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
+            if (mReference == null) {
+                AppLogger.w(CLASS_NAME + "onConnected WeakReference to MainActivity is null");
+                return;
+            }
             final MainActivity activity = mReference.get();
             if (activity == null) {
                 AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
@@ -1615,6 +1649,10 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
             AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
+            if (mReference == null) {
+                AppLogger.w(CLASS_NAME + "onConnected WeakReference to MainActivity is null");
+                return;
+            }
             final MainActivity activity = mReference.get();
             if (activity == null) {
                 AppLogger.w(CLASS_NAME + "onPlaybackStateChanged reference to MainActivity is null");
@@ -1631,6 +1669,10 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void onMetadataChanged(final MediaMetadataCompat metadata,
                                       final List<MediaSessionCompat.QueueItem> queue) {
+            if (mReference == null) {
+                AppLogger.w(CLASS_NAME + "onConnected WeakReference to MainActivity is null");
+                return;
+            }
             final MainActivity activity = mReference.get();
             if (activity == null) {
                 AppLogger.w(CLASS_NAME + "onMetadataChanged reference to MainActivity is null");
@@ -1873,6 +1915,15 @@ public final class MainActivity extends AppCompatActivity {
             // See if the get Location worked or not.
             if (countryCode == null) {
                 countryCode = Country.COUNTRY_CODE_DEFAULT;
+            }
+            if (mActivity == null) {
+                return;
+            }
+            if (mActivity.get() == null) {
+                return;
+            }
+            if (mActivity.get().mMediaResourcesManager == null) {
+                return;
             }
             mActivity.get().mMediaResourcesManager.connect();
         }
