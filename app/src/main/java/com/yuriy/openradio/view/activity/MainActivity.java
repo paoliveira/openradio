@@ -116,7 +116,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Tag string to use in logging message.
      */
-    private static final String CLASS_NAME = MainActivity.class.getSimpleName() + " ";
+    private final String CLASS_NAME;
 
     /**
      * Adapter for the representing media items in the list.
@@ -235,7 +235,7 @@ public final class MainActivity extends AppCompatActivity {
      * Handler and uses its handleMessage() hook method to process
      * Messages sent to it from the {@link LocationService}.
      */
-    private Handler mLocationHandler = null;
+    private LocationHandler mLocationHandler = null;
 
     private MediaPresenter mMediaPresenter;
 
@@ -244,6 +244,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     public MainActivity() {
         super();
+        CLASS_NAME = MainActivity.class.getSimpleName() + " " + hashCode() + " ";
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -331,9 +332,6 @@ public final class MainActivity extends AppCompatActivity {
 
         mLastKnownMetadata = null;
 
-        // Initialize the Location Handler.
-        mLocationHandler = new LocationHandler(this);
-
         mMediaPresenter = new MediaPresenter();
         mMediaPresenter.init(
                 this,
@@ -418,6 +416,8 @@ public final class MainActivity extends AppCompatActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION
         );
         if (isLocationPermissionGranted) {
+            // Initialize the Location Handler.
+            mLocationHandler = new LocationHandler(this);
             LocationService.doEnqueueWork(context, mLocationHandler);
         }
     }
@@ -459,6 +459,12 @@ public final class MainActivity extends AppCompatActivity {
         unregisterReceivers();
 
         mMediaPresenter.destroy();
+
+        if (mLocationHandler != null) {
+            mLocationHandler.removeCallbacksAndMessages(null);
+            mLocationHandler.clear();
+            mLocationHandler = null;
+        }
     }
 
     @Override
@@ -1046,12 +1052,21 @@ public final class MainActivity extends AppCompatActivity {
         private final WeakReference<MainActivity> mReference;
 
         /**
+         * Tag string to use in logging message.
+         */
+        private final String CLASS_NAME;
+
+        /**
          * Constructor.
          *
          * @param reference The reference to the outer class.
          */
         private LocalBroadcastReceiverCallback(final MainActivity reference) {
             super();
+            CLASS_NAME = reference.getClass().getSimpleName()
+                    + " " + LocalBroadcastReceiverCallback.class.getSimpleName()
+                    + " " + reference.hashCode()
+                    + " " + hashCode() + " ";
             mReference = new WeakReference<>(reference);
         }
 
@@ -1146,12 +1161,21 @@ public final class MainActivity extends AppCompatActivity {
         private final WeakReference<MainActivity> mReference;
 
         /**
+         * Tag string to use in logging message.
+         */
+        private final String CLASS_NAME;
+
+        /**
          * Constructor.
          *
          * @param reference Reference to the Activity.
          */
         private MediaBrowserSubscriptionCallback(final MainActivity reference) {
             super();
+            CLASS_NAME = reference.getClass().getSimpleName()
+                    + " " + MediaBrowserSubscriptionCallback.class.getSimpleName()
+                    + " " + reference.hashCode()
+                    + " " + hashCode() + " ";
             mReference = new WeakReference<>(reference);
         }
 
@@ -1243,12 +1267,21 @@ public final class MainActivity extends AppCompatActivity {
         private final WeakReference<MainActivity> mReference;
 
         /**
+         * Tag string to use in logging message.
+         */
+        private final String CLASS_NAME;
+
+        /**
          * Constructor.
          *
          * @param mainActivity Reference to the Main Activity.
          */
         private OnItemClickListener(final MainActivity mainActivity) {
             super();
+            CLASS_NAME = mainActivity.getClass().getSimpleName()
+                    + " " + OnItemClickListener.class.getSimpleName()
+                    + " " + mainActivity.hashCode()
+                    + " " + hashCode() + " ";
             mReference = new WeakReference<>(mainActivity);
         }
 
@@ -1275,6 +1308,11 @@ public final class MainActivity extends AppCompatActivity {
         private final WeakReference<MainActivity> mReference;
 
         /**
+         * Tag string to use in logging message.
+         */
+        private final String CLASS_NAME;
+
+        /**
          * Position of the item under the touch event.
          */
         private int mPosition = -1;
@@ -1286,6 +1324,10 @@ public final class MainActivity extends AppCompatActivity {
          */
         private OnTouchListener(final MainActivity mainActivity) {
             super();
+            CLASS_NAME = mainActivity.getClass().getSimpleName()
+                    + " " + OnTouchListener.class.getSimpleName()
+                    + " " + mainActivity.hashCode()
+                    + " " + hashCode() + " ";
             mReference = new WeakReference<>(mainActivity);
         }
 
@@ -1413,7 +1455,12 @@ public final class MainActivity extends AppCompatActivity {
         /**
          * Allows {@link MainActivity} to be garbage collected properly.
          */
-        private final WeakReference<MainActivity> mActivity;
+        private WeakReference<MainActivity> mActivity;
+
+        /**
+         * Tag string to use in logging message.
+         */
+        private final String CLASS_NAME;
 
         /**
          * Class constructor constructs mActivity as weak reference to
@@ -1423,7 +1470,18 @@ public final class MainActivity extends AppCompatActivity {
          */
         private LocationHandler(final MainActivity activity) {
             super();
+            CLASS_NAME = activity.getClass().getSimpleName()
+                    + " " + LocationHandler.class.getSimpleName()
+                    + " " + activity.hashCode()
+                    + " " + hashCode() + " ";
             mActivity = new WeakReference<>(activity);
+        }
+
+        private void clear() {
+            if (mActivity != null) {
+                mActivity.clear();
+            }
+            mActivity = null;
         }
 
         /**
@@ -1433,8 +1491,14 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void handleMessage(final Message message) {
             // Bail out if the {@link MainActivity} is gone.
-            if (mActivity.get() == null)
+            if (mActivity == null) {
+                AppLogger.e(CLASS_NAME + "enclosing weak reference null");
                 return;
+            }
+            if (mActivity.get() == null) {
+                AppLogger.e(CLASS_NAME + "enclosing activity null");
+                return;
+            }
 
             // Try to extract the location from the message.
             String countryCode = LocationService.getCountryCode(message);

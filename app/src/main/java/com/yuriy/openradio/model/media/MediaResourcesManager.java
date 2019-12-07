@@ -96,7 +96,7 @@ public final class MediaResourcesManager {
     public MediaResourcesManager(@NonNull final Activity activity,
                                  @NonNull final MediaResourceManagerListener listener) {
         super();
-        CLASS_NAME = "MdRsrcsMgr " + activity.getClass().getSimpleName() + " ";
+        CLASS_NAME = "MdRsrcsMgr " + activity.getClass().getSimpleName() + " " + activity.hashCode() + " ";
         mMediaSessionCallback = new MediaSessionCallback(this);
         mSubscribed = new HashSet<>();
         mActivity = activity;

@@ -26,6 +26,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
@@ -68,6 +69,7 @@ public final class MediaPresenter {
      */
     private final Map<String, Integer> mListPositionMap = new Hashtable<>();
 
+    @Nullable
     private MediaBrowserCompat.SubscriptionCallback mCallback;
     private Activity mActivity;
     private MediaPresenterListener mListener;
@@ -78,6 +80,7 @@ public final class MediaPresenter {
 
     public void init(final Activity activity,
                      final Bundle savedInstanceState,
+                     @NonNull
                      final MediaBrowserCompat.SubscriptionCallback mediaSubscriptionCallback,
                      final MediaPresenterListener listener) {
         AppLogger.d(CLASS_NAME + " init");
