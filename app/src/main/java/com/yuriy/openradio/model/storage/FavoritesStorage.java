@@ -17,6 +17,7 @@
 package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
+import android.support.v4.media.MediaBrowserCompat;
 
 import androidx.annotation.NonNull;
 
@@ -132,6 +133,24 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
                 continue;
             }
             if (station.getId() == radioStation.getId()) {
+                sSet.add(key);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isFavorite(final MediaBrowserCompat.MediaItem mediaItem, final Context context) {
+        final String key = createKeyForRadioStation(mediaItem);
+        if (sSet.contains(key)) {
+            return true;
+        }
+        final List<RadioStation> list = getAll(context);
+        for (final RadioStation station : list) {
+            if (station == null) {
+                continue;
+            }
+            if (station.getIdAsString().equals(mediaItem.getMediaId())) {
                 sSet.add(key);
                 return true;
             }

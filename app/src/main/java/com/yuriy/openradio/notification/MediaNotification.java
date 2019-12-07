@@ -46,7 +46,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.BitmapHelper;
+import com.yuriy.openradio.utils.BitmapUtils;
 import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.vo.RadioStation;
@@ -389,7 +389,7 @@ public final class MediaNotification extends BroadcastReceiver {
         );
 
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
-        if (fetchArtUrl != null && !BitmapHelper.isUrlLocalResource(fetchArtUrl)) {
+        if (fetchArtUrl != null && !BitmapUtils.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
     }
@@ -537,7 +537,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private void fetchBitmapFromURLAsync(@NonNull final String source) {
         AppLogger.d(CLASS_NAME + " getBitmapFromURLAsync: starting async task to fetch " + source);
-        if (!BitmapHelper.isImageUrl(source)) {
+        if (!BitmapUtils.isImageUrl(source)) {
             // If url is not an image url - do not start async task.
             return;
         }
@@ -587,10 +587,10 @@ public final class MediaNotification extends BroadcastReceiver {
 
             Bitmap bitmap = null;
             try {
-                bitmap = BitmapHelper.fetchAndRescaleBitmap(
+                bitmap = BitmapUtils.fetchAndRescaleBitmap(
                         mSource,
-                        BitmapHelper.MEDIA_ART_BIG_WIDTH,
-                        BitmapHelper.MEDIA_ART_BIG_HEIGHT
+                        BitmapUtils.MEDIA_ART_BIG_WIDTH,
+                        BitmapUtils.MEDIA_ART_BIG_HEIGHT
                 );
             } catch (final IOException e) {
                 FabricUtils.logException(e);

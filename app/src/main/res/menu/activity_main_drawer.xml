@@ -6,7 +6,7 @@
     <group>
         <item
             android:id="@+id/nav_general"
-            android:icon="@drawable/ic_settings_black_24dp"
+            android:icon="@drawable/tv_settings_btn_bg"
             android:title="General"/>
         <item
             android:id="@+id/nav_buffering"

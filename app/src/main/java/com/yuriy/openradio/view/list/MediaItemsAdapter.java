@@ -39,6 +39,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.ImageFetcher;
+import com.yuriy.openradio.utils.ImageWorker;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.utils.MediaItemsComparator;
@@ -59,7 +60,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
     private ListAdapterViewHolder mViewHolder;
     private MainActivity mActivity;
-    private ImageFetcher mImageFetcher;
+    private ImageWorker mImageFetcher;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
     private String mParentId;
 
@@ -74,7 +75,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * @param activity     current {@link android.app.Activity}
      * @param imageFetcher {@link ImageFetcher} instance
      */
-    public MediaItemsAdapter(final MainActivity activity, final ImageFetcher imageFetcher) {
+    public MediaItemsAdapter(final MainActivity activity, final ImageWorker imageFetcher) {
         super();
         mParentId = MediaIdHelper.MEDIA_ID_ROOT;
         mAdapterData = new ListAdapterData<>(new MediaItemsComparator());
@@ -296,10 +297,10 @@ public final class MediaItemsAdapter extends BaseAdapter {
      * @param description  Media Description of the Media Item.
      * @param isPlayable   Is Media Item playable (whether it is Radio Station or Folder).
      * @param imageView    Image View to apply image to.
-     * @param imageFetcher Fetcher object to download image in background thread.
+     * @param imageWorker Fetcher object to download image in background thread.
      */
     public static void updateImage(final MediaDescriptionCompat description, final boolean isPlayable,
-                                   final ImageView imageView, final ImageFetcher imageFetcher) {
+                                   final ImageView imageView, final ImageWorker imageWorker) {
         if (description.getIconBitmap() != null) {
             imageView.setImageBitmap(description.getIconBitmap());
         } else {
@@ -310,7 +311,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
                 } else {
                     // Load the image asynchronously into the ImageView, this also takes care of
                     // setting a placeholder image while the background thread runs
-                    imageFetcher.loadImage(iconUri, imageView);
+                    imageWorker.loadImage(iconUri, imageView);
                 }
             } else {
                 imageView.setImageURI(iconUri);

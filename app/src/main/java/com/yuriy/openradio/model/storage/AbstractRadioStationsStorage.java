@@ -18,6 +18,7 @@ package com.yuriy.openradio.model.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v4.media.MediaBrowserCompat;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -269,5 +270,9 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      */
     static String createKeyForRadioStation(@NonNull final RadioStation radioStation) {
         return radioStation.getIdAsString();
+    }
+
+    static String createKeyForRadioStation(@NonNull final MediaBrowserCompat.MediaItem mediaItem) {
+        return mediaItem.getMediaId();
     }
 }

@@ -17,21 +17,16 @@
 package com.yuriy.openradio.view.activity;
 
 import android.Manifest;
-import android.accounts.AccountManager;
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.IntentSender;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
@@ -48,8 +43,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -62,33 +57,26 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.common.AccountPicker;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
-import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
-import com.yuriy.openradio.model.media.MediaResourceManagerListener;
-import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveError;
-import com.yuriy.openradio.model.storage.drive.GoogleDriveManager;
 import com.yuriy.openradio.permission.PermissionChecker;
 import com.yuriy.openradio.permission.PermissionStatusListener;
+import com.yuriy.openradio.presenter.MediaPresenter;
+import com.yuriy.openradio.presenter.MediaPresenterListener;
 import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.FabricUtils;
-import com.yuriy.openradio.utils.ImageFetcher;
 import com.yuriy.openradio.utils.ImageFetcherFactory;
+import com.yuriy.openradio.utils.ImageWorker;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
 import com.yuriy.openradio.view.BaseDialogFragment;
@@ -108,10 +96,7 @@ import com.yuriy.openradio.view.list.MediaItemsAdapter;
 import com.yuriy.openradio.vo.Country;
 import com.yuriy.openradio.vo.RadioStation;
 
-import java.io.Serializable;
 import java.lang.ref.WeakReference;
-import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -141,35 +126,14 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Handles loading the  image in a background thread.
      */
-    private ImageFetcher mImageFetcher;
+    private ImageWorker mImageWorker;
 
     private View mCurrentRadioStationView;
 
     @Nullable
     private MediaMetadataCompat mLastKnownMetadata;
 
-    /**
-     * Stack of the media items.
-     * It is used when navigating back and forth via list.
-     */
-    private final List<String> mMediaItemsStack = new LinkedList<>();
-
-    /**
-     * Map of the last used list position for the given list of the media items.
-     */
-    private final Map<String, Integer> mListPositionMap = new Hashtable<>();
-
-    /**
-     * Key value for the Media Stack for the store Bundle.
-     */
-    private static final String BUNDLE_ARG_MEDIA_ITEMS_STACK = "BUNDLE_ARG_MEDIA_ITEMS_STACK";
-
     private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
-
-    /**
-     * Key value for the List-Position map for the store Bundle.
-     */
-    private static final String BUNDLE_ARG_LIST_POSITION_MAP = "BUNDLE_ARG_LIST_POSITION_MAP";
 
     private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
 
@@ -177,9 +141,6 @@ public final class MainActivity extends AppCompatActivity {
      * Key value for the first visible ID in the List for the store Bundle
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
-
-    private static final int RESOLVE_CONNECTION_REQUEST_CODE = 300;
-    private static final int ACCOUNT_REQUEST_CODE = 400;
 
     /**
      * Progress Bar view to indicate that data is loading.
@@ -263,21 +224,11 @@ public final class MainActivity extends AppCompatActivity {
      */
     private final ScreenReceiver mScreenBroadcastReceiver = new ScreenReceiver();
 
-    /**
-     *
-     */
-    private GoogleDriveManager mGoogleDriveManager;
-
-    /**
-     * Manager object that acts as interface between Media Resources and current Activity.
-     */
-    private MediaResourcesManager mMediaResourcesManager;
-
-    private MediaResourceManagerListenerImpl mMediaResourceManagerListener;
-
     private TextView mBufferedTextView;
-
     private ListView mListView;
+    private View mPlayBtn;
+    private View mPauseBtn;
+    private ProgressBar mProgressBarCrs;
 
     /**
      * Stores an instance of {@link LocationHandler} that inherits from
@@ -285,6 +236,8 @@ public final class MainActivity extends AppCompatActivity {
      * Messages sent to it from the {@link LocationService}.
      */
     private Handler mLocationHandler = null;
+
+    private MediaPresenter mMediaPresenter;
 
     /**
      * Default constructor.
@@ -302,6 +255,10 @@ public final class MainActivity extends AppCompatActivity {
         // Set content.
         setContentView(R.layout.main_drawer);
         final Context context = getApplicationContext();
+
+        mPlayBtn = findViewById(R.id.crs_play_btn_view);
+        mPauseBtn = findViewById(R.id.crs_pause_btn_view);
+        mProgressBarCrs = findViewById(R.id.crs_progress_view);
 
         final Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -377,14 +334,28 @@ public final class MainActivity extends AppCompatActivity {
         // Initialize the Location Handler.
         mLocationHandler = new LocationHandler(this);
 
-        mGoogleDriveManager = new GoogleDriveManager(
-                context, new GoogleDriveManagerListenerImpl(this)
-        );
-
-        mMediaResourceManagerListener = new MediaResourceManagerListenerImpl(this);
-        mMediaResourcesManager = new MediaResourcesManager(
+        mMediaPresenter = new MediaPresenter();
+        mMediaPresenter.init(
                 this,
-                mMediaResourceManagerListener
+                savedInstanceState,
+                mMedSubscriptionCallback,
+                new MediaPresenterListener() {
+
+                    @Override
+                    public void showProgressBar() {
+                        MainActivity.this.showProgressBar();
+                    }
+
+                    @Override
+                    public void handleMetadataChanged(final MediaMetadataCompat metadata) {
+                        MainActivity.this.handleMetadataChanged(metadata);
+                    }
+
+                    @Override
+                    public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
+                        MainActivity.this.handlePlaybackStateChanged(state);
+                    }
+                }
         );
 
         // Register local receivers.
@@ -394,10 +365,10 @@ public final class MainActivity extends AppCompatActivity {
         PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
 
         // Handles loading the  image in a background thread
-        mImageFetcher = ImageFetcherFactory.getSmallImageFetcher(this);
+        mImageWorker = ImageFetcherFactory.getSmallImageFetcher(this);
 
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(this, mImageFetcher);
+        mBrowserAdapter = new MediaItemsAdapter(this, mImageWorker);
 
         // Initialize progress bar
         mProgressBar = findViewById(R.id.progress_bar_view);
@@ -440,8 +411,6 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        mMediaResourcesManager.create(savedInstanceState);
-
         restoreState(context, savedInstanceState);
 
         final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
@@ -455,9 +424,6 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-
-        mGoogleDriveManager.disconnect();
-
         super.onPause();
 
         // Get list view reference from the inflated xml
@@ -491,19 +457,8 @@ public final class MainActivity extends AppCompatActivity {
 
         // Unregister local receivers
         unregisterReceivers();
-        // Disconnect Media Browser
-        if (mMediaResourceManagerListener != null) {
-            mMediaResourceManagerListener.clear();
-            mMediaResourceManagerListener = null;
-        }
-        if (mMediaResourcesManager != null) {
-            mMediaResourcesManager.disconnect();
-            mMediaResourcesManager = null;
-        }
 
-        if (mGoogleDriveManager != null) {
-            mGoogleDriveManager.release();
-        }
+        mMediaPresenter.destroy();
     }
 
     @Override
@@ -577,11 +532,7 @@ public final class MainActivity extends AppCompatActivity {
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
 
-        // Save Media Stack
-        outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
-
-        // Save List-Position Map
-        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mListPositionMap);
+        mMediaPresenter.saveState(outState);
 
         if (mLastKnownMetadata != null) {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
@@ -602,30 +553,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
-        if (resultCode != Activity.RESULT_OK) {
-            return;
-        }
-        switch (requestCode) {
-            case RESOLVE_CONNECTION_REQUEST_CODE:
-                mGoogleDriveManager.connect();
-                break;
-            case ACCOUNT_REQUEST_CODE:
-                final String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
-                if (TextUtils.isEmpty(email)) {
-                    SafeToast.showAnyThread(
-                            getApplicationContext(), getString(R.string.can_not_get_account_name)
-                    );
-                    break;
-                }
-                mGoogleDriveManager.connect(email);
-                break;
-        }
-    }
-
-    @Override
     public final void onBackPressed() {
 
         if (mIsSortMode) {
@@ -637,51 +564,7 @@ public final class MainActivity extends AppCompatActivity {
         hideNoDataMessage();
         hideProgressBar();
 
-        // If there is root category - close activity
-        if (mMediaItemsStack.size() == 1) {
-
-            // Un-subscribe from item
-            if (mMediaResourcesManager != null) {
-                mMediaResourcesManager.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
-            }
-            // Clear stack
-            mMediaItemsStack.clear();
-
-            startService(OpenRadioService.makeStopServiceIntent(getApplicationContext()));
-
-            // perform android frameworks lifecycle
-            super.onBackPressed();
-            return;
-        }
-
-        int location = mMediaItemsStack.size() - 1;
-        if (location >= 0) {
-            // Get current media item and un-subscribe.
-            final String currentMediaId = mMediaItemsStack.remove(location);
-            if (mMediaResourcesManager != null) {
-                mMediaResourcesManager.unsubscribe(currentMediaId);
-            }
-        }
-
-        // Un-subscribe from all items.
-        for (final String mediaItemId : mMediaItemsStack) {
-            if (mMediaResourcesManager != null) {
-                mMediaResourcesManager.unsubscribe(mediaItemId);
-            }
-        }
-
-        // Subscribe to the previous item.
-        location = mMediaItemsStack.size() - 1;
-        if (location >= 0) {
-            final String previousMediaId = mMediaItemsStack.get(location);
-            if (!TextUtils.isEmpty(previousMediaId)) {
-                showProgressBar();
-                AppLogger.d(CLASS_NAME + "Back to " + previousMediaId);
-                if (mMediaResourcesManager != null) {
-                    mMediaResourcesManager.subscribe(previousMediaId, mMedSubscriptionCallback);
-                }
-            }
-        } else {
+        if (mMediaPresenter.handleBackPressed(this)) {
             // perform android frameworks lifecycle
             super.onBackPressed();
         }
@@ -690,9 +573,9 @@ public final class MainActivity extends AppCompatActivity {
     private void restoreSelectedPosition() {
         int position = MediaSessionCompat.QueueItem.UNKNOWN_ID;
         // Restore position for the Catalogue list.
-        if (!TextUtils.isEmpty(mCurrentParentId)
-                && mListPositionMap.containsKey(mCurrentParentId)) {
-            position = mListPositionMap.get(mCurrentParentId);
+        final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
+        if (positionObj != null) {
+            position = positionObj;
         }
         // Restore position for the Catalogue of the Playable items
         if (!TextUtils.isEmpty(mCurrentMediaId)) {
@@ -708,7 +591,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     *
      * @param fragmentTransaction
      */
     private void clearDialogs(final FragmentTransaction fragmentTransaction) {
@@ -774,41 +656,10 @@ public final class MainActivity extends AppCompatActivity {
      * @param queryString String to query for.
      */
     public void onSearchDialogClick(final String queryString) {
-        // Un-subscribe from previous Search
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-
         // Save search query string, retrieve it later in the service
         AppUtils.setSearchQuery(queryString);
-        addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-    }
-
-    /**
-     *
-     */
-    public void uploadRadioStationsToGoogleDrive() {
-        mGoogleDriveManager.uploadRadioStations();
-    }
-
-    /**
-     *
-     */
-    public void downloadRadioStationsFromGoogleDrive() {
-        mGoogleDriveManager.downloadRadioStations();
-    }
-
-    /**
-     * @param connectionResult
-     */
-    private void requestGoogleDriveSignIn(@NonNull final ConnectionResult connectionResult) {
-        try {
-            connectionResult.startResolutionForResult(
-                    this,
-                    RESOLVE_CONNECTION_REQUEST_CODE
-            );
-        } catch (IntentSender.SendIntentException e) {
-            // Unable to resolve, message user appropriately
-            AppLogger.e(CLASS_NAME + "Google Drive unable to resolve failure:" + e);
-        }
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
     /**
@@ -890,38 +741,7 @@ public final class MainActivity extends AppCompatActivity {
         hideNoDataMessage();
         hideProgressBar();
 
-        // Remove provided media item (and it's duplicates, if any)
-        for (int i = 0; i < mMediaItemsStack.size(); i++) {
-            if (mMediaItemsStack.get(i).equals(mediaItemId)) {
-                mMediaItemsStack.remove(i);
-                i--;
-            }
-        }
-
-        // Un-subscribe from item
-        if (mMediaResourcesManager != null) {
-            mMediaResourcesManager.unsubscribe(mediaItemId);
-        }
-    }
-
-    /**
-     * Add {@link android.media.browse.MediaBrowser.MediaItem} to stack.
-     *
-     * @param mediaId Id of the {@link android.view.MenuItem}
-     */
-    private void addMediaItemToStack(final String mediaId) {
-        AppLogger.i(CLASS_NAME + "MediaItem Id added:" + mediaId);
-        if (TextUtils.isEmpty(mediaId)) {
-            return;
-        }
-
-        if (!mMediaItemsStack.contains(mediaId)) {
-            mMediaItemsStack.add(mediaId);
-        }
-        showProgressBar();
-        if (mMediaResourcesManager != null) {
-            mMediaResourcesManager.subscribe(mediaId, mMedSubscriptionCallback);
-        }
+        mMediaPresenter.unsubscribeFromItem(mediaItemId);
     }
 
     /**
@@ -971,23 +791,7 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Restore map of the List - Position values
-        final Map<String, Integer> listPositionMapRestored
-                = (Map<String, Integer>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
-        if (listPositionMapRestored != null) {
-            mListPositionMap.clear();
-            for (String key : listPositionMapRestored.keySet()) {
-                mListPositionMap.put(key, listPositionMapRestored.get(key));
-            }
-        }
-
-        // Restore Media Items stack
-        final List<String> mediaItemsStackRestored
-                = (List<String>) savedInstanceState.getSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK);
-        if (mediaItemsStackRestored != null) {
-            mMediaItemsStack.clear();
-            mMediaItemsStack.addAll(mediaItemsStackRestored);
-        }
+        mMediaPresenter.restoreState(savedInstanceState);
 
         mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
         if (!TextUtils.isEmpty(mCurrentParentId)) {
@@ -1059,46 +863,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     private void handleOnItemClick(final int position) {
         setActiveItem(position);
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
-            return;
-        }
-
-        // Current selected media item
-        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
-        if (item == null) {
-            SafeToast.showAnyThread(getApplicationContext(), getString(R.string.can_not_play_station));
-            return;
-        }
-        if (item.isBrowsable()) {
-            if (item.getDescription().getTitle() != null
-                    && item.getDescription().getTitle().equals(getString(R.string.category_empty))) {
-                return;
-            }
-        }
-
-        // Keep last selected position for the given category.
-        // We will use it when back to this category
-        final int mediaItemsStackSize = mMediaItemsStack.size();
-        if (mediaItemsStackSize >= 1) {
-            final String children = mMediaItemsStack.get(mediaItemsStackSize - 1);
-            mListPositionMap.put(children, position);
-        }
-
-        final String mediaId = item.getMediaId();
-
-        // If it is browsable - then we navigate to the next category
-        if (item.isBrowsable()) {
-            addMediaItemToStack(mediaId);
-        } else if (item.isPlayable()) {
-            // Else - we play an item
-            final MediaControllerCompat mediaController = MediaControllerCompat.getMediaController(this);
-            if (mediaController != null) {
-                final MediaControllerCompat.TransportControls transportControls = mediaController.getTransportControls();
-                if (transportControls != null) {
-                    transportControls.playFromMediaId(mediaId, null);
-                }
-            }
-        }
+        mMediaPresenter.handleItemClick(mBrowserAdapter.getItem(position), position);
     }
 
     /**
@@ -1163,23 +928,21 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
 
+    @MainThread
     private void handlePlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-        final View playBtn = findViewById(R.id.crs_play_btn_view);
-        final View pauseBtn = findViewById(R.id.crs_pause_btn_view);
-        final ProgressBar progressBar = findViewById(R.id.crs_progress_view);
-
         switch (state.getState()) {
             case PlaybackStateCompat.STATE_PLAYING:
-                playBtn.setVisibility(View.GONE);
-                pauseBtn.setVisibility(View.VISIBLE);
+                mPlayBtn.setVisibility(View.GONE);
+                mPauseBtn.setVisibility(View.VISIBLE);
                 break;
             case PlaybackStateCompat.STATE_PAUSED:
-                playBtn.setVisibility(View.VISIBLE);
-                pauseBtn.setVisibility(View.GONE);
+                mPlayBtn.setVisibility(View.VISIBLE);
+                mPauseBtn.setVisibility(View.GONE);
                 break;
         }
+        mProgressBarCrs.setVisibility(View.GONE);
 
-        progressBar.setVisibility(View.GONE);
+        mProgressBar.setVisibility(View.GONE);
 
         final long bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000;
         updateBufferedTime(bufferedDuration);
@@ -1236,7 +999,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         final ImageView imageView = findViewById(R.id.crs_img_view);
         if (imageView != null) {
-            MediaItemsAdapter.updateImage(description, true, imageView, mImageFetcher);
+            MediaItemsAdapter.updateImage(description, true, imageView, mImageWorker);
         }
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
@@ -1249,6 +1012,17 @@ public final class MainActivity extends AppCompatActivity {
                     FavoritesStorage.isFavorite(radioStation, context)
             );
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, context);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        final GoogleDriveDialog googleDriveDialog = getGoogleDriveDialog();
+        if (googleDriveDialog != null) {
+            googleDriveDialog.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -1452,11 +1226,9 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             activity.hideProgressBar();
-
-            Toast.makeText(
-                    activity.getApplicationContext(),
-                    R.string.error_loading_media, Toast.LENGTH_LONG
-            ).show();
+            SafeToast.showAnyThread(
+                    activity.getApplicationContext(), activity.getString(R.string.error_loading_media)
+            );
         }
     }
 
@@ -1571,265 +1343,19 @@ public final class MainActivity extends AppCompatActivity {
      * Update List only if parent is Root or Favorites or Locals.
      */
     private void updateListAfterDownloadFromGoogleDrive() {
-        if (mMediaResourcesManager == null) {
-            return;
-        }
         if (TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
-            mMediaResourcesManager.disconnect();
-            mMediaResourcesManager.connect();
+            mMediaPresenter.update();
         }
     }
 
     private void onScrolledToEnd() {
         if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
-            addMediaItemToStack(mCurrentParentId);
+            mMediaPresenter.addMediaItemToStack(mCurrentMediaId);
         } else {
             AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
-        }
-    }
-
-    /**
-     * Listener for the Media Resources related events.
-     */
-    private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private WeakReference<MainActivity> mReference;
-
-        /**
-         * Constructor
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaResourceManagerListenerImpl(final MainActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        public void clear() {
-            mReference.clear();
-            mReference = null;
-        }
-
-        @Override
-        public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
-            if (mReference == null) {
-                AppLogger.w(CLASS_NAME + "onConnected WeakReference to MainActivity is null");
-                return;
-            }
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
-                return;
-            }
-
-            AppLogger.i(CLASS_NAME + "Stack empty:" + activity.mMediaItemsStack.isEmpty());
-
-            // If stack is empty - assume that this is a start point
-            if (activity.mMediaItemsStack.isEmpty()) {
-                activity.addMediaItemToStack(activity.mMediaResourcesManager.getRoot());
-            }
-
-            activity.showProgressBar();
-            // Subscribe to the media item
-            activity.mMediaResourcesManager.subscribe(
-                    activity.mMediaItemsStack.get(activity.mMediaItemsStack.size() - 1),
-                    activity.mMedSubscriptionCallback
-            );
-
-            // Update metadata in case of UI started on and media service was already created and stream played.
-            activity.handleMetadataChanged(activity.mMediaResourcesManager.getMediaMetadata());
-        }
-
-        @Override
-        public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
-            if (mReference == null) {
-                AppLogger.w(CLASS_NAME + "onConnected WeakReference to MainActivity is null");
-                return;
-            }
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onPlaybackStateChanged reference to MainActivity is null");
-                return;
-            }
-            activity.handlePlaybackStateChanged(state);
-        }
-
-        @Override
-        public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + "Queue changed to:" + queue);
-        }
-
-        @Override
-        public void onMetadataChanged(final MediaMetadataCompat metadata,
-                                      final List<MediaSessionCompat.QueueItem> queue) {
-            if (mReference == null) {
-                AppLogger.w(CLASS_NAME + "onConnected WeakReference to MainActivity is null");
-                return;
-            }
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onMetadataChanged reference to MainActivity is null");
-                return;
-            }
-            if (metadata == null) {
-                return;
-            }
-            activity.handleMetadataChanged(metadata);
-        }
-    }
-
-    private static final class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listener {
-
-        private final WeakReference<MainActivity> mReference;
-
-        private GoogleDriveManagerListenerImpl(final MainActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnectionFailed(@Nullable final ConnectionResult connectionResult) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            if (connectionResult != null) {
-                reference.requestGoogleDriveSignIn(connectionResult);
-            } else {
-                SafeToast.showAnyThread(
-                        reference.getApplicationContext(), reference.getString(R.string.google_drive_conn_error)
-                );
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideTitleProgress();
-                }
-            });
-        }
-
-        @Override
-        public void onStart(final GoogleDriveManager.Command command) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().showProgress(command);
-                }
-            });
-        }
-
-        @Override
-        public void onSuccess(final GoogleDriveManager.Command command) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            String message = null;
-            switch (command) {
-                case UPLOAD:
-                    message = reference.getString(R.string.google_drive_data_saved);
-                    break;
-                case DOWNLOAD:
-                    message = reference.getString(R.string.google_drive_data_read);
-                    reference.updateListAfterDownloadFromGoogleDrive();
-                    break;
-            }
-            if (!TextUtils.isEmpty(message)) {
-                SafeToast.showAnyThread(reference.getApplication(), message);
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideProgress(command);
-                }
-            });
-        }
-
-        @Override
-        public void onError(final GoogleDriveManager.Command command, final GoogleDriveError error) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            String message = null;
-            switch (command) {
-                case UPLOAD:
-                    message = reference.getString(R.string.google_drive_error_when_save);
-                    break;
-                case DOWNLOAD:
-                    message = reference.getString(R.string.google_drive_error_when_read);
-                    break;
-            }
-            if (!TextUtils.isEmpty(message)) {
-                SafeToast.showAnyThread(reference.getApplication(), message);
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideProgress(command);
-                }
-            });
-        }
-
-        @Override
-        public void onConnect() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().showTitleProgress();
-                }
-            });
-        }
-
-        @Override
-        public void onConnected() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            reference.runOnUiThread(() -> {
-                if (reference.getGoogleDriveDialog() != null) {
-                    reference.getGoogleDriveDialog().hideTitleProgress();
-                }
-            });
-        }
-
-        @Override
-        public void onAccountRequested() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            try {
-                reference.startActivityForResult(
-                        AccountPicker.newChooseAccountIntent(
-                                null,
-                                null,
-                                new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
-                                true, null, null, null, null
-                        ),
-                        ACCOUNT_REQUEST_CODE
-                );
-            } catch (final ActivityNotFoundException e) {
-                FabricUtils.logException(e);
-                reference.mGoogleDriveManager.connect(null);
-            }
         }
     }
 
@@ -1916,16 +1442,7 @@ public final class MainActivity extends AppCompatActivity {
             if (countryCode == null) {
                 countryCode = Country.COUNTRY_CODE_DEFAULT;
             }
-            if (mActivity == null) {
-                return;
-            }
-            if (mActivity.get() == null) {
-                return;
-            }
-            if (mActivity.get().mMediaResourcesManager == null) {
-                return;
-            }
-            mActivity.get().mMediaResourcesManager.connect();
+            mActivity.get().mMediaPresenter.connect();
         }
     }
 }

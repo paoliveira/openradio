@@ -18,8 +18,6 @@ package com.yuriy.openradio.model.net;
 
 import android.net.Uri;
 
-import com.yuriy.openradio.service.LocationService;
-
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio

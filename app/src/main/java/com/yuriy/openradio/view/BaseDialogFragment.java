@@ -73,18 +73,6 @@ public abstract class BaseDialogFragment extends DialogFragment {
      * @param context Context of the place where dialog must be shown.
      * @return builder of the {@link AlertDialog}.
      */
-    protected static AlertDialog.Builder createAlertDialogBuilderWithCancelButton(final Context context) {
-        final AlertDialog.Builder builder = createAlertDialogBuilder(context);
-        builder.setNegativeButton(R.string.close_label, (dialog, id) -> dialog.cancel());
-        return builder;
-    }
-
-    /**
-     * Help method to return builder of the {@link AlertDialog} with Cancel button.
-     *
-     * @param context Context of the place where dialog must be shown.
-     * @return builder of the {@link AlertDialog}.
-     */
     protected static AlertDialog.Builder createAlertDialogBuilderWithOkButton(final Context context) {
         final AlertDialog.Builder builder = createAlertDialogBuilder(context);
         builder.setPositiveButton(R.string.ok_label, (dialog, id) -> dialog.cancel());

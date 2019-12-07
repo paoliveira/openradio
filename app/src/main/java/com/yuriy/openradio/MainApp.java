@@ -142,7 +142,6 @@ public final class MainApp extends Application {
     }
 
     /**
-     *
      * @param context Context of a callee.
      */
     private static void migrateImagesToIntStorage(final Context context) {

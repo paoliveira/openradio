@@ -63,6 +63,6 @@ public final class BitmapsOverlay {
                 resourceId
         );
 
-        return BitmapHelper.overlayWithBitmap(baseBitmap, overlayBitmap);
+        return BitmapUtils.overlayWithBitmap(baseBitmap, overlayBitmap);
     }
 }

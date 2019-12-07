@@ -261,6 +261,7 @@ public final class ExoPlayerOpenRadioImpl {
                 Util.getLooper()
         );
         mExoPlayer.addListener(mComponentListener);
+        mExoPlayer.setForegroundMode(true);
     }
 
     /**

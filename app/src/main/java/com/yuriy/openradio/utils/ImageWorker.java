@@ -16,11 +16,12 @@
 
 package com.yuriy.openradio.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -28,6 +29,7 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
@@ -41,6 +43,12 @@ import java.lang.ref.WeakReference;
  * thread and setting a placeholder image.
  */
 public abstract class ImageWorker {
+
+    public interface Listener {
+
+        void onComplete(final Drawable bitmap);
+    }
+
     private static final String TAG = "ImageWorker";
     private static final int FADE_IN_TIME = 200;
 
@@ -51,7 +59,7 @@ public abstract class ImageWorker {
     private boolean mExitTasksEarly = false;
     private boolean mPauseWork = false;
     private final Object mPauseWorkLock = new Object();
-
+    boolean mIsTvPlayer;
     Resources mResources;
 
     private static final int MESSAGE_CLEAR = 0;
@@ -61,6 +69,41 @@ public abstract class ImageWorker {
 
     ImageWorker(Context context) {
         mResources = context.getResources();
+    }
+
+    void setTvPlayer(final boolean value) {
+        mIsTvPlayer = value;
+    }
+
+    public void loadImage(final Object data, final Listener listener, final ImageView dummyView) {
+        if (data == null) {
+            return;
+        }
+
+        BitmapDrawable value = null;
+
+        if (mImageCache != null) {
+            value = mImageCache.getBitmapFromMemCache(String.valueOf(data));
+        }
+
+        if (value != null) {
+            // Bitmap found in memory cache
+            listener.onComplete(value);
+        } else if (cancelPotentialWork(data, dummyView)) {
+            final BitmapWorkerTask task = new BitmapWorkerTask(data, dummyView, this, listener);
+            final AsyncDrawable asyncDrawable =
+                    new AsyncDrawable(mResources, mLoadingBitmap, task);
+            dummyView.setImageDrawable(asyncDrawable);
+
+            if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
+                return;
+            }
+            try {
+                task.executeOnExecutor(ConcurrentUtils.IMAGE_WORKER_EXECUTOR);
+            } catch (final Exception e) {
+                /* Ignore */
+            }
+        }
     }
 
     /**
@@ -89,7 +132,7 @@ public abstract class ImageWorker {
             // Bitmap found in memory cache
             imageView.setImageDrawable(value);
         } else if (cancelPotentialWork(data, imageView)) {
-            final BitmapWorkerTask task = new BitmapWorkerTask(data, imageView, this);
+            final BitmapWorkerTask task = new BitmapWorkerTask(data, imageView, this, null);
             final AsyncDrawable asyncDrawable =
                     new AsyncDrawable(mResources, mLoadingBitmap, task);
             imageView.setImageDrawable(asyncDrawable);
@@ -255,14 +298,21 @@ public abstract class ImageWorker {
         private final Object mData;
         private final WeakReference<ImageView> imageViewReference;
         private final WeakReference<ImageWorker> mReference;
+        private final WeakReference<Listener> mListener;
 
         private BitmapWorkerTask(final Object data,
                                  final ImageView imageView,
-                                 final ImageWorker reference) {
+                                 final ImageWorker reference,
+                                 @Nullable final Listener listener) {
             super();
             mData = data;
             imageViewReference = new WeakReference<>(imageView);
             mReference = new WeakReference<>(reference);
+            if (listener != null) {
+                mListener = new WeakReference<>(listener);
+            } else {
+                mListener = null;
+            }
         }
 
         /**
@@ -356,6 +406,9 @@ public abstract class ImageWorker {
                     AppLogger.d(TAG + " onPostExecute - setting bitmap");
                 }
                 reference.setImageDrawable(imageView, value);
+                if (mListener != null && mListener.get() != null) {
+                    mListener.get().onComplete(value);
+                }
             }
             //END_INCLUDE(complete_background_work)
         }
@@ -387,6 +440,22 @@ public abstract class ImageWorker {
 
             return null;
         }
+    }
+
+    private static Bitmap overlayBitmapToCenter(final Bitmap bitmap1, final Bitmap bitmap2) {
+        final int bitmap1Width = bitmap1.getWidth();
+        final int bitmap1Height = bitmap1.getHeight();
+        final int bitmap2Width = bitmap2.getWidth();
+        final int bitmap2Height = bitmap2.getHeight();
+
+        final float marginLeft = (float) (bitmap1Width * 0.5 - bitmap2Width * 0.5);
+        final float marginTop = (float) (bitmap1Height * 0.5 - bitmap2Height * 0.5);
+
+        final Bitmap overlayBitmap = Bitmap.createBitmap(bitmap1Width, bitmap1Height, bitmap1.getConfig());
+        final Canvas canvas = new Canvas(overlayBitmap);
+        canvas.drawBitmap(bitmap1, new Matrix(), null);
+        canvas.drawBitmap(bitmap2, marginLeft, marginTop, null);
+        return overlayBitmap;
     }
 
     /**
@@ -445,7 +514,7 @@ public abstract class ImageWorker {
      * <p>
      * If work is paused, be sure setPauseWork(false) is called again
      * before your fragment or activity is destroyed (for example during
-     * {@link Activity#onPause()}), or there is a risk the
+     * {Activity#onPause()}), or there is a risk the
      * background thread will never finish.
      */
     private void setPauseWork(boolean pauseWork) {

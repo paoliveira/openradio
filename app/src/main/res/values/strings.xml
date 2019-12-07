@@ -71,7 +71,6 @@
     <string name="recent_added_stations_sub_title">recently added radio stations</string>
     <string name="recent_played_songs_title">Recently Played Songs</string>
     <string name="recent_played_songs_sub_title">recently played songs</string>
-    <string name="action_settings">Settings</string>
     <string name="enable_logs_label">Enable Logs\n(enables application to save logs in a file)</string>
     <string name="send_logs_label">Send Logs</string>
     <string name="clear_logs_label">Clear Logs</string>
@@ -129,4 +128,5 @@
     <string name="bt_auto_restart_descr">Resume playback when re-connected to the same Bluetooth Device</string>
     <string name="no_location_setting_desc">Can not find Location Settings</string>
     <string name="invalid_buffer_desc">Invalid value of buffer : </string>
+    <string name="tv_header_menu_radio_stations">Radio Stations</string>
 </resources>

@@ -31,7 +31,6 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.view.BaseDialogFragment;
 import com.yuriy.openradio.view.SafeToast;
-import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov
@@ -59,11 +58,10 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
     @SuppressLint("StringFormatInvalid")
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
-        final MainActivity activity = (MainActivity) getActivity();
 
         final View view = getInflater().inflate(
                 R.layout.settings_stream_buffering,
-                activity.findViewById(R.id.settings_stream_buffering_root)
+                getActivity().findViewById(R.id.settings_stream_buffering_root)
         );
 
         setWindowDimensions(view, 0.9f, 0.9f);
@@ -72,7 +70,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         final TextView title = view.findViewById(R.id.stream_buffering_label_view);
         title.setText(titleText);
 
-        final Context context = activity.getApplicationContext();
+        final Context context = getActivity().getApplicationContext();
 
         final TextView descView = view.findViewById(R.id.stream_buffering_desc_view);
         try {
