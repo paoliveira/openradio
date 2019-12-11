@@ -16,26 +16,42 @@
 
 package com.yuriy.openradio.service;
 
+import android.content.Context;
+
 import androidx.leanback.media.PlayerAdapter;
 
-import com.yuriy.openradio.utils.AppLogger;
+public final class ServicePlayerTvAdapter extends PlayerAdapter {
 
-public class ServicePlayerTvAdapter extends PlayerAdapter {
+    private final Context mContext;
+    private boolean mIsPlaying;
 
-    private static final String CLASS_NAME = ServicePlayerTvAdapter.class.getSimpleName();
-
-    public ServicePlayerTvAdapter() {
+    public ServicePlayerTvAdapter(final Context context) {
         super();
+        mContext = context;
+        mIsPlaying = false;
     }
 
     @Override
     public void play() {
-        AppLogger.d(CLASS_NAME + " play");
+        if (mIsPlaying) {
+            return;
+        }
+        mIsPlaying = true;
+        mContext.startService(OpenRadioService.makePlayLastPlayedItemIntent(mContext));
     }
 
     @Override
     public void pause() {
-        AppLogger.d(CLASS_NAME + " pause");
+        if (!mIsPlaying) {
+            return;
+        }
+        mIsPlaying = false;
+        mContext.startService(OpenRadioService.makeStopLastPlayedItemIntent(mContext));
+    }
+
+    @Override
+    public boolean isPlaying() {
+        return mIsPlaying;
     }
 
     @Override

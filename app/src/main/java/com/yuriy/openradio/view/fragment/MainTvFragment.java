@@ -24,7 +24,6 @@ import androidx.leanback.widget.AbstractMediaItemPresenter;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.ClassPresenterSelector;
 import androidx.leanback.widget.MultiActionsProvider;
-import androidx.leanback.widget.PlaybackControlsRow;
 import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
@@ -84,15 +83,16 @@ public class MainTvFragment extends PlaybackSupportFragment {
         super.onCreate(savedInstanceState);
         setControlsOverlayAutoHideEnabled(false);
         setBackgroundType(BG_NONE);
+        final Context context = getContext();
         mGlue = new PlaybackBannerControlGlue<>(
-                getContext(),
+                context,
                 new int[]{0, 1},
-                new ServicePlayerTvAdapter()
+                new ServicePlayerTvAdapter(context)
         );
         mGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
         mMedSubscriptionCallback = new MediaBrowserSubscriptionCallback(this);
-        mDummyView = new ImageView(getContext());
+        mDummyView = new ImageView(context);
         // Handles loading the  image in a background thread
         mImageWorker = ImageFetcherFactory.getTvPlayerImageFetcher(getActivity());
 
@@ -202,9 +202,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
             if (!mGlue.isPlaying()) {
                 mGlue.play();
             }
-            final long bufferedDuration = ((state.getBufferedPosition() - state.getPosition()));
-            mGlue.getControlsRow().setCurrentPosition(bufferedDuration);
         }
+        final long bufferedDuration = ((state.getBufferedPosition() - state.getPosition()));
+        mGlue.getControlsRow().setCurrentPosition(bufferedDuration);
     }
 
     private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
@@ -275,21 +275,6 @@ public class MainTvFragment extends PlaybackSupportFragment {
                     (AbstractMediaItemPresenter.ViewHolder) rowViewHolder,
                     (MultiActionsProvider.MultiAction) item
             );
-        }
-        if (row instanceof PlaybackControlsRow) {
-            showProgressBar();
-            handleControllableClicked((PlaybackControlsRow.PlayPauseAction) item);
-        }
-    }
-
-    private void handleControllableClicked(final PlaybackControlsRow.PlayPauseAction action) {
-        final Context context = getContext();
-        if (context == null) {
-            return;
-        }
-        if (action.getIndex() == PlaybackControlsRow.PlayPauseAction.INDEX_PLAY
-                || action.getIndex() == PlaybackControlsRow.PlayPauseAction.INDEX_PAUSE) {
-            context.startService(OpenRadioService.makeToggleLastPlayedItemIntent(getContext()));
         }
     }
 

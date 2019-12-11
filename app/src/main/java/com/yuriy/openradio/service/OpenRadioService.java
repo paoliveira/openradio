@@ -141,6 +141,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private static final String VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM";
 
+    private static final String VALUE_NAME_PLAY_LAST_PLAYED_ITEM = "VALUE_NAME_PLAY_LAST_PLAYED_ITEM";
+
+    private static final String VALUE_NAME_STOP_LAST_PLAYED_ITEM = "VALUE_NAME_STOP_LAST_PLAYED_ITEM";
+
     private static final String VALUE_NAME_CURRENT_PARENT_ID = "VALUE_NAME_CURRENT_PARENT_ID";
 
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
@@ -883,6 +887,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public static Intent makeToggleLastPlayedItemIntent(final Context context) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM);
+        return intent;
+    }
+
+    public static Intent makeStopLastPlayedItemIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STOP_LAST_PLAYED_ITEM);
+        return intent;
+    }
+
+    public static Intent makePlayLastPlayedItemIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_PLAY_LAST_PLAYED_ITEM);
         return intent;
     }
 
@@ -2126,6 +2142,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
                     handlePlayRequest();
                 }
+                break;
+            case VALUE_NAME_STOP_LAST_PLAYED_ITEM:
+                handlePauseRequest();
+                break;
+            case VALUE_NAME_PLAY_LAST_PLAYED_ITEM:
+                handlePlayRequest();
                 break;
             case VALUE_NAME_STOP_SERVICE:
                 stopService();
