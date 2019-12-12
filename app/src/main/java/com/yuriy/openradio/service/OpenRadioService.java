@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.service;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -37,6 +36,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -54,7 +54,6 @@ import com.yuriy.openradio.broadcast.BecomingNoisyReceiver;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.broadcast.MasterVolumeReceiver;
 import com.yuriy.openradio.broadcast.MasterVolumeReceiverListener;
-import com.yuriy.openradio.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.model.api.ApiServiceProvider;
 import com.yuriy.openradio.model.api.ApiServiceProviderImpl;
@@ -460,15 +459,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 .getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "OpenRadio_lock");
 
-        final ComponentName mediaButtonReceiver = new ComponentName(
-                context, RemoteControlReceiver.class
-        );
+//        final ComponentName mediaButtonReceiver = new ComponentName(
+//                context, RemoteControlReceiver.class
+//        );
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(
                 context,
-                "OpenRadioService", mediaButtonReceiver,
-                null
+                "OpenRadioService"
         );
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback(this));
@@ -502,6 +500,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
 
+//        MediaButtonReceiver.handleIntent(mSession, intent);
         sendMessage(intent);
 
         return super.onStartCommand(intent, flags, startId);
@@ -942,6 +941,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // In particular, always release the MediaSession to clean up resources
         // and notify associated MediaController(s).
         if (mSession != null) {
+            mSession.setActive(false);
+            mSession.setMediaButtonReceiver(null);
+            mSession.setCallback(null);
             mSession.release();
         }
 
@@ -1886,6 +1888,52 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             service.performSearch(query);
+        }
+
+        private volatile long mLastKeyEventTime = 0;
+
+        @Override
+        public boolean onMediaButtonEvent(final Intent intent) {
+            // Prevent double event.
+            // TODO: Need to investigate
+            if (mLastKeyEventTime != 0 && System.currentTimeMillis() - mLastKeyEventTime <= 1000) {
+                return true;
+            }
+            mLastKeyEventTime = System.currentTimeMillis();
+
+            AppLogger.i(CLASS_NAME + "On Media Button Event:" + intent);
+            final OpenRadioService service = mService.get();
+            if (service == null) {
+                return false;
+            }
+
+            final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+            final int keyCode = event != null ? event.getKeyCode() : Integer.MIN_VALUE;
+            AppLogger.d(CLASS_NAME + "KeyCode:" + keyCode);
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_MEDIA_PLAY:
+                    onPlay();
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
+                    if (service.mExoPlayer == null) {
+                        return false;
+                    }
+                    if (service.mExoPlayer.isPlaying()) {
+                        onPause();
+                    } else {
+                        onPlay();
+                    }
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_PAUSE:
+                    onPause();
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_STOP:
+                    onStop();
+                    return true;
+                default:
+                    AppLogger.w(CLASS_NAME + " Unhandled key code:" + keyCode);
+                    return false;
+            }
         }
     }
 

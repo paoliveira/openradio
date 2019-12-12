@@ -11,3 +11,6 @@ Icons color:505E74
 
 Online palette:
 http://www.perbang.dk/color+scheme/
+
+adb commands:
+adb shell am broadcast -a "android.intent.action.MEDIA_BUTTON" -n "com.yuriy.openradio/.broadcast.RemoteControlReceiver"

@@ -97,12 +97,6 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <receiver android:name=".broadcast.RemoteControlReceiver">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
-
         <service
             android:name=".service.OpenRadioService"
             android:exported="true"
