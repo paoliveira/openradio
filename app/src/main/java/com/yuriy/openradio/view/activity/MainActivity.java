@@ -1394,7 +1394,7 @@ public final class MainActivity extends AppCompatActivity {
     private void onScrolledToEnd() {
         if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
-            mMediaPresenter.addMediaItemToStack(mCurrentMediaId);
+            mMediaPresenter.addMediaItemToStack(mCurrentParentId);
         } else {
             AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
         }
