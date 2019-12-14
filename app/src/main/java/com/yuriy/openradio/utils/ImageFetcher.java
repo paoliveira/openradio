@@ -222,7 +222,7 @@ public class ImageFetcher extends ImageResizer {
             if (bitmap != null && mIsTvPlayer) {
                 final int maxSide = Math.max(bitmap.getWidth(), bitmap.getHeight());
                 bitmap = overlayBitmapToCenter(
-                        Bitmap.createBitmap(maxSide, maxSide, bitmap.getConfig()), bitmap
+                        Bitmap.createBitmap(maxSide, maxSide, Bitmap.Config.ARGB_8888), bitmap
                 );
             }
         }
