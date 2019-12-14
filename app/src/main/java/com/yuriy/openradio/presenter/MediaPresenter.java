@@ -284,11 +284,11 @@ public final class MediaPresenter {
         mMediaResourcesManager.connect();
     }
 
-    public Integer getListPosition(final String currentParentId) {
+    public Integer getListPosition(final String mediaItem) {
         // Restore position for the Catalogue list.
-        if (!TextUtils.isEmpty(currentParentId)
-                && mListPositionMap.containsKey(currentParentId)) {
-            return mListPositionMap.get(currentParentId);
+        if (!TextUtils.isEmpty(mediaItem)
+                && mListPositionMap.containsKey(mediaItem)) {
+            return mListPositionMap.get(mediaItem);
         }
         return null;
     }

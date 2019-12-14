@@ -184,11 +184,6 @@ public final class MainActivity extends AppCompatActivity {
     private int mListFirstVisiblePosition = -1;
 
     /**
-     * ID of the parent of current item (whether it is directory or Radio Station).
-     */
-    private String mCurrentMediaId = "";
-
-    /**
      * Listener for the List view click event.
      */
     private final AdapterView.OnItemClickListener mOnItemClickListener = new OnItemClickListener(this);
@@ -579,22 +574,20 @@ public final class MainActivity extends AppCompatActivity {
 
     private void restoreSelectedPosition() {
         int position = MediaSessionCompat.QueueItem.UNKNOWN_ID;
-        // Restore position for the Catalogue list.
-        final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
-        if (positionObj != null) {
-            position = positionObj;
-        }
-        // Restore position for the Catalogue of the Playable items
-        if (!TextUtils.isEmpty(mCurrentMediaId)) {
-            position = mBrowserAdapter.getIndexForMediaId(mCurrentMediaId);
+        // This actually do scroll to the position.
+        if (mListFirstVisiblePosition != -1) {
+            position = mListFirstVisiblePosition;
+            mListFirstVisiblePosition = -1;
+        } else {
+            // Restore position for the Catalogue list.
+            final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
+            if (positionObj != null) {
+                position = positionObj;
+            }
         }
         // This will make selected item highlighted.
         setActiveItem(position);
-        // This actually do scroll to the position.
-        if (mListFirstVisiblePosition != -1) {
-            mListView.setSelection(mListFirstVisiblePosition);
-            mListFirstVisiblePosition = -1;
-        }
+        mListView.setSelection(position);
     }
 
     /**
@@ -1100,8 +1093,6 @@ public final class MainActivity extends AppCompatActivity {
             if (reference == null) {
                 return;
             }
-            reference.mCurrentMediaId = mediaId;
-
             final int position = reference.mBrowserAdapter.getIndexForMediaId(mediaId);
             if (position != -1) {
                 reference.setActiveItem(position);
