@@ -573,8 +573,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void restoreSelectedPosition() {
-        int position = MediaSessionCompat.QueueItem.UNKNOWN_ID;
-        // This actually do scroll to the position.
+        int position = 0;
         if (mListFirstVisiblePosition != -1) {
             position = mListFirstVisiblePosition;
             mListFirstVisiblePosition = -1;
@@ -587,6 +586,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         // This will make selected item highlighted.
         setActiveItem(position);
+        // This actually do scroll to the position.
         mListView.setSelection(position);
     }
 
