@@ -1383,6 +1383,10 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void onScrollCompleted(final int firstVisibleItem) {
+//        mMediaPresenter.handleItemSelect(null, firstVisibleItem);
+    }
+
     private void onScrolledToEnd() {
         if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
             unsubscribeFromItem(mCurrentParentId);
@@ -1395,7 +1399,6 @@ public final class MainActivity extends AppCompatActivity {
     private static final class OnScrollListener implements AbsListView.OnScrollListener {
 
         private final WeakReference<MainActivity> mReference;
-        private int mScrollState;
         private int mFirstVisibleItem;
         private int mVisibleItemCount;
         private int mTotalItemCount;
@@ -1407,8 +1410,19 @@ public final class MainActivity extends AppCompatActivity {
 
         @Override
         public void onScrollStateChanged(final AbsListView view, final int scrollState) {
-            mScrollState = scrollState;
-            reportEndOfScroll();
+            final MainActivity reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            if (scrollState != SCROLL_STATE_IDLE) {
+                return;
+            }
+
+            if (mFirstVisibleItem + mVisibleItemCount < mTotalItemCount) {
+                reference.onScrollCompleted(mFirstVisibleItem);
+            } else {
+                reference.onScrolledToEnd();
+            }
         }
 
         @Override
@@ -1417,23 +1431,6 @@ public final class MainActivity extends AppCompatActivity {
             mFirstVisibleItem = firstVisibleItem;
             mVisibleItemCount = visibleItemCount;
             mTotalItemCount = totalItemCount;
-        }
-
-        private void reportEndOfScroll() {
-            if (mScrollState != SCROLL_STATE_IDLE) {
-                return;
-            }
-
-            if (mFirstVisibleItem + mVisibleItemCount != mTotalItemCount) {
-                return;
-            }
-
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            reference.onScrolledToEnd();
         }
     }
 
