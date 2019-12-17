@@ -65,9 +65,10 @@ public final class MediaPresenter {
      */
     private final List<String> mMediaItemsStack = new LinkedList<>();
     /**
-     * Map of the last used list position for the given list of the media items.
+     * Map of the selected and clicked positions for lists of the media items.
+     * Contract is - array of integer has 2 elements {selected position, clicked position}.
      */
-    private final Map<String, Integer> mListPositionMap = new Hashtable<>();
+    private final Map<String, int[]> mPositions = new Hashtable<>();
 
     @Nullable
     private MediaBrowserCompat.SubscriptionCallback mCallback;
@@ -186,12 +187,12 @@ public final class MediaPresenter {
             return;
         }
         // Restore map of the List - Position values
-        final Map<String, Integer> listPositionMapRestored
-                = (Map<String, Integer>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
+        final Map<String, int[]> listPositionMapRestored
+                = (Map<String, int[]>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
         if (listPositionMapRestored != null) {
-            mListPositionMap.clear();
+            mPositions.clear();
             for (String key : listPositionMapRestored.keySet()) {
-                mListPositionMap.put(key, listPositionMapRestored.get(key));
+                mPositions.put(key, listPositionMapRestored.get(key));
             }
         }
 
@@ -209,7 +210,7 @@ public final class MediaPresenter {
         outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
 
         // Save List-Position Map
-        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mListPositionMap);
+        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mPositions);
     }
 
     public void handleItemSelect(final MediaBrowserCompat.MediaItem item, final int position) {
@@ -218,8 +219,12 @@ public final class MediaPresenter {
         final int size = mMediaItemsStack.size();
         if (size >= 1) {
             final String mediaItem = mMediaItemsStack.get(size - 1);
-            mListPositionMap.remove(mediaItem);
-            mListPositionMap.put(mediaItem, position);
+            int[] data = mPositions.remove(mediaItem);
+            if (data == null) {
+                data = createInitPositionEntry();
+            }
+            data[0] = position;
+            mPositions.put(mediaItem, data);
         }
     }
 
@@ -252,7 +257,7 @@ public final class MediaPresenter {
         final int size = mMediaItemsStack.size();
         if (size >= 1) {
             final String mediaItem = mMediaItemsStack.get(size - 1);
-            mListPositionMap.put(mediaItem, position);
+            mPositions.put(mediaItem, new int[]{0, position});
         }
 
         final String mediaId = item.getMediaId();
@@ -284,13 +289,18 @@ public final class MediaPresenter {
         mMediaResourcesManager.connect();
     }
 
-    public Integer getListPosition(final String mediaItem) {
-        // Restore position for the Catalogue list.
+    @NonNull
+    public int[] getPositions(final String mediaItem) {
+        // Restore clicked position for the Catalogue list.
         if (!TextUtils.isEmpty(mediaItem)
-                && mListPositionMap.containsKey(mediaItem)) {
-            return mListPositionMap.get(mediaItem);
+                && mPositions.containsKey(mediaItem)) {
+            final int[] data = mPositions.get(mediaItem);
+            if (data == null) {
+                return createInitPositionEntry();
+            }
+            return data;
         }
-        return null;
+        return createInitPositionEntry();
     }
 
     /**
@@ -376,5 +386,9 @@ public final class MediaPresenter {
                 activity.mListener.handleMetadataChanged(metadata);
             }
         }
+    }
+
+    private int[] createInitPositionEntry() {
+        return new int[]{0, MediaSessionCompat.QueueItem.UNKNOWN_ID};
     }
 }

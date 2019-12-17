@@ -524,13 +524,14 @@ public class MainTvFragment extends PlaybackSupportFragment {
     }
 
     private void restoreSelectedPosition() {
-        int position = 1;
-        // Restore position for the Catalogue list.
-        final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
-        if (positionObj != null) {
-            position = positionObj;
+        // Restore positions for the Catalogue list.
+        final int[] positions = mMediaPresenter.getPositions(mCurrentParentId);
+        int selectedPosition = positions[0];
+        // TODO: Make default value 1 for TV and improve this method (see mobile version)
+        if (selectedPosition < 1) {
+            selectedPosition = 1;
         }
-        AppLogger.d(CLASS_NAME + " set selected:" + position);
-        setSelectedPosition(position);
+        AppLogger.d(CLASS_NAME + " set selected:" + selectedPosition);
+        setSelectedPosition(selectedPosition);
     }
 }

@@ -142,6 +142,7 @@ public final class MainActivity extends AppCompatActivity {
      * Key value for the first visible ID in the List for the store Bundle
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
+    private static final String BUNDLE_ARG_LIST_CLICKED_ID = "BUNDLE_ARG_LIST_CLICKED_ID";
 
     /**
      * Progress Bar view to indicate that data is loading.
@@ -181,7 +182,8 @@ public final class MainActivity extends AppCompatActivity {
      */
     private String mCurrentParentId = "";
 
-    private int mListFirstVisiblePosition = -1;
+    private int mListFirstVisiblePosition = 0;
+    private int mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
     /**
      * Listener for the List view click event.
@@ -192,6 +194,8 @@ public final class MainActivity extends AppCompatActivity {
      * Listener for the List touch event.
      */
     private final OnTouchListener mOnTouchListener = new OnTouchListener(this);
+
+    private final OnScrollListener mOnScrollListener = new OnScrollListener(this);
 
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
@@ -392,7 +396,7 @@ public final class MainActivity extends AppCompatActivity {
         // Set touch listener.
         mListView.setOnTouchListener(mOnTouchListener);
         // Set scroll listener.
-        mListView.setOnScrollListener(new OnScrollListener(this));
+        mListView.setOnScrollListener(mOnScrollListener);
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
@@ -551,6 +555,7 @@ public final class MainActivity extends AppCompatActivity {
 
         // Save first visible ID of the List
         outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
+        outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mBrowserAdapter.getActiveItemId());
         super.onSaveInstanceState(outState);
     }
 
@@ -573,21 +578,23 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void restoreSelectedPosition() {
-        int position = 0;
+        int selectedPosition;
+        int clickedPosition;
         if (mListFirstVisiblePosition != -1) {
-            position = mListFirstVisiblePosition;
+            selectedPosition = mListFirstVisiblePosition;
+            clickedPosition = mListSavedClickedPosition;
             mListFirstVisiblePosition = -1;
+            mListSavedClickedPosition = -1;
         } else {
-            // Restore position for the Catalogue list.
-            final Integer positionObj = mMediaPresenter.getListPosition(mCurrentParentId);
-            if (positionObj != null) {
-                position = positionObj;
-            }
+            // Restore positions for the Catalogue list.
+            final int[] positions = mMediaPresenter.getPositions(mCurrentParentId);
+            clickedPosition = positions[1];
+            selectedPosition = positions[0];
         }
         // This will make selected item highlighted.
-        setActiveItem(position);
+        setActiveItem(clickedPosition);
         // This actually do scroll to the position.
-        mListView.setSelection(position);
+        mListView.setSelection(selectedPosition);
     }
 
     /**
@@ -802,6 +809,7 @@ public final class MainActivity extends AppCompatActivity {
 
         // Restore List's position
         mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
+        mListSavedClickedPosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_CLICKED_ID);
 
         final MediaMetadataCompat lastKnownMetadata = savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA);
         if (lastKnownMetadata != null) {
@@ -1384,7 +1392,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void onScrollCompleted(final int firstVisibleItem) {
-//        mMediaPresenter.handleItemSelect(null, firstVisibleItem);
+        mMediaPresenter.handleItemSelect(null, firstVisibleItem);
     }
 
     private void onScrolledToEnd() {
@@ -1418,9 +1426,8 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            if (mFirstVisibleItem + mVisibleItemCount < mTotalItemCount) {
-                reference.onScrollCompleted(mFirstVisibleItem);
-            } else {
+            reference.onScrollCompleted(mFirstVisibleItem);
+            if (mFirstVisibleItem + mVisibleItemCount == mTotalItemCount) {
                 reference.onScrolledToEnd();
             }
         }

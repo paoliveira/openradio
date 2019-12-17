@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.service;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -54,6 +55,7 @@ import com.yuriy.openradio.broadcast.BecomingNoisyReceiver;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.broadcast.MasterVolumeReceiver;
 import com.yuriy.openradio.broadcast.MasterVolumeReceiverListener;
+import com.yuriy.openradio.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.model.api.ApiServiceProvider;
 import com.yuriy.openradio.model.api.ApiServiceProviderImpl;
@@ -79,6 +81,7 @@ import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.notification.MediaNotification;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.FabricUtils;
@@ -459,14 +462,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 .getSystemService(Context.WIFI_SERVICE))
                 .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "OpenRadio_lock");
 
-//        final ComponentName mediaButtonReceiver = new ComponentName(
-//                context, RemoteControlReceiver.class
-//        );
+        // Need this component for API 20 and earlier.
+        // I wish to get rid of this because it keeps listen to broadcast even after application is destroyed :-(
+        final ComponentName mediaButtonReceiver = new ComponentName(
+                context, RemoteControlReceiver.class
+        );
 
         // Start a new MediaSession
         mSession = new MediaSessionCompat(
                 context,
-                "OpenRadioService"
+                "OpenRadioService",
+                mediaButtonReceiver,
+                null
         );
         setSessionToken(mSession.getSessionToken());
         mSession.setCallback(new MediaSessionCallback(this));
@@ -488,6 +495,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(context);
+
+        ServiceLifecyclePreferencesManager.isServiceActive(context, true);
     }
 
     @Override
@@ -512,6 +521,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onDestroy();
 
         final Context context = getApplicationContext();
+
+        ServiceLifecyclePreferencesManager.isServiceActive(context, false);
+
         if (mServiceHandler != null) {
             mServiceHandler.getLooper().quit();
         }

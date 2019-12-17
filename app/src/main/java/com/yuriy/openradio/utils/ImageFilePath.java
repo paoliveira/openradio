@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+
 import androidx.annotation.Nullable;
 
 /**
@@ -54,11 +55,18 @@ public final class ImageFilePath {
             }
             // DownloadsProvider
             else if (isDownloadsDocument(uri)) {
-
+                // TODO: Implement file selection according to changes in Android P
+                // using paths is deprecated for a long time, it was finally disabled in android 10
+                // so this workaround doesnt work t all ut it does prevent crash
                 final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-
+                Uri contentUri = Uri.parse("");
+                try {
+                    contentUri = ContentUris.withAppendedId(
+                            Uri.parse("content://downloads/public_downloads"), Long.parseLong(id)
+                    );
+                } catch (Exception e) {
+                    // Ignore
+                }
                 return getDataColumn(context, contentUri, uri, null, null);
             }
             // MediaProvider
