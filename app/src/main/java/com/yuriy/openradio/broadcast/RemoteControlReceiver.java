@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.view.KeyEvent;
 
+import androidx.core.content.ContextCompat;
+
 import com.yuriy.openradio.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.service.OpenRadioService;
 import com.yuriy.openradio.utils.AppLogger;
@@ -55,14 +57,14 @@ public final class RemoteControlReceiver extends BroadcastReceiver {
         AppLogger.d(CLASS_NAME + " KeyCode:" + keyCode);
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
-                context.startService(OpenRadioService.makePlayLastPlayedItemIntent(context));
+                ContextCompat.startForegroundService(context, OpenRadioService.makePlayLastPlayedItemIntent(context));
                 break;
             case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                context.startService(OpenRadioService.makeToggleLastPlayedItemIntent(context));
+                ContextCompat.startForegroundService(context, OpenRadioService.makeToggleLastPlayedItemIntent(context));
                 break;
             case KeyEvent.KEYCODE_MEDIA_PAUSE:
             case KeyEvent.KEYCODE_MEDIA_STOP:
-                context.startService(OpenRadioService.makeStopLastPlayedItemIntent(context));
+                ContextCompat.startForegroundService(context, OpenRadioService.makeStopLastPlayedItemIntent(context));
                 break;
             default:
                 AppLogger.w(CLASS_NAME + " Unhandled key code:" + keyCode);

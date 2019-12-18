@@ -112,7 +112,7 @@ public final class MediaResourcesManager {
                 mActivity.getApplicationContext(),
                 new ComponentName(mActivity.getApplicationContext(), OpenRadioService.class),
                 new MediaBrowserConnectionCallback(this),
-                savedInstance != null ? MediaResourcesManager.createIncrementListIndexBundle() : null
+                savedInstance != null ? createRootHints(savedInstance) : null
         );
     }
 
@@ -223,9 +223,10 @@ public final class MediaResourcesManager {
         return mMediaController != null ? mMediaController.getMetadata() : null;
     }
 
-    public static Bundle createIncrementListIndexBundle() {
+    private static Bundle createRootHints(final Bundle savedInstance) {
         final Bundle bundle = new Bundle();
         bundle.putBoolean(KEY_INCREMENT_LIST_KEY, true);
+        OpenRadioService.putCurrentParentId(bundle, OpenRadioService.getCurrentParentId(savedInstance));
         return bundle;
     }
 

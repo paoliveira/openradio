@@ -50,7 +50,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
@@ -135,8 +134,6 @@ public final class MainActivity extends AppCompatActivity {
     private MediaMetadataCompat mLastKnownMetadata;
 
     private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
-
-    private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
 
     /**
      * Key value for the first visible ID in the List for the store Bundle
@@ -411,6 +408,11 @@ public final class MainActivity extends AppCompatActivity {
 
         restoreState(context, savedInstanceState);
 
+        if (PermissionsDialogActivity.isLocationDenied(getIntent())) {
+            connectToMediaBrowser();
+            return;
+        }
+
         final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
                 context,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -419,6 +421,8 @@ public final class MainActivity extends AppCompatActivity {
             // Initialize the Location Handler.
             mLocationHandler = new LocationHandler(this);
             LocationService.doEnqueueWork(context, mLocationHandler);
+        } else {
+            connectToMediaBrowser();
         }
     }
 
@@ -544,7 +548,7 @@ public final class MainActivity extends AppCompatActivity {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
         }
 
-        outState.putString(BUNDLE_ARG_CATALOGUE_ID, mCurrentParentId);
+        OpenRadioService.putCurrentParentId(outState, mCurrentParentId);
 
         // Get first visible item id
         int firstVisiblePosition = mListView.getFirstVisiblePosition();
@@ -575,6 +579,10 @@ public final class MainActivity extends AppCompatActivity {
             // perform android frameworks lifecycle
             super.onBackPressed();
         }
+    }
+
+    private void connectToMediaBrowser() {
+        mMediaPresenter.connect();
     }
 
     private void restoreSelectedPosition() {
@@ -800,12 +808,7 @@ public final class MainActivity extends AppCompatActivity {
 
         mMediaPresenter.restoreState(savedInstanceState);
 
-        mCurrentParentId = savedInstanceState.getString(BUNDLE_ARG_CATALOGUE_ID);
-        if (!TextUtils.isEmpty(mCurrentParentId)) {
-            ContextCompat.startForegroundService(
-                    context, OpenRadioService.makeCurrentParentIdIntent(context, mCurrentParentId)
-            );
-        }
+        mCurrentParentId = OpenRadioService.getCurrentParentId(savedInstanceState);
 
         // Restore List's position
         mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
@@ -1501,7 +1504,7 @@ public final class MainActivity extends AppCompatActivity {
             if (countryCode == null) {
                 countryCode = Country.COUNTRY_CODE_DEFAULT;
             }
-            mActivity.get().mMediaPresenter.connect();
+            mActivity.get().connectToMediaBrowser();
         }
     }
 }

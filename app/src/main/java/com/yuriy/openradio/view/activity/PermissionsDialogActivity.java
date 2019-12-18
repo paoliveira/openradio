@@ -36,6 +36,7 @@ public final class PermissionsDialogActivity extends Activity {
     private static final String CLASS_NAME = PermissionsDialogActivity.class.getSimpleName();
     private static final String KEY_PERMISSION_NAME = "KEY_PERMISSION_NAME";
     private static final int PERMISSIONS_REQUEST_CODE = 1234;
+    private static final String PERMISSION_DENIED_KEY = "PERMISSION_DENIED_KEY";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,14 +72,25 @@ public final class PermissionsDialogActivity extends Activity {
 
         finish();
 
+        boolean isDenied = true;
         if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION, permissions, grantResults)) {
-            // Restart main activity
-            final Intent intent = getBaseContext()
-                    .getPackageManager()
-                    .getLaunchIntentForPackage(getBaseContext().getPackageName());
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+            isDenied = false;
         }
+
+        // Restart main activity
+        final Intent intent = getBaseContext()
+                .getPackageManager()
+                .getLaunchIntentForPackage(getBaseContext().getPackageName());
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.putExtra(PERMISSION_DENIED_KEY, isDenied);
+        startActivity(intent);
+    }
+
+    public static boolean isLocationDenied(final Intent intent) {
+        if (intent == null) {
+            return false;
+        }
+        return intent.getBooleanExtra(PERMISSION_DENIED_KEY, false);
     }
 
     /**

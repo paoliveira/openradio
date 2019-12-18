@@ -17,11 +17,12 @@
 package com.yuriy.openradio.utils;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.vo.Category;
 import com.yuriy.openradio.vo.RadioStation;
@@ -78,30 +79,11 @@ public final class QueueHelper {
      * @param mediaId Id of the Radio Station.
      * @return Index of the Radio Station in the queue.
      */
-    public static int getRadioStationIndexOnQueue(final Iterable<MediaSessionCompat.QueueItem> queue,
-                                                  final long mediaId) {
-        int index = 0;
-        for (MediaSessionCompat.QueueItem item : queue) {
-            if (mediaId == item.getQueueId()) {
-                return index;
-            }
-            index++;
-        }
-        return UNKNOWN_INDEX;
-    }
-
-    /**
-     * Method return index of the {@link RadioStation} at the queue.
-     *
-     * @param queue   Playing queue.
-     * @param mediaId Id of the Radio Station.
-     * @return Index of the Radio Station in the queue.
-     */
-    public static int getRadioStationIndexOnQueue(final Iterable<MediaSessionCompat.QueueItem> queue,
+    public static int getRadioStationIndexOnQueue(final List<RadioStation> queue,
                                                   final String mediaId) {
         int index = 0;
-        for (MediaSessionCompat.QueueItem item : queue) {
-            if (mediaId.equals(item.getDescription().getMediaId())) {
+        for (RadioStation item : queue) {
+            if (mediaId.equals(item.getIdAsString())) {
                 return index;
             }
             index++;
@@ -115,7 +97,7 @@ public final class QueueHelper {
      * @return
      */
     public static boolean isIndexPlayable(final int index,
-                                          final List<MediaSessionCompat.QueueItem> queue) {
+                                          final List<RadioStation> queue) {
         return (queue != null && index >= 0 && index < queue.size());
     }
 
