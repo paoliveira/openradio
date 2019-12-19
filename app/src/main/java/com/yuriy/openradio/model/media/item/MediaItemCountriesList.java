@@ -25,12 +25,15 @@ import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.model.net.UrlBuilder;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.service.LocationService;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapsOverlay;
 import com.yuriy.openradio.utils.ConcurrentUtils;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.vo.Country;
+import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -87,6 +90,14 @@ public final class MediaItemCountriesList implements MediaItemCommand {
             playbackStateListener.updatePlaybackState(
                     shareObject.getContext().getString(R.string.no_data_message)
             );
+
+            if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
+                final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+                if (radioStation != null) {
+                    shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                }
+            }
+
             return;
         }
 
@@ -131,5 +142,13 @@ public final class MediaItemCountriesList implements MediaItemCommand {
         }
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());
+        shareObject.getResultListener().onResult();
+
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
+            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (radioStation != null) {
+                shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+            }
+        }
     }
 }

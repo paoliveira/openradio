@@ -104,5 +104,6 @@ public final class MediaItemStation implements MediaItemCommand {
         shareObject.getMediaItems().add(mediaItem);
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());
+        shareObject.getResultListener().onResult();
     }
 }

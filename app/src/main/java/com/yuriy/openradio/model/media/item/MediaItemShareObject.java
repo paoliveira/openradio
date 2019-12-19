@@ -44,16 +44,6 @@ import java.util.List;
 public final class MediaItemShareObject {
 
     /**
-     * Collection of the Child Categories.
-     */
-    private final List<Category> mChildCategories = new ArrayList<>();
-
-    /**
-     * Id of the current Category. It is used for example when back from an empty Category.
-     */
-    private String mCurrentCategory = "";
-
-    /**
      * Context of the application.
      * TODO : must be final mandatory
      */
@@ -105,6 +95,7 @@ public final class MediaItemShareObject {
     private boolean mIsAndroidAuto = false;
 
     private OpenRadioService.RemotePlay mRemotePlay;
+    private OpenRadioService.ResultListener mResultListener;
 
     private volatile boolean mIsSameCatalogue;
 
@@ -122,29 +113,15 @@ public final class MediaItemShareObject {
     }
 
     public void setRemotePlay(final OpenRadioService.RemotePlay value) {
-        this.mRemotePlay = value;
+        mRemotePlay = value;
     }
 
-    /**
-     * @return Collection of the Child Categories.
-     */
-    public List<Category> getChildCategories() {
-        return mChildCategories;
+    public OpenRadioService.ResultListener getResultListener() {
+        return mResultListener;
     }
 
-    /**
-     * @return Id of the current Category.
-     */
-    public String getCurrentCategory() {
-        return mCurrentCategory;
-    }
-
-    /**
-     * Sets the Id of the current Category.
-     * @param value Id of the current Category.
-     */
-    public void setCurrentCategory(final String value) {
-        mCurrentCategory = value;
+    public void setResultListener(final OpenRadioService.ResultListener value) {
+        mResultListener = value;
     }
 
     /**

@@ -21,6 +21,8 @@ import androidx.annotation.NonNull;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.utils.MediaItemsComparator;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
@@ -88,5 +90,13 @@ public final class MediaItemLocalsList implements MediaItemCommand {
         }
         Collections.sort(shareObject.getMediaItems(), new MediaItemsComparator());
         shareObject.getResult().sendResult(shareObject.getMediaItems());
+        shareObject.getResultListener().onResult();
+
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
+            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (radioStation != null) {
+                shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+            }
+        }
     }
 }

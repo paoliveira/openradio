@@ -55,6 +55,7 @@ public final class MediaPresenter {
      * Key value for the List-Position map for the store Bundle.
      */
     private static final String BUNDLE_ARG_LIST_POSITION_MAP = "BUNDLE_ARG_LIST_POSITION_MAP";
+
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
@@ -208,7 +209,6 @@ public final class MediaPresenter {
     public void saveState(final Bundle outState) {
         // Save Media Stack
         outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
-
         // Save List-Position Map
         outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mPositions);
     }

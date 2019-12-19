@@ -23,7 +23,9 @@ import android.support.v4.media.MediaMetadataCompat;
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.FavoritesStorage;
+import com.yuriy.openradio.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
@@ -72,21 +74,29 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
             if (doLoadNoDataReceived()) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                         shareObject.getContext(),
-                        MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + shareObject.getCurrentCategory()
+                        MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES
                 );
                 final MediaDescriptionCompat mediaDescription = track.getDescription();
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                         mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
                 shareObject.getMediaItems().add(mediaItem);
                 shareObject.getResult().sendResult(shareObject.getMediaItems());
+                shareObject.getResultListener().onResult();
 
                 if (playbackStateListener != null) {
                     playbackStateListener.updatePlaybackState(shareObject.getContext().getString(R.string.no_data_message));
                 }
             } else {
                 shareObject.getResult().sendResult(MediaItemHelper.createListEndedResult());
+                shareObject.getResultListener().onResult();
             }
 
+            if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
+                final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+                if (radioStation != null) {
+                    shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                }
+            }
             return;
         }
 
@@ -112,5 +122,13 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
         }
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());
+        shareObject.getResultListener().onResult();
+
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
+            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (radioStation != null) {
+                shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+            }
+        }
     }
 }

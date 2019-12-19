@@ -223,6 +223,7 @@ public final class MediaItemRoot implements MediaItemCommand {
 
         AppLogger.d(LOG_TAG + " invocation completed");
         shareObject.getResult().sendResult(mediaItems);
+        shareObject.getResultListener().onResult();
 
         // If there is no Android Auto and there is latest Radio Station
         // (the one that played the last time Open Radio used) detected, play it.

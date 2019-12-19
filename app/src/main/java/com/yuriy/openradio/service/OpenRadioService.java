@@ -379,6 +379,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         void playFromMediaId(final String mediaId);
     }
 
+    public interface ResultListener {
+
+        void onResult();
+    }
+
     /**
      *
      */
@@ -443,7 +448,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
         // TODO: Still usable?
-        mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStation());
+//        mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStation());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, new MediaItemLocalsList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP, new MediaItemSearchFromApp());
@@ -561,6 +566,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         mIsRestoreInstance = MediaResourcesManager.bundleContainsIncrementListIndex(rootHints);
         mCurrentParentId = getCurrentParentId(rootHints);
+
         return new BrowserRoot(MediaIdHelper.MEDIA_ID_ROOT, null);
     }
 
@@ -604,6 +610,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.isSameCatalogue(isSameCatalogue);
             shareObject.setRestoreInstance(mIsRestoreInstance);
             shareObject.setRemotePlay(this::handlePlayFromMediaId);
+            shareObject.setResultListener(this::onResult);
 
             command.execute(mPlaybackStateListener, shareObject);
         } else {
@@ -1230,7 +1237,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Handle a request to play Radio Station
+     * Handle a request to play Radio Station.
      */
     private void handlePlayRequest() {
         AppLogger.d(
@@ -1575,6 +1582,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // service is no longer necessary. Will be started again if needed.
         stopSelf();
+    }
+
+    private void onResult() {
+        if (TextUtils.isEmpty(mCurrentMediaId)) {
+            return;
+        }
+        if (mRadioStations.isEmpty()) {
+            return;
+        }
+        mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
+                mRadioStations, mCurrentMediaId
+        );
     }
 
     /**
