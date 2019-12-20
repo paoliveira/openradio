@@ -257,7 +257,12 @@ public final class MediaPresenter {
         final int size = mMediaItemsStack.size();
         if (size >= 1) {
             final String mediaItem = mMediaItemsStack.get(size - 1);
-            mPositions.put(mediaItem, new int[]{0, position});
+            //TODO: Improve!
+            if (mPositions.containsKey(mediaItem)) {
+                mPositions.get(mediaItem)[1] = position;
+            } else {
+                mPositions.put(mediaItem, new int[]{0, position});
+            }
         }
 
         final String mediaId = item.getMediaId();

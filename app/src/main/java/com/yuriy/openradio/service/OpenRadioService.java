@@ -1615,9 +1615,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             isStatePlay = false;
         }
 
-//        final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-//                mRadioStations, mCurrentMediaId
-//        );
+        final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
+                mRadioStations, mCurrentMediaId
+        );
 //        if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
 //            AppLogger.w(
 //                    CLASS_NAME +
@@ -1629,10 +1629,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 //        // Set the current index on queue from the Radio Station Id:
 //        mCurrentIndexOnQueue = tempIndexOnQueue;
 //
-//        if (mCurrentIndexOnQueue == -1) {
+        if (tempIndexOnQueue != -1) {
 //            AppLogger.w(CLASS_NAME + "Skip play request, negative id");
 //            return;
-//        }
+            mCurrentIndexOnQueue = tempIndexOnQueue;
+        }
 
         // Play Radio Station
         handlePlayRequest();
@@ -1796,6 +1797,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mRadioStations)) {
                 service.mState = PlaybackStateCompat.STATE_STOPPED;
+
+                RadioStation rs = service.getCurrentQueueItem();
+                if (rs != null) {
+                    service.mCurrentMediaId = rs.getIdAsString();
+                }
+
                 service.handlePlayRequest();
             } else {
                 AppLogger.e(CLASS_NAME + "skipToNext: cannot skip to next. next Index=" +
@@ -1824,6 +1831,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mRadioStations)) {
                 service.mState = PlaybackStateCompat.STATE_STOPPED;
+
+                RadioStation rs = service.getCurrentQueueItem();
+                if (rs != null) {
+                    service.mCurrentMediaId = rs.getIdAsString();
+                }
+
                 service.handlePlayRequest();
             } else {
                 AppLogger.e(CLASS_NAME + "skipToPrevious: cannot skip to previous. previous Index=" +
