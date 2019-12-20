@@ -1586,7 +1586,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void restoreActiveRadioStation(@NonNull final RadioStation radioStation) {
         mRestoredRS = radioStation;
-        handlePlayFromMediaId(radioStation.getIdAsString());
+        final Handler uiHandler = new Handler(Looper.getMainLooper());
+        uiHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getIdAsString()));
     }
 
     /**
@@ -1614,24 +1615,24 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             isStatePlay = false;
         }
 
-        final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-                mRadioStations, mCurrentMediaId
-        );
-        if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
-            AppLogger.w(
-                    CLASS_NAME +
-                            "Skip play request, same index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId
-            );
-            return;
-        }
-
-        // Set the current index on queue from the Radio Station Id:
-        mCurrentIndexOnQueue = tempIndexOnQueue;
-
-        if (mCurrentIndexOnQueue == -1) {
-            AppLogger.w(CLASS_NAME + "Skip play request, negative id");
-            return;
-        }
+//        final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
+//                mRadioStations, mCurrentMediaId
+//        );
+//        if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
+//            AppLogger.w(
+//                    CLASS_NAME +
+//                            "Skip play request, same index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId
+//            );
+//            return;
+//        }
+//
+//        // Set the current index on queue from the Radio Station Id:
+//        mCurrentIndexOnQueue = tempIndexOnQueue;
+//
+//        if (mCurrentIndexOnQueue == -1) {
+//            AppLogger.w(CLASS_NAME + "Skip play request, negative id");
+//            return;
+//        }
 
         // Play Radio Station
         handlePlayRequest();

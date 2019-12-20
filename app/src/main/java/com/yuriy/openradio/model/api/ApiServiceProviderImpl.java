@@ -151,38 +151,41 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return allCountries;
         }
 
-        final JSONArray array = downloadJsonArray(downloader, uri);
-
-        JSONObject object;
-        String countryName;
-        String countryCode;
-
-        for (int i = 0; i < array.length(); i++) {
-            try {
-                object = (JSONObject) array.get(i);
-
-                if (object.has(JsonDataParserImpl.KEY_NAME)) {
-                    countryName = object.getString(JsonDataParserImpl.KEY_NAME);
-
-                    if (TextUtils.isEmpty(countryName)) {
-                        AppLogger.w(
-                                CLASS_NAME + "Can not parse Country name:" + countryName
-                        );
-                        continue;
-                    }
-
-                    countryCode = LocationService.COUNTRY_NAME_TO_CODE.get(countryName);
-                    if (TextUtils.isEmpty(countryCode)) {
-                        AppLogger.w(
-                                CLASS_NAME + "Can not find Country code for:" + countryName
-                        );
-                        continue;
-                    }
-                    allCountries.add(new Country(countryName, countryCode));
-                }
-            } catch (final JSONException e) {
-                FabricUtils.logException(e);
-            }
+//        final JSONArray array = downloadJsonArray(downloader, uri);
+//
+//        JSONObject object;
+//        String countryName;
+//        String countryCode;
+//
+//        for (int i = 0; i < array.length(); i++) {
+//            try {
+//                object = (JSONObject) array.get(i);
+//
+//                if (object.has(JsonDataParserImpl.KEY_NAME)) {
+//                    countryName = object.getString(JsonDataParserImpl.KEY_NAME);
+//
+//                    if (TextUtils.isEmpty(countryName)) {
+//                        AppLogger.w(
+//                                CLASS_NAME + "Can not parse Country name:" + countryName
+//                        );
+//                        continue;
+//                    }
+//
+//                    countryCode = LocationService.COUNTRY_NAME_TO_CODE.get(countryName);
+//                    if (TextUtils.isEmpty(countryCode)) {
+//                        AppLogger.w(
+//                                CLASS_NAME + "Can not find Country code for:" + countryName
+//                        );
+//                        continue;
+//                    }
+//                    allCountries.add(new Country(countryName, countryCode));
+//                }
+//            } catch (final JSONException e) {
+//                FabricUtils.logException(e);
+//            }
+//        }
+        for (final String countryName : LocationService.COUNTRY_NAME_TO_CODE.keySet()) {
+            allCountries.add(new Country(countryName, LocationService.COUNTRY_NAME_TO_CODE.get(countryName)));
         }
 
         return allCountries;
