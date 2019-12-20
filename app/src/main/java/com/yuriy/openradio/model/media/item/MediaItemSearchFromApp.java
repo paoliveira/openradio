@@ -32,7 +32,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link MediaItemSearchFromApp} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations from the search collection.
  */
@@ -57,15 +57,12 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
 
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
-                    final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isRestoreInstance()) {
-                        list.addAll(
-                                shareObject.getServiceProvider().getStations(
-                                        shareObject.getDownloader(),
-                                        UrlBuilder.getSearchUrl(AppUtils.getSearchQuery())
-                                )
-                        );
-                    }
+                    final List<RadioStation> list = new ArrayList<>(
+                            shareObject.getServiceProvider().getStations(
+                                    shareObject.getDownloader(),
+                                    UrlBuilder.getSearchUrl(AppUtils.getSearchQuery())
+                            )
+                    );
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

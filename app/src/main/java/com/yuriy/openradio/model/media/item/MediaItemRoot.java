@@ -35,7 +35,6 @@ import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.BitmapsOverlay;
 import com.yuriy.openradio.utils.MediaIdHelper;
 import com.yuriy.openradio.utils.MediaItemHelper;
-import com.yuriy.openradio.utils.QueueHelper;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
@@ -81,7 +80,7 @@ public final class MediaItemRoot implements MediaItemCommand {
             latestRadioStation = LatestRadioStationStorage.get(shareObject.getContext());
             if (latestRadioStation != null) {
                 // Add Radio Station to queue.
-                QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
+//                QueueHelper.addRadioStation(latestRadioStation, shareObject.getRadioStations());
                 // Add Radio Station to Menu
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                         MediaItemHelper.buildMediaDescriptionFromRadioStation(
@@ -228,7 +227,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         // If there is no Android Auto and there is latest Radio Station
         // (the one that played the last time Open Radio used) detected, play it.
         if (latestRadioStation != null) {
-            shareObject.getRemotePlay().playFromMediaId(latestRadioStation.getIdAsString());
+            shareObject.getRemotePlay().restoreActiveRadioStation(latestRadioStation);
         }
     }
 }

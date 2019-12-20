@@ -32,7 +32,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link MediaItemChildCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of child categories of category.
  */
@@ -54,21 +54,18 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
 
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
-                    final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isRestoreInstance()) {
-                        final String childMenuId = shareObject.getParentId()
-                                .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, "");
-                        list.addAll(
-                                shareObject.getServiceProvider().getStations(
-                                        shareObject.getDownloader(),
-                                        UrlBuilder.getStationsInCategory(
-                                                childMenuId,
-                                                getPageNumber(),
-                                                UrlBuilder.ITEMS_PER_PAGE
-                                        )
-                                )
-                        );
-                    }
+                    final String childMenuId = shareObject.getParentId()
+                            .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, "");
+                    final List<RadioStation> list = new ArrayList<>(
+                            shareObject.getServiceProvider().getStations(
+                                    shareObject.getDownloader(),
+                                    UrlBuilder.getStationsInCategory(
+                                            childMenuId,
+                                            getPageNumber(),
+                                            UrlBuilder.ITEMS_PER_PAGE
+                                    )
+                            )
+                    );
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

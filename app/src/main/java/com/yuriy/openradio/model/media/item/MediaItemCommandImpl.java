@@ -69,7 +69,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
                           @NonNull final MediaItemShareObject shareObject,
                           final List<RadioStation> list) {
         AppLogger.d(CLASS_NAME + " Loaded " + list.size() + " items");
-        if (!shareObject.isRestoreInstance() && list.isEmpty()) {
+        if (list.isEmpty()) {
 
             if (doLoadNoDataReceived()) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
@@ -94,7 +94,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
             if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
                 final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
                 if (radioStation != null) {
-                    shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                    shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
                 }
             }
             return;
@@ -127,7 +127,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
         if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
             final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

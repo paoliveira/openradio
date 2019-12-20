@@ -59,7 +59,6 @@ import com.yuriy.openradio.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.model.api.ApiServiceProvider;
 import com.yuriy.openradio.model.api.ApiServiceProviderImpl;
-import com.yuriy.openradio.model.media.MediaResourcesManager;
 import com.yuriy.openradio.model.media.item.MediaItemAllCategories;
 import com.yuriy.openradio.model.media.item.MediaItemChildCategories;
 import com.yuriy.openradio.model.media.item.MediaItemCommand;
@@ -72,7 +71,6 @@ import com.yuriy.openradio.model.media.item.MediaItemRecentlyAddedStations;
 import com.yuriy.openradio.model.media.item.MediaItemRoot;
 import com.yuriy.openradio.model.media.item.MediaItemSearchFromApp;
 import com.yuriy.openradio.model.media.item.MediaItemShareObject;
-import com.yuriy.openradio.model.media.item.MediaItemStation;
 import com.yuriy.openradio.model.net.Downloader;
 import com.yuriy.openradio.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.model.net.UrlBuilder;
@@ -323,14 +321,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private final BTConnectionReceiver mBTConnectionReceiver;
 
-    private boolean mIsRestoreInstance = false;
-
     /**
      * Track last selected Radio Station. This filed used when AA uses buffering/duration and the "Last Played"
      * Radio Station is not actually in any lists, it is single entity.
      */
     @Nullable
-    private RadioStation mLastKnownRS;
+    private RadioStation mLastKnownRS
+            ;
+    private RadioStation mRestoredRS;
 
     private ApiServiceProvider mApiServiceProvider;
 
@@ -372,11 +370,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public interface RemotePlay {
 
         /**
-         * Play from known Media Id.
+         * Play last known Radio Station.
          *
-         * @param mediaId Media Id of the Radio Station.
+         * @param radioStation The Radio Station.
          */
-        void playFromMediaId(final String mediaId);
+        void restoreActiveRadioStation(final RadioStation radioStation);
     }
 
     public interface ResultListener {
@@ -447,8 +445,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST, new MediaItemCountriesList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS, new MediaItemCountryStations());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, new MediaItemChildCategories());
-        // TODO: Still usable?
-//        mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_RADIO_STATIONS_IN_CATEGORY, new MediaItemStation());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, new MediaItemFavoritesList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, new MediaItemLocalsList());
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP, new MediaItemSearchFromApp());
@@ -506,7 +502,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
 
-//        MediaButtonReceiver.handleIntent(mSession, intent);
         sendMessage(intent);
 
         return super.onStartCommand(intent, flags, startId);
@@ -564,7 +559,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.i(CLASS_NAME + "Package name is not Android Auto");
             mIsAndroidAuto = false;
         }
-        mIsRestoreInstance = MediaResourcesManager.bundleContainsIncrementListIndex(rootHints);
         mCurrentParentId = getCurrentParentId(rootHints);
 
         return new BrowserRoot(MediaIdHelper.MEDIA_ID_ROOT, null);
@@ -608,8 +602,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             shareObject.setRadioStations(mRadioStations);
             shareObject.setIsAndroidAuto(mIsAndroidAuto);
             shareObject.isSameCatalogue(isSameCatalogue);
-            shareObject.setRestoreInstance(mIsRestoreInstance);
-            shareObject.setRemotePlay(this::handlePlayFromMediaId);
+            shareObject.setRemotePlay(this::restoreActiveRadioStation);
             shareObject.setResultListener(this::onResult);
 
             command.execute(mPlaybackStateListener, shareObject);
@@ -620,8 +613,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(getApplicationContext());
-
-        mIsRestoreInstance = false;
     }
 
     /**
@@ -1045,12 +1036,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param listener {@link RadioStationUpdateListener}
      */
     private void getCurrentPlayingRadioStationAsync(final RadioStationUpdateListener listener) {
-        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mRadioStations)) {
-            if (listener != null) {
-                listener.onComplete(null);
-            }
-            return;
-        }
+//        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mRadioStations)) {
+//            if (listener != null) {
+//                listener.onComplete(null);
+//            }
+//            return;
+//        }
         final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
             if (listener != null) {
@@ -1117,19 +1108,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (!TextUtils.equals(BUFFERING_STR, streamTitle)) {
             mCurrentStreamTitle = streamTitle;
         }
-        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mRadioStations)) {
-            AppLogger.e(
-                    CLASS_NAME + "Can't retrieve current metadata, curIndx:"
-                            + mCurrentIndexOnQueue + " queueSize:" + mRadioStations.size()
-            );
-            mState = PlaybackStateCompat.STATE_ERROR;
-            updatePlaybackState(getString(R.string.no_metadata));
-            return;
-        }
 
         final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
             AppLogger.w(CLASS_NAME + "Can not update Metadata - Radio Station is null");
+            mState = PlaybackStateCompat.STATE_ERROR;
+            updatePlaybackState(getString(R.string.no_metadata));
             return;
         }
         final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataFromRadioStation(
@@ -1169,6 +1153,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             RadioStation radioStation = QueueHelper.getRadioStationById(mCurrentMediaId, mRadioStations);
             if (radioStation == null) {
                 radioStation = mLastKnownRS;
+            }
+            if (radioStation == null) {
+                radioStation = mRestoredRS;
             }
             return radioStation;
         }
@@ -1594,6 +1581,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
                 mRadioStations, mCurrentMediaId
         );
+        AppLogger.d(CLASS_NAME + "On result from command, index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId);
+    }
+
+    private void restoreActiveRadioStation(@NonNull final RadioStation radioStation) {
+        mRestoredRS = radioStation;
+        handlePlayFromMediaId(radioStation.getIdAsString());
     }
 
     /**
@@ -1625,7 +1618,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 mRadioStations, mCurrentMediaId
         );
         if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
-            AppLogger.w(CLASS_NAME + "Skip play request, same id");
+            AppLogger.w(
+                    CLASS_NAME +
+                            "Skip play request, same index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId
+            );
             return;
         }
 

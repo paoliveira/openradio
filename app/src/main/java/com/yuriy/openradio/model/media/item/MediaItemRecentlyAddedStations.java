@@ -57,15 +57,12 @@ public final class MediaItemRecentlyAddedStations extends MediaItemCommandImpl {
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isRestoreInstance()) {
-                        list.addAll(
-                                shareObject.getServiceProvider().getStations(
-                                        shareObject.getDownloader(),
-                                        UrlBuilder.getRecentlyAddedStations()
-                                )
-                        );
-                    }
+                    final List<RadioStation> list = new ArrayList<>(
+                            shareObject.getServiceProvider().getStations(
+                                    shareObject.getDownloader(),
+                                    UrlBuilder.getRecentlyAddedStations()
+                            )
+                    );
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

@@ -94,7 +94,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
             if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
                 final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
                 if (radioStation != null) {
-                    shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                    shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
                 }
             }
 
@@ -147,7 +147,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
         if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
             final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

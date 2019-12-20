@@ -57,19 +57,16 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isRestoreInstance()) {
-                        list.addAll(
-                                shareObject.getServiceProvider().getStations(
-                                        shareObject.getDownloader(),
-                                        UrlBuilder.getStationsInCountry(
-                                                shareObject.getCountryCode(),
-                                                getPageNumber() * (UrlBuilder.ITEMS_PER_PAGE + 1),
-                                                UrlBuilder.ITEMS_PER_PAGE
-                                        )
-                                )
-                        );
-                    }
+                    final List<RadioStation> list = new ArrayList<>(
+                            shareObject.getServiceProvider().getStations(
+                                    shareObject.getDownloader(),
+                                    UrlBuilder.getStationsInCountry(
+                                            shareObject.getCountryCode(),
+                                            getPageNumber() * (UrlBuilder.ITEMS_PER_PAGE + 1),
+                                            UrlBuilder.ITEMS_PER_PAGE
+                                    )
+                            )
+                    );
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

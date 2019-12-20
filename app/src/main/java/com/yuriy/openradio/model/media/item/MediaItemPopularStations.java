@@ -58,15 +58,12 @@ public final class MediaItemPopularStations extends MediaItemCommandImpl {
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    final List<RadioStation> list = new ArrayList<>();
-                    if (!shareObject.isRestoreInstance()) {
-                        list.addAll(
-                                shareObject.getServiceProvider().getStations(
-                                        shareObject.getDownloader(),
-                                        UrlBuilder.getPopularStations()
-                                )
-                        );
-                    }
+                    final List<RadioStation> list = new ArrayList<>(
+                            shareObject.getServiceProvider().getStations(
+                                    shareObject.getDownloader(),
+                                    UrlBuilder.getPopularStations()
+                            )
+                    );
                     handleDataLoaded(playbackStateListener, shareObject, list);
                 }
         );

@@ -91,7 +91,7 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().playFromMediaId(radioStation.getIdAsString());
+                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

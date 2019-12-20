@@ -51,11 +51,6 @@ public final class MediaResourcesManager {
     private final String CLASS_NAME;
 
     /**
-     *
-     */
-    private static final String KEY_INCREMENT_LIST_KEY = "KEY_INCREMENT_LIST_KEY";
-
-    /**
      * Browses media content offered by a {@link android.service.media.MediaBrowserService}.
      */
     private MediaBrowserCompat mMediaBrowser;
@@ -225,19 +220,8 @@ public final class MediaResourcesManager {
 
     private static Bundle createRootHints(final Bundle savedInstance) {
         final Bundle bundle = new Bundle();
-        bundle.putBoolean(KEY_INCREMENT_LIST_KEY, true);
         OpenRadioService.putCurrentParentId(bundle, OpenRadioService.getCurrentParentId(savedInstance));
         return bundle;
-    }
-
-    public static boolean bundleContainsIncrementListIndex(final Bundle bundle) {
-        if (bundle == null) {
-            return false;
-        }
-        if (!bundle.containsKey(KEY_INCREMENT_LIST_KEY)) {
-            return false;
-        }
-        return bundle.getBoolean(KEY_INCREMENT_LIST_KEY, false);
     }
 
     /**
