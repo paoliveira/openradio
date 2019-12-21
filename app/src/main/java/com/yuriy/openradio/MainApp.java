@@ -21,19 +21,16 @@ import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.core.CrashlyticsCore;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.utils.AppLogger;
 import com.yuriy.openradio.utils.AppUtils;
+import com.yuriy.openradio.utils.FabricUtils;
 import com.yuriy.openradio.utils.FileUtils;
 import com.yuriy.openradio.vo.RadioStation;
 
 import java.util.List;
-
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created with Android Studio.
@@ -69,10 +66,7 @@ public final class MainApp extends Application {
                     AppLogger.setIsLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage(context);
 
-                    final CrashlyticsCore crashlyticsCore = new CrashlyticsCore.Builder()
-                            .disabled(BuildConfig.DEBUG)
-                            .build();
-                    Fabric.with(context, new Crashlytics.Builder().core(crashlyticsCore).build());
+                    FabricUtils.init(context);
 
                     correctBufferSettings(context);
                     migrateImagesToIntStorage(context);

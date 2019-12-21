@@ -1,0 +1,18 @@
+<resources>
+
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+
+    <dimen name="list_item_tv_width">150dp</dimen>
+    <dimen name="list_item_width">50dp</dimen>
+    <dimen name="list_item_padding">4dp</dimen>
+    <dimen name="margin_text_view">6dp</dimen>
+
+<!--    <dimen name="card_width">200dp</dimen>-->
+<!--    <dimen name="card_height">88dp</dimen>-->
+
+<!--    <dimen name="grid_item_width">100dp</dimen>-->
+<!--    <dimen name="grid_item_height">100dp</dimen>-->
+
+</resources>

@@ -1,1 +1,4 @@
 include ':app'
+include ':automotive'
+include ':tv'
+include ':shared'
