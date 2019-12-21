@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Open Radio</string>
+    <string name="about_exo_title">Playback is powered by:</string>
+    <string name="about_exo_text">ExoPlayer</string>
+    <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
+    <string name="app_logs_label">Application Logs</string>
+    <string name="send_logs_chooser_title">Send Logs by:</string>
+    <string name="cant_start_activity">Can not start Activity</string>
+    <string name="cant_send_logs">Can not send Logs</string>
+    <string name="about_thanks_1">This project is use the Community Radio Browser API - a service that provides a list of radio stations broadcasting their live stream on the Internet:</string>
+    <string name="about_thanks_1_title">Community Radio Browser API</string>
+    <string name="about_thanks_1_url">http://www.radio-browser.info/webservice</string>
+    <string name="about_thanks_2">Graphics are provided by:</string>
+    <string name="about_thanks_2_title">Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes</string>
+    <string name="about_thanks_2_url">http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html</string>
+    <string name="about_author">Author:</string>
+    <string name="about_author_name">Yurii Chernyshov</string>
+    <string name="about_project_home_title">Project home:</string>
+    <string name="about_project_home_desc">If you have any requests, suggestions, comments that can improve the application - please do not hesitate create an Issue in the Issues tab of the project\'s home page.</string>
+    <string name="about_playlist_title">Playlist is parsed by:</string>
+    <string name="about_playlist_name">"Java Playlist Parser" of William Seemann</string>
+    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
+    <string name="about_offline_countries_boundaries_title">Offline counties boundaries are provided by:</string>
+    <string name="about_offline_countries_boundaries_name">Tobias Zwick</string>
+    <string name="about_offline_countries_boundaries_url">https://github.com/westnordost/countryboundaries</string>
+    <string name="enable_last_known_radio_station_label">Play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
+    <string name="bt_auto_restart_descr">Resume playback when re-connected to the same Bluetooth Device</string>
     <string name="ok_label">OK</string>
     <string name="no_network_connection_toast">No network connection found</string>
     <string name="google_drive_error_when_save">Error while save Radio Stations to Google Drive</string>
@@ -37,6 +63,11 @@
     <string name="country_stations_sub_title">radio stations of the country</string>
     <string name="local_radio_stations_list_title">Locals</string>
     <string name="local_radio_stations_list_sub_title">locally added radio stations</string>
+    <string name="error_loading_media">Error Loading Media</string>
+    <string name="app_settings_title">Application Settings</string>
+    <string name="stream_buffering_label">Stream Buffering</string>
+    <string name="stream_buffering_descr">Restart playback when values are changed\nRange is %1$d - %2$d milliseconds\n(%3$d second - %4$d minutes)</string>
+    <string name="invalid_buffer_desc">Invalid value of buffer : </string>
     <string name="can_not_skip">Can not skip</string>
     <string name="no_search_results">No search results</string>
     <string name="label_previous">Previous</string>

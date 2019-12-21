@@ -20,7 +20,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -150,10 +149,11 @@ public final class SettingsTvDialog extends BaseDialogFragment {
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
-        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
-        }
+        //TODO:FIXME
+//        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
+//        if (fragmentByTag != null) {
+//            fragmentTransaction.remove(fragmentByTag);
+//        }
         fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);

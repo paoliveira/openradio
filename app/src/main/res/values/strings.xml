@@ -1,23 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Open Radio</string>
     <string name="action_about">About</string>
     <string name="label_next">Next</string>
     <string name="label_pause">Pause</string>
     <string name="skip_previous">Skip to previous</string>
     <string name="skip_next">Skip to next</string>
     <string name="play_pause">Play or Pause</string>
-    <string name="error_loading_media">Error Loading Media</string>
-    <string name="about_thanks_1">This project is use the Community Radio Browser API - a service that provides a list of radio stations broadcasting their live stream on the Internet:</string>
-    <string name="about_thanks_1_title">Community Radio Browser API</string>
-    <string name="about_thanks_1_url">http://www.radio-browser.info/webservice</string>
-    <string name="about_thanks_2">Graphics are provided by:</string>
-    <string name="about_thanks_2_title">Free Iconset: Beautiful Flat Mono Color Icons by Elegantthemes</string>
-    <string name="about_thanks_2_url">http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes.html</string>
-    <string name="about_author">Author:</string>
-    <string name="about_author_name">Yurii Chernyshov</string>
-    <string name="about_project_home_title">Project home:</string>
-    <string name="about_project_home_desc">If you have any requests, suggestions, comments that can improve the application - please do not hesitate create an Issue in the Issues tab of the project\'s home page.</string>
     <string name="close_label">Close</string>
     <string name="use_location_service_message">Location Service is disabled on the device.\nIn order to use additional features of the Open Radio (such that Radio Stations of the current location) it is necessary to enable Location Service.</string>
     <string name="location_service">Location Service</string>
@@ -46,30 +34,16 @@
     <string name="enable_logs_label">Enable Logs\n(enables application to save logs in a file)</string>
     <string name="send_logs_label">Send Logs</string>
     <string name="clear_logs_label">Clear Logs</string>
-    <string name="app_settings_title">Application Settings</string>
-    <string name="cant_start_activity">Can not start Activity</string>
-    <string name="cant_send_logs">Can not send Logs</string>
-    <string name="send_logs_chooser_title">Send Logs by:</string>
     <string name="can_not_open_file">Can not open File</string>
     <string name="storage_permission_not_granted">Storage permission not granted</string>
-    <string name="about_exo_title">Playback is powered by:</string>
-    <string name="about_exo_text">ExoPlayer</string>
-    <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
     <string name="sort_radio_stations_menu_label">Sort Radio Stations</string>
     <string name="delete_station_menu_label">Delete Radio Station</string>
     <string name="feature_sort_title">Sort Radio Stations</string>
     <string name="feature_sort_text">To do Radio Stations sort:\n\n- long press any Radio Station\n- select \"Sort Radio Stations\"\n- drag and drop Radio Station to sort them in desired order\n- press \"Back\" button to return to normal mode</string>
-    <string name="enable_last_known_radio_station_label">Play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
     <string name="download">Download</string>
     <string name="custom_user_agent_label">Custom User Agent</string>
     <string name="custom_user_agent_hint">Custom User Agent empty</string>
     <string name="add_to_fav_string">Add to Favorites</string>
-    <string name="about_playlist_title">Playlist is parsed by:</string>
-    <string name="about_playlist_name">"Java Playlist Parser" of William Seemann</string>
-    <string name="about_playlist_url">https://github.com/wseemann/JavaPlaylistParser</string>
-    <string name="about_offline_countries_boundaries_title">Offline counties boundaries are provided by:</string>
-    <string name="about_offline_countries_boundaries_name">Tobias Zwick</string>
-    <string name="about_offline_countries_boundaries_url">https://github.com/westnordost/countryboundaries</string>
     <string name="settings_master_volume">Master sound volume:</string>
     <string name="edit_station_menu_label">Edit Radio Station</string>
     <string name="edit_station_dialog_title">Edit Radio Station</string>
@@ -82,11 +56,7 @@
     <string name="playback_buffer_description">Duration of media that must be buffered for playback to start or resume, in milliseconds</string>
     <string name="playback_buffer_after_rebuffer_description">Duration of media that must be buffered for playback to resume after a re-buffer, in milliseconds</string>
     <string name="app_logs_label">Application Logs</string>
-    <string name="stream_buffering_label">Stream Buffering</string>
     <string name="restore_default">Restore Default</string>
-    <string name="stream_buffering_descr">Restart playback when values are changed\nRange is %1$d - %2$d milliseconds\n(%3$d second - %4$d minutes)</string>
-    <string name="bt_auto_restart_descr">Resume playback when re-connected to the same Bluetooth Device</string>
     <string name="no_location_setting_desc">Can not find Location Settings</string>
-    <string name="invalid_buffer_desc">Invalid value of buffer : </string>
     <string name="tv_header_menu_radio_stations">Radio Stations</string>
 </resources>
