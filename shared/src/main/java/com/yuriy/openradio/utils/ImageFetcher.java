@@ -21,7 +21,6 @@ import android.graphics.Bitmap;
 
 import androidx.annotation.NonNull;
 
-import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.broadcast.ConnectivityReceiver;
 
 import java.io.BufferedInputStream;
@@ -81,9 +80,7 @@ public class ImageFetcher extends ImageResizer {
             if (ImageCache.getUsableSpace(mHttpCacheDir) > HTTP_CACHE_SIZE) {
                 try {
                     mHttpDiskCache = DiskLruCache.open(mHttpCacheDir, 1, 1, HTTP_CACHE_SIZE);
-                    if (BuildConfig.DEBUG) {
-                        AppLogger.d(TAG + " HTTP cache initialized");
-                    }
+                    AppLogger.d(TAG + " HTTP cache initialized");
                 } catch (IOException e) {
                     mHttpDiskCache = null;
                 }
@@ -100,9 +97,7 @@ public class ImageFetcher extends ImageResizer {
             if (mHttpDiskCache != null && !mHttpDiskCache.isClosed()) {
                 try {
                     mHttpDiskCache.delete();
-                    if (BuildConfig.DEBUG) {
-                        AppLogger.d(TAG + " HTTP cache cleared");
-                    }
+                    AppLogger.d(TAG + " HTTP cache cleared");
                 } catch (IOException e) {
                     FabricUtils.logException(e);
                 }
@@ -120,9 +115,7 @@ public class ImageFetcher extends ImageResizer {
             if (mHttpDiskCache != null) {
                 try {
                     mHttpDiskCache.flush();
-                    if (BuildConfig.DEBUG) {
-                        AppLogger.d(TAG + " HTTP cache flushed");
-                    }
+                    AppLogger.d(TAG + " HTTP cache flushed");
                 } catch (IOException e) {
                     FabricUtils.logException(e);
                 }
@@ -139,9 +132,7 @@ public class ImageFetcher extends ImageResizer {
                     if (!mHttpDiskCache.isClosed()) {
                         mHttpDiskCache.close();
                         mHttpDiskCache = null;
-                        if (BuildConfig.DEBUG) {
-                            AppLogger.d(TAG + " HTTP cache closed");
-                        }
+                        AppLogger.d(TAG + " HTTP cache closed");
                     }
                 } catch (IOException e) {
                     FabricUtils.logException(e);
@@ -158,9 +149,7 @@ public class ImageFetcher extends ImageResizer {
      * @return The downloaded and resized bitmap
      */
     private Bitmap processBitmap(final Context context, final String data) {
-        if (BuildConfig.DEBUG) {
-            AppLogger.d(TAG + " processBitmap - " + data);
-        }
+        AppLogger.d(TAG + " processBitmap - " + data);
 
         final String key = ImageCache.hashKeyForDisk(data);
         FileDescriptor fileDescriptor = null;
@@ -180,9 +169,7 @@ public class ImageFetcher extends ImageResizer {
                 try {
                     snapshot = mHttpDiskCache.get(key);
                     if (snapshot == null) {
-                        if (BuildConfig.DEBUG) {
-                            AppLogger.d(TAG + " processBitmap, not found in http cache, downloading...");
-                        }
+                        AppLogger.d(TAG + " processBitmap, not found in http cache, downloading...");
                         DiskLruCache.Editor editor = mHttpDiskCache.edit(key);
                         if (editor != null) {
                             if (downloadUrlToStream(context, data, editor.newOutputStream(DISK_CACHE_INDEX))) {

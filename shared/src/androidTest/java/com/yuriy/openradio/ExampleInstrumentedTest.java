@@ -22,6 +22,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.yurii.openradio.test", appContext.getPackageName());
+        assertEquals("com.yuriy.openradio.test", appContext.getPackageName());
     }
 }

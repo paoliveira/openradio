@@ -31,8 +31,6 @@ import androidx.collection.LruCache;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
-import com.yuriy.openradio.BuildConfig;
-
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
@@ -130,9 +128,7 @@ public class ImageCache {
         //BEGIN_INCLUDE(init_memory_cache)
         // Set up memory cache
         if (mCacheParams.memoryCacheEnabled) {
-            if (BuildConfig.DEBUG) {
-                AppLogger.d(TAG + " Memory cache created (size = " + mCacheParams.memCacheSize + ")");
-            }
+            AppLogger.d(TAG + " Memory cache created (size = " + mCacheParams.memCacheSize + ")");
 
             // If we're running on Honeycomb or newer, create a set of reusable bitmaps that can be
             // populated into the inBitmap field of BitmapFactory.Options. Note that the set is
@@ -207,9 +203,7 @@ public class ImageCache {
                         try {
                             mDiskLruCache = DiskLruCache.open(
                                     diskCacheDir, 1, 1, mCacheParams.diskCacheSize);
-                            if (BuildConfig.DEBUG) {
-                                AppLogger.d(TAG + " Disk cache initialized");
-                            }
+                            AppLogger.d(TAG + " Disk cache initialized");
                         } catch (final IOException e) {
                             mCacheParams.diskCacheDir = null;
                             FabricUtils.logException(e);
@@ -290,9 +284,7 @@ public class ImageCache {
             memValue = mMemoryCache.get(data);
         }
 
-        if (BuildConfig.DEBUG && memValue != null) {
-            AppLogger.d(TAG + " Memory cache hit");
-        }
+        AppLogger.d(TAG + " Memory cache hit");
 
         return memValue;
         //END_INCLUDE(get_bitmap_from_mem_cache)
@@ -320,9 +312,7 @@ public class ImageCache {
                 try {
                     final DiskLruCache.Snapshot snapshot = mDiskLruCache.get(key);
                     if (snapshot != null) {
-                        if (BuildConfig.DEBUG) {
-                            AppLogger.d(TAG + " Disk cache hit");
-                        }
+                        AppLogger.d(TAG + " Disk cache hit");
                         inputStream = snapshot.getInputStream(DISK_CACHE_INDEX);
                         if (inputStream != null) {
                             FileDescriptor fd = ((FileInputStream) inputStream).getFD();
@@ -392,9 +382,7 @@ public class ImageCache {
     public void clearCache() {
         if (mMemoryCache != null) {
             mMemoryCache.evictAll();
-            if (BuildConfig.DEBUG) {
-                AppLogger.d(TAG + " Memory cache cleared");
-            }
+            AppLogger.d(TAG + " Memory cache cleared");
         }
 
         synchronized (mDiskCacheLock) {
@@ -402,9 +390,7 @@ public class ImageCache {
             if (mDiskLruCache != null && !mDiskLruCache.isClosed()) {
                 try {
                     mDiskLruCache.delete();
-                    if (BuildConfig.DEBUG) {
-                        AppLogger.d(TAG + " Disk cache cleared");
-                    }
+                    AppLogger.d(TAG + " Disk cache cleared");
                 } catch (IOException e) {
                     FabricUtils.logException(e);
                 }
@@ -423,9 +409,7 @@ public class ImageCache {
             if (mDiskLruCache != null) {
                 try {
                     mDiskLruCache.flush();
-                    if (BuildConfig.DEBUG) {
-                        AppLogger.d(TAG + " Disk cache flushed");
-                    }
+                    AppLogger.d(TAG + " Disk cache flushed");
                 } catch (IOException e) {
                     FabricUtils.logException(e);
                 }
@@ -444,9 +428,7 @@ public class ImageCache {
                     if (!mDiskLruCache.isClosed()) {
                         mDiskLruCache.close();
                         mDiskLruCache = null;
-                        if (BuildConfig.DEBUG) {
-                            AppLogger.d(TAG + " Disk cache closed");
-                        }
+                        AppLogger.d(TAG + " Disk cache closed");
                     }
                 } catch (IOException e) {
                     FabricUtils.logException(e);

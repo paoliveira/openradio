@@ -31,9 +31,6 @@
     <string name="add_station_genre_label">Genre:</string>
     <string name="add_station_country_label">Country:</string>
     <string name="ellipsis">…</string>
-    <string name="enable_logs_label">Enable Logs\n(enables application to save logs in a file)</string>
-    <string name="send_logs_label">Send Logs</string>
-    <string name="clear_logs_label">Clear Logs</string>
     <string name="can_not_open_file">Can not open File</string>
     <string name="storage_permission_not_granted">Storage permission not granted</string>
     <string name="sort_radio_stations_menu_label">Sort Radio Stations</string>
@@ -41,22 +38,13 @@
     <string name="feature_sort_title">Sort Radio Stations</string>
     <string name="feature_sort_text">To do Radio Stations sort:\n\n- long press any Radio Station\n- select \"Sort Radio Stations\"\n- drag and drop Radio Station to sort them in desired order\n- press \"Back\" button to return to normal mode</string>
     <string name="download">Download</string>
-    <string name="custom_user_agent_label">Custom User Agent</string>
-    <string name="custom_user_agent_hint">Custom User Agent empty</string>
     <string name="add_to_fav_string">Add to Favorites</string>
-    <string name="settings_master_volume">Master sound volume:</string>
     <string name="edit_station_menu_label">Edit Radio Station</string>
     <string name="edit_station_dialog_title">Edit Radio Station</string>
     <string name="edit_station_dialog_button_label">Edit</string>
     <string name="can_not_edit_station_label">Can not edit Radio Station</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="min_buff_description">Minimum duration of media that the player will attempt to ensure is buffered at all times, in milliseconds</string>
-    <string name="max_buffer_description">Maximum duration of media that the player will attempt to buffer, in milliseconds</string>
-    <string name="playback_buffer_description">Duration of media that must be buffered for playback to start or resume, in milliseconds</string>
-    <string name="playback_buffer_after_rebuffer_description">Duration of media that must be buffered for playback to resume after a re-buffer, in milliseconds</string>
-    <string name="app_logs_label">Application Logs</string>
-    <string name="restore_default">Restore Default</string>
     <string name="no_location_setting_desc">Can not find Location Settings</string>
     <string name="tv_header_menu_radio_stations">Radio Stations</string>
 </resources>

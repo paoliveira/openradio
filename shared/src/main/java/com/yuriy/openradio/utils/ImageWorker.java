@@ -33,8 +33,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
-import com.yuriy.openradio.BuildConfig;
-
 import java.lang.ref.WeakReference;
 
 /**
@@ -241,10 +239,8 @@ public abstract class ImageWorker {
         final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
         if (bitmapWorkerTask != null) {
             bitmapWorkerTask.cancel(true);
-            if (BuildConfig.DEBUG) {
-                final Object bitmapData = bitmapWorkerTask.mData;
-                AppLogger.d(TAG + " cancelWork - cancelled work for " + bitmapData);
-            }
+            final Object bitmapData = bitmapWorkerTask.mData;
+            AppLogger.d(TAG + " cancelWork - cancelled work for " + bitmapData);
         }
     }
 
@@ -262,9 +258,7 @@ public abstract class ImageWorker {
             final Object bitmapData = bitmapWorkerTask.mData;
             if (bitmapData == null || !bitmapData.equals(data)) {
                 bitmapWorkerTask.cancel(true);
-                if (BuildConfig.DEBUG) {
-                    AppLogger.d(TAG + " cancelPotentialWork - cancelled work for " + data);
-                }
+                AppLogger.d(TAG + " cancelPotentialWork - cancelled work for " + data);
             } else {
                 // The same work is already in progress.
                 return false;
@@ -321,9 +315,7 @@ public abstract class ImageWorker {
         @Override
         protected BitmapDrawable doInBackground(final Void... params) {
             //BEGIN_INCLUDE(load_bitmap_in_background)
-            if (BuildConfig.DEBUG) {
-                AppLogger.d(TAG + " doInBackground - starting work");
-            }
+            AppLogger.d(TAG + " doInBackground - starting work");
 
             final String dataString = String.valueOf(mData);
             Bitmap bitmap = null;
@@ -376,9 +368,7 @@ public abstract class ImageWorker {
                 }
             }
 
-            if (BuildConfig.DEBUG) {
-                AppLogger.d(TAG + " doInBackground - finished work");
-            }
+            AppLogger.d(TAG + " doInBackground - finished work");
 
             return drawable;
             //END_INCLUDE(load_bitmap_in_background)
@@ -402,9 +392,7 @@ public abstract class ImageWorker {
 
             final ImageView imageView = getAttachedImageView();
             if (value != null && imageView != null) {
-                if (BuildConfig.DEBUG) {
-                    AppLogger.d(TAG + " onPostExecute - setting bitmap");
-                }
+                AppLogger.d(TAG + " onPostExecute - setting bitmap");
                 reference.setImageDrawable(imageView, value);
                 if (mListener != null && mListener.get() != null) {
                     mListener.get().onComplete(value);
