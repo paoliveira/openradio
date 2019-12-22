@@ -22,13 +22,13 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
-import com.yuriy.openradio.model.storage.AppPreferencesManager;
-import com.yuriy.openradio.model.storage.LocalRadioStationsStorage;
-import com.yuriy.openradio.utils.AppLogger;
-import com.yuriy.openradio.utils.AppUtils;
-import com.yuriy.openradio.utils.FabricUtils;
-import com.yuriy.openradio.utils.FileUtils;
-import com.yuriy.openradio.vo.RadioStation;
+import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.FabricUtils;
+import com.yuriy.openradio.shared.utils.FileUtils;
+import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.List;
 

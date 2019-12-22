@@ -18,7 +18,7 @@ package wseemann.media.jplaylistparser.parser.xspf;
 
 import android.util.Log;
 
-import com.yuriy.openradio.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppLogger;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
