@@ -30,7 +30,7 @@
 
     <fragment
         android:id="@+id/main_tv_fragment"
-        android:name="com.yuriy.openradio.shared.view.fragment.MainTvFragment"
+        android:name="com.yuriy.openradio.view.fragment.MainTvFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
