@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 apply plugin: 'io.fabric'
-apply from: '../constants.gradle'
+apply from: '../shared/constants.gradle'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
 
     def versionPropsFile = file('version.properties')
     def code = 1
@@ -31,6 +31,18 @@ android {
         throw new GradleException("Could not read sign.properties !")
     }
 
+    final def crashlyticsApiKeyFile = file('../shared/crashlytics.properties')
+    if (crashlyticsApiKeyFile.canRead()) {
+        final Properties properties = new Properties()
+        properties.load(new FileInputStream(crashlyticsApiKeyFile))
+        def apiKey = properties['apiKey'].toString()
+        println "Crashlytics API key " + apiKey
+
+        project.ext.apiKey = apiKey
+    } else {
+        throw new GradleException("Could not read crashlytics.properties !")
+    }
+
     signingConfigs {
         config {
             keyAlias aliasProp
@@ -43,21 +55,11 @@ android {
     defaultConfig {
         applicationId "com.yuriy.openradio"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdkVersion project.ext.targetSdkVersion
         versionCode code
         versionName project.ext.versionName
 
-        final def crashlyticsApiKeyFile = file('../shared/crashlytics.properties')
-        if (crashlyticsApiKeyFile.canRead()) {
-            final Properties properties = new Properties()
-            properties.load(new FileInputStream(crashlyticsApiKeyFile))
-            def apiKey = properties['apiKey'].toString()
-            println "Crashlytics API key " + apiKey
-
-            manifestPlaceholders = [crashlytics_api_key: apiKey]
-        } else {
-            throw new GradleException("Could not read crashlytics.properties !")
-        }
+        manifestPlaceholders = [crashlytics_api_key: project.ext.apiKey]
     }
 
     buildTypes {
@@ -77,27 +79,32 @@ android {
     }
 }
 
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        def requested = details.requested
-        if (requested.group == "com.android.support") {
-            if (!requested.name.startsWith("multidex")) {
-                details.useVersion "28.+"
-            }
-        }
-        if (requested.group == "androidx") {
-            if (!requested.name.startsWith("multidex")) {
-                details.useVersion "${targetSdk}.+"
-            }
-        }
-    }
-}
-
 dependencies {
     implementation project(':shared')
     implementation "androidx.leanback:leanback:1.0.0"
     implementation "com.google.android.material:material:$materialVersion"
     implementation("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
         transitive = true
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == "signReleaseBundle") {
+        task.doLast() {
+            println "Get And Increment Version code"
+
+            def versionPropsFile = file('version.properties')
+            if (versionPropsFile.canRead()) {
+                Properties versionProps = new Properties()
+                versionProps.load(new FileInputStream(versionPropsFile))
+                def code = versionProps['VERSION_CODE'].toInteger() + 1
+                versionProps['VERSION_CODE'] = code.toString()
+                versionProps.store(versionPropsFile.newWriter(), null)
+
+                println "Version code incremented to " + code
+            } else {
+                throw new GradleException("Could not read version.properties !")
+            }
+        }
     }
 }

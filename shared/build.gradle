@@ -1,5 +1,5 @@
 apply plugin: 'com.android.library'
-apply from: '../constants.gradle'
+apply from: '../shared/constants.gradle'
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
@@ -26,6 +26,22 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == "com.android.support") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "28.+"
+            }
+        }
+        if (requested.group == "androidx") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "${targetSdk}.+"
+            }
+        }
+    }
+}
+
 dependencies {
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
     implementation "com.android.support:support-v4:$supportVersion"
@@ -43,9 +59,4 @@ dependencies {
 
     compileOnly 'org.checkerframework:checker-compat-qual:2.5.3'
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
-
-    testImplementation 'junit:junit:4.12'
-
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
