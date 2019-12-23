@@ -44,8 +44,20 @@ android {
         applicationId "com.yuriy.openradio"
         minSdkVersion 21
         targetSdkVersion 29
-        versionCode 190
+        versionCode code
         versionName project.ext.versionName
+
+        final def crashlyticsApiKeyFile = file('../shared/crashlytics.properties')
+        if (crashlyticsApiKeyFile.canRead()) {
+            final Properties properties = new Properties()
+            properties.load(new FileInputStream(crashlyticsApiKeyFile))
+            def apiKey = properties['apiKey'].toString()
+            println "Crashlytics API key " + apiKey
+
+            manifestPlaceholders = [crashlytics_api_key: apiKey]
+        } else {
+            throw new GradleException("Could not read crashlytics.properties !")
+        }
     }
 
     buildTypes {

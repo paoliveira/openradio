@@ -85,4 +85,5 @@
     <string name="label_next">Next</string>
     <string name="label_pause">Pause</string>
     <string name="label_play">Play</string>
+    <string name="search_label">Search</string>
 </resources>

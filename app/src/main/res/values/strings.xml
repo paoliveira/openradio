@@ -11,7 +11,6 @@
     <string name="location_service">Location Service</string>
     <string name="enable_location_service_btn_label">Enable Location Service</string>
     <string name="content_description_category_icon">Category Icon</string>
-    <string name="search_label">Search</string>
     <string name="search_description">Type the word that you want to use as the search pattern</string>
     <string name="add_station_dialog_title">Add Radio Station</string>
     <string name="add_station_dialog_button_label">Add</string>
