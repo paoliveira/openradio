@@ -4,5 +4,3 @@
 /app/release/output.json
 /local.properties
 *.iml
-.DS_Store
-sign.properties
