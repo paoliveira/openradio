@@ -1,9 +1,44 @@
 apply plugin: 'com.android.application'
+apply plugin: 'io.fabric'
 apply from: '../constants.gradle'
 
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
+
+    def versionPropsFile = file('version.properties')
+    def code = 1
+    if (versionPropsFile.canRead()) {
+        Properties versionProps = new Properties()
+        versionProps.load(new FileInputStream(versionPropsFile))
+        code = versionProps['VERSION_CODE'].toInteger()
+    } else {
+        throw new GradleException("Could not read version.properties !")
+    }
+    println "Version code:" + code
+
+    def signConfFile = file("../shared/sign.properties")
+    def storeFileProp
+    def aliasProp
+    def pwdProp
+    if (signConfFile.canRead()) {
+        Properties signProps = new Properties()
+        signProps.load(new FileInputStream(signConfFile))
+        storeFileProp = signProps['file'].toString()
+        aliasProp = signProps['alias'].toString()
+        pwdProp = signProps['pwd'].toString()
+    } else {
+        throw new GradleException("Could not read sign.properties !")
+    }
+
+    signingConfigs {
+        config {
+            keyAlias aliasProp
+            keyPassword pwdProp
+            storeFile file(storeFileProp)
+            storePassword pwdProp
+        }
+    }
 
     defaultConfig {
         applicationId "com.yuriy.openradio"
@@ -14,9 +49,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.config
+        }
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+//            minifyEnabled false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
@@ -26,8 +65,27 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        def requested = details.requested
+        if (requested.group == "com.android.support") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "28.+"
+            }
+        }
+        if (requested.group == "androidx") {
+            if (!requested.name.startsWith("multidex")) {
+                details.useVersion "${targetSdk}.+"
+            }
+        }
+    }
+}
+
 dependencies {
     implementation project(':shared')
     implementation "androidx.leanback:leanback:1.0.0"
     implementation "com.google.android.material:material:$materialVersion"
+    implementation("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
+        transitive = true
+    }
 }

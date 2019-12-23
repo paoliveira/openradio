@@ -17,7 +17,7 @@ android {
     }
     println "Version code:" + code
 
-    def signConfFile = file("sign.properties")
+    def signConfFile = file("../shared/sign.properties")
     def storeFileProp
     def aliasProp
     def pwdProp
@@ -47,18 +47,6 @@ android {
         versionCode code
         versionName project.ext.versionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        final def crashlyticsApiKeyFile = file('crashlytics.properties')
-        if (crashlyticsApiKeyFile.canRead()) {
-            final Properties properties = new Properties()
-            properties.load(new FileInputStream(crashlyticsApiKeyFile))
-            def apiKey = properties['apiKey'].toString()
-            println "Crashlytics API key " + apiKey
-
-            manifestPlaceholders = [crashlytics_api_key: apiKey]
-        } else {
-            throw new GradleException("Could not read crashlytics.properties !")
-        }
     }
 
     compileOptions {
