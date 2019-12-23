@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
 apply from: '../shared/constants.gradle'
 
 android {
@@ -16,6 +15,8 @@ android {
         throw new GradleException("Could not read version.properties !")
     }
     println "Version code:" + code
+
+    // TODO: Move these two file readers to shared lib
 
     def signConfFile = file("../shared/sign.properties")
     def storeFileProp

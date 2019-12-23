@@ -29,6 +29,27 @@
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
 
+        <meta-data
+            android:name="com.crashlytics.ApiKey"
+            android:value="${crashlytics_api_key}" />
+
+        <service
+            android:name=".shared.service.OpenRadioService"
+            android:exported="true"
+            android:stopWithTask="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
+
+        <service android:name=".shared.service.LocationService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="false"/>
 
     </application>
 
