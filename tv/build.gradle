@@ -16,40 +16,12 @@ android {
     }
     println "Version code:" + code
 
-    // TODO: Move these two file readers to shared lib
-
-    def signConfFile = file("../shared/sign.properties")
-    def storeFileProp
-    def aliasProp
-    def pwdProp
-    if (signConfFile.canRead()) {
-        Properties signProps = new Properties()
-        signProps.load(new FileInputStream(signConfFile))
-        storeFileProp = signProps['file'].toString()
-        aliasProp = signProps['alias'].toString()
-        pwdProp = signProps['pwd'].toString()
-    } else {
-        throw new GradleException("Could not read sign.properties !")
-    }
-
-    final def crashlyticsApiKeyFile = file('../shared/crashlytics.properties')
-    if (crashlyticsApiKeyFile.canRead()) {
-        final Properties properties = new Properties()
-        properties.load(new FileInputStream(crashlyticsApiKeyFile))
-        def apiKey = properties['apiKey'].toString()
-        println "Crashlytics API key " + apiKey
-
-        project.ext.apiKey = apiKey
-    } else {
-        throw new GradleException("Could not read crashlytics.properties !")
-    }
-
     signingConfigs {
         config {
-            keyAlias aliasProp
-            keyPassword pwdProp
-            storeFile file(storeFileProp)
-            storePassword pwdProp
+            keyAlias project.ext.aliasProp
+            keyPassword project.ext.pwdProp
+            storeFile file(project.ext.storeFileProp)
+            storePassword project.ext.pwdProp
         }
     }
 

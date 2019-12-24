@@ -38,4 +38,38 @@ project.ext {
      */
     apiKey = ""
     crashlyticsVersion = "2.10.1"
+
+    /**
+     * Sign
+     */
+    storeFileProp = ""
+    aliasProp = ""
+    pwdProp = ""
+
+    /**
+     * Load constants from files
+     */
+
+    def signConfFile = file("../shared/sign.properties")
+    if (signConfFile.canRead()) {
+        Properties signProps = new Properties()
+        signProps.load(new FileInputStream(signConfFile))
+        project.ext.storeFileProp = signProps['file'].toString()
+        project.ext.aliasProp = signProps['alias'].toString()
+        project.ext.pwdProp = signProps['pwd'].toString()
+    } else {
+        throw new GradleException("Could not read sign.properties !")
+    }
+
+    final def crashlyticsApiKeyFile = file('../shared/crashlytics.properties')
+    if (crashlyticsApiKeyFile.canRead()) {
+        final Properties properties = new Properties()
+        properties.load(new FileInputStream(crashlyticsApiKeyFile))
+        def apiKey = properties['apiKey'].toString()
+        println "Crashlytics API key " + apiKey
+
+        project.ext.apiKey = apiKey
+    } else {
+        throw new GradleException("Could not read crashlytics.properties !")
+    }
 }
