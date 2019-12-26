@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.media.item;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
@@ -29,6 +30,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.BitmapsOverlay;
 import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
@@ -108,6 +110,8 @@ public final class MediaItemCountriesList implements MediaItemCommand {
         final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
         Bitmap bitmap;
         int identifier;
+        Uri uri;
+        MediaDescriptionCompat.Builder builder;
 
         for (final Country country : list) {
 
@@ -117,28 +121,39 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                 continue;
             }
 
-            identifier = shareObject.getContext().getResources().getIdentifier(
-                    "flag_" + country.getCode().toLowerCase(),
-                    "drawable", shareObject.getContext().getPackageName()
-            );
+            builder = new MediaDescriptionCompat.Builder()
+                    .setMediaId(
+                            MediaIdHelper.MEDIA_ID_COUNTRIES_LIST + country.getCode()
+                    )
+                    .setTitle(country.getName())
+                    .setSubtitle(country.getCode());
 
-            bitmap = flagLoader.execute(shareObject.getContext(), identifier,
-                    BitmapFactory.decodeResource(
-                            shareObject.getContext().getResources(),
-                            R.drawable.ic_child_categories
+            if (shareObject.isAndroidAuto()) {
+                uri = Uri.parse(AppUtils.DRAWABLE_PATH + "flag_" + country.getCode().toLowerCase());
+
+                builder.setIconUri(uri);
+            } else {
+                identifier = shareObject.getContext().getResources().getIdentifier(
+                        "flag_" + country.getCode().toLowerCase(),
+                        "drawable", shareObject.getContext().getPackageName()
+                );
+
+                bitmap = flagLoader.execute(shareObject.getContext(), identifier,
+                        BitmapFactory.decodeResource(
+                                shareObject.getContext().getResources(),
+                                R.drawable.ic_child_categories
+                        )
+                );
+
+                builder.setIconBitmap(bitmap);
+            }
+
+            shareObject.getMediaItems().add(
+                    new MediaBrowserCompat.MediaItem(
+                            builder.build(),
+                            MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )
             );
-
-            shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(
-                                    MediaIdHelper.MEDIA_ID_COUNTRIES_LIST + country.getCode()
-                            )
-                            .setTitle(country.getName())
-                            .setIconBitmap(bitmap)
-                            .setSubtitle(country.getCode())
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
         }
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());

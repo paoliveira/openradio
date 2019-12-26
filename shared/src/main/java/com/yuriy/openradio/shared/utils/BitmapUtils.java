@@ -189,7 +189,7 @@ public final class BitmapUtils {
      */
     private static Bitmap overlay(final Bitmap bitmap_A, final Bitmap bitmap_B) {
         final Bitmap bitmap = Bitmap.createBitmap(
-                bitmap_A.getWidth(), bitmap_A.getHeight(), bitmap_A.getConfig()
+                bitmap_A.getWidth(), bitmap_A.getHeight(), Bitmap.Config.ARGB_8888
         );
         final Canvas canvas = new Canvas(bitmap);
         canvas.drawBitmap(bitmap_A, new Matrix(), null);

@@ -20,7 +20,7 @@
 
     <!-- requestLegacyExternalStorage="true" - need for Android 10 -->
     <application
-        android:name=".MainApp"
+        android:name=".shared.MainApp"
         android:allowBackup="true"
         android:fullBackupContent="true"
         android:icon="@drawable/ic_launcher"

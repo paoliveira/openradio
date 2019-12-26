@@ -82,6 +82,7 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.shared.notification.MediaNotification;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.FabricUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
@@ -118,8 +119,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         implements AudioManager.OnAudioFocusChangeListener {
 
     private static final String CLASS_NAME = "ORS ";
-
-    private static final String ANDROID_AUTO_PACKAGE_NAME = "com.google.android.projection.gearhead";
 
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
 
@@ -549,7 +548,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     + clientPackageName);
             return null;
         }
-        if (ANDROID_AUTO_PACKAGE_NAME.equals(clientPackageName)) {
+        if (AppUtils.isAutomotive(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
             // it.

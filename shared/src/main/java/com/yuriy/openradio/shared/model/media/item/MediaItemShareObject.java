@@ -265,7 +265,7 @@ public final class MediaItemShareObject {
      *
      * @param value
      */
-    public void setIsAndroidAuto(boolean value) {
+    public void setIsAndroidAuto(final boolean value) {
         mIsAndroidAuto = value;
     }
 

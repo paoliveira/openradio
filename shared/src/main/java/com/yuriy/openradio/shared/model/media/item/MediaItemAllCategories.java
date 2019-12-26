@@ -27,6 +27,7 @@ import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.vo.Category;
@@ -94,8 +95,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
             return;
         }
 
-        final String iconUrl = "android.resource://" +
-                shareObject.getContext().getPackageName() + "/drawable/ic_child_categories";
+        final String iconUrl = AppUtils.DRAWABLE_PATH +  "ic_child_categories";
 
         for (final Category category : list) {
             shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(

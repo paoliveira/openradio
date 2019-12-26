@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.BitmapsOverlay;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
@@ -68,9 +69,13 @@ public final class MediaItemRoot implements MediaItemCommand {
 
         shareObject.getResult().detach();
 
-        final String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/ic_all_categories";
+        final Bitmap iconBitmap = BitmapFactory.decodeResource(
+                context.getResources(),
+                R.drawable.ic_all_categories
+        );
         final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
+
+        // TODO: Refactor these to factory.
 
         // Get lat known Radio Station.
         // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
@@ -103,70 +108,94 @@ public final class MediaItemRoot implements MediaItemCommand {
         // Show Favorites if they are exists.
         if (!FavoritesStorage.isFavoritesEmpty(context)) {
             // Favorites list
+            final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
+                    .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
+                    .setTitle(context.getString(R.string.favorites_list_title))
+                    .setSubtitle(context.getString(R.string.favorites_list_sub_title));
+            if (shareObject.isAndroidAuto()) {
+                builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_stars_black_24dp"));
+            } else {
+                final int identifier = context.getResources().getIdentifier(
+                        "ic_favorites_on",
+                        "drawable", context.getPackageName()
+                );
+                // Overlay base image with the appropriate flag
+                final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
+                final Bitmap bitmap = overlay.execute(context, identifier,
+                        BitmapFactory.decodeResource(
+                                context.getResources(),
+                                R.drawable.ic_all_categories
+                        ));
+                builder.setIconBitmap(bitmap);
+            }
 
-            final int identifier = context.getResources().getIdentifier(
-                    "ic_favorites_on",
-                    "drawable", context.getPackageName()
-            );
-            // Overlay base image with the appropriate flag
-            final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-            final Bitmap bitmap = overlay.execute(context, identifier,
-                    BitmapFactory.decodeResource(
-                            context.getResources(),
-                            R.drawable.ic_all_categories
-                    ));
             mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
-                            .setTitle(context.getString(R.string.favorites_list_title))
-                            .setIconBitmap(bitmap)
-                            .setSubtitle(context.getString(R.string.favorites_list_sub_title))
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 
         // Recently added Radio Stations
-        mediaItems.add(new MediaBrowserCompat.MediaItem(
-                new MediaDescriptionCompat.Builder()
-                        .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
-                        .setTitle(context.getString(R.string.recent_added_stations_title))
-                        .setIconUri(Uri.parse(iconUrl))
-                        .setSubtitle(context.getString(R.string.recent_added_stations_sub_title))
-                        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-        ));
+        {
+            final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
+                    .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
+                    .setTitle(context.getString(R.string.recent_added_stations_title))
+                    .setSubtitle(context.getString(R.string.recent_added_stations_sub_title));
+
+            if (shareObject.isAndroidAuto()) {
+                builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_fiber_new_black_24dp"));
+            } else {
+                builder.setIconBitmap(iconBitmap);
+            }
+
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+            ));
+        }
 
         // Popular Radio Stations
-        mediaItems.add(new MediaBrowserCompat.MediaItem(
-                new MediaDescriptionCompat.Builder()
-                        .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
-                        .setTitle(context.getString(R.string.popular_stations_title))
-                        .setIconUri(Uri.parse(iconUrl))
-                        .setSubtitle(context.getString(R.string.popular_stations_sub_title))
-                        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-        ));
+        {
+            final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
+                    .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
+                    .setTitle(context.getString(R.string.popular_stations_title))
+                    .setSubtitle(context.getString(R.string.popular_stations_sub_title));
 
-        // Do not show list of Worldwide Stations and all Countries for the Auto version
+            if (shareObject.isAndroidAuto()) {
+                builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_trending_up_black_24dp"));
+            } else {
+                builder.setIconBitmap(iconBitmap);
+            }
+
+            mediaItems.add(new MediaBrowserCompat.MediaItem(
+                    builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+            ));
+        }
+
+        // Do not show list of Worldwide Stations for the Auto version
         if (!shareObject.isAndroidAuto()) {
             // Worldwide Stations
             mediaItems.add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
                             .setTitle(context.getString(R.string.all_categories_title))
-                            .setIconUri(Uri.parse(iconUrl))
+                            .setIconBitmap(iconBitmap)
                             .setSubtitle(context.getString(R.string.all_categories_sub_title))
                             .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
-
-            // All countries list
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
-                            .setTitle(context.getString(R.string.countries_list_title))
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(context.getString(R.string.country_stations_sub_title))
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
         }
+
+        // All countries list
+        final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
+                .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
+                .setTitle(context.getString(R.string.countries_list_title))
+                .setSubtitle(context.getString(R.string.country_stations_sub_title));
+        if (shareObject.isAndroidAuto()) {
+            builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp"));
+        } else {
+            builder.setIconBitmap(iconBitmap);
+        }
+        mediaItems.add(new MediaBrowserCompat.MediaItem(
+                builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+        ));
 
         // If the Country code is known:
         if (!TextUtils.isEmpty(shareObject.getCountryCode())) {
@@ -197,26 +226,23 @@ public final class MediaItemRoot implements MediaItemCommand {
         // Show Local Radio Stations if they are exists
         if (!LocalRadioStationsStorage.isLocalsEmpty(context)) {
             // Locals list
+            final MediaDescriptionCompat.Builder builder1 = new MediaDescriptionCompat.Builder()
+                    .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
+                    .setTitle(context.getString(R.string.local_radio_stations_list_title))
+                    .setSubtitle(context.getString(R.string.local_radio_stations_list_sub_title));
 
-            final int identifier = context.getResources().getIdentifier(
-                    "ic_local_stations",
-                    "drawable", context.getPackageName()
-            );
-            // Overlay base image with the appropriate flag
-            final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-            final Bitmap bitmap = overlay.execute(context, identifier,
-                    BitmapFactory.decodeResource(
-                            context.getResources(),
-                            R.drawable.ic_all_categories
-                    ));
+            if (shareObject.isAndroidAuto()) {
+                builder1.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_phone_android_black_24dp"));
+            } else {
+                final Bitmap bitmap = BitmapFactory.decodeResource(
+                        context.getResources(),
+                        R.drawable.ic_local_stations
+                );
+                builder1.setIconBitmap(bitmap);
+            }
 
             mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
-                            .setTitle(context.getString(R.string.local_radio_stations_list_title))
-                            .setIconBitmap(bitmap)
-                            .setSubtitle(context.getString(R.string.local_radio_stations_list_sub_title))
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
         }
 

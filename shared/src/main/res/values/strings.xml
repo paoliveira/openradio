@@ -60,11 +60,9 @@
     <string name="favorite">Favorite</string>
     <string name="favorites_list_title">Favorites</string>
     <string name="favorites_list_sub_title">favorites radio stations</string>
-    <string name="recent_added_stations_title">Recently Added Stations</string>
+    <string name="recent_added_stations_title">Recent</string>
     <string name="recent_added_stations_sub_title">recently added radio stations</string>
-    <string name="recent_played_songs_title">Recently Played Songs</string>
-    <string name="recent_played_songs_sub_title">recently played songs</string>
-    <string name="popular_stations_title">Popular Radio Stations</string>
+    <string name="popular_stations_title">Popular</string>
     <string name="popular_stations_sub_title">popular radio stations</string>
     <string name="all_categories_title">All Categories</string>
     <string name="all_categories_sub_title">radio stations of all categories</string>

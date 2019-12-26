@@ -50,6 +50,12 @@ import java.util.TreeSet;
 public final class AppUtils {
 
     public static final String UTF8 = "UTF-8";
+    public static final String DRAWABLE_PATH = "android.resource://com.yuriy.openradio/drawable/";
+
+    private static final String[] ANDROID_AUTO_PACKAGE_NAMES = new String[]{
+            "com.google.android.projection.gearhead",
+            "com.android.car"
+    };
 
     /**
      * Tag string to use in logging message.
@@ -356,5 +362,61 @@ public final class AppUtils {
      */
     public static String getSearchQuery() {
         return sSearchQuery.toString();
+    }
+
+    /**
+     * Checks whether or not application runs on Automotive environment.
+     *
+     * @param clientPackageName The package name of the application which is
+     *                          requesting access.
+     * @return {@code true} in case of success, {@code false} otherwise.
+     */
+    public static boolean isAutomotive(@NonNull final String clientPackageName) {
+        for (final String pkg : ANDROID_AUTO_PACKAGE_NAMES) {
+            if (clientPackageName.contains(pkg)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String[] getDensity(@NonNull final Context context) {
+        final int densityDpi = context.getResources().getDisplayMetrics().densityDpi;
+        final String value;
+        switch (densityDpi) {
+            case DisplayMetrics.DENSITY_LOW:
+                // LDPI
+                value = "LDPI";
+                break;
+            case DisplayMetrics.DENSITY_MEDIUM:
+                // MDPI
+                value = "MDPI";
+                break;
+            case DisplayMetrics.DENSITY_TV:
+            case DisplayMetrics.DENSITY_HIGH:
+                // HDPI
+                value = "HDPI";
+                break;
+            case DisplayMetrics.DENSITY_XHIGH:
+            case DisplayMetrics.DENSITY_280:
+                // XHDPI
+                value = "XHDPI";
+                break;
+            case DisplayMetrics.DENSITY_XXHIGH:
+            case DisplayMetrics.DENSITY_360:
+            case DisplayMetrics.DENSITY_400:
+            case DisplayMetrics.DENSITY_420:
+                // XXHDPI
+                value = "XXHDPI";
+                break;
+            case DisplayMetrics.DENSITY_XXXHIGH:
+            case DisplayMetrics.DENSITY_560:
+                // XXXHDPI
+                value = "XXXHDPI";
+                break;
+            default:
+                value = "UNKNOWN";
+        }
+        return new String[]{String.valueOf(densityDpi), value};
     }
 }

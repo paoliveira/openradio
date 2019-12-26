@@ -288,8 +288,7 @@ public final class MediaItemHelper {
         if (radioStation == null) {
             return null;
         }
-        String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/radio_station_alpha_bg";
+        String iconUrl = AppUtils.DRAWABLE_PATH + "radio_station_alpha_bg";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
@@ -368,8 +367,7 @@ public final class MediaItemHelper {
      */
     public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final Context context,
                                                                                final RadioStation radioStation) {
-        String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/radio_station_alpha_bg";
+        String iconUrl = AppUtils.DRAWABLE_PATH + "radio_station_alpha_bg";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
@@ -402,8 +400,7 @@ public final class MediaItemHelper {
     public static MediaMetadataCompat buildMediaMetadataForEmptyCategory(final Context context,
                                                                          final String parentId) {
 
-        final String iconUrl = "android.resource://" +
-                context.getPackageName() + "/drawable/ic_radio_station_empty";
+        final String iconUrl = AppUtils.DRAWABLE_PATH + "ic_radio_station_empty";
 
         final String title = context.getString(R.string.category_empty);
         final String artist = "";

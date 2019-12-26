@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio;
+package com.yuriy.openradio.shared;
 
 import android.app.Application;
 import android.content.Context;
@@ -81,6 +81,7 @@ public final class MainApp extends Application {
      */
     @SuppressWarnings("all")
     private static void printFirstLogMessage(final Context context) {
+        final String[] densities = AppUtils.getDensity(context);
         final StringBuilder firstLogMessage = new StringBuilder();
         firstLogMessage.append("\n");
         firstLogMessage.append("########### Create '");
@@ -99,6 +100,9 @@ public final class MainApp extends Application {
         firstLogMessage.append("\n");
         firstLogMessage.append("- API level: ");
         firstLogMessage.append(Build.VERSION.SDK_INT);
+        firstLogMessage.append("\n");
+        firstLogMessage.append("- Density: ");
+        firstLogMessage.append(densities[0]).append(" ").append(densities[1]);
         firstLogMessage.append("\n");
         firstLogMessage.append("- Country: ");
         firstLogMessage.append(AppUtils.getUserCountry(context));
