@@ -129,7 +129,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                     .setSubtitle(country.getCode());
 
             if (shareObject.isAndroidAuto()) {
-                uri = Uri.parse(AppUtils.DRAWABLE_PATH + "flag_" + country.getCode().toLowerCase());
+                uri = Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp");
 
                 builder.setIconUri(uri);
             } else {
