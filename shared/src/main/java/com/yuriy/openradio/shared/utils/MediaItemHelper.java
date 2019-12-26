@@ -263,27 +263,23 @@ public final class MediaItemHelper {
      * Build {@link android.media.MediaMetadata} from provided
      * {@link RadioStation}.
      *
-     * @param context      Context of the callee.
      * @param radioStation {@link RadioStation}.
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
-                                                                         final RadioStation radioStation) {
-        return buildMediaMetadataFromRadioStation(context, radioStation, null);
+    public static MediaMetadataCompat metadataFromRadioStation(final RadioStation radioStation) {
+        return metadataFromRadioStation(radioStation, null);
     }
 
     /**
      * Build {@link android.media.MediaMetadata} from provided
      * {@link RadioStation}.
      *
-     * @param context      Context of the callee.
      * @param radioStation {@link RadioStation}.
      * @param streamTitle  Title of the current stream.
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadataCompat buildMediaMetadataFromRadioStation(final Context context,
-                                                                         final RadioStation radioStation,
-                                                                         @Nullable final String streamTitle) {
+    public static MediaMetadataCompat metadataFromRadioStation(final RadioStation radioStation,
+                                                               @Nullable final String streamTitle) {
 
         if (radioStation == null) {
             return null;
@@ -313,7 +309,7 @@ public final class MediaItemHelper {
         final MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, iconUrl)

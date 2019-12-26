@@ -740,9 +740,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             LatestRadioStationStorage.add(radioStation, getApplicationContext());
         }
         configMediaPlayerState();
-        mMediaNotification.doInitialNotification(
-                getApplicationContext(), getCurrentPlayingRadioStation()
-        );
+        mMediaNotification.doInitialNotification(getCurrentPlayingRadioStation());
         updateMetadata(mCurrentStreamTitle);
     }
 
@@ -1090,10 +1088,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             updatePlaybackState(getString(R.string.no_data_message));
         }
 
-        return MediaItemHelper.buildMediaMetadataFromRadioStation(
-                getApplicationContext(),
-                radioStation
-        );
+        return MediaItemHelper.metadataFromRadioStation(radioStation);
     }
 
     //TODO: Translate
@@ -1115,16 +1110,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             updatePlaybackState(getString(R.string.no_metadata));
             return;
         }
-        final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataFromRadioStation(
-                getApplicationContext(),
+        final MediaMetadataCompat metadata = MediaItemHelper.metadataFromRadioStation(
                 radioStation,
                 streamTitle
         );
-        if (track == null) {
+        if (metadata == null) {
             AppLogger.w(CLASS_NAME + "Can not update Metadata - MediaMetadata is null");
             return;
         }
-        final String trackId = track.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
+        final String trackId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
         // TODO: Check whether we can use media id from Radio Station
         if (!TextUtils.equals(radioStation.getIdAsString(), trackId)) {
             AppLogger.w(
@@ -1135,7 +1129,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         AppLogger.d(CLASS_NAME + "Updating metadata for MusicId:" + radioStation.getIdAsString() + ", title:" + streamTitle);
         try {
-            mSession.setMetadata(track);
+            mSession.setMetadata(metadata);
         } catch (final IllegalStateException e) {
             AppLogger.e(CLASS_NAME + "Can not set metadata:" + e);
         }
@@ -1482,7 +1476,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_BUFFERING
                 || mState == PlaybackStateCompat.STATE_PLAYING
                 || mState == PlaybackStateCompat.STATE_PAUSED) {
-            mMediaNotification.startNotification(getApplicationContext(), getCurrentPlayingRadioStation());
+            mMediaNotification.startNotification(getCurrentPlayingRadioStation());
         }
     }
 

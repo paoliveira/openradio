@@ -61,7 +61,7 @@ public final class QueueHelper {
         MediaSessionCompat.QueueItem item;
         MediaMetadataCompat track;
         for (final RadioStation radioStation : radioStations) {
-            track = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+            track = MediaItemHelper.metadataFromRadioStation(radioStation);
             if (track == null) {
                 AppLogger.w(CLASS_NAME + " Get playing queue warning, Radio Station is null");
                 continue;

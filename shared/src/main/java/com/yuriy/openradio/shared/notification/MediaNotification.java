@@ -147,7 +147,7 @@ public final class MediaNotification extends BroadcastReceiver {
      * updated. The notification will automatically be removed if the session is
      * destroyed before {@link #stopNotification} is called.
      */
-    public void startNotification(final Context context, final RadioStation radioStation) {
+    public void startNotification(final RadioStation radioStation) {
         AppLogger.d(CLASS_NAME + " start (started:" + mStarted.get() + ")");
         if (mStarted.get()) {
             return;
@@ -164,7 +164,7 @@ public final class MediaNotification extends BroadcastReceiver {
         if (metadata != null) {
             mMetadata = metadata;
         } else {
-            mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+            mMetadata = MediaItemHelper.metadataFromRadioStation(radioStation);
         }
         PlaybackStateCompat playbackState = mController.getPlaybackState();
         if (playbackState != null) {
@@ -423,8 +423,8 @@ public final class MediaNotification extends BroadcastReceiver {
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
-    public void doInitialNotification(final Context context, final RadioStation radioStation) {
-        mMetadata = MediaItemHelper.buildMediaMetadataFromRadioStation(context, radioStation);
+    public void doInitialNotification(final RadioStation radioStation) {
+        mMetadata = MediaItemHelper.metadataFromRadioStation(radioStation);
         if (mMetadata == null) {
             AppLogger.e(
                     "StartNotification null metadata, after created from RadioStation."
