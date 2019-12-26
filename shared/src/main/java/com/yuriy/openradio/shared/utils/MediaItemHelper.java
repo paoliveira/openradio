@@ -300,8 +300,6 @@ public final class MediaItemHelper {
             subTitle = artist;
         }
 
-        AppLogger.d(CLASS_NAME + " Media Metadata for " + radioStation);
-
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
@@ -311,7 +309,7 @@ public final class MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
+//                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
