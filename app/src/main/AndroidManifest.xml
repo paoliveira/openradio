@@ -44,7 +44,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".view.activity.PermissionsDialogActivity" />
+        <activity android:name=".shared.view.activity.PermissionsDialogActivity" />
 
         <meta-data
             android:name="com.google.android.gms.version"
