@@ -325,8 +325,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Radio Station is not actually in any lists, it is single entity.
      */
     @Nullable
-    private RadioStation mLastKnownRS
-            ;
+    private RadioStation mLastKnownRS;
     private RadioStation mRestoredRS;
 
     private ApiServiceProvider mApiServiceProvider;
@@ -418,6 +417,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     @Override
     public final void onCreate() {
+        final long start = System.currentTimeMillis();
         super.onCreate();
 
         AppLogger.i(CLASS_NAME + "On Create");
@@ -489,6 +489,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mMasterVolumeBroadcastReceiver.register(context);
 
         ServiceLifecyclePreferencesManager.isServiceActive(context, true);
+
+        AppLogger.i(CLASS_NAME + "Created in " + (System.currentTimeMillis() - start) + " ms");
     }
 
     @Override

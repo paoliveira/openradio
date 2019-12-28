@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link PermissionChecker} is a helper class tha designed to manage permissions changes
+ * {@link PermissionChecker} is a helper class that designed to manage permissions changes
  * introduced in API 23.
  */
 public final class PermissionChecker {

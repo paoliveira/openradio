@@ -284,7 +284,7 @@ public final class MediaItemHelper {
         if (radioStation == null) {
             return null;
         }
-        String iconUrl = AppUtils.DRAWABLE_PATH + "radio_station_alpha_bg";
+        String iconUrl = AppUtils.DRAWABLE_PATH + "radio_station_empty";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
@@ -355,13 +355,11 @@ public final class MediaItemHelper {
      * Build {@link MediaDescriptionCompat} from provided
      * {@link RadioStation}.
      *
-     * @param context      Context of the callee.
      * @param radioStation {@link RadioStation}.
      * @return {@link MediaDescriptionCompat}
      */
-    public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final Context context,
-                                                                               final RadioStation radioStation) {
-        String iconUrl = AppUtils.DRAWABLE_PATH + "radio_station_alpha_bg";
+    public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final RadioStation radioStation) {
+        String iconUrl = AppUtils.DRAWABLE_PATH + "ic_radio_station_empty";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
@@ -372,8 +370,6 @@ public final class MediaItemHelper {
         final String genre = radioStation.getGenre();
         final String id = String.valueOf(radioStation.getId());
         final Bundle bundle = new Bundle();
-
-        AppLogger.d(CLASS_NAME + " Media Dscr. " + radioStation);
 
         return new MediaDescriptionCompat.Builder()
                 .setDescription(genre)

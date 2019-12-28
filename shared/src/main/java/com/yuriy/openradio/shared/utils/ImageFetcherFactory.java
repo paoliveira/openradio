@@ -76,7 +76,7 @@ public class ImageFetcherFactory {
 
         // The ImageFetcher takes care of loading images into our ImageView children asynchronously
         final ImageWorker worker = new ImageFetcher(context, imageThumbSize);
-        worker.setLoadingImage(R.drawable.radio_station_alpha_bg);
+        worker.setLoadingImage(R.drawable.ic_radio_station_empty);
         worker.addImageCache(context.getSupportFragmentManager(), params);
         worker.setImageFadeIn(false);
         worker.setTvPlayer(isTvPlayer);

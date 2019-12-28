@@ -79,11 +79,13 @@ public final class PermissionsDialogActivity extends Activity {
 
         // Restart main activity
         final Intent intent = getBaseContext()
-                .getPackageManager()
+                   .getPackageManager()
                 .getLaunchIntentForPackage(getBaseContext().getPackageName());
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.putExtra(PERMISSION_DENIED_KEY, isDenied);
-        startActivity(intent);
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra(PERMISSION_DENIED_KEY, isDenied);
+            startActivity(intent);
+        }
     }
 
     public static boolean isLocationDenied(final Intent intent) {

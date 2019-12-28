@@ -73,7 +73,6 @@ public final class MediaItemLocalsList implements MediaItemCommand {
         for (final RadioStation radioStation : shareObject.getRadioStations()) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    context,
                     radioStation
             );
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
