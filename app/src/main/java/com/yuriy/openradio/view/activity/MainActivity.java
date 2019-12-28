@@ -68,6 +68,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
+import com.yuriy.openradio.shared.permission.PermissionListener;
 import com.yuriy.openradio.shared.permission.PermissionStatusListener;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
@@ -100,8 +101,6 @@ import com.yuriy.openradio.view.list.MediaItemsAdapter;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -998,7 +997,7 @@ public final class MainActivity extends AppCompatActivity {
 
         final MediaDescriptionCompat description = mLastKnownMetadata != null
                 ? mLastKnownMetadata.getDescription()
-                : MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation);
+                : MediaItemHelper.buildMediaDescriptionFromRadioStation(radioStation);
 
         final TextView nameView = findViewById(R.id.crs_name_view);
         if (nameView != null) {
@@ -1015,7 +1014,7 @@ public final class MainActivity extends AppCompatActivity {
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(radioStation),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             );
             MediaItemHelper.updateFavoriteField(
@@ -1109,50 +1108,6 @@ public final class MainActivity extends AppCompatActivity {
             if (position != -1) {
                 reference.setActiveItem(position);
             }
-        }
-    }
-
-    /**
-     * Listener of the Permissions Status changes.
-     */
-    private static final class PermissionListener implements PermissionStatusListener {
-
-        /**
-         * Reference to the enclosing class.
-         */
-        private final WeakReference<Context> mReference;
-        private final Map<String, Double> mMap = new ConcurrentHashMap<>();
-        private static final int DELTA = 2000;
-
-        /**
-         * Main constructor.
-         *
-         * @param reference Reference to the enclosing class.
-         */
-        private PermissionListener(final Context reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onPermissionRequired(final String permissionName) {
-            if (mReference.get() == null) {
-                return;
-            }
-
-            final double currentTime = System.currentTimeMillis();
-
-            if (mMap.containsKey(permissionName)) {
-                if (currentTime - mMap.get(permissionName) < DELTA) {
-                    return;
-                }
-            }
-
-            mMap.put(permissionName, currentTime);
-
-            mReference.get().startActivity(
-                    PermissionsDialogActivity.getIntent(mReference.get(), permissionName)
-            );
         }
     }
 

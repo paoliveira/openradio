@@ -33,6 +33,7 @@ import java.util.List;
  * {@link PermissionChecker} is a helper class that designed to manage permissions changes
  * introduced in API 23.
  */
+// TODO: Move to Android's class
 public final class PermissionChecker {
 
     /**
@@ -114,6 +115,9 @@ public final class PermissionChecker {
         synchronized (PERMISSION_STATUS_LISTENERS) {
             for (WeakReference<PermissionStatusListener> reference : PERMISSION_STATUS_LISTENERS) {
                 final PermissionStatusListener statusListener = reference.get();
+                if (listener == null) {
+                    continue;
+                }
                 if (listener.equals(statusListener)) {
                     AppLogger.i(LOG_TAG + " Remove listener:" + listener);
                     PERMISSION_STATUS_LISTENERS.remove(reference);

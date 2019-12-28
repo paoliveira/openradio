@@ -1,11 +1,14 @@
 package com.yuriy.openradio.view.fragment;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -29,11 +32,15 @@ import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
+import com.yuriy.openradio.shared.permission.PermissionChecker;
+import com.yuriy.openradio.shared.permission.PermissionListener;
+import com.yuriy.openradio.shared.permission.PermissionStatusListener;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
+import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.service.OpenRadioService;
-import com.yuriy.openradio.service.ServicePlayerTvAdapter;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.BitmapUtils;
 import com.yuriy.openradio.shared.utils.ImageFetcherFactory;
@@ -42,6 +49,8 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.WrappedDrawable;
 import com.yuriy.openradio.shared.view.SafeToast;
+import com.yuriy.openradio.shared.view.activity.PermissionsDialogActivity;
+import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.view.activity.MainTvActivity;
 import com.yuriy.openradio.vo.MediaItemActionable;
 
@@ -73,6 +82,17 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private String mCurrentParentId = "";
     private int mCurrentSelectedPosition;
+
+    /**
+     * Stores an instance of {@link LocationHandler} that inherits from
+     * Handler and uses its handleMessage() hook method to process
+     * Messages sent to it from the {@link LocationService}.
+     */
+    private LocationHandler mLocationHandler = null;
+    /**
+     * Listener of the Permissions status changes.
+     */
+    private PermissionStatusListener mPermissionStatusListener;
 
     public MainTvFragment() {
         super();
@@ -125,7 +145,26 @@ public class MainTvFragment extends PlaybackSupportFragment {
         setOnItemViewSelectedListener(this::onItemSelected);
 
         mMediaPresenter.restoreState(savedInstanceState);
-        mMediaPresenter.connect();
+
+        if (getActivity() != null && PermissionsDialogActivity.isLocationDenied(getActivity().getIntent())) {
+            mMediaPresenter.connect();
+            return;
+        }
+
+        mPermissionStatusListener = new PermissionListener(getContext());
+        // Add listener for the permissions status
+        PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
+        final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        );
+        if (isLocationPermissionGranted) {
+            // Initialize the Location Handler.
+            mLocationHandler = new LocationHandler(this);
+            LocationService.doEnqueueWork(context, mLocationHandler);
+        } else {
+            mMediaPresenter.connect();
+        }
     }
 
     @Override
@@ -142,6 +181,14 @@ public class MainTvFragment extends PlaybackSupportFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        if (mLocationHandler != null) {
+            mLocationHandler.removeCallbacksAndMessages(null);
+            mLocationHandler.clear();
+            mLocationHandler = null;
+        }
+
+        PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
 
         mMediaPresenter.destroy();
     }
@@ -533,5 +580,71 @@ public class MainTvFragment extends PlaybackSupportFragment {
         }
         AppLogger.d(CLASS_NAME + " set selected:" + selectedPosition);
         setSelectedPosition(selectedPosition);
+    }
+
+    /**
+     * A nested class that inherits from Handler and uses its
+     * handleMessage() hook method to process Messages sent to
+     * it from the Location Service.
+     */
+    private static final class LocationHandler extends Handler {
+        /**
+         * Allows {@link MainTvFragment} to be garbage collected properly.
+         */
+        private WeakReference<MainTvFragment> mActivity;
+
+        /**
+         * Tag string to use in logging message.
+         */
+        private final String CLASS_NAME;
+
+        /**
+         * Class constructor constructs mActivity as weak reference to
+         * the {@link MainTvFragment}.
+         *
+         * @param activity The corresponding activity.
+         */
+        private LocationHandler(final MainTvFragment activity) {
+            super();
+            CLASS_NAME = activity.getClass().getSimpleName()
+                    + " " + LocationHandler.class.getSimpleName()
+                    + " " + activity.hashCode()
+                    + " " + hashCode() + " ";
+            mActivity = new WeakReference<>(activity);
+        }
+
+        private void clear() {
+            if (mActivity != null) {
+                mActivity.clear();
+            }
+            mActivity = null;
+        }
+
+        /**
+         * This hook method is dispatched in response to receiving the
+         * Location back from the {@link LocationService}.
+         */
+        @Override
+        public void handleMessage(final Message message) {
+            // Bail out if the {@link MainActivity} is gone.
+            if (mActivity == null) {
+                AppLogger.e(CLASS_NAME + "enclosing weak reference null");
+                return;
+            }
+            if (mActivity.get() == null) {
+                AppLogger.e(CLASS_NAME + "enclosing activity null");
+                return;
+            }
+
+            // Try to extract the location from the message.
+            String countryCode = LocationService.getCountryCode(message);
+            // See if the get Location worked or not.
+            if (countryCode == null) {
+                countryCode = Country.COUNTRY_CODE_DEFAULT;
+            }
+            if (mActivity.get().mMediaPresenter != null) {
+                mActivity.get().mMediaPresenter.connect();
+            }
+        }
     }
 }
