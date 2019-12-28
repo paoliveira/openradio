@@ -453,8 +453,18 @@ public final class LocationService extends JobIntentService {
      * messenger that's stored in the intent.
      */
     private void sendCountryCode(final Intent intent, final String countryCode) {
+        if (intent == null) {
+            return;
+        }
+        if (intent.getExtras() == null) {
+            return;
+        }
+
         // Extract the Messenger.
         final Messenger messenger = (Messenger) intent.getExtras().get(MESSENGER);
+        if (messenger == null) {
+            return;
+        }
 
         // Call factory method to create Message.
         final Message message = makeReplyMessage(countryCode);
