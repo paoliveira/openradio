@@ -388,6 +388,7 @@ public final class LocationService extends JobIntentService {
             mCountryBoundaries = CountryBoundaries.load(getAssets().open("boundaries.ser"));
         } catch (final IOException e) {
             // Ignore up to now ...
+            AppLogger.e(CLASS_NAME + "can not load boundaries.ser:" + e);
         }
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
     }
