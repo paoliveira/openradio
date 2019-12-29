@@ -54,7 +54,7 @@ public final class MainTvActivity extends FragmentActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_tv);
+        setContentView(R.layout.tv_main);
 
         mProgressBar = findViewById(R.id.progress_bar_tv_view);
 

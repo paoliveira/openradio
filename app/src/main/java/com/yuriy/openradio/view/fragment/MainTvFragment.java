@@ -467,11 +467,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
             } else {
                 if (mediaItem.isPlayable()) {
                     action.getDrawables()[0] = mContext.getResources().getDrawable(
-                            R.drawable.ic_favorites_off_24,
+                            R.drawable.tv_ic_favorites_off_24,
                             mContext.getTheme()
                     );
                     action.getDrawables()[1] = mContext.getResources().getDrawable(
-                            R.drawable.ic_favorites_on_24,
+                            R.drawable.tv_ic_favorites_on_24,
                             mContext.getTheme()
                     );
                 } else {
