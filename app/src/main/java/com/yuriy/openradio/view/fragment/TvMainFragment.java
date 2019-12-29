@@ -48,7 +48,7 @@ import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.service.ServicePlayerTvAdapter;
+import com.yuriy.openradio.service.TvServicePlayerAdapter;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.permission.PermissionListener;
@@ -67,16 +67,16 @@ import com.yuriy.openradio.shared.utils.WrappedDrawable;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.view.activity.PermissionsDialogActivity;
 import com.yuriy.openradio.shared.vo.Country;
-import com.yuriy.openradio.view.activity.MainTvActivity;
+import com.yuriy.openradio.view.activity.TvMainActivity;
 import com.yuriy.openradio.vo.MediaItemActionable;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainTvFragment extends PlaybackSupportFragment {
+public class TvMainFragment extends PlaybackSupportFragment {
 
-    private static final String CLASS_NAME = MainTvFragment.class.getSimpleName();
+    private static final String CLASS_NAME = TvMainFragment.class.getSimpleName();
     private static final int PLAYLIST_ACTION_ID = 0;
     private static final int FAVORITE_ACTION_ID = 1;
     /**
@@ -86,7 +86,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
     private MediaPresenter mMediaPresenter;
     private ArrayObjectAdapter mRowsAdapter;
-    private PlaybackBannerControlGlue<ServicePlayerTvAdapter> mGlue;
+    private PlaybackBannerControlGlue<TvServicePlayerAdapter> mGlue;
     private ImageView mDummyView;
     /**
      * Handles loading the  image in a background thread.
@@ -110,7 +110,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private PermissionStatusListener mPermissionStatusListener;
 
-    public MainTvFragment() {
+    public TvMainFragment() {
         super();
     }
 
@@ -123,7 +123,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
         mGlue = new PlaybackBannerControlGlue<>(
                 context,
                 new int[]{0, 1},
-                new ServicePlayerTvAdapter(context)
+                new TvServicePlayerAdapter(context)
         );
         mGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
@@ -141,17 +141,17 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
                     @Override
                     public void showProgressBar() {
-                        MainTvFragment.this.showProgressBar();
+                        TvMainFragment.this.showProgressBar();
                     }
 
                     @Override
                     public void handleMetadataChanged(final MediaMetadataCompat metadata) {
-                        MainTvFragment.this.handleMetadataChanged(metadata);
+                        TvMainFragment.this.handleMetadataChanged(metadata);
                     }
 
                     @Override
                     public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
-                        MainTvFragment.this.handlePlaybackStateChanged(state);
+                        TvMainFragment.this.handlePlaybackStateChanged(state);
                     }
                 }
         );
@@ -244,20 +244,20 @@ public class MainTvFragment extends PlaybackSupportFragment {
      * Show progress bar.
      */
     private void showProgressBar() {
-        if (!(getActivity() instanceof MainTvActivity)) {
+        if (!(getActivity() instanceof TvMainActivity)) {
             return;
         }
-        ((MainTvActivity) getActivity()).showProgressBar();
+        ((TvMainActivity) getActivity()).showProgressBar();
     }
 
     /**
      * Hide progress bar.
      */
     private void hideProgressBar() {
-        if (!(getActivity() instanceof MainTvActivity)) {
+        if (!(getActivity() instanceof TvMainActivity)) {
             return;
         }
-        ((MainTvActivity) getActivity()).hideProgressBar();
+        ((TvMainActivity) getActivity()).hideProgressBar();
     }
 
     private void handlePlaybackStateChanged(final PlaybackStateCompat state) {
@@ -495,14 +495,14 @@ public class MainTvFragment extends PlaybackSupportFragment {
         /**
          * Weak reference to the outer activity.
          */
-        private final WeakReference<MainTvFragment> mReference;
+        private final WeakReference<TvMainFragment> mReference;
 
         /**
          * Constructor.
          *
          * @param reference Reference to the Activity.
          */
-        private MediaBrowserSubscriptionCallback(final MainTvFragment reference) {
+        private MediaBrowserSubscriptionCallback(final TvMainFragment reference) {
             super();
             mReference = new WeakReference<>(reference);
         }
@@ -515,7 +515,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
                     CLASS_NAME + " Children loaded:" + parentId + ", children:" + children.size()
             );
 
-            final MainTvFragment fragment = mReference.get();
+            final TvMainFragment fragment = mReference.get();
             if (fragment == null) {
                 AppLogger.w(CLASS_NAME + " On children loaded -> fragment ref is null");
                 return;
@@ -566,8 +566,8 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
             fragment.mRowsAdapter.addAll(fragment.mRowsAdapter.size(), items);
 
-            if (fragment.getActivity() instanceof MainTvActivity) {
-                ((MainTvActivity) fragment.getActivity()).onDataLoaded();
+            if (fragment.getActivity() instanceof TvMainActivity) {
+                ((TvMainActivity) fragment.getActivity()).onDataLoaded();
             }
 
             fragment.restoreSelectedPosition();
@@ -575,7 +575,7 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         @Override
         public void onError(@NonNull final String id) {
-            final MainTvFragment fragment = mReference.get();
+            final TvMainFragment fragment = mReference.get();
             if (fragment == null) {
                 return;
             }
@@ -605,9 +605,9 @@ public class MainTvFragment extends PlaybackSupportFragment {
      */
     private static final class LocationHandler extends Handler {
         /**
-         * Allows {@link MainTvFragment} to be garbage collected properly.
+         * Allows {@link TvMainFragment} to be garbage collected properly.
          */
-        private WeakReference<MainTvFragment> mActivity;
+        private WeakReference<TvMainFragment> mActivity;
 
         /**
          * Tag string to use in logging message.
@@ -616,11 +616,11 @@ public class MainTvFragment extends PlaybackSupportFragment {
 
         /**
          * Class constructor constructs mActivity as weak reference to
-         * the {@link MainTvFragment}.
+         * the {@link TvMainFragment}.
          *
          * @param activity The corresponding activity.
          */
-        private LocationHandler(final MainTvFragment activity) {
+        private LocationHandler(final TvMainFragment activity) {
             super();
             CLASS_NAME = activity.getClass().getSimpleName()
                     + " " + LocationHandler.class.getSimpleName()

@@ -33,18 +33,18 @@ import androidx.leanback.widget.ObjectAdapter;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.view.activity.SearchTvActivity;
+import com.yuriy.openradio.view.activity.TvSearchActivity;
 
 /*
  * This class demonstrates how to do in-app search
  */
-public class SearchTvFragment extends SearchSupportFragment
+public class TvSearchFragment extends SearchSupportFragment
         implements SearchSupportFragment.SearchResultProvider {
 
     /**
      * Tag string to use in logging message.
      */
-    private static final String CLASS_NAME = SearchTvFragment.class.getSimpleName();
+    private static final String CLASS_NAME = TvSearchFragment.class.getSimpleName();
 
     private static final int REQUEST_SPEECH = 0x00000010;
 
@@ -117,8 +117,8 @@ public class SearchTvFragment extends SearchSupportFragment
     @Override
     public boolean onQueryTextSubmit(final String query) {
         AppLogger.i(CLASS_NAME + String.format(" Search text submitted: %s", query));
-        if (getActivity() instanceof SearchTvActivity) {
-            final SearchTvActivity activity = (SearchTvActivity) getActivity();
+        if (getActivity() instanceof TvSearchActivity) {
+            final TvSearchActivity activity = (TvSearchActivity) getActivity();
 
             if (activity != null) {
                 activity.onSearchDialogClick(query);

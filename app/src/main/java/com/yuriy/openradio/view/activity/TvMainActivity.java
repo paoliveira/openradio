@@ -33,17 +33,17 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog;
-import com.yuriy.openradio.view.dialog.SettingsTvDialog;
-import com.yuriy.openradio.view.fragment.MainTvFragment;
+import com.yuriy.openradio.view.dialog.TvSettingsDialog;
+import com.yuriy.openradio.view.fragment.TvMainFragment;
 
 import java.util.List;
 
 /*
  * Main TV Activity class that loads main TV fragment.
  */
-public final class MainTvActivity extends FragmentActivity {
+public final class TvMainActivity extends FragmentActivity {
 
-    private static final String CLASS_NAME = MainTvActivity.class.getSimpleName();
+    private static final String CLASS_NAME = TvMainActivity.class.getSimpleName();
 
     private ImageView mBackBtn;
     /**
@@ -74,7 +74,7 @@ public final class MainTvActivity extends FragmentActivity {
         }
 
         switch (requestCode) {
-            case SearchTvActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE:
+            case TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE:
                 onSearchDialogClick();
                 break;
         }
@@ -84,7 +84,7 @@ public final class MainTvActivity extends FragmentActivity {
      * Process call back from the Search Dialog.
      */
     public void onSearchDialogClick() {
-        final MainTvFragment fragment = getMainTvFragment();
+        final TvMainFragment fragment = getMainTvFragment();
         if (fragment != null) {
             fragment.onSearchDialogClick();
         }
@@ -124,10 +124,10 @@ public final class MainTvActivity extends FragmentActivity {
         final FragmentManager manager = getSupportFragmentManager();
         final List<Fragment> list = manager.getFragments();
         for (final Fragment fragment : list) {
-            if (!(fragment instanceof MainTvFragment)) {
+            if (!(fragment instanceof TvMainFragment)) {
                 continue;
             }
-            numItemsInStack = ((MainTvFragment) fragment).getNumItemsInStack();
+            numItemsInStack = ((TvMainFragment) fragment).getNumItemsInStack();
             break;
         }
         if (numItemsInStack > 1) {
@@ -137,12 +137,12 @@ public final class MainTvActivity extends FragmentActivity {
         }
     }
 
-    private MainTvFragment getMainTvFragment() {
+    private TvMainFragment getMainTvFragment() {
         final FragmentManager manager = getSupportFragmentManager();
         final List<Fragment> list = manager.getFragments();
         for (final Fragment fragment : list) {
-            if (fragment instanceof MainTvFragment) {
-                return (MainTvFragment) fragment;
+            if (fragment instanceof TvMainFragment) {
+                return (TvMainFragment) fragment;
             }
         }
         return null;
@@ -169,7 +169,7 @@ public final class MainTvActivity extends FragmentActivity {
         }
         mBackBtn.setOnClickListener(
                 v -> {
-                    final MainTvFragment fragment = getMainTvFragment();
+                    final TvMainFragment fragment = getMainTvFragment();
                     if (fragment != null) {
                         fragment.handleBackButton();
                     }
@@ -192,22 +192,22 @@ public final class MainTvActivity extends FragmentActivity {
         }
         button.setOnClickListener(
                 v -> startActivityForResult(
-                        SearchTvActivity.makeStartIntent(getApplicationContext()),
-                        SearchTvActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
+                        TvSearchActivity.makeStartIntent(getApplicationContext()),
+                        TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
                 )
         );
     }
 
     private void showTvSettings() {
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(SettingsTvDialog.DIALOG_TAG);
+        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(TvSettingsDialog.DIALOG_TAG);
         if (fragment != null) {
             transaction.remove(fragment);
         }
         // Show Settings Dialog
         final DialogFragment dialogFragment = BaseDialogFragment.newInstance(
-                SettingsTvDialog.class.getName()
+                TvSettingsDialog.class.getName()
         );
-        dialogFragment.show(transaction, SettingsTvDialog.DIALOG_TAG);
+        dialogFragment.show(transaction, TvSettingsDialog.DIALOG_TAG);
     }
 }

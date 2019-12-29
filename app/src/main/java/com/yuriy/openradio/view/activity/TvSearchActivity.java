@@ -25,25 +25,25 @@ import androidx.fragment.app.FragmentActivity;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.view.fragment.SearchTvFragment;
+import com.yuriy.openradio.view.fragment.TvSearchFragment;
 
 /**
  *
  */
-public final class SearchTvActivity extends FragmentActivity {
+public final class TvSearchActivity extends FragmentActivity {
 
     public static final int SEARCH_TV_ACTIVITY_REQUEST_CODE = 5839;
-    private SearchTvFragment mFragment;
+    private TvSearchFragment mFragment;
 
     public static Intent makeStartIntent(final Context context) {
-        return new Intent(context, SearchTvActivity.class);
+        return new Intent(context, TvSearchActivity.class);
     }
 
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tv_search);
-        mFragment = (SearchTvFragment) getSupportFragmentManager().findFragmentById(R.id.search_fragment);
+        mFragment = (TvSearchFragment) getSupportFragmentManager().findFragmentById(R.id.search_fragment);
     }
 
     @Override

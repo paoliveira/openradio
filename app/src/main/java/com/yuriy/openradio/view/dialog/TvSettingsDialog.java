@@ -49,12 +49,12 @@ import java.util.Map;
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class SettingsTvDialog extends BaseDialogFragment {
+public final class TvSettingsDialog extends BaseDialogFragment {
 
     /**
      * Tag string to use in logging message.
      */
-    private static final String CLASS_NAME = SettingsTvDialog.class.getSimpleName();
+    private static final String CLASS_NAME = TvSettingsDialog.class.getSimpleName();
 
     /**
      * Tag string to use in dialog transactions.
@@ -154,11 +154,10 @@ public final class SettingsTvDialog extends BaseDialogFragment {
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }
-        //TODO:FIXME
-//        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
-//        if (fragmentByTag != null) {
-//            fragmentTransaction.remove(fragmentByTag);
-//        }
+        fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
         fragmentByTag = getActivity().getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);

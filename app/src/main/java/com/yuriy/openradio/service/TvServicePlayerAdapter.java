@@ -18,14 +18,18 @@ package com.yuriy.openradio.service;
 
 import android.content.Context;
 
+import androidx.core.content.ContextCompat;
 import androidx.leanback.media.PlayerAdapter;
 
-public final class ServicePlayerTvAdapter extends PlayerAdapter {
+import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
+import com.yuriy.openradio.shared.service.OpenRadioService;
+
+public final class TvServicePlayerAdapter extends PlayerAdapter {
 
     private final Context mContext;
     private boolean mIsPlaying;
 
-    public ServicePlayerTvAdapter(final Context context) {
+    public TvServicePlayerAdapter(final Context context) {
         super();
         mContext = context;
         mIsPlaying = false;
@@ -33,22 +37,30 @@ public final class ServicePlayerTvAdapter extends PlayerAdapter {
 
     @Override
     public void play() {
+        if (!ServiceLifecyclePreferencesManager.isServiceActive(mContext)) {
+            return;
+        }
         if (mIsPlaying) {
             return;
         }
         mIsPlaying = true;
-        //TODO:FIXME
-        //mContext.startService(OpenRadioService.makePlayLastPlayedItemIntent(mContext));
+        ContextCompat.startForegroundService(
+                mContext, OpenRadioService.makePlayLastPlayedItemIntent(mContext)
+        );
     }
 
     @Override
     public void pause() {
+        if (!ServiceLifecyclePreferencesManager.isServiceActive(mContext)) {
+            return;
+        }
         if (!mIsPlaying) {
             return;
         }
         mIsPlaying = false;
-        //TODO:FIXME
-        //mContext.startService(OpenRadioService.makeStopLastPlayedItemIntent(mContext));
+        ContextCompat.startForegroundService(
+                mContext, OpenRadioService.makeStopLastPlayedItemIntent(mContext)
+        );
     }
 
     @Override
