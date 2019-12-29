@@ -1,6 +1,5 @@
 .gradle
 /build
 /.idea
-/app/release/output.json
 /local.properties
 *.iml
