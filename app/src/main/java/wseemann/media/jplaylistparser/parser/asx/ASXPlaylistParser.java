@@ -19,7 +19,7 @@ package wseemann.media.jplaylistparser.parser.asx;
 import android.util.Log;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.RadioStationChecker;
+import com.yuriy.openradio.shared.utils.AppUtils;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -35,6 +35,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -169,16 +170,18 @@ public final class ASXPlaylistParser extends AbstractParser {
 
                         url = new URL(href);
                         conn = (HttpURLConnection) url.openConnection();
-                        conn.setConnectTimeout(6000);
-                        conn.setReadTimeout(6000);
+                        conn.setConnectTimeout(AppUtils.TIME_OUT);
+                        conn.setReadTimeout(AppUtils.TIME_OUT);
                         conn.setRequestMethod("GET");
 
                         String contentType = conn.getContentType();
                         is = conn.getInputStream();
 
-                        AutoDetectParser parser = new AutoDetectParser(RadioStationChecker.TIME_OUT);
+                        AutoDetectParser parser = new AutoDetectParser(AppUtils.TIME_OUT);
                         parser.parse(url.toString(), contentType, is, playlist);
                     } catch (MalformedURLException e) {
+                        AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e));
+                    } catch (SocketTimeoutException e) {
                         AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e));
                     } catch (IOException e) {
                         AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e));

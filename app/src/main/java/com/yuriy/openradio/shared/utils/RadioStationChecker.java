@@ -29,10 +29,6 @@ public final class RadioStationChecker implements Runnable {
      */
     private static final Object MONITOR = new Object();
     /**
-     * Time out for the stream to decide whether there is response or not, ms.
-     */
-    public static final int TIME_OUT = 2000;
-    /**
      * Radio Station that is uses to check.
      */
     private final String mUrl;
@@ -88,8 +84,8 @@ public final class RadioStationChecker implements Runnable {
         try {
             final URL url = new URL(mUrl);
             urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setReadTimeout(TIME_OUT);
-            urlConnection.setConnectTimeout(TIME_OUT);
+            urlConnection.setReadTimeout(AppUtils.TIME_OUT);
+            urlConnection.setConnectTimeout(AppUtils.TIME_OUT);
             urlConnection.setInstanceFollowRedirects(true);
             urlConnection.setUseCaches(false);
             urlConnection.setDefaultUseCaches(false);

@@ -16,9 +16,12 @@
 
 package wseemann.media.jplaylistparser.parser;
 
+import com.yuriy.openradio.shared.utils.AppLogger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLDecoder;
 
@@ -140,6 +143,10 @@ public final class AutoDetectParser {
             is = conn.getInputStream();
 
             parser.parse(url.toString(), is, playlist);
+        } catch (SocketTimeoutException e) {
+            AppLogger.e("Can not parse uri:" + uri + " e:" + e);
+        } catch (IOException e) {
+            AppLogger.e("Can not parse uri:" + uri + " e:" + e);
         } finally {
             if (conn != null) {
                 conn.disconnect();

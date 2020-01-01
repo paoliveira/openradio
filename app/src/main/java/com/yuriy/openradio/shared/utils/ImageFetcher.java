@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 /**
@@ -242,7 +243,9 @@ public class ImageFetcher extends ImageResizer {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
                     final URL url = new URL(urlString);
                     urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setConnectTimeout(1000);
+                    urlConnection.setReadTimeout(AppUtils.TIME_OUT);
+                    urlConnection.setConnectTimeout(AppUtils.TIME_OUT);
+                    urlConnection.setRequestMethod("GET");
                     in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
                 }
             } else {
@@ -260,6 +263,8 @@ public class ImageFetcher extends ImageResizer {
                 out.write(b);
             }
             return true;
+        } catch (final SocketTimeoutException e) {
+            FabricUtils.logException(e);
         } catch (final IOException e) {
             FabricUtils.logException(e);
         } finally {

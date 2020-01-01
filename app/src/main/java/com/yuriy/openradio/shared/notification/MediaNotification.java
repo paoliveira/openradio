@@ -53,6 +53,7 @@ import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -148,7 +149,6 @@ public final class MediaNotification extends BroadcastReceiver {
      * destroyed before {@link #stopNotification} is called.
      */
     public void startNotification(final RadioStation radioStation) {
-        AppLogger.d(CLASS_NAME + " start (started:" + mStarted.get() + ")");
         if (mStarted.get()) {
             return;
         }
@@ -464,7 +464,6 @@ public final class MediaNotification extends BroadcastReceiver {
     }
 
     private void updatePlayPauseAction() {
-        AppLogger.d(CLASS_NAME + " updatePlayPauseAction");
         String label;
         int icon;
         PendingIntent intent;
@@ -592,6 +591,8 @@ public final class MediaNotification extends BroadcastReceiver {
                         BitmapUtils.MEDIA_ART_BIG_WIDTH,
                         BitmapUtils.MEDIA_ART_BIG_HEIGHT
                 );
+            } catch (final SocketTimeoutException e) {
+                FabricUtils.logException(e);
             } catch (final IOException e) {
                 FabricUtils.logException(e);
             }

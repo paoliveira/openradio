@@ -89,13 +89,13 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.PackageValidator;
 import com.yuriy.openradio.shared.utils.QueueHelper;
-import com.yuriy.openradio.shared.utils.RadioStationChecker;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -693,14 +693,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         try {
             url = new URL(playlistUrl);
             conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(RadioStationChecker.TIME_OUT);
-            conn.setReadTimeout(RadioStationChecker.TIME_OUT);
+            conn.setConnectTimeout(AppUtils.TIME_OUT);
+            conn.setReadTimeout(AppUtils.TIME_OUT);
             conn.setRequestMethod("GET");
 
             final String contentType = conn.getContentType();
             is = conn.getInputStream();
 
-            final AutoDetectParser parser = new AutoDetectParser(RadioStationChecker.TIME_OUT);
+            final AutoDetectParser parser = new AutoDetectParser(AppUtils.TIME_OUT);
             final Playlist playlist = new Playlist();
             parser.parse(url.toString(), contentType, is, playlist);
 
@@ -712,9 +712,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 result[i] = entry.get(PlaylistEntry.URI);
                 AppLogger.d(CLASS_NAME + " - " + result[i]);
             }
+        } catch (final SocketTimeoutException e) {
+            final String errorMessage = "Can not get urls from playlist at " + playlistUrl;
+            FabricUtils.logException(new Exception(errorMessage, e));
         } catch (final IOException | JPlaylistParserException e) {
             final String errorMessage = "Can not get urls from playlist at " + playlistUrl;
-            FabricUtils.logException(new JPlaylistParserException(errorMessage, e));
+            FabricUtils.logException(new Exception(errorMessage, e));
         } finally {
             if (conn != null) {
                 conn.disconnect();

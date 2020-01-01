@@ -34,6 +34,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.regex.Pattern;
 
@@ -175,6 +176,8 @@ public final class BitmapUtils {
 
     private static void doConnection(final HttpURLConnection connection) throws IOException {
         connection.setInstanceFollowRedirects(true);
+        connection.setReadTimeout(AppUtils.TIME_OUT);
+        connection.setConnectTimeout(AppUtils.TIME_OUT);
         connection.setRequestMethod("GET");
         connection.setRequestProperty("User-Agent", "Mozilla/5.0...");
         connection.connect();

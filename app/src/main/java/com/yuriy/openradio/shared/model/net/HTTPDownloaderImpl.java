@@ -36,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -104,6 +105,16 @@ public final class HTTPDownloaderImpl implements Downloader {
         HttpURLConnection urlConnection = null;
         try {
             urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setReadTimeout(AppUtils.TIME_OUT);
+            urlConnection.setConnectTimeout(AppUtils.TIME_OUT);
+            urlConnection.setRequestMethod("GET");
+        } catch (final SocketTimeoutException exception) {
+            FabricUtils.logException(
+                    new DownloaderException(
+                            createExceptionMessage(uri, parameters),
+                            exception
+                    )
+            );
         } catch (final IOException exception) {
             FabricUtils.logException(
                     new DownloaderException(

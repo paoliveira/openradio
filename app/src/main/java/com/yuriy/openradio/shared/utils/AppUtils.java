@@ -49,6 +49,11 @@ import java.util.TreeSet;
  */
 public final class AppUtils {
 
+    /**
+     * Time out for the stream to decide whether there is response or not, ms.
+     */
+    public static final int TIME_OUT = 2000;
+
     public static final String UTF8 = "UTF-8";
     public static final String DRAWABLE_PATH = "android.resource://com.yuriy.openradio/drawable/";
 
