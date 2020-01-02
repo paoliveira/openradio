@@ -31,10 +31,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Util;
+import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.io.File;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
@@ -72,6 +74,21 @@ public final class AppUtils {
      */
     private AppUtils() {
         super();
+    }
+
+    public static String listOfRadioStationsToString(final List<RadioStation> list) {
+        if (list == null) {
+            return "List is null";
+        }
+        if (list.isEmpty()) {
+            return "List is empty";
+        }
+        final StringBuilder builder = new StringBuilder("{");
+        for (final RadioStation station : list) {
+            builder.append(station.toString()).append(",");
+        }
+        builder.append("}");
+        return builder.toString();
     }
 
     /**

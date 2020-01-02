@@ -60,8 +60,6 @@ public abstract class IndexableMediaItemCommand extends MediaItemCommandImpl {
     }
 
     int getPageNumber() {
-        final int number = mPageIndex.getAndIncrement();
-        AppLogger.d(CLASS_NAME + " page number:" + number);
-        return number;
+        return mPageIndex.getAndIncrement();
     }
 }
