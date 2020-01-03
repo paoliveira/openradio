@@ -264,9 +264,9 @@ public class ImageFetcher extends ImageResizer {
             }
             return true;
         } catch (final SocketTimeoutException e) {
-            FabricUtils.logException(e);
+            FabricUtils.logException(new Exception("url:" + urlString, e));
         } catch (final IOException e) {
-            FabricUtils.logException(e);
+            FabricUtils.logException(new Exception("url:" + urlString, e));
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();

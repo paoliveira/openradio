@@ -276,7 +276,7 @@ public class ImageCache {
      * @param data Unique identifier for which item to get
      * @return The bitmap drawable if found in cache, null otherwise
      */
-    public BitmapDrawable getBitmapFromMemCache(String data) {
+    public BitmapDrawable getBitmapFromMemCache(final String data) {
         //BEGIN_INCLUDE(get_bitmap_from_mem_cache)
         BitmapDrawable memValue = null;
 
