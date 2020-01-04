@@ -30,7 +30,7 @@ import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.FabricUtils;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -266,7 +266,7 @@ public final class MediaResourcesManager {
                         manager.mMediaBrowser.getSessionToken()
                 );
             } catch (final RemoteException e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
                 return;
             }
 

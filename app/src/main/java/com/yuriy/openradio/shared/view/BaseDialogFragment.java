@@ -27,7 +27,7 @@ import android.view.Window;
 import androidx.fragment.app.DialogFragment;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.shared.utils.FabricUtils;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 
 /**
  * Created with Android Studio.
@@ -62,7 +62,7 @@ public abstract class BaseDialogFragment extends DialogFragment {
             dialogFragment = (BaseDialogFragment) Class.forName(className).getConstructor().newInstance();
             dialogFragment.setArguments(bundle);
         } catch (final Exception e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
         return dialogFragment;
     }

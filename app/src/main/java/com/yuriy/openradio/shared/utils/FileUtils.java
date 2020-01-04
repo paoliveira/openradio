@@ -106,7 +106,7 @@ public final class FileUtils {
         try {
             out = new FileOutputStream(file);
         } catch (final FileNotFoundException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return null;
         }
 
@@ -134,7 +134,7 @@ public final class FileUtils {
         try {
             final boolean result = file.createNewFile();
         } catch (final IOException e) {
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new FileNotFoundException("File " + path + " not created:\n" + Log.getStackTraceString(e))
             );
         }

@@ -45,9 +45,9 @@ import androidx.core.app.NotificationManagerCompat;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.BitmapUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
@@ -138,7 +138,7 @@ public final class MediaNotification extends BroadcastReceiver {
             notificationColor = ta.getColor(0, Color.DKGRAY);
             ta.recycle();
         } catch (final Exception e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
         return notificationColor;
     }
@@ -233,7 +233,7 @@ public final class MediaNotification extends BroadcastReceiver {
             try {
                 mController = new MediaControllerCompat(mService, mSessionToken);
             } catch (final RemoteException e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
                 return;
             }
             mTransportControls = mController.getTransportControls();
@@ -544,7 +544,7 @@ public final class MediaNotification extends BroadcastReceiver {
         try {
             task.execute();
         } catch (final Exception e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
     }
 
@@ -592,9 +592,9 @@ public final class MediaNotification extends BroadcastReceiver {
                         BitmapUtils.MEDIA_ART_BIG_HEIGHT
                 );
             } catch (final SocketTimeoutException e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
             } catch (final IOException e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
             }
             if (bitmap != null) {
                 reference.mAlbumArtCache.put(mSource, bitmap);

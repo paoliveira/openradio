@@ -309,13 +309,10 @@ public final class MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-//                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, subTitle)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ARTIST, subTitle)
-                .putString(MediaMetadataCompat.METADATA_KEY_AUTHOR, subTitle)
                 .build();
 
         // Info: There is no other way to set custom values in the description's bundle ...

@@ -17,12 +17,14 @@
 package com.yuriy.openradio.shared.utils;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.answers.Answers;
 import com.crashlytics.android.answers.CustomEvent;
 import com.crashlytics.android.core.CrashlyticsCore;
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.yuriy.openradio.BuildConfig;
 
 import io.fabric.sdk.android.Fabric;
@@ -33,20 +35,25 @@ import io.fabric.sdk.android.Fabric;
  * On 7/26/16
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *  A helper class designed to assist with API Crashlytics provided.
+ *  A helper class designed to assist with Analytics APIs.
  */
-public final class FabricUtils {
+public final class AnalyticsUtils {
 
     public static final String EVENT_NAME_GOOGLE_DRIVE = "GoogleDrive";
+    private static FirebaseAnalytics sFirebaseAnalytics;
 
     /**
      * Default constructor.
      */
-    private FabricUtils() {
+    private AnalyticsUtils() {
         super();
     }
 
     public static void init(final Context context) {
+        sFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
+        final Bundle bundle = new Bundle();
+        sFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, bundle);
+
         final CrashlyticsCore crashlyticsCore = new CrashlyticsCore.Builder()
                 .disabled(BuildConfig.DEBUG)
                 .build();

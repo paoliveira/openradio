@@ -81,9 +81,9 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.shared.notification.MediaNotification;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
@@ -714,10 +714,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
         } catch (final SocketTimeoutException e) {
             final String errorMessage = "Can not get urls from playlist at " + playlistUrl;
-            FabricUtils.logException(new Exception(errorMessage, e));
+            AnalyticsUtils.logException(new Exception(errorMessage, e));
         } catch (final IOException | JPlaylistParserException e) {
             final String errorMessage = "Can not get urls from playlist at " + playlistUrl;
-            FabricUtils.logException(new Exception(errorMessage, e));
+            AnalyticsUtils.logException(new Exception(errorMessage, e));
         } finally {
             if (conn != null) {
                 conn.disconnect();
@@ -1474,7 +1474,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // IllegalStateException: beginBroadcast() called while already in a broadcast
             mSession.setPlaybackState(stateBuilder.build());
         } catch (final IllegalStateException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
 
         AppLogger.d(CLASS_NAME + "state:" + mState);
@@ -1962,7 +1962,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             executePerformSearch(query);
                         } catch (final Exception e) {
                             handleStopRequest(getString(R.string.no_search_results));
-                            FabricUtils.logException(e);
+                            AnalyticsUtils.logException(e);
                         }
                     }
             );

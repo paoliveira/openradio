@@ -177,7 +177,7 @@ public final class PackageValidator {
             packageInfo = packageManager.getPackageInfo(
                     callingPackage, PackageManager.GET_SIGNATURES);
         } catch (PackageManager.NameNotFoundException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return false;
         }
         if (packageInfo == null) {

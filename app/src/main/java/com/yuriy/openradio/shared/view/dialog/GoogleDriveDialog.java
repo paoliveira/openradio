@@ -41,7 +41,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManagerListenerImpl;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.FabricUtils;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 
@@ -110,7 +110,7 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
                                             ACCOUNT_REQUEST_CODE
                                     );
                                 } catch (final ActivityNotFoundException e) {
-                                    FabricUtils.logException(e);
+                                    AnalyticsUtils.logException(e);
                                     GoogleDriveDialog.this.mGoogleDriveManager.connect(null);
                                 }
                             }

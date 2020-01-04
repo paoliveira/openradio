@@ -28,8 +28,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 import com.yuriy.openradio.shared.utils.QueueHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
@@ -398,7 +398,7 @@ public final class GoogleDriveManager {
             jsonObject.put(RADIO_STATION_CATEGORY_FAVORITES, favorites);
             jsonObject.put(RADIO_STATION_CATEGORY_LOCALS, locals);
         } catch (final JSONException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
         return jsonObject.toString();
     }
@@ -415,7 +415,7 @@ public final class GoogleDriveManager {
         try {
             jsonObject = new JSONObject(data);
         } catch (final JSONException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
         if (jsonObject != null) {
             categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, "");
@@ -532,8 +532,8 @@ public final class GoogleDriveManager {
 
         @Override
         public void onError(final GoogleDriveError error) {
-            FabricUtils.logCustomEvent(
-                    FabricUtils.EVENT_NAME_GOOGLE_DRIVE, "Error", error.toString()
+            AnalyticsUtils.logCustomEvent(
+                    AnalyticsUtils.EVENT_NAME_GOOGLE_DRIVE, "Error", error.toString()
             );
             final GoogleDriveManager manager = mReference.get();
             if (manager == null) {

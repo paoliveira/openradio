@@ -186,7 +186,7 @@ public class ImageResizer extends ImageWorker {
         try {
             return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
         } catch (final Exception e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return null;
         }
     }

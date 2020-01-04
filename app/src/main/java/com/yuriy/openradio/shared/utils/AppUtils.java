@@ -138,14 +138,14 @@ public final class AppUtils {
             packageName = context.getPackageName();
             return packageManager.getPackageInfo(packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return null;
         } catch (RuntimeException e) {
             // To catch RuntimeException("Package manager has died") that can occur on some
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return null;
         } catch (Throwable e) {
             AppLogger.e(CLASS_NAME + " Package manager has Throwable : " + e);
@@ -296,7 +296,7 @@ public final class AppUtils {
                 }
             }
         } catch (final Exception e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
         return null;
     }

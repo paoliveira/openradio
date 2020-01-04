@@ -134,7 +134,7 @@ public final class ImageFilePath {
             }
         } catch (final Exception e) {
             final String msg = "Can not get data column for " + (originalUri != null ? originalUri.toString() : "null.");
-            FabricUtils.logException(new Exception(msg, e));
+            AnalyticsUtils.logException(new Exception(msg, e));
         }
         return null;
     }

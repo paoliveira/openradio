@@ -27,7 +27,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
@@ -67,7 +67,7 @@ public final class MainApp extends Application {
                     AppLogger.setIsLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage(context);
 
-                    FabricUtils.init(context);
+                    AnalyticsUtils.init(context);
 
                     correctBufferSettings(context);
                     migrateImagesToIntStorage(context);

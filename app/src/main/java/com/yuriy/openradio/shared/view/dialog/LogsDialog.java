@@ -34,9 +34,9 @@ import androidx.core.content.FileProvider;
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 
@@ -142,7 +142,7 @@ public final class LogsDialog extends BaseDialogFragment {
             AppLogger.zip(getActivity());
         } catch (final IOException e) {
             SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return;
         }
 
@@ -200,7 +200,7 @@ public final class LogsDialog extends BaseDialogFragment {
                 );
                 sendIntent.putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
                 return null;
             }
 
@@ -231,7 +231,7 @@ public final class LogsDialog extends BaseDialogFragment {
                             dialog.getActivity().getApplicationContext(),
                             dialog.getActivity().getString(R.string.cant_start_activity)
                     );
-                    FabricUtils.logException(e);
+                    AnalyticsUtils.logException(e);
                 }
             } else {
                 SafeToast.showAnyThread(

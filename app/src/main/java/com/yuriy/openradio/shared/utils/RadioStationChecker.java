@@ -103,7 +103,7 @@ public final class RadioStationChecker implements Runnable {
             AppLogger.e(
                     CLASS_NAME + " Stream Url " + mUrl + " check failed:" + e.getMessage()
             );
-            //FabricUtils.logException(e);
+            //AnalyticsUtils.logException(e);
         } finally {
             clear(urlConnection, inputStream);
         }

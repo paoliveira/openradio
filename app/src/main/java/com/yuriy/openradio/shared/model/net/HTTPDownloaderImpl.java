@@ -21,9 +21,9 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
 
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
@@ -90,7 +90,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             url = new URL(uri.toString());
         } catch (final MalformedURLException exception) {
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new DownloaderException(
                             createExceptionMessage(uri, parameters),
                             exception
@@ -109,14 +109,14 @@ public final class HTTPDownloaderImpl implements Downloader {
             urlConnection.setConnectTimeout(AppUtils.TIME_OUT);
             urlConnection.setRequestMethod("GET");
         } catch (final SocketTimeoutException exception) {
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new DownloaderException(
                             createExceptionMessage(uri, parameters),
                             exception
                     )
             );
         } catch (final IOException exception) {
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new DownloaderException(
                             createExceptionMessage(uri, parameters),
                             exception
@@ -136,7 +136,7 @@ public final class HTTPDownloaderImpl implements Downloader {
                 urlConnection.setRequestMethod("POST");
                 result = true;
             } catch (final ProtocolException exception) {
-                FabricUtils.logException(
+                AnalyticsUtils.logException(
                         new DownloaderException(
                                 createExceptionMessage(uri, parameters),
                                 exception
@@ -152,7 +152,7 @@ public final class HTTPDownloaderImpl implements Downloader {
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
                 } catch (final IOException exception) {
-                    FabricUtils.logException(
+                    AnalyticsUtils.logException(
                             new DownloaderException(createExceptionMessage(uri, parameters), exception)
                     );
                 }
@@ -165,7 +165,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         try {
             responseCode = urlConnection.getResponseCode();
         } catch (final IOException exception) {
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new DownloaderException(
                             createExceptionMessage(uri, parameters),
                             exception
@@ -176,7 +176,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         AppLogger.d("Response code:" + responseCode);
         if (responseCode < 200 || responseCode > 299) {
             urlConnection.disconnect();
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new DownloaderException(
                             createExceptionMessage(uri, parameters),
                             new Exception("Response code is " + responseCode)
@@ -189,7 +189,7 @@ public final class HTTPDownloaderImpl implements Downloader {
             final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
             response = toByteArray(inputStream);
         } catch (final IOException exception) {
-            FabricUtils.logException(
+            AnalyticsUtils.logException(
                     new DownloaderException(
                             createExceptionMessage(uri, parameters),
                             exception

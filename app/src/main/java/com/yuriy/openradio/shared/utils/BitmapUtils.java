@@ -34,7 +34,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.regex.Pattern;
 
@@ -157,7 +156,7 @@ public final class BitmapUtils {
         } else {
             final String message = "FetchedAndRescaled bmp for url '" + uri + "' is null";
             final Exception exception = new Exception(message);
-            FabricUtils.logException(exception);
+            AnalyticsUtils.logException(exception);
         }
 
         return bitmap;

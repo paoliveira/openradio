@@ -32,6 +32,7 @@ android {
         targetSdkVersion project.ext.targetSdkVersion
         versionCode code
         versionName project.ext.versionName
+        multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         manifestPlaceholders = [crashlytics_api_key: project.ext.apiKey]
@@ -68,7 +69,7 @@ android {
 }
 
 dependencies {
-    compileOnly 'org.checkerframework:checker-compat-qual:2.5.3'
+    compileOnly 'org.checkerframework:checker-compat-qual:2.5.5'
     compileOnly 'org.checkerframework:checker-qual:' + checkerframeworkVersion
 
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
@@ -81,12 +82,14 @@ dependencies {
     implementation("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
         transitive = true
     }
+    implementation 'com.google.firebase:firebase-analytics:17.2.1'
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
     implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
     // https://mvnrepository.com/artifact/org.jdom/jdom2
     implementation group: 'org.jdom', name: 'jdom2', version: '2.0.6'
     implementation 'de.westnordost:countryboundaries:1.5'
+    implementation 'com.android.support:multidex:1.0.3'
 
     androidTestImplementation(
             "androidx.test.espresso:espresso-core:$espressoVersion",

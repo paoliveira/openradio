@@ -32,9 +32,9 @@ import com.yuriy.openradio.shared.model.storage.cache.api.ApiCache;
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache;
 import com.yuriy.openradio.shared.service.LocationService;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 import com.yuriy.openradio.shared.vo.Category;
 import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.shared.vo.MediaStream;
@@ -134,7 +134,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                 allCategories.add(category);
 
             } catch (JSONException e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
             }
         }
 
@@ -181,7 +181,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 //                    allCountries.add(new Country(countryName, countryCode));
 //                }
 //            } catch (final JSONException e) {
-//                FabricUtils.logException(e);
+//                AnalyticsUtils.logException(e);
 //            }
 //        }
         for (final String countryName : LocationService.COUNTRY_NAME_TO_CODE.keySet()) {
@@ -227,7 +227,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                 radioStations.add(radioStation);
 
             } catch (JSONException e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
             }
         }
 
@@ -253,14 +253,14 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         try {
             object = new JSONObject(response);
         } catch (JSONException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             return radioStation;
         }
 
         try {
             updateRadioStation(radioStation, object);
         } catch (JSONException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
 
         return radioStation;
@@ -301,7 +301,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         try {
             responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
         } catch (final UnsupportedEncodingException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
             responsesMapKey = null;
         }
 
@@ -325,7 +325,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             array = new JSONArray(response);
             isSuccess = true;
         } catch (final JSONException e) {
-            FabricUtils.logException(e);
+            AnalyticsUtils.logException(e);
         }
 
         if (isSuccess) {
@@ -395,7 +395,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                 mediaStream.setVariant(bitrate, url);
 
             } catch (final Exception e) {
-                FabricUtils.logException(e);
+                AnalyticsUtils.logException(e);
             }
         }
 

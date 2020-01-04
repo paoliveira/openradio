@@ -1005,7 +1005,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         final TextView descriptionView = findViewById(R.id.crs_description_view);
         if (descriptionView != null) {
-            descriptionView.setText(description.getSubtitle());
+            descriptionView.setText(description.getDescription());
         }
         final ImageView imageView = findViewById(R.id.crs_img_view);
         if (imageView != null) {

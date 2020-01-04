@@ -64,9 +64,9 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.FabricUtils;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -690,7 +690,7 @@ public final class ExoPlayerOpenRadioImpl {
                 return;
             }
 
-            FabricUtils.logException(exception);
+            AnalyticsUtils.logException(exception);
 
             reference.mListener.onError(exception);
         }
@@ -730,21 +730,22 @@ public final class ExoPlayerOpenRadioImpl {
      * Handle playback update progress.
      */
     private void updateProgress() {
-        if (mExoPlayer == null) {
+        final ExoPlayer exoPlayer = mExoPlayer;
+        if (exoPlayer == null) {
             // TODO: Investigate why this callback's loop still exists even after destroy()
             AppLogger.w(LOG_TAG + " update progress with null player");
             return;
         }
 
-        if (mExoPlayer.getCurrentTimeline() == Timeline.EMPTY) {
-            // TODO: Investigate why an empty timeline is here, probably because if obsolete reference to player
+        if (exoPlayer.getCurrentTimeline() == Timeline.EMPTY) {
+            // TODO: Investigate why an empty timeline is here, probably because it is obsolete reference to player
             AppLogger.w(LOG_TAG + " update progress with empty timeline");
             return;
         }
 
-        final long position = mExoPlayer.getCurrentPosition();
-        final long bufferedPosition = mExoPlayer.getBufferedPosition();
-        final long duration = mExoPlayer.getDuration();
+        final long position = exoPlayer.getCurrentPosition();
+        final long bufferedPosition = exoPlayer.getBufferedPosition();
+        final long duration = exoPlayer.getDuration();
 
         AppLogger.d(
                 "Pos:" + position
@@ -761,10 +762,10 @@ public final class ExoPlayerOpenRadioImpl {
             return;
         }
         mUpdateProgressHandler.removeCallbacks(mUpdateProgressAction);
-        final int playbackState = mExoPlayer.getPlaybackState();
+        final int playbackState = exoPlayer.getPlaybackState();
         if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
             long delayMs;
-            if (mExoPlayer.getPlayWhenReady() && playbackState == Player.STATE_READY) {
+            if (exoPlayer.getPlayWhenReady() && playbackState == Player.STATE_READY) {
                 delayMs = 1000 - (position % 1000);
                 if (delayMs < 200) {
                     delayMs += 1000;

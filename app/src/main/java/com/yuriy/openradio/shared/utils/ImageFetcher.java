@@ -100,7 +100,7 @@ public class ImageFetcher extends ImageResizer {
                     mHttpDiskCache.delete();
                     AppLogger.d(TAG + " HTTP cache cleared");
                 } catch (IOException e) {
-                    FabricUtils.logException(e);
+                    AnalyticsUtils.logException(e);
                 }
                 mHttpDiskCache = null;
                 mHttpDiskCacheStarting = true;
@@ -118,7 +118,7 @@ public class ImageFetcher extends ImageResizer {
                     mHttpDiskCache.flush();
                     AppLogger.d(TAG + " HTTP cache flushed");
                 } catch (IOException e) {
-                    FabricUtils.logException(e);
+                    AnalyticsUtils.logException(e);
                 }
             }
         }
@@ -136,7 +136,7 @@ public class ImageFetcher extends ImageResizer {
                         AppLogger.d(TAG + " HTTP cache closed");
                     }
                 } catch (IOException e) {
-                    FabricUtils.logException(e);
+                    AnalyticsUtils.logException(e);
                 }
             }
         }
@@ -187,7 +187,7 @@ public class ImageFetcher extends ImageResizer {
                         fileDescriptor = fileInputStream.getFD();
                     }
                 } catch (IOException | IllegalStateException e) {
-                    FabricUtils.logException(e);
+                    AnalyticsUtils.logException(e);
                 } finally {
                     if (fileDescriptor == null && fileInputStream != null) {
                         try {
@@ -264,9 +264,9 @@ public class ImageFetcher extends ImageResizer {
             }
             return true;
         } catch (final SocketTimeoutException e) {
-            FabricUtils.logException(new Exception("url:" + urlString, e));
+            AnalyticsUtils.logException(new Exception("url:" + urlString, e));
         } catch (final IOException e) {
-            FabricUtils.logException(new Exception("url:" + urlString, e));
+            AnalyticsUtils.logException(new Exception("url:" + urlString, e));
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
