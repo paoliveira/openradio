@@ -2104,8 +2104,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                 if (result) {
                     notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
-                } else {
-                    AppLogger.w(CLASS_NAME + "Can not edit Station");
                 }
                 break;
             }
@@ -2165,7 +2163,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 );
                 if (radioStation != null) {
                     FileUtils.deleteFile(radioStation.getImageUrl());
-                    LocalRadioStationsStorage.removeFromLocal(radioStation, context);
+                    LocalRadioStationsStorage.remove(radioStation, context);
                 }
 
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);

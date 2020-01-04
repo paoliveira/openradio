@@ -22,7 +22,9 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
+import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.vo.MediaStream;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.List;
@@ -116,7 +118,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * @param radioStation {@link RadioStation} to remove from the Local Radio Stations.
      * @param context Context of the callee.
      */
-    public static synchronized void removeFromLocal(final RadioStation radioStation, final Context context) {
+    public static synchronized void remove(final RadioStation radioStation, final Context context) {
         AbstractRadioStationsStorage.remove(radioStation, context, FILE_NAME);
     }
 
@@ -140,8 +142,14 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
         final List<RadioStation> list = AbstractRadioStationsStorage.getAll(context, FILE_NAME);
         for (final RadioStation radioStation : list) {
             if (radioStation.getIdAsString().endsWith(mediaId)) {
+                remove(radioStation, context);
+                FavoritesStorage.remove(radioStation, context);
+
                 radioStation.setName(name);
-                radioStation.getMediaStream().setVariant(0, url);
+
+                final MediaStream mediaStream = MediaStream.makeDefaultInstance();
+                mediaStream.setVariant(128, url);
+                radioStation.setMediaStream(mediaStream);
                 //TODO: Should we remove previous image from storage?
                 radioStation.setImageUrl(imageUrl);
                 radioStation.setGenre(genre);
@@ -149,17 +157,21 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
 
                 if (addToFav) {
                     FavoritesStorage.add(radioStation, context);
-                } else {
-                    FavoritesStorage.remove(radioStation, context);
+                }
+                add(radioStation, context);
+
+                final RadioStation current = LatestRadioStationStorage.get(context);
+                if (current != null && current.getIdAsString().endsWith(mediaId)) {
+                    LatestRadioStationStorage.add(radioStation, context);
                 }
 
-                add(radioStation, context);
                 AppLogger.d("Radio station updated to:" + radioStation.toString());
 
                 result = true;
                 break;
             }
         }
+
         return result;
     }
 

@@ -284,7 +284,7 @@ public final class MediaItemHelper {
         if (radioStation == null) {
             return null;
         }
-        String iconUrl = AppUtils.DRAWABLE_PATH + "radio_station_empty";
+        String iconUrl = AppUtils.DRAWABLE_PATH + "ic_radio_station_empty";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
