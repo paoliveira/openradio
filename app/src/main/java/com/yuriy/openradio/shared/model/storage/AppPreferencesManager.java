@@ -38,7 +38,7 @@ public final class AppPreferencesManager {
     /**
      * Name of the Preferences.
      */
-    private static final String PREFS_NAME = "OpenRadioPref";
+    private static final String FILE_NAME = "OpenRadioPref";
 
     /**
      * Key for the "Is Location dialog enabled shown" dialog.
@@ -310,6 +310,6 @@ public final class AppPreferencesManager {
      * @return {@link SharedPreferences} of the Application
      */
     private static SharedPreferences getSharedPreferences(@NonNull final Context context) {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return context.getSharedPreferences(FILE_NAME, Context.MODE_PRIVATE);
     }
 }

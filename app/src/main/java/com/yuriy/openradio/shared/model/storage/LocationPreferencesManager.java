@@ -21,52 +21,53 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import com.yuriy.openradio.shared.vo.Country;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * {@link ServiceLifecyclePreferencesManager} is a class that provides access and manage of the
- * Open Radio service Shared Preferences.
+ * {@link LocationPreferencesManager} is a class that provides access to data associated with  Location.
  */
-public final class ServiceLifecyclePreferencesManager {
+public final class LocationPreferencesManager {
 
     /**
      * Name of the Preferences.
      */
-    private static final String FILE_NAME = "ServiceLifecyclePref";
+    private static final String FILE_NAME = "LocationPref";
 
     /**
      * Key for the "Is Active" status.
      */
-    private static final String PREFS_KEY_IS_ACTIVE = "PREFS_KEY_IS_ACTIVE";
+    private static final String PREFS_KEY_LAST_COUNTRY_CODE = "PREFS_KEY_LAST_COUNTRY_CODE";
 
     /**
      * Default constructor.
      */
-    private ServiceLifecyclePreferencesManager() {
+    private LocationPreferencesManager() {
         super();
     }
 
     /**
-     * @return True if Open Radio Service is active. False - otherwise.
+     * @return
      */
-    public static boolean isServiceActive(@NonNull final Context context) {
-        return getSharedPreferences(context).getBoolean(
-                PREFS_KEY_IS_ACTIVE,
-                false
+    public static String getLastCountryCode(@NonNull final Context context) {
+        return getSharedPreferences(context).getString(
+                PREFS_KEY_LAST_COUNTRY_CODE,
+                Country.COUNTRY_CODE_DEFAULT
         );
     }
 
     /**
-     * Set True if Open Radio Service is active. False - otherwise.
      *
-     * @param value Boolean value.
+     *
+     * @param value
      */
-    public static void isServiceActive(@NonNull final Context context, final boolean value) {
+    public static void setLastCountryCode(@NonNull final Context context, final String value) {
         final SharedPreferences.Editor editor = getEditor(context);
-        editor.putBoolean(PREFS_KEY_IS_ACTIVE, value);
+        editor.putString(PREFS_KEY_LAST_COUNTRY_CODE, value);
         editor.apply();
     }
 

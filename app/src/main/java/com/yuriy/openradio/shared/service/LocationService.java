@@ -33,21 +33,20 @@ import androidx.annotation.Nullable;
 import androidx.core.app.JobIntentService;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.yuriy.openradio.shared.model.storage.LocationPreferencesManager;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.vo.Country;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import de.westnordost.countryboundaries.CountryBoundaries;
@@ -349,8 +348,6 @@ public final class LocationService extends JobIntentService {
      */
     private static String sCountryCode;
 
-    private CountryBoundaries mCountryBoundaries;
-
     /**
      * Private constructor.
      */
@@ -384,13 +381,13 @@ public final class LocationService extends JobIntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        try {
-            mCountryBoundaries = CountryBoundaries.load(getAssets().open("boundaries.ser"));
-        } catch (final IOException e) {
-            // Ignore up to now ...
-            AppLogger.e(CLASS_NAME + "can not load boundaries.ser:" + e);
-        }
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        AppLogger.d(CLASS_NAME + "Location service destroyed");
     }
 
     /**
@@ -402,13 +399,16 @@ public final class LocationService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         AppLogger.d(CLASS_NAME + "Handle Location intent:" + intent);
-        final String[] result = new String[1];
-        // Max time to await for country code to be detected, in sec.
-        final int maxAwaitTime = 2;
+        sCountryCode = LocationPreferencesManager.getLastCountryCode(getApplicationContext());
+        // Send the country code back to client.
+        sendCountryCode(intent, sCountryCode);
+        fetchLocation();
+    }
+
+    private void fetchLocation() {
         // Delay prior to request country code, in millisec.
         // It is necessary to give time to Looper to start running prior to call location APIs.
         final int delay = 100;
-        final CountDownLatch latch = new CountDownLatch(1);
         // Use simple thread here and not executor's API because executor can handle new call in the same thread.
         // While this is good resource keeper, Loop handling will be more complicated. Keep things simple - create
         // new thread on each request. The good news is - new request is only happening on app start up.
@@ -420,16 +420,15 @@ public final class LocationService extends JobIntentService {
                             () -> requestCountryCode(
                                     getApplicationContext(),
                                     countryCode -> {
-                                        // Get current country code.
-                                        result[0] = countryCode;
 
-                                        sCountryCode = countryCode;
+                                        LocationPreferencesManager.setLastCountryCode(
+                                                getApplicationContext(), countryCode
+                                        );
 
                                         final Looper looper = Looper.myLooper();
                                         if (looper != null) {
                                             looper.quit();
                                         }
-                                        latch.countDown();
                                     },
                                     Looper.myLooper()
                             ), delay
@@ -439,14 +438,6 @@ public final class LocationService extends JobIntentService {
         );
         thread.setName("LocSrvc-Thread");
         thread.start();
-
-        try {
-            latch.await(maxAwaitTime, TimeUnit.SECONDS);
-        } catch (final InterruptedException e) {
-            //
-        }
-        // Send the country code back to client.
-        sendCountryCode(intent, result[0]);
     }
 
     /**
@@ -491,7 +482,7 @@ public final class LocationService extends JobIntentService {
             // Current user's country code.
             data.putString(COUNTRY_CODE, countryCode);
             message.setData(data);
-            AppLogger.d(CLASS_NAME + "put country code into message");
+            AppLogger.d(CLASS_NAME + "put country code " + countryCode + " into message");
         } else {
             message.arg1 = Activity.RESULT_CANCELED;
         }
@@ -527,8 +518,9 @@ public final class LocationService extends JobIntentService {
 
     private void requestCountryCode(final Context context, final LocationServiceListener listener,
                                     final Looper looper) {
+        AppLogger.d(CLASS_NAME + "Requesting location ...");
         final LocationCallback locationListener = new LocationListenerImpl(
-                this, listener, context, mFusedLocationClient
+                listener, context, mFusedLocationClient
         );
         mFusedLocationClient.requestLocationUpdates(
                 createLocationRequest(),
@@ -538,11 +530,11 @@ public final class LocationService extends JobIntentService {
     }
 
     private LocationRequest createLocationRequest() {
-        final LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(0);
-        locationRequest.setFastestInterval(0);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        return locationRequest;
+        final LocationRequest request = LocationRequest.create();
+        request.setInterval(100);
+        request.setFastestInterval(100);
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        return request;
     }
 
     /**
@@ -550,42 +542,52 @@ public final class LocationService extends JobIntentService {
      */
     private static final class LocationListenerImpl extends LocationCallback {
 
-        private final WeakReference<LocationService> mReference;
-        @Nullable
-        private final LocationServiceListener mListener;
-        private final Context mContext;
-        @NonNull
-        private final FusedLocationProviderClient mFusedLocationClient;
+        private LocationServiceListener mListener;
+        private Context mContext;
+        private FusedLocationProviderClient mFusedLocationClient;
         private final AtomicInteger mCounter;
         private static final int MAX_COUNT = 0;
+        private CountryBoundaries mCountryBoundaries;
 
-        private LocationListenerImpl(final LocationService reference,
-                                     @Nullable final LocationServiceListener listener,
+        private LocationListenerImpl(@Nullable final LocationServiceListener listener,
                                      final Context context,
                                      @NonNull final FusedLocationProviderClient fusedLocationClient) {
             super();
-            mReference = new WeakReference<>(reference);
             mListener = listener;
             mContext = context;
             mFusedLocationClient = fusedLocationClient;
             mCounter = new AtomicInteger(0);
+            try {
+                mCountryBoundaries = CountryBoundaries.load(mContext.getAssets().open("boundaries.ser"));
+            } catch (final IOException e) {
+                // Ignore up to now ...
+                AppLogger.e(CLASS_NAME + "can not load boundaries.ser:" + e);
+            }
+        }
+
+        @Override
+        public void onLocationAvailability(final LocationAvailability availability) {
+            super.onLocationAvailability(availability);
+            AppLogger.d(
+                    CLASS_NAME + "On Location availability (" + mCounter.get() + "):"
+                            + availability.toString()
+            );
+            if (!availability.isLocationAvailable()) {
+                clear();
+            }
         }
 
         @Override
         public void onLocationResult(final LocationResult result) {
             super.onLocationResult(result);
             AppLogger.d(
-                    "On Location changed (" + mCounter.get() + "):" + result.getLastLocation()
+                    CLASS_NAME + "On Location changed (" + mCounter.get() + "):"
+                            + result.getLastLocation()
             );
             if (mCounter.getAndIncrement() < MAX_COUNT) {
                 return;
             }
-            if (PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                mFusedLocationClient.removeLocationUpdates(this);
-            }
-
-            final LocationService reference = mReference.get();
-            if (reference == null) {
+            if (mContext == null) {
                 return;
             }
 
@@ -596,19 +598,21 @@ public final class LocationService extends JobIntentService {
                 if (mListener != null) {
                     mListener.onCountryCodeLocated(countryCode);
                 }
+                clear();
                 return;
             }
 
-            if (reference.mCountryBoundaries == null) {
+            if (mCountryBoundaries == null) {
                 if (mListener != null) {
                     mListener.onCountryCodeLocated(countryCode);
                 }
+                clear();
                 return;
             }
 
             try {
                 countryCode = extractCountryCode(
-                        reference.mCountryBoundaries.getIds(
+                        mCountryBoundaries.getIds(
                                 location.getLongitude(), location.getLatitude()
                         )
                 );
@@ -620,6 +624,8 @@ public final class LocationService extends JobIntentService {
             if (mListener != null) {
                 mListener.onCountryCodeLocated(countryCode);
             }
+
+            clear();
         }
 
         private String extractCountryCode(final List<String> data) {
@@ -640,6 +646,19 @@ public final class LocationService extends JobIntentService {
                 }
             }
             return result;
+        }
+
+        private void clear() {
+            if (mContext == null) {
+                return;
+            }
+            AppLogger.d(CLASS_NAME + "clear");
+            if (PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
+                mFusedLocationClient.removeLocationUpdates(this);
+            }
+            mListener = null;
+            mContext = null;
+            mFusedLocationClient = null;
         }
     }
 }
