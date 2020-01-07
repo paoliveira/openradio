@@ -406,34 +406,18 @@ public final class LocationService extends JobIntentService {
     }
 
     private void fetchLocation() {
-        // Delay prior to request country code, in millisec.
-        // It is necessary to give time to Looper to start running prior to call location APIs.
-        final int delay = 100;
         // Use simple thread here and not executor's API because executor can handle new call in the same thread.
         // While this is good resource keeper, Loop handling will be more complicated. Keep things simple - create
         // new thread on each request. The good news is - new request is only happening on app start up.
         final Thread thread = new Thread(
                 () -> {
                     Looper.prepare();
-                    final Handler handler = new Handler();
-                    handler.postDelayed(
-                            () -> requestCountryCode(
-                                    getApplicationContext(),
-                                    countryCode -> {
-
-                                        LocationPreferencesManager.setLastCountryCode(
-                                                getApplicationContext(), countryCode
-                                        );
-
-                                        final Looper looper = Looper.myLooper();
-                                        if (looper != null) {
-                                            looper.quit();
-                                        }
-                                    },
-                                    Looper.myLooper()
-                            ), delay
+                    requestCountryCode(
+                            getApplicationContext(),
+                            countryCode -> LocationPreferencesManager.setLastCountryCode(
+                                    getApplicationContext(), countryCode
+                            )
                     );
-                    Looper.loop();
                 }
         );
         thread.setName("LocSrvc-Thread");
@@ -516,16 +500,14 @@ public final class LocationService extends JobIntentService {
         }
     }
 
-    private void requestCountryCode(final Context context, final LocationServiceListener listener,
-                                    final Looper looper) {
-        AppLogger.d(CLASS_NAME + "Requesting location ...");
+    private void requestCountryCode(final Context context, final LocationServiceListener listener) {
         final LocationCallback locationListener = new LocationListenerImpl(
                 listener, context, mFusedLocationClient
         );
         mFusedLocationClient.requestLocationUpdates(
                 createLocationRequest(),
                 locationListener,
-                looper
+                null
         );
     }
 

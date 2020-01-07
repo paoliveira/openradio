@@ -1,2 +1,6 @@
 /build
 release/
+google-services.json
+crashlytics.properties
+fabric.properties
+sign.properties
