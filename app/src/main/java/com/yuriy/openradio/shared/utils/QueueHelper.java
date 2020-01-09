@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.utils;
 
-import android.content.Context;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
@@ -49,16 +48,12 @@ public final class QueueHelper {
     private static final String CLASS_NAME = QueueHelper.class.getSimpleName();
 
     /**
-     * @param context
      * @param radioStations
      * @return
      */
     public static List<MediaSessionCompat.QueueItem> getPlayingQueue(
-            final Context context,
             final List<RadioStation> radioStations) {
         final List<MediaSessionCompat.QueueItem> queue = new ArrayList<>();
-        int count = 0;
-        MediaSessionCompat.QueueItem item;
         MediaMetadataCompat track;
         for (final RadioStation radioStation : radioStations) {
             track = MediaItemHelper.metadataFromRadioStation(radioStation);
@@ -66,8 +61,7 @@ public final class QueueHelper {
                 AppLogger.w(CLASS_NAME + " Get playing queue warning, Radio Station is null");
                 continue;
             }
-            item = new MediaSessionCompat.QueueItem(track.getDescription(), count++);
-            queue.add(item);
+            queue.add(new MediaSessionCompat.QueueItem(track.getDescription(), radioStation.getId()));
         }
         return queue;
     }
@@ -82,7 +76,7 @@ public final class QueueHelper {
     public static int getRadioStationIndexOnQueue(final List<RadioStation> queue,
                                                   final String mediaId) {
         int index = 0;
-        for (RadioStation item : queue) {
+        for (final RadioStation item : queue) {
             if (mediaId.equals(item.getIdAsString())) {
                 return index;
             }

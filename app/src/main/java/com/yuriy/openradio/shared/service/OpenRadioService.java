@@ -611,7 +611,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.w(CLASS_NAME + "Skipping unmatched parentId: " + mCurrentParentId);
             result.sendResult(mediaItems);
         }
-
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(getApplicationContext());
     }
@@ -1494,13 +1493,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         long actions = PlaybackStateCompat.ACTION_PLAY
                 | PlaybackStateCompat.ACTION_PLAY_FROM_MEDIA_ID
                 | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH;
-        if (mRadioStations.isEmpty()) {
-            return actions;
-        }
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             actions |= PlaybackStateCompat.ACTION_PAUSE;
         }
-        if (mRadioStations.size() == 1) {
+        if (mRadioStations.size() <= 1) {
             return actions;
         }
         // Always show Prev and Next buttons, play index is handling on each listener (for instance, to handle loop
@@ -1633,6 +1629,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mCurrentIndexOnQueue = tempIndexOnQueue;
         }
 
+//        mSession.setQueue(
+//                QueueHelper.getPlayingQueue(
+//                        FavoritesStorage.getAll(getApplicationContext())
+//                )
+//        );
+//
+//        final String queueTitle = "Queue";
+//        mSession.setQueueTitle(queueTitle);
+
         // Play Radio Station
         handlePlayRequest();
     }
@@ -1700,9 +1705,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 service.mCurrentIndexOnQueue = 0;
             }
 
-            if (!service.mRadioStations.isEmpty()) {
-                service.handlePlayRequest();
-            }
+            service.handlePlayRequest();
         }
 
         @Override
@@ -1720,22 +1723,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 service.mState = PlaybackStateCompat.STATE_STOPPED;
             }
 
-            if (!service.mRadioStations.isEmpty()) {
-
-                // set the current index on queue from the music Id:
-                // TODO: Investigate !!!
-//                service.mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-//                        service.mRadioStations, id
-//                );
-                service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
-
-                if (service.mCurrentIndexOnQueue == -1) {
-                    return;
-                }
-
-                // Play the Radio Station
-                service.handlePlayRequest();
+            if (service.mRadioStations.isEmpty()) {
+                return;
             }
+
+            // set the current index on queue from the music Id:
+            service.mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
+                    service.mRadioStations, String.valueOf(id)
+            );
+            if (service.mCurrentIndexOnQueue == QueueHelper.UNKNOWN_INDEX) {
+                return;
+            }
+
+            service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
+
+            // Play the Radio Station
+            service.handlePlayRequest();
         }
 
         @Override
@@ -1847,6 +1850,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         @Override
         public void onCustomAction(@NonNull final String action, final Bundle extras) {
             super.onCustomAction(action, extras);
+
+            AppLogger.i(CLASS_NAME + "On Custom Action:" + action);
 
             final OpenRadioService service = mService.get();
             if (service == null) {
