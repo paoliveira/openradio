@@ -20,6 +20,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import androidx.annotation.Nullable;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -51,8 +53,9 @@ public final class BitmapsOverlay {
      * @param baseBitmap Bitmap that need to be overlay by the drawable resource.
      * @return Bitmap as the result of the overlay.
      */
+    @Nullable
     public final Bitmap execute(final Context context, final int resourceId,
-                                final Bitmap baseBitmap) {
+                                @Nullable final Bitmap baseBitmap) {
         if (resourceId == 0) {
             AppLogger.w(CLASS_NAME + " Invalid resource Id");
             return baseBitmap;

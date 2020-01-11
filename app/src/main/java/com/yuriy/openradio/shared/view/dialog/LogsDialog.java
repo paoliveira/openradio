@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.view.dialog;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -174,16 +175,15 @@ public final class LogsDialog extends BaseDialogFragment {
             if (dialog == null) {
                 return null;
             }
-            if (mailInfoArray == null) {
-                throw new NullPointerException("mailInfoArray");
+            final Activity activity = dialog.getActivity();
+            if (activity == null) {
+                return null;
             }
-            if (mailInfoArray.length != 1) {
-                throw new IllegalArgumentException("mailInfo");
+            final Context context = activity.getApplicationContext();
+            if (context == null) {
+                return null;
             }
             final MailInfo mailInfo = mailInfoArray[0];
-            if (mailInfo == null) {
-                throw new NullPointerException("mailInfo");
-            }
 
             // Prepare email intent
             final Intent sendIntent = new Intent(Intent.ACTION_SEND);
@@ -194,9 +194,9 @@ public final class LogsDialog extends BaseDialogFragment {
 
             try {
                 final Uri path = FileProvider.getUriForFile(
-                        dialog.getActivity().getApplication(),
+                        context,
                         BuildConfig.APPLICATION_ID + ".provider",
-                        AppLogger.getLogsZipFile(dialog.getActivity().getApplicationContext())
+                        AppLogger.getLogsZipFile(context)
                 );
                 sendIntent.putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
@@ -210,34 +210,38 @@ public final class LogsDialog extends BaseDialogFragment {
         @Override
         protected void onPostExecute(final Intent intent) {
             super.onPostExecute(intent);
+            if (intent == null) {
+                return;
+            }
             final LogsDialog dialog = mContext.get();
             if (dialog == null) {
                 return;
             }
+            final Activity activity = dialog.getActivity();
+            if (activity == null) {
+                return;
+            }
+            final Context context = activity.getApplicationContext();
+            if (context == null) {
+                return;
+            }
 
-            if (intent != null) {
-                try {
-                    final Intent intent1 = Intent.createChooser(
-                            intent,
-                            dialog.getActivity().getString(R.string.send_logs_chooser_title)
-                    );
-                    intent1.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    dialog.getActivity().startActivityForResult(
-                            intent1,
-                            LOGS_EMAIL_REQUEST_CODE
-                    );
-                } catch (final ActivityNotFoundException e) {
-                    SafeToast.showAnyThread(
-                            dialog.getActivity().getApplicationContext(),
-                            dialog.getActivity().getString(R.string.cant_start_activity)
-                    );
-                    AnalyticsUtils.logException(e);
-                }
-            } else {
-                SafeToast.showAnyThread(
-                        dialog.getActivity().getApplicationContext(),
-                        dialog.getActivity().getString(R.string.cant_send_logs)
+            try {
+                final Intent intent1 = Intent.createChooser(
+                        intent,
+                        context.getString(R.string.send_logs_chooser_title)
                 );
+                intent1.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                activity.startActivityForResult(
+                        intent1,
+                        LOGS_EMAIL_REQUEST_CODE
+                );
+            } catch (final ActivityNotFoundException e) {
+                SafeToast.showAnyThread(
+                        context,
+                        context.getString(R.string.cant_start_activity)
+                );
+                AnalyticsUtils.logException(e);
             }
         }
     }

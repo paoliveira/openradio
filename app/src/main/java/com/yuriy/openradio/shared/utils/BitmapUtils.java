@@ -25,6 +25,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
+
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 
@@ -235,7 +237,12 @@ public final class BitmapUtils {
      * @param topBitmap  Bitmap that is use to overlay.
      * @return Overlay Bitmap.
      */
-    static Bitmap overlayWithBitmap(final Bitmap baseBitmap, final Bitmap topBitmap) {
+    @Nullable
+    static Bitmap overlayWithBitmap(@Nullable final Bitmap baseBitmap,
+                                    @Nullable final Bitmap topBitmap) {
+        if (baseBitmap == null || topBitmap == null) {
+            return null;
+        }
         final double scaleToUse = 60.0;
         final double scaledW = baseBitmap.getWidth() * scaleToUse / 100;
         final double scaledH = topBitmap.getHeight() * (Math.abs(scaledW / topBitmap.getWidth()));

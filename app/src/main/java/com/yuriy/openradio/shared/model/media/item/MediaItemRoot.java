@@ -118,11 +118,7 @@ public final class MediaItemRoot implements MediaItemCommand {
                 );
                 // Overlay base image with the appropriate flag
                 final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-                final Bitmap bitmap = overlay.execute(context, identifier,
-                        BitmapFactory.decodeResource(
-                                context.getResources(),
-                                R.drawable.ic_all_categories
-                        ));
+                final Bitmap bitmap = overlay.execute(context, identifier, iconBitmap);
                 builder.setIconBitmap(bitmap);
             }
 
@@ -203,11 +199,7 @@ public final class MediaItemRoot implements MediaItemCommand {
             );
             // Overlay base image with the appropriate flag
             final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-            final Bitmap bitmap = overlay.execute(context, identifier,
-                    BitmapFactory.decodeResource(
-                            context.getResources(),
-                            R.drawable.ic_all_categories
-                    ));
+            final Bitmap bitmap = overlay.execute(context, identifier, iconBitmap);
             mediaItems.add(new MediaBrowserCompat.MediaItem(
                     new MediaDescriptionCompat.Builder()
                             .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
