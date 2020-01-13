@@ -348,20 +348,18 @@ public class TvMainFragment extends PlaybackSupportFragment {
 
             item.incrementIndex();
 
-            mediaItem.setFavorite(!mediaItem.isFavorite());
+            final boolean isFavorite = !MediaItemHelper.isFavoriteField(mediaItem);
+            MediaItemHelper.updateFavoriteField(mediaItem, isFavorite);
 
             rowViewHolder.notifyDetailsChanged();
             rowViewHolder.notifyActionChanged(item);
-
-            final boolean isChecked = mediaItem.isFavorite();
-            MediaItemHelper.updateFavoriteField(mediaItem, isChecked);
 
             // Make Intent to update Favorite RadioStation object associated with
             // the Media Description
             final Intent intent = OpenRadioService.makeUpdateIsFavoriteIntent(
                     getContext(),
                     mediaItem.getDescription(),
-                    isChecked
+                    isFavorite
             );
             // Send Intent to the OpenRadioService.
             ContextCompat.startForegroundService(getContext(), intent);
@@ -395,7 +393,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
                             : mediaItem.getDescription().getTitle() + " / " + mediaItem.getDescription().getSubtitle();
             viewHolder.getMediaItemNameView().setText(rsTitle);
 
-            if (mediaItem.isFavorite()) {
+            if (MediaItemHelper.isFavoriteField(mediaItem)) {
                 int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
                         R.color.favorite_color
                 );
@@ -486,7 +484,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
                 }
             }
 
-            return mediaItem.isFavorite() ? mFavoritePresenter : mRegularPresenter;
+            return MediaItemHelper.isFavoriteField(mediaItem) ? mFavoritePresenter : mRegularPresenter;
         }
     }
 
@@ -558,8 +556,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
 
                 // TODO: Set action - folder or stream
                 item.setMediaRowActions(mediaRowActions);
-                // TODO: Optimize this line
-                item.setFavorite(FavoritesStorage.isFavorite(mediaItem, fragment.getContext()));
 
                 items.add(item);
             }

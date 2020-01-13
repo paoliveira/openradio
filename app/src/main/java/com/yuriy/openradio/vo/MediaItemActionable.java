@@ -11,7 +11,6 @@ import java.util.Arrays;
 public class MediaItemActionable extends MediaBrowserCompat.MediaItem implements MultiActionsProvider {
 
     private MultiAction[] mMediaRowActions;
-    private boolean mFavorite = false;
     private final int mListIndex;
 
     public MediaItemActionable(final @NonNull MediaDescriptionCompat description,
@@ -28,14 +27,6 @@ public class MediaItemActionable extends MediaBrowserCompat.MediaItem implements
         mMediaRowActions = mediaRowActions;
     }
 
-    public boolean isFavorite() {
-        return mFavorite;
-    }
-
-    public void setFavorite(final boolean favorite) {
-        mFavorite = favorite;
-    }
-
     @Override
     public MultiAction[] getActions() {
         return mMediaRowActions;
@@ -45,7 +36,6 @@ public class MediaItemActionable extends MediaBrowserCompat.MediaItem implements
     public String toString() {
         return "MediaItemActionable{" +
                 "mMediaRowActions=" + Arrays.toString(mMediaRowActions) +
-                ", mFavorite=" + mFavorite +
                 ", mListIndex=" + mListIndex +
                 ", super=" + super.toString() +
                 '}';
