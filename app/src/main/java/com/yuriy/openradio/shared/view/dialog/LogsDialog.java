@@ -30,7 +30,10 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.yuriy.openradio.BuildConfig;
 import com.yuriy.openradio.R;
@@ -62,7 +65,7 @@ public final class LogsDialog extends BaseDialogFragment {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    private static final int LOGS_EMAIL_REQUEST_CODE = 1000;
+    private static final int LOGS_EMAIL_REQUEST_CODE = 4762;
 
     private static final String SUPPORT_MAIL = "chernyshov.yuriy@gmail.com";
 
@@ -189,7 +192,7 @@ public final class LogsDialog extends BaseDialogFragment {
             final Intent sendIntent = new Intent(Intent.ACTION_SEND);
             sendIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{mailInfo.mTo});
             sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo.mSubj);
-            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo.mMailBody + "\r\n" );
+            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo.mMailBody + "\r\n");
             sendIntent.setType("vnd.android.cursor.dir/email");
 
             try {
@@ -244,6 +247,33 @@ public final class LogsDialog extends BaseDialogFragment {
                 AnalyticsUtils.logException(e);
             }
         }
+    }
+
+    @Override
+    public void onActivityResult(final int requestCode, final int resultCode, final @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
+
+        final Context context = getContext();
+        if (context == null) {
+            return;
+        }
+
+        if (requestCode == LOGS_EMAIL_REQUEST_CODE) {
+            SafeToast.showAnyThread(context, context.getString(R.string.logs_sent_msg));
+        }
+    }
+
+    @Nullable
+    public static LogsDialog findLogsDialog(@Nullable final FragmentManager fragmentManager) {
+        if (fragmentManager == null) {
+            return null;
+        }
+        final Fragment fragment = fragmentManager.findFragmentByTag(LogsDialog.DIALOG_TAG);
+        if (fragment instanceof LogsDialog) {
+            return (LogsDialog) fragment;
+        }
+        return null;
     }
 
     private static final class MailInfo {

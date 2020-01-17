@@ -8,6 +8,7 @@
     <string name="send_logs_chooser_title">Send Logs by:</string>
     <string name="cant_start_activity">Can not start Activity</string>
     <string name="cant_send_logs">Can not send Logs</string>
+    <string name="logs_sent_msg">Logs are sent</string>
     <string name="about_thanks_1">This project is use the Community Radio Browser API - a service that provides a list of radio stations broadcasting their live stream on the Internet:</string>
     <string name="about_thanks_1_title">Community Radio Browser API</string>
     <string name="about_thanks_1_url">http://www.radio-browser.info/webservice</string>

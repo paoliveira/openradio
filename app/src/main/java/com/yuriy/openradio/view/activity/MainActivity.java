@@ -1034,6 +1034,11 @@ public final class MainActivity extends AppCompatActivity {
         if (googleDriveDialog != null) {
             googleDriveDialog.onActivityResult(requestCode, resultCode, data);
         }
+
+        final LogsDialog logsDialog = LogsDialog.findLogsDialog(getSupportFragmentManager());
+        if (logsDialog != null) {
+            logsDialog.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     @Nullable
