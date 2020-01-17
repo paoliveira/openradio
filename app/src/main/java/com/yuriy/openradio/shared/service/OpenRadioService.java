@@ -183,7 +183,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * ExoPlayer's implementation to play Radio stream..
      */
-    private ExoPlayerOpenRadioImpl mExoPlayer;
+    private ExoPlayerOpenRadioImpl mExoPlayerORImpl;
 
     /**
      * Listener of the ExoPlayer's event.
@@ -404,7 +404,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (mReference == null) {
                 return;
             }
-            if ((mReference.mExoPlayer != null && mReference.mExoPlayer.isPlaying())
+            if ((mReference.mExoPlayerORImpl != null && mReference.mExoPlayerORImpl.isPlaying())
                     || mReference.mPlayOnFocusGain) {
                 AppLogger.d(CLASS_NAME + "Ignoring delayed stop since the media player is in use.");
                 return;
@@ -969,11 +969,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void releaseExoPlayer() {
         mCurrentStreamTitle = null;
-        if (mExoPlayer == null) {
+        if (mExoPlayerORImpl == null) {
             return;
         }
-        mExoPlayer.release();
-        mExoPlayer = null;
+        mExoPlayerORImpl.release();
+        mExoPlayerORImpl = null;
     }
 
     /**
@@ -1004,10 +1004,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * already exists.
      */
     private void createMediaPlayerIfNeeded() {
-        if (mExoPlayer == null) {
+        if (mExoPlayerORImpl == null) {
             AppLogger.d(CLASS_NAME + "Create ExoPlayer");
 
-            mExoPlayer = new ExoPlayerOpenRadioImpl(
+            mExoPlayerORImpl = new ExoPlayerOpenRadioImpl(
                     getApplicationContext(),
                     mListener,
                     metadata -> {
@@ -1019,13 +1019,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // Make sure the media player will acquire a wake-lock while
             // playing. If we don't do that, the CPU might go to sleep while the
             // song is playing, causing playback to stop.
-            mExoPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+            mExoPlayerORImpl.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
             AppLogger.d(CLASS_NAME + "ExoPlayer prepared");
         } else {
             AppLogger.d(CLASS_NAME + "Reset ExoPlayer");
 
-            mExoPlayer.reset();
+            mExoPlayerORImpl.reset();
         }
     }
 
@@ -1331,7 +1331,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mState = PlaybackStateCompat.STATE_BUFFERING;
 
         AppLogger.d(CLASS_NAME + "Prepare " + mLastPlayedUrl);
-        mExoPlayer.prepare(Uri.parse(mLastPlayedUrl));
+        mExoPlayerORImpl.prepare(Uri.parse(mLastPlayedUrl));
 
         // If we are streaming from the internet, we want to hold a
         // Wifi lock, which prevents the Wifi radio from going to
@@ -1359,16 +1359,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 handlePauseRequest();
             }
         } else {
-            if (mExoPlayer == null) {
+            if (mExoPlayerORImpl == null) {
                 return;
             }
             // we have audio focus:
             setPlayerVolume();
             // If we were playing when we lost focus, we need to resume playing.
             if (mPlayOnFocusGain) {
-                if (!mExoPlayer.isPlaying()) {
+                if (!mExoPlayerORImpl.isPlaying()) {
                     AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer startMediaPlayer");
-                    mExoPlayer.play();
+                    mExoPlayerORImpl.play();
                 }
                 mPlayOnFocusGain = false;
                 AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer set state playing");
@@ -1380,7 +1380,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void setPlayerVolume() {
-        if (mExoPlayer == null) {
+        if (mExoPlayerORImpl == null) {
             AppLogger.e(CLASS_NAME + "can not set player volume, player null");
             return;
         }
@@ -1388,7 +1388,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
             volume = (volume * 0.2F);
         }
-        mExoPlayer.setVolume(volume);
+        mExoPlayerORImpl.setVolume(volume);
     }
 
     /**
@@ -1410,8 +1410,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // Pause media player and cancel the 'foreground service' state.
             mState = PlaybackStateCompat.STATE_PAUSED;
             mPauseReason = reason;
-            if (mExoPlayer != null && mExoPlayer.isPlaying()) {
-                mExoPlayer.pause();
+            if (mExoPlayerORImpl != null && mExoPlayerORImpl.isPlaying()) {
+                mExoPlayerORImpl.pause();
             }
             // while paused, retain the ExoPlayer but give up audio focus
             relaxResources(false);
@@ -1926,10 +1926,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     onPlay();
                     return true;
                 case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                    if (service.mExoPlayer == null) {
+                    if (service.mExoPlayerORImpl == null) {
                         return false;
                     }
-                    if (service.mExoPlayer.isPlaying()) {
+                    if (service.mExoPlayerORImpl.isPlaying()) {
                         onPause();
                     } else {
                         onPlay();
