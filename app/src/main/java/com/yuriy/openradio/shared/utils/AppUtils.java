@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.utils;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -29,6 +30,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Util;
@@ -443,7 +445,11 @@ public final class AppUtils {
         return new String[]{String.valueOf(densityDpi), value};
     }
 
-    public static String bundleToString(final Bundle bundle) {
+    public static String intentBundleToString(@Nullable final Intent intent) {
+        if (intent == null) {
+            return "Intent[null]";
+        }
+        final Bundle bundle = intent.getExtras();
         if (bundle == null) {
             return "Bundle[null]";
         }

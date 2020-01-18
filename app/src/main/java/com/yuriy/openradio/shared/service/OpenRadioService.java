@@ -505,7 +505,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
         AnalyticsUtils.logMessage(
                 "OpenRadioService->onStartCommand:" + intent
-                        + ", " + AppUtils.bundleToString(intent.getExtras())
+                        + ", " + AppUtils.intentBundleToString(intent)
         );
 
         sendMessage(intent);
