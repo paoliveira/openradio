@@ -5,7 +5,6 @@ import android.os.Handler;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -46,7 +45,9 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
         }
 
         runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = getGoogleDriveDialog();
+            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
+                    mListener.getSupportFragmentManager()
+            );
             if (dialog != null) {
                 dialog.hideTitleProgress();
             }
@@ -56,7 +57,9 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
     @Override
     public void onStart(final GoogleDriveManager.Command command) {
         runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = getGoogleDriveDialog();
+            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
+                    mListener.getSupportFragmentManager()
+            );
             if (dialog != null) {
                 dialog.showProgress(command);
             }
@@ -80,7 +83,9 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
         }
 
         runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = getGoogleDriveDialog();
+            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
+                    mListener.getSupportFragmentManager()
+            );
             if (dialog != null) {
                 dialog.hideProgress(command);
             }
@@ -103,7 +108,9 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
         }
 
         runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = getGoogleDriveDialog();
+            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
+                    mListener.getSupportFragmentManager()
+            );
             if (dialog != null) {
                 dialog.hideProgress(command);
             }
@@ -113,7 +120,9 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
     @Override
     public void onConnect() {
         runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = getGoogleDriveDialog();
+            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
+                    mListener.getSupportFragmentManager()
+            );
             if (dialog != null) {
                 dialog.showTitleProgress();
             }
@@ -123,7 +132,9 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
     @Override
     public void onConnected() {
         runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = getGoogleDriveDialog();
+            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
+                    mListener.getSupportFragmentManager()
+            );
             if (dialog != null) {
                 dialog.hideTitleProgress();
             }
@@ -133,16 +144,6 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
     @Override
     public void onAccountRequested() {
         mListener.onAccountRequested();
-    }
-
-    @Nullable
-    private GoogleDriveDialog getGoogleDriveDialog() {
-        final Fragment fragment = mListener.getSupportFragmentManager()
-                .findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
-        if (fragment instanceof GoogleDriveDialog) {
-            return (GoogleDriveDialog) fragment;
-        }
-        return null;
     }
 
     private void runOnUiThread(final Runnable action) {

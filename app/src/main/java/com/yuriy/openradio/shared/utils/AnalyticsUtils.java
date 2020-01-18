@@ -73,6 +73,13 @@ public final class AnalyticsUtils {
         Crashlytics.logException(exception);
     }
 
+    public static void logMessage(final String message) {
+        if (!Fabric.isInitialized()) {
+            return;
+        }
+        Crashlytics.log(message);
+    }
+
     /**
      * Logs custom event to the Fabric dashboard.
      *

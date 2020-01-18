@@ -476,6 +476,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         mMediaNotification = new MediaNotification(this);
+        AnalyticsUtils.logMessage("OpenRadioService->onCreate");
         if (Build.VERSION.SDK_INT >= 26) {
             mMediaNotification.notifyServiceStarted();
         } else {
@@ -502,9 +503,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Override
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
+        AnalyticsUtils.logMessage(
+                "OpenRadioService->onStartCommand:" + intent
+                        + ", " + AppUtils.bundleToString(intent.getExtras())
+        );
 
         sendMessage(intent);
 
+        AnalyticsUtils.logMessage("OpenRadioService->onStartCommand:" + intent + " competed");
         return super.onStartCommand(intent, flags, startId);
     }
 

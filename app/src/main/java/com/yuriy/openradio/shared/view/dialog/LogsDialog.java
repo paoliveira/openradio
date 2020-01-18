@@ -269,7 +269,7 @@ public final class LogsDialog extends BaseDialogFragment {
         if (fragmentManager == null) {
             return null;
         }
-        final Fragment fragment = fragmentManager.findFragmentByTag(LogsDialog.DIALOG_TAG);
+        final Fragment fragment = fragmentManager.findFragmentByTag(DIALOG_TAG);
         if (fragment instanceof LogsDialog) {
             return (LogsDialog) fragment;
         }

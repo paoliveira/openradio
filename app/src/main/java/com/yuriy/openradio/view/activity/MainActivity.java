@@ -1030,24 +1030,15 @@ public final class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
-        final GoogleDriveDialog googleDriveDialog = getGoogleDriveDialog();
-        if (googleDriveDialog != null) {
-            googleDriveDialog.onActivityResult(requestCode, resultCode, data);
+        final GoogleDriveDialog gDriveDialog = GoogleDriveDialog.findGoogleDriveDialog(getSupportFragmentManager());
+        if (gDriveDialog != null) {
+            gDriveDialog.onActivityResult(requestCode, resultCode, data);
         }
 
         final LogsDialog logsDialog = LogsDialog.findLogsDialog(getSupportFragmentManager());
         if (logsDialog != null) {
             logsDialog.onActivityResult(requestCode, resultCode, data);
         }
-    }
-
-    @Nullable
-    private GoogleDriveDialog getGoogleDriveDialog() {
-        final Fragment fragment = getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
-        if (fragment instanceof GoogleDriveDialog) {
-            return (GoogleDriveDialog) fragment;
-        }
-        return null;
     }
 
     /**

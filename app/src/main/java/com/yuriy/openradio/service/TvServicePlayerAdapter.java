@@ -23,6 +23,7 @@ import androidx.leanback.media.PlayerAdapter;
 
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.shared.service.OpenRadioService;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 
 public final class TvServicePlayerAdapter extends PlayerAdapter {
 
@@ -44,6 +45,7 @@ public final class TvServicePlayerAdapter extends PlayerAdapter {
             return;
         }
         mIsPlaying = true;
+        AnalyticsUtils.logMessage("TvServicePayerAdapter->play:startForegroundService");
         ContextCompat.startForegroundService(
                 mContext, OpenRadioService.makePlayLastPlayedItemIntent(mContext)
         );
@@ -58,6 +60,7 @@ public final class TvServicePlayerAdapter extends PlayerAdapter {
             return;
         }
         mIsPlaying = false;
+        AnalyticsUtils.logMessage("TvServicePayerAdapter->pause:startForegroundService");
         ContextCompat.startForegroundService(
                 mContext, OpenRadioService.makeStopLastPlayedItemIntent(mContext)
         );

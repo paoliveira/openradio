@@ -57,6 +57,7 @@ import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.service.OpenRadioService;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.BitmapUtils;
 import com.yuriy.openradio.shared.utils.ImageFetcherFactory;
@@ -362,6 +363,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
                     isFavorite
             );
             // Send Intent to the OpenRadioService.
+            AnalyticsUtils.logMessage("TvMainFragment->handleActionableClicked:startForegroundService");
             ContextCompat.startForegroundService(getContext(), intent);
         } else {
             mMediaPresenter.handleItemClick(mediaItem, mediaItem.getListIndex());

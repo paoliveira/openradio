@@ -31,6 +31,7 @@ import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
@@ -203,6 +204,18 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
                 mGoogleDriveManager.connect(email);
                 break;
         }
+    }
+
+    @Nullable
+    public static GoogleDriveDialog findGoogleDriveDialog(@Nullable final FragmentManager fragmentManager) {
+        if (fragmentManager == null) {
+            return null;
+        }
+        final Fragment fragment = fragmentManager.findFragmentByTag(DIALOG_TAG);
+        if (fragment instanceof GoogleDriveDialog) {
+            return (GoogleDriveDialog) fragment;
+        }
+        return null;
     }
 
     /**
