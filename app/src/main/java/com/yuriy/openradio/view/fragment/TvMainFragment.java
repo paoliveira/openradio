@@ -363,7 +363,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
                     isFavorite
             );
             // Send Intent to the OpenRadioService.
-            AnalyticsUtils.logMessage("TvMainFragment->handleActionableClicked:startForegroundService");
+            AnalyticsUtils.logMessage("TvMainFragment[" + this.hashCode() + "]->handleActionableClicked:startForegroundService");
             ContextCompat.startForegroundService(getContext(), intent);
         } else {
             mMediaPresenter.handleItemClick(mediaItem, mediaItem.getListIndex());

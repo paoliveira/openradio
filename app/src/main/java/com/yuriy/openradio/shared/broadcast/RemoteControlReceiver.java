@@ -56,7 +56,7 @@ public final class RemoteControlReceiver extends BroadcastReceiver {
         final KeyEvent event = intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
         final int keyCode = event != null ? event.getKeyCode() : Integer.MIN_VALUE;
         AppLogger.d(CLASS_NAME + " KeyCode:" + keyCode);
-        AnalyticsUtils.logMessage("RemoteControlReceiver->onReceive(" + keyCode + "):startForegroundService");
+        AnalyticsUtils.logMessage("RemoteControlReceiver[" + this.hashCode() + "]->onReceive(" + keyCode + "):startForegroundService");
         switch (keyCode) {
             case KeyEvent.KEYCODE_MEDIA_PLAY:
                 ContextCompat.startForegroundService(context, OpenRadioService.makePlayLastPlayedItemIntent(context));

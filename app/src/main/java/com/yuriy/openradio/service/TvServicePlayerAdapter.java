@@ -45,7 +45,7 @@ public final class TvServicePlayerAdapter extends PlayerAdapter {
             return;
         }
         mIsPlaying = true;
-        AnalyticsUtils.logMessage("TvServicePayerAdapter->play:startForegroundService");
+        AnalyticsUtils.logMessage("TvServicePayerAdapter[" + this.hashCode() + "]->play:startForegroundService");
         ContextCompat.startForegroundService(
                 mContext, OpenRadioService.makePlayLastPlayedItemIntent(mContext)
         );
@@ -60,7 +60,7 @@ public final class TvServicePlayerAdapter extends PlayerAdapter {
             return;
         }
         mIsPlaying = false;
-        AnalyticsUtils.logMessage("TvServicePayerAdapter->pause:startForegroundService");
+        AnalyticsUtils.logMessage("TvServicePayerAdapter[" + this.hashCode() + "]->pause:startForegroundService");
         ContextCompat.startForegroundService(
                 mContext, OpenRadioService.makeStopLastPlayedItemIntent(mContext)
         );

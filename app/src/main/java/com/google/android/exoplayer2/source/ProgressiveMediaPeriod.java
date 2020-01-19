@@ -1077,7 +1077,7 @@ import java.util.Arrays;
           throw new UnrecognizedInputFormatException(
               "None of the available extractors ("
                   + Util.getCommaDelimitedSimpleClassNames(extractors)
-                  + ") could read the stream.",
+                  + ") could read the stream:" + uri,
               uri);
         }
       }
