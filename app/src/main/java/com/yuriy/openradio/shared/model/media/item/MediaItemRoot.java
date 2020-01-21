@@ -38,8 +38,6 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
-import java.util.List;
-
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -62,18 +60,17 @@ public final class MediaItemRoot implements MediaItemCommand {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
+                        @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(LOG_TAG + " invoked");
-        final Context context = shareObject.getContext();
-        shareObject.getRadioStations().clear();
+        final Context context = dependencies.getContext();
+        dependencies.clearRadioStations();
 
-        shareObject.getResult().detach();
+        dependencies.getResult().detach();
 
         final Bitmap iconBitmap = BitmapFactory.decodeResource(
                 context.getResources(),
                 R.drawable.ic_all_categories
         );
-        final List<MediaBrowserCompat.MediaItem> mediaItems = shareObject.getMediaItems();
 
         // TODO: Refactor these to factory.
 
@@ -82,7 +79,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         // exposed.
         RadioStation latestRadioStation = null;
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            latestRadioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            latestRadioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (latestRadioStation != null) {
                 // Add Radio Station to Menu
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
@@ -92,12 +89,12 @@ public final class MediaItemRoot implements MediaItemCommand {
                         MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
                 );
                 MediaItemHelper.updateFavoriteField(
-                        mediaItem, FavoritesStorage.isFavorite(latestRadioStation, shareObject.getContext())
+                        mediaItem, FavoritesStorage.isFavorite(latestRadioStation, dependencies.getContext())
                 );
                 MediaItemHelper.updateLastPlayedField(mediaItem, true);
                 // In case of Android Auto, display latest played Radio Station on top of Menu.
-                if (shareObject.isAndroidAuto()) {
-                    mediaItems.add(mediaItem);
+                if (dependencies.isAndroidAuto()) {
+                    dependencies.addMediaItem(mediaItem);
                 }
             }
         }
@@ -109,7 +106,7 @@ public final class MediaItemRoot implements MediaItemCommand {
                     .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
                     .setTitle(context.getString(R.string.favorites_list_title))
                     .setSubtitle(context.getString(R.string.favorites_list_sub_title));
-            if (shareObject.isAndroidAuto()) {
+            if (dependencies.isAndroidAuto()) {
                 builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_stars_black_24dp"));
             } else {
                 final int identifier = context.getResources().getIdentifier(
@@ -122,9 +119,11 @@ public final class MediaItemRoot implements MediaItemCommand {
                 builder.setIconBitmap(bitmap);
             }
 
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            dependencies.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         // Recently added Radio Stations
@@ -134,15 +133,17 @@ public final class MediaItemRoot implements MediaItemCommand {
                     .setTitle(context.getString(R.string.recent_added_stations_title))
                     .setSubtitle(context.getString(R.string.recent_added_stations_sub_title));
 
-            if (shareObject.isAndroidAuto()) {
+            if (dependencies.isAndroidAuto()) {
                 builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_fiber_new_black_24dp"));
             } else {
                 builder.setIconBitmap(iconBitmap);
             }
 
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            dependencies.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         // Popular Radio Stations
@@ -152,28 +153,32 @@ public final class MediaItemRoot implements MediaItemCommand {
                     .setTitle(context.getString(R.string.popular_stations_title))
                     .setSubtitle(context.getString(R.string.popular_stations_sub_title));
 
-            if (shareObject.isAndroidAuto()) {
+            if (dependencies.isAndroidAuto()) {
                 builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_trending_up_black_24dp"));
             } else {
                 builder.setIconBitmap(iconBitmap);
             }
 
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            dependencies.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         // Do not show list of Worldwide Stations for the Auto version
-        if (!shareObject.isAndroidAuto()) {
+        if (!dependencies.isAndroidAuto()) {
             // Worldwide Stations
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
-                            .setTitle(context.getString(R.string.all_categories_title))
-                            .setIconBitmap(iconBitmap)
-                            .setSubtitle(context.getString(R.string.all_categories_sub_title))
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            dependencies.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            new MediaDescriptionCompat.Builder()
+                                    .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
+                                    .setTitle(context.getString(R.string.all_categories_title))
+                                    .setIconBitmap(iconBitmap)
+                                    .setSubtitle(context.getString(R.string.all_categories_sub_title))
+                                    .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         // All countries list
@@ -181,35 +186,39 @@ public final class MediaItemRoot implements MediaItemCommand {
                 .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
                 .setTitle(context.getString(R.string.countries_list_title))
                 .setSubtitle(context.getString(R.string.country_stations_sub_title));
-        if (shareObject.isAndroidAuto()) {
+        if (dependencies.isAndroidAuto()) {
             builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp"));
         } else {
             builder.setIconBitmap(iconBitmap);
         }
-        mediaItems.add(new MediaBrowserCompat.MediaItem(
-                builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-        ));
+        dependencies.addMediaItem(
+                new MediaBrowserCompat.MediaItem(
+                        builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                )
+        );
 
         // If the Country code is known:
-        if (!TextUtils.isEmpty(shareObject.getCountryCode())) {
+        if (!TextUtils.isEmpty(dependencies.getCountryCode())) {
 
             final int identifier = context.getResources().getIdentifier(
-                    "flag_" + shareObject.getCountryCode().toLowerCase(),
+                    "flag_" + dependencies.getCountryCode().toLowerCase(),
                     "drawable", context.getPackageName()
             );
             // Overlay base image with the appropriate flag
             final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
             final Bitmap bitmap = overlay.execute(context, identifier, iconBitmap);
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
-                            .setTitle(context.getString(R.string.country_stations_title))
-                            .setIconBitmap(bitmap)
-                            .setSubtitle(context.getString(
-                                    R.string.country_stations_sub_title
-                            ))
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            dependencies.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            new MediaDescriptionCompat.Builder()
+                                    .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
+                                    .setTitle(context.getString(R.string.country_stations_title))
+                                    .setIconBitmap(bitmap)
+                                    .setSubtitle(context.getString(
+                                            R.string.country_stations_sub_title
+                                    ))
+                                    .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         // Show Local Radio Stations if they are exists
@@ -220,7 +229,7 @@ public final class MediaItemRoot implements MediaItemCommand {
                     .setTitle(context.getString(R.string.local_radio_stations_list_title))
                     .setSubtitle(context.getString(R.string.local_radio_stations_list_sub_title));
 
-            if (shareObject.isAndroidAuto()) {
+            if (dependencies.isAndroidAuto()) {
                 builder1.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_phone_android_black_24dp"));
             } else {
                 final Bitmap bitmap = BitmapFactory.decodeResource(
@@ -230,19 +239,21 @@ public final class MediaItemRoot implements MediaItemCommand {
                 builder1.setIconBitmap(bitmap);
             }
 
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            dependencies.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         AppLogger.d(LOG_TAG + " invocation completed");
-        shareObject.getResult().sendResult(mediaItems);
-        shareObject.getResultListener().onResult();
+        dependencies.getResult().sendResult(dependencies.getMediaItems());
+        dependencies.getResultListener().onResult();
 
         // If there is no Android Auto and there is latest Radio Station
         // (the one that played the last time Open Radio used) detected, play it.
         if (latestRadioStation != null) {
-            shareObject.getRemotePlay().restoreActiveRadioStation(latestRadioStation);
+            dependencies.getRemotePlay().restoreActiveRadioStation(latestRadioStation);
         }
     }
 }

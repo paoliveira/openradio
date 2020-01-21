@@ -49,21 +49,21 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
-        super.execute(playbackStateListener, shareObject);
+                        @NonNull final MediaItemCommandDependencies dependencies) {
+        super.execute(playbackStateListener, dependencies);
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
-        shareObject.getResult().detach();
+        dependencies.getResult().detach();
 
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     final List<RadioStation> list = new ArrayList<>(
-                            shareObject.getServiceProvider().getStations(
-                                    shareObject.getDownloader(),
+                            dependencies.getServiceProvider().getStations(
+                                    dependencies.getDownloader(),
                                     UrlBuilder.getSearchUrl(AppUtils.getSearchQuery())
                             )
                     );
-                    handleDataLoaded(playbackStateListener, shareObject, list);
+                    handleDataLoaded(playbackStateListener, dependencies, list);
                 }
         );
     }

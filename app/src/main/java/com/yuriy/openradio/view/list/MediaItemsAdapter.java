@@ -42,7 +42,6 @@ import com.yuriy.openradio.shared.utils.ImageFetcher;
 import com.yuriy.openradio.shared.utils.ImageWorker;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
-import com.yuriy.openradio.shared.utils.MediaItemsComparator;
 import com.yuriy.openradio.view.activity.MainActivity;
 
 import java.util.List;
@@ -78,7 +77,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
     public MediaItemsAdapter(final MainActivity activity, final ImageWorker imageFetcher) {
         super();
         mParentId = MediaIdHelper.MEDIA_ID_ROOT;
-        mAdapterData = new ListAdapterData<>(new MediaItemsComparator());
+        mAdapterData = new ListAdapterData<>();
         mActivity = activity;
         mImageFetcher = imageFetcher;
     }

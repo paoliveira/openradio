@@ -55,56 +55,57 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
+                        @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(CLASS_NAME + " invoked");
-        if (!shareObject.isSameCatalogue()) {
+        if (!dependencies.isSameCatalogue()) {
             AppLogger.d("Not the same catalogue, clear list");
-            shareObject.getRadioStations().clear();
+            dependencies.clearRadioStations();
         }
     }
 
     public abstract boolean doLoadNoDataReceived();
 
     void handleDataLoaded(final IUpdatePlaybackState playbackStateListener,
-                          @NonNull final MediaItemShareObject shareObject,
+                          @NonNull final MediaItemCommandDependencies dependencies,
                           final List<RadioStation> list) {
         AppLogger.d(CLASS_NAME + " Loaded " + list.size() + " items");
         if (list.isEmpty()) {
 
             if (doLoadNoDataReceived()) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
-                        shareObject.getContext(),
+                        dependencies.getContext(),
                         MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES
                 );
                 final MediaDescriptionCompat mediaDescription = track.getDescription();
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                         mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
-                shareObject.getMediaItems().add(mediaItem);
-                shareObject.getResult().sendResult(shareObject.getMediaItems());
-                shareObject.getResultListener().onResult();
+                dependencies.addMediaItem(mediaItem);
+                dependencies.getResult().sendResult(dependencies.getMediaItems());
+                dependencies.getResultListener().onResult();
 
                 if (playbackStateListener != null) {
-                    playbackStateListener.updatePlaybackState(shareObject.getContext().getString(R.string.no_data_message));
+                    playbackStateListener.updatePlaybackState(dependencies.getContext().getString(R.string.no_data_message));
                 }
             } else {
-                shareObject.getResult().sendResult(MediaItemHelper.createListEndedResult());
-                shareObject.getResultListener().onResult();
+                dependencies.getResult().sendResult(MediaItemHelper.createListEndedResult());
+                dependencies.getResultListener().onResult();
             }
 
-            if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
-                final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (AppPreferencesManager.lastKnownRadioStationEnabled(dependencies.getContext())) {
+                final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
                 if (radioStation != null) {
-                    shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                    dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
                 }
             }
             return;
         }
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            shareObject.getRadioStations().addAll(list);
+            dependencies.addAllRadioStations(list);
         }
 
-        for (final RadioStation radioStation : shareObject.getRadioStations()) {
+        final List<RadioStation> radioStations = dependencies.getRadioStations();
+        for (final RadioStation radioStation : radioStations) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     radioStation
@@ -113,20 +114,20 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                     mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE);
 
-            if (FavoritesStorage.isFavorite(radioStation, shareObject.getContext())) {
+            if (FavoritesStorage.isFavorite(radioStation, dependencies.getContext())) {
                 MediaItemHelper.updateFavoriteField(mediaItem, true);
             }
 
-            shareObject.getMediaItems().add(mediaItem);
+            dependencies.addMediaItem(mediaItem);
         }
 
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
-        shareObject.getResultListener().onResult();
+        dependencies.getResult().sendResult(dependencies.getMediaItems());
+        dependencies.getResultListener().onResult();
 
-        if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
-            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(dependencies.getContext())) {
+            final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

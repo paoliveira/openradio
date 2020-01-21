@@ -73,6 +73,10 @@ public final class HTTPDownloaderImpl implements Downloader {
     private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
     private static final String USER_AGENT_PARAMETER_VALUE = "OpenRadioApp";
 
+    public HTTPDownloaderImpl() {
+        super();
+    }
+
     @Override
     public byte[] downloadDataFromUri(final Uri uri) {
         return downloadDataFromUri(uri, new ArrayList<>());

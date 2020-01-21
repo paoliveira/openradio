@@ -46,10 +46,10 @@ public abstract class IndexableMediaItemCommand extends MediaItemCommandImpl {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
-        super.execute(playbackStateListener, shareObject);
+                        @NonNull final MediaItemCommandDependencies dependencies) {
+        super.execute(playbackStateListener, dependencies);
         AppLogger.d(CLASS_NAME + " invoked");
-        if (!shareObject.isSameCatalogue()) {
+        if (!dependencies.isSameCatalogue()) {
             mPageIndex.set(UrlBuilder.FIRST_PAGE_INDEX);
         }
     }

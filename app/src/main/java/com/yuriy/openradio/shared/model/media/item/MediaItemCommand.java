@@ -46,9 +46,9 @@ public interface MediaItemCommand {
      * @param playbackStateListener Implementation of the
      *                              {@link IUpdatePlaybackState}
      *                              interface.
-     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     * @param dependencies          Instance of the {@link MediaItemCommandDependencies} which holds various
      *                              references needed to execute command.
      */
     void execute(final IUpdatePlaybackState playbackStateListener,
-                 @NonNull final MediaItemShareObject shareObject);
+                 @NonNull final MediaItemCommandDependencies dependencies);
 }

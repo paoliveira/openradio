@@ -28,11 +28,10 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
-import com.yuriy.openradio.shared.utils.MediaItemsComparator;
 import com.yuriy.openradio.shared.utils.QueueHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
-import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by Yuriy Chernyshov
@@ -56,21 +55,22 @@ public final class MediaItemLocalsList implements MediaItemCommand {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
+                        @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
-        shareObject.getResult().detach();
+        dependencies.getResult().detach();
 
-        final Context context = shareObject.getContext();
+        final Context context = dependencies.getContext();
 
         synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
             QueueHelper.clearAndCopyCollection(
-                    shareObject.getRadioStations(),
+                    dependencies.getRadioStations(),
                     LocalRadioStationsStorage.getAllLocals(context)
             );
         }
 
-        for (final RadioStation radioStation : shareObject.getRadioStations()) {
+        final List<RadioStation> radioStations = dependencies.getRadioStations();
+        for (final RadioStation radioStation : radioStations) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     radioStation
@@ -86,16 +86,15 @@ public final class MediaItemLocalsList implements MediaItemCommand {
             }
             MediaItemHelper.updateSortIdField(mediaItem, radioStation.getSortId());
 
-            shareObject.getMediaItems().add(mediaItem);
+            dependencies.addMediaItem(mediaItem);
         }
-        Collections.sort(shareObject.getMediaItems(), new MediaItemsComparator());
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
-        shareObject.getResultListener().onResult();
+        dependencies.getResult().sendResult(dependencies.getMediaItems());
+        dependencies.getResultListener().onResult();
 
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

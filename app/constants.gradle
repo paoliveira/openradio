@@ -26,6 +26,7 @@ project.ext {
     espressoVersion = "3.1.0"
     // https://mvnrepository.com/artifact/org.json/json
     jsonTestVersion = "20171018"
+    exoPlayerVersion = "2.11.1"
 
     /**
      * Application constants

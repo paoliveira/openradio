@@ -40,7 +40,7 @@ import java.util.List;
  * At Android Studio
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * {@link MediaItemAllCategories} is concrete implementation of the {@link MediaItemCommand} that
  * designed to prepare data to display radio stations of All Categories.
  */
@@ -54,15 +54,15 @@ public final class MediaItemAllCategories implements MediaItemCommand {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
+                        @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
-        shareObject.getResult().detach();
+        dependencies.getResult().detach();
 
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu
-                    loadAllCategories(playbackStateListener, shareObject);
+                    loadAllCategories(playbackStateListener, dependencies);
                 }
         );
     }
@@ -71,11 +71,11 @@ public final class MediaItemAllCategories implements MediaItemCommand {
      * Load All Categories into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     * @param shareObject           Instance of the {@link MediaItemCommandDependencies} which holds various
      *                              references needed to execute command.
      */
     private void loadAllCategories(final IUpdatePlaybackState playbackStateListener,
-                                   @NonNull final MediaItemShareObject shareObject) {
+                                   @NonNull final MediaItemCommandDependencies shareObject) {
         final List<Category> list = shareObject.getServiceProvider().getCategories(
                 shareObject.getDownloader(),
                 UrlBuilder.getAllCategoriesUrl());
@@ -95,17 +95,19 @@ public final class MediaItemAllCategories implements MediaItemCommand {
             return;
         }
 
-        final String iconUrl = AppUtils.DRAWABLE_PATH +  "ic_child_categories";
+        final String iconUrl = AppUtils.DRAWABLE_PATH + "ic_child_categories";
 
         for (final Category category : list) {
-            shareObject.getMediaItems().add(new MediaBrowserCompat.MediaItem(
-                    new MediaDescriptionCompat.Builder()
-                            .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.getId())
-                            .setTitle(category.getTitle())
-                            .setIconUri(Uri.parse(iconUrl))
-                            .setSubtitle(category.getDescription())
-                            .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
+            shareObject.addMediaItem(
+                    new MediaBrowserCompat.MediaItem(
+                            new MediaDescriptionCompat.Builder()
+                                    .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.getId())
+                                    .setTitle(category.getTitle())
+                                    .setIconUri(Uri.parse(iconUrl))
+                                    .setSubtitle(category.getDescription())
+                                    .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                    )
+            );
         }
 
         shareObject.getResult().sendResult(shareObject.getMediaItems());

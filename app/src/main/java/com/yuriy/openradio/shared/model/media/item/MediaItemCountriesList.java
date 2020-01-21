@@ -61,15 +61,15 @@ public final class MediaItemCountriesList implements MediaItemCommand {
 
     @Override
     public void execute(final IUpdatePlaybackState playbackStateListener,
-                        @NonNull final MediaItemShareObject shareObject) {
+                        @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(LOG_TAG + " invoked");
         // Use result.detach to allow calling result.sendResult from another thread:
-        shareObject.getResult().detach();
+        dependencies.getResult().detach();
 
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all countries into menu
-                    loadAllCountries(playbackStateListener, shareObject);
+                    loadAllCountries(playbackStateListener, dependencies);
                 }
         );
     }
@@ -78,11 +78,11 @@ public final class MediaItemCountriesList implements MediaItemCommand {
      * Load All Countries into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemShareObject} which holds various
+     * @param shareObject           Instance of the {@link MediaItemCommandDependencies} which holds various
      *                              references needed to execute command.
      */
     private void loadAllCountries(final IUpdatePlaybackState playbackStateListener,
-                                  @NonNull final MediaItemShareObject shareObject) {
+                                  @NonNull final MediaItemCommandDependencies shareObject) {
 
         final List<Country> list = shareObject.getServiceProvider().getCountries(
                 shareObject.getDownloader(),
@@ -103,8 +103,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
             return;
         }
 
-        final Comparator<Country> comparator = (c1, c2) -> c1.getName().compareTo(c2.getName());
-        Collections.sort(list, comparator);
+        Collections.sort(list, (c1, c2) -> c1.getName().compareTo(c2.getName()));
 
         // Overlay base image with the appropriate flag
         final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
@@ -148,7 +147,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                 builder.setIconBitmap(bitmap);
             }
 
-            shareObject.getMediaItems().add(
+            shareObject.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder.build(),
                             MediaBrowserCompat.MediaItem.FLAG_BROWSABLE

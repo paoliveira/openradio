@@ -1,6 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author:
- * Chernyshov Yuriy
+ * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +18,8 @@ package com.yuriy.openradio.shared.utils;
 
 import android.support.v4.media.MediaBrowserCompat;
 
+import com.yuriy.openradio.shared.vo.RadioStation;
+
 import java.util.Comparator;
 
 /**
@@ -30,20 +31,20 @@ import java.util.Comparator;
  * This class designed in a way to provide sort functionality for the
  * {@link MediaBrowserCompat.MediaItem}s.
  */
-public final class MediaItemsComparator implements Comparator<MediaBrowserCompat.MediaItem> {
+public final class RadioStationsComparator implements Comparator<RadioStation> {
 
     /**
      * Default constructor.
      */
-    public MediaItemsComparator() {
+    public RadioStationsComparator() {
         super();
     }
 
     @Override
-    public final int compare(final MediaBrowserCompat.MediaItem mediaItem1,
-                             final MediaBrowserCompat.MediaItem mediaItem2) {
-        final int sortId1 = MediaItemHelper.getSortIdField(mediaItem1);
-        final int sortId2 = MediaItemHelper.getSortIdField(mediaItem2);
+    public final int compare(final RadioStation radioStation1,
+                             final RadioStation radioStation2) {
+        final int sortId1 = radioStation1 == null ? -1 : radioStation1.getSortId();
+        final int sortId2 = radioStation1 == null ? -1 : radioStation2.getSortId();
         return Integer.compare(sortId1, sortId2);
     }
 }

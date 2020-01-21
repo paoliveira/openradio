@@ -30,13 +30,12 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.ExoPlayerFactory;
-import com.google.android.exoplayer2.ExoPlayerImpl;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.analytics.AnalyticsCollector;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
 import com.google.android.exoplayer2.audio.AudioProcessor;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -59,6 +58,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Clock;
@@ -245,9 +245,9 @@ public final class ExoPlayerOpenRadioImpl {
         mAudioRendererCount = audioRendererCount;
 
         final TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
-        mExoPlayer = new ExoPlayerImpl(
+        final ExoPlayer.Builder builder = new ExoPlayer.Builder(
                 mRenderers,
-                new DefaultTrackSelector(trackSelectionFactory),
+                new DefaultTrackSelector(context, trackSelectionFactory),
                 new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(
                                 AppPreferencesManager.getMinBuffer(context),
@@ -256,10 +256,13 @@ public final class ExoPlayerOpenRadioImpl {
                                 AppPreferencesManager.getPlayBufferRebuffer(context)
                         )
                         .createDefaultLoadControl(),
-                ExoPlayerFactory.getDefaultBandwidthMeter(context),
-                Clock.DEFAULT,
-                Util.getLooper()
+                DefaultBandwidthMeter.getSingletonInstance(context),
+                Util.getLooper(),
+                new AnalyticsCollector(Clock.DEFAULT),
+                /* useLazyPreparation= */ true,
+                Clock.DEFAULT
         );
+        mExoPlayer = builder.build();
         mExoPlayer.addListener(mComponentListener);
         mExoPlayer.setForegroundMode(true);
     }

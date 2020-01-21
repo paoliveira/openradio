@@ -16,13 +16,10 @@
 
 package com.yuriy.openradio.view.list;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -39,21 +36,11 @@ final class ListAdapterData<T> implements Serializable {
     private final List<T> mItems;
 
     /**
-     * {@link java.util.Comparator} to implement sorting.
-     */
-    @NonNull
-    private final Comparator<T> mComparator;
-
-    /**
      * Main constructor.
-     *
-     * @param comparator {@link java.util.Comparator} to implement sorting.
      */
-    ListAdapterData(@NonNull final Comparator<T> comparator) {
+    ListAdapterData() {
         super();
-        mComparator = comparator;
         mItems = new ArrayList<>();
-        Collections.sort(mItems, mComparator);
     }
 
     /**
@@ -63,7 +50,6 @@ final class ListAdapterData<T> implements Serializable {
      */
     public void addAll(final List<T> items) {
         mItems.addAll(items);
-        Collections.sort(mItems, mComparator);
     }
 
     /**

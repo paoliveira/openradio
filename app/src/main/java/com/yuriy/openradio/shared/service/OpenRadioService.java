@@ -59,6 +59,7 @@ import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider;
 import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl;
+import com.yuriy.openradio.shared.model.media.item.MediaItemCommandDependencies;
 import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories;
 import com.yuriy.openradio.shared.model.media.item.MediaItemChildCategories;
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand;
@@ -70,7 +71,6 @@ import com.yuriy.openradio.shared.model.media.item.MediaItemPopularStations;
 import com.yuriy.openradio.shared.model.media.item.MediaItemRecentlyAddedStations;
 import com.yuriy.openradio.shared.model.media.item.MediaItemRoot;
 import com.yuriy.openradio.shared.model.media.item.MediaItemSearchFromApp;
-import com.yuriy.openradio.shared.model.media.item.MediaItemShareObject;
 import com.yuriy.openradio.shared.model.net.Downloader;
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
@@ -584,10 +584,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         mCurrentParentId = parentId;
-        final List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-
-        // Instantiate appropriate downloader (HTTP one)
-        final Downloader downloader = new HTTPDownloaderImpl();
 
         // If Parent Id contains Country Code - use it in the API.
         String countryCode = MediaIdHelper.getCountryCode(mCurrentParentId);
@@ -598,26 +594,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
+        final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
+                getApplicationContext(), result, mRadioStations, mApiServiceProvider,
+                countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue,
+                this::restoreActiveRadioStation, this::onResult
+        );
         if (command != null) {
-
-            final MediaItemShareObject shareObject = MediaItemShareObject.getDefaultInstance();
-            shareObject.setContext(getApplicationContext());
-            shareObject.setCountryCode(countryCode);
-            shareObject.setDownloader(downloader);
-            shareObject.setServiceProvider(mApiServiceProvider);
-            shareObject.setResult(result);
-            shareObject.setMediaItems(mediaItems);
-            shareObject.setParentId(mCurrentParentId);
-            shareObject.setRadioStations(mRadioStations);
-            shareObject.setIsAndroidAuto(mIsAndroidAuto);
-            shareObject.isSameCatalogue(isSameCatalogue);
-            shareObject.setRemotePlay(this::restoreActiveRadioStation);
-            shareObject.setResultListener(this::onResult);
-
-            command.execute(mPlaybackStateListener, shareObject);
+            command.execute(mPlaybackStateListener, dependencies);
         } else {
             AppLogger.w(CLASS_NAME + "Skipping unmatched parentId: " + mCurrentParentId);
-            result.sendResult(mediaItems);
+            result.sendResult(dependencies.getMediaItems());
         }
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(getApplicationContext());
@@ -1484,7 +1470,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AnalyticsUtils.logException(e);
         }
 
-        AppLogger.d(CLASS_NAME + "state:" + mState);
         if (mState == PlaybackStateCompat.STATE_BUFFERING
                 || mState == PlaybackStateCompat.STATE_PLAYING
                 || mState == PlaybackStateCompat.STATE_PAUSED) {
@@ -1792,13 +1777,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         @Override
         public void onSkipToNext() {
             super.onSkipToNext();
-
-            AppLogger.i(CLASS_NAME + "On Skip to next");
-
             final OpenRadioService service = mService.get();
             if (service == null) {
                 return;
             }
+            AppLogger.i(
+                    CLASS_NAME + service.mCurrentIndexOnQueue
+                            + " skip to " + (service.mCurrentIndexOnQueue + 1)
+            );
             service.mCurrentIndexOnQueue++;
             if (service.mCurrentIndexOnQueue >= service.mRadioStations.size()) {
                 service.mCurrentIndexOnQueue = 0;
