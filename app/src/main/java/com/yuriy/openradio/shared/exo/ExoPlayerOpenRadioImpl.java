@@ -378,6 +378,19 @@ public final class ExoPlayerOpenRadioImpl {
             AppLogger.d(LOG_TAG + " ExoPlayer impl already released");
             return;
         }
+        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+            releaseIntrnl();
+        } else {
+            final Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(this::releaseIntrnl);
+        }
+    }
+
+    private void releaseIntrnl() {
+        if (mExoPlayer == null) {
+            AppLogger.d(LOG_TAG + " ExoPlayer impl already released");
+            return;
+        }
 
         mExoPlayer.removeListener(mComponentListener);
         mUpdateProgressHandler.removeCallbacks(mUpdateProgressAction);
