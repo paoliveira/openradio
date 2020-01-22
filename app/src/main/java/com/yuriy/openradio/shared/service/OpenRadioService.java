@@ -336,11 +336,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private volatile ServiceHandler mServiceHandler;
 
+    private final Handler mMainHandler;
+
     /**
      * Default constructor.
      */
     public OpenRadioService() {
         super();
+        mMainHandler = new Handler(Looper.getMainLooper());
         mBTConnectionReceiver = new BTConnectionReceiver(
                 new BTConnectionReceiver.Listener() {
                     @Override
@@ -651,8 +654,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             executorService.submit(
                     () -> {
                         final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
-                        final Handler handler = new Handler(Looper.getMainLooper());
-                        handler.post(
+                        mMainHandler.post(
                                 () -> OpenRadioService.this.handlePlayListUrlsExtracted(urls)
                         );
                     }
@@ -1573,8 +1575,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void restoreActiveRadioStation(@NonNull final RadioStation radioStation) {
         mRestoredRS = radioStation;
-        final Handler uiHandler = new Handler(Looper.getMainLooper());
-        uiHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getIdAsString()));
+        mMainHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getIdAsString()));
     }
 
     /**
@@ -2005,8 +2006,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // immediately start playing from the beginning of the search results
         mCurrentIndexOnQueue = 0;
 
-        final Handler uiHandler = new Handler(Looper.getMainLooper());
-        uiHandler.post(this::handlePlayRequest);
+        mMainHandler.post(this::handlePlayRequest);
     }
 
     /**

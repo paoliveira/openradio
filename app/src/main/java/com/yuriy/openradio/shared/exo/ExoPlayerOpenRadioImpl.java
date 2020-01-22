@@ -381,8 +381,7 @@ public final class ExoPlayerOpenRadioImpl {
         if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
             releaseIntrnl();
         } else {
-            final Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(this::releaseIntrnl);
+            mMainHandler.post(this::releaseIntrnl);
         }
     }
 
