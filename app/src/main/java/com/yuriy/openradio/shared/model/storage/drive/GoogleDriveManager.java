@@ -28,9 +28,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.drive.Drive;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.QueueHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import org.json.JSONException;
@@ -372,13 +372,13 @@ public final class GoogleDriveManager {
             final String localsRx = splitRadioStationCategories(data)[1];
             final List<RadioStation> favoritesList = FavoritesStorage.getAll(mContext);
             final List<RadioStation> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(favoritesRx);
-            QueueHelper.merge(favoritesList, favoritesRxList);
+            RadioStationsStorage.merge(favoritesList, favoritesRxList);
             for (final RadioStation radioStation : favoritesList) {
                 FavoritesStorage.add(radioStation, mContext);
             }
             final List<RadioStation> localsList = LocalRadioStationsStorage.getAllLocals(mContext);
             final List<RadioStation> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(localsRx);
-            QueueHelper.merge(localsList, localsRxList);
+            RadioStationsStorage.merge(localsList, localsRxList);
             for (final RadioStation radioStation : localsList) {
                 LocalRadioStationsStorage.add(radioStation, mContext);
             }

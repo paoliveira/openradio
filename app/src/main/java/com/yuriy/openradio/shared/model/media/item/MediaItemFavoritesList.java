@@ -27,7 +27,6 @@ import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
-import com.yuriy.openradio.shared.utils.QueueHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.List;
@@ -61,15 +60,10 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
 
         final Context context = dependencies.getContext();
 
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.clearAndCopyCollection(
-                    dependencies.getRadioStations(),
-                    FavoritesStorage.getAll(context)
-            );
-        }
+        final List<RadioStation> list = FavoritesStorage.getAll(context);
+        dependencies.getRadioStationsStorage().clearAndCopy(list);
 
-        final List<RadioStation> radioStations = dependencies.getRadioStations();
-        for (final RadioStation radioStation : radioStations) {
+        for (final RadioStation radioStation : list) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                     radioStation

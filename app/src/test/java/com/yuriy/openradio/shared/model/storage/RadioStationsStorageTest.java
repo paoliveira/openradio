@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.utils;
+package com.yuriy.openradio.shared.model.storage;
 
+import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import org.junit.Test;
@@ -33,9 +34,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
-public final class QueueHelperTest {
+public final class RadioStationsStorageTest {
 
-    public QueueHelperTest() {
+    public RadioStationsStorageTest() {
         super();
     }
 
@@ -62,7 +63,7 @@ public final class QueueHelperTest {
         listB.add(radioStations[4]);
         listB.add(radioStations[5]);
 
-        QueueHelper.merge(listA, listB);
+        RadioStationsStorage.merge(listA, listB);
 
         assertThat(listA.size(), is(6));
         for (int i = 0; i < 6; i++) {

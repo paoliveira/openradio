@@ -63,7 +63,7 @@ public final class MediaItemRoot implements MediaItemCommand {
                         @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(LOG_TAG + " invoked");
         final Context context = dependencies.getContext();
-        dependencies.clearRadioStations();
+        dependencies.getRadioStationsStorage().clear();
 
         dependencies.getResult().detach();
 

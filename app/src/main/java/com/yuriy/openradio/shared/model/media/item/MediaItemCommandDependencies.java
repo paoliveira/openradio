@@ -25,6 +25,7 @@ import androidx.media.MediaBrowserServiceCompat;
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider;
 import com.yuriy.openradio.shared.model.net.Downloader;
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl;
+import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.MediaItemsComparator;
 import com.yuriy.openradio.shared.utils.RadioStationsComparator;
@@ -88,7 +89,7 @@ public final class MediaItemCommandDependencies {
      *
      */
     @NonNull
-    private final List<RadioStation> mRadioStations;
+    private final RadioStationsStorage mRadioStationsStorage;
 
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
@@ -110,7 +111,7 @@ public final class MediaItemCommandDependencies {
      */
     public MediaItemCommandDependencies(@NonNull final Context context,
                                         @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result,
-                                        @NonNull final List<RadioStation> radioStations,
+                                        @NonNull final RadioStationsStorage radioStationsStorage,
                                         @NonNull final ApiServiceProvider serviceProvider,
                                         @NonNull final String countryCode,
                                         @NonNull final String parentId,
@@ -125,7 +126,7 @@ public final class MediaItemCommandDependencies {
         mDownloader = new HTTPDownloaderImpl();
         mMediaItems = new ArrayList<>();
         mResult = result;
-        mRadioStations = radioStations;
+        mRadioStationsStorage = radioStationsStorage;
         mServiceProvider = serviceProvider;
         mCountryCode = countryCode;
         mParentId = parentId;
@@ -198,7 +199,7 @@ public final class MediaItemCommandDependencies {
     @NonNull
     public List<MediaBrowserCompat.MediaItem> getMediaItems() {
         Collections.sort(mMediaItems, mMediaItemsComparator);
-        Collections.sort(mRadioStations, mRadioStationsComparator);
+        mRadioStationsStorage.sort(mRadioStationsComparator);
         return mMediaItems;
     }
 
@@ -210,23 +211,12 @@ public final class MediaItemCommandDependencies {
         return mParentId;
     }
 
-    public void addAllRadioStations(@NonNull final List<RadioStation> list) {
-        mRadioStations.addAll(list);
-    }
-
-    /**
-     *
-     */
-    public void clearRadioStations() {
-        mRadioStations.clear();
-    }
-
     /**
      *
      * @return
      */
-    public List<RadioStation> getRadioStations() {
-        return mRadioStations;
+    public RadioStationsStorage getRadioStationsStorage() {
+        return mRadioStationsStorage;
     }
 
     /**

@@ -29,7 +29,6 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
-import com.yuriy.openradio.shared.utils.QueueHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.List;
@@ -59,7 +58,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
         AppLogger.d(CLASS_NAME + " invoked");
         if (!dependencies.isSameCatalogue()) {
             AppLogger.d("Not the same catalogue, clear list");
-            dependencies.clearRadioStations();
+            dependencies.getRadioStationsStorage().clear();
         }
     }
 
@@ -100,11 +99,9 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
             return;
         }
 
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            dependencies.addAllRadioStations(list);
-        }
+        dependencies.getRadioStationsStorage().addAll(list);
 
-        final List<RadioStation> radioStations = dependencies.getRadioStations();
+        final List<RadioStation> radioStations = dependencies.getRadioStationsStorage().getAll();
         for (final RadioStation radioStation : radioStations) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017 - 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,10 +59,10 @@ import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider;
 import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl;
-import com.yuriy.openradio.shared.model.media.item.MediaItemCommandDependencies;
 import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories;
 import com.yuriy.openradio.shared.model.media.item.MediaItemChildCategories;
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand;
+import com.yuriy.openradio.shared.model.media.item.MediaItemCommandDependencies;
 import com.yuriy.openradio.shared.model.media.item.MediaItemCountriesList;
 import com.yuriy.openradio.shared.model.media.item.MediaItemCountryStations;
 import com.yuriy.openradio.shared.model.media.item.MediaItemFavoritesList;
@@ -79,6 +79,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.shared.notification.MediaNotification;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
@@ -88,7 +89,6 @@ import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.PackageValidator;
-import com.yuriy.openradio.shared.utils.QueueHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.io.IOException;
@@ -97,7 +97,6 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -235,7 +234,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Collection of the Radio Stations.
      */
-    private final List<RadioStation> mRadioStations = new ArrayList<>();
+    private final RadioStationsStorage mRadioStationsStorage = new RadioStationsStorage();
 
     private String mCurrentMediaId;
 
@@ -598,7 +597,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
         final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
-                getApplicationContext(), result, mRadioStations, mApiServiceProvider,
+                getApplicationContext(), result, mRadioStationsStorage, mApiServiceProvider,
                 countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue,
                 this::restoreActiveRadioStation, this::onResult
         );
@@ -925,20 +924,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param sortId  Sort Id to update to.
      */
     private void updateSortId(final String mediaId, final int sortId, final String categoryMediaId) {
-        RadioStation radioStation;
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            radioStation = QueueHelper.getRadioStationById(mediaId, mRadioStations);
-            if (radioStation != null) {
-                radioStation.setSortId(sortId);
-            }
+        final RadioStation radioStation = mRadioStationsStorage.getById(mediaId);
+        if (radioStation == null) {
+            return;
         }
-        if (radioStation != null) {
-            // This call just overrides existing Radio Station in the storage.
-            if (TextUtils.equals(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
-                FavoritesStorage.add(radioStation, getApplicationContext());
-            } else if (TextUtils.equals(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
-                LocalRadioStationsStorage.add(radioStation, getApplicationContext());
-            }
+        radioStation.setSortId(sortId);
+        // This call just overrides existing Radio Station in the storage.
+        if (TextUtils.equals(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
+            FavoritesStorage.add(radioStation, getApplicationContext());
+        } else if (TextUtils.equals(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
+            LocalRadioStationsStorage.add(radioStation, getApplicationContext());
         }
     }
 
@@ -1033,12 +1028,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param listener {@link RadioStationUpdateListener}
      */
     private void getCurrentPlayingRadioStationAsync(final RadioStationUpdateListener listener) {
-//        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mRadioStations)) {
-//            if (listener != null) {
-//                listener.onComplete(null);
-//            }
-//            return;
-//        }
         final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
             if (listener != null) {
@@ -1142,16 +1131,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     @Nullable
     private RadioStation getCurrentPlayingRadioStation() {
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            RadioStation radioStation = QueueHelper.getRadioStationById(mCurrentMediaId, mRadioStations);
-            if (radioStation == null) {
-                radioStation = mLastKnownRS;
-            }
-            if (radioStation == null) {
-                radioStation = mRestoredRS;
-            }
-            return radioStation;
+        RadioStation radioStation = mRadioStationsStorage.getById(mCurrentMediaId);
+        if (radioStation == null) {
+            radioStation = mLastKnownRS;
         }
+        if (radioStation == null) {
+            radioStation = mRestoredRS;
+        }
+        return radioStation;
     }
 
     /**
@@ -1161,13 +1148,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     @Nullable
     private RadioStation getCurrentQueueItem() {
-        if (mCurrentIndexOnQueue < 0) {
-            return null;
-        }
-        if (mCurrentIndexOnQueue >= mRadioStations.size()) {
-            return null;
-        }
-        return mRadioStations.get(mCurrentIndexOnQueue);
+        return mRadioStationsStorage.getAt(mCurrentIndexOnQueue);
     }
 
     /**
@@ -1283,7 +1264,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 AppLogger.e(CLASS_NAME + "Play RS: ignoring request to play next song, " +
                         "because cannot find it." +
                         " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
-                        " PlayQueue.size=" + service.mRadioStations.size());
+                        " PlayQueue.size=" + service.mRadioStationsStorage.size());
                 return;
             }
             if (service.mLastKnownRS != null && service.mLastKnownRS.equals(radioStation)) {
@@ -1298,7 +1279,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 AppLogger.e(CLASS_NAME + "Play Radio Station: ignoring request to play next song, " +
                         "because cannot find metadata." +
                         " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
-                        " PlayQueue.size=" + service.mRadioStations.size());
+                        " PlayQueue.size=" + service.mRadioStationsStorage.size());
                 return;
             }
             final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
@@ -1451,7 +1432,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         stateBuilder.setState(mState, mPosition, 1.0f, SystemClock.elapsedRealtime());
 
         // Set the activeQueueItemId if the current index is valid.
-        if (QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mRadioStations)) {
+        if (mRadioStationsStorage.isIndexPlayable(mCurrentIndexOnQueue)) {
             final RadioStation item = getCurrentQueueItem();
             if (item != null) {
                 // TODO: INVESTIGATE!!!
@@ -1491,7 +1472,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             actions |= PlaybackStateCompat.ACTION_PAUSE;
         }
-        if (mRadioStations.size() <= 1) {
+        if (mRadioStationsStorage.size() <= 1) {
             return actions;
         }
         // Always show Prev and Next buttons, play index is handling on each listener (for instance, to handle loop
@@ -1564,12 +1545,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (TextUtils.isEmpty(mCurrentMediaId)) {
             return;
         }
-        if (mRadioStations.isEmpty()) {
+        if (mRadioStationsStorage.isEmpty()) {
             return;
         }
-        mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-                mRadioStations, mCurrentMediaId
-        );
+        mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId);
         AppLogger.d(CLASS_NAME + "On result from command, index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId);
     }
 
@@ -1603,9 +1582,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             isStatePlay = false;
         }
 
-        final int tempIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-                mRadioStations, mCurrentMediaId
-        );
+        final int tempIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId);
 //        if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
 //            AppLogger.w(
 //                    CLASS_NAME +
@@ -1694,7 +1671,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
 
-            if (service.mRadioStations.isEmpty()) {
+            if (service.mRadioStationsStorage.isEmpty()) {
                 // start playing from the beginning of the queue
                 service.mCurrentIndexOnQueue = 0;
             }
@@ -1717,15 +1694,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 service.mState = PlaybackStateCompat.STATE_STOPPED;
             }
 
-            if (service.mRadioStations.isEmpty()) {
+            if (service.mRadioStationsStorage.isEmpty()) {
                 return;
             }
 
             // set the current index on queue from the music Id:
-            service.mCurrentIndexOnQueue = QueueHelper.getRadioStationIndexOnQueue(
-                    service.mRadioStations, String.valueOf(id)
-            );
-            if (service.mCurrentIndexOnQueue == QueueHelper.UNKNOWN_INDEX) {
+            service.mCurrentIndexOnQueue = service.mRadioStationsStorage.getIndex(String.valueOf(id));
+            if (service.mCurrentIndexOnQueue == RadioStationsStorage.UNKNOWN_INDEX) {
                 return;
             }
 
@@ -1787,11 +1762,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             + " skip to " + (service.mCurrentIndexOnQueue + 1)
             );
             service.mCurrentIndexOnQueue++;
-            if (service.mCurrentIndexOnQueue >= service.mRadioStations.size()) {
+            if (service.mCurrentIndexOnQueue >= service.mRadioStationsStorage.size()) {
                 service.mCurrentIndexOnQueue = 0;
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
-            if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mRadioStations)) {
+            if (service.mRadioStationsStorage.isIndexPlayable(service.mCurrentIndexOnQueue)) {
                 service.mState = PlaybackStateCompat.STATE_STOPPED;
 
                 RadioStation rs = service.getCurrentQueueItem();
@@ -1802,7 +1777,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 service.handlePlayRequest();
             } else {
                 AppLogger.e(CLASS_NAME + "skipToNext: cannot skip to next. next Index=" +
-                        service.mCurrentIndexOnQueue + " queue length=" + service.mRadioStations.size());
+                        service.mCurrentIndexOnQueue + " queue length=" + service.mRadioStationsStorage.size());
 
                 service.handleStopRequest(service.getString(R.string.can_not_skip));
             }
@@ -1822,10 +1797,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (service.mCurrentIndexOnQueue < 0) {
                 // This sample's behavior: skipping to previous when in first song restarts the
                 // first song.
-                service.mCurrentIndexOnQueue = service.mRadioStations.size() - 1;
+                service.mCurrentIndexOnQueue = service.mRadioStationsStorage.size() - 1;
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
-            if (QueueHelper.isIndexPlayable(service.mCurrentIndexOnQueue, service.mRadioStations)) {
+            if (service.mRadioStationsStorage.isIndexPlayable(service.mCurrentIndexOnQueue)) {
                 service.mState = PlaybackStateCompat.STATE_STOPPED;
 
                 RadioStation rs = service.getCurrentQueueItem();
@@ -1836,7 +1811,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 service.handlePlayRequest();
             } else {
                 AppLogger.e(CLASS_NAME + "skipToPrevious: cannot skip to previous. previous Index=" +
-                        service.mCurrentIndexOnQueue + " queue length=" + service.mRadioStations.size());
+                        service.mCurrentIndexOnQueue + " queue length=" + service.mRadioStationsStorage.size());
 
                 service.handleStopRequest(service.getString(R.string.can_not_skip));
             }
@@ -1999,9 +1974,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         AppLogger.i(CLASS_NAME + "Found " + list.size() + " items");
 
-        synchronized (QueueHelper.RADIO_STATIONS_MANAGING_LOCK) {
-            QueueHelper.clearAndCopyCollection(mRadioStations, list);
-        }
+        mRadioStationsStorage.clearAndCopy(list);
 
         // immediately start playing from the beginning of the search results
         mCurrentIndexOnQueue = 0;
@@ -2015,7 +1988,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param index Index of the Radio Station in the queue.
      */
     private void dispatchCurrentIndexOnQueue(final int index) {
-        if (!QueueHelper.isIndexPlayable(mCurrentIndexOnQueue, mRadioStations)) {
+        if (!mRadioStationsStorage.isIndexPlayable(mCurrentIndexOnQueue)) {
             AppLogger.w(CLASS_NAME + "Can not dispatch curr index on queue");
             return;
         }
@@ -2053,9 +2026,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 if (description == null) {
                     break;
                 }
-                RadioStation rs = QueueHelper.getRadioStationById(
-                        description.getMediaId(), mRadioStations
-                );
+                RadioStation rs = mRadioStationsStorage.getById(description.getMediaId());
                 // This can the a case when last known Radio Station is playing.
                 // In this case it is not in a list of radio stations.
                 // If it exists, let's compare its id with the id provided by intent.
@@ -2157,9 +2128,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     AppLogger.w(CLASS_NAME + "Can not remove Station, Media Id is empty");
                     break;
                 }
-                final RadioStation radioStation = QueueHelper.removeRadioStation(
-                        mediaId, mRadioStations
-                );
+                final RadioStation radioStation = mRadioStationsStorage.remove(mediaId);
                 if (radioStation != null) {
                     FileUtils.deleteFile(radioStation.getImageUrl());
                     LocalRadioStationsStorage.remove(radioStation, context);
