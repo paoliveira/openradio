@@ -2,21 +2,24 @@
  * Constants defined in the build scripts.
  */
 project.ext {
+
     /**
      * Build and compile constants
      */
     compileSdkVersion = 29
     minSdkVersion = 17
     targetSdkVersion = 29
-    supportVersion = "28.0.0"
     buildToolsVersion = "29.0.2"
-    checkerframeworkVersion = '2.10.1'
-    appcompatVersion = '1.1.0'
-    materialVersion = '1.0.0'
 
     /**
      * Libraries versions
      */
+    supportVersion = "28.0.0"
+    checkerQualVersion = "2.10.1"
+    checkerCompatQualVersion = "2.5.5"
+    appcompatVersion = "1.1.0"
+    materialVersion = "1.0.0"
+    glideVersion = "4.3.1"
     googlePlayServicesDriveVersion = "17.0.0"
     googlePlayServicesAuthVersion = "17.0.0"
     googlePlayServicesLocationVersion = "17.0.0"
@@ -73,4 +76,5 @@ project.ext {
     } else {
         throw new GradleException("Could not read crashlytics.properties !")
     }
+
 }
