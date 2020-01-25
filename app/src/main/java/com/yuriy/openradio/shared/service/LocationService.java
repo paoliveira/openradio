@@ -47,6 +47,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import de.westnordost.countryboundaries.CountryBoundaries;
@@ -409,19 +411,32 @@ public final class LocationService extends JobIntentService {
         // Use simple thread here and not executor's API because executor can handle new call in the same thread.
         // While this is good resource keeper, Loop handling will be more complicated. Keep things simple - create
         // new thread on each request. The good news is - new request is only happening on app start up.
+        final CountDownLatch latch = new CountDownLatch(1);
         final Thread thread = new Thread(
                 () -> {
                     Looper.prepare();
+                    final Context context = LocationService.this.getApplicationContext();
                     requestCountryCode(
-                            getApplicationContext(),
-                            countryCode -> LocationPreferencesManager.setLastCountryCode(
-                                    getApplicationContext(), countryCode
-                            )
+                            context,
+                            countryCode -> {
+                                LocationPreferencesManager.setLastCountryCode(context, countryCode);
+                                latch.countDown();
+                                Looper looper = Looper.myLooper();
+                                if (looper != null) {
+                                    looper.quit();
+                                }
+                            }
                     );
+                    Looper.loop();
                 }
         );
         thread.setName("LocSrvc-Thread");
         thread.start();
+        try {
+            latch.await(5, TimeUnit.SECONDS);
+        } catch (final InterruptedException e) {
+            //
+        }
     }
 
     /**
