@@ -45,7 +45,7 @@ public final class UrlBuilder {
     /**
      * Base URL for the API requests.
      */
-    private static final String BASE_URL = "http://www.radio-browser.info/webservice/json/";
+    private static final String BASE_URL = "https://de1.api.radio-browser.info/json/";
 
     /**
      * Base url for the icons used previously.

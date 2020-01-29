@@ -35,48 +35,24 @@ public class JsonDataParserImpl implements DataParser {
      */
 
     public static final String KEY_ID = "id";
-
     public static final String KEY_NAME = "name";
-
     public static final String KEY_DESCRIPTION = "description";
-
     public static final String KEY_AMOUNT = "amount";
-
     public static final String KEY_STREAM_URL = "streamurl";
-
     public static final String KEY_COUNTRY = "country";
-
     public static final String KEY_COUNTRY_CODE = "country_code";
-
     public static final String KEY_BIT_RATE = "bitrate";
-
     public static final String KEY_STATUS = "status";
-
     public static final String KEY_ADDED = "added";
-
     public static final String KEY_URL_ID = "urlid";
-
     public static final String KEY_WEBSITE = "website";
-
     public static final String KEY_SONG_HISTORY = "songhistory";
-
     public static final String KEY_TITLE = "title";
-
     public static final String KEY_TIME = "time";
-
     public static final String KEY_DIRECTORY = "directory";
-
-    public static final String KEY_STREAMS = "streams";
-
-    public static final String KEY_STREAM = "stream";
-
     public static final String KEY_STATION_ID = "Station_id";
-
     public static final String KEY_IMAGE = "image";
-
     public static final String KEY_THUMB = "thumb";
-
     public static final String KEY_URL = "url";
-
     public static final String KEY_FAV_ICON = "favicon";
 }

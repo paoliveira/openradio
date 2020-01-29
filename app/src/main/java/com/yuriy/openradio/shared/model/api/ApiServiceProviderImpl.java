@@ -376,8 +376,8 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                         }
                     }
                 }
-                if (object.has(JsonDataParserImpl.KEY_STREAM)) {
-                    url = object.getString(JsonDataParserImpl.KEY_STREAM);
+                if (object.has(JsonDataParserImpl.KEY_URL)) {
+                    url = object.getString(JsonDataParserImpl.KEY_URL);
                 }
 
                 if (url == null || url.isEmpty()) {
@@ -425,15 +425,13 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             radioStation.setCountry(object.getString(JsonDataParserImpl.KEY_COUNTRY));
         }
 
-        if (object.has(JsonDataParserImpl.KEY_STREAMS)) {
-            final MediaStream mediaStream
-                    = selectStream(object.getJSONArray(JsonDataParserImpl.KEY_STREAMS));
-            radioStation.setMediaStream(mediaStream);
-        }
-
         if (object.has(JsonDataParserImpl.KEY_URL)) {
+            int bitrate = 0;
+            if (object.has(JsonDataParserImpl.KEY_BIT_RATE)) {
+                bitrate = object.getInt(JsonDataParserImpl.KEY_BIT_RATE);
+            }
             final MediaStream mediaStream = MediaStream.makeDefaultInstance();
-            mediaStream.setVariant(128, object.getString(JsonDataParserImpl.KEY_URL));
+            mediaStream.setVariant(bitrate, object.getString(JsonDataParserImpl.KEY_URL));
             radioStation.setMediaStream(mediaStream);
         }
 
