@@ -92,7 +92,7 @@ public final class RadioStationsStorage {
         int index = 0;
         synchronized (mRadioStations) {
             for (final RadioStation item : mRadioStations) {
-                if (mediaId.equals(item.getIdAsString())) {
+                if (mediaId.equals(item.getId())) {
                     return index;
                 }
                 index++;
@@ -116,7 +116,7 @@ public final class RadioStationsStorage {
                 if (item == null) {
                     continue;
                 }
-                if (TextUtils.equals(item.getIdAsString(), id)) {
+                if (TextUtils.equals(item.getId(), id)) {
                     result = item;
                     break;
                 }
@@ -140,7 +140,7 @@ public final class RadioStationsStorage {
                 if (radioStation == null) {
                     continue;
                 }
-                if (TextUtils.equals(radioStation.getIdAsString(), mediaId)) {
+                if (TextUtils.equals(radioStation.getId(), mediaId)) {
                     mRadioStations.remove(radioStation);
                     result = radioStation;
                     break;

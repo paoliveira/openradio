@@ -435,8 +435,8 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             radioStation.setMediaStream(mediaStream);
         }
 
-        if (object.has(JsonDataParserImpl.KEY_ID)) {
-            radioStation.setId(object.getInt(JsonDataParserImpl.KEY_ID));
+        if (object.has(JsonDataParserImpl.KEY_STATION_UUID)) {
+            radioStation.setId(object.getString(JsonDataParserImpl.KEY_STATION_UUID));
         }
 
         if (object.has(JsonDataParserImpl.KEY_IMAGE)) {

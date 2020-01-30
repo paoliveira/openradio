@@ -22,7 +22,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.vo.MediaStream;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -77,18 +76,18 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * @param context Applications context.
      * @return The value of the Radio Station Id.
      */
-    public static int getId(final Context context) {
+    public static String getId(final Context context) {
         final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, FILE_NAME);
         int id = sharedPreferences.getInt(KEY_ID, Integer.MAX_VALUE);
         // If value is Integer MAX, means that this is the first call, initialize it and addToLocals.
         if (id == Integer.MAX_VALUE) {
             setId(context, ID_INIT_VALUE);
-            return ID_INIT_VALUE;
+            return String.valueOf(ID_INIT_VALUE);
         }
         // Increment previous value, addToLocals it and return it.
         id = id + 1;
         setId(context, id);
-        return id;
+        return String.valueOf(id);
     }
 
     /**
@@ -141,7 +140,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
         boolean result = false;
         final List<RadioStation> list = AbstractRadioStationsStorage.getAll(context, FILE_NAME);
         for (final RadioStation radioStation : list) {
-            if (radioStation.getIdAsString().endsWith(mediaId)) {
+            if (radioStation.getId().endsWith(mediaId)) {
                 remove(radioStation, context);
                 FavoritesStorage.remove(radioStation, context);
 
@@ -161,7 +160,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
                 add(radioStation, context);
 
                 final RadioStation current = LatestRadioStationStorage.get(context);
-                if (current != null && current.getIdAsString().endsWith(mediaId)) {
+                if (current != null && current.getId().endsWith(mediaId)) {
                     LatestRadioStationStorage.add(radioStation, context);
                 }
 
@@ -185,7 +184,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     public static synchronized RadioStation get(final String mediaId, final Context context) {
         final List<RadioStation> list = AbstractRadioStationsStorage.getAll(context, FILE_NAME);
         for (final RadioStation radioStation : list) {
-            if (radioStation.getIdAsString().endsWith(mediaId)) {
+            if (radioStation.getId().endsWith(mediaId)) {
                 return radioStation;
             }
         }
@@ -221,7 +220,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
         // Loop for the key that holds KEY for the next Local Radio Station
         // and remove it from collection.
         for (final RadioStation radioStation : list) {
-            if (radioStation.getId() == 0) {
+            if (radioStation.getId().isEmpty()) {
                 list.remove(radioStation);
                 break;
             }
@@ -241,7 +240,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
         // Loop for the key that holds KEY for the next Local Radio Station
         // and remove it from collection.
         for (final RadioStation radioStation : list) {
-            if (radioStation.getId() == 0) {
+            if (radioStation.getId().isEmpty()) {
                 list.remove(radioStation);
                 break;
             }
@@ -258,6 +257,6 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      */
     public static boolean isLocalRadioStation(final RadioStation radioStation, final Context context) {
         final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, FILE_NAME);
-        return sharedPreferences.contains(radioStation.getIdAsString());
+        return sharedPreferences.contains(radioStation.getId());
     }
 }

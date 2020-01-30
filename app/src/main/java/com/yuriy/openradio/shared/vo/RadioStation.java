@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.vo;
 import androidx.annotation.NonNull;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Created by Yuriy Chernyshov
@@ -33,7 +34,8 @@ public final class RadioStation implements Serializable {
 
     public static final int SORT_ID_UNSET = -1;
 
-    private int mId;
+    @NonNull
+    private String mId;
 
     // TODO: Convert to enum
     private int mStatus;
@@ -59,8 +61,6 @@ public final class RadioStation implements Serializable {
      */
     private boolean mIsLocal;
 
-    private boolean mIsLastKnown;
-
     private int mSortId = SORT_ID_UNSET;
 
     /**
@@ -69,6 +69,7 @@ public final class RadioStation implements Serializable {
      */
     private RadioStation() {
         super();
+        mId = "";
         mMediaStream = MediaStream.makeDefaultInstance();
     }
 
@@ -84,7 +85,6 @@ public final class RadioStation implements Serializable {
         mId = radioStation.mId;
         mImageUrl = radioStation.mImageUrl;
         mIsLocal = radioStation.mIsLocal;
-        mIsLastKnown = radioStation.mIsLastKnown;
         mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream);
         mName = radioStation.mName;
         mSortId = radioStation.mSortId;
@@ -93,16 +93,13 @@ public final class RadioStation implements Serializable {
         mWebSite = radioStation.mWebSite;
     }
 
-    public final int getId() {
+    @NonNull
+    public final String getId() {
         return mId;
     }
 
-    public final String getIdAsString() {
-        return String.valueOf(mId);
-    }
-
-    public final void setId(final int value) {
-        mId = value;
+    public final void setId(final String value) {
+        mId = value != null ? value : "";
     }
 
     public final int getStatus() {
@@ -177,14 +174,6 @@ public final class RadioStation implements Serializable {
         mSortId = value;
     }
 
-    public boolean isLastKnown() {
-        return mIsLastKnown;
-    }
-
-    public void setLastKnown(final boolean value) {
-        mIsLastKnown = value;
-    }
-
     @NonNull
     public final MediaStream getMediaStream() {
         return mMediaStream;
@@ -208,15 +197,15 @@ public final class RadioStation implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        final RadioStation that = (RadioStation) o;
+        RadioStation station = (RadioStation) o;
 
-        if (mId != that.mId) return false;
-        return mMediaStream.equals(that.mMediaStream);
+        if (!mId.equals(station.mId)) return false;
+        return mMediaStream.equals(station.mMediaStream);
     }
 
     @Override
     public int hashCode() {
-        int result = mId;
+        int result = mId.hashCode();
         result = 31 * result + mMediaStream.hashCode();
         return result;
     }
@@ -234,7 +223,6 @@ public final class RadioStation implements Serializable {
                 ", imageUrl='" + mImageUrl + '\'' +
                 ", thumbUrl='" + mThumbUrl + '\'' +
                 ", isLocal=" + mIsLocal + '\'' +
-                ", isLastKnown=" + mIsLastKnown + '\'' +
                 ", sortId=" + mSortId +
                 '}';
     }

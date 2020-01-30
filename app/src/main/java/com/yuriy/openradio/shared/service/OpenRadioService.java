@@ -1055,7 +1055,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             final RadioStation radioStationUpdated = mApiServiceProvider
                                     .getStation(
                                             new HTTPDownloaderImpl(),
-                                            UrlBuilder.getStation(radioStation.getIdAsString())
+                                            UrlBuilder.getStation(radioStation.getId())
                                     );
                             radioStation.setMediaStream(radioStationUpdated.getMediaStream());
 
@@ -1109,14 +1109,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         final String trackId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID);
         // TODO: Check whether we can use media id from Radio Station
-        if (!TextUtils.equals(radioStation.getIdAsString(), trackId)) {
+        if (!TextUtils.equals(radioStation.getId(), trackId)) {
             AppLogger.w(
                     CLASS_NAME + "track ID '" + trackId
-                            + "' should match mediaId '" + radioStation.getIdAsString() + "'"
+                            + "' should match mediaId '" + radioStation.getId() + "'"
             );
             return;
         }
-        AppLogger.d(CLASS_NAME + "Updating metadata for MusicId:" + radioStation.getIdAsString() + ", title:" + streamTitle);
+        AppLogger.d(CLASS_NAME + "Updating metadata for MusicId:" + radioStation.getId() + ", title:" + streamTitle);
         try {
             mSession.setMetadata(metadata);
         } catch (final IllegalStateException e) {
@@ -1436,7 +1436,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             final RadioStation item = getCurrentQueueItem();
             if (item != null) {
                 // TODO: INVESTIGATE!!!
-                stateBuilder.setActiveQueueItemId(item.getId());
+                stateBuilder.setActiveQueueItemId(mCurrentIndexOnQueue);
             }
         }
 
@@ -1554,7 +1554,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void restoreActiveRadioStation(@NonNull final RadioStation radioStation) {
         mRestoredRS = radioStation;
-        mMainHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getIdAsString()));
+        mMainHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getId()));
     }
 
     /**
@@ -1771,7 +1771,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                 RadioStation rs = service.getCurrentQueueItem();
                 if (rs != null) {
-                    service.mCurrentMediaId = rs.getIdAsString();
+                    service.mCurrentMediaId = rs.getId();
                 }
 
                 service.handlePlayRequest();
@@ -1805,7 +1805,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                 RadioStation rs = service.getCurrentQueueItem();
                 if (rs != null) {
-                    service.mCurrentMediaId = rs.getIdAsString();
+                    service.mCurrentMediaId = rs.getId();
                 }
 
                 service.handlePlayRequest();
@@ -1995,7 +1995,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final RadioStation item = getCurrentQueueItem();
         String mediaId = "";
         if (item != null) {
-            mediaId = item.getIdAsString();
+            mediaId = item.getId();
         }
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
                 AppLocalBroadcast.createIntentCurrentIndexOnQueue(index, mediaId)
@@ -2032,7 +2032,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 // If it exists, let's compare its id with the id provided by intent.
                 if (rs == null) {
                     if (mLastKnownRS != null
-                            && TextUtils.equals(mLastKnownRS.getIdAsString(), description.getMediaId())) {
+                            && TextUtils.equals(mLastKnownRS.getId(), description.getMediaId())) {
                         rs = RadioStation.makeCopyInstance(mLastKnownRS);
                     }
                     // We failed both cases, something went wrong ...

@@ -132,7 +132,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
             if (station == null) {
                 continue;
             }
-            if (station.getId() == radioStation.getId()) {
+            if (station.getId().equals(radioStation.getId())) {
                 sSet.add(key);
                 return true;
             }
@@ -150,7 +150,7 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
             if (station == null) {
                 continue;
             }
-            if (station.getIdAsString().equals(mediaItem.getMediaId())) {
+            if (station.getId().equals(mediaItem.getMediaId())) {
                 sSet.add(key);
                 return true;
             }

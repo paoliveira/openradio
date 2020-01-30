@@ -269,7 +269,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      * @return Key associated with Radio Station.
      */
     static String createKeyForRadioStation(@NonNull final RadioStation radioStation) {
-        return radioStation.getIdAsString();
+        return radioStation.getId();
     }
 
     static String createKeyForRadioStation(@NonNull final MediaBrowserCompat.MediaItem mediaItem) {

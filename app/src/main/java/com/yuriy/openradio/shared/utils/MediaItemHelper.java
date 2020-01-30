@@ -365,7 +365,7 @@ public final class MediaItemHelper {
         final String title = radioStation.getName();
         final String country = radioStation.getCountry();
         final String genre = radioStation.getGenre();
-        final String id = String.valueOf(radioStation.getId());
+        final String id = radioStation.getId();
         final Bundle bundle = new Bundle();
 
         return new MediaDescriptionCompat.Builder()

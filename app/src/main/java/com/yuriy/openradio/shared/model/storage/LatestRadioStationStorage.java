@@ -79,7 +79,6 @@ public final class LatestRadioStationStorage extends AbstractRadioStationsStorag
         final List<RadioStation> list = getAll(context, FILE_NAME);
         // There is only one Radio Station in collection.
         if (!list.isEmpty()) {
-            list.get(0).setLastKnown(true);
             sRadioStation = RadioStation.makeCopyInstance(list.get(0));
             return sRadioStation;
         }

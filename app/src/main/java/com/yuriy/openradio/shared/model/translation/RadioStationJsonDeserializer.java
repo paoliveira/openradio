@@ -48,7 +48,7 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
         }
         try {
             final JSONObject jsonObject = new JSONObject(value);
-            radioStation.setId(getIntValue(jsonObject, RadioStationJsonHelper.KEY_ID));
+            radioStation.setId(getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID));
             radioStation.setName(getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME));
 
             String bitrateStr = getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0");
