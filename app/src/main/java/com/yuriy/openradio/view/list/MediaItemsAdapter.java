@@ -38,6 +38,7 @@ import androidx.annotation.Nullable;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
+import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.ImageFetcher;
 import com.yuriy.openradio.shared.utils.ImageWorker;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
@@ -158,7 +159,11 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         handleNameAndDescriptionView(mViewHolder.mNameView, mViewHolder.mDescriptionView, description, getParentId());
 
-        updateImage(description, mediaItem.isPlayable(), mViewHolder.mImageView, mImageFetcher);
+        updateImage(description, mViewHolder.mImageView, mImageFetcher, mediaItem.isPlayable());
+
+        updateBitrateView(
+                MediaItemHelper.getBitrateField(mediaItem), mViewHolder.mBitrateView, mediaItem.isPlayable()
+        );
 
         if (mediaItem.isPlayable()) {
             handleFavoriteAction(
@@ -245,6 +250,25 @@ public final class MediaItemsAdapter extends BaseAdapter {
         return convertView;
     }
 
+    public static void updateBitrateView(final int bitrate,
+                                         @Nullable final TextView view,
+                                         final boolean isPlayable) {
+        if (view == null) {
+            return;
+        }
+        if (isPlayable) {
+            if (bitrate != 0) {
+                view.setVisibility(View.VISIBLE);
+                final String bitrateStr = bitrate + "kb/s";
+                view.setText(bitrateStr);
+            } else {
+                view.setVisibility(View.GONE);
+            }
+        } else {
+            view.setVisibility(View.GONE);
+        }
+    }
+
     /**
      * Handle view of list item responsible to display Title and Description.<p>
      * Different categories requires different handle approaches.
@@ -287,33 +311,39 @@ public final class MediaItemsAdapter extends BaseAdapter {
         viewHolder.mImageView = view.findViewById(R.id.img_view);
         viewHolder.mFavoriteCheckView = view.findViewById(R.id.favorite_check_view);
         viewHolder.mRootView = view.findViewById(R.id.category_list_root_view);
+        viewHolder.mBitrateView = view.findViewById(R.id.bitrate_view);
         return viewHolder;
     }
 
     /**
      * Updates an image of the Media Item.
      *
-     * @param description  Media Description of the Media Item.
-     * @param isPlayable   Is Media Item playable (whether it is Radio Station or Folder).
-     * @param imageView    Image View to apply image to.
+     * @param description Media Description of the Media Item.
+     * @param view   Image View to apply image to.
      * @param imageWorker Fetcher object to download image in background thread.
+     * @param isPlayable  Is Media Item playable (whether it is Radio Station or Folder).
      */
-    public static void updateImage(final MediaDescriptionCompat description, final boolean isPlayable,
-                                   final ImageView imageView, final ImageWorker imageWorker) {
+    public static void updateImage(final MediaDescriptionCompat description,
+                                   @Nullable final ImageView view,
+                                   final ImageWorker imageWorker,
+                                   final boolean isPlayable) {
+        if (view == null) {
+            return;
+        }
         if (description.getIconBitmap() != null) {
-            imageView.setImageBitmap(description.getIconBitmap());
+            view.setImageBitmap(description.getIconBitmap());
         } else {
             final Uri iconUri = UrlBuilder.preProcessIconUri(description.getIconUri());
             if (isPlayable) {
                 if (iconUri != null && iconUri.toString().startsWith("android")) {
-                    imageView.setImageURI(iconUri);
+                    view.setImageURI(iconUri);
                 } else {
                     // Load the image asynchronously into the ImageView, this also takes care of
                     // setting a placeholder image while the background thread runs
-                    imageWorker.loadImage(iconUri, imageView);
+                    imageWorker.loadImage(iconUri, view);
                 }
             } else {
-                imageView.setImageURI(iconUri);
+                view.setImageURI(iconUri);
             }
         }
     }

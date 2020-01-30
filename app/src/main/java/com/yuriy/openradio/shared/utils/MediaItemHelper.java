@@ -25,6 +25,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.R;
@@ -56,6 +57,8 @@ public final class MediaItemHelper {
 
     private static final String KEY_CURRENT_STREAM_TITLE = "CURRENT_STREAM_TITLE";
 
+    private static final String KEY_BITRATE = "KEY_BITRATE";
+
     /**
      * Default constructor.
      */
@@ -63,10 +66,23 @@ public final class MediaItemHelper {
         super();
     }
 
+    public static void updateBitrateField(@NonNull final Bundle bundle, final int bitrate) {
+        bundle.putInt(KEY_BITRATE, bitrate);
+    }
+
+    public static int getBitrateField(final MediaBrowserCompat.MediaItem mediaItem) {
+        if (mediaItem == null) {
+            return 0;
+        }
+        final MediaDescriptionCompat mediaDescription = mediaItem.getDescription();
+        final Bundle bundle = mediaDescription.getExtras();
+        return bundle != null ? bundle.getInt(KEY_BITRATE, 0) : 0;
+    }
+
     /**
      * Sets key that indicates Radio Station is in favorites.
      *
-     * @param mediaItem   {@link MediaBrowserCompat.MediaItem}.
+     * @param mediaItem    {@link MediaBrowserCompat.MediaItem}.
      * @param isLastPlayed Whether Media Item is known last played.
      */
     public static void updateLastPlayedField(final MediaBrowserCompat.MediaItem mediaItem,
@@ -368,6 +384,8 @@ public final class MediaItemHelper {
         final String id = radioStation.getId();
         final Bundle bundle = new Bundle();
 
+        updateBitrateField(bundle, radioStation.getMediaStream().getVariant(0).getBitrate());
+
         return new MediaDescriptionCompat.Builder()
                 .setDescription(genre)
                 .setMediaId(id)
@@ -409,7 +427,6 @@ public final class MediaItemHelper {
     }
 
     /**
-     *
      * @return
      */
     public static List<MediaBrowserCompat.MediaItem> createListEndedResult() {
@@ -417,7 +434,6 @@ public final class MediaItemHelper {
     }
 
     /**
-     *
      * @param list
      * @return
      */

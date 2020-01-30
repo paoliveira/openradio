@@ -39,7 +39,6 @@ import android.view.View;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -1007,10 +1006,12 @@ public final class MainActivity extends AppCompatActivity {
         if (descriptionView != null) {
             descriptionView.setText(description.getDescription());
         }
-        final ImageView imageView = findViewById(R.id.crs_img_view);
-        if (imageView != null) {
-            MediaItemsAdapter.updateImage(description, true, imageView, mImageWorker);
-        }
+        MediaItemsAdapter.updateImage(description, findViewById(R.id.crs_img_view), mImageWorker, true);
+        MediaItemsAdapter.updateBitrateView(
+                radioStation.getMediaStream().getVariant(0).getBitrate(),
+                findViewById(R.id.crs_bitrate_view),
+                true
+        );
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(

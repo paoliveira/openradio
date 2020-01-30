@@ -28,6 +28,8 @@ final class ListAdapterViewHolder {
      */
     TextView mNameView;
 
+    TextView mBitrateView;
+
     /**
      * Description text view.
      */

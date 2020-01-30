@@ -10,15 +10,22 @@
         android:id="@+id/crs_img_view"
         android:layout_width="@dimen/list_item_width"
         android:layout_height="@dimen/list_item_width"
-        android:layout_marginRight="15dp"
+        android:layout_marginEnd="15dp"
         android:contentDescription="@string/content_description_category_icon"
         android:src="@drawable/ic_child_categories"/>
 
     <TextView
+        android:id="@+id/crs_bitrate_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:layout_below="@+id/crs_img_view"/>
+
+    <TextView
         android:id="@+id/crs_name_view"
         style="@style/text_style"
-        android:layout_toLeftOf="@+id/crs_favorite_check_view"
-        android:layout_toRightOf="@+id/crs_img_view"
+        android:layout_toStartOf="@+id/crs_favorite_check_view"
+        android:layout_toEndOf="@+id/crs_img_view"
         android:textSize="22sp"
         android:textStyle="bold"/>
 
@@ -26,15 +33,15 @@
         android:id="@+id/crs_description_view"
         style="@style/text_style"
         android:layout_below="@+id/crs_name_view"
-        android:layout_toLeftOf="@+id/crs_favorite_check_view"
-        android:layout_toRightOf="@+id/crs_img_view"
+        android:layout_toStartOf="@+id/crs_favorite_check_view"
+        android:layout_toEndOf="@+id/crs_img_view"
         android:textSize="18sp"/>
 
     <CheckBox
         android:id="@+id/crs_favorite_check_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:button="@drawable/check_box_favorites"
         android:checked="false"/>
 
@@ -43,8 +50,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/crs_favorite_check_view"
-        android:layout_alignLeft="@+id/crs_favorite_check_view"
-        android:layout_alignRight="@+id/crs_favorite_check_view"
+        android:layout_alignStart="@+id/crs_favorite_check_view"
+        android:layout_alignEnd="@+id/crs_favorite_check_view"
         android:layout_marginTop="10dp"
         android:focusable="false"
         android:focusableInTouchMode="false"
@@ -56,8 +63,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/crs_favorite_check_view"
-        android:layout_alignLeft="@+id/crs_favorite_check_view"
-        android:layout_alignRight="@+id/crs_favorite_check_view"
+        android:layout_alignStart="@+id/crs_favorite_check_view"
+        android:layout_alignEnd="@+id/crs_favorite_check_view"
         android:layout_marginTop="10dp"
         android:focusable="false"
         android:focusableInTouchMode="false"
@@ -69,8 +76,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/crs_favorite_check_view"
-        android:layout_alignLeft="@+id/crs_favorite_check_view"
-        android:layout_alignRight="@+id/crs_favorite_check_view"
+        android:layout_alignStart="@+id/crs_favorite_check_view"
+        android:layout_alignEnd="@+id/crs_favorite_check_view"
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:indeterminate="true"/>
@@ -81,6 +88,6 @@
         android:layout_height="wrap_content"
         android:paddingTop="10dp"
         android:layout_below="@+id/crs_description_view"
-        android:layout_alignLeft="@+id/crs_description_view"/>
+        android:layout_alignStart="@+id/crs_description_view"/>
 
 </RelativeLayout>

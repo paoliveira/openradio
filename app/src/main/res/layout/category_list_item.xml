@@ -10,35 +10,50 @@
         android:id="@+id/favorite_check_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:button="@drawable/check_box_favorites"
         android:checked="false"
         android:focusable="false"
-        android:focusableInTouchMode="false"/>
+        android:focusableInTouchMode="false" />
 
     <ImageView
         android:id="@+id/img_view"
         android:layout_width="@dimen/list_item_width"
         android:layout_height="@dimen/list_item_width"
-        android:layout_marginRight="15dp"
+        android:layout_marginEnd="15dp"
         android:contentDescription="@string/content_description_category_icon"
         android:src="@drawable/ic_child_categories" />
 
     <TextView
+        android:id="@+id/bitrate_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="5dp"
+        android:layout_below="@+id/img_view"/>
+
+    <TextView
         android:id="@+id/description_view"
         style="@style/text_style"
+        android:text="descrccndnc dadwf efggeger kdncscdcdksclkdnck   nsdkncklsdnc"
         android:layout_below="@+id/name_view"
-        android:layout_toLeftOf="@+id/favorite_check_view"
-        android:layout_toRightOf="@+id/img_view"
-        android:textSize="18sp" />
+        android:layout_toStartOf="@+id/favorite_check_view"
+        android:layout_toEndOf="@+id/img_view"
+        android:paddingEnd="15dp"
+        android:textSize="18sp"
+        android:maxLines="2"
+        android:ellipsize="end"/>
 
     <TextView
         android:id="@+id/name_view"
         style="@style/text_style"
-        android:layout_toLeftOf="@+id/favorite_check_view"
-        android:layout_toRightOf="@+id/img_view"
+        android:text="Nameasscncnddsadsadas  dasf  deqdw fgrgregrecsalclascsc scasca"
+        android:layout_toStartOf="@+id/favorite_check_view"
+        android:layout_toEndOf="@+id/img_view"
+        android:paddingEnd="15dp"
         android:textSize="22sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:ellipsize="end"/>
 
 </RelativeLayout>
