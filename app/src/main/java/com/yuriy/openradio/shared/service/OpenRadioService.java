@@ -169,6 +169,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
 
+    private static final String BUNDLE_ARG_CURRENT_PLAYBACK_STATE = "BUNDLE_ARG_CURRENT_PLAYBACK_STATE";
+
     /**
      * Action to thumbs up a media item
      */
@@ -206,7 +208,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Current local media player state
      */
-    private int mState = PlaybackStateCompat.STATE_NONE;
+    private int mState;
 
     private PauseReason mPauseReason = PauseReason.DEFAULT;
 
@@ -342,6 +344,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     public OpenRadioService() {
         super();
+        setPlaybackState(PlaybackStateCompat.STATE_NONE);
         mMainHandler = new Handler(Looper.getMainLooper());
         mBTConnectionReceiver = new BTConnectionReceiver(
                 new BTConnectionReceiver.Listener() {
@@ -571,6 +574,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mIsAndroidAuto = false;
         }
         mCurrentParentId = getCurrentParentId(rootHints);
+        setPlaybackState(getCurrentPlaybackState(rootHints));
 
         return new BrowserRoot(MediaIdHelper.MEDIA_ID_ROOT, null);
     }
@@ -580,9 +584,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
         AppLogger.i(CLASS_NAME + "OnLoadChildren " + parentId);
         boolean isSameCatalogue = false;
+        boolean isSavedInstance = false;
         // Check whether category had changed.
         if (TextUtils.equals(mCurrentParentId, parentId)) {
             isSameCatalogue = true;
+        }
+        if (!TextUtils.isEmpty(mCurrentMediaId)) {
+            isSavedInstance = true;
         }
 
         mCurrentParentId = parentId;
@@ -598,7 +606,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
         final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
                 getApplicationContext(), result, mRadioStationsStorage, mApiServiceProvider,
-                countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue,
+                countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, isSavedInstance,
                 this::restoreActiveRadioStation, this::onResult
         );
         if (command != null) {
@@ -784,6 +792,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return "";
         }
         return bundle.getString(BUNDLE_ARG_CATALOGUE_ID, "");
+    }
+
+    public static void putCurrentPlaybackState(final Bundle bundle, final int value) {
+        if (bundle == null) {
+            return;
+        }
+        bundle.putInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, value);
+    }
+
+    public static int getCurrentPlaybackState(final Bundle bundle) {
+        if (bundle == null) {
+            return PlaybackStateCompat.STATE_NONE;
+        }
+        return bundle.getInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, PlaybackStateCompat.STATE_NONE);
     }
 
     /**
@@ -1095,7 +1117,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
             AppLogger.w(CLASS_NAME + "Can not update Metadata - Radio Station is null");
-            mState = PlaybackStateCompat.STATE_ERROR;
+            setPlaybackState(PlaybackStateCompat.STATE_ERROR);
             updatePlaybackState(getString(R.string.no_metadata));
             return;
         }
@@ -1270,6 +1292,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             if (service.mLastKnownRS != null && service.mLastKnownRS.equals(radioStation)) {
                 AppLogger.e(CLASS_NAME + "Play RS: ignoring request to play next song, " +
                         "because last known is the same as requested. Try to resume playback.");
+                service.updatePlaybackState();
                 return;
             }
 
@@ -1297,7 +1320,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void preparePlayer(final String url) {
         // Cache URL.
         mLastPlayedUrl = url;
-        mState = PlaybackStateCompat.STATE_STOPPED;
+        setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
         mPauseReason = PauseReason.DEFAULT;
 
         // release everything except ExoPlayer
@@ -1305,7 +1328,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         createMediaPlayerIfNeeded();
 
-        mState = PlaybackStateCompat.STATE_BUFFERING;
+        setPlaybackState(PlaybackStateCompat.STATE_BUFFERING);
 
         AppLogger.d(CLASS_NAME + "Prepare " + mLastPlayedUrl);
         mExoPlayerORImpl.prepare(Uri.parse(mLastPlayedUrl));
@@ -1349,7 +1372,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 }
                 mPlayOnFocusGain = false;
                 AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer set state playing");
-                mState = PlaybackStateCompat.STATE_PLAYING;
+                setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
             }
         }
 
@@ -1385,7 +1408,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
-            mState = PlaybackStateCompat.STATE_PAUSED;
+            setPlaybackState(PlaybackStateCompat.STATE_PAUSED);
             mPauseReason = reason;
             if (mExoPlayerORImpl != null && mExoPlayerORImpl.isPlaying()) {
                 mExoPlayerORImpl.pause();
@@ -1423,7 +1446,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
             stateBuilder.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, error);
-            mState = PlaybackStateCompat.STATE_ERROR;
+            setPlaybackState(PlaybackStateCompat.STATE_ERROR);
             mLastKnownRS = null;
             mLastPlayedUrl = null;
         }
@@ -1523,7 +1546,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private void handleStopRequest(final String withError) {
         AppLogger.d(CLASS_NAME + "Handle stop request: state=" + mState + " error=" + withError);
 
-        mState = PlaybackStateCompat.STATE_STOPPED;
+        setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
         mPauseReason = PauseReason.DEFAULT;
 
         mNoisyAudioStreamReceiver.unregister(getApplicationContext());
@@ -1554,7 +1577,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void restoreActiveRadioStation(@NonNull final RadioStation radioStation) {
         mRestoredRS = radioStation;
-        mMainHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getId()));
+        if (mState == PlaybackStateCompat.STATE_PLAYING) {
+            mMainHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getId()));
+        } else {
+            updatePlaybackState();
+        }
     }
 
     /**
@@ -1578,7 +1605,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Do not compare indexes if state is not play.
         boolean isStatePlay = true;
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
-            mState = PlaybackStateCompat.STATE_STOPPED;
+            setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
             isStatePlay = false;
         }
 
@@ -1691,7 +1718,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
 
             if (service.mState == PlaybackStateCompat.STATE_PAUSED) {
-                service.mState = PlaybackStateCompat.STATE_STOPPED;
+                service.setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
             }
 
             if (service.mRadioStationsStorage.isEmpty()) {
@@ -1767,7 +1794,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (service.mRadioStationsStorage.isIndexPlayable(service.mCurrentIndexOnQueue)) {
-                service.mState = PlaybackStateCompat.STATE_STOPPED;
+                service.setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
 
                 RadioStation rs = service.getCurrentQueueItem();
                 if (rs != null) {
@@ -1801,7 +1828,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
             service.dispatchCurrentIndexOnQueue(service.mCurrentIndexOnQueue);
             if (service.mRadioStationsStorage.isIndexPlayable(service.mCurrentIndexOnQueue)) {
-                service.mState = PlaybackStateCompat.STATE_STOPPED;
+                service.setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
 
                 RadioStation rs = service.getCurrentQueueItem();
                 if (rs != null) {
@@ -2201,6 +2228,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
+    private void setPlaybackState(final int state) {
+        switch (state) {
+            case PlaybackStateCompat.STATE_STOPPED:
+                AppLogger.d("Set state stopped");
+                break;
+        }
+        mState = state;
+    }
+
     /**
      * Listener for Exo Player events.
      */
@@ -2269,11 +2305,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.d(CLASS_NAME + "OnPlayerStateChanged " + playbackState);
             switch (playbackState) {
                 case Player.STATE_BUFFERING:
-                    service.mState = PlaybackStateCompat.STATE_BUFFERING;
+                    service.setPlaybackState(PlaybackStateCompat.STATE_BUFFERING);
                     service.updatePlaybackState();
                     break;
                 case Player.STATE_READY:
-                    service.mState = PlaybackStateCompat.STATE_PLAYING;
+                    service.setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
                     service.updatePlaybackState();
                 default:
                     break;

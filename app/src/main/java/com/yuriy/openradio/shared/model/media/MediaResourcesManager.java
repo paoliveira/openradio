@@ -221,6 +221,7 @@ public final class MediaResourcesManager {
     private static Bundle createRootHints(final Bundle savedInstance) {
         final Bundle bundle = new Bundle();
         OpenRadioService.putCurrentParentId(bundle, OpenRadioService.getCurrentParentId(savedInstance));
+        OpenRadioService.putCurrentPlaybackState(bundle, OpenRadioService.getCurrentPlaybackState(savedInstance));
         return bundle;
     }
 

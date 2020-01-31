@@ -27,7 +27,9 @@
         android:layout_toStartOf="@+id/crs_favorite_check_view"
         android:layout_toEndOf="@+id/crs_img_view"
         android:textSize="22sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:maxLines="2"
+        android:ellipsize="end"/>
 
     <TextView
         android:id="@+id/crs_description_view"
@@ -35,7 +37,9 @@
         android:layout_below="@+id/crs_name_view"
         android:layout_toStartOf="@+id/crs_favorite_check_view"
         android:layout_toEndOf="@+id/crs_img_view"
-        android:textSize="18sp"/>
+        android:textSize="18sp"
+        android:maxLines="2"
+        android:ellipsize="end"/>
 
     <CheckBox
         android:id="@+id/crs_favorite_check_view"

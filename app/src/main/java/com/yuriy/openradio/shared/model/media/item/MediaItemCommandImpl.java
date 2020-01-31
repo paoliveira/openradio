@@ -56,7 +56,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
     public void execute(final IUpdatePlaybackState playbackStateListener,
                         @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(CLASS_NAME + " invoked");
-        if (!dependencies.isSameCatalogue()) {
+        if (!dependencies.isSameCatalogue() || dependencies.isSavedInstance()) {
             AppLogger.d("Not the same catalogue, clear list");
             dependencies.getRadioStationsStorage().clear();
         }

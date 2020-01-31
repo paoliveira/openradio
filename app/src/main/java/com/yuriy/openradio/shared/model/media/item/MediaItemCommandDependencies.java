@@ -102,6 +102,8 @@ public final class MediaItemCommandDependencies {
 
     private final boolean mIsSameCatalogue;
 
+    private final boolean mIsSavedInstance;
+
     private final Comparator<MediaBrowserCompat.MediaItem> mMediaItemsComparator;
 
     private final Comparator<RadioStation> mRadioStationsComparator;
@@ -117,6 +119,7 @@ public final class MediaItemCommandDependencies {
                                         @NonNull final String parentId,
                                         final boolean isAndroidAuto,
                                         final boolean isSameCatalogue,
+                                        final boolean isSavedInstance,
                                         @NonNull final OpenRadioService.RemotePlay remotePlay,
                                         @NonNull final OpenRadioService.ResultListener resultListener) {
         super();
@@ -132,6 +135,7 @@ public final class MediaItemCommandDependencies {
         mParentId = parentId;
         mIsAndroidAuto = isAndroidAuto;
         mIsSameCatalogue = isSameCatalogue;
+        mIsSavedInstance = isSavedInstance;
         mRemotePlay = remotePlay;
         mResultListener = resultListener;
     }
@@ -229,5 +233,9 @@ public final class MediaItemCommandDependencies {
 
     public boolean isSameCatalogue() {
         return mIsSameCatalogue;
+    }
+
+    public boolean isSavedInstance() {
+        return mIsSavedInstance;
     }
 }

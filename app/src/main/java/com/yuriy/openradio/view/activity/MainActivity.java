@@ -178,6 +178,8 @@ public final class MainActivity extends AppCompatActivity {
      */
     private String mCurrentParentId = "";
 
+    private int mCurrentPlaybackState = PlaybackStateCompat.STATE_NONE;
+
     private int mListFirstVisiblePosition = 0;
     private int mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
 
@@ -537,7 +539,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected final void onSaveInstanceState(final Bundle outState) {
+    protected final void onSaveInstanceState(@NonNull final Bundle outState) {
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
 
@@ -548,6 +550,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         OpenRadioService.putCurrentParentId(outState, mCurrentParentId);
+        OpenRadioService.putCurrentPlaybackState(outState, mCurrentPlaybackState);
 
         // Get first visible item id
         int firstVisiblePosition = mListView.getFirstVisiblePosition();
@@ -940,11 +943,13 @@ public final class MainActivity extends AppCompatActivity {
 
     @MainThread
     private void handlePlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-        switch (state.getState()) {
+        mCurrentPlaybackState = state.getState();
+        switch (mCurrentPlaybackState) {
             case PlaybackStateCompat.STATE_PLAYING:
                 mPlayBtn.setVisibility(View.GONE);
                 mPauseBtn.setVisibility(View.VISIBLE);
                 break;
+            case PlaybackStateCompat.STATE_STOPPED:
             case PlaybackStateCompat.STATE_PAUSED:
                 mPlayBtn.setVisibility(View.VISIBLE);
                 mPauseBtn.setVisibility(View.GONE);
