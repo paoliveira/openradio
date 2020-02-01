@@ -28,6 +28,7 @@ import android.net.Uri;
 import androidx.core.util.Pair;
 
 import com.yuriy.openradio.shared.model.net.Downloader;
+import com.yuriy.openradio.shared.model.storage.cache.CacheType;
 import com.yuriy.openradio.shared.vo.Category;
 import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -47,7 +48,7 @@ public interface ApiServiceProvider {
      *
      * @return Collection of the {@link Category}s
      */
-    List<Category> getCategories(final Downloader downloader, final Uri uri);
+    List<Category> getCategories(final Downloader downloader, final Uri uri, final CacheType cacheType);
 
     /**
      * Get a list of all countries.
@@ -57,7 +58,7 @@ public interface ApiServiceProvider {
      *
      * @return Collection of the Countries
      */
-    List<Country> getCountries(final Downloader downloader, final Uri uri);
+    List<Country> getCountries(final Downloader downloader, final Uri uri, final CacheType cacheType);
 
     /**
      * Get a list of Radio Stations by provided Uri.
@@ -66,7 +67,7 @@ public interface ApiServiceProvider {
      * @param uri        {@link Uri} of the request.
      * @return collection of the Radio Stations.
      */
-    List<RadioStation> getStations(final Downloader downloader, final Uri uri);
+    List<RadioStation> getStations(final Downloader downloader, final Uri uri, final CacheType cacheType);
 
     /**
      * Get a list of Radio Stations by provided Uri.
@@ -78,7 +79,8 @@ public interface ApiServiceProvider {
      */
     List<RadioStation> getStations(final Downloader downloader,
                                    final Uri uri,
-                                   final List<Pair<String, String>> parameters);
+                                   final List<Pair<String, String>> parameters,
+                                   final CacheType cacheType);
 
     /**
      * Get a Radio Station.
@@ -87,5 +89,5 @@ public interface ApiServiceProvider {
      * @param uri        {@link Uri} of the request.
      * @return Radio Station.
      */
-    RadioStation getStation(final Downloader downloader, final Uri uri);
+    RadioStation getStation(final Downloader downloader, final Uri uri, final CacheType cacheType);
 }

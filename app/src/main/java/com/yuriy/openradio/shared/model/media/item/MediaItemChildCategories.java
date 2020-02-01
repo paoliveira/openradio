@@ -63,7 +63,8 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
                                             childMenuId,
                                             getPageNumber()* (UrlBuilder.ITEMS_PER_PAGE + 1),
                                             UrlBuilder.ITEMS_PER_PAGE
-                                    )
+                                    ),
+                                    getCacheType(dependencies)
                             )
                     );
                     handleDataLoaded(playbackStateListener, dependencies, list);

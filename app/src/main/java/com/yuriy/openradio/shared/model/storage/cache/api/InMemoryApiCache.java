@@ -31,9 +31,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class InMemoryAPICache implements ApiCache {
+public final class InMemoryApiCache implements ApiCache {
 
-    private static final String CLASS_NAME = InMemoryAPICache.class.getSimpleName();
+    private static final String CLASS_NAME = InMemoryApiCache.class.getSimpleName();
 
     /**
      * Data structure to cache API responses.
@@ -43,15 +43,16 @@ public final class InMemoryAPICache implements ApiCache {
     /**
      *
      */
-    public InMemoryAPICache() {
+    public InMemoryApiCache() {
         super();
     }
 
     @Override
     public JSONArray get(final String key) {
         if (!TextUtils.isEmpty(key) && RESPONSES_MAP.containsKey(key)) {
-            AppLogger.i(CLASS_NAME + " Get response from the cache");
-            return RESPONSES_MAP.get(key);
+            final JSONArray data = RESPONSES_MAP.get(key);
+            AppLogger.d(CLASS_NAME + "Cached response from RAM for " + key + " is " + data);
+            return data;
         }
         return null;
     }

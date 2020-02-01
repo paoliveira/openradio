@@ -60,7 +60,8 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
                     final List<RadioStation> list = new ArrayList<>(
                             dependencies.getServiceProvider().getStations(
                                     dependencies.getDownloader(),
-                                    UrlBuilder.getSearchUrl(AppUtils.getSearchQuery())
+                                    UrlBuilder.getSearchUrl(AppUtils.getSearchQuery()),
+                                    getCacheType(dependencies)
                             )
                     );
                     handleDataLoaded(playbackStateListener, dependencies, list);

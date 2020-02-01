@@ -61,7 +61,8 @@ public final class MediaItemPopularStations extends MediaItemCommandImpl {
                     final List<RadioStation> list = new ArrayList<>(
                             dependencies.getServiceProvider().getStations(
                                     dependencies.getDownloader(),
-                                    UrlBuilder.getPopularStations()
+                                    UrlBuilder.getPopularStations(),
+                                    getCacheType(dependencies)
                             )
                     );
                     handleDataLoaded(playbackStateListener, dependencies, list);

@@ -29,8 +29,8 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.shared.service.OpenRadioService;
-import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
+import com.yuriy.openradio.shared.utils.AppLogger;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -222,6 +222,7 @@ public final class MediaResourcesManager {
         final Bundle bundle = new Bundle();
         OpenRadioService.putCurrentParentId(bundle, OpenRadioService.getCurrentParentId(savedInstance));
         OpenRadioService.putCurrentPlaybackState(bundle, OpenRadioService.getCurrentPlaybackState(savedInstance));
+        OpenRadioService.putRestoreState(bundle, OpenRadioService.getRestoreState(savedInstance));
         return bundle;
     }
 
@@ -369,12 +370,5 @@ public final class MediaResourcesManager {
             final List<MediaSessionCompat.QueueItem> queue = manager.mMediaController.getQueue();
             manager.mListener.onMetadataChanged(metadata, queue);
         }
-    }
-
-    public void dump() {
-        AppLogger.i(
-                CLASS_NAME
-                        + "Dump queue:" + (mMediaController.getQueue() != null ? mMediaController.getQueue().size() : "null")
-        );
     }
 }

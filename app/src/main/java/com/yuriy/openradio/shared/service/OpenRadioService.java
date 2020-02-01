@@ -81,6 +81,7 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
+import com.yuriy.openradio.shared.model.storage.cache.CacheType;
 import com.yuriy.openradio.shared.notification.MediaNotification;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
@@ -170,6 +171,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
 
     private static final String BUNDLE_ARG_CURRENT_PLAYBACK_STATE = "BUNDLE_ARG_CURRENT_PLAYBACK_STATE";
+
+    private static final String BUNDLE_ARG_IS_RESTORE_STATE = "BUNDLE_ARG_IS_RESTORE_STATE";
 
     /**
      * Action to thumbs up a media item
@@ -309,6 +312,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private String mLastPlayedUrl;
 
     private String mCurrentParentId;
+
+    private boolean mIsRestoreState;
 
     private MasterVolumeReceiver mMasterVolumeBroadcastReceiver;
 
@@ -574,6 +579,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mIsAndroidAuto = false;
         }
         mCurrentParentId = getCurrentParentId(rootHints);
+        mIsRestoreState = getRestoreState(rootHints);
         setPlaybackState(getCurrentPlaybackState(rootHints));
 
         return new BrowserRoot(MediaIdHelper.MEDIA_ID_ROOT, null);
@@ -584,13 +590,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                      @NonNull final Result<List<MediaBrowserCompat.MediaItem>> result) {
         AppLogger.i(CLASS_NAME + "OnLoadChildren " + parentId);
         boolean isSameCatalogue = false;
-        boolean isSavedInstance = false;
         // Check whether category had changed.
         if (TextUtils.equals(mCurrentParentId, parentId)) {
             isSameCatalogue = true;
-        }
-        if (!TextUtils.isEmpty(mCurrentMediaId)) {
-            isSavedInstance = true;
         }
 
         mCurrentParentId = parentId;
@@ -606,9 +608,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
         final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
                 getApplicationContext(), result, mRadioStationsStorage, mApiServiceProvider,
-                countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, isSavedInstance,
+                countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
                 this::restoreActiveRadioStation, this::onResult
         );
+        mIsRestoreState = false;
         if (command != null) {
             command.execute(mPlaybackStateListener, dependencies);
         } else {
@@ -806,6 +809,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return PlaybackStateCompat.STATE_NONE;
         }
         return bundle.getInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, PlaybackStateCompat.STATE_NONE);
+    }
+
+    public static void putRestoreState(final Bundle bundle, final boolean value) {
+        if (bundle == null) {
+            return;
+        }
+        bundle.putBoolean(BUNDLE_ARG_IS_RESTORE_STATE, value);
+    }
+
+    public static boolean getRestoreState(final Bundle bundle) {
+        if (bundle == null) {
+            return false;
+        }
+        return bundle.getBoolean(BUNDLE_ARG_IS_RESTORE_STATE, false);
     }
 
     /**
@@ -1077,7 +1094,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             final RadioStation radioStationUpdated = mApiServiceProvider
                                     .getStation(
                                             new HTTPDownloaderImpl(),
-                                            UrlBuilder.getStation(radioStation.getId())
+                                            UrlBuilder.getStation(radioStation.getId()),
+                                            CacheType.NONE
                                     );
                             radioStation.setMediaStream(radioStationUpdated.getMediaStream());
 
@@ -1989,7 +2007,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         final List<RadioStation> list = mApiServiceProvider.getStations(
                 downloader,
-                UrlBuilder.getSearchUrl(query)
+                UrlBuilder.getSearchUrl(query),
+                CacheType.NONE
         );
 
         if (list == null || list.isEmpty()) {

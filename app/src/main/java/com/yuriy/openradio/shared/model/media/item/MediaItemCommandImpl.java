@@ -26,6 +26,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
+import com.yuriy.openradio.shared.model.storage.cache.CacheType;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
@@ -127,5 +128,12 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
                 dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
+    }
+
+    static CacheType getCacheType(final MediaItemCommandDependencies dependencies) {
+        if (dependencies.isSavedInstance()) {
+            return CacheType.IN_MEMORY;
+        }
+        return CacheType.PERSISTENT;
     }
 }

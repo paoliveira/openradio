@@ -38,7 +38,6 @@ import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -78,25 +77,27 @@ public final class MediaItemCountriesList implements MediaItemCommand {
      * Load All Countries into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemCommandDependencies} which holds various
+     * @param dependencies           Instance of the {@link MediaItemCommandDependencies} which holds various
      *                              references needed to execute command.
      */
     private void loadAllCountries(final IUpdatePlaybackState playbackStateListener,
-                                  @NonNull final MediaItemCommandDependencies shareObject) {
+                                  @NonNull final MediaItemCommandDependencies dependencies) {
 
-        final List<Country> list = shareObject.getServiceProvider().getCountries(
-                shareObject.getDownloader(),
-                UrlBuilder.getAllCountriesUrl());
+        final List<Country> list = dependencies.getServiceProvider().getCountries(
+                dependencies.getDownloader(),
+                UrlBuilder.getAllCountriesUrl(),
+                MediaItemCommandImpl.getCacheType(dependencies)
+        );
 
         if (list.isEmpty() && playbackStateListener != null) {
             playbackStateListener.updatePlaybackState(
-                    shareObject.getContext().getString(R.string.no_data_message)
+                    dependencies.getContext().getString(R.string.no_data_message)
             );
 
-            if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
-                final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (AppPreferencesManager.lastKnownRadioStationEnabled(dependencies.getContext())) {
+                final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
                 if (radioStation != null) {
-                    shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                    dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
                 }
             }
 
@@ -127,19 +128,19 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                     .setTitle(country.getName())
                     .setSubtitle(country.getCode());
 
-            if (shareObject.isAndroidAuto()) {
+            if (dependencies.isAndroidAuto()) {
                 uri = Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp");
 
                 builder.setIconUri(uri);
             } else {
-                identifier = shareObject.getContext().getResources().getIdentifier(
+                identifier = dependencies.getContext().getResources().getIdentifier(
                         "flag_" + country.getCode().toLowerCase(),
-                        "drawable", shareObject.getContext().getPackageName()
+                        "drawable", dependencies.getContext().getPackageName()
                 );
 
-                bitmap = flagLoader.execute(shareObject.getContext(), identifier,
+                bitmap = flagLoader.execute(dependencies.getContext(), identifier,
                         BitmapFactory.decodeResource(
-                                shareObject.getContext().getResources(),
+                                dependencies.getContext().getResources(),
                                 R.drawable.ic_child_categories
                         )
                 );
@@ -147,7 +148,7 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                 builder.setIconBitmap(bitmap);
             }
 
-            shareObject.addMediaItem(
+            dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder.build(),
                             MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
@@ -155,13 +156,13 @@ public final class MediaItemCountriesList implements MediaItemCommand {
             );
         }
 
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
-        shareObject.getResultListener().onResult();
+        dependencies.getResult().sendResult(dependencies.getMediaItems());
+        dependencies.getResultListener().onResult();
 
-        if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
-            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(dependencies.getContext())) {
+            final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

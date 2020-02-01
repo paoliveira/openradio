@@ -71,24 +71,26 @@ public final class MediaItemAllCategories implements MediaItemCommand {
      * Load All Categories into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
-     * @param shareObject           Instance of the {@link MediaItemCommandDependencies} which holds various
+     * @param dependencies           Instance of the {@link MediaItemCommandDependencies} which holds various
      *                              references needed to execute command.
      */
     private void loadAllCategories(final IUpdatePlaybackState playbackStateListener,
-                                   @NonNull final MediaItemCommandDependencies shareObject) {
-        final List<Category> list = shareObject.getServiceProvider().getCategories(
-                shareObject.getDownloader(),
-                UrlBuilder.getAllCategoriesUrl());
+                                   @NonNull final MediaItemCommandDependencies dependencies) {
+        final List<Category> list = dependencies.getServiceProvider().getCategories(
+                dependencies.getDownloader(),
+                UrlBuilder.getAllCategoriesUrl(),
+                MediaItemCommandImpl.getCacheType(dependencies)
+        );
 
         if (list.isEmpty() && playbackStateListener != null) {
             playbackStateListener.updatePlaybackState(
-                    shareObject.getContext().getString(R.string.no_data_message)
+                    dependencies.getContext().getString(R.string.no_data_message)
             );
 
-            if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
-                final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+            if (AppPreferencesManager.lastKnownRadioStationEnabled(dependencies.getContext())) {
+                final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
                 if (radioStation != null) {
-                    shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                    dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
                 }
             }
 
@@ -98,7 +100,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
         final String iconUrl = AppUtils.DRAWABLE_PATH + "ic_child_categories";
 
         for (final Category category : list) {
-            shareObject.addMediaItem(
+            dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             new MediaDescriptionCompat.Builder()
                                     .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.getId())
@@ -110,13 +112,13 @@ public final class MediaItemAllCategories implements MediaItemCommand {
             );
         }
 
-        shareObject.getResult().sendResult(shareObject.getMediaItems());
-        shareObject.getResultListener().onResult();
+        dependencies.getResult().sendResult(dependencies.getMediaItems());
+        dependencies.getResultListener().onResult();
 
-        if (AppPreferencesManager.lastKnownRadioStationEnabled(shareObject.getContext())) {
-            final RadioStation radioStation = LatestRadioStationStorage.get(shareObject.getContext());
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(dependencies.getContext())) {
+            final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (radioStation != null) {
-                shareObject.getRemotePlay().restoreActiveRadioStation(radioStation);
+                dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
             }
         }
     }

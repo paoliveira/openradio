@@ -64,7 +64,8 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
                                             dependencies.getCountryCode(),
                                             getPageNumber() * (UrlBuilder.ITEMS_PER_PAGE + 1),
                                             UrlBuilder.ITEMS_PER_PAGE
-                                    )
+                                    ),
+                                    getCacheType(dependencies)
                             )
                     );
                     handleDataLoaded(playbackStateListener, dependencies, list);

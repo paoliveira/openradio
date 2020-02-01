@@ -96,7 +96,7 @@ public final class PersistentApiCache implements ApiCache {
             }
         }
         cursor.close();
-        AppLogger.d(CLASS_NAME + "Cached response:" + data);
+        AppLogger.d(CLASS_NAME + "Cached response from DB for " + key + " is " + data);
         return data;
     }
 

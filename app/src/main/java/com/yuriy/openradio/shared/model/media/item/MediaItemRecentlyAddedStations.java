@@ -60,7 +60,8 @@ public final class MediaItemRecentlyAddedStations extends MediaItemCommandImpl {
                     final List<RadioStation> list = new ArrayList<>(
                             dependencies.getServiceProvider().getStations(
                                     dependencies.getDownloader(),
-                                    UrlBuilder.getRecentlyAddedStations()
+                                    UrlBuilder.getRecentlyAddedStations(),
+                                    getCacheType(dependencies)
                             )
                     );
                     handleDataLoaded(playbackStateListener, dependencies, list);

@@ -28,7 +28,9 @@ import com.yuriy.openradio.shared.model.net.Downloader;
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.shared.model.parser.DataParser;
 import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl;
+import com.yuriy.openradio.shared.model.storage.cache.CacheType;
 import com.yuriy.openradio.shared.model.storage.cache.api.ApiCache;
+import com.yuriy.openradio.shared.model.storage.cache.api.InMemoryApiCache;
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper;
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache;
 import com.yuriy.openradio.shared.service.LocationService;
@@ -81,7 +83,9 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      *
      */
     @NonNull
-    private final ApiCache mApiCache;
+    private final ApiCache mApiCachePersistent;
+
+    private final ApiCache mApiCacheInMemory;
 
     /**
      * Constructor.
@@ -91,19 +95,23 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      */
     public ApiServiceProviderImpl(@NonNull final Context context, final DataParser dataParser) {
         super();
-        mApiCache = new PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME);
+        mApiCachePersistent = new PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME);
+        mApiCacheInMemory = new InMemoryApiCache();
         mContext = context;
         mDataParser = dataParser;
     }
 
     public void close() {
-        if (mApiCache instanceof PersistentApiCache) {
-            ((PersistentApiCache) mApiCache).close();
+        if (mApiCachePersistent instanceof PersistentApiCache) {
+            ((PersistentApiCache) mApiCachePersistent).close();
+        }
+        if (mApiCacheInMemory instanceof InMemoryApiCache) {
+            (mApiCacheInMemory).clear();
         }
     }
 
     @Override
-    public List<Category> getCategories(final Downloader downloader, final Uri uri) {
+    public List<Category> getCategories(final Downloader downloader, final Uri uri, final CacheType cacheType) {
 
         final List<Category> allCategories = new ArrayList<>();
 
@@ -112,7 +120,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return allCategories;
         }
 
-        final JSONArray array = downloadJsonArray(downloader, uri);
+        final JSONArray array = downloadJsonArray(downloader, uri, cacheType);
 
         JSONObject object;
         Category category;
@@ -142,7 +150,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     }
 
     @Override
-    public List<Country> getCountries(final Downloader downloader, final Uri uri) {
+    public List<Country> getCountries(final Downloader downloader, final Uri uri, final CacheType cacheType) {
 
         final List<Country> allCountries = new ArrayList<>();
 
@@ -192,14 +200,15 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     }
 
     @Override
-    public List<RadioStation> getStations(final Downloader downloader, final Uri uri) {
-        return getStations(downloader, uri, new ArrayList<>());
+    public List<RadioStation> getStations(final Downloader downloader, final Uri uri, final CacheType cacheType) {
+        return getStations(downloader, uri, new ArrayList<>(), cacheType);
     }
 
     @Override
     public List<RadioStation> getStations(final Downloader downloader,
                                           final Uri uri,
-                                          final List<Pair<String, String>> parameters) {
+                                          final List<Pair<String, String>> parameters,
+                                          final CacheType cacheType) {
 
         final List<RadioStation> radioStations = new ArrayList<>();
 
@@ -208,7 +217,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return radioStations;
         }
 
-        final JSONArray array = downloadJsonArray(downloader, uri, parameters);
+        final JSONArray array = downloadJsonArray(downloader, uri, parameters, cacheType);
 
         JSONObject object;
         RadioStation radioStation;
@@ -235,7 +244,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     }
 
     @Override
-    public RadioStation getStation(Downloader downloader, Uri uri) {
+    public RadioStation getStation(final Downloader downloader, final Uri uri, final CacheType cacheType) {
         final RadioStation radioStation = RadioStation.makeDefaultInstance();
 
         // Download response from the server
@@ -274,8 +283,9 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      * @return {@link JSONArray}
      */
     private JSONArray downloadJsonArray(final Downloader downloader,
-                                        final Uri uri) {
-        return downloadJsonArray(downloader, uri, new ArrayList<>());
+                                        final Uri uri,
+                                        final CacheType cacheType) {
+        return downloadJsonArray(downloader, uri, new ArrayList<>(), cacheType);
     }
 
     /**
@@ -289,7 +299,8 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     // TODO: Refactor this method to download raw response. Then Use parser to get data.
     private JSONArray downloadJsonArray(final Downloader downloader,
                                         final Uri uri,
-                                        final List<Pair<String, String>> parameters) {
+                                        final List<Pair<String, String>> parameters,
+                                        final CacheType cacheType) {
         JSONArray array = new JSONArray();
 
         if (!ConnectivityReceiver.checkConnectivityAndNotify(mContext)) {
@@ -305,11 +316,20 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             responsesMapKey = null;
         }
 
-        // Try to get cache first and return it in case of success.
-        array = mApiCache.get(responsesMapKey);
+        // Fetch RAM memory first.
+        array = mApiCacheInMemory.get(responsesMapKey);
         if (array != null) {
             return array;
         }
+
+        // Then look up data in the DB.
+        array = mApiCachePersistent.get(responsesMapKey);
+        if (array != null) {
+            mApiCacheInMemory.remove(responsesMapKey);
+            mApiCacheInMemory.put(responsesMapKey, array);
+            return array;
+        }
+        // Finally, go to internet.
 
         // Declare and initialize variable for response.
         final String response = new String(downloader.downloadDataFromUri(uri, parameters));
@@ -330,9 +350,11 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
 
         if (isSuccess) {
             // Remove previous record.
-            mApiCache.remove(responsesMapKey);
+            mApiCachePersistent.remove(responsesMapKey);
+            mApiCacheInMemory.remove(responsesMapKey);
             // Finally, cache new response.
-            mApiCache.put(responsesMapKey, array);
+            mApiCachePersistent.put(responsesMapKey, array);
+            mApiCacheInMemory.put(responsesMapKey, array);
         }
 
         return array;

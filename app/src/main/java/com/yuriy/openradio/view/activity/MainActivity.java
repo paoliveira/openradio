@@ -551,6 +551,7 @@ public final class MainActivity extends AppCompatActivity {
 
         OpenRadioService.putCurrentParentId(outState, mCurrentParentId);
         OpenRadioService.putCurrentPlaybackState(outState, mCurrentPlaybackState);
+        OpenRadioService.putRestoreState(outState, true);
 
         // Get first visible item id
         int firstVisiblePosition = mListView.getFirstVisiblePosition();
