@@ -49,7 +49,6 @@ import androidx.leanback.widget.RowPresenter;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.TvServicePlayerAdapter;
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.permission.PermissionListener;
 import com.yuriy.openradio.shared.permission.PermissionStatusListener;

@@ -16,8 +16,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:padding="20dp"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:src="@drawable/tv_search_btn_bg" />
+
+    <ImageView
+        android:id="@+id/tv_add_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="20dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:src="@drawable/tv_add_btn_bg" />
 
     <ImageView
         android:id="@+id/tv_back_btn"

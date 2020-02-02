@@ -59,6 +59,7 @@ public final class TvMainActivity extends FragmentActivity {
 
         mProgressBar = findViewById(R.id.progress_bar_tv_view);
 
+        setUpAddBtn();
         setUpBackBtn();
         setUpSearchBtn();
         setUpSettingsBtn();
@@ -193,6 +194,13 @@ public final class TvMainActivity extends FragmentActivity {
                         TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
                 )
         );
+    }
+
+    private void setUpAddBtn() {
+        final ImageView button = findViewById(R.id.tv_add_btn);
+        if (button == null) {
+            return;
+        }
     }
 
     private void showTvSettings() {
