@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.shared.model.translation;
 
+import android.content.Context;
+
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 /**
@@ -26,5 +28,5 @@ import com.yuriy.openradio.shared.vo.RadioStation;
  */
 public interface RadioStationDeserializer {
 
-    RadioStation deserialize(final String value);
+    RadioStation deserialize(final Context context, final String value);
 }

@@ -56,7 +56,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     /**
      * Init value of the custom Radio Station Id.
      */
-    private static final int ID_INIT_VALUE = Integer.MAX_VALUE - 1000;
+    private static final int ID_INIT_VALUE = Integer.MAX_VALUE - 1000000;
 
     /**
      * Set value of the Radio Station Id.
@@ -71,7 +71,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
     }
 
     /**
-     * Gets value of the Radio Station Id.
+     * Creates a value of Id for Radio Station.
      *
      * @param context Applications context.
      * @return The value of the Radio Station Id.
@@ -205,8 +205,9 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * {@inheritDoc}
      */
     @NonNull
-    public static List<RadioStation> getAllLocalsFromString(final String marshalledRadioStations) {
-        return AbstractRadioStationsStorage.getAllFromString(marshalledRadioStations);
+    public static List<RadioStation> getAllLocalsFromString(final Context context,
+                                                            final String marshalledRadioStations) {
+        return AbstractRadioStationsStorage.getAllFromString(context, marshalledRadioStations);
     }
 
     /**

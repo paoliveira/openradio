@@ -153,7 +153,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      * @return List of Radio Stations.
      */
     @NonNull
-    static List<RadioStation> getAllFromString(final String marshalledRadioStations) {
+    static List<RadioStation> getAllFromString(final Context context, final String marshalledRadioStations) {
         final List<RadioStation> list = new ArrayList<>();
         if (TextUtils.isEmpty(marshalledRadioStations)) {
             return list;
@@ -167,10 +167,12 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
             if (radioStationKeyValue.length != 2) {
                 continue;
             }
-            radioStation = deserializer.deserialize(radioStationKeyValue[1]);
-            if (radioStation != null) {
-                list.add(radioStation);
+            radioStation = deserializer.deserialize(context, radioStationKeyValue[1]);
+            if (radioStation == null) {
+                AppLogger.e("Can not deserialize (getAllFromString) from '" + radioStationKeyValue[1] + "'");
+                continue;
             }
+            list.add(radioStation);
         }
         return list;
     }
@@ -204,7 +206,11 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
                 continue;
             }
 
-            radioStation = deserializer.deserialize(value);
+            radioStation = deserializer.deserialize(context, value);
+            if (radioStation == null) {
+                AppLogger.e("Can not deserialize (getAll) from '" + value + "'");
+                continue;
+            }
 
             // This is not valid Radio Station. It can be happen in case of there is assigned ID
             // but actual Radio Station is not created yet. Probably it is necessary to re-design

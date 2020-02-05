@@ -61,7 +61,7 @@ public final class LatestRadioStationStorage extends AbstractRadioStationsStorag
      * @param context      Context of the callee.
      */
     public static synchronized void add(final RadioStation radioStation, final Context context) {
-        sRadioStation = RadioStation.makeCopyInstance(radioStation);
+        sRadioStation = RadioStation.makeCopyInstance(context, radioStation);
         add(KEY, radioStation, context, FILE_NAME);
     }
 
@@ -79,7 +79,7 @@ public final class LatestRadioStationStorage extends AbstractRadioStationsStorag
         final List<RadioStation> list = getAll(context, FILE_NAME);
         // There is only one Radio Station in collection.
         if (!list.isEmpty()) {
-            sRadioStation = RadioStation.makeCopyInstance(list.get(0));
+            sRadioStation = RadioStation.makeCopyInstance(context, list.get(0));
             return sRadioStation;
         }
         return null;

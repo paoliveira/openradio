@@ -16,10 +16,15 @@
 
 package com.yuriy.openradio.shared.vo;
 
+import android.content.Context;
+import android.text.TextUtils;
+
 import androidx.annotation.NonNull;
 
+import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
+
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * Created by Yuriy Chernyshov
@@ -34,7 +39,6 @@ public final class RadioStation implements Serializable {
 
     public static final int SORT_ID_UNSET = -1;
 
-    @NonNull
     private String mId;
 
     // TODO: Convert to enum
@@ -67,9 +71,9 @@ public final class RadioStation implements Serializable {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private RadioStation() {
+    private RadioStation(final Context context, final String id) {
         super();
-        mId = "";
+        setId(context, id);
         mMediaStream = MediaStream.makeDefaultInstance();
     }
 
@@ -78,11 +82,11 @@ public final class RadioStation implements Serializable {
      *
      * @param radioStation Object to be copied.
      */
-    private RadioStation(@NonNull final RadioStation radioStation) {
+    private RadioStation(final Context context, @NonNull final RadioStation radioStation) {
         super();
         mCountry = radioStation.mCountry;
         mGenre = radioStation.mGenre;
-        mId = radioStation.mId;
+        setId(context, radioStation.mId);
         mImageUrl = radioStation.mImageUrl;
         mIsLocal = radioStation.mIsLocal;
         mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream);
@@ -98,8 +102,12 @@ public final class RadioStation implements Serializable {
         return mId;
     }
 
-    public final void setId(final String value) {
-        mId = value != null ? value : "";
+    private void setId(final Context context, String value) {
+        if (TextUtils.isEmpty(value)) {
+            AnalyticsUtils.logException(new IllegalArgumentException("Radio Station ID is invalid"));
+            value = LocalRadioStationsStorage.getId(context);
+        }
+        mId = value;
     }
 
     public final int getStatus() {
@@ -232,8 +240,8 @@ public final class RadioStation implements Serializable {
      *
      * @return Instance of the {@link RadioStation}.
      */
-    public static RadioStation makeDefaultInstance() {
-        return new RadioStation();
+    public static RadioStation makeDefaultInstance(final Context context, final String id) {
+        return new RadioStation(context, id);
     }
 
     /**
@@ -242,7 +250,7 @@ public final class RadioStation implements Serializable {
      * @param radioStation Object to be copied.
      * @return Copied instance of {@link RadioStation}.
      */
-    public static RadioStation makeCopyInstance(final RadioStation radioStation) {
-        return new RadioStation(radioStation);
+    public static RadioStation makeCopyInstance(final Context context, final RadioStation radioStation) {
+        return new RadioStation(context, radioStation);
     }
 }

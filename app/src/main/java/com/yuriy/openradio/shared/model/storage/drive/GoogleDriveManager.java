@@ -371,13 +371,13 @@ public final class GoogleDriveManager {
             final String favoritesRx = splitRadioStationCategories(data)[0];
             final String localsRx = splitRadioStationCategories(data)[1];
             final List<RadioStation> favoritesList = FavoritesStorage.getAll(mContext);
-            final List<RadioStation> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(favoritesRx);
+            final List<RadioStation> favoritesRxList = FavoritesStorage.getAllFavoritesFromString(mContext, favoritesRx);
             RadioStationsStorage.merge(favoritesList, favoritesRxList);
             for (final RadioStation radioStation : favoritesList) {
                 FavoritesStorage.add(radioStation, mContext);
             }
             final List<RadioStation> localsList = LocalRadioStationsStorage.getAllLocals(mContext);
-            final List<RadioStation> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(localsRx);
+            final List<RadioStation> localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(mContext, localsRx);
             RadioStationsStorage.merge(localsList, localsRxList);
             for (final RadioStation radioStation : localsList) {
                 LocalRadioStationsStorage.add(radioStation, mContext);

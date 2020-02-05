@@ -56,8 +56,9 @@ public final class FavoritesStorage extends AbstractRadioStationsStorage {
      * {@inheritDoc}
      */
     @NonNull
-    public static List<RadioStation> getAllFavoritesFromString(final String marshalledRadioStations) {
-        return AbstractRadioStationsStorage.getAllFromString(marshalledRadioStations);
+    public static List<RadioStation> getAllFavoritesFromString(final Context context,
+                                                               final String marshalledRadioStations) {
+        return AbstractRadioStationsStorage.getAllFromString(context, marshalledRadioStations);
     }
 
     /**

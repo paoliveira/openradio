@@ -1097,6 +1097,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                             UrlBuilder.getStation(radioStation.getId()),
                                             CacheType.NONE
                                     );
+                            if (radioStationUpdated == null) {
+                                AppLogger.e("Can not get Radio Station from internet");
+                                if (listener != null) {
+                                    listener.onComplete(radioStation);
+                                }
+                                return;
+                            }
                             radioStation.setMediaStream(radioStationUpdated.getMediaStream());
 
                             if (listener != null) {
@@ -2079,7 +2086,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 if (rs == null) {
                     if (mLastKnownRS != null
                             && TextUtils.equals(mLastKnownRS.getId(), description.getMediaId())) {
-                        rs = RadioStation.makeCopyInstance(mLastKnownRS);
+                        rs = RadioStation.makeCopyInstance(context, mLastKnownRS);
                     }
                     // We failed both cases, something went wrong ...
                     if (rs == null) {
@@ -2148,9 +2155,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     imageUrlLocal = imageUrl;
                 }
 
-                final RadioStation radioStationLocal = RadioStation.makeDefaultInstance();
+                final RadioStation radioStationLocal = RadioStation.makeDefaultInstance(
+                        context, LocalRadioStationsStorage.getId(context)
+                );
 
-                radioStationLocal.setId(LocalRadioStationsStorage.getId(context));
                 radioStationLocal.setName(name);
                 radioStationLocal.getMediaStream().setVariant(0, url);
                 radioStationLocal.setImageUrl(imageUrlLocal);

@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
@@ -220,15 +221,15 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         final JSONArray array = downloadJsonArray(downloader, uri, parameters, cacheType);
 
         JSONObject object;
-        RadioStation radioStation;
         for (int i = 0; i < array.length(); i++) {
             try {
                 object = (JSONObject) array.get(i);
 
-                radioStation = RadioStation.makeDefaultInstance();
-
-                updateRadioStation(radioStation, object);
-
+                final RadioStation radioStation = getRadioStation(mContext, object);
+                if (radioStation == null) {
+                    continue;
+                }
+                // TODO: Move this check point into Radio Station
                 if (radioStation.isMediaStreamEmpty()) {
                     continue;
                 }
@@ -244,17 +245,16 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     }
 
     @Override
+    @Nullable
     public RadioStation getStation(final Downloader downloader, final Uri uri, final CacheType cacheType) {
-        final RadioStation radioStation = RadioStation.makeDefaultInstance();
-
         // Download response from the server
         final String response = new String(downloader.downloadDataFromUri(uri));
         AppLogger.i(CLASS_NAME + "Response:\n" + response);
 
         // Ignore empty response
         if (response.isEmpty()) {
-            AppLogger.w(CLASS_NAME + "Can not parse data, response is empty");
-            return radioStation;
+            AppLogger.e(CLASS_NAME + "Can not parse data, response is empty");
+            return null;
         }
 
         JSONObject object;
@@ -263,16 +263,16 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             object = new JSONObject(response);
         } catch (JSONException e) {
             AnalyticsUtils.logException(e);
-            return radioStation;
+            return null;
         }
 
         try {
-            updateRadioStation(radioStation, object);
+            return getRadioStation(mContext, object);
         } catch (JSONException e) {
             AnalyticsUtils.logException(e);
         }
 
-        return radioStation;
+        return null;
     }
 
     /**
@@ -427,12 +427,16 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     /**
      * Updates {@link RadioStation} with the values extracted from the JSOn Object.
      *
-     * @param radioStation Instance of the {@link RadioStation} to be updated.
-     * @param object       JSON object that holds informational parameters.
+     * @param object JSON object that holds informational parameters.
+     * @return RadioStation or null.
      * @throws JSONException
      */
-    private void updateRadioStation(final RadioStation radioStation, final JSONObject object)
-            throws JSONException {
+    @Nullable
+    private RadioStation getRadioStation(final Context context, final JSONObject object) throws JSONException {
+
+        final RadioStation radioStation = RadioStation.makeDefaultInstance(
+                context, object.getString(JsonDataParserImpl.KEY_STATION_UUID)
+        );
 
         if (object.has(JsonDataParserImpl.KEY_STATUS)) {
             radioStation.setStatus(object.getInt(JsonDataParserImpl.KEY_STATUS));
@@ -457,10 +461,6 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             radioStation.setMediaStream(mediaStream);
         }
 
-        if (object.has(JsonDataParserImpl.KEY_STATION_UUID)) {
-            radioStation.setId(object.getString(JsonDataParserImpl.KEY_STATION_UUID));
-        }
-
         if (object.has(JsonDataParserImpl.KEY_IMAGE)) {
             // TODO : Encapsulate Image in the same way as Stream.
             final JSONObject imageObject = object.getJSONObject(JsonDataParserImpl.KEY_IMAGE);
@@ -483,5 +483,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             radioStation.setImageUrl(object.getString(JsonDataParserImpl.KEY_FAV_ICON));
             radioStation.setThumbUrl(object.getString(JsonDataParserImpl.KEY_FAV_ICON));
         }
+
+        return radioStation;
     }
 }

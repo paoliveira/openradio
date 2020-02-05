@@ -16,8 +16,11 @@
 
 package com.yuriy.openradio.shared.model.translation;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -41,14 +44,16 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
     }
 
     @Override
-    public final RadioStation deserialize(final String value) {
-        final RadioStation radioStation = RadioStation.makeDefaultInstance();
+    @Nullable
+    public final RadioStation deserialize(final Context context, final String value) {
         if (value == null || value.isEmpty()) {
-            return radioStation;
+            return null;
         }
         try {
             final JSONObject jsonObject = new JSONObject(value);
-            radioStation.setId(getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID));
+            final RadioStation radioStation = RadioStation.makeDefaultInstance(
+                    context, getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
+            );
             radioStation.setName(getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME));
 
             String bitrateStr = getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0");
@@ -71,7 +76,7 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
             /* Ignore this exception */
             AppLogger.e("Error while de-marshall " + value + ", exception:\n" + Log.getStackTraceString(e));
         }
-        return radioStation;
+        return null;
     }
 
     private String getStringValue(final JSONObject jsonObject, final String key) throws JSONException {
