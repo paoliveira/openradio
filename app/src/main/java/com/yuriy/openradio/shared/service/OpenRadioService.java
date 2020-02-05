@@ -206,9 +206,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private String mCurrentStreamTitle;
 
     /**
-     * Current local media player state
+     * Current media player state.
      */
-    private int mState;
+    private volatile int mState;
 
     private PauseReason mPauseReason = PauseReason.DEFAULT;
 
@@ -1661,6 +1661,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void handleConnectivityChange(final boolean isConnected) {
+        if (mState != PlaybackStateCompat.STATE_PLAYING) {
+            return;
+        }
         if (isConnected) {
             handlePlayRequest();
         }
