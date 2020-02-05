@@ -72,6 +72,8 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
             radioStation.setWebSite(getStringValue(jsonObject, RadioStationJsonHelper.KEY_WEB_SITE));
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL));
             radioStation.setSortId(getIntValue(jsonObject, RadioStationJsonHelper.KEY_SORT_ID, -1));
+
+            return radioStation;
         } catch (final Throwable e) {
             /* Ignore this exception */
             AppLogger.e("Error while de-marshall " + value + ", exception:\n" + Log.getStackTraceString(e));
