@@ -345,6 +345,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private final Handler mMainHandler;
 
     /**
+     *
+     */
+    @NonNull
+    private final Downloader mDownloader;
+
+    /**
      * Default constructor.
      */
     public OpenRadioService() {
@@ -370,19 +376,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         mConnectivityReceiver = new ConnectivityReceiver(connectivityChangeListener);
         final MasterVolumeReceiverListener listener = new MasterVolumeEventListener(this);
         mMasterVolumeBroadcastReceiver = new MasterVolumeReceiver(listener);
-    }
-
-    /**
-     * Interface to link command implementation and Open Radio service.
-     */
-    public interface RemotePlay {
-
-        /**
-         * Play last known Radio Station.
-         *
-         * @param radioStation The Radio Station.
-         */
-        void restoreActiveRadioStation(final RadioStation radioStation);
+        mDownloader = new HTTPDownloaderImpl();
     }
 
     public interface ResultListener {
@@ -605,11 +599,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             countryCode = LocationService.getCountryCode();
         }
 
+        final Context context = getApplicationContext();
+
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
         final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
-                getApplicationContext(), result, mRadioStationsStorage, mApiServiceProvider,
+                context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
                 countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
-                this::restoreActiveRadioStation, this::onResult
+                this::onResult
         );
         mIsRestoreState = false;
         if (command != null) {
@@ -619,7 +615,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             result.sendResult(dependencies.getMediaItems());
         }
         // Registers BroadcastReceiver to track network connection changes.
-        mConnectivityReceiver.register(getApplicationContext());
+        mConnectivityReceiver.register(context);
     }
 
     /**
@@ -1093,7 +1089,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             // Start download information about Radio Station
                             final RadioStation radioStationUpdated = mApiServiceProvider
                                     .getStation(
-                                            new HTTPDownloaderImpl(),
+                                            mDownloader,
                                             UrlBuilder.getStation(radioStation.getId()),
                                             CacheType.NONE
                                     );
@@ -1590,22 +1586,33 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void onResult() {
-        if (TextUtils.isEmpty(mCurrentMediaId)) {
-            return;
+        if (AppUtils.isUiThread()) {
+            onResultUiThread();
+        } else {
+            mMainHandler.post(this::onResultUiThread);
         }
-        if (mRadioStationsStorage.isEmpty()) {
-            return;
-        }
-        mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId);
-        AppLogger.d(CLASS_NAME + "On result from command, index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId);
     }
 
-    private void restoreActiveRadioStation(@NonNull final RadioStation radioStation) {
-        mRestoredRS = radioStation;
-        if (mState == PlaybackStateCompat.STATE_PLAYING) {
-            mMainHandler.post(() -> handlePlayFromMediaId(mRestoredRS.getId()));
-        } else {
-            updatePlaybackState();
+    private void onResultUiThread() {
+        if (!TextUtils.isEmpty(mCurrentMediaId) &&
+                !mRadioStationsStorage.isEmpty()) {
+            mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId);
+            AppLogger.d(CLASS_NAME + "On result from command, index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId);
+        }
+
+        restoreActiveRadioStation();
+    }
+
+    private void restoreActiveRadioStation() {
+        final Context context = getApplicationContext();
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
+            if (mRestoredRS == null) {
+                mRestoredRS = LatestRadioStationStorage.get(context);
+            }
+            if (mRestoredRS != null) {
+//                handlePlayRequest();
+                handlePlayFromMediaId(mRestoredRS.getId());
+            }
         }
     }
 
@@ -2012,11 +2019,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // TODO
             return;
         }
-        // Instantiate appropriate downloader (HTTP one)
-        final Downloader downloader = new HTTPDownloaderImpl();
 
         final List<RadioStation> list = mApiServiceProvider.getStations(
-                downloader,
+                mDownloader,
                 UrlBuilder.getSearchUrl(query),
                 CacheType.NONE
         );
@@ -2259,11 +2264,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void setPlaybackState(final int state) {
-        switch (state) {
-            case PlaybackStateCompat.STATE_STOPPED:
-                AppLogger.d("Set state stopped");
-                break;
-        }
+        AppLogger.d(CLASS_NAME + "Set state " + state);
         mState = state;
     }
 

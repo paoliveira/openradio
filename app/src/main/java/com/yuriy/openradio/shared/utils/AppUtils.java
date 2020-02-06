@@ -25,6 +25,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -77,6 +78,10 @@ public final class AppUtils {
      */
     private AppUtils() {
         super();
+    }
+
+    public static boolean isUiThread() {
+        return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 
     public static String listOfRadioStationsToString(final List<RadioStation> list) {

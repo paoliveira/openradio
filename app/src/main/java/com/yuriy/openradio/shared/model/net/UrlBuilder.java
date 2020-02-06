@@ -39,13 +39,22 @@ public final class UrlBuilder {
      */
     public static final int ITEMS_PER_PAGE = 30;
 
+    static final String BASE_URL_PREFIX = "https://do-look-up-dns-first";
+
+    static final String LOOK_UP_DNS = "all.api.radio-browser.info";
+
+    static final String[] RESERVED_URLS = {
+            "https://de1.api.radio-browser.info",
+            "https://fr1.api.radio-browser.info",
+            "https://nl1.api.radio-browser.info"
+    };
 
     private static final int RECENT_POPULAR_PER_PAGE = 50;
 
     /**
      * Base URL for the API requests.
      */
-    private static final String BASE_URL = "https://de1.api.radio-browser.info/json/";
+    private static final String BASE_URL = BASE_URL_PREFIX + "/json/";
 
     /**
      * Base url for the icons used previously.

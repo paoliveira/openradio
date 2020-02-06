@@ -22,9 +22,7 @@ import android.support.v4.media.MediaDescriptionCompat;
 
 import androidx.annotation.NonNull;
 
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
-import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -80,12 +78,5 @@ public final class MediaItemFavoritesList implements MediaItemCommand {
         }
         dependencies.getResult().sendResult(dependencies.getMediaItems());
         dependencies.getResultListener().onResult();
-
-        if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            final RadioStation radioStation = LatestRadioStationStorage.get(dependencies.getContext());
-            if (radioStation != null) {
-                dependencies.getRemotePlay().restoreActiveRadioStation(radioStation);
-            }
-        }
     }
 }

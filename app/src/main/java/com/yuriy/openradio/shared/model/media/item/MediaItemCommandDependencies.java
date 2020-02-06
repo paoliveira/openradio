@@ -24,7 +24,6 @@ import androidx.media.MediaBrowserServiceCompat;
 
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider;
 import com.yuriy.openradio.shared.model.net.Downloader;
-import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.MediaItemsComparator;
@@ -96,8 +95,6 @@ public final class MediaItemCommandDependencies {
      */
     private final boolean mIsAndroidAuto;
 
-    private final OpenRadioService.RemotePlay mRemotePlay;
-
     private final OpenRadioService.ResultListener mResultListener;
 
     private final boolean mIsSameCatalogue;
@@ -112,6 +109,7 @@ public final class MediaItemCommandDependencies {
      * Main constructor.
      */
     public MediaItemCommandDependencies(@NonNull final Context context,
+                                        @NonNull final Downloader downloader,
                                         @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result,
                                         @NonNull final RadioStationsStorage radioStationsStorage,
                                         @NonNull final ApiServiceProvider serviceProvider,
@@ -120,13 +118,12 @@ public final class MediaItemCommandDependencies {
                                         final boolean isAndroidAuto,
                                         final boolean isSameCatalogue,
                                         final boolean isSavedInstance,
-                                        @NonNull final OpenRadioService.RemotePlay remotePlay,
                                         @NonNull final OpenRadioService.ResultListener resultListener) {
         super();
         mContext = context;
         mMediaItemsComparator = new MediaItemsComparator();
         mRadioStationsComparator = new RadioStationsComparator();
-        mDownloader = new HTTPDownloaderImpl();
+        mDownloader = downloader;
         mMediaItems = new ArrayList<>();
         mResult = result;
         mRadioStationsStorage = radioStationsStorage;
@@ -136,12 +133,7 @@ public final class MediaItemCommandDependencies {
         mIsAndroidAuto = isAndroidAuto;
         mIsSameCatalogue = isSameCatalogue;
         mIsSavedInstance = isSavedInstance;
-        mRemotePlay = remotePlay;
         mResultListener = resultListener;
-    }
-
-    public OpenRadioService.RemotePlay getRemotePlay() {
-        return mRemotePlay;
     }
 
     public OpenRadioService.ResultListener getResultListener() {

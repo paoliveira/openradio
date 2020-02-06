@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.model.net;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
@@ -34,13 +35,16 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Yuriy Chernyshov
@@ -73,8 +77,13 @@ public final class HTTPDownloaderImpl implements Downloader {
     private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
     private static final String USER_AGENT_PARAMETER_VALUE = "OpenRadioApp";
 
+    private String[] mUrlsSet;
+
+    private final Random mRandom;
+
     public HTTPDownloaderImpl() {
         super();
+        mRandom = new Random();
     }
 
     @Override
@@ -85,26 +94,15 @@ public final class HTTPDownloaderImpl implements Downloader {
     @Override
     public byte[] downloadDataFromUri(final Uri uri,
                                       @NonNull final List<Pair<String, String>> parameters) {
-        AppLogger.i(CLASS_NAME + " Request URL:" + uri);
         byte[] response = new byte[0];
 
-        // TODO : Set everything in more compact way
-
-        URL url = null;
-        try {
-            url = new URL(uri.toString());
-        } catch (final MalformedURLException exception) {
-            AnalyticsUtils.logException(
-                    new DownloaderException(
-                            createExceptionMessage(uri, parameters),
-                            exception
-                    )
-            );
-        }
+        final URL url = getConnectionUrl(uri, parameters);
 
         if (url == null) {
             return response;
         }
+
+        AppLogger.i(CLASS_NAME + " Request URL:" + url.toString());
 
         HttpURLConnection urlConnection = null;
         try {
@@ -354,11 +352,103 @@ public final class HTTPDownloaderImpl implements Downloader {
      */
     private String createExceptionMessage(@NonNull final Uri uri,
                                           @NonNull final List<Pair<String, String>> parameters) {
-        final StringBuilder builder = new StringBuilder(uri.toString());
+        return createExceptionMessage(uri.toString(), parameters);
+    }
+
+    /**
+     * @param uriStr
+     * @param parameters
+     * @return
+     */
+    private String createExceptionMessage(@NonNull final String uriStr,
+                                          @NonNull final List<Pair<String, String>> parameters) {
+        final StringBuilder builder = new StringBuilder(uriStr);
         for (final Pair<String, String> pair : parameters) {
             builder.append(" ");
             builder.append(pair.toString());
         }
         return builder.toString();
+    }
+
+    /**
+     * Do DNS look up in order to get available url for service connection.
+     * Addresses, if found, are cached and next time is used from the cache.
+     *
+     * @param uri        Initial (with dummy and predefined prefix) url to perform look up on.
+     * @param parameters Parameters associated with request.
+     * @return URL object to do connection with.
+     */
+    @Nullable
+    private URL getConnectionUrl(@NonNull final Uri uri,
+                                 @NonNull final List<Pair<String, String>> parameters) {
+        // If there is no predefined prefix - return original URL.
+        String uriStr = uri.toString();
+        if (!(uriStr.startsWith(UrlBuilder.BASE_URL_PREFIX))) {
+            return getUrl(uriStr, parameters);
+        }
+
+        // Return cached URL if available.
+        synchronized (mRandom) {
+            if (mUrlsSet != null && mUrlsSet.length != 0) {
+                final int i = mRandom.nextInt(mUrlsSet.length);
+                return getUrlModified(uriStr, mUrlsSet[i], parameters);
+            }
+        }
+
+        // Perform look up and cache results.
+        try {
+            final InetAddress[] list = InetAddress.getAllByName(UrlBuilder.LOOK_UP_DNS);
+            synchronized (mRandom) {
+                mUrlsSet = new String[list.length];
+                int i = 0;
+                for (final InetAddress item : list) {
+                    mUrlsSet[i++] = "https://" + item.getCanonicalHostName();
+                    AppLogger.i(CLASS_NAME + " look up host:" + mUrlsSet[i - 1]);
+                }
+            }
+        } catch (final UnknownHostException exception) {
+            AnalyticsUtils.logException(
+                    new DownloaderException(createExceptionMessage(uri, parameters), exception)
+            );
+        }
+
+        // Do random selection from available addresses.
+        URL url = null;
+        synchronized (mRandom) {
+            if (mUrlsSet != null && mUrlsSet.length != 0) {
+                final int i = mRandom.nextInt(mUrlsSet.length);
+                url = getUrlModified(uriStr, mUrlsSet[i], parameters);
+            }
+        }
+
+        // Uri to URL parse might fail.
+        if (url != null) {
+            return url;
+        }
+
+        // Use predefined addresses, these are needs to be verified time after time in order to be up to date.
+        final int i = mRandom.nextInt(UrlBuilder.RESERVED_URLS.length);
+        return getUrlModified(uriStr, UrlBuilder.RESERVED_URLS[i], parameters);
+    }
+
+    @Nullable
+    private URL getUrlModified(final String uriOrigin,
+                               final String uri, @NonNull final List<Pair<String, String>> parameters) {
+        final String uriModified = uriOrigin.replaceFirst(UrlBuilder.BASE_URL_PREFIX, uri);
+        return getUrl(uriModified, parameters);
+    }
+
+    @Nullable
+    private URL getUrl(final String uri, @NonNull final List<Pair<String, String>> parameters) {
+        URL url;
+        try {
+            url = new URL(uri);
+        } catch (final MalformedURLException exception) {
+            AnalyticsUtils.logException(
+                    new DownloaderException(createExceptionMessage(uri, parameters), exception)
+            );
+            url = null;
+        }
+        return url;
     }
 }

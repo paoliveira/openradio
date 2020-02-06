@@ -25,9 +25,9 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.vo.RadioStation;
 

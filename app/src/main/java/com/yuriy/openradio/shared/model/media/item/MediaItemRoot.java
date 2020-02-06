@@ -77,7 +77,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         // Get lat known Radio Station.
         // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
         // exposed.
-        RadioStation latestRadioStation = null;
+        RadioStation latestRadioStation;
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             latestRadioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (latestRadioStation != null) {
@@ -249,11 +249,5 @@ public final class MediaItemRoot implements MediaItemCommand {
         AppLogger.d(LOG_TAG + " invocation completed");
         dependencies.getResult().sendResult(dependencies.getMediaItems());
         dependencies.getResultListener().onResult();
-
-        // If there is no Android Auto and there is latest Radio Station
-        // (the one that played the last time Open Radio used) detected, play it.
-        if (latestRadioStation != null) {
-            dependencies.getRemotePlay().restoreActiveRadioStation(latestRadioStation);
-        }
     }
 }

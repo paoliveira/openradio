@@ -378,7 +378,7 @@ public final class ExoPlayerOpenRadioImpl {
             AppLogger.d(LOG_TAG + " ExoPlayer impl already released");
             return;
         }
-        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+        if (AppUtils.isUiThread()) {
             releaseIntrnl();
         } else {
             mMainHandler.post(this::releaseIntrnl);

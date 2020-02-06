@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 
 /**
  * @author Yurii Chernyshov
@@ -31,7 +32,7 @@ public final class SafeToast {
      * @param text    Message to display in the {@link Toast}.
      */
     public static void showAnyThread(final Context context, final CharSequence text) {
-        if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
+        if (AppUtils.isUiThread()) {
             // We are already in UI thread, it's safe to show Toast
             showToastUIThread(context, text);
         } else {
