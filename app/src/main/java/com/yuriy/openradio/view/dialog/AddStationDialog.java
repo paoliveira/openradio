@@ -16,13 +16,14 @@
 
 package com.yuriy.openradio.view.dialog;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.view.activity.MainActivity;
+import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 /**
@@ -77,8 +78,12 @@ public final class AddStationDialog extends BaseAddEditStationDialog {
     @Override
     protected void processInput(final String name, final String url, final String imageUrl,
                                 final String genre, final String country, final boolean addToFav) {
-        ((MainActivity) getActivity()).processAddStationCallback(
-                name, url, imageUrl, genre, country, addToFav
-        );
+        final Activity activity = getActivity();
+        if (activity == null) {
+            return;
+        }
+        activity.startService(OpenRadioService.makeAddRadioStationIntent(
+                activity.getApplicationContext(), name, url, imageUrl, genre, country, addToFav
+        ));
     }
 }

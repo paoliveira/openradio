@@ -640,17 +640,6 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Process user's input in order to generate custom {@link RadioStation}.
-     */
-    public final void processAddStationCallback(final String name, final String url,
-                                                final String imageUrl, final String genre,
-                                                final String country, final boolean addToFav) {
-        startService(OpenRadioService.makeAddRadioStationIntent(
-                getApplicationContext(), name, url, imageUrl, genre, country, addToFav
-        ));
-    }
-
-    /**
      * Process user's input in order to edit custom {@link RadioStation}.
      */
     public final void processEditStationCallback(final String mediaId, final String name, final String url,

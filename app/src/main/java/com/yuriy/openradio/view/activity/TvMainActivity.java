@@ -34,6 +34,7 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog;
 import com.yuriy.openradio.shared.view.dialog.LogsDialog;
+import com.yuriy.openradio.view.dialog.AddStationDialog;
 import com.yuriy.openradio.view.dialog.TvSettingsDialog;
 import com.yuriy.openradio.view.fragment.TvMainFragment;
 
@@ -201,6 +202,15 @@ public final class TvMainActivity extends FragmentActivity {
         if (button == null) {
             return;
         }
+        button.setOnClickListener(
+                (view) -> {
+                    // Show Add Station Dialog
+                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    final DialogFragment dialog = AddStationDialog.newInstance();
+                    dialog.show(transaction, AddStationDialog.DIALOG_TAG);
+                }
+        );
+
     }
 
     private void showTvSettings() {
