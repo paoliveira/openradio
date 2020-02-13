@@ -973,6 +973,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void stopService() {
+        if (AppUtils.isUiThread()) {
+            stopServiceUiThread();
+        } else {
+            mMainHandler.post(this::stopServiceUiThread);
+        }
+    }
+
+    private void stopServiceUiThread() {
         AppLogger.d(CLASS_NAME + "stop Service");
         // Service is being killed, so make sure we release our resources
         handleStopRequest(null);
@@ -1244,6 +1252,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Handle a request to play Radio Station.
      */
     private void handlePlayRequest() {
+        if (AppUtils.isUiThread()) {
+            handlePlayRequestUiThread();
+        } else {
+            mMainHandler.post(this::handlePlayRequestUiThread);
+        }
+    }
+
+    private void handlePlayRequestUiThread() {
         AppLogger.d(
                 CLASS_NAME + "Handle PlayRequest: mState=" + mState
         );
@@ -1416,7 +1432,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Handle a request to pause radio stream.
      */
     private void handlePauseRequest() {
-        handlePauseRequest(PauseReason.DEFAULT);
+        if (AppUtils.isUiThread()) {
+            handlePauseRequest(PauseReason.DEFAULT);
+        } else {
+            mMainHandler.post(() -> handlePauseRequest(PauseReason.DEFAULT));
+        }
     }
 
     /**
@@ -2040,7 +2060,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // immediately start playing from the beginning of the search results
         mCurrentIndexOnQueue = 0;
 
-        mMainHandler.post(this::handlePlayRequest);
+        handlePlayRequest();
     }
 
     /**
@@ -2075,6 +2095,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
+     * This method executed in separate thread.
+     *
      * @param command
      * @param intent
      */

@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.shared.utils;
 
+import androidx.annotation.NonNull;
+
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,7 +47,8 @@ public final class ConcurrentUtils {
 
     private static final ThreadFactory sThreadFactory = new ThreadFactory() {
         private final AtomicInteger mCount = new AtomicInteger(1);
-        public Thread newThread(final Runnable runnable) {
+        @Override
+        public Thread newThread(@NonNull final Runnable runnable) {
             return new Thread(runnable, "ORAsyncTask #" + mCount.getAndIncrement());
         }
     };

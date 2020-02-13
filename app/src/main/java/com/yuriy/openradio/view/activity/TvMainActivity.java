@@ -161,6 +161,16 @@ public final class TvMainActivity extends FragmentActivity {
         mBackBtn.setVisibility(View.INVISIBLE);
     }
 
+    @Override
+    public void onBackPressed() {
+        final TvMainFragment fragment = getMainTvFragment();
+        if (fragment != null) {
+            if (fragment.handleBackButton()) {
+                super.onBackPressed();
+            }
+        }
+    }
+
     private void setUpBackBtn() {
         mBackBtn = findViewById(R.id.tv_back_btn);
         if (mBackBtn == null) {

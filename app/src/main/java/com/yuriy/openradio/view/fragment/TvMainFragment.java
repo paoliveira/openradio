@@ -30,7 +30,6 @@ import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -117,6 +116,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setControlsOverlayAutoHideEnabled(false);
         setBackgroundType(BG_NONE);
         final Context context = getContext();
@@ -184,11 +184,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-    }
-
-    @Override
     public void onResume() {
         super.onResume();
         showControlsOverlay(true);
@@ -221,11 +216,16 @@ public class TvMainFragment extends PlaybackSupportFragment {
         super.setControlsOverlayAutoHideEnabled(false);
     }
 
-    public void handleBackButton() {
+    @Override
+    public void hideControlsOverlay(boolean runAnimation) {
+        // Do not inherit hide logic from parent
+    }
+
+    public boolean handleBackButton() {
         if (mMediaPresenter == null) {
-            return;
+            return true;
         }
-        mMediaPresenter.handleBackPressed(getActivity());
+        return mMediaPresenter.handleBackPressed(getActivity());
     }
 
     public int getNumItemsInStack() {
