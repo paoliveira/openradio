@@ -1320,14 +1320,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             if (radioStation == null) {
-                AppLogger.e(CLASS_NAME + "Play RS: ignoring request to play next song, " +
+                AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
                         "because cannot find it." +
-                        " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
-                        " PlayQueue.size=" + service.mRadioStationsStorage.size());
+                        " idx " + service.mCurrentIndexOnQueue);
                 return;
             }
             if (service.mLastKnownRS != null && service.mLastKnownRS.equals(radioStation)) {
-                AppLogger.e(CLASS_NAME + "Play RS: ignoring request to play next song, " +
+                AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
                         "because last known is the same as requested. Try to resume playback.");
                 service.updatePlaybackState();
                 return;
@@ -1336,19 +1335,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             service.mLastKnownRS = radioStation;
             final MediaMetadataCompat metadata = service.buildMetadata(radioStation);
             if (metadata == null) {
-                AppLogger.e(CLASS_NAME + "Play Radio Station: ignoring request to play next song, " +
+                AppLogger.e(CLASS_NAME + "play. Ignoring request to play next song, " +
                         "because cannot find metadata." +
-                        " CurrentIndex=" + service.mCurrentIndexOnQueue + "." +
-                        " PlayQueue.size=" + service.mRadioStationsStorage.size());
+                        " idx " + service.mCurrentIndexOnQueue);
                 return;
             }
             final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
             AppLogger.d(
-                    CLASS_NAME + "Play Radio Station: current (" + service.mCurrentIndexOnQueue
-                            + ") in mPlayingQueue. " +
-                            " musicId=" + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
-                            " source=" + source
+                    CLASS_NAME + "play. idx " + service.mCurrentIndexOnQueue
+                            + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
+                            " source " + source
             );
+
+            service.mCurrentMediaId = radioStation.getId();
 
             service.preparePlayer(source);
         }
@@ -1630,9 +1629,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 mRestoredRS = LatestRadioStationStorage.get(context);
             }
             if (mRestoredRS != null) {
-//                handlePlayRequest();
                 handlePlayFromMediaId(mRestoredRS.getId());
             }
+            mRestoredRS = null;
         }
     }
 
