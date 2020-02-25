@@ -131,7 +131,7 @@ public final class LogsDialog extends BaseDialogFragment {
         clearLogsBtn.setEnabled(isEnable);
 
         AppPreferencesManager.setLogsEnabled(context, isEnable);
-        AppLogger.setIsLoggingEnabled(isEnable);
+        AppLogger.setLoggingEnabled(isEnable);
     }
 
     private synchronized void sendLogMailTask() {

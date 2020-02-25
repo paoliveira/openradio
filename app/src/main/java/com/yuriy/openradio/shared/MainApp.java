@@ -64,7 +64,7 @@ public final class MainApp extends Application {
                             context
                     );
                     AppLogger.initLogger(context);
-                    AppLogger.setIsLoggingEnabled(isLoggingEnabled);
+                    AppLogger.setLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage(context);
 
                     AnalyticsUtils.init(context);

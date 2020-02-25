@@ -45,7 +45,7 @@ import java.util.List;
  */
 public final class TvMainActivity extends FragmentActivity {
 
-    private static final String CLASS_NAME = TvMainActivity.class.getSimpleName();
+    private static final String CLASS_NAME = TvMainActivity.class.getSimpleName() + " ";
 
     private ImageView mBackBtn;
     /**
@@ -56,6 +56,7 @@ public final class TvMainActivity extends FragmentActivity {
     @Override
     public void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppLogger.i(CLASS_NAME + "created " + this.hashCode());
         setContentView(R.layout.tv_main);
 
         mProgressBar = findViewById(R.id.progress_bar_tv_view);
@@ -67,10 +68,16 @@ public final class TvMainActivity extends FragmentActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        AppLogger.i(CLASS_NAME + "destroyed " + this.hashCode());
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        AppLogger.d(CLASS_NAME + "on activity result, rqst:" + requestCode + " rslt:" + resultCode);
         final GoogleDriveDialog gDriveDialog = GoogleDriveDialog.findGoogleDriveDialog(getSupportFragmentManager());
         if (gDriveDialog != null) {
             gDriveDialog.onActivityResult(requestCode, resultCode, data);

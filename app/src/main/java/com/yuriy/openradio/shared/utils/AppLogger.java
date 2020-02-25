@@ -46,7 +46,7 @@ public final class AppLogger {
     private static final Logger logger = Logger.getLogger(AppLogger.class);
 
     private static String sInitLogsDirectory;
-    private static boolean sIsLoggingEnabled;
+    private static boolean sLoggingEnabled;
 
     private AppLogger() {
         super();
@@ -77,8 +77,8 @@ public final class AppLogger {
         AppLogger.d("Current log stored to " + fileName);
     }
 
-    public static void setIsLoggingEnabled(final boolean value) {
-        sIsLoggingEnabled = value;
+    public static void setLoggingEnabled(final boolean value) {
+        sLoggingEnabled = value;
     }
 
     private static void initLogsDirectories(final Context context) {
@@ -222,28 +222,28 @@ public final class AppLogger {
     }
 
     public static void e(final String logMsg) {
-        if (sIsLoggingEnabled) {
+        if (sLoggingEnabled) {
             logger.error(logMsg);
         }
         Log.e(LOG_TAG, "[" + Thread.currentThread().getName() + "] " + logMsg);
     }
 
     public static void w(final String logMsg) {
-        if (sIsLoggingEnabled) {
+        if (sLoggingEnabled) {
             logger.warn(logMsg);
         }
         Log.w(LOG_TAG, "[" + Thread.currentThread().getName() + "] " + logMsg);
     }
 
     public static void i(final String logMsg) {
-        if (sIsLoggingEnabled) {
+        if (sLoggingEnabled) {
             logger.info(logMsg);
         }
         Log.i(LOG_TAG, "[" + Thread.currentThread().getName() + "] " + logMsg);
     }
 
     public static void d(final String logMsg) {
-        if (sIsLoggingEnabled) {
+        if (sLoggingEnabled) {
             logger.debug(logMsg);
         }
         Log.d(LOG_TAG, "[" + Thread.currentThread().getName() + "] " + logMsg);
