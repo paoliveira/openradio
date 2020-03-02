@@ -110,6 +110,8 @@ public final class AppLogger {
     }
 
     public static boolean deleteAllLogs(final Context context) {
+        final boolean resultDelZip = deleteZipFile(context);
+        final boolean resultDelLogcat = deleteLogcatFile(context);
         final File[] files = getAllLogs(context);
         boolean result = true;
         for (final File file : files) {
@@ -117,7 +119,7 @@ public final class AppLogger {
                 result = false;
             }
         }
-        return result;
+        return result && resultDelZip && resultDelLogcat;
     }
 
     public static boolean deleteZipFile(final Context context) {

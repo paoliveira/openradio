@@ -102,8 +102,6 @@ public final class LogsDialog extends BaseDialogFragment {
         clearLogsBtn.setOnClickListener(
 
                 view12 -> {
-                    AppLogger.deleteZipFile(context);
-                    AppLogger.deleteLogcatFile(context);
                     final boolean result = AppLogger.deleteAllLogs(context);
                     String message = result
                             ? "All logs deleted"
