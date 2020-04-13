@@ -18,26 +18,28 @@ package com.yuriy.openradio.view.dialog;
 
 import android.content.Context;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.view.SafeToast;
-import com.yuriy.openradio.view.activity.MainActivity;
 import com.yuriy.openradio.shared.vo.RadioStation;
+import com.yuriy.openradio.shared.vo.RadioStationToAdd;
+import com.yuriy.openradio.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * Dialog to provide components to Edit Radio Station.
  */
 public final class EditStationDialog extends BaseAddEditStationDialog {
@@ -102,21 +104,12 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
     }
 
     /**
-     * Validate provided input in order to pass data farther to
-     * generate {@link RadioStation}.
-     *
-     * @param name     Name of the Radio Station.
-     * @param url      Url of the Stream associated with Radio Station.
-     * @param imageUrl Url of the Image associated with Radio Station.
-     * @param genre    Genre of the Radio Station.
-     * @param country  Country of the Radio Station.
-     * @param addToFav Whether or not add radio station to favorites.
+     * Validate provided input in order to pass data farther to generate {@link RadioStation}.
      */
     @Override
-    protected void processInput(final String name, final String url, final String imageUrl,
-                                final String genre, final String country, final boolean addToFav) {
+    protected void processInput(final RadioStationToAdd radioStationToAdd) {
         ((MainActivity) getActivity()).processEditStationCallback(
-                mMediaId, name, url, imageUrl, genre, country, addToFav
+                mMediaId, radioStationToAdd
         );
     }
 
@@ -140,7 +133,7 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
     private void handleUI(@NonNull final RadioStation radioStation, final Context context) {
         mNameEdit.setText(radioStation.getName());
         mUrlEdit.setText(radioStation.getMediaStream().getVariant(0).getUrl());
-        mImageUrlEdit.setText(radioStation.getImageUrl());
+        mImageLocalUrlEdit.setText(radioStation.getImageUrl());
         mCountriesSpinner.setSelection(getCountryPosition(radioStation.getCountry()));
         mGenresSpinner.setSelection(getGenrePosition(radioStation.getGenre()));
         mAddToFavCheckView.setChecked(FavoritesStorage.isFavorite(radioStation, context));

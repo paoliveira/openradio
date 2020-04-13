@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +32,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.fragment.app.DialogFragment;
 
@@ -45,6 +45,7 @@ import com.yuriy.openradio.shared.utils.ImageFilePath;
 import com.yuriy.openradio.shared.utils.IntentsHelper;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.vo.RadioStation;
+import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +56,7 @@ import java.util.List;
  * At Android Studio
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * Base dialog to use by Edit and Add dialogs.
  */
 public abstract class BaseAddEditStationDialog extends DialogFragment {
@@ -63,12 +64,14 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
     /**
      * Text view for Image Url.
      */
-    protected EditText mImageUrlEdit;
-    protected EditText mNameEdit;
-    protected EditText mUrlEdit;
-    protected Spinner mCountriesSpinner;
-    protected Spinner mGenresSpinner;
-    protected CheckBox mAddToFavCheckView;
+    EditText mImageLocalUrlEdit;
+    private EditText mImageWebUrlEdit;
+    EditText mNameEdit;
+    EditText mUrlEdit;
+    Spinner mCountriesSpinner;
+    Spinner mGenresSpinner;
+    CheckBox mAddToFavCheckView;
+    private CheckBox mAddToSrvrCheckView;
     private ArrayAdapter<CharSequence> mGenresAdapter;
     private ArrayAdapter<String> mCountriesAdapter;
 
@@ -86,7 +89,8 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
 
         mNameEdit = view.findViewById(R.id.add_edit_station_name_edit);
         mUrlEdit = view.findViewById(R.id.add_edit_station_stream_url_edit);
-        mImageUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit);
+        mImageLocalUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit);
+        mImageWebUrlEdit = view.findViewById(R.id.add_edit_station_web_image_url_edit);
 
         final List<String> countries = new ArrayList<>(LocationService.COUNTRY_CODE_TO_NAME.values());
         Collections.sort(countries);
@@ -130,16 +134,22 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
         );
 
         mAddToFavCheckView = view.findViewById(R.id.add_to_fav_check_view);
+        mAddToSrvrCheckView = view.findViewById(R.id.add_to_srvr_check_view);
+        mAddToSrvrCheckView.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> toggleWebImageView(view, isChecked)
+        );
 
         final Button addOrEditBtn = view.findViewById(R.id.add_edit_station_dialog_add_btn_view);
         addOrEditBtn.setOnClickListener(
                 viewBtn -> processInputInternal(
                         mNameEdit.getText().toString(),
                         mUrlEdit.getText().toString(),
-                        mImageUrlEdit.getText().toString(),
+                        mImageLocalUrlEdit.getText().toString(),
+                        mImageWebUrlEdit.getText().toString(),
                         String.valueOf(mGenresSpinner.getSelectedItem()),
                         String.valueOf(mCountriesSpinner.getSelectedItem()),
-                        mAddToFavCheckView.isChecked()
+                        mAddToFavCheckView.isChecked(),
+                        mAddToSrvrCheckView.isChecked()
                 )
         );
 
@@ -189,7 +199,7 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
                 );
                 AppLogger.d("Image Path:" + selectedImagePath);
                 if (selectedImagePath != null) {
-                    mImageUrlEdit.setText(selectedImagePath);
+                    mImageLocalUrlEdit.setText(selectedImagePath);
                 } else {
                     SafeToast.showAnyThread(
                             applicationContext,
@@ -203,15 +213,9 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
     /**
      * Abstraction to handle action once input is processed.
      *
-     * @param name     Name of the Radio Station.
-     * @param url      Url of the Stream associated with Radio Station.
-     * @param imageUrl Url of the Image associated with Radio Station.
-     * @param genre    Genre of the Radio Station.
-     * @param country  Country of the Radio Station.
-     * @param addToFav Whether or not add radio station to favorites.
+     * @param radioStationToAdd Data to add as radio station.
      */
-    protected abstract void processInput(final String name, final String url, final String imageUrl,
-                                         final String genre, final String country, final boolean addToFav);
+    protected abstract void processInput(final RadioStationToAdd radioStationToAdd);
 
     /**
      * Return position of country in drop down list.
@@ -219,7 +223,7 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
      * @param country Country of the Radio Station.
      * @return Position of country.
      */
-    protected int getCountryPosition(final String country) {
+    int getCountryPosition(final String country) {
         if (mCountriesAdapter == null) {
             return -1;
         }
@@ -232,7 +236,7 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
      * @param genre Genre of the Radio Station.
      * @return Position of Genre.
      */
-    protected int getGenrePosition(final String genre) {
+    int getGenrePosition(final String genre) {
         if (mGenresAdapter == null) {
             return -1;
         }
@@ -243,27 +247,36 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
      * Validate provided input in order to pass data farther to
      * generate {@link RadioStation}.
      *
-     * @param name     Name of the Radio Station.
-     * @param url      Url of the Stream associated with Radio Station.
-     * @param imageUrl Url of the Image associated with Radio Station.
-     * @param genre    Genre of the Radio Station.
-     * @param country  Country of the Radio Station.
-     * @param addToFav Whether or not add radio station to favorites.
+     * @param name          Name of the Radio Station.
+     * @param url           Url of the Stream associated with Radio Station.
+     * @param imageLocalUrl Local Url of the Image associated with Radio Station.
+     * @param imageWebUrl   Web Url of the Image associated with Radio Station.
+     * @param genre         Genre of the Radio Station.
+     * @param country       Country of the Radio Station.
+     * @param addToFav      Whether or not add radio station to favorites.
+     * @param addToServer   Whether or not add radio station to the server.
      */
-    private void processInputInternal(final String name, final String url, final String imageUrl,
-                                      final String genre, final String country, final boolean addToFav) {
-        final Context applicationContext = getActivity().getApplicationContext();
-        if (TextUtils.isEmpty(name)) {
-            SafeToast.showAnyThread(applicationContext, "Name is empty");
-            return;
-        }
-        if (TextUtils.isEmpty(url)) {
-            SafeToast.showAnyThread(applicationContext, "Stream URL is empty");
+    private void processInputInternal(final String name, final String url, final String imageLocalUrl,
+                                      final String imageWebUrl, final String genre, final String country,
+                                      final boolean addToFav, final boolean addToServer) {
+        final RadioStationToAdd radioStationToAdd = new RadioStationToAdd(
+                name, url, imageLocalUrl, imageWebUrl, genre, country, addToFav, addToServer
+        );
+
+        processInput(radioStationToAdd);
+
+        //getDialog().dismiss();
+    }
+
+    private void toggleWebImageView(final View view, final boolean enabled) {
+        if (view == null) {
             return;
         }
 
-        processInput(name, url, imageUrl, genre, country, addToFav);
+        final TextView label = view.findViewById(R.id.add_edit_station_web_image_url_label);
+        final EditText edit = view.findViewById(R.id.add_edit_station_web_image_url_edit);
 
-        getDialog().dismiss();
+        label.setEnabled(enabled);
+        edit.setEnabled(enabled);
     }
 }

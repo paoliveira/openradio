@@ -25,13 +25,14 @@ import android.view.ViewGroup;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.vo.RadioStation;
+import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
- *
+ * <p>
  * Dialog view to handle Add Radio Station functionality.
  */
 public final class AddStationDialog extends BaseAddEditStationDialog {
@@ -68,22 +69,18 @@ public final class AddStationDialog extends BaseAddEditStationDialog {
      * Validate provided input in order to pass data farther to
      * generate {@link RadioStation}.
      *
-     * @param name     Name of the Radio Station.
-     * @param url      Url of the Stream associated with Radio Station.
-     * @param imageUrl Url of the Image associated with Radio Station.
-     * @param genre    Genre of the Radio Station.
-     * @param country  Country of the Radio Station.
-     * @param addToFav Whether or not add radio station to favorites.
+     * @param radioStationToAdd
      */
     @Override
-    protected void processInput(final String name, final String url, final String imageUrl,
-                                final String genre, final String country, final boolean addToFav) {
+    protected void processInput(final RadioStationToAdd radioStationToAdd) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
         }
-        activity.startService(OpenRadioService.makeAddRadioStationIntent(
-                activity.getApplicationContext(), name, url, imageUrl, genre, country, addToFav
-        ));
+        activity.startService(
+                OpenRadioService.makeAddRadioStationIntent(
+                        activity.getApplicationContext(), radioStationToAdd
+                )
+        );
     }
 }

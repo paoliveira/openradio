@@ -166,6 +166,10 @@ public final class UrlBuilder {
         );
     }
 
+    public static Uri addStation() {
+        return Uri.parse(BASE_URL + "add");
+    }
+
     /**
      * Pre-process URI of the Radio Station icon. It checks whether URI contains old base part
      * and replace it with new one.

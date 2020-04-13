@@ -89,6 +89,7 @@ import com.yuriy.openradio.shared.view.dialog.LogsDialog;
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog;
 import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.shared.vo.RadioStation;
+import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 import com.yuriy.openradio.view.dialog.AddStationDialog;
 import com.yuriy.openradio.view.dialog.EditStationDialog;
 import com.yuriy.openradio.view.dialog.FeatureSortDialog;
@@ -642,11 +643,9 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Process user's input in order to edit custom {@link RadioStation}.
      */
-    public final void processEditStationCallback(final String mediaId, final String name, final String url,
-                                                 final String imageUrl, final String genre,
-                                                 final String country, final boolean addToFav) {
+    public final void processEditStationCallback(final String mediaId, final RadioStationToAdd radioStationToAdd) {
         startService(OpenRadioService.makeEditRadioStationIntent(
-                getApplicationContext(), mediaId, name, url, imageUrl, genre, country, addToFav
+                getApplicationContext(), mediaId, radioStationToAdd
         ));
     }
 
