@@ -169,6 +169,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private static final String EXTRA_KEY_SORT_IDS = "EXTRA_KEY_SORT_IDS";
 
+    private static final String EXTRA_KEY_RS_TO_ADD = "EXTRA_KEY_RS_TO_ADD";
+
     private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
 
     private static final String BUNDLE_ARG_CURRENT_PLAYBACK_STATE = "BUNDLE_ARG_CURRENT_PLAYBACK_STATE";
@@ -620,7 +622,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
      * @param intent
      */
     private void sendMessage(final Intent intent) {
@@ -631,7 +632,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
      * @param exception
      */
     private void onError(final ExoPlaybackException exception) {
@@ -640,7 +640,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
      * @param exception
      */
     private void onHandledError(final ExoPlaybackException exception) {
@@ -831,13 +830,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                                                    final RadioStationToAdd value) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND);
-        intent.putExtra(EXTRA_KEY_STATION_NAME, value.getName());
-        intent.putExtra(EXTRA_KEY_STATION_STREAM_URL, value.getUrl());
-        intent.putExtra(EXTRA_KEY_STATION_IMAGE_URL, value.getImageLocalUrl());
-        intent.putExtra(EXTRA_KEY_STATION_THUMB_URL, value.getImageLocalUrl());
-        intent.putExtra(EXTRA_KEY_STATION_GENRE, value.getGenre());
-        intent.putExtra(EXTRA_KEY_STATION_COUNTRY, value.getCountry());
-        intent.putExtra(EXTRA_KEY_STATION_ADD_TO_FAV, value.isAddToFav());
+        intent.putExtra(EXTRA_KEY_RS_TO_ADD, value);
         return intent;
     }
 
@@ -2158,48 +2151,57 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 break;
             }
             case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
-                final String name = intent.getStringExtra(EXTRA_KEY_STATION_NAME);
-                final String url = intent.getStringExtra(EXTRA_KEY_STATION_STREAM_URL);
-                final String imageUrl = intent.getStringExtra(EXTRA_KEY_STATION_IMAGE_URL);
-                final String genre = intent.getStringExtra(EXTRA_KEY_STATION_GENRE);
-                final String country = intent.getStringExtra(EXTRA_KEY_STATION_COUNTRY);
-                final boolean addToFav = intent.getBooleanExtra(
-                        EXTRA_KEY_STATION_ADD_TO_FAV, false
-                );
-
-                if (TextUtils.isEmpty(name)) {
-                    AppLogger.w(CLASS_NAME + "Can not add Station, Name is empty");
+                final RadioStationToAdd radioStationToAdd
+                        = (RadioStationToAdd) intent.getSerializableExtra(EXTRA_KEY_RS_TO_ADD);
+                if (radioStationToAdd == null) {
+                    AppLogger.e(CLASS_NAME + " Radio Station to add is null");
                     break;
                 }
 
+                if (TextUtils.isEmpty(radioStationToAdd.getName())) {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    radioStationToAdd,
+                                    "Radio Station's name is invalid"
+                            )
+                    );
+                    break;
+                }
+
+                final String url = radioStationToAdd.getUrl();
                 if (TextUtils.isEmpty(url)) {
-                    AppLogger.w(CLASS_NAME + "Can not add Station, URL is empty");
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    radioStationToAdd,
+                                    "Radio Station's url is invalid"
+                            )
+                    );
                     break;
                 }
 
-                String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, imageUrl);
+                String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, radioStationToAdd.getImageLocalUrl());
                 if (imageUrlLocal == null) {
-                    imageUrlLocal = imageUrl;
+                    imageUrlLocal = radioStationToAdd.getImageLocalUrl();
                 }
 
-                final RadioStation radioStationLocal = RadioStation.makeDefaultInstance(
+                final RadioStation radioStation = RadioStation.makeDefaultInstance(
                         context, LocalRadioStationsStorage.getId(context)
                 );
 
-                radioStationLocal.setName(name);
-                radioStationLocal.getMediaStream().setVariant(0, url);
-                radioStationLocal.setImageUrl(imageUrlLocal);
-                radioStationLocal.setThumbUrl(imageUrlLocal);
-                radioStationLocal.setGenre(genre);
-                radioStationLocal.setCountry(country);
-                radioStationLocal.setIsLocal(true);
+                radioStation.setName(radioStationToAdd.getName());
+                radioStation.getMediaStream().setVariant(0, url);
+                radioStation.setImageUrl(imageUrlLocal);
+                radioStation.setThumbUrl(imageUrlLocal);
+                radioStation.setGenre(radioStationToAdd.getGenre());
+                radioStation.setCountry(radioStationToAdd.getCountry());
+                radioStation.setIsLocal(true);
 
-                LocalRadioStationsStorage.add(radioStationLocal, context);
-                if (addToFav) {
-                    FavoritesStorage.add(radioStationLocal, context);
-                }
-
-                notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);
+//                LocalRadioStationsStorage.add(radioStation, context);
+//                if (radioStationToAdd.isAddToFav()) {
+//                    FavoritesStorage.add(radioStation, context);
+//                }
+//
+//                notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);
 
                 break;
             }

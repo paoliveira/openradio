@@ -16,10 +16,12 @@
 
 package com.yuriy.openradio.shared.vo;
 
+import java.io.Serializable;
+
 /**
  * This class contains data to validate prior to add to data set (either local or remote server).
  */
-public final class RadioStationToAdd {
+public final class RadioStationToAdd implements Serializable {
 
     private final String mName;
     private final String mUrl;

@@ -18,6 +18,8 @@ package com.yuriy.openradio.shared.broadcast;
 
 import android.content.Intent;
 
+import com.yuriy.openradio.shared.vo.RadioStationToAdd;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -44,6 +46,10 @@ public final class AppLocalBroadcast {
      */
     private static final String ACTION_MASTER_VOLUME_CHANGED = "ACTION_MASTER_VOLUME_CHANGED";
 
+    private static final String ACTION_VALIDATE_OF_RS_FAILED = "ACTION_VALIDATE_OF_RS_FAILED";
+
+    private static final String ACTION_VALIDATE_OF_RS_SUCCESS = "ACTION_VALIDATE_OF_RS_SUCCESS";
+
     /**
      * Key value for the Currently selected index in the Intent's bundles.
      */
@@ -53,6 +59,10 @@ public final class AppLocalBroadcast {
      * Key value for the Currently selected Media Id in the Intent's bundles.
      */
     private static final String KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE";
+
+    private static final String KEY_VALIDATED_RS = "KEY_VALIDATED_RS";
+
+    private static final String KEY_VALIDATED_RS_FAIL_REASON = "KEY_VALIDATED_RS_FAIL_REASON";
 
     /**
      * Private constructor.
@@ -108,12 +118,11 @@ public final class AppLocalBroadcast {
         return new Intent(ACTION_MASTER_VOLUME_CHANGED);
     }
 
-    /**
-     * Factory method to create default instance.
-     *
-     * @return Instance of the {@link AppLocalBroadcast}
-     */
-    public static AppLocalBroadcast getInstance() {
-        return new AppLocalBroadcast();
+    public static Intent createIntentValidateOfRSFailed(final RadioStationToAdd radioStationToAdd,
+                                                        final String reason) {
+        final Intent intent = new Intent(ACTION_VALIDATE_OF_RS_FAILED);
+        intent.putExtra(KEY_VALIDATED_RS, radioStationToAdd);
+        intent.putExtra(KEY_VALIDATED_RS_FAIL_REASON, reason);
+        return intent;
     }
 }
