@@ -16,6 +16,13 @@
 
 package com.yuriy.openradio.shared.model.net;
 
+import android.net.Uri;
+
+import androidx.annotation.NonNull;
+import androidx.core.util.Pair;
+
+import java.util.List;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -23,9 +30,34 @@ package com.yuriy.openradio.shared.model.net;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
-final class DownloaderException extends Exception {
+public final class DownloaderException extends Exception {
 
-    DownloaderException(final String message, final Throwable cause) {
+    public DownloaderException(final String message, final Throwable cause) {
         super(message, cause);
+    }
+
+    /**
+     * @param uri
+     * @param parameters
+     * @return
+     */
+    public static String createExceptionMessage(@NonNull final Uri uri,
+                                                @NonNull final List<Pair<String, String>> parameters) {
+        return createExceptionMessage(uri.toString(), parameters);
+    }
+
+    /**
+     * @param uriStr
+     * @param parameters
+     * @return
+     */
+    public static String createExceptionMessage(@NonNull final String uriStr,
+                                                @NonNull final List<Pair<String, String>> parameters) {
+        final StringBuilder builder = new StringBuilder(uriStr);
+        for (final Pair<String, String> pair : parameters) {
+            builder.append(" ");
+            builder.append(pair.toString());
+        }
+        return builder.toString();
     }
 }

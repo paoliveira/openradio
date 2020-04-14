@@ -26,7 +26,6 @@ import androidx.core.util.Pair;
 
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.shared.model.net.Downloader;
-import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl;
 import com.yuriy.openradio.shared.model.parser.DataParser;
 import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl;
 import com.yuriy.openradio.shared.model.storage.cache.CacheType;
@@ -38,6 +37,7 @@ import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.NetUtils;
 import com.yuriy.openradio.shared.vo.Category;
 import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.shared.vo.MediaStream;
@@ -50,6 +50,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by Yuriy Chernyshov
@@ -160,41 +161,13 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
             return allCountries;
         }
 
-//        final JSONArray array = downloadJsonArray(downloader, uri);
-//
-//        JSONObject object;
-//        String countryName;
-//        String countryCode;
-//
-//        for (int i = 0; i < array.length(); i++) {
-//            try {
-//                object = (JSONObject) array.get(i);
-//
-//                if (object.has(JsonDataParserImpl.KEY_NAME)) {
-//                    countryName = object.getString(JsonDataParserImpl.KEY_NAME);
-//
-//                    if (TextUtils.isEmpty(countryName)) {
-//                        AppLogger.w(
-//                                CLASS_NAME + "Can not parse Country name:" + countryName
-//                        );
-//                        continue;
-//                    }
-//
-//                    countryCode = LocationService.COUNTRY_NAME_TO_CODE.get(countryName);
-//                    if (TextUtils.isEmpty(countryCode)) {
-//                        AppLogger.w(
-//                                CLASS_NAME + "Can not find Country code for:" + countryName
-//                        );
-//                        continue;
-//                    }
-//                    allCountries.add(new Country(countryName, countryCode));
-//                }
-//            } catch (final JSONException e) {
-//                AnalyticsUtils.logException(e);
-//            }
-//        }
         for (final String countryName : LocationService.COUNTRY_NAME_TO_CODE.keySet()) {
-            allCountries.add(new Country(countryName, LocationService.COUNTRY_NAME_TO_CODE.get(countryName)));
+            allCountries.add(
+                    new Country(
+                            countryName,
+                            Objects.requireNonNull(LocationService.COUNTRY_NAME_TO_CODE.get(countryName))
+                    )
+            );
         }
 
         return allCountries;
@@ -245,13 +218,41 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     }
 
     @Override
+    public boolean addStation(final Downloader downloader,
+                              final Uri uri,
+                              final List<Pair<String, String>> parameters,
+                              final CacheType cacheType) {
+        // Post data to the server.
+        final String response = new String(downloader.downloadDataFromUri(uri, parameters));
+        AppLogger.i("Add station response:" + response);
+        if (TextUtils.isEmpty(response)) {
+            return false;
+        }
+        boolean value = false;
+        try {
+            // {"ok":false,"message":"AddStationError 'url is empty'","uuid":""}
+            // {"ok":true,"message":"added station successfully","uuid":"3516ff35-14b9-4845-8624-4e6b0a7a3ab9"}
+            final JSONObject jsonObject = new JSONObject(response);
+            if (jsonObject.has("ok")) {
+                final String str = jsonObject.getString("ok");
+                if (!TextUtils.isEmpty(str)) {
+                    value = str.equalsIgnoreCase("true");
+                }
+            }
+        } catch (final JSONException e) {
+            AnalyticsUtils.logException(e);
+        }
+        return value;
+    }
+
+    @Override
     @Nullable
     public RadioStation getStation(final Downloader downloader, final Uri uri, final CacheType cacheType) {
-        // Download response from the server
+        // Download response from the server.
         final String response = new String(downloader.downloadDataFromUri(uri));
-        AppLogger.i(CLASS_NAME + "Response:\n" + response);
+        AppLogger.i(CLASS_NAME + "Response:" + response);
 
-        // Ignore empty response
+        // Ignore empty response.
         if (response.isEmpty()) {
             AppLogger.e(CLASS_NAME + "Can not parse data, response is empty");
             return null;
@@ -310,7 +311,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         // Create key to associate response with.
         String responsesMapKey = uri.toString();
         try {
-            responsesMapKey += HTTPDownloaderImpl.getPostParametersQuery(parameters);
+            responsesMapKey += NetUtils.getPostParametersQuery(parameters);
         } catch (final UnsupportedEncodingException e) {
             AnalyticsUtils.logException(e);
             responsesMapKey = null;
@@ -358,70 +359,6 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         }
 
         return array;
-    }
-
-    /**
-     * Select stream item from the collection of the streams.
-     *
-     * @param jsonArray Collection of the streams.
-     * @return Selected stream.
-     */
-    @NonNull
-    private MediaStream selectStream(final JSONArray jsonArray) {
-        final MediaStream mediaStream = MediaStream.makeDefaultInstance();
-
-        if (jsonArray == null) {
-            return mediaStream;
-        }
-
-        JSONObject object;
-        int length = jsonArray.length();
-        int bitrate = 0;
-        String url = "";
-        for (int i = 0; i < length; i++) {
-            try {
-                object = jsonArray.getJSONObject(i);
-
-                if (object == null) {
-                    continue;
-                }
-
-                if (object.has(JsonDataParserImpl.KEY_BIT_RATE)) {
-                    final Object bitrateObj = object.get(JsonDataParserImpl.KEY_BIT_RATE);
-                    if (bitrateObj instanceof Integer) {
-                        bitrate = object.getInt(JsonDataParserImpl.KEY_BIT_RATE);
-                    }
-                    if (bitrateObj instanceof String) {
-                        final String bitrateStr = String.valueOf(bitrateObj);
-                        if (!TextUtils.isEmpty(bitrateStr) && TextUtils.isDigitsOnly(bitrateStr)) {
-                            bitrate = Integer.valueOf(bitrateStr);
-                        }
-                    }
-                }
-                if (object.has(JsonDataParserImpl.KEY_URL)) {
-                    url = object.getString(JsonDataParserImpl.KEY_URL);
-                }
-
-                if (url == null || url.isEmpty()) {
-                    continue;
-                }
-
-                if (url.startsWith("htt://")) {
-                    url = url.replace("htt://", "http://");
-                }
-
-                if (url.startsWith("htyp://")) {
-                    url = url.replace("htyp://", "http://");
-                }
-
-                mediaStream.setVariant(bitrate, url);
-
-            } catch (final Exception e) {
-                AnalyticsUtils.logException(e);
-            }
-        }
-
-        return mediaStream;
     }
 
     /**

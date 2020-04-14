@@ -18,6 +18,14 @@ package com.yuriy.openradio.shared.model.net;
 
 import android.net.Uri;
 
+import androidx.core.util.Pair;
+
+import com.yuriy.openradio.shared.service.LocationService;
+import com.yuriy.openradio.shared.vo.RadioStationToAdd;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -166,8 +174,16 @@ public final class UrlBuilder {
         );
     }
 
-    public static Uri addStation() {
-        return Uri.parse(BASE_URL + "add");
+    public static Pair<Uri, List<Pair<String, String>>> addStation(final RadioStationToAdd rsToAdd) {
+        final List<Pair<String, String>> postParams = new ArrayList<>();
+        postParams.add(new Pair<>("name", rsToAdd.getName()));
+        postParams.add(new Pair<>("url", rsToAdd.getUrl()));
+        postParams.add(new Pair<>("homepage", rsToAdd.getHomePage()));
+        postParams.add(new Pair<>("favicon", rsToAdd.getImageWebUrl()));
+        postParams.add(new Pair<>("country", rsToAdd.getCountry()));
+        postParams.add(new Pair<>("countrycode", LocationService.COUNTRY_NAME_TO_CODE.get(rsToAdd.getCountry())));
+        postParams.add(new Pair<>("tags", rsToAdd.getGenre()));
+        return new Pair<>(Uri.parse(BASE_URL + "add"), postParams);
     }
 
     /**

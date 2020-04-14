@@ -27,30 +27,32 @@ public final class RadioStationToAdd implements Serializable {
     private final String mUrl;
     private final String mImageLocalUrl;
     private final String mImageWebUrl;
+    private final String mHomePage;
     private final String mGenre;
     private final String mCountry;
     private final boolean mAddToFav;
     private final boolean mAddToServer;
 
     /**
-     *
      * @param name          Name of the Radio Station.
      * @param url           Url of the Stream associated with Radio Station.
      * @param imageLocalUrl Local Url of the Image associated with Radio Station.
      * @param imageWebUrl   Web Url of the Image associated with Radio Station.
+     * @param homePage      Web Url of Radio Station's home page.
      * @param genre         Genre of the Radio Station.
      * @param country       Country of the Radio Station.
      * @param addToFav      Whether or not add radio station to favorites.
      * @param addToServer   Whether or not add radio station to the server.
      */
     public RadioStationToAdd(final String name, final String url, final String imageLocalUrl,
-                             final String imageWebUrl, final String genre, final String country,
-                             final boolean addToFav, final boolean addToServer) {
+                             final String imageWebUrl, final String homePage, final String genre,
+                             final String country, final boolean addToFav, final boolean addToServer) {
         super();
         mName = name;
         mUrl = url;
         mImageLocalUrl = imageLocalUrl;
         mImageWebUrl = imageWebUrl;
+        mHomePage = homePage;
         mGenre = genre;
         mCountry = country;
         mAddToFav = addToFav;
@@ -71,6 +73,10 @@ public final class RadioStationToAdd implements Serializable {
 
     public String getImageWebUrl() {
         return mImageWebUrl;
+    }
+
+    public String getHomePage() {
+        return mHomePage;
     }
 
     public String getGenre() {

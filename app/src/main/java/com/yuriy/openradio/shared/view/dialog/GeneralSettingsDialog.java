@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.view.dialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -31,6 +32,7 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
+import com.yuriy.openradio.shared.view.SafeToast;
 
 /**
  * Created by Yuriy Chernyshov
@@ -142,6 +144,10 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         }
 
         final String userAgent = mUserAgentEditView.getText().toString().trim();
+        if (TextUtils.isEmpty(userAgent)) {
+            SafeToast.showAnyThread(context, getString(R.string.user_agent_empty_warning));
+            return;
+        }
         AppPreferencesManager.setCustomUserAgent(context, userAgent);
     }
 }

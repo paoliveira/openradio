@@ -31,12 +31,15 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.fragment.app.DialogFragment;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiver;
+import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiverListener;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
@@ -67,13 +70,16 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
     EditText mImageLocalUrlEdit;
     private EditText mImageWebUrlEdit;
     EditText mNameEdit;
+    EditText mHomePageEdit;
     EditText mUrlEdit;
     Spinner mCountriesSpinner;
     Spinner mGenresSpinner;
     CheckBox mAddToFavCheckView;
+    ProgressBar mProgressView;
     private CheckBox mAddToSrvrCheckView;
     private ArrayAdapter<CharSequence> mGenresAdapter;
     private ArrayAdapter<String> mCountriesAdapter;
+    private RSAddValidatedReceiver mRsAddValidatedReceiver;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
@@ -84,13 +90,33 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
                 (int) (AppUtils.getShortestScreenSize(getActivity()) * 0.8),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
+        mRsAddValidatedReceiver = new RSAddValidatedReceiver(
+                new RSAddValidatedReceiverListener() {
+                    @Override
+                    public void onSuccess(final String message) {
+                        mProgressView.setVisibility(View.INVISIBLE);
+                        SafeToast.showAnyThread(getContext(), message);
+                        getDialog().dismiss();
+                    }
+
+                    @Override
+                    public void onFailure(final String reason) {
+                        mProgressView.setVisibility(View.INVISIBLE);
+                        SafeToast.showAnyThread(getContext(), reason);
+                    }
+                }
+        );
+        mRsAddValidatedReceiver.register(getContext());
+
         final LinearLayout root = view.findViewById(R.id.add_edit_station_dialog_root);
         root.setLayoutParams(layoutParams);
 
+        mHomePageEdit = view.findViewById(R.id.add_edit_station_home_page_edit);
         mNameEdit = view.findViewById(R.id.add_edit_station_name_edit);
         mUrlEdit = view.findViewById(R.id.add_edit_station_stream_url_edit);
         mImageLocalUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit);
         mImageWebUrlEdit = view.findViewById(R.id.add_edit_station_web_image_url_edit);
+        mProgressView = view.findViewById(R.id.add_edit_station_dialog_progress_bar_view);
 
         final List<String> countries = new ArrayList<>(LocationService.COUNTRY_CODE_TO_NAME.values());
         Collections.sort(countries);
@@ -141,16 +167,20 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
 
         final Button addOrEditBtn = view.findViewById(R.id.add_edit_station_dialog_add_btn_view);
         addOrEditBtn.setOnClickListener(
-                viewBtn -> processInputInternal(
-                        mNameEdit.getText().toString(),
-                        mUrlEdit.getText().toString(),
-                        mImageLocalUrlEdit.getText().toString(),
-                        mImageWebUrlEdit.getText().toString(),
-                        String.valueOf(mGenresSpinner.getSelectedItem()),
-                        String.valueOf(mCountriesSpinner.getSelectedItem()),
-                        mAddToFavCheckView.isChecked(),
-                        mAddToSrvrCheckView.isChecked()
-                )
+                viewBtn -> {
+                    mProgressView.setVisibility(View.VISIBLE);
+                    processInputInternal(
+                            mNameEdit.getText().toString(),
+                            mUrlEdit.getText().toString(),
+                            mImageLocalUrlEdit.getText().toString(),
+                            mImageWebUrlEdit.getText().toString(),
+                            mHomePageEdit.getText().toString(),
+                            String.valueOf(mGenresSpinner.getSelectedItem()),
+                            String.valueOf(mCountriesSpinner.getSelectedItem()),
+                            mAddToFavCheckView.isChecked(),
+                            mAddToSrvrCheckView.isChecked()
+                    );
+                }
         );
 
         final Button cancelBtn = view.findViewById(R.id.add_edit_station_dialog_cancel_btn_view);
@@ -158,7 +188,17 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
                 viewBtn -> getDialog().dismiss()
         );
 
+        mProgressView.setVisibility(View.INVISIBLE);
+
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        mProgressView.setVisibility(View.INVISIBLE);
+        mRsAddValidatedReceiver.unregister(getContext());
     }
 
     @Override
@@ -251,21 +291,20 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
      * @param url           Url of the Stream associated with Radio Station.
      * @param imageLocalUrl Local Url of the Image associated with Radio Station.
      * @param imageWebUrl   Web Url of the Image associated with Radio Station.
+     * @param homePage      Web Url of Radio Station's home page.
      * @param genre         Genre of the Radio Station.
      * @param country       Country of the Radio Station.
      * @param addToFav      Whether or not add radio station to favorites.
      * @param addToServer   Whether or not add radio station to the server.
      */
     private void processInputInternal(final String name, final String url, final String imageLocalUrl,
-                                      final String imageWebUrl, final String genre, final String country,
-                                      final boolean addToFav, final boolean addToServer) {
-        final RadioStationToAdd radioStationToAdd = new RadioStationToAdd(
-                name, url, imageLocalUrl, imageWebUrl, genre, country, addToFav, addToServer
+                                      final String imageWebUrl, final String homePage, final String genre,
+                                      final String country, final boolean addToFav, final boolean addToServer) {
+        final RadioStationToAdd rsToAdd = new RadioStationToAdd(
+                name, url, imageLocalUrl, imageWebUrl, homePage, genre, country, addToFav, addToServer
         );
 
-        processInput(radioStationToAdd);
-
-        //getDialog().dismiss();
+        processInput(rsToAdd);
     }
 
     private void toggleWebImageView(final View view, final boolean enabled) {

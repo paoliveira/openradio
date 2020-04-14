@@ -60,9 +60,9 @@ public final class AppLocalBroadcast {
      */
     private static final String KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE";
 
-    private static final String KEY_VALIDATED_RS = "KEY_VALIDATED_RS";
-
     private static final String KEY_VALIDATED_RS_FAIL_REASON = "KEY_VALIDATED_RS_FAIL_REASON";
+
+    private static final String KEY_VALIDATED_RS_SUCCESS_MESSAGE = "KEY_VALIDATED_RS_SUCCESS_MESSAGE";
 
     /**
      * Private constructor.
@@ -88,6 +88,34 @@ public final class AppLocalBroadcast {
      */
     public static String getActionMasterVolumeChanged() {
         return ACTION_MASTER_VOLUME_CHANGED;
+    }
+
+    public static String getActionValidateOfRSFailed() {
+        return ACTION_VALIDATE_OF_RS_FAILED;
+    }
+
+    public static String getActionValidateOfRSSuccess() {
+        return ACTION_VALIDATE_OF_RS_SUCCESS;
+    }
+
+    public static String getActionValidateOfRSFailedReason(final Intent intent) {
+        if (intent == null) {
+            return "";
+        }
+        if (!intent.hasExtra(KEY_VALIDATED_RS_FAIL_REASON)) {
+            return "";
+        }
+        return intent.getStringExtra(KEY_VALIDATED_RS_FAIL_REASON);
+    }
+
+    public static String getActionValidateOfRSSuccessMessage(final Intent intent) {
+        if (intent == null) {
+            return "";
+        }
+        if (!intent.hasExtra(KEY_VALIDATED_RS_SUCCESS_MESSAGE)) {
+            return "";
+        }
+        return intent.getStringExtra(KEY_VALIDATED_RS_SUCCESS_MESSAGE);
     }
 
     /**
@@ -118,11 +146,15 @@ public final class AppLocalBroadcast {
         return new Intent(ACTION_MASTER_VOLUME_CHANGED);
     }
 
-    public static Intent createIntentValidateOfRSFailed(final RadioStationToAdd radioStationToAdd,
-                                                        final String reason) {
+    public static Intent createIntentValidateOfRSFailed(final String reason) {
         final Intent intent = new Intent(ACTION_VALIDATE_OF_RS_FAILED);
-        intent.putExtra(KEY_VALIDATED_RS, radioStationToAdd);
         intent.putExtra(KEY_VALIDATED_RS_FAIL_REASON, reason);
+        return intent;
+    }
+
+    public static Intent createIntentValidateOfRSSuccess(final String message) {
+        final Intent intent = new Intent(ACTION_VALIDATE_OF_RS_SUCCESS);
+        intent.putExtra(KEY_VALIDATED_RS_SUCCESS_MESSAGE, message);
         return intent;
     }
 }

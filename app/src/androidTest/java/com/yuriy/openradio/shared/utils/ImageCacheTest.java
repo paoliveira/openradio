@@ -2,8 +2,8 @@ package com.yuriy.openradio.shared.utils;
 
 import android.content.Context;
 
-import androidx.test.InstrumentationRegistry;
-import androidx.test.runner.AndroidJUnit4;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,7 +24,7 @@ public class ImageCacheTest {
 
     @Test
     public void testConstructExternalCacheDir() throws Exception {
-        final Context context = InstrumentationRegistry.getTargetContext();
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final File file = ImageCache.constructExternalCacheDir(context);
 
         assertThat(file, notNullValue());

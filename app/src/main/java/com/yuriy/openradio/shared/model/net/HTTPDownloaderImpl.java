@@ -24,23 +24,17 @@ import androidx.core.util.Pair;
 
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.NetUtils;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,9 +68,6 @@ public final class HTTPDownloaderImpl implements Downloader {
      */
     private static final int EOF = -1;
 
-    private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
-    private static final String USER_AGENT_PARAMETER_VALUE = "OpenRadioApp";
-
     private String[] mUrlsSet;
 
     private final Random mRandom;
@@ -104,72 +95,22 @@ public final class HTTPDownloaderImpl implements Downloader {
 
         AppLogger.i(CLASS_NAME + " Request URL:" + url.toString());
 
-        HttpURLConnection urlConnection = null;
-        try {
-            urlConnection = (HttpURLConnection) url.openConnection();
-            urlConnection.setReadTimeout(AppUtils.TIME_OUT);
-            urlConnection.setConnectTimeout(AppUtils.TIME_OUT);
-            urlConnection.setRequestMethod("GET");
-        } catch (final SocketTimeoutException exception) {
-            AnalyticsUtils.logException(
-                    new DownloaderException(
-                            createExceptionMessage(uri, parameters),
-                            exception
-                    )
-            );
-        } catch (final IOException exception) {
-            AnalyticsUtils.logException(
-                    new DownloaderException(
-                            createExceptionMessage(uri, parameters),
-                            exception
-                    )
-            );
-        }
-
-        if (urlConnection == null) {
+        final HttpURLConnection connection = NetUtils.getHttpURLConnection(
+                url,
+                parameters.isEmpty() ? "GET" : "POST",
+                parameters
+        );
+        if (connection == null) {
             return response;
         }
 
-        // If there are http request parameters:
-        if (!parameters.isEmpty()) {
-            boolean result = false;
-            // POST method is required for parameters.
-            try {
-                urlConnection.setRequestMethod("POST");
-                result = true;
-            } catch (final ProtocolException exception) {
-                AnalyticsUtils.logException(
-                        new DownloaderException(
-                                createExceptionMessage(uri, parameters),
-                                exception
-                        )
-                );
-            }
-
-            // If POST is supported:
-            if (result) {
-                try (final OutputStream outputStream = urlConnection.getOutputStream();
-                     final BufferedWriter writer
-                             = new BufferedWriter(new OutputStreamWriter(outputStream, AppUtils.UTF8))) {
-                    writer.write(getPostParametersQuery(parameters));
-                    writer.flush();
-                } catch (final IOException exception) {
-                    AnalyticsUtils.logException(
-                            new DownloaderException(createExceptionMessage(uri, parameters), exception)
-                    );
-                }
-            }
-        }
-
-        urlConnection.setRequestProperty(USER_AGENT_PARAMETER_KEY, USER_AGENT_PARAMETER_VALUE);
-
         int responseCode = 0;
         try {
-            responseCode = urlConnection.getResponseCode();
+            responseCode = connection.getResponseCode();
         } catch (final IOException exception) {
             AnalyticsUtils.logException(
                     new DownloaderException(
-                            createExceptionMessage(uri, parameters),
+                            DownloaderException.createExceptionMessage(uri, parameters),
                             exception
                     )
             );
@@ -177,10 +118,10 @@ public final class HTTPDownloaderImpl implements Downloader {
 
         AppLogger.d("Response code:" + responseCode);
         if (responseCode < 200 || responseCode > 299) {
-            urlConnection.disconnect();
+            NetUtils.closeHttpURLConnection(connection);
             AnalyticsUtils.logException(
                     new DownloaderException(
-                            createExceptionMessage(uri, parameters),
+                            DownloaderException.createExceptionMessage(uri, parameters),
                             new Exception("Response code is " + responseCode)
                     )
             );
@@ -188,17 +129,17 @@ public final class HTTPDownloaderImpl implements Downloader {
         }
 
         try {
-            final InputStream inputStream = new BufferedInputStream(urlConnection.getInputStream());
+            final InputStream inputStream = new BufferedInputStream(connection.getInputStream());
             response = toByteArray(inputStream);
         } catch (final IOException exception) {
             AnalyticsUtils.logException(
                     new DownloaderException(
-                            createExceptionMessage(uri, parameters),
+                            DownloaderException.createExceptionMessage(uri, parameters),
                             exception
                     )
             );
         } finally {
-            urlConnection.disconnect();
+            NetUtils.closeHttpURLConnection(connection);
         }
 
         return response;
@@ -320,57 +261,6 @@ public final class HTTPDownloaderImpl implements Downloader {
     }
 
     /**
-     * Creates and returns a query of htpp connection parameters.
-     *
-     * @param params List of the parameters (keys and values).
-     * @return String representation of query.
-     * @throws UnsupportedEncodingException
-     */
-    public static String getPostParametersQuery(final List<Pair<String, String>> params)
-            throws UnsupportedEncodingException {
-        final StringBuilder result = new StringBuilder();
-        boolean first = true;
-
-        for (final Pair<String, String> pair : params) {
-            if (first) {
-                first = false;
-            } else {
-                result.append("&");
-            }
-            result.append(URLEncoder.encode(pair.first, AppUtils.UTF8));
-            result.append("=");
-            result.append(URLEncoder.encode(pair.second, AppUtils.UTF8));
-        }
-
-        return result.toString();
-    }
-
-    /**
-     * @param uri
-     * @param parameters
-     * @return
-     */
-    private String createExceptionMessage(@NonNull final Uri uri,
-                                          @NonNull final List<Pair<String, String>> parameters) {
-        return createExceptionMessage(uri.toString(), parameters);
-    }
-
-    /**
-     * @param uriStr
-     * @param parameters
-     * @return
-     */
-    private String createExceptionMessage(@NonNull final String uriStr,
-                                          @NonNull final List<Pair<String, String>> parameters) {
-        final StringBuilder builder = new StringBuilder(uriStr);
-        for (final Pair<String, String> pair : parameters) {
-            builder.append(" ");
-            builder.append(pair.toString());
-        }
-        return builder.toString();
-    }
-
-    /**
      * Do DNS look up in order to get available url for service connection.
      * Addresses, if found, are cached and next time is used from the cache.
      *
@@ -408,7 +298,7 @@ public final class HTTPDownloaderImpl implements Downloader {
             }
         } catch (final UnknownHostException exception) {
             AnalyticsUtils.logException(
-                    new DownloaderException(createExceptionMessage(uri, parameters), exception)
+                    new DownloaderException(DownloaderException.createExceptionMessage(uri, parameters), exception)
             );
         }
 
@@ -445,7 +335,7 @@ public final class HTTPDownloaderImpl implements Downloader {
             url = new URL(uri);
         } catch (final MalformedURLException exception) {
             AnalyticsUtils.logException(
-                    new DownloaderException(createExceptionMessage(uri, parameters), exception)
+                    new DownloaderException(DownloaderException.createExceptionMessage(uri, parameters), exception)
             );
             url = null;
         }

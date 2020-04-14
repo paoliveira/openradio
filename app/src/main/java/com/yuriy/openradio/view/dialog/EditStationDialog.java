@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -85,6 +86,8 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
 
         final Button addOrEditBtn = view.findViewById(R.id.add_edit_station_dialog_add_btn_view);
         addOrEditBtn.setText(R.string.edit_station_dialog_button_label);
+        final CheckBox addToSrvChkBox = view.findViewById(R.id.add_to_srvr_check_view);
+        addToSrvChkBox.setVisibility(View.GONE);
 
         mMediaId = getMediaId(getArguments());
 

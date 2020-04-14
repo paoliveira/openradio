@@ -45,7 +45,6 @@ public interface ApiServiceProvider {
      *
      * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link Uri} of the request.
-     *
      * @return Collection of the {@link Category}s
      */
     List<Category> getCategories(final Downloader downloader, final Uri uri, final CacheType cacheType);
@@ -55,7 +54,6 @@ public interface ApiServiceProvider {
      *
      * @param downloader Implementation of the {@link Downloader} interface.
      * @param uri        {@link Uri} of the request.
-     *
      * @return Collection of the Countries
      */
     List<Country> getCountries(final Downloader downloader, final Uri uri, final CacheType cacheType);
@@ -90,4 +88,16 @@ public interface ApiServiceProvider {
      * @return Radio Station.
      */
     RadioStation getStation(final Downloader downloader, final Uri uri, final CacheType cacheType);
+
+    /**
+     * Add Radio Station to server.
+     *
+     * @param downloader Implementation of the {@link Downloader} interface.
+     * @param uri        {@link Uri} of the request.
+     * @param parameters List of parameters to attach to url connection.
+     */
+    boolean addStation(final Downloader downloader,
+                       final Uri uri,
+                       final List<Pair<String, String>> parameters,
+                       final CacheType cacheType);
 }

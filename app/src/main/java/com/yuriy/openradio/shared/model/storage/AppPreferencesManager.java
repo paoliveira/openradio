@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.storage;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
@@ -202,10 +203,14 @@ public final class AppPreferencesManager {
      * @return Value of the custom user agent, or default one in case of errors.
      */
     public static String getCustomUserAgent(@NonNull final Context context) {
-        return getSharedPreferences(context).getString(
+        String value = getSharedPreferences(context).getString(
                 PREFS_KEY_CUSTOM_USER_AGENT,
                 AppUtils.getDefaultUserAgent(context)
         );
+        if (TextUtils.isEmpty(value)) {
+            value = AppUtils.getDefaultUserAgent(context);
+        }
+        return value;
     }
 
     /**
@@ -214,7 +219,10 @@ public final class AppPreferencesManager {
      * @param value Custom user agent.
      */
     public static void setCustomUserAgent(@NonNull final Context context,
-                                          @NonNull final String value) {
+                                          @NonNull String value) {
+        if (TextUtils.isEmpty(value)) {
+            value = AppUtils.getDefaultUserAgent(context);
+        }
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putString(PREFS_KEY_CUSTOM_USER_AGENT, value);
         editor.apply();

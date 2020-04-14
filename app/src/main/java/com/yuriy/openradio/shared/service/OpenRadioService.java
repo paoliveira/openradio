@@ -41,6 +41,7 @@ import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.media.MediaBrowserServiceCompat;
 
@@ -89,6 +90,7 @@ import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
+import com.yuriy.openradio.shared.utils.NetUtils;
 import com.yuriy.openradio.shared.utils.PackageValidator;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
@@ -98,7 +100,7 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -686,24 +688,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private String[] extractUrlsFromPlaylist(final String playlistUrl) {
-        URL url;
-        HttpURLConnection conn = null;
+        final HttpURLConnection connection = NetUtils.getHttpURLConnection(playlistUrl, "GET");
+        if (connection == null) {
+            return new String[0];
+        }
         InputStream is = null;
         String[] result = null;
 
         try {
-            url = new URL(playlistUrl);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(AppUtils.TIME_OUT);
-            conn.setReadTimeout(AppUtils.TIME_OUT);
-            conn.setRequestMethod("GET");
-
-            final String contentType = conn.getContentType();
-            is = conn.getInputStream();
+            final String contentType = connection.getContentType();
+            is = connection.getInputStream();
 
             final AutoDetectParser parser = new AutoDetectParser(AppUtils.TIME_OUT);
             final Playlist playlist = new Playlist();
-            parser.parse(url.toString(), contentType, is, playlist);
+            parser.parse(playlistUrl, contentType, is, playlist);
 
             final int length = playlist.getPlaylistEntries().size();
             result = new String[length];
@@ -720,9 +718,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             final String errorMessage = "Can not get urls from playlist at " + playlistUrl;
             AnalyticsUtils.logException(new Exception(errorMessage, e));
         } finally {
-            if (conn != null) {
-                conn.disconnect();
-            }
+            NetUtils.closeHttpURLConnection(connection);
             if (is != null) {
                 try {
                     is.close();
@@ -2147,61 +2143,112 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
                 if (result) {
                     notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST);
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSSuccess(
+                                    "Radio Station updated successfully"
+                            )
+                    );
+                } else {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    "Can not update Radio Station"
+                            )
+                    );
                 }
                 break;
             }
             case VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND: {
-                final RadioStationToAdd radioStationToAdd
+                final RadioStationToAdd rsToAdd
                         = (RadioStationToAdd) intent.getSerializableExtra(EXTRA_KEY_RS_TO_ADD);
-                if (radioStationToAdd == null) {
+                if (rsToAdd == null) {
                     AppLogger.e(CLASS_NAME + " Radio Station to add is null");
                     break;
                 }
 
-                if (TextUtils.isEmpty(radioStationToAdd.getName())) {
+                if (TextUtils.isEmpty(rsToAdd.getName())) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
-                                    radioStationToAdd,
                                     "Radio Station's name is invalid"
                             )
                     );
                     break;
                 }
 
-                final String url = radioStationToAdd.getUrl();
+                final String url = rsToAdd.getUrl();
                 if (TextUtils.isEmpty(url)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
-                                    radioStationToAdd,
                                     "Radio Station's url is invalid"
                             )
                     );
                     break;
                 }
 
-                String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, radioStationToAdd.getImageLocalUrl());
+                if (!NetUtils.checkResource(url)) {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    "Radio Station's stream is invalid"
+                            )
+                    );
+                    break;
+                }
+
+                final String imageWebUrl = rsToAdd.getImageWebUrl();
+                if (!NetUtils.checkResource(imageWebUrl)) {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    "Radio Station's web image is invalid"
+                            )
+                    );
+                }
+
+                final String homePage = rsToAdd.getHomePage();
+                if (!NetUtils.checkResource(homePage)) {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    "Radio Station's home page is invalid"
+                            )
+                    );
+                }
+
+                Pair<Uri, List<Pair<String, String>>> urlData = UrlBuilder.addStation(rsToAdd);
+                if (!mApiServiceProvider.addStation(
+                        mDownloader, urlData.first, urlData.second, CacheType.NONE)) {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                    "Radio Station can not be added to server"
+                            )
+                    );
+                    break;
+                }
+
+                String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, rsToAdd.getImageLocalUrl());
                 if (imageUrlLocal == null) {
-                    imageUrlLocal = radioStationToAdd.getImageLocalUrl();
+                    imageUrlLocal = rsToAdd.getImageLocalUrl();
                 }
 
                 final RadioStation radioStation = RadioStation.makeDefaultInstance(
                         context, LocalRadioStationsStorage.getId(context)
                 );
 
-                radioStation.setName(radioStationToAdd.getName());
+                radioStation.setName(rsToAdd.getName());
                 radioStation.getMediaStream().setVariant(0, url);
                 radioStation.setImageUrl(imageUrlLocal);
                 radioStation.setThumbUrl(imageUrlLocal);
-                radioStation.setGenre(radioStationToAdd.getGenre());
-                radioStation.setCountry(radioStationToAdd.getCountry());
+                radioStation.setGenre(rsToAdd.getGenre());
+                radioStation.setCountry(rsToAdd.getCountry());
                 radioStation.setIsLocal(true);
 
-//                LocalRadioStationsStorage.add(radioStation, context);
-//                if (radioStationToAdd.isAddToFav()) {
-//                    FavoritesStorage.add(radioStation, context);
-//                }
-//
-//                notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);
+                LocalRadioStationsStorage.add(radioStation, context);
+                if (rsToAdd.isAddToFav()) {
+                    FavoritesStorage.add(radioStation, context);
+                }
+
+                notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);
+
+                LocalBroadcastManager.getInstance(context).sendBroadcast(
+                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added successfully")
+                );
 
                 break;
             }

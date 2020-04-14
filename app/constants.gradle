@@ -35,7 +35,7 @@ project.ext {
      * Application constants
      */
     applicationId = "com.yuriy.openradio"
-    versionName = "5.0"
+    versionName = "5.1"
 
     /**
      * Fabric

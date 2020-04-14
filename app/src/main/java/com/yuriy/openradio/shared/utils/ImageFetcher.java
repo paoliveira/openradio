@@ -32,7 +32,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 
 /**
  * A simple subclass of {@link ImageResizer} that fetches and resizes images fetched from a URL.
@@ -234,19 +233,18 @@ public class ImageFetcher extends ImageResizer {
     public static boolean downloadUrlToStream(final Context context,
                                               final String urlString,
                                               final OutputStream outputStream) {
-        HttpURLConnection urlConnection = null;
+        HttpURLConnection connection = null;
         BufferedOutputStream out = null;
         BufferedInputStream in = null;
 
         try {
             if (AppUtils.isWebUrl(urlString)) {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
-                    final URL url = new URL(urlString);
-                    urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setReadTimeout(AppUtils.TIME_OUT);
-                    urlConnection.setConnectTimeout(AppUtils.TIME_OUT);
-                    urlConnection.setRequestMethod("GET");
-                    in = new BufferedInputStream(urlConnection.getInputStream(), IO_BUFFER_SIZE);
+                    connection = NetUtils.getHttpURLConnection(urlString, "GET");
+                    if (connection == null) {
+                        return false;
+                    }
+                    in = new BufferedInputStream(connection.getInputStream(), IO_BUFFER_SIZE);
                 }
             } else {
                 in = new BufferedInputStream(new FileInputStream(new File(urlString)), IO_BUFFER_SIZE);
@@ -268,9 +266,7 @@ public class ImageFetcher extends ImageResizer {
         } catch (final IOException e) {
             AnalyticsUtils.logException(new Exception("url:" + urlString, e));
         } finally {
-            if (urlConnection != null) {
-                urlConnection.disconnect();
-            }
+            NetUtils.closeHttpURLConnection(connection);
             try {
                 if (out != null) {
                     out.close();

@@ -177,12 +177,14 @@ public final class AppUtils {
         predefinedCategories.add("International");
         predefinedCategories.add("Jazz");
         predefinedCategories.add("Misc");
+        predefinedCategories.add("News");
         predefinedCategories.add("Pop");
         predefinedCategories.add("R&B/Urban");
         predefinedCategories.add("Rap");
         predefinedCategories.add("Reggae");
         predefinedCategories.add("Rock");
         predefinedCategories.add("Talk & Speech");
+        predefinedCategories.add("University Radio");
         return predefinedCategories;
     }
 

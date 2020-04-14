@@ -29,6 +29,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
+            android:text="@string/add_station_home_page_label"/>
+
+        <EditText
+            android:id="@+id/add_edit_station_home_page_edit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/add_station_home_page_hint"
+            android:singleLine="true"
+            android:layout_marginBottom="15dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
             android:text="@string/add_station_url_label"/>
 
         <EditText
@@ -162,6 +176,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"/>
+
+            <ProgressBar
+                android:id="@+id/add_edit_station_dialog_progress_bar_view"
+                style="@android:style/Widget.ProgressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingEnd="10dp"
+                android:paddingStart="10dp"
+                android:visibility="invisible"/>
 
             <Button
                 android:id="@+id/add_edit_station_dialog_add_btn_view"

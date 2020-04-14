@@ -36,7 +36,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.regex.Pattern;
 
 /**
@@ -103,6 +102,7 @@ public final class BitmapUtils {
      * @return Downloaded and scaled Bitmap.
      * @throws IOException
      */
+    @Nullable
     public static Bitmap fetchAndRescaleBitmap(String uri, final int width, final int height)
             throws IOException {
         HttpURLConnection connection = null;
@@ -110,8 +110,10 @@ public final class BitmapUtils {
         int scaleFactor;
 
         if (AppUtils.isWebUrl(uri)) {
-            connection = (HttpURLConnection) new URL(uri).openConnection();
-            doConnection(connection);
+            connection = NetUtils.getHttpURLConnection(uri, "GET");
+            if (connection == null) {
+                return null;
+            }
 
             boolean redirect = false;
             int responseCode = connection.getResponseCode();
@@ -120,14 +122,16 @@ public final class BitmapUtils {
                         || responseCode == HttpURLConnection.HTTP_MOVED_PERM
                         || responseCode == HttpURLConnection.HTTP_SEE_OTHER) {
                     redirect = true;
-                    connection.disconnect();
+                    NetUtils.closeHttpURLConnection(connection);
                 }
             }
             if (redirect) {
                 // get redirect url from "Location" header field
                 uri = connection.getHeaderField("Location");
-                connection = (HttpURLConnection) new URL(uri).openConnection();
-                doConnection(connection);
+                connection = NetUtils.getHttpURLConnection(uri, "GET");
+                if (connection == null) {
+                    return null;
+                }
             }
             inputStream = connection.getInputStream();
         } else {
@@ -149,9 +153,7 @@ public final class BitmapUtils {
         } finally {
             inputStream.close();
             outputStream.close();
-            if (connection != null) {
-                connection.disconnect();
-            }
+            NetUtils.closeHttpURLConnection(connection);
         }
         if (bitmap != null) {
             AppLogger.d("FetchedAndRescaled bmp:" + bitmap.getWidth() + "x" + bitmap.getHeight());
@@ -173,15 +175,6 @@ public final class BitmapUtils {
         int height = Math.round(ratio * realImage.getHeight());
 
         return Bitmap.createScaledBitmap(realImage, width, height, filter);
-    }
-
-    private static void doConnection(final HttpURLConnection connection) throws IOException {
-        connection.setInstanceFollowRedirects(true);
-        connection.setReadTimeout(AppUtils.TIME_OUT);
-        connection.setConnectTimeout(AppUtils.TIME_OUT);
-        connection.setRequestMethod("GET");
-        connection.setRequestProperty("User-Agent", "Mozilla/5.0...");
-        connection.connect();
     }
 
     /**
