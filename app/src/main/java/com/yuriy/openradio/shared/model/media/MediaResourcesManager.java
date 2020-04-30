@@ -31,6 +31,8 @@ import androidx.annotation.NonNull;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.view.activity.TvMainActivity;
+import com.yuriy.openradio.view.fragment.TvMainFragment;
 
 import java.lang.ref.WeakReference;
 import java.util.HashSet;
@@ -102,12 +104,19 @@ public final class MediaResourcesManager {
      * Creates Media Browser, assigns listener.
      */
     public void create(final Bundle savedInstance) {
+        Bundle bundle;
+        if (savedInstance != null) {
+            bundle = createRootHints(savedInstance);
+        } else {
+            bundle = new Bundle();
+        }
+        OpenRadioService.putIsTv(bundle, (mActivity instanceof TvMainActivity));
         // Initialize Media Browser
         mMediaBrowser = new MediaBrowserCompat(
                 mActivity.getApplicationContext(),
                 new ComponentName(mActivity.getApplicationContext(), OpenRadioService.class),
                 new MediaBrowserConnectionCallback(this),
-                savedInstance != null ? createRootHints(savedInstance) : null
+                bundle
         );
     }
 
@@ -208,10 +217,6 @@ public final class MediaResourcesManager {
             return;
         }
         mTransportControls.stop();
-    }
-
-    public PlaybackStateCompat getPlaybackState() {
-        return mMediaController.getPlaybackState();
     }
 
     public MediaMetadataCompat getMediaMetadata() {

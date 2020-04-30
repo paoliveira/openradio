@@ -50,6 +50,8 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.BitmapUtils;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
+import com.yuriy.openradio.view.activity.MainActivity;
+import com.yuriy.openradio.view.activity.TvMainActivity;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -312,15 +314,21 @@ public final class MediaNotification extends BroadcastReceiver {
 
         updatePlayPauseAction();
 
+        final Context context = mService.getApplicationContext();
+
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannel(
-                mService.getApplicationContext(),
+                context,
                 new MediaNotificationData(mMetadata)
         );
+        mNotificationBuilder = new NotificationCompat.Builder(context, notificationChannelId);
 
-        mNotificationBuilder = new NotificationCompat.Builder(
-                mService.getApplicationContext(), notificationChannelId
+        final Class clazz = mService.isTv() ? TvMainActivity.class : MainActivity.class;
+        final PendingIntent contentIntent = PendingIntent.getActivity(
+                context, 0, new Intent(context, clazz),
+                PendingIntent.FLAG_UPDATE_CURRENT
         );
+        mNotificationBuilder.setContentIntent(contentIntent);
 
         int playPauseActionIndex = 0;
         // If skip to previous action is enabled

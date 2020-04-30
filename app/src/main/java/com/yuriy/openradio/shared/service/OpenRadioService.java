@@ -100,7 +100,6 @@ import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,215 +121,156 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         implements AudioManager.OnAudioFocusChangeListener {
 
     private static final String CLASS_NAME = "ORS ";
-
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
-
     private static final String VALUE_NAME_GET_RADIO_STATION_COMMAND
             = "VALUE_NAME_GET_RADIO_STATION_COMMAND";
-
     private static final String VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND";
-
     private static final String VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND";
-
     private static final String VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND
             = "VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND";
-
     private static final String VALUE_NAME_UPDATE_SORT_IDS = "VALUE_NAME_UPDATE_SORT_IDS";
-
     private static final String VALUE_NAME_STOP_SERVICE = "VALUE_NAME_STOP_SERVICE";
-
     private static final String VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM";
-
     private static final String VALUE_NAME_PLAY_LAST_PLAYED_ITEM = "VALUE_NAME_PLAY_LAST_PLAYED_ITEM";
-
     private static final String VALUE_NAME_STOP_LAST_PLAYED_ITEM = "VALUE_NAME_STOP_LAST_PLAYED_ITEM";
-
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
-
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
-
     private static final String EXTRA_KEY_STATION_NAME = "EXTRA_KEY_STATION_NAME";
-
     private static final String EXTRA_KEY_STATION_STREAM_URL = "EXTRA_KEY_STATION_STREAM_URL";
-
     private static final String EXTRA_KEY_STATION_IMAGE_URL = "EXTRA_KEY_STATION_IMAGE_URL";
-
     private static final String EXTRA_KEY_STATION_THUMB_URL = "EXTRA_KEY_STATION_THUMB_URL";
-
     private static final String EXTRA_KEY_STATION_GENRE = "EXTRA_KEY_STATION_GENRE";
-
     private static final String EXTRA_KEY_STATION_COUNTRY = "EXTRA_KEY_STATION_COUNTRY";
-
     private static final String EXTRA_KEY_STATION_ADD_TO_FAV = "EXTRA_KEY_STATION_ADD_TO_FAV";
-
     private static final String EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID";
-
     private static final String EXTRA_KEY_MEDIA_IDS = "EXTRA_KEY_MEDIA_IDS";
-
     private static final String EXTRA_KEY_SORT_IDS = "EXTRA_KEY_SORT_IDS";
-
     private static final String EXTRA_KEY_RS_TO_ADD = "EXTRA_KEY_RS_TO_ADD";
-
     private static final String BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID";
-
+    private static final String BUNDLE_ARG_IS_TV = "BUNDLE_ARG_IS_TV";
     private static final String BUNDLE_ARG_CURRENT_PLAYBACK_STATE = "BUNDLE_ARG_CURRENT_PLAYBACK_STATE";
-
     private static final String BUNDLE_ARG_IS_RESTORE_STATE = "BUNDLE_ARG_IS_RESTORE_STATE";
-
     /**
      * Action to thumbs up a media item
      */
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.yuriy.openradio.share.service.THUMBS_UP";
-
     /**
      * Delay stopSelf by using a handler.
      */
     private static final int STOP_DELAY = 30000;
-
     /**
      * ExoPlayer's implementation to play Radio stream..
      */
     private ExoPlayerOpenRadioImpl mExoPlayerORImpl;
-
     /**
      * Listener of the ExoPlayer's event.
      */
     private final ExoPlayerOpenRadioImpl.Listener mListener = new ExoPlayerListener(this);
-
     /**
      * Media Session
      */
     private MediaSessionCompat mSession;
-
     // TODO: reconsider Queue fields. This queue was intended to handle music files, not live stream.
     //       It has no sense in live stream.
     /**
      * Index of the current playing song.
      */
     private int mCurrentIndexOnQueue = -1;
-
     private String mCurrentStreamTitle;
-
     /**
      * Current media player state.
      */
     private volatile int mState;
-
     private PauseReason mPauseReason = PauseReason.DEFAULT;
-
     /**
      * Wifi lock that we hold when streaming files from the internet,
      * in order to prevent the device from shutting off the Wifi radio.
      */
     private WifiManager.WifiLock mWifiLock;
-
     /**
      * Type of audio focus we have
      */
     private AudioFocus mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK;
-
     /**
      * audio manager object.
      */
     private AudioManager mAudioManager;
-
     /**
      * Executor of the API requests.
      */
     private final ExecutorService mApiCallExecutor = Executors.newCachedThreadPool();
-
     /**
      * Collection of the Radio Stations.
      */
     private final RadioStationsStorage mRadioStationsStorage = new RadioStationsStorage();
-
     private String mCurrentMediaId;
-
     /**
      * Indicates if we should start playing immediately after we gain focus.
      */
     private boolean mPlayOnFocusGain;
-
     /**
      * Notification object.
      */
     private MediaNotification mMediaNotification;
-
     /**
      * Listener of the Playback State changes.
      */
     private final MediaItemCommand.IUpdatePlaybackState mPlaybackStateListener = new PlaybackStateListener(this);
-
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
     private boolean mIsAndroidAuto = false;
-
+    /**
+     * Flag that indicates whether application runs over normal Android or Android TV.
+     */
+    private boolean mIsTv = false;
     /**
      * Enumeration for the Audio Focus states.
      */
     private enum AudioFocus {
-
         /**
          * There is no audio focus, and no possible to "duck"
          */
         NO_FOCUS_NO_DUCK,
-
         /**
          * There is no focus, but can play at a low volume ("ducking")
          */
         NO_FOCUS_CAN_DUCK,
-
         /**
          * There is full audio focus
          */
         FOCUSED
     }
-
     private enum PauseReason {
-
         DEFAULT, NOISY
     }
-
     /**
      *
      */
     private final Handler mDelayedStopHandler = new DelayedStopHandler(this);
-
     /**
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
     private final Map<String, MediaItemCommand> mMediaItemCommands = new HashMap<>();
-
     /**
      *
      */
     private final RadioStationUpdateListener mRadioStationUpdateListener
             = new RadioStationUpdateListenerImpl(this);
-
     private long mPosition;
-
     private long mBufferedPosition;
-
     private String mLastPlayedUrl;
-
     private String mCurrentParentId;
-
     private boolean mIsRestoreState;
-
     private MasterVolumeReceiver mMasterVolumeBroadcastReceiver;
-
     /**
      * The BroadcastReceiver that tracks network connectivity changes.
      */
     private final AbstractReceiver mConnectivityReceiver;
-
     private final BecomingNoisyReceiver mNoisyAudioStreamReceiver;
-
     private final BTConnectionReceiver mBTConnectionReceiver;
-
     /**
      * Track last selected Radio Station. This filed used when AA uses buffering/duration and the "Last Played"
      * Radio Station is not actually in any lists, it is single entity.
@@ -338,17 +278,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     @Nullable
     private RadioStation mLastKnownRS;
     private RadioStation mRestoredRS;
-
     private ApiServiceProvider mApiServiceProvider;
-
     /**
      * Processes Messages sent to it from onStartCommand() that
      * indicate which command to process.
      */
     private volatile ServiceHandler mServiceHandler;
-
     private final Handler mMainHandler;
-
     /**
      *
      */
@@ -577,6 +513,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.i(CLASS_NAME + "Package name is not Android Auto");
             mIsAndroidAuto = false;
         }
+        mIsTv = getIsTv(rootHints);
+        AppLogger.i(CLASS_NAME + "Is TV:" + mIsTv);
         mCurrentParentId = getCurrentParentId(rootHints);
         mIsRestoreState = getRestoreState(rootHints);
         setPlaybackState(getCurrentPlaybackState(rootHints));
@@ -621,6 +559,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
         // Registers BroadcastReceiver to track network connection changes.
         mConnectivityReceiver.register(context);
+    }
+
+    public boolean isTv() {
+        return mIsTv;
     }
 
     /**
@@ -787,6 +729,20 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return "";
         }
         return bundle.getString(BUNDLE_ARG_CATALOGUE_ID, "");
+    }
+
+    public static void putIsTv(final Bundle bundle, final boolean value) {
+        if (bundle == null) {
+            return;
+        }
+        bundle.putBoolean(BUNDLE_ARG_IS_TV, value);
+    }
+
+    public static boolean getIsTv(final Bundle bundle) {
+        if (bundle == null) {
+            return false;
+        }
+        return bundle.getBoolean(BUNDLE_ARG_IS_TV, false);
     }
 
     public static void putCurrentPlaybackState(final Bundle bundle, final int value) {
