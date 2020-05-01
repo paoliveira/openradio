@@ -10,6 +10,17 @@
 * Offline countries boundaries are provided by [Tobias Zwick](https://github.com/westnordost/countryboundaries)
 * Android requirements : Android 4.1 (API level 16) (new APIs for implementing audio playback that is compatible with Auto) or newer.
 
+### Permissions used ###
+
+* INTERNET - To access internet connection.
+* ACCESS_NETWORK_STATE - To monitor Internet connection state, detect connect and reconnect states.
+* WAKE_LOCK - To keep screen on while playing Radio Station.
+* ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION - To select Country for user based on Location. This helps to navigate local Radio Stations.
+* READ_EXTERNAL_STORAGE - To read image from phone's memory when set it as image for Local Radio Station.
+* FOREGROUND_SERVICE - To keep service active while playing stream.
+* BLUETOOTH - To connect to Bluetooth device.
+* RECORD_AUDIO - To use voice search engine on Android TV.
+
 ### Delivery files ###
 
 * [Google Play](https://play.google.com/store/apps/details?id=com.yuriy.openradio) - this application is  suitable now for the Android Media Browser simulator as well as for the Android Auto.
