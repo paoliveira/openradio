@@ -18,13 +18,10 @@ package com.yuriy.openradio.view.fragment;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 
 import androidx.leanback.app.SearchSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -32,7 +29,9 @@ import androidx.leanback.widget.ListRowPresenter;
 import androidx.leanback.widget.ObjectAdapter;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.view.activity.TvSearchActivity;
 
 /*
@@ -54,25 +53,22 @@ public class TvSearchFragment extends SearchSupportFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final Context context = getContext();
 
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
         setSearchResultProvider(this);
-        if (!hasPermission(Manifest.permission.RECORD_AUDIO)) {
-            AppLogger.d(CLASS_NAME + " Does not have RECORD_AUDIO, using SpeechRecognitionCallback");
-            // SpeechRecognitionCallback is not required and if not provided recognition will be
-            // handled using internal speech recognizer, in which case you must have RECORD_AUDIO
-            // permission
-            setSpeechRecognitionCallback(() -> {
-                try {
-                    startActivityForResult(getRecognizerIntent(), REQUEST_SPEECH);
-                } catch (ActivityNotFoundException e) {
-                    Log.e(CLASS_NAME, "Cannot find activity for speech recognizer", e);
-                }
-            });
-        } else {
-            Log.d(CLASS_NAME, "We DO have RECORD_AUDIO");
+
+        if (!PermissionChecker.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
+            SafeToast.showAnyThread(
+                    context, context.getString(R.string.record_audio_permission_not_granted)
+            );
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -125,12 +121,6 @@ public class TvSearchFragment extends SearchSupportFragment
             }
         }
         return true;
-    }
-
-    private boolean hasPermission(final String permission) {
-        final Context context = getActivity();
-        return PackageManager.PERMISSION_GRANTED == context.getPackageManager().checkPermission(
-                permission, context.getPackageName());
     }
 
     public void focusOnSearch() {

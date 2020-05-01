@@ -118,6 +118,7 @@
     <string name="ellipsis">…</string>
     <string name="can_not_open_file">Can not open File</string>
     <string name="storage_permission_not_granted">Storage permission not granted</string>
+    <string name="record_audio_permission_not_granted">Record Audio permission not granted</string>
     <string name="sort_radio_stations_menu_label">Sort Radio Stations</string>
     <string name="delete_station_menu_label">Delete Radio Station</string>
     <string name="feature_sort_title">Sort Radio Stations</string>

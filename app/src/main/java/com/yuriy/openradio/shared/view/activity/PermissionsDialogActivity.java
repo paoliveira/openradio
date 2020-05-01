@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.view.activity;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -71,21 +70,6 @@ public final class PermissionsDialogActivity extends Activity {
         );
 
         finish();
-
-        boolean isDenied = true;
-        if (isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION, permissions, grantResults)) {
-            isDenied = false;
-        }
-
-        // Restart main activity
-        final Intent intent = getBaseContext()
-                   .getPackageManager()
-                .getLaunchIntentForPackage(getBaseContext().getPackageName());
-        if (intent != null) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intent.putExtra(PERMISSION_DENIED_KEY, isDenied);
-            startActivity(intent);
-        }
     }
 
     public static boolean isLocationDenied(final Intent intent) {

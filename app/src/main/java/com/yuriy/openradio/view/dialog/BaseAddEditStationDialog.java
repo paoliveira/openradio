@@ -208,7 +208,7 @@ public abstract class BaseAddEditStationDialog extends DialogFragment {
         final Context applicationContext = getActivity().getApplicationContext();
         if (!PermissionChecker.isGranted(
                 applicationContext,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                Manifest.permission.READ_EXTERNAL_STORAGE)
         ) {
             SafeToast.showAnyThread(
                     applicationContext,

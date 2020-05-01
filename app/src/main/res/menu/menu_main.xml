@@ -3,6 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
+<!--    <item android:id="@+id/action_eq"-->
+<!--        android:title="@string/eq_label"-->
+<!--        android:icon="@drawable/ic_eq"-->
+<!--        app:showAsAction="ifRoom" />-->
+
     <item android:id="@+id/action_search"
         android:title="@string/search_label"
         android:icon="@drawable/ic_search"
