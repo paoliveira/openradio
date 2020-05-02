@@ -135,6 +135,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private static final String VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM";
     private static final String VALUE_NAME_PLAY_LAST_PLAYED_ITEM = "VALUE_NAME_PLAY_LAST_PLAYED_ITEM";
     private static final String VALUE_NAME_STOP_LAST_PLAYED_ITEM = "VALUE_NAME_STOP_LAST_PLAYED_ITEM";
+    private static final String VALUE_NAME_UPDATE_EQUALIZER = "VALUE_NAME_UPDATE_EQUALIZER";
     private static final String EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION";
     private static final String EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE";
     private static final String EXTRA_KEY_STATION_NAME = "EXTRA_KEY_STATION_NAME";
@@ -892,6 +893,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     public static Intent makePlayLastPlayedItemIntent(final Context context) {
         final Intent intent = new Intent(context, OpenRadioService.class);
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_PLAY_LAST_PLAYED_ITEM);
+        return intent;
+    }
+
+    public static Intent makeUpdateEqualizerIntent(final Context context) {
+        final Intent intent = new Intent(context, OpenRadioService.class);
+        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_UPDATE_EQUALIZER);
         return intent;
     }
 
@@ -2248,6 +2255,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 break;
             case VALUE_NAME_PLAY_LAST_PLAYED_ITEM:
                 handlePlayRequest();
+                break;
+            case VALUE_NAME_UPDATE_EQUALIZER:
+                if (mExoPlayerORImpl != null) {
+                    mExoPlayerORImpl.updateEqualizer();
+                    mExoPlayerORImpl.saveState();
+                }
                 break;
             case VALUE_NAME_STOP_SERVICE:
                 stopService();

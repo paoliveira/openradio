@@ -92,6 +92,7 @@ import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 import com.yuriy.openradio.view.dialog.AddStationDialog;
 import com.yuriy.openradio.view.dialog.EditStationDialog;
+import com.yuriy.openradio.view.dialog.EqualizerDialog;
 import com.yuriy.openradio.view.dialog.FeatureSortDialog;
 import com.yuriy.openradio.view.dialog.RemoveStationDialog;
 import com.yuriy.openradio.view.dialog.SearchDialog;
@@ -403,7 +404,9 @@ public final class MainActivity extends AppCompatActivity {
                 view -> {
                     // Show Add Station Dialog
                     final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    final DialogFragment dialog = AddStationDialog.newInstance();
+                    final DialogFragment dialog = BaseDialogFragment.newInstance(
+                            AddStationDialog.class.getName()
+                    );
                     dialog.show(transaction, AddStationDialog.DIALOG_TAG);
                 }
         );
@@ -527,16 +530,27 @@ public final class MainActivity extends AppCompatActivity {
         // dialog, so make our own transaction and take care of that here.
         final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         clearDialogs(fragmentTransaction);
-        if (id == R.id.action_search) {
-            // Show Search Dialog
-            final DialogFragment searchDialog = BaseDialogFragment.newInstance(
-                    SearchDialog.class.getName()
-            );
-            searchDialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
-            return true;
+        switch (id) {
+            case R.id.action_search: {
+                // Show Search Dialog
+                final DialogFragment dialog = BaseDialogFragment.newInstance(
+                        SearchDialog.class.getName()
+                );
+                dialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
+                return true;
+            }
+            case R.id.action_eq: {
+                // Show Equalizer Dialog
+                final DialogFragment dialog = BaseDialogFragment.newInstance(
+                        EqualizerDialog.class.getName()
+                );
+                dialog.show(fragmentTransaction, EqualizerDialog.DIALOG_TAG);
+                return true;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -618,6 +632,10 @@ public final class MainActivity extends AppCompatActivity {
             fragmentTransaction.remove(fragmentByTag);
         }
         fragmentByTag = getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
+        if (fragmentByTag != null) {
+            fragmentTransaction.remove(fragmentByTag);
+        }
+        fragmentByTag = getSupportFragmentManager().findFragmentByTag(EqualizerDialog.DIALOG_TAG);
         if (fragmentByTag != null) {
             fragmentTransaction.remove(fragmentByTag);
         }

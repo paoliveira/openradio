@@ -22,6 +22,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.view.activity.MainActivity;
@@ -45,7 +48,8 @@ public final class SearchDialog extends BaseDialogFragment {
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
     @Override
-    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+    @NonNull
+    public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final MainActivity activity = (MainActivity) getActivity();
 
         final View view = getInflater().inflate(

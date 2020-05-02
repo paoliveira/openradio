@@ -35,6 +35,7 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog;
 import com.yuriy.openradio.shared.view.dialog.LogsDialog;
 import com.yuriy.openradio.view.dialog.AddStationDialog;
+import com.yuriy.openradio.view.dialog.EqualizerDialog;
 import com.yuriy.openradio.view.dialog.TvSettingsDialog;
 import com.yuriy.openradio.view.fragment.TvMainFragment;
 
@@ -65,6 +66,7 @@ public final class TvMainActivity extends FragmentActivity {
         setUpBackBtn();
         setUpSearchBtn();
         setUpSettingsBtn();
+        setUpEqualizerBtn();
     }
 
     @Override
@@ -214,6 +216,23 @@ public final class TvMainActivity extends FragmentActivity {
         );
     }
 
+    private void setUpEqualizerBtn() {
+        final ImageView button = findViewById(R.id.tv_eq_btn);
+        if (button == null) {
+            return;
+        }
+        button.setOnClickListener(
+                v -> {
+                    // Show Equalizer Dialog
+                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    final DialogFragment dialog = BaseDialogFragment.newInstance(
+                            EqualizerDialog.class.getName()
+                    );
+                    dialog.show(transaction, EqualizerDialog.DIALOG_TAG);
+                }
+        );
+    }
+
     private void setUpAddBtn() {
         final ImageView button = findViewById(R.id.tv_add_btn);
         if (button == null) {
@@ -223,7 +242,9 @@ public final class TvMainActivity extends FragmentActivity {
                 (view) -> {
                     // Show Add Station Dialog
                     final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    final DialogFragment dialog = AddStationDialog.newInstance();
+                    final DialogFragment dialog = BaseDialogFragment.newInstance(
+                            AddStationDialog.class.getName()
+                    );
                     dialog.show(transaction, AddStationDialog.DIALOG_TAG);
                 }
         );

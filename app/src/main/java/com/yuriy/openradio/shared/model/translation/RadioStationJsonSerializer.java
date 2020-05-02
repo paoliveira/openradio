@@ -34,8 +34,6 @@ import org.json.JSONObject;
  */
 public final class RadioStationJsonSerializer implements RadioStationSerializer {
 
-    private static final String CLASS_NAME = RadioStationJsonSerializer.class.getSimpleName();
-
     /**
      * Default constructor.
      */

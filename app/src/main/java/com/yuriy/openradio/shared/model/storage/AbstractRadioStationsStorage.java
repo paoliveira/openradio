@@ -111,7 +111,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      */
     protected static synchronized void remove(final RadioStation radioStation, final Context context,
                                               final String name) {
-        final SharedPreferences.Editor editor = AbstractStorage.getEditor(context, name);
+        final SharedPreferences.Editor editor = getEditor(context, name);
         editor.remove(createKeyForRadioStation(radioStation));
         editor.apply();
         AppLogger.i("Radio Station " + radioStation + " removed");
@@ -126,7 +126,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      */
     @NonNull
     static String getAllAsString(final Context context, final String name) {
-        final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, name);
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
         String value;
         final StringBuilder builder = new StringBuilder();
@@ -188,7 +188,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
     static List<RadioStation> getAll(final Context context, final String name) {
         // TODO: Return cache when possible
         final List<RadioStation> radioStations = new ArrayList<>();
-        final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, name);
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
         final RadioStationDeserializer deserializer = new RadioStationJsonDeserializer();
         RadioStation radioStation;
@@ -244,7 +244,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
      * @return {@code true} in case of the are items in collection, {@code false} - otherwise.
      */
     protected static boolean isEmpty(final Context context, final String name) {
-        final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, name);
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, name);
         final Map<String, ?> map = sharedPreferences.getAll();
         return map.isEmpty();
     }
@@ -262,7 +262,7 @@ abstract class AbstractRadioStationsStorage extends AbstractStorage {
                                                  final Context context,
                                                  final String name) {
         final RadioStationSerializer serializer = new RadioStationJsonSerializer();
-        final SharedPreferences.Editor editor = AbstractStorage.getEditor(context, name);
+        final SharedPreferences.Editor editor = getEditor(context, name);
         editor.putString(key, serializer.serialize(radioStation));
         editor.apply();
         AppLogger.i("Radio Station added " + radioStation);

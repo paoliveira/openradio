@@ -83,6 +83,7 @@
     <string name="label_next">Next</string>
     <string name="label_pause">Pause</string>
     <string name="label_play">Play</string>
+    <string name="eq_label">Equalizer</string>
     <string name="search_label">Search</string>
     <string name="action_about">About</string>
     <string name="skip_previous">Skip to previous</string>
@@ -135,4 +136,5 @@
     <string name="no_location_setting_desc">Can not find Location Settings</string>
     <string name="tv_header_menu_radio_stations">Radio Stations</string>
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
+    <string name="equalizer_presets_label">System presets:</string>
 </resources>

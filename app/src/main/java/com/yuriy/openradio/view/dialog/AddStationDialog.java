@@ -47,16 +47,6 @@ public final class AddStationDialog extends BaseAddEditStationDialog {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    /**
-     * Create a new instance of {@link AddStationDialog}.
-     */
-    @SuppressWarnings("all")
-    public static AddStationDialog newInstance() {
-        final AddStationDialog addStationDialog = new AddStationDialog();
-        // provide here an arguments, if any
-        return addStationDialog;
-    }
-
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {

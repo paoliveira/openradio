@@ -35,8 +35,6 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import androidx.fragment.app.DialogFragment;
-
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiver;
 import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiverListener;
@@ -46,6 +44,7 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.ImageFilePath;
 import com.yuriy.openradio.shared.utils.IntentsHelper;
+import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
@@ -62,7 +61,7 @@ import java.util.List;
  * <p>
  * Base dialog to use by Edit and Add dialogs.
  */
-public abstract class BaseAddEditStationDialog extends DialogFragment {
+public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
 
     /**
      * Text view for Image Url.

@@ -65,7 +65,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * @param value   Value of the Radio Station Id.
      */
     private static void setId(final Context context, final int value) {
-        final SharedPreferences.Editor editor = AbstractStorage.getEditor(context, FILE_NAME);
+        final SharedPreferences.Editor editor = getEditor(context, FILE_NAME);
         editor.putInt(KEY_ID, value);
         editor.apply();
     }
@@ -77,7 +77,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * @return The value of the Radio Station Id.
      */
     public static String getId(final Context context) {
-        final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, FILE_NAME);
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
         int id = sharedPreferences.getInt(KEY_ID, Integer.MAX_VALUE);
         // If value is Integer MAX, means that this is the first call, initialize it and addToLocals.
         if (id == Integer.MAX_VALUE) {
@@ -257,7 +257,7 @@ public final class LocalRadioStationsStorage extends AbstractRadioStationsStorag
      * @return True in case of success, False - otherwise.
      */
     public static boolean isLocalRadioStation(final RadioStation radioStation, final Context context) {
-        final SharedPreferences sharedPreferences = AbstractStorage.getSharedPreferences(context, FILE_NAME);
+        final SharedPreferences sharedPreferences = getSharedPreferences(context, FILE_NAME);
         return sharedPreferences.contains(radioStation.getId());
     }
 }

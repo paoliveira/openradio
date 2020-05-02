@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.exo;
 
 import android.content.Context;
+import android.media.audiofx.Equalizer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -25,6 +26,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -64,9 +66,15 @@ import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.shared.model.storage.EqualizerStorage;
+import com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer;
+import com.yuriy.openradio.shared.model.translation.EqualizerStateDeserializer;
+import com.yuriy.openradio.shared.model.translation.EqualizerStateJsonDeserializer;
+import com.yuriy.openradio.shared.model.translation.EqualizerStateSerializer;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.vo.EqualizerState;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -124,57 +132,47 @@ public final class ExoPlayerOpenRadioImpl {
      * String tag to use in logs.
      */
     private static final String LOG_TAG = "ExoPlayerORImpl";
-
     /**
      *
      */
     private static final int MAX_EXCEPTIONS_COUNT = 5;
-
     /**
      * Instance of the ExoPlayer.
      */
     private ExoPlayer mExoPlayer;
-
+    /**
+     * Instance of equalizer.
+     */
+    @Nullable
+    private Equalizer mEqualizer;
     /**
      * Handler for the ExoPlayer to handle events.
      */
     private final Handler mMainHandler;
-
     /**
      * Listener of the ExoPlayer components events.
      */
     private final ComponentListener mComponentListener;
-
     /**
      * Instance of the ExoPlayer wrapper events.
      */
     private final Listener mListener;
-
     /**
      * Array of the media renderers (Audio and Metadata).
      */
     private final Renderer[] mRenderers;
-
-    /**
-     * Number of the Audio renderers.
-     */
-    private final int mAudioRendererCount;
-
     /**
      * Power wake lock to keep ExoPlayer up and running when screen is off.
      */
     private PowerManager.WakeLock mWakeLock = null;
-
     /**
      * Instance of the Data Source factory.
      */
     private DataSource.Factory mMediaDataSourceFactory;
-
     /**
      * Current play URI.
      */
     private Uri mUri;
-
     /**
      * Current Media Source.
      */
@@ -195,23 +193,21 @@ public final class ExoPlayerOpenRadioImpl {
      * State of the last user's action.
      */
     private UserState mUserState = UserState.NONE;
-
     /**
      * Number of currently detected playback exceptions.
      */
     private final AtomicInteger mNumOfExceptions = new AtomicInteger(0);
-
     /**
      * Runnable implementation to handle playback progress.
      */
     private Runnable mUpdateProgressAction = this::updateProgress;
-
     /**
      * Handler to handle playback progress runnable.
      */
     private Handler mUpdateProgressHandler = new Handler();
-
     private final MetadataListener mMetadataListener;
+    @NonNull
+    private final Context mContext;
 
     /**
      * Main constructor.
@@ -225,38 +221,31 @@ public final class ExoPlayerOpenRadioImpl {
                                   @NonNull final MetadataListener metadataListener) {
         super();
 
+        mContext = context;
         mMainHandler = new Handler(Looper.getMainLooper());
         mComponentListener = new ComponentListener(this);
         mListener = listener;
         mMetadataListener = metadataListener;
 
-        mMediaDataSourceFactory = buildDataSourceFactory(context);
+        mMediaDataSourceFactory = buildDataSourceFactory(mContext);
 
         final List<Renderer> renderersList = new ArrayList<>();
-        buildRenderers(context, mMainHandler, renderersList);
+        buildRenderers(mContext, mMainHandler, renderersList);
         mRenderers = renderersList.toArray(new Renderer[renderersList.size()]);
-
-        int audioRendererCount = 0;
-        for (final Renderer renderer : mRenderers) {
-            if (renderer.getTrackType() == C.TRACK_TYPE_AUDIO) {
-                audioRendererCount++;
-            }
-        }
-        mAudioRendererCount = audioRendererCount;
 
         final TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(
                 mRenderers,
-                new DefaultTrackSelector(context, trackSelectionFactory),
+                new DefaultTrackSelector(mContext, trackSelectionFactory),
                 new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(
-                                AppPreferencesManager.getMinBuffer(context),
-                                AppPreferencesManager.getMaxBuffer(context),
-                                AppPreferencesManager.getPlayBuffer(context),
-                                AppPreferencesManager.getPlayBufferRebuffer(context)
+                                AppPreferencesManager.getMinBuffer(mContext),
+                                AppPreferencesManager.getMaxBuffer(mContext),
+                                AppPreferencesManager.getPlayBuffer(mContext),
+                                AppPreferencesManager.getPlayBufferRebuffer(mContext)
                         )
                         .createDefaultLoadControl(),
-                DefaultBandwidthMeter.getSingletonInstance(context),
+                DefaultBandwidthMeter.getSingletonInstance(mContext),
                 Util.getLooper(),
                 new AnalyticsCollector(Clock.DEFAULT),
                 /* useLazyPreparation= */ true,
@@ -382,6 +371,46 @@ public final class ExoPlayerOpenRadioImpl {
             releaseIntrnl();
         } else {
             mMainHandler.post(this::releaseIntrnl);
+        }
+    }
+
+    public void updateEqualizer() {
+        if (mEqualizer == null) {
+            AppLogger.e("Can not update equalizer");
+            return;
+        }
+        final EqualizerStateDeserializer deserializer = new EqualizerStateJsonDeserializer();
+        final EqualizerState state = deserializer.deserialize(
+                mContext, EqualizerStorage.loadEqualizerState(mContext)
+        );
+        EqualizerState.applyState(mEqualizer, state);
+
+        state.printState();
+    }
+
+    public void saveState() {
+        if (mEqualizer == null) {
+            AppLogger.e("Can not save equalizer's state");
+            return;
+        }
+        final EqualizerStateSerializer serializer = new EqualizerJsonStateSerializer();
+        EqualizerStorage.saveEqualizerState(
+                mContext, serializer.serialize(EqualizerState.createState(mEqualizer))
+        );
+    }
+
+    private void initEqualizer(final int audioSessionId) {
+        if (mEqualizer != null) {
+            return;
+        }
+        mEqualizer = new Equalizer(0, audioSessionId);
+        //TODO: Do state operations in separate thread.
+        if (EqualizerStorage.isEmpty(mContext)) {
+            mEqualizer.setEnabled(true);
+            mEqualizer.usePreset((short) 0);
+            saveState();
+        } else {
+            updateEqualizer();
         }
     }
 
@@ -559,6 +588,11 @@ public final class ExoPlayerOpenRadioImpl {
         @Override
         public void onAudioSessionId(final int audioSessionId) {
             AppLogger.d(LOG_TAG + " audioSessionId:" + audioSessionId);
+            final ExoPlayerOpenRadioImpl reference = mReference.get();
+            if (reference == null) {
+                return;
+            }
+            reference.initEqualizer(audioSessionId);
         }
 
         @Override
@@ -629,8 +663,8 @@ public final class ExoPlayerOpenRadioImpl {
         // Event listener
 
         @Override
-        public void onTimelineChanged(final Timeline timeline, final Object manifest, int reason) {
-            AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + " " + manifest + " " + reason);
+        public void onTimelineChanged(final Timeline timeline, int reason) {
+            AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + ", reason " + reason);
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
                 return;
