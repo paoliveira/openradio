@@ -406,8 +406,8 @@ public final class ExoPlayerOpenRadioImpl {
         mEqualizer = new Equalizer(0, audioSessionId);
         //TODO: Do state operations in separate thread.
         if (EqualizerStorage.isEmpty(mContext)) {
+            mEqualizer.setEnabled(false);
             mEqualizer.setEnabled(true);
-            mEqualizer.usePreset((short) 0);
             saveState();
         } else {
             updateEqualizer();
@@ -415,6 +415,11 @@ public final class ExoPlayerOpenRadioImpl {
     }
 
     private void releaseIntrnl() {
+        if (mEqualizer != null) {
+            mEqualizer.setEnabled(false);
+            mEqualizer = null;
+        }
+
         if (mExoPlayer == null) {
             AppLogger.d(LOG_TAG + " ExoPlayer impl already released");
             return;
