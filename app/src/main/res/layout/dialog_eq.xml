@@ -23,8 +23,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
-        android:orientation="vertical">
+        android:orientation="vertical"/>
 
-    </LinearLayout>
+    <TextView
+        android:text="@string/eq_not_available"
+        android:id="@+id/eq_not_available_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"/>
 
 </LinearLayout>

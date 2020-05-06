@@ -35,19 +35,17 @@
     <TextView
         android:id="@+id/description_view"
         style="@style/text_style"
-        android:text="descrccndnc dadwf efggeger kdncscdcdksclkdnck   nsdkncklsdnc"
         android:layout_below="@+id/name_view"
         android:layout_toStartOf="@+id/favorite_check_view"
         android:layout_toEndOf="@+id/img_view"
         android:paddingEnd="15dp"
         android:textSize="18sp"
-        android:maxLines="2"
+        android:maxLines="1"
         android:ellipsize="end"/>
 
     <TextView
         android:id="@+id/name_view"
         style="@style/text_style"
-        android:text="Nameasscncnddsadsadas  dasf  deqdw fgrgregrecsalclascsc scasca"
         android:layout_toStartOf="@+id/favorite_check_view"
         android:layout_toEndOf="@+id/img_view"
         android:paddingEnd="15dp"

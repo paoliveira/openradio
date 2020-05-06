@@ -83,13 +83,19 @@ public final class EqualizerDialog extends BaseDialogFragment {
 
         setWindowDimensions(view, 0.8f, 0.6f);
 
-        handleEqualizer(view);
+        final Context context = getContext();
+        final TextView notAvailableView= view.findViewById(R.id.eq_not_available_view);
+        if (EqualizerStorage.isEmpty(context)) {
+            notAvailableView.setVisibility(View.VISIBLE);
+        } else {
+            notAvailableView.setVisibility(View.GONE);
+            handleEqualizer(context, view);
+        }
 
         return createAlertDialog(view);
     }
 
-    private void handleEqualizer(final View view) {
-        final Context context = getContext();
+    private void handleEqualizer(final Context context, final View view) {
         if (context == null) {
             return;
         }

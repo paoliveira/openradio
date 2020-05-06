@@ -1296,6 +1296,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                             + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
                             " source " + source
             );
+            if (TextUtils.isEmpty(source)) {
+                AppLogger.e(CLASS_NAME + " source is empty");
+                return;
+            }
 
             service.mCurrentMediaId = radioStation.getId();
 

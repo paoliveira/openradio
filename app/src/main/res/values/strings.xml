@@ -137,4 +137,5 @@
     <string name="tv_header_menu_radio_stations">Radio Stations</string>
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="equalizer_presets_label">System presets:</string>
+    <string name="eq_not_available">Equalizer is not available</string>
 </resources>

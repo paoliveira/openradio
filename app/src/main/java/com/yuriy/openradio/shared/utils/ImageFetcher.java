@@ -208,6 +208,12 @@ public class ImageFetcher extends ImageResizer {
             // art drawable parameters, so landscape images are occupy whole player
             if (bitmap != null && mIsTvPlayer) {
                 final int maxSide = Math.max(bitmap.getWidth(), bitmap.getHeight());
+                if (maxSide <= 0) {
+                    AnalyticsUtils.logException(
+                            new RuntimeException("Width of Height 0, input " + bitmap.getWidth() + "x" + bitmap.getHeight())
+                    );
+                    return bitmap;
+                }
                 bitmap = overlayBitmapToCenter(
                         Bitmap.createBitmap(maxSide, maxSide, Bitmap.Config.ARGB_8888), bitmap
                 );

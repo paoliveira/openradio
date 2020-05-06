@@ -38,7 +38,6 @@ import androidx.annotation.Nullable;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
-import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.ImageFetcher;
 import com.yuriy.openradio.shared.utils.ImageWorker;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;

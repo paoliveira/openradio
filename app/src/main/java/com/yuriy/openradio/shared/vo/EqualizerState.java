@@ -4,6 +4,7 @@ import android.media.audiofx.Equalizer;
 
 import androidx.annotation.NonNull;
 
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 
 import java.util.ArrayList;
@@ -126,8 +127,17 @@ public final class EqualizerState {
     }
 
     public static void applyState(@NonNull final Equalizer equalizer, @NonNull final EqualizerState state) {
-        equalizer.setEnabled(state.isEnabled());
-        equalizer.usePreset(state.getCurrentPreset());
+        try {
+            if (!state.isEnabled()) {
+                return;
+            }
+            equalizer.setEnabled(false);
+            equalizer.setEnabled(true);
+            equalizer.usePreset(state.getCurrentPreset());
+        } catch (final Exception e) {
+            AnalyticsUtils.logMessage("Apply eq state:" + equalizer);
+            AnalyticsUtils.logException(new RuntimeException("Can not apply eq state:" + e));
+        }
     }
 
     public void printState() {

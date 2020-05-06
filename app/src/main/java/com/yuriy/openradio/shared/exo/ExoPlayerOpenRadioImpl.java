@@ -403,7 +403,16 @@ public final class ExoPlayerOpenRadioImpl {
         if (mEqualizer != null) {
             return;
         }
-        mEqualizer = new Equalizer(0, audioSessionId);
+        try {
+            AnalyticsUtils.logMessage("Eq pre-inited:" + mEqualizer);
+            mEqualizer = new Equalizer(0, audioSessionId);
+            AnalyticsUtils.logMessage("Eq inited:" + mEqualizer);
+        } catch (final Exception e) {
+            mEqualizer = null;
+            EqualizerStorage.saveEqualizerState(mContext, "");
+            AnalyticsUtils.logException(new RuntimeException("Can not init eq:" + e));
+            return;
+        }
         //TODO: Do state operations in separate thread.
         if (EqualizerStorage.isEmpty(mContext)) {
             mEqualizer.setEnabled(false);
@@ -417,6 +426,8 @@ public final class ExoPlayerOpenRadioImpl {
     private void releaseIntrnl() {
         if (mEqualizer != null) {
             mEqualizer.setEnabled(false);
+            mEqualizer.release();
+            AnalyticsUtils.logMessage("Eq de-inited:" + mEqualizer);
             mEqualizer = null;
         }
 
