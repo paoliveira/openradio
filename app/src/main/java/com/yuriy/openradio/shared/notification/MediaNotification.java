@@ -39,6 +39,7 @@ import android.text.TextUtils;
 import android.util.LruCache;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -323,12 +324,7 @@ public final class MediaNotification extends BroadcastReceiver {
         );
         mNotificationBuilder = new NotificationCompat.Builder(context, notificationChannelId);
 
-        final Class clazz = mService.isTv() ? TvMainActivity.class : MainActivity.class;
-        final PendingIntent contentIntent = PendingIntent.getActivity(
-                context, 0, new Intent(context, clazz),
-                PendingIntent.FLAG_UPDATE_CURRENT
-        );
-        mNotificationBuilder.setContentIntent(contentIntent);
+        mNotificationBuilder.setContentIntent(makePendingIntent());
 
         int playPauseActionIndex = 0;
         // If skip to previous action is enabled
@@ -441,6 +437,19 @@ public final class MediaNotification extends BroadcastReceiver {
         updateNotificationMetadata();
     }
 
+    @Nullable
+    private PendingIntent makePendingIntent() {
+        if (mService.getApplicationContext() == null) {
+            return null;
+        }
+        final Class clazz = mService.isTv() ? TvMainActivity.class : MainActivity.class;
+        return PendingIntent.getActivity(
+                mService.getApplicationContext(), 0,
+                new Intent(mService.getApplicationContext(), clazz),
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
+    }
+
     private void showNoStreamNotification() {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannelNoStream(
@@ -464,6 +473,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle("Open Radio")
                 .setContentText("No Radio Station selected")
+                .setContentIntent(makePendingIntent())
                 .setLargeIcon(BitmapFactory.decodeResource(
                         mService.getResources(), R.drawable.ic_radio_station
                 ));

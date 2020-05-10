@@ -124,10 +124,16 @@ public final class MediaResourcesManager {
      * Connects to the Media Browse service.
      */
     public void connect() {
-        AppLogger.i(CLASS_NAME + "Connect");
-        if (mMediaBrowser != null) {
-            mMediaBrowser.connect();
+        if (mMediaBrowser == null) {
+            AppLogger.e(CLASS_NAME + "Connect aborted, browser null");
+            return;
         }
+        if (mMediaBrowser.isConnected()) {
+            AppLogger.w(CLASS_NAME + "Connect aborted, is connected");
+            return;
+        }
+        mMediaBrowser.connect();
+        AppLogger.w(CLASS_NAME + "Connected");
     }
 
     /**
@@ -138,7 +144,7 @@ public final class MediaResourcesManager {
         if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaSessionCallback);
         }
-        if (mMediaBrowser != null) {
+        if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
             mMediaBrowser.disconnect();
         }
     }
