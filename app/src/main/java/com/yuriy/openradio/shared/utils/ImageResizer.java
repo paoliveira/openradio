@@ -173,7 +173,12 @@ public class ImageResizer extends ImageWorker {
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+        try {
+            BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+        } catch (final Exception e) {
+            AnalyticsUtils.logException(e);
+            return null;
+        }
 
         // Calculate inSampleSize
         options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);

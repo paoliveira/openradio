@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,26 +155,23 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Receiver for the local application;s events
      */
-    private final AppLocalReceiver mAppLocalBroadcastReceiver
-            = AppLocalReceiver.getInstance();
+    private final AppLocalReceiver mAppLocalBroadcastRcvr;
 
     /**
      * Listener of the Permissions status changes.
      */
-    private final PermissionStatusListener mPermissionStatusListener = new PermissionListener(this);
+    private final PermissionStatusListener mPermissionStatusLstnr;
 
     /**
      * Member field to keep reference to the Local broadcast receiver.
      */
-    private final LocalBroadcastReceiverCallback mLocalBroadcastReceiverCallback
-            = new LocalBroadcastReceiverCallback(this);
+    private final LocalBroadcastReceiverCallback mLocalBroadcastReceiverCb;
 
     /**
      * Listener for the Media Browser Subscription callback
      */
-    private final MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCallback
-            = new MediaBrowserSubscriptionCallback(this);
-
+    private final MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCb;
+    private final MediaPresenterListener mMediaPresenterLstnr;
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
@@ -188,19 +185,19 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener for the List view click event.
      */
-    private final AdapterView.OnItemClickListener mOnItemClickListener = new OnItemClickListener(this);
+    private final AdapterView.OnItemClickListener mOnItemClickLstnr;
 
     /**
      * Listener for the List touch event.
      */
-    private final OnTouchListener mOnTouchListener = new OnTouchListener(this);
+    private final OnTouchListener mOnTouchLstnr;
 
-    private final OnScrollListener mOnScrollListener = new OnScrollListener(this);
+    private final OnScrollListener mOnScrollLstnr;
 
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
-    private volatile AtomicBoolean mIsOnSaveInstancePassed = new AtomicBoolean(false);
+    private volatile AtomicBoolean mIsOnSaveInstancePassed;
 
     /**
      * Current dragging item.
@@ -222,7 +219,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Receiver for the Screen OF/ON events.
      */
-    private final ScreenReceiver mScreenBroadcastReceiver = new ScreenReceiver();
+    private final ScreenReceiver mScreenBroadcastRcvr;
 
     private TextView mBufferedTextView;
     private ListView mListView;
@@ -245,6 +242,16 @@ public final class MainActivity extends AppCompatActivity {
     public MainActivity() {
         super();
         CLASS_NAME = MainActivity.class.getSimpleName() + " " + hashCode() + " ";
+        mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
+        mPermissionStatusLstnr = new PermissionListener(this);
+        mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback(this);
+        mMedSubscriptionCb = new MediaBrowserSubscriptionCallback(this);
+        mMediaPresenterLstnr = new MediaPresenterListenerImpl();
+        mOnItemClickLstnr = new OnItemClickListener(this);
+        mOnTouchLstnr = new OnTouchListener(this);
+        mOnScrollLstnr = new OnScrollListener(this);
+        mIsOnSaveInstancePassed = new AtomicBoolean(false);
+        mScreenBroadcastRcvr = new ScreenReceiver();
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -327,7 +334,9 @@ public final class MainActivity extends AppCompatActivity {
 
         final String versionText = AppUtils.getApplicationVersion(context) + "." +
                 AppUtils.getApplicationVersionCode(context);
-        final TextView versionView = navigationView.getHeaderView(0).findViewById(R.id.drawer_ver_code_view);
+        final TextView versionView = navigationView.getHeaderView(0).findViewById(
+                R.id.drawer_ver_code_view
+        );
         versionView.setText(versionText);
 
         mLastKnownMetadata = null;
@@ -336,31 +345,15 @@ public final class MainActivity extends AppCompatActivity {
         mMediaPresenter.init(
                 this,
                 savedInstanceState,
-                mMedSubscriptionCallback,
-                new MediaPresenterListener() {
-
-                    @Override
-                    public void showProgressBar() {
-                        MainActivity.this.showProgressBar();
-                    }
-
-                    @Override
-                    public void handleMetadataChanged(final MediaMetadataCompat metadata) {
-                        MainActivity.this.handleMetadataChanged(metadata);
-                    }
-
-                    @Override
-                    public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
-                        MainActivity.this.handlePlaybackStateChanged(state);
-                    }
-                }
+                mMedSubscriptionCb,
+                mMediaPresenterLstnr
         );
 
         // Register local receivers.
         registerReceivers();
 
         // Add listener for the permissions status
-        PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
+        PermissionChecker.addPermissionStatusListener(mPermissionStatusLstnr);
 
         // Handles loading the  image in a background thread
         mImageWorker = ImageFetcherFactory.getSmallImageFetcher(this);
@@ -392,11 +385,11 @@ public final class MainActivity extends AppCompatActivity {
         // Set adapter
         mListView.setAdapter(mBrowserAdapter);
         // Set click listener
-        mListView.setOnItemClickListener(mOnItemClickListener);
+        mListView.setOnItemClickListener(mOnItemClickLstnr);
         // Set touch listener.
-        mListView.setOnTouchListener(mOnTouchListener);
+        mListView.setOnTouchListener(mOnTouchLstnr);
         // Set scroll listener.
-        mListView.setOnScrollListener(mOnScrollListener);
+        mListView.setOnScrollListener(mOnScrollLstnr);
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
@@ -462,7 +455,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "OnDestroy");
 
-        PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
+        PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
         // Unregister local receivers
         unregisterReceivers();
@@ -498,13 +491,13 @@ public final class MainActivity extends AppCompatActivity {
                 mBrowserAdapter.notifyDataSetChanged();
                 break;
             case R.id.delete_radio_station_menu:
-                if (mOnTouchListener.mPosition != -1) {
-                    handleDeleteRadioStationMenu(mOnTouchListener.mPosition);
+                if (mOnTouchLstnr.mPosition != -1) {
+                    handleDeleteRadioStationMenu(mOnTouchLstnr.mPosition);
                 }
                 break;
             case R.id.edit_radio_station_menu:
-                if (mOnTouchListener.mPosition != -1) {
-                    handleEditRadioStationMenu(mOnTouchListener.mPosition);
+                if (mOnTouchLstnr.mPosition != -1) {
+                    handleEditRadioStationMenu(mOnTouchLstnr.mPosition);
                 }
                 break;
         }
@@ -848,7 +841,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     private void registerReceivers() {
 
-        mAppLocalBroadcastReceiver.registerListener(mLocalBroadcastReceiverCallback);
+        mAppLocalBroadcastRcvr.registerListener(mLocalBroadcastReceiverCb);
 
         // Create filter and add actions
         final IntentFilter intentFilter = new IntentFilter();
@@ -856,24 +849,24 @@ public final class MainActivity extends AppCompatActivity {
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
         // Register receiver
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
-                mAppLocalBroadcastReceiver,
+                mAppLocalBroadcastRcvr,
                 intentFilter
         );
 
-        mScreenBroadcastReceiver.register(getApplicationContext());
+        mScreenBroadcastRcvr.register(getApplicationContext());
     }
 
     /**
      * Unregister receiver for the application's local events.
      */
     private void unregisterReceivers() {
-        mAppLocalBroadcastReceiver.unregisterListener();
+        mAppLocalBroadcastRcvr.unregisterListener();
 
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
-                mAppLocalBroadcastReceiver
+                mAppLocalBroadcastRcvr
         );
 
-        mScreenBroadcastReceiver.unregister(getApplicationContext());
+        mScreenBroadcastRcvr.unregister(getApplicationContext());
     }
 
     /**
@@ -1470,6 +1463,28 @@ public final class MainActivity extends AppCompatActivity {
                 countryCode = Country.COUNTRY_CODE_DEFAULT;
             }
             mActivity.get().connectToMediaBrowser();
+        }
+    }
+
+    private final class MediaPresenterListenerImpl implements MediaPresenterListener {
+
+        private MediaPresenterListenerImpl() {
+            super();
+        }
+
+        @Override
+        public void showProgressBar() {
+            MainActivity.this.showProgressBar();
+        }
+
+        @Override
+        public void handleMetadataChanged(final MediaMetadataCompat metadata) {
+            MainActivity.this.handleMetadataChanged(metadata);
+        }
+
+        @Override
+        public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
+            MainActivity.this.handlePlaybackStateChanged(state);
         }
     }
 }

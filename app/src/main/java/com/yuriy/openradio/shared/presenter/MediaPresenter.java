@@ -335,6 +335,10 @@ public final class MediaPresenter {
                 AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
                 return;
             }
+            if (activity.mCallback == null) {
+                AppLogger.w(CLASS_NAME + "onConnected reference to callback is null");
+                return;
+            }
 
             AppLogger.i(CLASS_NAME + "Stack empty:" + activity.mMediaItemsStack.isEmpty());
 
