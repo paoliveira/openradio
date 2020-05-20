@@ -37,7 +37,6 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.view.SafeToast;
 
 import java.io.Serializable;
-import java.lang.ref.WeakReference;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +58,11 @@ public final class MediaPresenter {
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
-    private MediaResourcesManager mMediaResourcesManager;
+    private MediaResourcesManager mMediaRsrMgr;
+    /**
+     * Listener of events provided by Media Resource Manager.
+     */
+    private MediaResourceManagerListener mMediaRsrMgrLst;
     /**
      * Stack of the media items.
      * It is used when navigating back and forth via list.
@@ -82,24 +85,21 @@ public final class MediaPresenter {
 
     public void init(final Activity activity,
                      final Bundle savedInstanceState,
-                     @NonNull
-                     final MediaBrowserCompat.SubscriptionCallback mediaSubscriptionCallback,
+                     @NonNull final MediaBrowserCompat.SubscriptionCallback mediaSubscriptionCallback,
                      final MediaPresenterListener listener) {
         AppLogger.d(CLASS_NAME + " init");
         mCallback = mediaSubscriptionCallback;
         mActivity = activity;
         mListener = listener;
-        mMediaResourcesManager = new MediaResourcesManager(
-                mActivity,
-                new MediaResourceManagerListenerImpl(this)
-        );
-        mMediaResourcesManager.create(savedInstanceState);
+        mMediaRsrMgrLst = new MediaResourceManagerListenerImpl();
+        mMediaRsrMgr = new MediaResourcesManager(mActivity, mMediaRsrMgrLst);
+        mMediaRsrMgr.create(savedInstanceState);
     }
 
     public void destroy() {
         AppLogger.d(CLASS_NAME + " destroy");
         // Disconnect Media Browser
-        mMediaResourcesManager.disconnect();
+        mMediaRsrMgr.disconnect();
         mCallback = null;
         mActivity = null;
         mListener = null;
@@ -116,7 +116,7 @@ public final class MediaPresenter {
         if (mMediaItemsStack.size() == 1) {
 
             // Un-subscribe from item
-            mMediaResourcesManager.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
+            mMediaRsrMgr.unsubscribe(mMediaItemsStack.remove(mMediaItemsStack.size() - 1));
             // Clear stack
             mMediaItemsStack.clear();
 
@@ -129,12 +129,12 @@ public final class MediaPresenter {
         if (index >= 0) {
             // Get current media item and un-subscribe.
             final String currentMediaId = mMediaItemsStack.remove(index);
-            mMediaResourcesManager.unsubscribe(currentMediaId);
+            mMediaRsrMgr.unsubscribe(currentMediaId);
         }
 
         // Un-subscribe from all items.
         for (final String mediaItemId : mMediaItemsStack) {
-            mMediaResourcesManager.unsubscribe(mediaItemId);
+            mMediaRsrMgr.unsubscribe(mediaItemId);
         }
 
         // Subscribe to the previous item.
@@ -145,7 +145,7 @@ public final class MediaPresenter {
                 if (mListener != null) {
                     mListener.showProgressBar();
                 }
-                mMediaResourcesManager.subscribe(previousMediaId, mCallback);
+                mMediaRsrMgr.subscribe(previousMediaId, mCallback);
             }
         } else {
             AppLogger.d(CLASS_NAME + " back pressed return true");
@@ -165,22 +165,25 @@ public final class MediaPresenter {
         }
 
         // Un-subscribe from item
-        mMediaResourcesManager.unsubscribe(mediaId);
+        mMediaRsrMgr.unsubscribe(mediaId);
     }
 
     public void addMediaItemToStack(final String mediaId) {
-        AppLogger.i(CLASS_NAME + " MediaItem Id added:" + mediaId);
-        if (TextUtils.isEmpty(mediaId)) {
+        if (mCallback == null) {
+            AppLogger.e(CLASS_NAME + " add media id to stack, callback null");
             return;
         }
-
+        if (TextUtils.isEmpty(mediaId)) {
+            AppLogger.e(CLASS_NAME + " add empty media id to stack");
+            return;
+        }
         if (!mMediaItemsStack.contains(mediaId)) {
             mMediaItemsStack.add(mediaId);
         }
         if (mListener != null) {
             mListener.showProgressBar();
         }
-        mMediaResourcesManager.subscribe(mediaId, mCallback);
+        mMediaRsrMgr.subscribe(mediaId, mCallback);
     }
 
     public void restoreState(final Bundle savedInstanceState) {
@@ -283,15 +286,15 @@ public final class MediaPresenter {
     }
 
     public void update() {
-        mMediaResourcesManager.disconnect();
-        mMediaResourcesManager.connect();
+        mMediaRsrMgr.disconnect();
+        mMediaRsrMgr.connect();
     }
 
     public void connect() {
-        if (mMediaResourcesManager == null) {
+        if (mMediaRsrMgr == null) {
             return;
         }
-        mMediaResourcesManager.connect();
+        mMediaRsrMgr.connect();
     }
 
     @NonNull
@@ -308,68 +311,43 @@ public final class MediaPresenter {
         return createInitPositionEntry();
     }
 
+    private void handleMediaResourceManagerConnected() {
+        final String mediaId = mMediaItemsStack.isEmpty()
+                ? mMediaRsrMgr.getRoot()
+                : mMediaItemsStack.get(mMediaItemsStack.size() - 1);
+        addMediaItemToStack(mediaId);
+
+        // Update metadata in case of UI started on and media service was already created and stream played.
+        if (mListener != null) {
+            mListener.handleMetadataChanged(mMediaRsrMgr.getMediaMetadata());
+        }
+    }
+
+    private int[] createInitPositionEntry() {
+        return new int[]{0, MediaSessionCompat.QueueItem.UNKNOWN_ID};
+    }
+
     /**
      * Listener for the Media Resources related events.
      */
-    private static final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
+    private final class MediaResourceManagerListenerImpl implements MediaResourceManagerListener {
 
         /**
-         * Weak reference to the outer activity.
+         * Default constructor.
          */
-        private final WeakReference<MediaPresenter> mReference;
-
-        /**
-         * Constructor
-         *
-         * @param reference Reference to the Activity.
-         */
-        private MediaResourceManagerListenerImpl(final MediaPresenter reference) {
+        private MediaResourceManagerListenerImpl() {
             super();
-            mReference = new WeakReference<>(reference);
         }
 
         @Override
         public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
-            final MediaPresenter activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onConnected reference to MainActivity is null");
-                return;
-            }
-            if (activity.mCallback == null) {
-                AppLogger.w(CLASS_NAME + "onConnected reference to callback is null");
-                return;
-            }
-
-            AppLogger.i(CLASS_NAME + "Stack empty:" + activity.mMediaItemsStack.isEmpty());
-
-            // If stack is empty - assume that this is a start point
-            if (activity.mMediaItemsStack.isEmpty()) {
-                activity.addMediaItemToStack(activity.mMediaResourcesManager.getRoot());
-            }
-
-            if (activity.mListener != null) {
-                activity.mListener.showProgressBar();
-            }
-            // Subscribe to the media item
-            activity.mMediaResourcesManager.subscribe(
-                    activity.mMediaItemsStack.get(activity.mMediaItemsStack.size() - 1),
-                    activity.mCallback
-            );
-
-            // Update metadata in case of UI started on and media service was already created and stream played.
-            if (activity.mListener != null) {
-                activity.mListener.handleMetadataChanged(activity.mMediaResourcesManager.getMediaMetadata());
-            }
+            MediaPresenter.this.handleMediaResourceManagerConnected();
         }
 
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
             AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
-            final MediaPresenter activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onPlaybackStateChanged reference to MainActivity is null");
-                return;
-            }
+            final MediaPresenter activity = MediaPresenter.this;
             if (activity.mListener != null) {
                 activity.mListener.handlePlaybackStateChanged(state);
             }
@@ -383,21 +361,13 @@ public final class MediaPresenter {
         @Override
         public void onMetadataChanged(final MediaMetadataCompat metadata,
                                       final List<MediaSessionCompat.QueueItem> queue) {
-            final MediaPresenter activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "onMetadataChanged reference to MainActivity is null");
-                return;
-            }
             if (metadata == null) {
                 return;
             }
+            final MediaPresenter activity = MediaPresenter.this;
             if (activity.mListener != null) {
                 activity.mListener.handleMetadataChanged(metadata);
             }
         }
-    }
-
-    private int[] createInitPositionEntry() {
-        return new int[]{0, MediaSessionCompat.QueueItem.UNKNOWN_ID};
     }
 }
