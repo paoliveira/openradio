@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,9 +53,10 @@ public final class BTConnectionReceiver extends AbstractReceiver {
 
     @Nullable
     private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothProfile.ServiceListener mProfileListener;
+    private BluetoothProfileServiceListenerImpl mProfileListener;
     private String mConnectedDevice;
     private Listener mListener;
+    private boolean mIsProfileProxy;
 
     /**
      * Main constructor.
@@ -66,18 +67,6 @@ public final class BTConnectionReceiver extends AbstractReceiver {
         mListener = listener;
         mProfileListener = new BluetoothProfileServiceListenerImpl();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    }
-
-    /**
-     *
-     * @param context
-     */
-    public void locateDevice(final Context context) {
-        // Establish connection to the proxy.
-        if (mBluetoothAdapter == null) {
-            return;
-        }
-        mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
     }
 
     @Override
@@ -97,8 +86,27 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     }
 
     @Override
-    public void unregister(@NonNull final Context context) {
+    public void unregister(@NonNull Context context) {
+        if (mProfileListener != null) {
+            mProfileListener.clear();
+        }
         super.unregister(context);
+    }
+
+    /**
+     *
+     * @param context
+     */
+    public void locateDevice(final Context context) {
+        // Establish connection to the proxy.
+        if (mBluetoothAdapter == null) {
+            return;
+        }
+        // Check whether proxy was connected.
+        if (mIsProfileProxy) {
+            return;
+        }
+        mIsProfileProxy = mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
     }
 
     /**
@@ -106,25 +114,21 @@ public final class BTConnectionReceiver extends AbstractReceiver {
      */
     private class BluetoothProfileServiceListenerImpl implements BluetoothProfile.ServiceListener {
 
-        /**
-         *
-         */
         private BluetoothHeadset mBluetoothHeadset;
+        private int mProfile;
 
         /**
-         *
+         * Default constructor.
          */
         private BluetoothProfileServiceListenerImpl() {
             super();
         }
 
         @Override
-        public void onServiceConnected(int profile, BluetoothProfile proxy) {
-            AppLogger.i(CLASS_NAME + " connected:" + profile);
-            if (profile != BluetoothProfile.HEADSET) {
-                return;
-            }
+        public void onServiceConnected(final int profile, final BluetoothProfile proxy) {
+            AppLogger.i(CLASS_NAME + " connected profile:" + profile);
             mBluetoothHeadset = (BluetoothHeadset) proxy;
+            mProfile = profile;
             AppLogger.i(CLASS_NAME + " connected headset:" + mBluetoothHeadset);
             final List<BluetoothDevice> list = mBluetoothHeadset.getConnectedDevices();
             if (list.isEmpty()) {
@@ -144,13 +148,10 @@ public final class BTConnectionReceiver extends AbstractReceiver {
             }
 
             if (TextUtils.equals(connectedDevice, BTConnectionReceiver.this.mConnectedDevice)) {
-                AppLogger.i("Connected to same BT device.");
+                AppLogger.i(CLASS_NAME + " connected to same BT device.");
                 BTConnectionReceiver.this.mListener.onSameDeviceConnected();
             }
             BTConnectionReceiver.this.mConnectedDevice = connectedDevice;
-            if (BTConnectionReceiver.this.mBluetoothAdapter != null) {
-                BTConnectionReceiver.this.mBluetoothAdapter.closeProfileProxy(profile, mBluetoothHeadset);
-            }
         }
 
         @Override
@@ -158,6 +159,12 @@ public final class BTConnectionReceiver extends AbstractReceiver {
             AppLogger.i(CLASS_NAME + " disconnected headset:" + profile);
             if (profile == BluetoothProfile.HEADSET) {
                 mBluetoothHeadset = null;
+            }
+        }
+
+        private void clear() {
+            if (mBluetoothAdapter != null && mBluetoothHeadset != null) {
+                mBluetoothAdapter.closeProfileProxy(mProfile, mBluetoothHeadset);
             }
         }
     }
