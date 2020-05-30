@@ -28,7 +28,7 @@ project.ext {
     junitVersion = "4.12"
     espressoVersion = "3.1.0"
     // https://mvnrepository.com/artifact/org.json/json
-    jsonTestVersion = "20171018"
+    jsonTestVersion = "20180813"
     exoPlayerVersion = "2.11.4"
 
     /**
