@@ -18,7 +18,6 @@ package com.yuriy.openradio.view.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -54,6 +53,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -87,7 +87,6 @@ import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog;
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog;
 import com.yuriy.openradio.shared.view.dialog.LogsDialog;
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog;
-import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 import com.yuriy.openradio.view.dialog.AddStationDialog;
@@ -197,7 +196,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
-    private volatile AtomicBoolean mIsOnSaveInstancePassed;
+    private final AtomicBoolean mIsOnSaveInstancePassed;
 
     /**
      * Current dragging item.
@@ -254,7 +253,7 @@ public final class MainActivity extends AppCompatActivity {
         mScreenBroadcastRcvr = new ScreenReceiver();
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    @SuppressLint({"ClickableViewAccessibility", "NonConstantResourceId"})
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -483,6 +482,7 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onContextItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
@@ -511,6 +511,7 @@ public final class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public final boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -617,7 +618,9 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * @param fragmentTransaction
+     * Clears any active dialog.
+     *
+     * @param fragmentTransaction Instance of Fragment transaction.
      */
     private void clearDialogs(final FragmentTransaction fragmentTransaction) {
         Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
@@ -801,7 +804,6 @@ public final class MainActivity extends AppCompatActivity {
         mNoDataView.setVisibility(View.GONE);
     }
 
-    @SuppressWarnings("unchecked")
     private void restoreState(final Context context, final Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             // Nothing to restore
@@ -1445,7 +1447,7 @@ public final class MainActivity extends AppCompatActivity {
          * Location back from the {@link LocationService}.
          */
         @Override
-        public void handleMessage(final Message message) {
+        public void handleMessage(@NonNull final Message message) {
             // Bail out if the {@link MainActivity} is gone.
             if (mActivity == null) {
                 AppLogger.e(CLASS_NAME + "enclosing weak reference null");
@@ -1457,11 +1459,11 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             // Try to extract the location from the message.
-            String countryCode = LocationService.getCountryCode(message);
+//            String countryCode = LocationService.getCountryCode(message);
             // See if the get Location worked or not.
-            if (countryCode == null) {
-                countryCode = Country.COUNTRY_CODE_DEFAULT;
-            }
+//            if (countryCode == null) {
+//                countryCode = Country.COUNTRY_CODE_DEFAULT;
+//            }
             mActivity.get().connectToMediaBrowser();
         }
     }

@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.service;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -515,6 +516,14 @@ public final class LocationService extends JobIntentService {
         }
     }
 
+    /**
+     * Do requests country code from fuse client.
+     * Before call this service, permission check is done at Activity.
+     *
+     * @param context Context of callee.
+     * @param listener Listener to the location event.
+     */
+    @SuppressLint("MissingPermission")
     private void requestCountryCode(final Context context, final LocationServiceListener listener) {
         final LocationCallback locationListener = new LocationListenerImpl(
                 listener, context, mFusedLocationClient
