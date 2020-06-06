@@ -90,10 +90,8 @@ public final class TvMainActivity extends FragmentActivity {
             logsDialog.onActivityResult(requestCode, resultCode, data);
         }
 
-        switch (requestCode) {
-            case TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE:
-                onSearchDialogClick();
-                break;
+        if (requestCode == TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE) {
+            onSearchDialogClick();
         }
     }
 
