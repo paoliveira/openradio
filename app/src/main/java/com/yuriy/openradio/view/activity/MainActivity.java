@@ -18,6 +18,7 @@ package com.yuriy.openradio.view.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -53,7 +54,6 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;

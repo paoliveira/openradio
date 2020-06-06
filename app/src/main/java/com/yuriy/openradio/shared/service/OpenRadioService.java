@@ -265,7 +265,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     private String mLastPlayedUrl;
     private String mCurrentParentId;
     private boolean mIsRestoreState;
-    private MasterVolumeReceiver mMasterVolumeBroadcastReceiver;
+    private final MasterVolumeReceiver mMasterVolumeBroadcastReceiver;
     /**
      * The BroadcastReceiver that tracks network connectivity changes.
      */
@@ -346,7 +346,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         @Override
-        public void handleMessage(final Message msg) {
+        public void handleMessage(@NonNull final Message msg) {
             if (mReference == null) {
                 return;
             }
@@ -1608,10 +1608,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Use this flag to compare indexes of the items later on.
         // Do not compare indexes if state is not play.
-        boolean isStatePlay = true;
+//        boolean isStatePlay = true;
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
-            isStatePlay = false;
+//            isStatePlay = false;
         }
 
         final int tempIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId);
