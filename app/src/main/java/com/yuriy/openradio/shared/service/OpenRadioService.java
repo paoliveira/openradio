@@ -596,7 +596,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     *
+     * Handles exception related to unrecognized url. Try to parse url deeply to extract actual stream one from
+     * playlist.
      */
     private void handleUnrecognizedInputFormatException() {
         handleStopRequest(null);
@@ -606,7 +607,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     () -> {
                         final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
                         mMainHandler.post(
-                                () -> OpenRadioService.this.handlePlayListUrlsExtracted(urls)
+                                () -> {
+                                    // Silently clear last references and try to restart:
+                                    OpenRadioService.this.mLastKnownRS = null;
+                                    OpenRadioService.this.mLastPlayedUrl = null;
+                                    OpenRadioService.this.handlePlayListUrlsExtracted(urls);
+                                }
                         );
                     }
             );
