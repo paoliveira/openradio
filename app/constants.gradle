@@ -6,10 +6,10 @@ project.ext {
     /**
      * Build and compile constants
      */
-    compileSdkVersion = 29
+    compileSdkVersion = 30
     minSdkVersion = 17
-    targetSdkVersion = 29
-    buildToolsVersion = "29.0.3"
+    targetSdkVersion = 30
+    buildToolsVersion = "30.0.0"
 
     /**
      * Libraries versions
