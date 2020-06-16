@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -34,6 +35,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 import androidx.leanback.app.PlaybackSupportFragment;
 import androidx.leanback.app.PlaybackSupportFragmentGlueHost;
@@ -65,7 +67,6 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.WrappedDrawable;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.view.activity.PermissionsDialogActivity;
-import com.yuriy.openradio.shared.vo.Country;
 import com.yuriy.openradio.view.activity.TvMainActivity;
 import com.yuriy.openradio.vo.MediaItemActionable;
 
@@ -78,10 +79,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
     private static final String CLASS_NAME = TvMainFragment.class.getSimpleName();
     private static final int PLAYLIST_ACTION_ID = 0;
     private static final int FAVORITE_ACTION_ID = 1;
-    /**
-     * Listener for the Media Browser Subscription callback
-     */
-    private MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCallback;
 
     private MediaPresenter mMediaPresenter;
     private ArrayObjectAdapter mRowsAdapter;
@@ -96,8 +93,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
     private String mCurrentParentId = "";
-    private int mCurrentSelectedPosition;
-
     /**
      * Stores an instance of {@link LocationHandler} that inherits from
      * Handler and uses its handleMessage() hook method to process
@@ -127,33 +122,19 @@ public class TvMainFragment extends PlaybackSupportFragment {
         );
         mGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
-        mMedSubscriptionCallback = new MediaBrowserSubscriptionCallback(this);
         mDummyView = new ImageView(context);
         // Handles loading the  image in a background thread
         mImageWorker = ImageFetcherFactory.getTvPlayerImageFetcher(getActivity());
 
         mMediaPresenter = new MediaPresenter();
+
+        final MediaBrowserCompat.SubscriptionCallback subscriptionCb = new MediaBrowserSubscriptionCallback(this);
+        final MediaPresenterListener listener = new MediaPresenterListenerImpl(this);
         mMediaPresenter.init(
                 getActivity(),
                 savedInstanceState,
-                mMedSubscriptionCallback,
-                new MediaPresenterListener() {
-
-                    @Override
-                    public void showProgressBar() {
-                        TvMainFragment.this.showProgressBar();
-                    }
-
-                    @Override
-                    public void handleMetadataChanged(final MediaMetadataCompat metadata) {
-                        TvMainFragment.this.handleMetadataChanged(metadata);
-                    }
-
-                    @Override
-                    public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
-                        TvMainFragment.this.handlePlaybackStateChanged(state);
-                    }
-                }
+                subscriptionCb,
+                listener
         );
 
         setUpAdapter();
@@ -315,10 +296,10 @@ public class TvMainFragment extends PlaybackSupportFragment {
         AppLogger.d(CLASS_NAME + " ItemSelected:" + row);
         if (row instanceof MediaItemActionable) {
             final MediaItemActionable actionable = (MediaItemActionable) row;
-            mCurrentSelectedPosition = actionable.getListIndex();
-            mMediaPresenter.handleItemSelect(actionable, mCurrentSelectedPosition);
+            final int currentSelectedPosition = actionable.getListIndex();
+            mMediaPresenter.handleItemSelect(actionable, currentSelectedPosition);
             // Minus two - one is for playback row and one is for zero based list
-            if (actionable.getListIndex() == mRowsAdapter.size() - 2) {
+            if (currentSelectedPosition == mRowsAdapter.size() - 2) {
                 onScrolledToEnd();
             }
         }
@@ -447,6 +428,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
             return new Presenter[]{mRegularPresenter, mFavoritePresenter};
         }
 
+        @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
         @Override
         public Presenter getPresenter(final Object item) {
             final MediaItemActionable mediaItem = (MediaItemActionable) item;
@@ -486,6 +468,54 @@ public class TvMainFragment extends PlaybackSupportFragment {
             }
 
             return MediaItemHelper.isFavoriteField(mediaItem) ? mFavoritePresenter : mRegularPresenter;
+        }
+    }
+
+    private static final class MediaPresenterListenerImpl implements MediaPresenterListener {
+
+        /**
+         * Weak reference to the outer activity.
+         */
+        private final WeakReference<TvMainFragment> mReference;
+
+        /**
+         * Constructor.
+         *
+         * @param reference Reference to the Activity.
+         */
+        private MediaPresenterListenerImpl(final TvMainFragment reference) {
+            super();
+            mReference = new WeakReference<>(reference);
+        }
+
+        @Override
+        public void showProgressBar() {
+            final TvMainFragment fragment = mReference.get();
+            if (fragment == null) {
+                AppLogger.w(CLASS_NAME + " On show progress bar -> fragment ref is null");
+                return;
+            }
+            fragment.showProgressBar();
+        }
+
+        @Override
+        public void handleMetadataChanged(final MediaMetadataCompat metadata) {
+            final TvMainFragment fragment = mReference.get();
+            if (fragment == null) {
+                AppLogger.w(CLASS_NAME + " On handle metadata changed -> fragment ref is null");
+                return;
+            }
+            fragment.handleMetadataChanged(metadata);
+        }
+
+        @Override
+        public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
+            final TvMainFragment fragment = mReference.get();
+            if (fragment == null) {
+                AppLogger.w(CLASS_NAME + " On handle playback state changed -> fragment ref is null");
+                return;
+            }
+            fragment.handlePlaybackStateChanged(state);
         }
     }
 
@@ -650,11 +680,11 @@ public class TvMainFragment extends PlaybackSupportFragment {
             }
 
             // Try to extract the location from the message.
-            String countryCode = LocationService.getCountryCode(message);
+//            String countryCode = LocationService.getCountryCode(message);
             // See if the get Location worked or not.
-            if (countryCode == null) {
-                countryCode = Country.COUNTRY_CODE_DEFAULT;
-            }
+//            if (countryCode == null) {
+//                countryCode = Country.COUNTRY_CODE_DEFAULT;
+//            }
             if (mActivity.get().mMediaPresenter != null) {
                 mActivity.get().mMediaPresenter.connect();
             }
