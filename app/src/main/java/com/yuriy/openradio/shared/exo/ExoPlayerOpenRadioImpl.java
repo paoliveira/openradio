@@ -168,7 +168,7 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Instance of the Data Source factory.
      */
-    private DataSource.Factory mMediaDataSourceFactory;
+    private final DataSource.Factory mMediaDataSourceFactory;
     /**
      * Current play URI.
      */
@@ -280,6 +280,8 @@ public final class ExoPlayerOpenRadioImpl {
                 mMediaSource = new ProgressiveMediaSource.Factory(mMediaDataSourceFactory)
                         .createMediaSource(mUri);
                 break;
+            case C.TYPE_SS:
+            case C.TYPE_DASH:
             default:
                 AppLogger.e("Unsupported extension:" + type);
                 break;
@@ -394,9 +396,19 @@ public final class ExoPlayerOpenRadioImpl {
             return;
         }
         final EqualizerStateSerializer serializer = new EqualizerJsonStateSerializer();
-        EqualizerStorage.saveEqualizerState(
-                mContext, serializer.serialize(EqualizerState.createState(mEqualizer))
-        );
+        EqualizerState state = null;
+        try {
+            state = EqualizerState.createState(mEqualizer);
+        } catch (final IllegalArgumentException e) {
+            AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
+        } catch (final IllegalStateException e) {
+            AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
+        } catch (final UnsupportedOperationException e) {
+            AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
+        }
+        if (state != null) {
+            EqualizerStorage.saveEqualizerState(mContext, serializer.serialize(state));
+        }
     }
 
     private void initEqualizer(final int audioSessionId) {
@@ -486,8 +498,6 @@ public final class ExoPlayerOpenRadioImpl {
                 new MediaCodecAudioRenderer(
                         context,
                         MediaCodecSelector.DEFAULT,
-                        null,
-                        false,
                         false,
                         mainHandler,
                         eventListener,
@@ -597,7 +607,7 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onAudioEnabled(final DecoderCounters counters) {
+        public void onAudioEnabled(@NonNull final DecoderCounters counters) {
             AppLogger.d(LOG_TAG + " audioEnabled");
         }
 
@@ -612,7 +622,7 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onMetadata(final Metadata metadata) {
+        public void onMetadata(@NonNull final Metadata metadata) {
 
             // TODO: REFACTOR THIS QUICK CODE!!
 
@@ -653,14 +663,14 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onAudioDecoderInitialized(final String decoderName,
+        public void onAudioDecoderInitialized(@NonNull final String decoderName,
                                               final long initializedTimestampMs,
                                               final long initializationDurationMs) {
             AppLogger.d(LOG_TAG + " audioDecoderInitialized " + decoderName);
         }
 
         @Override
-        public void onAudioInputFormatChanged(final Format format) {
+        public void onAudioInputFormatChanged(@NonNull final Format format) {
             AppLogger.d(LOG_TAG + " audioInputFormatChanged:" + format);
         }
 
@@ -672,14 +682,14 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onAudioDisabled(final DecoderCounters counters) {
+        public void onAudioDisabled(@NonNull final DecoderCounters counters) {
             AppLogger.d(LOG_TAG + " audioDisabled");
         }
 
         // Event listener
 
         @Override
-        public void onTimelineChanged(final Timeline timeline, int reason) {
+        public void onTimelineChanged(@NonNull final Timeline timeline, int reason) {
             AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + ", reason " + reason);
             final ExoPlayerOpenRadioImpl reference = mReference.get();
             if (reference == null) {
@@ -689,8 +699,8 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onTracksChanged(final TrackGroupArray trackGroups,
-                                    final TrackSelectionArray trackSelections) {
+        public void onTracksChanged(@NonNull final TrackGroupArray trackGroups,
+                                    @NonNull final TrackSelectionArray trackSelections) {
             //AppLogger.d(LOG_TAG + " onTracksChanged");
         }
 
@@ -737,7 +747,7 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onPlayerError(final ExoPlaybackException exception) {
+        public void onPlayerError(@NonNull final ExoPlaybackException exception) {
             AppLogger.e(LOG_TAG + " onPlayerError:\n" + Log.getStackTraceString(exception));
 
             final ExoPlayerOpenRadioImpl reference = mReference.get();
@@ -771,7 +781,7 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onPlaybackParametersChanged(final PlaybackParameters playbackParameters) {
+        public void onPlaybackParametersChanged(@NonNull final PlaybackParameters playbackParameters) {
             //AppLogger.e(LOG_TAG + " onPlaybackParametersChanged");
         }
 

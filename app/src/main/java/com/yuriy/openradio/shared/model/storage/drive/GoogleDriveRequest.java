@@ -89,8 +89,7 @@ public final class GoogleDriveRequest {
         return mExecutorService;
     }
 
-    @NonNull
-    public void setExecutorService(final ExecutorService value) {
+    public void setExecutorService(@NonNull final ExecutorService value) {
         mExecutorService = value;
     }
 }

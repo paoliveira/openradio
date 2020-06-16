@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.broadcast;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -124,6 +125,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
             super();
         }
 
+        @SuppressLint("MissingPermission")
         @Override
         public void onServiceConnected(final int profile, final BluetoothProfile proxy) {
             AppLogger.i(CLASS_NAME + " connected profile:" + profile);

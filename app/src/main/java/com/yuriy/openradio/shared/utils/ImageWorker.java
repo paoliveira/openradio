@@ -20,8 +20,6 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -30,7 +28,6 @@ import android.os.AsyncTask;
 import android.widget.ImageView;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import java.lang.ref.WeakReference;
@@ -51,10 +48,9 @@ public abstract class ImageWorker {
     private static final int FADE_IN_TIME = 200;
 
     private ImageCache mImageCache;
-    private ImageCache.ImageCacheParams mImageCacheParams;
     private Bitmap mLoadingBitmap;
     private boolean mFadeInBitmap = true;
-    private boolean mExitTasksEarly = false;
+    private final boolean mExitTasksEarly = false;
     private boolean mPauseWork = false;
     private final Object mPauseWorkLock = new Object();
     boolean mIsTvPlayer;
@@ -168,12 +164,11 @@ public abstract class ImageWorker {
      * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
      * caching.
      *
-     * @param fragmentManager
+     * @param fragmentManager Reference to fragment manager.
      * @param cacheParams     The cache parameters to use for the image cache.
      */
     public void addImageCache(FragmentManager fragmentManager, ImageCache.ImageCacheParams cacheParams) {
-        mImageCacheParams = cacheParams;
-        mImageCache = ImageCache.getInstance(fragmentManager, mImageCacheParams);
+        mImageCache = ImageCache.getInstance(fragmentManager, cacheParams);
         if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
             return;
         }
@@ -184,32 +179,10 @@ public abstract class ImageWorker {
     }
 
     /**
-     * Adds an {@link ImageCache} to this {@link ImageWorker} to handle disk and memory bitmap
-     * caching.
-     *
-     * @param activity
-     * @param diskCacheDirectoryName See
-     *                               {@link ImageCache.ImageCacheParams#ImageCacheParams(Context, String)}.
-     */
-    public void addImageCache(FragmentActivity activity, String diskCacheDirectoryName) {
-        mImageCacheParams = new ImageCache.ImageCacheParams(activity, diskCacheDirectoryName);
-        mImageCache = ImageCache.getInstance(activity.getSupportFragmentManager(), mImageCacheParams);
-        if (ConcurrentUtils.isImageWorkerExecutorNotReady()) {
-            return;
-        }
-        new CacheAsyncTask(this).execute(MESSAGE_INIT_DISK_CACHE);
-    }
-
-    /**
      * If set to true, the image will fade-in once it has been loaded by the background thread.
      */
     public void setImageFadeIn(boolean fadeIn) {
         mFadeInBitmap = fadeIn;
-    }
-
-    public void setExitTasksEarly(boolean exitTasksEarly) {
-        mExitTasksEarly = exitTasksEarly;
-        setPauseWork(false);
     }
 
     /**
@@ -430,22 +403,6 @@ public abstract class ImageWorker {
         }
     }
 
-    private static Bitmap overlayBitmapToCenter(final Bitmap bitmap1, final Bitmap bitmap2) {
-        final int bitmap1Width = bitmap1.getWidth();
-        final int bitmap1Height = bitmap1.getHeight();
-        final int bitmap2Width = bitmap2.getWidth();
-        final int bitmap2Height = bitmap2.getHeight();
-
-        final float marginLeft = (float) (bitmap1Width * 0.5 - bitmap2Width * 0.5);
-        final float marginTop = (float) (bitmap1Height * 0.5 - bitmap2Height * 0.5);
-
-        final Bitmap overlayBitmap = Bitmap.createBitmap(bitmap1Width, bitmap1Height, bitmap1.getConfig());
-        final Canvas canvas = new Canvas(overlayBitmap);
-        canvas.drawBitmap(bitmap1, new Matrix(), null);
-        canvas.drawBitmap(bitmap2, marginLeft, marginTop, null);
-        return overlayBitmap;
-    }
-
     /**
      * A custom Drawable that will be attached to the imageView while the work is in progress.
      * Contains a reference to the actual worker task, so that it can be stopped if a new binding is
@@ -483,8 +440,7 @@ public abstract class ImageWorker {
                             drawable
                     });
             // Set background to loading bitmap
-            imageView.setBackgroundDrawable(
-                    new BitmapDrawable(mResources, mLoadingBitmap));
+            imageView.setBackgroundDrawable(new BitmapDrawable(mResources, mLoadingBitmap));
 
             imageView.setImageDrawable(td);
             td.startTransition(FADE_IN_TIME);

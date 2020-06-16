@@ -55,7 +55,6 @@ import com.yuriy.openradio.shared.broadcast.BTConnectionReceiver;
 import com.yuriy.openradio.shared.broadcast.BecomingNoisyReceiver;
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiver;
-import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiverListener;
 import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver;
 import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl;
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider;
@@ -87,6 +86,7 @@ import com.yuriy.openradio.shared.notification.MediaNotification;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
@@ -103,8 +103,6 @@ import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
 import wseemann.media.jplaylistparser.parser.AutoDetectParser;
@@ -199,10 +197,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private AudioManager mAudioManager;
     /**
-     * Executor of the API requests.
-     */
-    private final ExecutorService mApiCallExecutor = Executors.newCachedThreadPool();
-    /**
      * Collection of the Radio Stations.
      */
     private final RadioStationsStorage mRadioStationsStorage = new RadioStationsStorage();
@@ -215,10 +209,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Notification object.
      */
     private MediaNotification mMediaNotification;
-    /**
-     * Listener of the Playback State changes.
-     */
-    private final MediaItemCommand.IUpdatePlaybackState mPlaybackStateListener = new PlaybackStateListener(this);
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
@@ -255,11 +245,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
     private final Map<String, MediaItemCommand> mMediaItemCommands = new HashMap<>();
-    /**
-     *
-     */
-    private final RadioStationUpdateListener mRadioStationUpdateListener
-            = new RadioStationUpdateListenerImpl(this);
     private long mPosition;
     private long mBufferedPosition;
     private String mLastPlayedUrl;
@@ -312,12 +297,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     }
                 }
         );
-        mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(new BecomingNoisyReceiverListenerImpl(this));
-        final ConnectivityReceiver.ConnectivityChangeListener connectivityChangeListener =
-                new ConnectivityChangeListenerImpl(this);
-        mConnectivityReceiver = new ConnectivityReceiver(connectivityChangeListener);
-        final MasterVolumeReceiverListener listener = new MasterVolumeEventListener(this);
-        mMasterVolumeBroadcastReceiver = new MasterVolumeReceiver(listener);
+        mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(() -> handlePauseRequest(PauseReason.NOISY));
+        mConnectivityReceiver = new ConnectivityReceiver(this::handleConnectivityChange);
+        mMasterVolumeBroadcastReceiver = new MasterVolumeReceiver(this::setPlayerVolume);
         mDownloader = new HTTPDownloaderImpl();
     }
 
@@ -483,11 +465,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         stopService();
-
-        final ExecutorService executorService = getApiCallExecutor();
-        if (executorService != null) {
-            executorService.shutdown();
-        }
     }
 
     @Override
@@ -553,7 +530,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         );
         mIsRestoreState = false;
         if (command != null) {
-            command.execute(mPlaybackStateListener, dependencies);
+            command.execute(OpenRadioService.this::updatePlaybackState, dependencies);
         } else {
             AppLogger.w(CLASS_NAME + "Skipping unmatched parentId: " + mCurrentParentId);
             result.sendResult(dependencies.getMediaItems());
@@ -601,22 +578,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private void handleUnrecognizedInputFormatException() {
         handleStopRequest(null);
-        final ExecutorService executorService = getApiCallExecutor();
-        if (executorService != null) {
-            executorService.submit(
-                    () -> {
-                        final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
-                        mMainHandler.post(
-                                () -> {
-                                    // Silently clear last references and try to restart:
-                                    OpenRadioService.this.mLastKnownRS = null;
-                                    OpenRadioService.this.mLastPlayedUrl = null;
-                                    OpenRadioService.this.handlePlayListUrlsExtracted(urls);
-                                }
-                        );
-                    }
-            );
-        }
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+                () -> {
+                    final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
+                    mMainHandler.post(
+                            () -> {
+                                // Silently clear last references and try to restart:
+                                OpenRadioService.this.mLastKnownRS = null;
+                                OpenRadioService.this.mLastPlayedUrl = null;
+                                OpenRadioService.this.handlePlayListUrlsExtracted(urls);
+                            }
+                    );
+                }
+        );
     }
 
     private void handlePlayListUrlsExtracted(final String[] urls) {
@@ -1026,57 +1000,43 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      *
      * @param listener {@link RadioStationUpdateListener}
      */
-    private void getCurrentPlayingRadioStationAsync(final RadioStationUpdateListener listener) {
+    private void getCurrentPlayingRSAsync(@NonNull final RadioStationUpdateListener listener) {
         final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
-            if (listener != null) {
-                listener.onComplete(null);
-            }
+            listener.onComplete(null);
             return;
         }
 
         // This indicates that Radio Station's url was not downloaded.
         // Currently, when list of the stations received they comes without stream url
         // and bitrate, upon selecting one - it is necessary to load additional data.
-        if (radioStation.isMediaStreamEmpty()) {
-
-            final ExecutorService executorService = getApiCallExecutor();
-            if (executorService != null) {
-                executorService.submit(
-                        () -> {
-                            if (mApiServiceProvider == null) {
-                                if (listener != null) {
-                                    listener.onComplete(null);
-                                }
-                                return;
-                            }
-                            // Start download information about Radio Station
-                            final RadioStation radioStationUpdated = mApiServiceProvider
-                                    .getStation(
-                                            mDownloader,
-                                            UrlBuilder.getStation(radioStation.getId()),
-                                            CacheType.NONE
-                                    );
-                            if (radioStationUpdated == null) {
-                                AppLogger.e("Can not get Radio Station from internet");
-                                if (listener != null) {
-                                    listener.onComplete(radioStation);
-                                }
-                                return;
-                            }
-                            radioStation.setMediaStream(radioStationUpdated.getMediaStream());
-
-                            if (listener != null) {
-                                listener.onComplete(radioStation);
-                            }
-                        }
-                );
-            }
-        } else {
-            if (listener != null) {
-                listener.onComplete(radioStation);
-            }
+        if (!radioStation.isMediaStreamEmpty()) {
+            listener.onComplete(radioStation);
+            return;
         }
+
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+                () -> {
+                    if (mApiServiceProvider == null) {
+                        listener.onComplete(null);
+                        return;
+                    }
+                    // Start download information about Radio Station
+                    final RadioStation radioStationUpdated = mApiServiceProvider
+                            .getStation(
+                                    mDownloader,
+                                    UrlBuilder.getStation(radioStation.getId()),
+                                    CacheType.NONE
+                            );
+                    if (radioStationUpdated == null) {
+                        AppLogger.e("Can not get Radio Station from internet");
+                        listener.onComplete(radioStation);
+                        return;
+                    }
+                    radioStation.setMediaStream(radioStationUpdated.getMediaStream());
+                    listener.onComplete(radioStation);
+                }
+        );
     }
 
     private MediaMetadataCompat buildMetadata(final RadioStation radioStation) {
@@ -1241,76 +1201,49 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             configMediaPlayerState();
         } else {
             // If we're stopped or playing a song,
-            // just go ahead to the new song and (re)start playing
-            getCurrentPlayingRadioStationAsync(mRadioStationUpdateListener);
+            // just go ahead to the new song and (re)start playing.
+            getCurrentPlayingRSAsync(
+                    radioStation -> {
+                        if (radioStation == null) {
+                            AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
+                                    "because cannot find it." +
+                                    " idx " + mCurrentIndexOnQueue);
+                            return;
+                        }
+                        if (mLastKnownRS != null && mLastKnownRS.equals(radioStation)) {
+                            AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
+                                    "because last known is the same as requested. Try to resume playback.");
+                            updatePlaybackState();
+                            return;
+                        }
+
+                        mLastKnownRS = radioStation;
+                        final MediaMetadataCompat metadata = buildMetadata(radioStation);
+                        if (metadata == null) {
+                            AppLogger.e(CLASS_NAME + "play. Ignoring request to play next song, " +
+                                    "because cannot find metadata." +
+                                    " idx " + mCurrentIndexOnQueue);
+                            return;
+                        }
+                        final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
+                        AppLogger.d(
+                                CLASS_NAME + "play. idx " + mCurrentIndexOnQueue
+                                        + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
+                                        " source " + source
+                        );
+                        if (TextUtils.isEmpty(source)) {
+                            AppLogger.e(CLASS_NAME + " source is empty");
+                            return;
+                        }
+
+                        mCurrentMediaId = radioStation.getId();
+
+                        preparePlayer(source);
+                    }
+            );
         }
 
         mNoisyAudioStreamReceiver.register(context);
-    }
-
-    /**
-     * Listener for the getting current playing Radio Station data event.
-     */
-    private static final class RadioStationUpdateListenerImpl implements RadioStationUpdateListener {
-
-        /**
-         * Reference to enclosing class.
-         */
-        private final WeakReference<OpenRadioService> mReference;
-
-        /**
-         * Main constructor.
-         *
-         * @param reference Reference to enclosing class.
-         */
-        private RadioStationUpdateListenerImpl(final OpenRadioService reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onComplete(@Nullable final RadioStation radioStation) {
-            final OpenRadioService service = mReference.get();
-            if (service == null) {
-                AppLogger.e(CLASS_NAME + "RS Update can not proceed farther, service is null");
-                return;
-            }
-            if (radioStation == null) {
-                AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
-                        "because cannot find it." +
-                        " idx " + service.mCurrentIndexOnQueue);
-                return;
-            }
-            if (service.mLastKnownRS != null && service.mLastKnownRS.equals(radioStation)) {
-                AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
-                        "because last known is the same as requested. Try to resume playback.");
-                service.updatePlaybackState();
-                return;
-            }
-
-            service.mLastKnownRS = radioStation;
-            final MediaMetadataCompat metadata = service.buildMetadata(radioStation);
-            if (metadata == null) {
-                AppLogger.e(CLASS_NAME + "play. Ignoring request to play next song, " +
-                        "because cannot find metadata." +
-                        " idx " + service.mCurrentIndexOnQueue);
-                return;
-            }
-            final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
-            AppLogger.d(
-                    CLASS_NAME + "play. idx " + service.mCurrentIndexOnQueue
-                            + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
-                            " source " + source
-            );
-            if (TextUtils.isEmpty(source)) {
-                AppLogger.e(CLASS_NAME + " source is empty");
-                return;
-            }
-
-            service.mCurrentMediaId = radioStation.getId();
-
-            service.preparePlayer(source);
-        }
     }
 
     private void preparePlayer(final String url) {
@@ -1652,8 +1585,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void setCustomAction(final PlaybackStateCompat.Builder stateBuilder) {
-        getCurrentPlayingRadioStationAsync(
-                (radioStation) -> {
+        getCurrentPlayingRSAsync(
+                radioStation -> {
                     if (radioStation == null) {
                         return;
                     }
@@ -1870,8 +1803,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
 
             if (CUSTOM_ACTION_THUMBS_UP.equals(action)) {
-                service.getCurrentPlayingRadioStationAsync(
-                        (radioStation) -> {
+                service.getCurrentPlayingRSAsync(
+                        radioStation -> {
 
                             if (radioStation != null) {
                                 final boolean isFavorite = FavoritesStorage.isFavorite(
@@ -1970,21 +1903,16 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
 
-        final ExecutorService executorService = getApiCallExecutor();
-        if (executorService != null) {
-            executorService.submit(
-                    () -> {
-                        try {
-                            executePerformSearch(query);
-                        } catch (final Exception e) {
-                            handleStopRequest(getString(R.string.no_search_results));
-                            AnalyticsUtils.logException(e);
-                        }
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+                () -> {
+                    try {
+                        executePerformSearch(query);
+                    } catch (final Exception e) {
+                        handleStopRequest(getString(R.string.no_search_results));
+                        AnalyticsUtils.logException(e);
                     }
-            );
-        } else {
-            handleStopRequest(getString(R.string.no_search_results));
-        }
+                }
+        );
     }
 
     /**
@@ -2040,17 +1968,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
                 AppLocalBroadcast.createIntentCurrentIndexOnQueue(index, mediaId)
         );
-    }
-
-    /**
-     * @return Reference to executor service or {@code null} in case of the one unavailable.
-     */
-    @Nullable
-    private ExecutorService getApiCallExecutor() {
-        if (mApiCallExecutor.isShutdown() || mApiCallExecutor.isTerminated()) {
-            return null;
-        }
-        return mApiCallExecutor;
     }
 
     /**
@@ -2280,36 +2197,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
     }
 
-    /**
-     * Listener class of the Playback State changes.
-     */
-    private static final class PlaybackStateListener implements MediaItemCommand.IUpdatePlaybackState {
-
-        /**
-         * Reference to enclosing class.
-         */
-        private final WeakReference<OpenRadioService> mReference;
-
-        /**
-         * private constructor.
-         *
-         * @param reference Reference to enclosing class.
-         */
-        private PlaybackStateListener(final OpenRadioService reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void updatePlaybackState(final String error) {
-            final OpenRadioService service = mReference.get();
-            if (service == null) {
-                return;
-            }
-            service.updatePlaybackState(error);
-        }
-    }
-
     private void setPlaybackState(final int state) {
         AppLogger.d(CLASS_NAME + "Set state " + state);
         mState = state;
@@ -2392,86 +2279,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 default:
                     break;
             }
-        }
-    }
-
-    private static final class MasterVolumeEventListener implements MasterVolumeReceiverListener {
-
-        private final WeakReference<OpenRadioService> mReference;
-
-        private MasterVolumeEventListener(final OpenRadioService service) {
-            super();
-            mReference = new WeakReference<>(service);
-        }
-
-        @Override
-        public void onMasterVolumeChanged() {
-            final OpenRadioService service = mReference.get();
-            if (service == null) {
-                return;
-            }
-            service.setPlayerVolume();
-        }
-    }
-
-    /**
-     * Listener of the connectivity events.
-     */
-    private static final class ConnectivityChangeListenerImpl
-            implements ConnectivityReceiver.ConnectivityChangeListener {
-
-        private final WeakReference<OpenRadioService> mReference;
-
-        /**
-         * Main constructor.
-         *
-         * @param reference Reference to enclosing class.
-         */
-        private ConnectivityChangeListenerImpl(final OpenRadioService reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnectivityChange(final boolean isConnected) {
-            AppLogger.i(CLASS_NAME + "network connected:" + isConnected);
-            final OpenRadioService reference = mReference.get();
-            if (reference == null) {
-                AppLogger.w(CLASS_NAME + "network connected, enclosing reference is null");
-                return;
-            }
-            reference.handleConnectivityChange(isConnected);
-        }
-    }
-
-    /**
-     * Listener to handle audio becoming noisy events.
-     */
-    private static final class BecomingNoisyReceiverListenerImpl
-            implements BecomingNoisyReceiver.BecomingNoisyReceiverListener {
-
-        /**
-         * Reference to enclosing class.
-         */
-        private final WeakReference<OpenRadioService> mReference;
-
-        /**
-         * Main constructor.
-         *
-         * @param reference Reference to enclosing class.
-         */
-        private BecomingNoisyReceiverListenerImpl(final OpenRadioService reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onAudioBecomingNoisy() {
-            final OpenRadioService reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.handlePauseRequest(PauseReason.NOISY);
         }
     }
 

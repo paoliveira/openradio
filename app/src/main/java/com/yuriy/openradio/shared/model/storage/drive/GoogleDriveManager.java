@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import org.json.JSONException;
@@ -40,8 +41,6 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Chernyshov Yurii
@@ -126,8 +125,6 @@ public final class GoogleDriveManager {
 
     private final Context mContext;
 
-    private final ExecutorService mExecutorService = Executors.newSingleThreadExecutor();
-
     /**
      * Command to perform.
      */
@@ -154,7 +151,7 @@ public final class GoogleDriveManager {
      * Release associated resources.
      */
     public void release() {
-        mExecutorService.shutdown();
+        // Not implemented
     }
 
     /**
@@ -224,7 +221,7 @@ public final class GoogleDriveManager {
         final String data = mergeRadioStationCategories(favorites, locals);
         final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.UPLOAD);
 
-        mExecutorService.submit(
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> uploadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, data, listener)
         );
     }
@@ -235,7 +232,7 @@ public final class GoogleDriveManager {
     private void downloadRadioStationsAndApply() {
         final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.DOWNLOAD);
 
-        mExecutorService.submit(
+        ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> downloadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, listener)
         );
     }
@@ -255,7 +252,7 @@ public final class GoogleDriveManager {
         );
         final GoogleDriveResult result = new GoogleDriveResult();
 
-        request.setExecutorService(mExecutorService);
+        request.setExecutorService(ConcurrentUtils.API_CALL_EXECUTOR);
 
         final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
         final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder();
@@ -284,7 +281,7 @@ public final class GoogleDriveManager {
                 mGoogleApiClient, folderName, fileName, null, listener
         );
 
-        request.setExecutorService(mExecutorService);
+        request.setExecutorService(ConcurrentUtils.API_CALL_EXECUTOR);
 
         final GoogleDriveResult result = new GoogleDriveResult();
 

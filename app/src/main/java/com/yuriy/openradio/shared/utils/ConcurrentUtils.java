@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.utils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +39,7 @@ public final class ConcurrentUtils {
     /**
      * Executor of the API requests.
      */
-    public static final ExecutorService API_CALL_EXECUTOR = Executors.newSingleThreadExecutor();
+    public static final ExecutorService API_CALL_EXECUTOR = Executors.newCachedThreadPool();
 
     private static final int CORE_POOL_SIZE = 5;
     private static final int MAXIMUM_POOL_SIZE = 125;
