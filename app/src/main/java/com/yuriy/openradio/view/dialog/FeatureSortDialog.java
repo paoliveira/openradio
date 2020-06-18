@@ -22,6 +22,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
@@ -46,17 +49,16 @@ public final class FeatureSortDialog extends BaseDialogFragment {
      */
     public final static String DIALOG_TAG = LOG_TAG + "Tag";
 
+    @NonNull
     @Override
-    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+    public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final View view = getInflater().inflate(R.layout.feature_sort_dialog,
                  getActivity().findViewById(R.id.feature_sort_dialog_root));
 
         final Button okBtn
                 = view.findViewById(R.id.feature_sort_ok_btn_view);
         okBtn.setOnClickListener(v -> {
-                    AppPreferencesManager.setSortDialogShown(
-                            getActivity().getApplicationContext(), true
-                    );
+                    AppPreferencesManager.setSortDialogShown(getActivity(), true);
                     dismiss();
                 }
         );

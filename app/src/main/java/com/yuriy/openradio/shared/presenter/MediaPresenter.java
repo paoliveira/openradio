@@ -17,10 +17,10 @@
 package com.yuriy.openradio.shared.presenter;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
@@ -36,7 +36,6 @@ import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.view.SafeToast;
 
-import java.io.Serializable;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -58,11 +57,7 @@ public final class MediaPresenter {
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
-    private MediaResourcesManager mMediaRsrMgr;
-    /**
-     * Listener of events provided by Media Resource Manager.
-     */
-    private MediaResourceManagerListener mMediaRsrMgrLst;
+    private final MediaResourcesManager mMediaRsrMgr;
     /**
      * Stack of the media items.
      * It is used when navigating back and forth via list.
@@ -79,30 +74,43 @@ public final class MediaPresenter {
     private Activity mActivity;
     private MediaPresenterListener mListener;
 
-    public MediaPresenter() {
+    public MediaPresenter(final Context context) {
         super();
+        mMediaRsrMgr = new MediaResourcesManager(context, getClass().getSimpleName());
     }
 
     public void init(final Activity activity,
-                     final Bundle savedInstanceState,
+                     final Bundle bundle,
                      @NonNull final MediaBrowserCompat.SubscriptionCallback mediaSubscriptionCallback,
                      final MediaPresenterListener listener) {
         AppLogger.d(CLASS_NAME + " init");
         mCallback = mediaSubscriptionCallback;
         mActivity = activity;
         mListener = listener;
-        mMediaRsrMgrLst = new MediaResourceManagerListenerImpl();
-        mMediaRsrMgr = new MediaResourcesManager(mActivity, mMediaRsrMgrLst);
-        mMediaRsrMgr.create(savedInstanceState);
+        // Listener of events provided by Media Resource Manager.
+        final MediaResourceManagerListener mediaRsrMgrLst = new MediaResourceManagerListenerImpl();
+        mMediaRsrMgr.init(activity, bundle, mediaRsrMgrLst);
+
+        if (!mMediaItemsStack.isEmpty()) {
+            final String mediaId = mMediaItemsStack.get(mMediaItemsStack.size() - 1);
+            AppLogger.d(CLASS_NAME + " current media id:" + mediaId);
+            unsubscribeFromItem(mediaId);
+            addMediaItemToStack(mediaId);
+        }
+    }
+
+    public void clean() {
+        AppLogger.d(CLASS_NAME + " clean");
+        mMediaRsrMgr.clean();
+        mCallback = null;
+        mActivity = null;
+        mListener = null;
     }
 
     public void destroy() {
         AppLogger.d(CLASS_NAME + " destroy");
         // Disconnect Media Browser
         mMediaRsrMgr.disconnect();
-        mCallback = null;
-        mActivity = null;
-        mListener = null;
     }
 
     public int getNumItemsInStack() {
@@ -120,7 +128,7 @@ public final class MediaPresenter {
             // Clear stack
             mMediaItemsStack.clear();
 
-            activity.startService(OpenRadioService.makeStopServiceIntent(activity.getApplicationContext()));
+            activity.startService(OpenRadioService.makeStopServiceIntent(activity));
             AppLogger.d(CLASS_NAME + " back pressed return true, stop service");
             return true;
         }
@@ -186,36 +194,6 @@ public final class MediaPresenter {
         mMediaRsrMgr.subscribe(mediaId, mCallback);
     }
 
-    public void restoreState(final Bundle savedInstanceState) {
-        if (savedInstanceState == null) {
-            return;
-        }
-        // Restore map of the List - Position values
-        final Map<String, int[]> listPositionMapRestored
-                = (Map<String, int[]>) savedInstanceState.getSerializable(BUNDLE_ARG_LIST_POSITION_MAP);
-        if (listPositionMapRestored != null) {
-            mPositions.clear();
-            for (String key : listPositionMapRestored.keySet()) {
-                mPositions.put(key, listPositionMapRestored.get(key));
-            }
-        }
-
-        // Restore Media Items stack
-        final List<String> mediaItemsStackRestored
-                = (List<String>) savedInstanceState.getSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK);
-        if (mediaItemsStackRestored != null) {
-            mMediaItemsStack.clear();
-            mMediaItemsStack.addAll(mediaItemsStackRestored);
-        }
-    }
-
-    public void saveState(final Bundle outState) {
-        // Save Media Stack
-        outState.putSerializable(BUNDLE_ARG_MEDIA_ITEMS_STACK, (Serializable) mMediaItemsStack);
-        // Save List-Position Map
-        outState.putSerializable(BUNDLE_ARG_LIST_POSITION_MAP, (Serializable) mPositions);
-    }
-
     public void handleItemSelect(final MediaBrowserCompat.MediaItem item, final int position) {
         // Keep last selected position for the given category.
         // We will use it when back to this category
@@ -236,16 +214,14 @@ public final class MediaPresenter {
             return;
         }
 
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(mActivity.getApplicationContext())) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(mActivity)) {
             return;
         }
 
         // Current selected media item
         if (item == null) {
             //TODO: Improve message
-            SafeToast.showAnyThread(
-                    mActivity.getApplicationContext(), mActivity.getString(R.string.can_not_play_station)
-            );
+            SafeToast.showAnyThread(mActivity, mActivity.getString(R.string.can_not_play_station));
             return;
         }
         if (item.isBrowsable()) {
@@ -275,13 +251,7 @@ public final class MediaPresenter {
             addMediaItemToStack(mediaId);
         } else if (item.isPlayable()) {
             // Else - we play an item
-            final MediaControllerCompat controller = MediaControllerCompat.getMediaController(mActivity);
-            if (controller != null) {
-                final MediaControllerCompat.TransportControls controls = controller.getTransportControls();
-                if (controls != null) {
-                    controls.playFromMediaId(mediaId, null);
-                }
-            }
+            mMediaRsrMgr.playFromMediaId(mediaId);
         }
     }
 
@@ -340,13 +310,14 @@ public final class MediaPresenter {
         }
 
         @Override
-        public void onConnected(final List<MediaSessionCompat.QueueItem> queue) {
+        public void onConnected() {
+            AppLogger.i(CLASS_NAME + " Connected");
             MediaPresenter.this.handleMediaResourceManagerConnected();
         }
 
         @Override
         public void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
+            AppLogger.d(CLASS_NAME + " psc:" + state);
             final MediaPresenter activity = MediaPresenter.this;
             if (activity.mListener != null) {
                 activity.mListener.handlePlaybackStateChanged(state);
@@ -355,7 +326,7 @@ public final class MediaPresenter {
 
         @Override
         public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + "Queue changed to:" + queue);
+            AppLogger.d(CLASS_NAME + " qc:" + queue);
         }
 
         @Override

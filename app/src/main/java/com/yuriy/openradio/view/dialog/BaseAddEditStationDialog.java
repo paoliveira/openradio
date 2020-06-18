@@ -204,14 +204,14 @@ public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
     public void onActivityCreated(final Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        final Context applicationContext = getActivity().getApplicationContext();
+        final Context context = getActivity();
         if (!PermissionChecker.isGranted(
-                applicationContext,
+                context,
                 Manifest.permission.READ_EXTERNAL_STORAGE)
         ) {
             SafeToast.showAnyThread(
-                    applicationContext,
-                    applicationContext.getString(R.string.storage_permission_not_granted)
+                    context,
+                    context.getString(R.string.storage_permission_not_granted)
             );
         }
     }
@@ -231,18 +231,18 @@ public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
         switch (requestCode) {
             case IntentsHelper.REQUEST_CODE_FILE_SELECTED:
                 final Uri selectedImageUri = data.getData();
-                final Context applicationContext = getActivity().getApplicationContext();
+                final Context context = getActivity();
                 //MEDIA GALLERY
                 final String selectedImagePath = ImageFilePath.getPath(
-                        applicationContext, selectedImageUri
+                        context, selectedImageUri
                 );
                 AppLogger.d("Image Path:" + selectedImagePath);
                 if (selectedImagePath != null) {
                     mImageLocalUrlEdit.setText(selectedImagePath);
                 } else {
                     SafeToast.showAnyThread(
-                            applicationContext,
-                            applicationContext.getString(R.string.can_not_open_file)
+                            context,
+                            context.getString(R.string.can_not_open_file)
                     );
                 }
                 break;

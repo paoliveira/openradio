@@ -23,6 +23,7 @@ import android.text.TextUtils;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.model.Dependencies;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
@@ -57,7 +58,8 @@ public final class MainApp extends Application {
     public final void onCreate() {
         super.onCreate();
         AppLogger.d(CLASS_NAME + "OnCreate");
-        final Context context = getApplicationContext();
+        final Context context = this;
+        Dependencies.INSTANCE.init(context);
         final Thread thread = new Thread(
                 () -> {
                     final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled(

@@ -68,9 +68,7 @@ public final class AddStationDialog extends BaseAddEditStationDialog {
             return;
         }
         activity.startService(
-                OpenRadioService.makeAddRadioStationIntent(
-                        activity.getApplicationContext(), radioStationToAdd
-                )
+                OpenRadioService.makeAddRadioStationIntent(activity, radioStationToAdd)
         );
     }
 }

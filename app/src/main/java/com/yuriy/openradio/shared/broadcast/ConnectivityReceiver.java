@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.broadcast;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -92,6 +93,7 @@ public final class ConnectivityReceiver extends AbstractReceiver {
      * @param context Context of the callee.
      * @return {@code true} if connection is available, {@code false} otherwise.
      */
+    @SuppressLint("MissingPermission")
     public static boolean checkConnectivity(@NonNull final Context context) {
         final ConnectivityManager manager = getConnectivityManager(context);
         if (manager == null) {

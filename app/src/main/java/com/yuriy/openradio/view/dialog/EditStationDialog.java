@@ -91,7 +91,7 @@ public final class EditStationDialog extends BaseAddEditStationDialog {
 
         mMediaId = getMediaId(getArguments());
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = getActivity();
         if (mMediaId != null) {
             final RadioStation radioStation = LocalRadioStationsStorage.get(mMediaId, context);
             if (radioStation != null) {

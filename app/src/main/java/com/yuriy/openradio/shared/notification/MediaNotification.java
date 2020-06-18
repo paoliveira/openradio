@@ -92,11 +92,14 @@ public final class MediaNotification extends BroadcastReceiver {
     private final NotificationManagerCompat mNotificationManager;
     private NotificationCompat.Action mPlayPauseAction;
 
-    private PendingIntent mPauseIntent, mPlayIntent, mPreviousIntent, mNextIntent;
+    private final PendingIntent mPauseIntent;
+    private final PendingIntent mPlayIntent;
+    private final PendingIntent mPreviousIntent;
+    private final PendingIntent mNextIntent;
 
-    private int mNotificationColor;
+    private final int mNotificationColor;
 
-    private AtomicBoolean mStarted = new AtomicBoolean(false);
+    private final AtomicBoolean mStarted = new AtomicBoolean(false);
 
     public MediaNotification(@NonNull final OpenRadioService service) {
         super();
@@ -315,7 +318,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
         updatePlayPauseAction();
 
-        final Context context = mService.getApplicationContext();
+        final Context context = mService;
 
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannel(
@@ -408,12 +411,12 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setMediaSession(mSessionToken);
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannel(
-                mService.getApplicationContext(),
+                mService,
                 new ServiceStartedNotificationData()
         );
 
         mNotificationBuilder = new NotificationCompat.Builder(
-                mService.getApplicationContext(), notificationChannelId
+                mService, notificationChannelId
         );
         mNotificationBuilder
                 .setStyle(mediaStyle)
@@ -439,13 +442,13 @@ public final class MediaNotification extends BroadcastReceiver {
 
     @Nullable
     private PendingIntent makePendingIntent() {
-        if (mService.getApplicationContext() == null) {
+        if (mService == null) {
             return null;
         }
         final Class clazz = mService.isTv() ? TvMainActivity.class : MainActivity.class;
         return PendingIntent.getActivity(
-                mService.getApplicationContext(), 0,
-                new Intent(mService.getApplicationContext(), clazz),
+                mService, 0,
+                new Intent(mService, clazz),
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
     }
@@ -453,7 +456,7 @@ public final class MediaNotification extends BroadcastReceiver {
     private void showNoStreamNotification() {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannelNoStream(
-                mService.getApplicationContext(),
+                mService,
                 new NoMediaNotificationData()
         );
 
@@ -463,7 +466,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setMediaSession(mSessionToken);
 
         mNotificationBuilder = new NotificationCompat.Builder(
-                mService.getApplicationContext(), notificationChannelId
+                mService, notificationChannelId
         );
 
         mNotificationBuilder
@@ -540,13 +543,13 @@ public final class MediaNotification extends BroadcastReceiver {
         mNotificationBuilder.setDefaults(0);
         mNotificationBuilder.setSound(null);
 
-        doNotifySafely(mNotificationBuilder.build());
+        doNotifySafely(mNotificationBuilder);
     }
 
-    private void doNotifySafely(final Notification notification) {
-        // Address https://bitbucket.org/ChernyshovYuriy/openradio/issues/64/npe-when-notificationmanager-do-notify
+    private void doNotifySafely(@NonNull final NotificationCompat.Builder builder) {
+        // Address NPE inside ApplicationPackageManager when build notification
         try {
-            mNotificationManager.notify(NOTIFICATION_ID, notification);
+            mNotificationManager.notify(NOTIFICATION_ID, builder.build());
         } catch (final Exception e) {
             AppLogger.e("Can not do notification:" + e);
         }
@@ -642,7 +645,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 reference.mNotificationBuilder.setDefaults(0);
                 reference.mNotificationBuilder.setSound(null);
 
-                reference.doNotifySafely(reference.mNotificationBuilder.build());
+                reference.doNotifySafely(reference.mNotificationBuilder);
             }
         }
     }

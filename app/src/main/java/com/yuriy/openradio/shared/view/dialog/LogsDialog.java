@@ -85,7 +85,7 @@ public final class LogsDialog extends BaseDialogFragment {
         final TextView title = view.findViewById(R.id.settings_logs_label_view);
         title.setText(titleText);
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = getActivity();
 
         final boolean areLogsEnabled = AppPreferencesManager.areLogsEnabled(context);
         final CheckBox logsEnableCheckView = view.findViewById(R.id.settings_dialog_enable_logs_check_view);
@@ -180,10 +180,6 @@ public final class LogsDialog extends BaseDialogFragment {
             if (activity == null) {
                 return null;
             }
-            final Context context = activity.getApplicationContext();
-            if (context == null) {
-                return null;
-            }
             final MailInfo mailInfo = mailInfoArray[0];
 
             // Prepare email intent
@@ -195,9 +191,9 @@ public final class LogsDialog extends BaseDialogFragment {
 
             try {
                 final Uri path = FileProvider.getUriForFile(
-                        context,
+                        activity,
                         BuildConfig.APPLICATION_ID + ".provider",
-                        AppLogger.getLogsZipFile(context)
+                        AppLogger.getLogsZipFile(activity)
                 );
                 sendIntent.putExtra(Intent.EXTRA_STREAM, path);
             } catch (final Exception e) {
@@ -222,15 +218,10 @@ public final class LogsDialog extends BaseDialogFragment {
             if (activity == null) {
                 return;
             }
-            final Context context = activity.getApplicationContext();
-            if (context == null) {
-                return;
-            }
-
             try {
                 final Intent intent1 = Intent.createChooser(
                         intent,
-                        context.getString(R.string.send_logs_chooser_title)
+                        activity.getString(R.string.send_logs_chooser_title)
                 );
                 intent1.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 activity.startActivityForResult(
@@ -239,8 +230,8 @@ public final class LogsDialog extends BaseDialogFragment {
                 );
             } catch (final ActivityNotFoundException e) {
                 SafeToast.showAnyThread(
-                        context,
-                        context.getString(R.string.cant_start_activity)
+                        activity,
+                        activity.getString(R.string.cant_start_activity)
                 );
                 AnalyticsUtils.logException(e);
             }

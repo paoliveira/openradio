@@ -208,7 +208,7 @@ public final class TvMainActivity extends FragmentActivity {
         }
         button.setOnClickListener(
                 v -> startActivityForResult(
-                        TvSearchActivity.makeStartIntent(getApplicationContext()),
+                        TvSearchActivity.makeStartIntent(this),
                         TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
                 )
         );

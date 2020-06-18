@@ -26,6 +26,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
@@ -56,6 +58,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
     private EditText mPlayBufferRebuffer;
 
     @SuppressLint("StringFormatInvalid")
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
 
@@ -70,7 +73,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         final TextView title = view.findViewById(R.id.stream_buffering_label_view);
         title.setText(titleText);
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = getActivity();
 
         final TextView descView = view.findViewById(R.id.stream_buffering_desc_view);
         try {
@@ -115,7 +118,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
     public void onPause() {
         super.onPause();
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = getActivity();
         if (context == null) {
             return;
         }

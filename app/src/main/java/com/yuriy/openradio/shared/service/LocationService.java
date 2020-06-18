@@ -384,7 +384,7 @@ public final class LocationService extends JobIntentService {
     @Override
     public void onCreate() {
         super.onCreate();
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplicationContext());
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
 
     @Override
@@ -402,7 +402,7 @@ public final class LocationService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         AppLogger.d(CLASS_NAME + "Handle Location intent:" + intent);
-        sCountryCode = LocationPreferencesManager.getLastCountryCode(getApplicationContext());
+        sCountryCode = LocationPreferencesManager.getLastCountryCode(this);
         // Send the country code back to client.
         sendCountryCode(intent, sCountryCode);
         fetchLocation();
@@ -416,7 +416,7 @@ public final class LocationService extends JobIntentService {
         final Thread thread = new Thread(
                 () -> {
                     Looper.prepare();
-                    final Context context = LocationService.this.getApplicationContext();
+                    final Context context = LocationService.this;
                     requestCountryCode(
                             context,
                             countryCode -> {

@@ -63,6 +63,7 @@ import com.yuriy.openradio.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.shared.model.Dependencies;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
@@ -165,12 +166,6 @@ public final class MainActivity extends AppCompatActivity {
      * Member field to keep reference to the Local broadcast receiver.
      */
     private final LocalBroadcastReceiverCallback mLocalBroadcastReceiverCb;
-
-    /**
-     * Listener for the Media Browser Subscription callback
-     */
-    private final MediaBrowserCompat.SubscriptionCallback mMedSubscriptionCb;
-    private final MediaPresenterListener mMediaPresenterLstnr;
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
@@ -244,8 +239,6 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
         mPermissionStatusLstnr = new PermissionListener(this);
         mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback(this);
-        mMedSubscriptionCb = new MediaBrowserSubscriptionCallback(this);
-        mMediaPresenterLstnr = new MediaPresenterListenerImpl();
         mOnItemClickLstnr = new OnItemClickListener(this);
         mOnTouchLstnr = new OnTouchListener(this);
         mOnScrollLstnr = new OnScrollListener(this);
@@ -261,7 +254,6 @@ public final class MainActivity extends AppCompatActivity {
 
         // Set content.
         setContentView(R.layout.main_drawer);
-        final Context context = getApplicationContext();
 
         mPlayBtn = findViewById(R.id.crs_play_btn_view);
         mPauseBtn = findViewById(R.id.crs_pause_btn_view);
@@ -331,6 +323,7 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
+        final Context context = this;
         final String versionText = AppUtils.getApplicationVersion(context) + "." +
                 AppUtils.getApplicationVersionCode(context);
         final TextView versionView = navigationView.getHeaderView(0).findViewById(
@@ -340,12 +333,14 @@ public final class MainActivity extends AppCompatActivity {
 
         mLastKnownMetadata = null;
 
-        mMediaPresenter = new MediaPresenter();
+        final MediaBrowserCompat.SubscriptionCallback medSubscriptionCb = new MediaBrowserSubscriptionCallback(this);
+        final MediaPresenterListener mediaPresenterLstnr = new MediaPresenterListenerImpl();
+        mMediaPresenter = Dependencies.INSTANCE.getMediaPresenter();
         mMediaPresenter.init(
                 this,
                 savedInstanceState,
-                mMedSubscriptionCb,
-                mMediaPresenterLstnr
+                medSubscriptionCb,
+                mediaPresenterLstnr
         );
 
         // Register local receivers.
@@ -459,13 +454,18 @@ public final class MainActivity extends AppCompatActivity {
         // Unregister local receivers
         unregisterReceivers();
 
-        mMediaPresenter.destroy();
+        mMediaPresenter.clean();
+        if (!mIsOnSaveInstancePassed.get()) {
+            mMediaPresenter.destroy();
+        }
 
         if (mLocationHandler != null) {
             mLocationHandler.removeCallbacksAndMessages(null);
             mLocationHandler.clear();
             mLocationHandler = null;
         }
+
+        mBrowserAdapter.clear();
     }
 
     @Override
@@ -551,8 +551,6 @@ public final class MainActivity extends AppCompatActivity {
     protected final void onSaveInstanceState(@NonNull final Bundle outState) {
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
-
-        mMediaPresenter.saveState(outState);
 
         if (mLastKnownMetadata != null) {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
@@ -659,7 +657,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     public final void processEditStationCallback(final String mediaId, final RadioStationToAdd radioStationToAdd) {
         startService(OpenRadioService.makeEditRadioStationIntent(
-                getApplicationContext(), mediaId, radioStationToAdd
+                this, mediaId, radioStationToAdd
         ));
     }
 
@@ -667,7 +665,7 @@ public final class MainActivity extends AppCompatActivity {
      * Process user's input in order to remove custom {@link RadioStation}.
      */
     public final void processRemoveStationCallback(final String mediaId) {
-        startService(OpenRadioService.makeRemoveRadioStationIntent(getApplicationContext(), mediaId));
+        startService(OpenRadioService.makeRemoveRadioStationIntent(this, mediaId));
     }
 
     /**
@@ -735,7 +733,7 @@ public final class MainActivity extends AppCompatActivity {
 
         startService(
                 OpenRadioService.makeUpdateSortIdsIntent(
-                        getApplicationContext(),
+                        this,
                         mediaIds,
                         positions,
                         mCurrentParentId
@@ -810,8 +808,6 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        mMediaPresenter.restoreState(savedInstanceState);
-
         mCurrentParentId = OpenRadioService.getCurrentParentId(savedInstanceState);
 
         // Restore List's position
@@ -850,12 +846,12 @@ public final class MainActivity extends AppCompatActivity {
         intentFilter.addAction(AppLocalBroadcast.getActionLocationDisabled());
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
         // Register receiver
-        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
+        LocalBroadcastManager.getInstance(this).registerReceiver(
                 mAppLocalBroadcastRcvr,
                 intentFilter
         );
 
-        mScreenBroadcastRcvr.register(getApplicationContext());
+        mScreenBroadcastRcvr.register(this);
     }
 
     /**
@@ -864,11 +860,11 @@ public final class MainActivity extends AppCompatActivity {
     private void unregisterReceivers() {
         mAppLocalBroadcastRcvr.unregisterListener();
 
-        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(
                 mAppLocalBroadcastRcvr
         );
 
-        mScreenBroadcastRcvr.unregister(getApplicationContext());
+        mScreenBroadcastRcvr.unregister(this);
     }
 
     /**
@@ -994,7 +990,7 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
         mLastKnownMetadata = metadata;
-        final Context context = getApplicationContext();
+        final Context context = this;
 
         final RadioStation radioStation = LatestRadioStationStorage.get(context);
         if (radioStation == null) {
@@ -1084,7 +1080,7 @@ public final class MainActivity extends AppCompatActivity {
             if (reference == null) {
                 return;
             }
-            if (AppPreferencesManager.isLocationDialogShown(reference.getApplicationContext())) {
+            if (AppPreferencesManager.isLocationDialogShown(reference)) {
                 return;
             }
 
@@ -1099,7 +1095,7 @@ public final class MainActivity extends AppCompatActivity {
             useLocationServiceDialog.setCancelable(false);
             useLocationServiceDialog.show(reference.getSupportFragmentManager(), UseLocationDialog.DIALOG_TAG);
 
-            AppPreferencesManager.setLocationDialogShown(reference.getApplicationContext(), true);
+            AppPreferencesManager.setLocationDialogShown(reference, true);
         }
 
         @Override
@@ -1164,7 +1160,7 @@ public final class MainActivity extends AppCompatActivity {
             // help dialog to guide through functionality.
             if (MediaIdHelper.isMediaIdSortable(parentId)) {
                 final boolean isSortDialogShown = AppPreferencesManager.isSortDialogShown(
-                        activity.getApplicationContext()
+                        activity
                 );
                 if (!isSortDialogShown) {
                     final DialogFragment featureSortDialog = BaseDialogFragment.newInstance(
@@ -1191,7 +1187,7 @@ public final class MainActivity extends AppCompatActivity {
             }
 
             activity.mBrowserAdapter.setParentId(parentId);
-            activity.mBrowserAdapter.clear();
+            activity.mBrowserAdapter.clearData();
             activity.mBrowserAdapter.notifyDataSetInvalidated();
             activity.mBrowserAdapter.addAll(children);
             activity.mBrowserAdapter.notifyDataSetChanged();
@@ -1213,7 +1209,7 @@ public final class MainActivity extends AppCompatActivity {
 
             activity.hideProgressBar();
             SafeToast.showAnyThread(
-                    activity.getApplicationContext(), activity.getString(R.string.error_loading_media)
+                    activity, activity.getString(R.string.error_loading_media)
             );
         }
     }

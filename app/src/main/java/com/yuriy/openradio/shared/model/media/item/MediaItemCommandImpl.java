@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
     public void execute(final IUpdatePlaybackState playbackStateListener,
                         @NonNull final MediaItemCommandDependencies dependencies) {
         AppLogger.d(CLASS_NAME + " invoked");
-        if (!dependencies.isSameCatalogue() || dependencies.isSavedInstance()) {
-            AppLogger.d("Not the same catalogue, clear list");
+        if (!dependencies.isSameCatalogue()) {
+            AppLogger.d(CLASS_NAME + " not the same catalogue, clear list");
             dependencies.getRadioStationsStorage().clear();
         }
     }
@@ -66,9 +66,8 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
     void handleDataLoaded(final IUpdatePlaybackState playbackStateListener,
                           @NonNull final MediaItemCommandDependencies dependencies,
                           final List<RadioStation> list) {
-        AppLogger.d(CLASS_NAME + " Loaded " + list.size() + " items");
+        AppLogger.d(CLASS_NAME + " loaded " + list.size() + " items");
         if (list.isEmpty()) {
-
             if (doLoadNoDataReceived()) {
                 final MediaMetadataCompat track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                         dependencies.getContext(),
@@ -93,6 +92,10 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
 
         dependencies.getRadioStationsStorage().addAll(list);
 
+        deliverResult(dependencies);
+    }
+
+    void deliverResult(@NonNull final MediaItemCommandDependencies dependencies) {
         final List<RadioStation> radioStations = dependencies.getRadioStationsStorage().getAll();
         for (final RadioStation radioStation : radioStations) {
 
@@ -110,6 +113,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
             dependencies.addMediaItem(mediaItem);
         }
 
+        AppLogger.d(CLASS_NAME + " deliver " + dependencies.getMediaItems().size() + " items");
         dependencies.getResult().sendResult(dependencies.getMediaItems());
         dependencies.getResultListener().onResult();
     }

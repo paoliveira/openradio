@@ -50,6 +50,7 @@ import androidx.leanback.widget.RowPresenter;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.TvServicePlayerAdapter;
+import com.yuriy.openradio.shared.model.Dependencies;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.permission.PermissionListener;
 import com.yuriy.openradio.shared.permission.PermissionStatusListener;
@@ -126,7 +127,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
         // Handles loading the  image in a background thread
         mImageWorker = ImageFetcherFactory.getTvPlayerImageFetcher(getActivity());
 
-        mMediaPresenter = new MediaPresenter();
+        mMediaPresenter = Dependencies.INSTANCE.getMediaPresenter();
 
         final MediaBrowserCompat.SubscriptionCallback subscriptionCb = new MediaBrowserSubscriptionCallback(this);
         final MediaPresenterListener listener = new MediaPresenterListenerImpl(this);
@@ -140,8 +141,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
         setUpAdapter();
         setOnItemViewClickedListener(this::onItemClicked);
         setOnItemViewSelectedListener(this::onItemSelected);
-
-        mMediaPresenter.restoreState(savedInstanceState);
 
         if (getActivity() != null && PermissionsDialogActivity.isLocationDenied(getActivity().getIntent())) {
             mMediaPresenter.connect();
@@ -183,13 +182,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
         PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
 
         mMediaPresenter.destroy();
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        mMediaPresenter.saveState(outState);
     }
 
     @Override

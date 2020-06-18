@@ -69,7 +69,7 @@ public final class UseLocationDialog extends BaseDialogFragment {
                         startActivityForResult(intent, IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS);
                     } else {
                         SafeToast.showAnyThread(
-                                activity.getApplicationContext(),
+                                activity,
                                 getString(R.string.no_location_setting_desc)
                         );
                     }

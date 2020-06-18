@@ -37,7 +37,7 @@ public abstract class IndexableMediaItemCommand extends MediaItemCommandImpl {
     /**
      * Index of the current page of the Radio Stations List.
      */
-    private AtomicInteger mPageIndex;
+    private final AtomicInteger mPageIndex;
 
     IndexableMediaItemCommand() {
         super();

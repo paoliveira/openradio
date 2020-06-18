@@ -35,7 +35,7 @@ import java.util.List;
  */
 public interface MediaResourceManagerListener {
 
-    void onConnected(final List<MediaSessionCompat.QueueItem> queue);
+    void onConnected();
 
     void onPlaybackStateChanged(@NonNull final PlaybackStateCompat state);
 

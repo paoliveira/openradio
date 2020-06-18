@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.media;
 
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 import android.support.v4.media.MediaBrowserCompat;
@@ -54,7 +55,7 @@ public final class MediaResourcesManager {
     /**
      * Browses media content offered by a {@link android.service.media.MediaBrowserService}.
      */
-    private MediaBrowserCompat mMediaBrowser;
+    private final MediaBrowserCompat mMediaBrowser;
 
     /**
      * Controller of media content offered by a {@link android.service.media.MediaBrowserService}.
@@ -74,79 +75,84 @@ public final class MediaResourcesManager {
     /**
      * Callee {@link Activity}.
      */
-    private final Activity mActivity;
+    private Activity mActivity;
 
     /**
      * Listener for the media resources events. Acts as proxy between this manager and callee Activity.
      */
-    private final MediaResourceManagerListener mListener;
+    private MediaResourceManagerListener mListener;
 
-    private Set<String> mSubscribed;
+    private final Set<String> mSubscribed;
 
     /**
      * Constructor.
      *
-     * @param activity Callee {@link Activity}.
-     * @param listener Listener for the media resources events.
      */
-    public MediaResourcesManager(@NonNull final Activity activity,
-                                 @NonNull final MediaResourceManagerListener listener) {
+    public MediaResourcesManager(@NonNull final Context context,
+                                 @NonNull final String className) {
         super();
-        CLASS_NAME = "MdRsrcsMgr " + activity.getClass().getSimpleName() + " " + activity.hashCode() + " ";
+        CLASS_NAME = "MdRsrcsMgr " + className;
         mMediaSessionCallback = new MediaSessionCallback();
         mSubscribed = new HashSet<>();
-        mActivity = activity;
-        mListener = listener;
+        // Initialize Media Browser
+        final MediaBrowserCompat.ConnectionCallback callback = new MediaBrowserConnectionCallback();
+        mMediaBrowser = new MediaBrowserCompat(
+                context,
+                new ComponentName(context, OpenRadioService.class),
+                callback,
+                null
+        );
     }
 
     /**
      * Creates Media Browser, assigns listener.
      */
-    public void create(final Bundle savedInstance) {
-        Bundle bundle;
-        if (savedInstance != null) {
-            bundle = createRootHints(savedInstance);
-        } else {
-            bundle = new Bundle();
-        }
-        OpenRadioService.putIsTv(bundle, (mActivity instanceof TvMainActivity));
-        // Initialize Media Browser
-        final MediaBrowserCompat.ConnectionCallback callback = new MediaBrowserConnectionCallback();
-        mMediaBrowser = new MediaBrowserCompat(
-                mActivity.getApplicationContext(),
-                new ComponentName(mActivity.getApplicationContext(), OpenRadioService.class),
-                callback,
-                bundle
-        );
+    public void init(@NonNull final Activity activity,
+                     Bundle bundle,
+                     @NonNull final MediaResourceManagerListener listener) {
+        mActivity = activity;
+        mListener = listener;
+        //TODO: Simple solution that needs to be revised.
+        OpenRadioService.mCurrentParentId = OpenRadioService.getCurrentParentId(bundle);
+        OpenRadioService.mIsRestoreState = OpenRadioService.getRestoreState(bundle);
+        OpenRadioService.mState = OpenRadioService.getCurrentPlaybackState(bundle);
     }
 
     /**
      * Connects to the Media Browse service.
      */
     public void connect() {
-        if (mMediaBrowser == null) {
-            AppLogger.e(CLASS_NAME + "Connect aborted, browser null");
-            return;
-        }
         if (mMediaBrowser.isConnected()) {
-            AppLogger.w(CLASS_NAME + "Connect aborted, is connected");
+            AppLogger.w(CLASS_NAME + "Connect aborted, already connected");
+            // Register callbacks
+            mMediaController.registerCallback(mMediaSessionCallback);
+            // Set actual media controller
+            MediaControllerCompat.setMediaController(mActivity, mMediaController);
             return;
         }
         mMediaBrowser.connect();
-        AppLogger.w(CLASS_NAME + "Connected");
+        AppLogger.i(CLASS_NAME + "Connected");
     }
 
     /**
      * Disconnects from the Media Browse service. After this, no more callbacks will be received.
      */
     public void disconnect() {
-        AppLogger.i(CLASS_NAME + "Disconnect");
+        if (!mMediaBrowser.isConnected()) {
+            AppLogger.w(CLASS_NAME + "Disconnect aborted, already disconnected");
+            return;
+        }
+        mMediaBrowser.disconnect();
+        AppLogger.i(CLASS_NAME + "Disconnected");
+    }
+
+    public void clean() {
         if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaSessionCallback);
         }
-        if (mMediaBrowser != null && mMediaBrowser.isConnected()) {
-            mMediaBrowser.disconnect();
-        }
+        MediaControllerCompat.setMediaController(mActivity, null);
+        mActivity = null;
+        mListener = null;
     }
 
     /**
@@ -167,14 +173,12 @@ public final class MediaResourcesManager {
             AppLogger.w(CLASS_NAME + "already subscribed");
             return;
         }
-        if (mMediaBrowser != null) {
-            mSubscribed.add(parentId);
-            mMediaBrowser.subscribe(parentId, callback);
-        }
+        mSubscribed.add(parentId);
+        mMediaBrowser.subscribe(parentId, callback);
     }
 
     /**
-     * Unsubscribes for changes to the children of the specified media id.
+     * Unsubscribe for changes to the children of the specified media id.
      *
      * @param parentId The id of the parent media item whose list of children will be unsubscribed.
      */
@@ -202,36 +206,22 @@ public final class MediaResourcesManager {
         return mMediaBrowser.getRoot();
     }
 
-    public void transportControlsSkipToQueueItem(final long itemId) {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.skipToQueueItem(itemId);
-    }
-
-    public void transportControlsPlay() {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.play();
-    }
-
-    public void transportControlsPause() {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.pause();
-    }
-
-    public void transportControlsStop() {
-        if (mTransportControls == null) {
-            return;
-        }
-        mTransportControls.stop();
-    }
-
+    /**
+     *
+     * @return
+     */
     public MediaMetadataCompat getMediaMetadata() {
         return mMediaController != null ? mMediaController.getMetadata() : null;
+    }
+
+    /**
+     *
+     * @param mediaId
+     */
+    public void playFromMediaId(final String mediaId) {
+        if (mTransportControls != null) {
+            mTransportControls.playFromMediaId(mediaId, null);
+        }
     }
 
     private static Bundle createRootHints(final Bundle savedInstance) {
@@ -243,13 +233,12 @@ public final class MediaResourcesManager {
     }
     
     private void handleMediaBrowserConnected() {
-        AppLogger.d(CLASS_NAME + "Connected");
         AppLogger.d(CLASS_NAME + "Session token " + mMediaBrowser.getSessionToken());
 
         // Initialize Media Controller
         try {
             mMediaController = new MediaControllerCompat(
-                    mActivity.getApplicationContext(),
+                    mActivity,
                     mMediaBrowser.getSessionToken()
             );
         } catch (final RemoteException e) {
@@ -265,10 +254,7 @@ public final class MediaResourcesManager {
         // Set actual media controller
         MediaControllerCompat.setMediaController(mActivity, mMediaController);
 
-        // Update queue
-        final List<MediaSessionCompat.QueueItem> queue = mMediaController.getQueue();
-
-        mListener.onConnected(queue);
+        mListener.onConnected();
     }
 
     /**
@@ -285,6 +271,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onConnected() {
+            AppLogger.i(CLASS_NAME + "Connected");
             MediaResourcesManager.this.handleMediaBrowserConnected();
         }
 
@@ -300,7 +287,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onConnectionFailed() {
-            AppLogger.w(CLASS_NAME + "Connection Failed");
+            AppLogger.e(CLASS_NAME + "Connection Failed");
         }
     }
 
@@ -320,7 +307,7 @@ public final class MediaResourcesManager {
 
         @Override
         public void onSessionDestroyed() {
-            AppLogger.d(CLASS_NAME + "Session destroyed. Need to fetch a new Media Session");
+            AppLogger.i(CLASS_NAME + "Session destroyed. Need to fetch a new Media Session");
         }
 
         @Override

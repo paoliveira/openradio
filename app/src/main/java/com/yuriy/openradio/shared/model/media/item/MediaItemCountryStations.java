@@ -54,6 +54,11 @@ public final class MediaItemCountryStations extends IndexableMediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.getResult().detach();
 
+        if (dependencies.isSavedInstance()) {
+            deliverResult(dependencies);
+            return;
+        }
+
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     // Load all categories into menu

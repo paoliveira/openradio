@@ -148,9 +148,15 @@ public final class MediaItemsAdapter extends BaseAdapter {
     @Override
     public final View getView(final int position, View convertView, final ViewGroup parent) {
         final MediaBrowserCompat.MediaItem mediaItem = getItem(position);
-        convertView = prepareViewAndHolder(convertView, R.layout.category_list_item);
+        convertView = prepareViewAndHolder(convertView);
 
         if (mediaItem == null) {
+            return convertView;
+        }
+        if (mActivity == null) {
+            return convertView;
+        }
+        if (mImageFetcher == null) {
             return convertView;
         }
 
@@ -166,7 +172,7 @@ public final class MediaItemsAdapter extends BaseAdapter {
 
         if (mediaItem.isPlayable()) {
             handleFavoriteAction(
-                    mViewHolder.mFavoriteCheckView, description, mediaItem, mActivity.getApplicationContext()
+                    mViewHolder.mFavoriteCheckView, description, mediaItem, mActivity
             );
         } else {
             mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
@@ -225,21 +231,26 @@ public final class MediaItemsAdapter extends BaseAdapter {
     /**
      * Clear adapter data.
      */
-    public final void clear() {
+    public final void clearData() {
         mAdapterData.clear();
+    }
+
+    public void clear() {
+        clearData();
+        mActivity = null;
+        mImageFetcher = null;
     }
 
     /**
      * Prepare view holder for the item rendering.
      *
-     * @param convertView      {@link android.view.View} associated with List Item
-     * @param inflateViewResId Id of the View layout
+     * @param convertView      {@link View} associated with List Item
      * @return View
      */
-    private View prepareViewAndHolder(View convertView, final int inflateViewResId) {
+    private View prepareViewAndHolder(View convertView) {
         // If there is no View created - create it here and set it's Tag
         if (convertView == null) {
-            convertView = LayoutInflater.from(mActivity).inflate(inflateViewResId, null);
+            convertView = LayoutInflater.from(mActivity).inflate(R.layout.category_list_item, null);
             mViewHolder = createViewHolder(convertView);
             convertView.setTag(mViewHolder);
         } else {

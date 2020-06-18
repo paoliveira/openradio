@@ -68,7 +68,7 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         final TextView title = view.findViewById(R.id.dialog_settings_title_view);
         title.setText(titleText);
 
-        final Context context = getActivity().getApplicationContext();
+        final Context context = getActivity();
 
         final boolean lastKnownRadioStationEnabled = AppPreferencesManager.lastKnownRadioStationEnabled(context);
         final CheckBox lastKnownRadioStationEnableCheckView = view.findViewById(
@@ -138,7 +138,7 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         if (mUserAgentEditView == null) {
             return;
         }
-        final Context context = getActivity().getApplicationContext();
+        final Context context = getActivity();
         if (context == null) {
             return;
         }
