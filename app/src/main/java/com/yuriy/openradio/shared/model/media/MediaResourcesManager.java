@@ -130,8 +130,12 @@ public final class MediaResourcesManager {
             MediaControllerCompat.setMediaController(mActivity, mMediaController);
             return;
         }
-        mMediaBrowser.connect();
-        AppLogger.i(CLASS_NAME + "Connected");
+        try {
+            mMediaBrowser.connect();
+            AppLogger.i(CLASS_NAME + "Connected");
+        } catch (final IllegalStateException e) {
+            AppLogger.e(CLASS_NAME + "Can not connect:" + e);
+        }
     }
 
     /**
