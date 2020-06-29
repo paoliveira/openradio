@@ -846,12 +846,12 @@ public final class MainActivity extends AppCompatActivity {
         intentFilter.addAction(AppLocalBroadcast.getActionLocationDisabled());
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
         // Register receiver
-        LocalBroadcastManager.getInstance(this).registerReceiver(
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
                 mAppLocalBroadcastRcvr,
                 intentFilter
         );
 
-        mScreenBroadcastRcvr.register(this);
+        mScreenBroadcastRcvr.register(getApplicationContext());
     }
 
     /**
@@ -860,11 +860,11 @@ public final class MainActivity extends AppCompatActivity {
     private void unregisterReceivers() {
         mAppLocalBroadcastRcvr.unregisterListener();
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(
+        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
                 mAppLocalBroadcastRcvr
         );
 
-        mScreenBroadcastRcvr.unregister(this);
+        mScreenBroadcastRcvr.unregister(getApplicationContext());
     }
 
     /**

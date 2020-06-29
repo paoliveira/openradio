@@ -32,6 +32,7 @@ import java.util.List;
  */
 public final class EqualizerState {
 
+    private static final String CLASS_NAME = EqualizerState.class.getSimpleName() + " ";
     private boolean mEnabled;
     private short mNumOfBands;
     private short mCurrentPreset;
@@ -101,7 +102,11 @@ public final class EqualizerState {
         mNumOfBands = value;
     }
 
-    public void setCurrentPreset(final short value) {
+    public void setCurrentPreset(short value) {
+        if (value < 0) {
+            AppLogger.e(CLASS_NAME + " invalid curr preset id:" + value + ", convert to 0");
+            value = 0;
+        }
         mCurrentPreset = value;
     }
 
@@ -169,7 +174,11 @@ public final class EqualizerState {
 
     public void printState() {
         AppLogger.d("Eqlsr level rng:" + Arrays.toString(mBandLevelRange) + ", milliBel");
-        AppLogger.d("Eqlsr cur preset:" + mPresets.get(getCurrentPreset()));
+        if (!mPresets.isEmpty()) {
+            AppLogger.d("Eqlsr cur preset:" + mPresets.get(getCurrentPreset()));
+        } else {
+            AppLogger.d("Eqlsr cur preset unknown");
+        }
         for (short i = 0; i < mNumOfBands; ++i) {
             short lvl = mBandLevels[i];
             int cntFq = mCenterFrequencies[i];

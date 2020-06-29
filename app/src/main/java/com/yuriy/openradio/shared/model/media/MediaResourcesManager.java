@@ -33,7 +33,6 @@ import androidx.annotation.Nullable;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.view.activity.TvMainActivity;
 
 import java.util.HashSet;
 import java.util.List;
@@ -91,7 +90,7 @@ public final class MediaResourcesManager {
     public MediaResourcesManager(@NonNull final Context context,
                                  @NonNull final String className) {
         super();
-        CLASS_NAME = "MdRsrcsMgr " + className;
+        CLASS_NAME = "MdRsrcsMgr " + className + " ";
         mMediaSessionCallback = new MediaSessionCallback();
         mSubscribed = new HashSet<>();
         // Initialize Media Browser
@@ -170,7 +169,7 @@ public final class MediaResourcesManager {
                           final @Nullable MediaBrowserCompat.SubscriptionCallback callback) {
         AppLogger.i(CLASS_NAME + "Subscribe:" + parentId);
         if (callback == null) {
-            AppLogger.e(CLASS_NAME + "listener is null");
+            AppLogger.e(CLASS_NAME + " subscribe listener is null");
             return;
         }
         if (mSubscribed.contains(parentId)) {
@@ -238,6 +237,11 @@ public final class MediaResourcesManager {
     
     private void handleMediaBrowserConnected() {
         AppLogger.d(CLASS_NAME + "Session token " + mMediaBrowser.getSessionToken());
+        if (mActivity == null) {
+            AppLogger.e(CLASS_NAME + " media browser connected when context is null, disconnect");
+            disconnect();
+            return;
+        }
 
         // Initialize Media Controller
         try {
@@ -258,7 +262,11 @@ public final class MediaResourcesManager {
         // Set actual media controller
         MediaControllerCompat.setMediaController(mActivity, mMediaController);
 
-        mListener.onConnected();
+        if (mListener != null) {
+            mListener.onConnected();
+        } else {
+            AppLogger.e(CLASS_NAME + " handle media browser connected, listener is null");
+        }
     }
 
     /**
@@ -317,27 +325,37 @@ public final class MediaResourcesManager {
         @Override
         public void onPlaybackStateChanged(final PlaybackStateCompat state) {
             AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
-            final MediaResourcesManager manager = MediaResourcesManager.this;
-            if (state == null) {
-                AppLogger.e(CLASS_NAME + "Received invalid playback state");
+            if (MediaResourcesManager.this.mListener == null) {
+                AppLogger.e(CLASS_NAME + "PlaybackStateChanged listener null");
                 return;
             }
-            manager.mListener.onPlaybackStateChanged(state);
+            MediaResourcesManager.this.mListener.onPlaybackStateChanged(state);
         }
 
         @Override
         public void onQueueChanged(final List<MediaSessionCompat.QueueItem> queue) {
-            AppLogger.d(CLASS_NAME + "Queue Changed:" + queue);
-            final MediaResourcesManager manager = MediaResourcesManager.this;
-            manager.mListener.onQueueChanged(queue);
+            AppLogger.d(CLASS_NAME + "Queue changed:" + queue);
+            if (MediaResourcesManager.this.mListener == null) {
+                AppLogger.e(CLASS_NAME + "Queue changed listener null");
+                return;
+            }
+            MediaResourcesManager.this.mListener.onQueueChanged(queue);
         }
 
         @Override
         public void onMetadataChanged(final MediaMetadataCompat metadata) {
-            AppLogger.d(CLASS_NAME + "Metadata Changed:" + metadata);
-            final MediaResourcesManager manager = MediaResourcesManager.this;
-            final List<MediaSessionCompat.QueueItem> queue = manager.mMediaController.getQueue();
-            manager.mListener.onMetadataChanged(metadata, queue);
+            AppLogger.d(CLASS_NAME + "Metadata changed:" + metadata);
+            if (MediaResourcesManager.this.mListener == null) {
+                AppLogger.e(CLASS_NAME + "Metadata changed listener null");
+                return;
+            }
+            if (MediaResourcesManager.this.mMediaController == null) {
+                AppLogger.e(CLASS_NAME + "Metadata changed media controller null");
+                return;
+            }
+            MediaResourcesManager.this.mListener.onMetadataChanged(
+                    metadata, MediaResourcesManager.this.mMediaController.getQueue()
+            );
         }
     }
 }
