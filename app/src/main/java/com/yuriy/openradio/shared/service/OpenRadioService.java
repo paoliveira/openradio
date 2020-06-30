@@ -352,7 +352,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super.onCreate();
 
         AppLogger.i(CLASS_NAME + "On Create");
-        final Context context = this;
+        final Context context = getApplicationContext();
 
         final UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
@@ -460,7 +460,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + "On Destroy");
         super.onDestroy();
 
-        final Context context = this;
+        final Context context = getApplicationContext();
 
         ServiceLifecyclePreferencesManager.isServiceActive(context, false);
 
@@ -485,7 +485,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 + ", clientUid=" + clientUid + ", rootHints=" + rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
-        if (!PackageValidator.isCallerAllowed(this, clientPackageName, clientUid)) {
+        if (!PackageValidator.isCallerAllowed(getApplicationContext(), clientPackageName, clientUid)) {
             // If the request comes from an untrusted package, return null. No further calls will
             // be made to other media browsing methods.
             AppLogger.w(CLASS_NAME + "IGNORING request from untrusted package " + clientPackageName);
@@ -528,7 +528,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             countryCode = LocationService.getCountryCode();
         }
 
-        final Context context = this;
+        final Context context = getApplicationContext();
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
         final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
@@ -670,7 +670,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // Save latest selected Radio Station.
         // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
         if (radioStation != null) {
-            LatestRadioStationStorage.add(radioStation, this);
+            LatestRadioStationStorage.add(radioStation, getApplicationContext());
         }
         configMediaPlayerState();
         mMediaNotification.doInitialNotification(getCurrentPlayingRadioStation());
@@ -890,9 +890,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         radioStation.setSortId(sortId);
         // This call just overrides existing Radio Station in the storage.
         if (TextUtils.equals(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
-            FavoritesStorage.add(radioStation, this);
+            FavoritesStorage.add(radioStation, getApplicationContext());
         } else if (TextUtils.equals(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
-            LocalRadioStationsStorage.add(radioStation, this);
+            LocalRadioStationsStorage.add(radioStation, getApplicationContext());
         }
     }
 
@@ -966,7 +966,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.d(CLASS_NAME + "Create ExoPlayer");
 
             mExoPlayerORImpl = new ExoPlayerOpenRadioImpl(
-                    this,
+                    getApplicationContext(),
                     mListener,
                     metadata -> {
                         AppLogger.d(CLASS_NAME + "Metadata title:" + metadata);
@@ -977,7 +977,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // Make sure the media player will acquire a wake-lock while
             // playing. If we don't do that, the CPU might go to sleep while the
             // song is playing, causing playback to stop.
-            mExoPlayerORImpl.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
+            mExoPlayerORImpl.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
             AppLogger.d(CLASS_NAME + "ExoPlayer prepared");
         } else {
@@ -1143,7 +1143,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Handles event when Bluetooth connected to same device within application lifetime.
      */
     private void handleBTSameDeviceConnected() {
-        final boolean autoPlay = AppPreferencesManager.isBtAutoPlay(this);
+        final boolean autoPlay = AppPreferencesManager.isBtAutoPlay(getApplicationContext());
         AppLogger.d(
                 CLASS_NAME + "BTSameDeviceConnected, do auto play:" + autoPlay
                         + ", state:" + mState
@@ -1174,7 +1174,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 CLASS_NAME + "Handle PlayRequest: mState=" + mState
         );
         mCurrentStreamTitle = null;
-        final Context context = this;
+        final Context context = getApplicationContext();
         if (!ConnectivityReceiver.checkConnectivityAndNotify(context)) {
             return;
         }
@@ -1307,7 +1307,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.e(CLASS_NAME + "can not set player volume, player null");
             return;
         }
-        float volume = AppPreferencesManager.getMasterVolume(this) / 100.0F;
+        float volume = AppPreferencesManager.getMasterVolume(getApplicationContext()) / 100.0F;
         if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
             volume = (volume * 0.2F);
         }
@@ -1476,7 +1476,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
         mPauseReason = PauseReason.DEFAULT;
 
-        mNoisyAudioStreamReceiver.unregister(this);
+        mNoisyAudioStreamReceiver.unregister(getApplicationContext());
 
         // let go of all resources...
         relaxResources(true);
@@ -1510,7 +1510,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void restoreActiveRadioStation() {
-        final Context context = this;
+        final Context context = getApplicationContext();
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             if (mRestoredRS == null) {
                 mRestoredRS = LatestRadioStationStorage.get(context);
@@ -1535,7 +1535,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mCurrentMediaId = mediaId;
 
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(this)) {
+        if (!ConnectivityReceiver.checkConnectivityAndNotify(getApplicationContext())) {
             return;
         }
 
@@ -1586,7 +1586,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     }
 
                     int favoriteIcon = R.drawable.ic_star_off;
-                    if (FavoritesStorage.isFavorite(radioStation, OpenRadioService.this)) {
+                    if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
                         favoriteIcon = R.drawable.ic_star_on;
                     }
                     stateBuilder.addCustomAction(
@@ -1953,7 +1953,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (item != null) {
             mediaId = item.getId();
         }
-        LocalBroadcastManager.getInstance(this).sendBroadcast(
+        LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
                 AppLocalBroadcast.createIntentCurrentIndexOnQueue(index, mediaId)
         );
     }
@@ -1965,7 +1965,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param intent
      */
     private void handleMessageInternal(@NonNull final String command, @NonNull final Intent intent) {
-        final Context context = this;
+        final Context context = getApplicationContext();
         AppLogger.d(CLASS_NAME + "rsv cmd:" + command);
         switch (command) {
             case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
