@@ -224,7 +224,7 @@ public final class AppUtils {
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         final int height = displayMetrics.heightPixels;
         final int width = displayMetrics.widthPixels;
-        return height > width ? height : width;
+        return Math.max(height, width);
     }
 
     /**
@@ -236,7 +236,7 @@ public final class AppUtils {
         context.getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         final int height = displayMetrics.heightPixels;
         final int width = displayMetrics.widthPixels;
-        return height < width ? height : width;
+        return Math.min(height, width);
     }
 
     static boolean externalStorageAvailable() {
@@ -377,7 +377,7 @@ public final class AppUtils {
      * Holder for the Search query. Up to now I found it as quick solution to pass query
      * from Activity to the Open Radio Service.
      */
-    private static StringBuilder sSearchQuery = new StringBuilder();
+    private static final StringBuilder SEARCH_QUERY = new StringBuilder();
 
     /**
      * Save Search query string.
@@ -385,15 +385,15 @@ public final class AppUtils {
      * @param searchQuery Search query string.
      */
     public static void setSearchQuery(final String searchQuery) {
-        sSearchQuery.setLength(0);
-        sSearchQuery.append(searchQuery);
+        SEARCH_QUERY.setLength(0);
+        SEARCH_QUERY.append(searchQuery);
     }
 
     /**
      * @return Gets the Search query string.
      */
     public static String getSearchQuery() {
-        return sSearchQuery.toString();
+        return SEARCH_QUERY.toString();
     }
 
     /**

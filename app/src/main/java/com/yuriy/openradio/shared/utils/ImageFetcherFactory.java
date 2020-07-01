@@ -26,8 +26,8 @@ public class ImageFetcherFactory {
      * @param context {@link android.content.Context}
      * @return {@link ImageFetcher} instance
      */
-    public static ImageWorker getSmallImageFetcher(FragmentActivity context) {
-        int imageThumbSize = context.getResources().getDimensionPixelSize(R.dimen.list_item_width);
+    public static ImageWorker getSmallImageFetcher(final FragmentActivity context) {
+        int imageThumbSize = context.getResources().getDimensionPixelSize(R.dimen.small_image_fetcher);
         return getImageFetcher(context, imageThumbSize, SMALL_IMAGE_CACHE_DIR, false);
     }
 
