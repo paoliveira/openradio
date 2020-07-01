@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.view.dialog;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -228,7 +227,7 @@ public final class LogsDialog extends BaseDialogFragment {
                         intent1,
                         LOGS_EMAIL_REQUEST_CODE
                 );
-            } catch (final ActivityNotFoundException e) {
+            } catch (final Exception e) {
                 SafeToast.showAnyThread(
                         activity,
                         activity.getString(R.string.cant_start_activity)

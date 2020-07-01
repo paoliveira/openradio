@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.view.dialog;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -41,8 +40,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManagerListenerImpl;
-import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
+import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 
@@ -110,7 +109,7 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
                                             ),
                                             ACCOUNT_REQUEST_CODE
                                     );
-                                } catch (final ActivityNotFoundException e) {
+                                } catch (final Exception e) {
                                     AnalyticsUtils.logException(e);
                                     GoogleDriveDialog.this.mGoogleDriveManager.connect(null);
                                 }
@@ -131,7 +130,8 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
     }
 
     @Override
-    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+    @NonNull
+    public Dialog onCreateDialog(@Nullable final Bundle savedInstanceState) {
         final View view = getInflater().inflate(
                 R.layout.dialog_google_drive,
                 getActivity().findViewById(R.id.dialog_google_drive_root)
