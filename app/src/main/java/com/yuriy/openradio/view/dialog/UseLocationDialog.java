@@ -24,7 +24,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.annotation.NonNull;
+
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.IntentsHelper;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
@@ -52,6 +55,7 @@ public final class UseLocationDialog extends BaseDialogFragment {
     public final static String DIALOG_TAG = LOG_TAG + "Tag";
 
     @Override
+    @NonNull
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final Activity activity = getActivity();
         final View view = getInflater().inflate(
@@ -64,10 +68,7 @@ public final class UseLocationDialog extends BaseDialogFragment {
         enableLocationServiceBtn.setOnClickListener(
                 v -> {
                     final Intent intent = IntentsHelper.makeOpenLocationSettingsIntent();
-                    // Verify that the intent will resolve to an activity
-                    if (intent.resolveActivity(activity.getPackageManager()) != null) {
-                        startActivityForResult(intent, IntentsHelper.REQUEST_CODE_LOCATION_SETTINGS);
-                    } else {
+                    if (!AppUtils.startActivitySafe(activity, intent)) {
                         SafeToast.showAnyThread(
                                 activity,
                                 getString(R.string.no_location_setting_desc)

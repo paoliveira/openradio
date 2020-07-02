@@ -24,6 +24,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -42,6 +43,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by Yuriy Chernyshov
@@ -61,9 +63,17 @@ public final class TvSettingsDialog extends BaseDialogFragment {
      */
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
-    @Override
-    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+    private final AtomicBoolean mIsInstanceSaved;
 
+    public TvSettingsDialog() {
+        super();
+        mIsInstanceSaved = new AtomicBoolean(false);
+    }
+
+    @Override
+    @NonNull
+    public Dialog onCreateDialog(final Bundle savedInstanceState) {
+        mIsInstanceSaved.set(false);
         final View view = getInflater().inflate(
                 R.layout.dialog_tv_settings,
                 getActivity().findViewById(R.id.dialog_tv_settings_root)
@@ -96,6 +106,9 @@ public final class TvSettingsDialog extends BaseDialogFragment {
         listview.setOnItemClickListener(
                 (parent, view1, position, id) -> {
                     AppLogger.d(CLASS_NAME + " click:" + values[position]);
+                    if (mIsInstanceSaved.get()) {
+                        return;
+                    }
                     final FragmentTransaction fragmentTransaction = getActivity()
                             .getSupportFragmentManager().beginTransaction();
                     clearDialogs(fragmentTransaction);
@@ -143,6 +156,12 @@ public final class TvSettingsDialog extends BaseDialogFragment {
         );
 
         return createAlertDialog(view);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mIsInstanceSaved.set(true);
     }
 
     /**

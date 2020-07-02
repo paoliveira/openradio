@@ -217,22 +217,15 @@ public final class LogsDialog extends BaseDialogFragment {
             if (activity == null) {
                 return;
             }
-            try {
-                final Intent intent1 = Intent.createChooser(
-                        intent,
-                        activity.getString(R.string.send_logs_chooser_title)
-                );
-                intent1.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                activity.startActivityForResult(
-                        intent1,
-                        LOGS_EMAIL_REQUEST_CODE
-                );
-            } catch (final Exception e) {
+            final Intent intent1 = Intent.createChooser(
+                    intent,
+                    activity.getString(R.string.send_logs_chooser_title)
+            );
+            if (!AppUtils.startActivityForResultSafe(activity, intent1, LOGS_EMAIL_REQUEST_CODE)) {
                 SafeToast.showAnyThread(
                         activity,
                         activity.getString(R.string.cant_start_activity)
                 );
-                AnalyticsUtils.logException(e);
             }
         }
     }

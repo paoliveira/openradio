@@ -473,4 +473,40 @@ public final class AppUtils {
         builder.append("]");
         return builder.toString();
     }
+
+    public static boolean startActivitySafe(final Context context, @NonNull final Intent intent) {
+        if (context == null) {
+            return false;
+        }
+        // Verify that the intent will resolve to an activity
+        if (intent.resolveActivity(context.getPackageManager()) != null) {
+            try {
+                context.startActivity(intent);
+            } catch (final Exception e) {
+                AppLogger.e("Can not start activity:" + e);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean startActivityForResultSafe(final Activity context,
+                                                     @NonNull final Intent intent,
+                                                     final int resultCode) {
+        if (context == null) {
+            return false;
+        }
+        // Verify that the intent will resolve to an activity
+        if (intent.resolveActivity(context.getPackageManager()) != null) {
+            try {
+                context.startActivityForResult(intent, resultCode);
+            } catch (final Exception e) {
+                AppLogger.e("Can not start activity for result:" + e);
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
 }

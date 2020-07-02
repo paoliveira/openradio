@@ -40,8 +40,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManagerListenerImpl;
-import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 
@@ -99,18 +99,15 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
 
                             @Override
                             public void onAccountRequested() {
-                                try {
-                                    activity.startActivityForResult(
-                                            AccountPicker.newChooseAccountIntent(
-                                                    null,
-                                                    null,
-                                                    new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
-                                                    true, null, null, null, null
-                                            ),
-                                            ACCOUNT_REQUEST_CODE
-                                    );
-                                } catch (final Exception e) {
-                                    AnalyticsUtils.logException(e);
+                                if (!AppUtils.startActivityForResultSafe(
+                                        activity,
+                                        AccountPicker.newChooseAccountIntent(
+                                                null,
+                                                null,
+                                                new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
+                                                true, null, null, null, null
+                                        ),
+                                        ACCOUNT_REQUEST_CODE)) {
                                     GoogleDriveDialog.this.mGoogleDriveManager.connect(null);
                                 }
                             }

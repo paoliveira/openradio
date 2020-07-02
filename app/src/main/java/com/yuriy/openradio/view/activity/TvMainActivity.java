@@ -31,6 +31,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog;
 import com.yuriy.openradio.shared.view.dialog.LogsDialog;
@@ -207,7 +208,8 @@ public final class TvMainActivity extends FragmentActivity {
             return;
         }
         button.setOnClickListener(
-                v -> startActivityForResult(
+                v -> AppUtils.startActivityForResultSafe(
+                        this,
                         TvSearchActivity.makeStartIntent(this),
                         TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
                 )

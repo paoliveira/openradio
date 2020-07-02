@@ -153,7 +153,9 @@ public final class MediaResourcesManager {
         if (mMediaController != null) {
             mMediaController.unregisterCallback(mMediaSessionCallback);
         }
-        MediaControllerCompat.setMediaController(mActivity, null);
+        if (mActivity != null) {
+            MediaControllerCompat.setMediaController(mActivity, null);
+        }
         mActivity = null;
         mListener = null;
     }

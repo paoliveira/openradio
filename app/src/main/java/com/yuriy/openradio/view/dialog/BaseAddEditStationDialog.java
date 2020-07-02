@@ -154,7 +154,11 @@ public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
                     // Chooser of filesystem options.
                     final Intent chooserIntent = Intent.createChooser(galleryIntent, "Select Image");
 
-                    startActivityForResult(chooserIntent, IntentsHelper.REQUEST_CODE_FILE_SELECTED);
+                    AppUtils.startActivityForResultSafe(
+                            getActivity(),
+                            chooserIntent,
+                            IntentsHelper.REQUEST_CODE_FILE_SELECTED
+                    );
                 }
         );
 

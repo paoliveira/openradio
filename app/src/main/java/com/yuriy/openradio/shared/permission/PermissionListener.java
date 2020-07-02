@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.permission;
 
 import android.content.Context;
 
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.activity.PermissionsDialogActivity;
 
 import java.lang.ref.WeakReference;
@@ -59,7 +60,8 @@ public class PermissionListener implements PermissionStatusListener {
 
         mMap.put(permissionName, currentTime);
 
-        mReference.get().startActivity(
+        AppUtils.startActivitySafe(
+                mReference.get(),
                 PermissionsDialogActivity.getIntent(mReference.get(), permissionName)
         );
     }
