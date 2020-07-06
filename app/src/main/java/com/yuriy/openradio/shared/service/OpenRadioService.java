@@ -2139,6 +2139,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     handlePauseRequest();
                 } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
                     handlePlayRequest();
+                } else if (mState == PlaybackStateCompat.STATE_STOPPED) {
+                    mLastKnownRS = null;
+                    mLastPlayedUrl = null;
+                    handlePlayRequest();
+                } else {
+                    AppLogger.w(CLASS_NAME + "unhandled playback state:" + mState);
                 }
                 break;
             case VALUE_NAME_STOP_LAST_PLAYED_ITEM:

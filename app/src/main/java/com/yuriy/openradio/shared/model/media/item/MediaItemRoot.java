@@ -82,6 +82,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             latestRadioStation = LatestRadioStationStorage.get(dependencies.getContext());
             if (latestRadioStation != null) {
+                dependencies.getRadioStationsStorage().add(latestRadioStation);
                 // Add Radio Station to Menu
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                         MediaItemHelper.buildMediaDescriptionFromRadioStation(

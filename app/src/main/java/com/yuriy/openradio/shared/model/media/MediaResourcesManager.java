@@ -64,7 +64,7 @@ public final class MediaResourcesManager {
     /**
      * Listener of the media Controllers callbacks.
      */
-    private final MediaControllerCompat.Callback mMediaSessionCallback;
+    private final MediaSessionCallback mMediaSessionCallback;
 
     /**
      * Transport controls of the Media Controller.
@@ -114,7 +114,11 @@ public final class MediaResourcesManager {
         //TODO: Simple solution that needs to be revised.
         OpenRadioService.mCurrentParentId = OpenRadioService.getCurrentParentId(bundle);
         OpenRadioService.mIsRestoreState = OpenRadioService.getRestoreState(bundle);
-        OpenRadioService.mState = OpenRadioService.getCurrentPlaybackState(bundle);
+        int state = OpenRadioService.getCurrentPlaybackState(bundle);
+        // Do not assign unknow state.
+        if (state != PlaybackStateCompat.STATE_NONE) {
+            OpenRadioService.mState = state;
+        }
     }
 
     /**
@@ -127,6 +131,8 @@ public final class MediaResourcesManager {
             mMediaController.registerCallback(mMediaSessionCallback);
             // Set actual media controller
             MediaControllerCompat.setMediaController(mActivity, mMediaController);
+            // To update Play/Pause btn of the Currently Playing station. By default it shows spinner.
+            mMediaSessionCallback.dispatchLatestState();
             return;
         }
         try {
@@ -312,6 +318,8 @@ public final class MediaResourcesManager {
      */
     private final class MediaSessionCallback extends MediaControllerCompat.Callback {
 
+        private PlaybackStateCompat mCurrentState;
+
         /**
          * Default constructor.
          */
@@ -327,6 +335,7 @@ public final class MediaResourcesManager {
         @Override
         public void onPlaybackStateChanged(final PlaybackStateCompat state) {
             AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
+            mCurrentState = state;
             if (MediaResourcesManager.this.mListener == null) {
                 AppLogger.e(CLASS_NAME + "PlaybackStateChanged listener null");
                 return;
@@ -358,6 +367,13 @@ public final class MediaResourcesManager {
             MediaResourcesManager.this.mListener.onMetadataChanged(
                     metadata, MediaResourcesManager.this.mMediaController.getQueue()
             );
+        }
+
+        private void dispatchLatestState() {
+            if (mCurrentState == null) {
+                return;
+            }
+            onPlaybackStateChanged(mCurrentState);
         }
     }
 }

@@ -57,6 +57,12 @@ public final class RadioStationsStorage {
         }
     }
 
+    public void add(@NonNull final RadioStation value) {
+        synchronized (mRadioStations) {
+            mRadioStations.add(value);
+        }
+    }
+
     public void clear() {
         synchronized (mRadioStations) {
             mRadioStations.clear();
