@@ -31,6 +31,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.BitmapsOverlay;
@@ -206,7 +207,7 @@ public final class MediaItemRoot implements MediaItemCommand {
                     new MediaBrowserCompat.MediaItem(
                             new MediaDescriptionCompat.Builder()
                                     .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
-                                    .setTitle(context.getString(R.string.country_stations_title))
+                                    .setTitle(LocationService.COUNTRY_CODE_TO_NAME.get(dependencies.getCountryCode()))
                                     .setIconBitmap(bitmap)
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )

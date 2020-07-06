@@ -61,9 +61,8 @@
     <string name="favorites_list_title">Favorites</string>
     <string name="new_stations_title">New</string>
     <string name="popular_stations_title">Popular</string>
-    <string name="all_categories_title">All Categories</string>
-    <string name="countries_list_title">All Countries</string>
-    <string name="country_stations_title">Country\'s Radio Stations</string>
+    <string name="all_categories_title">Categories</string>
+    <string name="countries_list_title">Countries</string>
     <string name="local_radio_stations_list_title">Locals</string>
     <string name="error_loading_media">Error Loading Media</string>
     <string name="app_settings_title">Application Settings</string>
