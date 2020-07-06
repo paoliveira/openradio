@@ -115,7 +115,7 @@ public final class MediaResourcesManager {
         OpenRadioService.mCurrentParentId = OpenRadioService.getCurrentParentId(bundle);
         OpenRadioService.mIsRestoreState = OpenRadioService.getRestoreState(bundle);
         int state = OpenRadioService.getCurrentPlaybackState(bundle);
-        // Do not assign unknow state.
+        // Do not assign unknown state.
         if (state != PlaybackStateCompat.STATE_NONE) {
             OpenRadioService.mState = state;
         }
