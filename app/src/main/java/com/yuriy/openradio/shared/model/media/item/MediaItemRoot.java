@@ -104,8 +104,7 @@ public final class MediaItemRoot implements MediaItemCommand {
             // Favorites list
             final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
-                    .setTitle(context.getString(R.string.favorites_list_title))
-                    .setSubtitle(context.getString(R.string.favorites_list_sub_title));
+                    .setTitle(context.getString(R.string.favorites_list_title));
             if (dependencies.isAndroidAuto()) {
                 builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_stars_black_24dp"));
             } else {
@@ -130,8 +129,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         {
             final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
-                    .setTitle(context.getString(R.string.recent_added_stations_title))
-                    .setSubtitle(context.getString(R.string.recent_added_stations_sub_title));
+                    .setTitle(context.getString(R.string.new_stations_title));
 
             if (dependencies.isAndroidAuto()) {
                 builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_fiber_new_black_24dp"));
@@ -150,8 +148,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         {
             final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
-                    .setTitle(context.getString(R.string.popular_stations_title))
-                    .setSubtitle(context.getString(R.string.popular_stations_sub_title));
+                    .setTitle(context.getString(R.string.popular_stations_title));
 
             if (dependencies.isAndroidAuto()) {
                 builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_trending_up_black_24dp"));
@@ -175,7 +172,6 @@ public final class MediaItemRoot implements MediaItemCommand {
                                     .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
                                     .setTitle(context.getString(R.string.all_categories_title))
                                     .setIconBitmap(iconBitmap)
-                                    .setSubtitle(context.getString(R.string.all_categories_sub_title))
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )
             );
@@ -184,8 +180,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         // All countries list
         final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                 .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
-                .setTitle(context.getString(R.string.countries_list_title))
-                .setSubtitle(context.getString(R.string.country_stations_sub_title));
+                .setTitle(context.getString(R.string.countries_list_title));
         if (dependencies.isAndroidAuto()) {
             builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp"));
         } else {
@@ -213,9 +208,6 @@ public final class MediaItemRoot implements MediaItemCommand {
                                     .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
                                     .setTitle(context.getString(R.string.country_stations_title))
                                     .setIconBitmap(bitmap)
-                                    .setSubtitle(context.getString(
-                                            R.string.country_stations_sub_title
-                                    ))
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )
             );
@@ -226,8 +218,7 @@ public final class MediaItemRoot implements MediaItemCommand {
             // Locals list
             final MediaDescriptionCompat.Builder builder1 = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
-                    .setTitle(context.getString(R.string.local_radio_stations_list_title))
-                    .setSubtitle(context.getString(R.string.local_radio_stations_list_sub_title));
+                    .setTitle(context.getString(R.string.local_radio_stations_list_title));
 
             if (dependencies.isAndroidAuto()) {
                 builder1.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_phone_android_black_24dp"));

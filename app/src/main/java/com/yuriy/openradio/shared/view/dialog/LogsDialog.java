@@ -149,7 +149,7 @@ public final class LogsDialog extends BaseDialogFragment {
 
         mSendLogMailTask = new SendLogEmailTask(this);
 
-        final String subj = "Logs report Open Radio, "
+        final String subj = "Logs report from Open Radio, "
                 + "v:" + AppUtils.getApplicationVersion(getActivity())
                 + "." + AppUtils.getApplicationVersionCode(getActivity());
         final String bodyHeader = "Archive with logs is in attachment.";

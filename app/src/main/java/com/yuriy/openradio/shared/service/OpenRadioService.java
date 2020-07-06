@@ -1541,38 +1541,14 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // Use this flag to compare indexes of the items later on.
         // Do not compare indexes if state is not play.
-//        boolean isStatePlay = true;
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
-//            isStatePlay = false;
         }
 
         final int tempIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId);
-//        if (isStatePlay && mCurrentIndexOnQueue == tempIndexOnQueue) {
-//            AppLogger.w(
-//                    CLASS_NAME +
-//                            "Skip play request, same index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId
-//            );
-//            return;
-//        }
-//
-//        // Set the current index on queue from the Radio Station Id:
-//        mCurrentIndexOnQueue = tempIndexOnQueue;
-//
         if (tempIndexOnQueue != -1) {
-//            AppLogger.w(CLASS_NAME + "Skip play request, negative id");
-//            return;
             mCurrentIndexOnQueue = tempIndexOnQueue;
         }
-
-//        mSession.setQueue(
-//                QueueHelper.getPlayingQueue(
-//                        FavoritesStorage.getAll(this)
-//                )
-//        );
-//
-//        final String queueTitle = "Queue";
-//        mSession.setQueueTitle(queueTitle);
 
         // Play Radio Station
         handlePlayRequest();

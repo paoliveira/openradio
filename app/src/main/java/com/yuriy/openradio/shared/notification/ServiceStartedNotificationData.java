@@ -16,6 +16,12 @@
 
 package com.yuriy.openradio.shared.notification;
 
+import android.content.Context;
+
+import androidx.annotation.NonNull;
+
+import com.yuriy.openradio.R;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -24,12 +30,12 @@ package com.yuriy.openradio.shared.notification;
  */
 final class ServiceStartedNotificationData extends NotificationData {
 
-    ServiceStartedNotificationData() {
+    ServiceStartedNotificationData(@NonNull final Context context) {
         super();
-        mContentTitle = "Notification";
-        mContentText = "Notification";
+        mContentTitle = context.getString(R.string.notification_str);
+        mContentText = context.getString(R.string.notification_str);
         mChannelId = "channel_id_1";
-        mChannelName = "Radio Station";
+        mChannelName = context.getString(R.string.radio_station_str);
         mChannelDescription = "Radio Station just started";
     }
 }

@@ -59,19 +59,12 @@
     <string name="no_metadata">No Metadata</string>
     <string name="favorite">Favorite</string>
     <string name="favorites_list_title">Favorites</string>
-    <string name="favorites_list_sub_title">favorites radio stations</string>
-    <string name="recent_added_stations_title">Recent</string>
-    <string name="recent_added_stations_sub_title">recently added radio stations</string>
+    <string name="new_stations_title">New</string>
     <string name="popular_stations_title">Popular</string>
-    <string name="popular_stations_sub_title">popular radio stations</string>
     <string name="all_categories_title">All Categories</string>
-    <string name="all_categories_sub_title">radio stations of all categories</string>
     <string name="countries_list_title">All Countries</string>
-    <string name="countries_list_sub_title">radio stations by countries</string>
     <string name="country_stations_title">Country\'s Radio Stations</string>
-    <string name="country_stations_sub_title">radio stations of the country</string>
     <string name="local_radio_stations_list_title">Locals</string>
-    <string name="local_radio_stations_list_sub_title">locally added radio stations</string>
     <string name="error_loading_media">Error Loading Media</string>
     <string name="app_settings_title">Application Settings</string>
     <string name="stream_buffering_label">Stream Buffering</string>
@@ -138,4 +131,8 @@
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="equalizer_presets_label">System presets:</string>
     <string name="eq_not_available">Equalizer is not available</string>
+    <string name="notification_str">Notification</string>
+    <string name="radio_station_str">Radio Station</string>
+    <string name="no_radio_station_selected">No Radio Station selected</string>
+    <string name="radio_station_not_available">Radio Station is not available</string>
 </resources>

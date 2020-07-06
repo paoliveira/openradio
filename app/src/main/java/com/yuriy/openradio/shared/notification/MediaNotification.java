@@ -323,7 +323,7 @@ public final class MediaNotification extends BroadcastReceiver {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannel(
                 context,
-                new MediaNotificationData(mMetadata)
+                new MediaNotificationData(context, mMetadata)
         );
         mNotificationBuilder = new NotificationCompat.Builder(context, notificationChannelId);
 
@@ -412,7 +412,7 @@ public final class MediaNotification extends BroadcastReceiver {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannel(
                 mService,
-                new ServiceStartedNotificationData()
+                new ServiceStartedNotificationData(mService.getApplicationContext())
         );
 
         mNotificationBuilder = new NotificationCompat.Builder(
@@ -456,8 +456,8 @@ public final class MediaNotification extends BroadcastReceiver {
     private void showNoStreamNotification() {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         final String notificationChannelId = NotificationChannelFactory.createChannelNoStream(
-                mService,
-                new NoMediaNotificationData()
+                mService.getApplicationContext(),
+                new NoMediaNotificationData(mService.getApplicationContext())
         );
 
         // Build the style.

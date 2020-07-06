@@ -16,10 +16,13 @@
 
 package com.yuriy.openradio.shared.notification;
 
+import android.content.Context;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 
 import androidx.annotation.NonNull;
+
+import com.yuriy.openradio.R;
 
 /**
  * Created by Chernyshov Yurii
@@ -29,23 +32,24 @@ import androidx.annotation.NonNull;
  */
 final class MediaNotificationData extends NotificationData {
     
-    MediaNotificationData(@NonNull final MediaMetadataCompat metadata) {
+    MediaNotificationData(@NonNull Context context,
+                          @NonNull final MediaMetadataCompat metadata) {
         super();
 
         final MediaDescriptionCompat description = metadata.getDescription();
         if (description.getTitle() != null) {
             mContentTitle = description.getTitle().toString();
         } else {
-            mContentTitle = "Notification";
+            mContentTitle = context.getString(R.string.notification_str);
         }
         if (description.getSubtitle() != null) {
             mContentText = description.getSubtitle().toString();
         } else {
-            mContentText = "Notification";
+            mContentText = context.getString(R.string.notification_str);
         }
 
         mChannelId = "channel_id_1";
-        mChannelName = "Radio Station";
+        mChannelName = context.getString(R.string.radio_station_str);
         mChannelDescription = "Updates about current Radio Station";
     }
 }
