@@ -23,7 +23,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Environment;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
@@ -31,7 +30,6 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Util;
@@ -450,28 +448,6 @@ public final class AppUtils {
                 value = "UNKNOWN";
         }
         return new String[]{String.valueOf(densityDpi), value};
-    }
-
-    public static String intentBundleToString(@Nullable final Intent intent) {
-        if (intent == null) {
-            return "Intent[null]";
-        }
-        final Bundle bundle = intent.getExtras();
-        if (bundle == null) {
-            return "Bundle[null]";
-        }
-        final StringBuilder builder = new StringBuilder("Bundle[");
-        try {
-            for (final String key : bundle.keySet()) {
-                builder.append(key).append(":").append((bundle.get(key) != null ? bundle.get(key) : "NULL"));
-                builder.append("|");
-            }
-            builder.delete(builder.length() - 1, builder.length());
-        } catch (final Exception e) {
-            AppLogger.e(CLASS_NAME + " bundle to string exception:" + e);
-        }
-        builder.append("]");
-        return builder.toString();
     }
 
     public static boolean startActivitySafe(final Context context, @NonNull final Intent intent) {

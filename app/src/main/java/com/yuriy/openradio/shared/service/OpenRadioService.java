@@ -89,6 +89,7 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.FileUtils;
+import com.yuriy.openradio.shared.utils.IntentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.NetUtils;
@@ -444,7 +445,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
         AnalyticsUtils.logMessage(
                 "OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent
-                        + ", " + AppUtils.intentBundleToString(intent)
+                        + ", " + IntentUtils.intentBundleToString(intent)
         );
 
         if (intent != null) {
@@ -1196,51 +1197,56 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing.
-            getCurrentPlayingRSAsync(
-                    radioStation -> {
-                        if (radioStation == null) {
-                            AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
-                                    "because cannot find it." +
-                                    " idx " + mCurrentIndexOnQueue);
-                            return;
-                        }
-                        if (mLastKnownRS != null && mLastKnownRS.equals(radioStation)) {
-                            AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
-                                    "because last known is the same as requested. Try to resume playback.");
-                            updatePlaybackState();
-                            return;
-                        }
-
-                        mLastKnownRS = radioStation;
-                        final MediaMetadataCompat metadata = buildMetadata(radioStation);
-                        if (metadata == null) {
-                            AppLogger.e(CLASS_NAME + "play. Ignoring request to play next song, " +
-                                    "because cannot find metadata." +
-                                    " idx " + mCurrentIndexOnQueue);
-                            return;
-                        }
-                        final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
-                        AppLogger.d(
-                                CLASS_NAME + "play. idx " + mCurrentIndexOnQueue
-                                        + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
-                                        " source " + source
-                        );
-                        if (TextUtils.isEmpty(source)) {
-                            AppLogger.e(CLASS_NAME + " source is empty");
-                            return;
-                        }
-
-                        mCurrentMediaId = radioStation.getId();
-
-                        preparePlayer(source);
-                    }
-            );
+            getCurrentPlayingRSAsync(this::getCurrentPlayingRSAsyncCb);
         }
 
         mNoisyAudioStreamReceiver.register(context);
     }
 
+    private void getCurrentPlayingRSAsyncCb(final RadioStation radioStation) {
+        if (radioStation == null) {
+            AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
+                    "because cannot find it." +
+                    " idx " + mCurrentIndexOnQueue);
+            return;
+        }
+        if (mLastKnownRS != null && mLastKnownRS.equals(radioStation)) {
+            AppLogger.e(CLASS_NAME + "Play. Ignoring request to play next song, " +
+                    "because last known is the same as requested. Try to resume playback.");
+            updatePlaybackState();
+            return;
+        }
+
+        mLastKnownRS = radioStation;
+        final MediaMetadataCompat metadata = buildMetadata(radioStation);
+        if (metadata == null) {
+            AppLogger.e(CLASS_NAME + "play. Ignoring request to play next song, " +
+                    "because cannot find metadata." +
+                    " idx " + mCurrentIndexOnQueue);
+            return;
+        }
+        final String source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI);
+        AppLogger.d(
+                CLASS_NAME + "play. idx " + mCurrentIndexOnQueue
+                        + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
+                        " source " + source
+        );
+        if (TextUtils.isEmpty(source)) {
+            AppLogger.e(CLASS_NAME + " source is empty");
+            return;
+        }
+
+        mCurrentMediaId = radioStation.getId();
+
+        preparePlayer(source);
+    }
+
     private void preparePlayer(final String url) {
+        if (url == null) {
+            AppLogger.e(CLASS_NAME + " url is null");
+            return;
+        }
+
         // Cache URL.
         mLastPlayedUrl = url;
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED);

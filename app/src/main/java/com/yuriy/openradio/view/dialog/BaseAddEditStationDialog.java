@@ -43,7 +43,7 @@ import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.ImageFilePath;
-import com.yuriy.openradio.shared.utils.IntentsHelper;
+import com.yuriy.openradio.shared.utils.IntentUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -157,7 +157,7 @@ public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
                     AppUtils.startActivityForResultSafe(
                             getActivity(),
                             chooserIntent,
-                            IntentsHelper.REQUEST_CODE_FILE_SELECTED
+                            IntentUtils.REQUEST_CODE_FILE_SELECTED
                     );
                 }
         );
@@ -233,7 +233,7 @@ public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
         }
 
         switch (requestCode) {
-            case IntentsHelper.REQUEST_CODE_FILE_SELECTED:
+            case IntentUtils.REQUEST_CODE_FILE_SELECTED:
                 final Uri selectedImageUri = data.getData();
                 final Context context = getActivity();
                 //MEDIA GALLERY

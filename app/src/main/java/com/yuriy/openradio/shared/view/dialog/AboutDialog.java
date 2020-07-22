@@ -26,7 +26,7 @@ import android.widget.TextView;
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.IntentsHelper;
+import com.yuriy.openradio.shared.utils.IntentUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 
 /**
@@ -77,7 +77,7 @@ public final class AboutDialog extends BaseDialogFragment {
         final TextView authorLink = view.findViewById(R.id.about_author_link_view);
         authorLink.setOnClickListener(
                 v -> {
-                    final Intent intent = IntentsHelper.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL);
+                    final Intent intent = IntentUtils.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL);
                     AppUtils.startActivitySafe(context, intent);
                 }
         );
@@ -85,7 +85,7 @@ public final class AboutDialog extends BaseDialogFragment {
         final TextView projectHomeLink = view.findViewById(R.id.about_project_link_view);
         projectHomeLink.setOnClickListener(
                 v -> {
-                    final Intent intent = IntentsHelper.makeUrlBrowsableIntent(PROJECT_HOME_URL);
+                    final Intent intent = IntentUtils.makeUrlBrowsableIntent(PROJECT_HOME_URL);
                     AppUtils.startActivitySafe(context, intent);
                 }
         );

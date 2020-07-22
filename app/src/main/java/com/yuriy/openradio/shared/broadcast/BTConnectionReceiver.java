@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.IntentUtils;
 
 import java.util.List;
 
@@ -53,11 +54,10 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     private static final String CLASS_NAME = BTConnectionReceiver.class.getSimpleName();
 
     @Nullable
-    private BluetoothAdapter mBluetoothAdapter;
-    private BluetoothProfileServiceListenerImpl mProfileListener;
+    private final BluetoothAdapter mBluetoothAdapter;
+    private final BluetoothProfileServiceListenerImpl mProfileListener;
     private String mConnectedDevice;
-    private Listener mListener;
-    private boolean mIsProfileProxy;
+    private final Listener mListener;
 
     /**
      * Main constructor.
@@ -73,6 +73,10 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     @Override
     public void onReceive(final Context context, final Intent intent) {
         AppLogger.i(CLASS_NAME + " receive:" + intent);
+        if (intent == null) {
+            return;
+        }
+        AppLogger.i(CLASS_NAME + " data:" + IntentUtils.intentBundleToString(intent));
         final int state = intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR);
         switch (state) {
             case BluetoothAdapter.STATE_CONNECTED:
@@ -80,8 +84,10 @@ public final class BTConnectionReceiver extends AbstractReceiver {
                 locateDevice(context);
                 break;
             case BluetoothAdapter.STATE_DISCONNECTED:
-                AppLogger.i(CLASS_NAME + " disconnected");
-                mListener.onDisconnected();
+                AppLogger.i(CLASS_NAME + " disconnected:" + mConnectedDevice);
+                if (!TextUtils.isEmpty(mConnectedDevice)) {
+                    mListener.onDisconnected();
+                }
                 break;
         }
     }
@@ -95,8 +101,9 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     }
 
     /**
+     * Locate connected device.
      *
-     * @param context
+     * @param context Context of collee.
      */
     public void locateDevice(final Context context) {
         // Establish connection to the proxy.
@@ -104,10 +111,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
             return;
         }
         // Check whether proxy was connected.
-        if (mIsProfileProxy) {
-            return;
-        }
-        mIsProfileProxy = mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
+        mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
     }
 
     /**
@@ -134,12 +138,13 @@ public final class BTConnectionReceiver extends AbstractReceiver {
             AppLogger.i(CLASS_NAME + " connected headset:" + mBluetoothHeadset);
             final List<BluetoothDevice> list = mBluetoothHeadset.getConnectedDevices();
             if (list.isEmpty()) {
+                AppLogger.d(CLASS_NAME + " connected devices are empty");
                 return;
             }
             String connectedDevice = null;
             for (final BluetoothDevice device : list) {
                 AppLogger.i(
-                        CLASS_NAME + "  device name:" + device.getName()
+                        CLASS_NAME + " device name:" + device.getName()
                                 + ", MAC:" + device.getAddress()
                                 + ", state:" + mBluetoothHeadset.getConnectionState(device)
                 );
@@ -166,6 +171,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
 
         private void clear() {
             if (mBluetoothAdapter != null && mBluetoothHeadset != null) {
+                AppLogger.i(CLASS_NAME + " clear");
                 mBluetoothAdapter.closeProfileProxy(mProfile, mBluetoothHeadset);
             }
         }
