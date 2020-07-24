@@ -30,6 +30,7 @@ project.ext {
     // https://mvnrepository.com/artifact/org.json/json
     jsonTestVersion = "20180813"
     exoPlayerVersion = "2.11.7"
+    multidexVersion = "1.0.3"
 
     /**
      * Application constants
@@ -38,10 +39,11 @@ project.ext {
     versionName = "5.2"
 
     /**
-     * Fabric
+     * Firebase
      */
     apiKey = ""
     crashlyticsVersion = "2.10.1"
+    firebaseVersion = "17.4.4"
 
     /**
      * Sign
