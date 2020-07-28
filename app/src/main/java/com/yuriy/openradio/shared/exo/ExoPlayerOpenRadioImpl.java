@@ -76,7 +76,6 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.vo.EqualizerState;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -223,7 +222,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         mContext = context;
         mMainHandler = new Handler(Looper.getMainLooper());
-        mComponentListener = new ComponentListener(this);
+        mComponentListener = new ComponentListener();
         mListener = listener;
         mMetadataListener = metadataListener;
 
@@ -586,24 +585,14 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Listener class for the players components events.
      */
-    private static final class ComponentListener implements
+    private final class ComponentListener implements
             AudioRendererEventListener, MetadataOutput, Player.EventListener {
 
         /**
-         * Reference to enclosing class.
-         */
-        @NonNull
-        private final WeakReference<ExoPlayerOpenRadioImpl> mReference;
-
-        /**
          * Main constructor.
-         *
-         * @param reference Reference to enclosing class.
          */
-        private ComponentListener(@NonNull final ExoPlayerOpenRadioImpl reference) {
+        private ComponentListener() {
             super();
-
-            mReference = new WeakReference<>(reference);
         }
 
         @Override
@@ -614,11 +603,7 @@ public final class ExoPlayerOpenRadioImpl {
         @Override
         public void onAudioSessionId(final int audioSessionId) {
             AppLogger.d(LOG_TAG + " audioSessionId:" + audioSessionId);
-            final ExoPlayerOpenRadioImpl reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.initEqualizer(audioSessionId);
+            initEqualizer(audioSessionId);
         }
 
         @Override
@@ -639,10 +624,6 @@ public final class ExoPlayerOpenRadioImpl {
                     final IcyInfo info = (IcyInfo) metadata.get(i);
                     if (info != null) {
                         AppLogger.d(LOG_TAG + " IcyInfo title:" + info);
-                        final ExoPlayerOpenRadioImpl reference = mReference.get();
-                        if (reference == null) {
-                            return;
-                        }
                         String title = info.title;
                         if (TextUtils.isEmpty(title)) {
                             return;
@@ -650,7 +631,7 @@ public final class ExoPlayerOpenRadioImpl {
                         if (title.startsWith(" ")) {
                             title = title.replaceFirst(" ", "");
                         }
-                        reference.mMetadataListener.onMetaData(title);
+                        mMetadataListener.onMetaData(title);
                     }
                 }
                 if (entry instanceof IcyHeaders) {
@@ -691,11 +672,7 @@ public final class ExoPlayerOpenRadioImpl {
         @Override
         public void onTimelineChanged(@NonNull final Timeline timeline, int reason) {
             AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + ", reason " + reason);
-            final ExoPlayerOpenRadioImpl reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.updateProgress();
+            updateProgress();
         }
 
         @Override
@@ -711,22 +688,18 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
-            final ExoPlayerOpenRadioImpl reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
             AppLogger.d(LOG_TAG + " onPlayerStateChanged to " + playbackState);
-            reference.mListener.onPlayerStateChanged(playWhenReady, playbackState);
+            mListener.onPlayerStateChanged(playWhenReady, playbackState);
             switch (playbackState) {
                 case Player.STATE_BUFFERING:
                     AppLogger.d(LOG_TAG + " STATE_BUFFERING");
                     break;
                 case Player.STATE_ENDED:
-                    AppLogger.d(LOG_TAG + " STATE_ENDED, userState:" + reference.mUserState);
-                    reference.mUpdateProgressHandler.removeCallbacks(reference.mUpdateProgressAction);
+                    AppLogger.d(LOG_TAG + " STATE_ENDED, userState:" + mUserState);
+                    mUpdateProgressHandler.removeCallbacks(mUpdateProgressAction);
 
-                    if (reference.mUserState != UserState.PAUSE && reference.mUserState != UserState.RESET) {
-                        reference.prepare(reference.mUri);
+                    if (mUserState != UserState.PAUSE && mUserState != UserState.RESET) {
+                        prepare(mUri);
                     }
                     break;
                 case Player.STATE_IDLE:
@@ -735,49 +708,39 @@ public final class ExoPlayerOpenRadioImpl {
                 case Player.STATE_READY:
                     AppLogger.d(LOG_TAG + " STATE_READY");
 
-                    reference.mListener.onPrepared();
-                    reference.mNumOfExceptions.set(0);
+                    mListener.onPrepared();
+                    mNumOfExceptions.set(0);
 
                     break;
                 default:
                     break;
             }
 
-            reference.updateProgress();
+            updateProgress();
         }
 
         @Override
         public void onPlayerError(@NonNull final ExoPlaybackException exception) {
             AppLogger.e(LOG_TAG + " onPlayerError:\n" + Log.getStackTraceString(exception));
-
-            final ExoPlayerOpenRadioImpl reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            AppLogger.e(LOG_TAG + " num of exceptions " + reference.mNumOfExceptions.get());
-            if (reference.mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
+            AppLogger.e(LOG_TAG + " num of exceptions " + mNumOfExceptions.get());
+            if (mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
                 if (exception.getCause() instanceof UnrecognizedInputFormatException) {
-                    reference.mListener.onHandledError(exception);
+                    mListener.onHandledError(exception);
                 } else {
-                    reference.prepare(reference.mUri);
+                    prepare(mUri);
                 }
                 return;
             }
 
             AnalyticsUtils.logException(exception);
 
-            reference.mListener.onError(exception);
+            mListener.onError(exception);
         }
 
         @Override
         public void onPositionDiscontinuity(@Player.DiscontinuityReason int reason) {
             AppLogger.e(LOG_TAG + " onPositionDiscontinuity:" + reason);
-            final ExoPlayerOpenRadioImpl reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            reference.updateProgress();
+            updateProgress();
         }
 
         @Override

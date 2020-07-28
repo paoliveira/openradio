@@ -60,16 +60,25 @@ public final class IntentUtils {
     }
 
     /**
-     * Dump content of Intent's bundle into string.
+     * Dump content of {@link Intent}'s {@link Bundle} into {@link String}.
      *
-     * @param intent Intent to process.
-     * @return String representation of bundles.
+     * @param intent {@link Intent} to process.
+     * @return {@link String} representation of {@link Bundle}.
      */
     public static String intentBundleToString(@Nullable final Intent intent) {
         if (intent == null) {
             return "Intent[null]";
         }
-        final Bundle bundle = intent.getExtras();
+        return bundleToString(intent.getExtras());
+    }
+
+    /**
+     * Dump content of {@link Bundle} into {@link String}.
+     *
+     * @param bundle {@link Bundle} to process.
+     * @return {@link String} representation of {@link Bundle}.
+     */
+    public static String bundleToString(@Nullable final Bundle bundle) {
         if (bundle == null) {
             return "Bundle[null]";
         }
