@@ -156,7 +156,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private static final String CUSTOM_ACTION_THUMBS_UP = "com.yuriy.openradio.share.service.THUMBS_UP";
     /**
-     * Delay stopSelf by using a handler.
+     * Delay stop service by using a handler.
      */
     private static final int STOP_DELAY = 30000;
     /**
@@ -333,13 +333,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         @Override
         public void handleMessage(@NonNull final Message msg) {
-            if ((mExoPlayerORImpl != null && mExoPlayerORImpl.isPlaying()) || mPlayOnFocusGain) {
-                AppLogger.d(CLASS_NAME + "Ignoring delayed stop since the media player is in use.");
+            if ((mExoPlayerORImpl != null && mExoPlayerORImpl.isPlaying())) {
+                AppLogger.d(CLASS_NAME + "Ignoring delayed stop since ExoPlayerORImpl in use.");
+                return;
+            }
+            if (mPlayOnFocusGain) {
+                AppLogger.d(CLASS_NAME + "Ignoring delayed stop since PlayOnFocusGain.");
                 return;
             }
             AppLogger.d(CLASS_NAME + "Stopping service with delay handler.");
 
-            stopSelf();
+            // TODO: Investigate, seems like service is busy by other resource.
+            // Since onDestroy not necessary invoked upon stopSelf, this is a hack to terminate application.
+            android.os.Process.killProcess(android.os.Process.myPid());
         }
     }
 
@@ -462,6 +468,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         ServiceLifecyclePreferencesManager.isServiceActive(context, false);
 
+        mPlayOnFocusGain = false;
         if (mServiceHandler != null) {
             mServiceHandler.getLooper().quit();
         }
@@ -562,14 +569,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * @param exception
      */
-    private void onError(final ExoPlaybackException exception) {
-        AppLogger.e(CLASS_NAME + "ExoPlayer exception:" + exception);
-        handleStopRequest(getString(R.string.media_player_error));
-    }
-
-    /**
-     * @param exception
-     */
     private void onHandledError(final ExoPlaybackException exception) {
         AppLogger.e(CLASS_NAME + "ExoPlayer handled exception:" + exception);
         final Throwable throwable = exception.getCause();
@@ -583,7 +582,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * playlist.
      */
     private void handleUnrecognizedInputFormatException() {
-        handleStopRequest(null);
+        handleStopRequest("Can not get play url.");
         ConcurrentUtils.API_CALL_EXECUTOR.submit(
                 () -> {
                     final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
@@ -898,15 +897,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (AppUtils.isUiThread()) {
             stopServiceUiThread();
         } else {
-            mMainHandler.post(this::stopServiceUiThread);
+            mMainHandler.postAtFrontOfQueue(this::stopServiceUiThread);
         }
     }
 
     private void stopServiceUiThread() {
         AppLogger.d(CLASS_NAME + "stop Service");
         // Service is being killed, so make sure we release our resources
-        handleStopRequest(null);
-
+        handleStopRequest();
+        releaseExoPlayer();
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         // In particular, always release the MediaSession to clean up resources
         // and notify associated MediaController(s).
@@ -919,8 +918,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             mSession = null;
             mMediaSessionCb = null;
         }
-
-        releaseExoPlayer();
     }
 
     /**
@@ -1151,7 +1148,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final boolean autoPlay = AppPreferencesManager.isBtAutoPlay(getApplicationContext());
         AppLogger.d(
                 CLASS_NAME + "BTSameDeviceConnected, do auto play:" + autoPlay
-                        + ", state:" + mState
+                        + ", state:" + MediaItemHelper.playbackStateToString(mState)
                         + ", pause reason:" + mPauseReason
         );
         if (!autoPlay) {
@@ -1176,7 +1173,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     private void handlePlayRequestUiThread() {
         AppLogger.d(
-                CLASS_NAME + "Handle PlayRequest: mState=" + mState
+                CLASS_NAME + "Handle PlayRequest: state=" + MediaItemHelper.playbackStateToString(mState)
         );
         if (mSession == null) {
             AppLogger.e(CLASS_NAME + "handle play with null media session");
@@ -1345,7 +1342,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param reason Reason to pause.
      */
     private void handlePauseRequest(final PauseReason reason) {
-        AppLogger.d(CLASS_NAME + "HandlePauseRequest: mState=" + mState);
+        AppLogger.d(CLASS_NAME + "HandlePauseRequest: state=" + MediaItemHelper.playbackStateToString(mState));
 
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
@@ -1374,7 +1371,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * @param error Error message to present to the user.
      */
     private void updatePlaybackState(final String error) {
-        AppLogger.d(CLASS_NAME + "set playback state to " + mState + " error:" + error);
+        AppLogger.d(
+                CLASS_NAME + "set playback state to "
+                        + MediaItemHelper.playbackStateToString(mState) + " error:" + error
+        );
         if (mSession == null) {
             AppLogger.e(CLASS_NAME + "update playback with null media session");
             return;
@@ -1487,8 +1487,21 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      * Handle a request to stop music
      */
+    private void handleStopRequest() {
+        handleStopRequest(null);
+    }
+
+    /**
+     * Handle a request to stop music
+     */
     private void handleStopRequest(final String withError) {
-        AppLogger.d(CLASS_NAME + "Handle stop request: state=" + mState + " error=" + withError);
+        if (mState == PlaybackStateCompat.STATE_STOPPED) {
+            return;
+        }
+        AppLogger.d(
+                CLASS_NAME + "Handle stop request: state="
+                        + MediaItemHelper.playbackStateToString(mState) + " error=" + withError
+        );
 
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED);
         mPauseReason = PauseReason.DEFAULT;
@@ -1503,9 +1516,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             updatePlaybackState(withError);
             mMediaNotification.stopNotification();
         }
-
-        // service is no longer necessary. Will be started again if needed.
-        stopSelf();
     }
 
     private void onResult() {
@@ -1675,7 +1685,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         public void onStop() {
             super.onStop();
             AppLogger.i(CLASS_NAME + "On Stop" + " [ors:" + OpenRadioService.this.hashCode() + "]");
-            handleStopRequest(null);
+            handleStopRequest();
         }
 
         @Override
@@ -2114,7 +2124,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     mLastPlayedUrl = null;
                     handlePlayRequest();
                 } else {
-                    AppLogger.w(CLASS_NAME + "unhandled playback state:" + mState);
+                    AppLogger.w(
+                            CLASS_NAME + "unhandled playback state:"
+                                    + MediaItemHelper.playbackStateToString(mState)
+                    );
                 }
                 break;
             case VALUE_NAME_STOP_LAST_PLAYED_ITEM:
@@ -2130,7 +2143,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 }
                 break;
             case VALUE_NAME_STOP_SERVICE:
-                stopService();
+                mMainHandler.postAtFrontOfQueue(() -> {
+                    mPlayOnFocusGain = false;
+                    mLastPlayedUrl = null;
+                    mLastKnownRS = null;
+                    handleStopRequest();
+                    stopSelf();
+                });
                 break;
             default:
                 AppLogger.w(CLASS_NAME + "Unknown command:" + command);
@@ -2138,7 +2157,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     private void setPlaybackState(final int state) {
-        AppLogger.d(CLASS_NAME + "Set state " + state);
+        AppLogger.d(CLASS_NAME + "Set state " + MediaItemHelper.playbackStateToString(state));
         mState = state;
     }
 
@@ -2155,8 +2174,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         @Override
-        public final void onError(final ExoPlaybackException error) {
-            OpenRadioService.this.onError(error);
+        public final void onError(final ExoPlaybackException exception) {
+            AppLogger.e(CLASS_NAME + "ExoPlayer exception:" + exception);
+            OpenRadioService.this.handleStopRequest(getString(R.string.media_player_error));
         }
 
         @Override

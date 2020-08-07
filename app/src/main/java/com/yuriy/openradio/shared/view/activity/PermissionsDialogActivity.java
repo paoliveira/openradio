@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.view.activity;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +27,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
+import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 
 import java.util.Arrays;
@@ -68,6 +70,14 @@ public final class PermissionsDialogActivity extends Activity {
                 CLASS_NAME + " permissions:" + Arrays.toString(permissions)
                         + ", results:" + Arrays.toString(grantResults)
         );
+
+        for (int i = 0; i < permissions.length; ++i) {
+            final String permission = permissions[i];
+            if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)
+                    && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                LocationService.doEnqueueWork(getApplicationContext());
+            }
+        }
 
         finish();
     }

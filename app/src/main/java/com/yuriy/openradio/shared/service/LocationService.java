@@ -18,16 +18,10 @@ package com.yuriy.openradio.shared.service;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
-import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -332,16 +326,6 @@ public final class LocationService extends JobIntentService {
         }
     }
 
-    /**
-     * String constant used to extract the Messenger "extra" from an intent.
-     */
-    private static final String MESSENGER = "MESSENGER";
-
-    /**
-     * String constant used to extract the country code "extra" from an intent.
-     */
-    private static final String COUNTRY_CODE = "COUNTRY_CODE";
-
     private static final int JOB_ID = 1000;
 
     private FusedLocationProviderClient mFusedLocationClient;
@@ -361,23 +345,19 @@ public final class LocationService extends JobIntentService {
     /**
      * Factory method to make the desired Intent.
      */
-    private static Intent makeIntent(final Context context, final Handler handler) {
+    private static Intent makeIntent(final Context context) {
         // Create an intent associated with the Location Service class.
-        return new Intent(context, LocationService.class)
-                // Create and pass a Messenger as an "extra" so the
-                // Location Service can send back the Location.
-                .putExtra(MESSENGER, new Messenger(handler));
+        return new Intent(context, LocationService.class);
     }
 
     /**
      * Factory method to enqueue work for Location Service.
      *
      * @param context Context of callee.
-     * @param handler Handler reference to replay data on.
      */
-    public static void doEnqueueWork(final Context context, final Handler handler) {
+    public static void doEnqueueWork(final Context context) {
         // Create an Intent to get Location in the background via a Service.
-        final Intent intent = makeIntent(context, handler);
+        final Intent intent = makeIntent(context);
         enqueueWork(context, LocationService.class, JOB_ID, intent);
     }
 
@@ -403,8 +383,6 @@ public final class LocationService extends JobIntentService {
     protected void onHandleWork(@NonNull Intent intent) {
         AppLogger.d(CLASS_NAME + "Handle Location intent:" + intent);
         sCountryCode = LocationPreferencesManager.getLastCountryCode(this);
-        // Send the country code back to client.
-        sendCountryCode(intent, sCountryCode);
         fetchLocation();
     }
 
@@ -420,6 +398,7 @@ public final class LocationService extends JobIntentService {
                     requestCountryCode(
                             context,
                             countryCode -> {
+                                sCountryCode = countryCode;
                                 LocationPreferencesManager.setLastCountryCode(context, countryCode);
                                 latch.countDown();
                                 Looper looper = Looper.myLooper();
@@ -441,79 +420,10 @@ public final class LocationService extends JobIntentService {
     }
 
     /**
-     * Send the country code back to the client via the
-     * messenger that's stored in the intent.
-     */
-    private void sendCountryCode(final Intent intent, final String countryCode) {
-        if (intent == null) {
-            return;
-        }
-        if (intent.getExtras() == null) {
-            return;
-        }
-
-        // Extract the Messenger.
-        final Messenger messenger = (Messenger) intent.getExtras().get(MESSENGER);
-        if (messenger == null) {
-            return;
-        }
-
-        // Call factory method to create Message.
-        final Message message = makeReplyMessage(countryCode);
-
-        try {
-            // Send country code to back to the client.
-            messenger.send(message);
-        } catch (final RemoteException e) {
-            AppLogger.e(CLASS_NAME + "Exception while sending Location back to client:" + e);
-        }
-    }
-
-    /**
-     * A factory method that creates a Message to return to the client with the country code.
-     */
-    private Message makeReplyMessage(final String countryCode) {
-        final Message message = Message.obtain();
-        // Return the result to indicate whether the get country code succeeded or failed.
-        if (countryCode != null) {
-            message.arg1 = Activity.RESULT_OK;
-            final Bundle data = new Bundle();
-
-            // Current user's country code.
-            data.putString(COUNTRY_CODE, countryCode);
-            message.setData(data);
-            AppLogger.d(CLASS_NAME + "put country code " + countryCode + " into message");
-        } else {
-            message.arg1 = Activity.RESULT_CANCELED;
-        }
-
-        return message;
-    }
-
-    /**
      * @return Cached country code.
      */
     public static String getCountryCode() {
         return sCountryCode;
-    }
-
-    /**
-     * Helper method that returns country code if succeeded.
-     */
-    public static String getCountryCode(final Message message) {
-        // Extract the data from Message, which is in the form
-        // of a Bundle that can be passed across processes.
-        final Bundle data = message.getData();
-
-        // Extract the country code from the Bundle.
-        final String countryCode = data.getString(COUNTRY_CODE);
-
-        // Check to see if the get Location succeeded.
-        if (message.arg1 != Activity.RESULT_OK || countryCode == null) {
-            return null;
-        } else {
-            return countryCode;
-        }
     }
 
     /**

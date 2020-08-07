@@ -721,6 +721,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onPlayerError(@NonNull final ExoPlaybackException exception) {
+            AppLogger.e(LOG_TAG + " suspected url: " + mUri);
             AppLogger.e(LOG_TAG + " onPlayerError:\n" + Log.getStackTraceString(exception));
             AppLogger.e(LOG_TAG + " num of exceptions " + mNumOfExceptions.get());
             if (mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {

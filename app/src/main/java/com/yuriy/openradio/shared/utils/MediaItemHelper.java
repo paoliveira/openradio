@@ -23,6 +23,7 @@ import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
@@ -441,5 +442,36 @@ public final class MediaItemHelper {
         return list == null
                 || list.size() == 1
                 && (list.get(0) == null || list.get(0) instanceof MediaItemListEnded);
+    }
+
+    public static String playbackStateToString(final int state) {
+        switch (state) {
+            case PlaybackStateCompat.STATE_STOPPED:
+                return "STOPPED";
+            case PlaybackStateCompat.STATE_PAUSED:
+                return "PAUSED";
+            case PlaybackStateCompat.STATE_PLAYING:
+                return "PLAYING";
+            case PlaybackStateCompat.STATE_FAST_FORWARDING:
+                return "FAST_FORWARDING";
+            case PlaybackStateCompat.STATE_REWINDING:
+                return "REWINDING";
+            case PlaybackStateCompat.STATE_BUFFERING:
+                return "BUFFERING";
+            case PlaybackStateCompat.STATE_ERROR:
+                return "ERROR";
+            case PlaybackStateCompat.STATE_CONNECTING:
+                return "CONNECTING";
+            case PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS:
+                return "SKIPPING_TO_PREVIOUS";
+            case PlaybackStateCompat.STATE_SKIPPING_TO_NEXT:
+                return "SKIPPING_TO_NEXT";
+            case PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM:
+                return "SKIPPING_TO_QUEUE_ITEM";
+            case PlaybackStateCompat.STATE_NONE:
+                return "NONE";
+            default:
+                return "UNDEFINED{" + state + "}";
+        }
     }
 }

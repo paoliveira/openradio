@@ -33,6 +33,7 @@ import androidx.annotation.Nullable;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.MediaItemHelper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -85,7 +86,6 @@ public final class MediaResourcesManager {
 
     /**
      * Constructor.
-     *
      */
     public MediaResourcesManager(@NonNull final Context context,
                                  @NonNull final String className) {
@@ -218,7 +218,6 @@ public final class MediaResourcesManager {
     }
 
     /**
-     *
      * @return
      */
     public MediaMetadataCompat getMediaMetadata() {
@@ -226,7 +225,6 @@ public final class MediaResourcesManager {
     }
 
     /**
-     *
      * @param mediaId
      */
     public void playFromMediaId(final String mediaId) {
@@ -242,7 +240,7 @@ public final class MediaResourcesManager {
         OpenRadioService.putRestoreState(bundle, OpenRadioService.getRestoreState(savedInstance));
         return bundle;
     }
-    
+
     private void handleMediaBrowserConnected() {
         AppLogger.d(CLASS_NAME + "Session token " + mMediaBrowser.getSessionToken());
         if (mActivity == null) {
@@ -334,7 +332,10 @@ public final class MediaResourcesManager {
 
         @Override
         public void onPlaybackStateChanged(final PlaybackStateCompat state) {
-            AppLogger.d(CLASS_NAME + "PlaybackStateChanged:" + state);
+            AppLogger.d(
+                    CLASS_NAME + "psc:["
+                            + MediaItemHelper.playbackStateToString(state.getState()) + "]" + state
+            );
             mCurrentState = state;
             if (MediaResourcesManager.this.mListener == null) {
                 AppLogger.e(CLASS_NAME + "PlaybackStateChanged listener null");

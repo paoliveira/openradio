@@ -120,7 +120,8 @@
 
         <service android:name=".shared.service.LocationService"
             android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false"/>
+            android:exported="false"
+            android:stopWithTask="true"/>
 
     </application>
 

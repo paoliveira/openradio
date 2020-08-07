@@ -30,6 +30,7 @@ import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Util;
@@ -76,6 +77,25 @@ public final class AppUtils {
      */
     private AppUtils() {
         super();
+    }
+
+    /**
+     * Whether or not device supports Location feature.
+     *
+     * @param context Context of the callee.
+     * @return
+     */
+    public static boolean hasLocation(final @Nullable Context context) {
+        if (context == null) {
+            return false;
+        }
+        final PackageManager packageManager = context.getPackageManager();
+        if (packageManager == null) {
+            return false;
+        }
+        final boolean result = packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION);
+        AppLogger.i("Has Location:" + result);
+        return result;
     }
 
     public static boolean isUiThread() {

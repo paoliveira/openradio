@@ -22,8 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -118,50 +116,39 @@ public final class MainActivity extends AppCompatActivity {
      * Tag string to use in logging message.
      */
     private final String CLASS_NAME;
-
     /**
      * Adapter for the representing media items in the list.
      */
     private MediaItemsAdapter mBrowserAdapter;
-
     /**
      * Handles loading the  image in a background thread.
      */
     private ImageWorker mImageWorker;
-
     private View mCurrentRadioStationView;
-
     @Nullable
     private MediaMetadataCompat mLastKnownMetadata;
-
     private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
-
     /**
      * Key value for the first visible ID in the List for the store Bundle
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
     private static final String BUNDLE_ARG_LIST_CLICKED_ID = "BUNDLE_ARG_LIST_CLICKED_ID";
-
     /**
      * Progress Bar view to indicate that data is loading.
      */
     private ProgressBar mProgressBar;
-
     /**
      * Text View to display that data has not been loaded.
      */
     private TextView mNoDataView;
-
     /**
      * Receiver for the local application;s events
      */
     private final AppLocalReceiver mAppLocalBroadcastRcvr;
-
     /**
      * Listener of the Permissions status changes.
      */
     private final PermissionStatusListener mPermissionStatusLstnr;
-
     /**
      * Member field to keep reference to the Local broadcast receiver.
      */
@@ -170,64 +157,44 @@ public final class MainActivity extends AppCompatActivity {
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
     private String mCurrentParentId = "";
-
     private int mCurrentPlaybackState = PlaybackStateCompat.STATE_NONE;
-
     private int mListFirstVisiblePosition = 0;
     private int mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
-
     /**
      * Listener for the List view click event.
      */
     private final AdapterView.OnItemClickListener mOnItemClickLstnr;
-
     /**
      * Listener for the List touch event.
      */
     private final OnTouchListener mOnTouchLstnr;
-
     private final OnScrollListener mOnScrollLstnr;
-
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private final AtomicBoolean mIsOnSaveInstancePassed;
-
     /**
      * Current dragging item.
      */
     public MediaBrowserCompat.MediaItem mDragMediaItem;
-
     /**
      * Currently active item when drag started.
      */
     private MediaBrowserCompat.MediaItem mStartDragSelectedItem;
-
     /**
      * Drag and drop position.
      */
     private int mDropPosition = -1;
-
     public boolean mIsSortMode = false;
-
     /**
      * Receiver for the Screen OF/ON events.
      */
     private final ScreenReceiver mScreenBroadcastRcvr;
-
     private TextView mBufferedTextView;
     private ListView mListView;
     private View mPlayBtn;
     private View mPauseBtn;
     private ProgressBar mProgressBarCrs;
-
-    /**
-     * Stores an instance of {@link LocationHandler} that inherits from
-     * Handler and uses its handleMessage() hook method to process
-     * Messages sent to it from the {@link LocationService}.
-     */
-    private LocationHandler mLocationHandler = null;
-
     private MediaPresenter mMediaPresenter;
 
     /**
@@ -323,7 +290,7 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        final Context context = this;
+        final Context context = getApplicationContext();
         final String versionText = AppUtils.getApplicationVersion(context) + "." +
                 AppUtils.getApplicationVersionCode(context);
         final TextView versionView = navigationView.getHeaderView(0).findViewById(
@@ -398,10 +365,14 @@ public final class MainActivity extends AppCompatActivity {
                 }
         );
 
-        restoreState(context, savedInstanceState);
+        restoreState(savedInstanceState);
+        connectToMediaBrowser();
+
+        if (!AppUtils.hasLocation(context)) {
+            return;
+        }
 
         if (PermissionsDialogActivity.isLocationDenied(getIntent())) {
-            connectToMediaBrowser();
             return;
         }
 
@@ -410,11 +381,7 @@ public final class MainActivity extends AppCompatActivity {
                 Manifest.permission.ACCESS_FINE_LOCATION
         );
         if (isLocationPermissionGranted) {
-            // Initialize the Location Handler.
-            mLocationHandler = new LocationHandler(this);
-            LocationService.doEnqueueWork(context, mLocationHandler);
-        } else {
-            connectToMediaBrowser();
+            LocationService.doEnqueueWork(context);
         }
     }
 
@@ -449,6 +416,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "OnDestroy");
 
+        startService(OpenRadioService.makeStopServiceIntent(getApplicationContext()));
         PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
         // Unregister local receivers
@@ -458,13 +426,6 @@ public final class MainActivity extends AppCompatActivity {
         if (!mIsOnSaveInstancePassed.get()) {
             mMediaPresenter.destroy();
         }
-
-        if (mLocationHandler != null) {
-            mLocationHandler.removeCallbacksAndMessages(null);
-            mLocationHandler.clear();
-            mLocationHandler = null;
-        }
-
         mBrowserAdapter.clear();
     }
 
@@ -802,7 +763,7 @@ public final class MainActivity extends AppCompatActivity {
         mNoDataView.setVisibility(View.GONE);
     }
 
-    private void restoreState(final Context context, final Bundle savedInstanceState) {
+    private void restoreState(final Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             // Nothing to restore
             return;
@@ -1397,70 +1358,6 @@ public final class MainActivity extends AppCompatActivity {
             mFirstVisibleItem = firstVisibleItem;
             mVisibleItemCount = visibleItemCount;
             mTotalItemCount = totalItemCount;
-        }
-    }
-
-    /**
-     * A nested class that inherits from Handler and uses its
-     * handleMessage() hook method to process Messages sent to
-     * it from the Location Service.
-     */
-    private static final class LocationHandler extends Handler {
-        /**
-         * Allows {@link MainActivity} to be garbage collected properly.
-         */
-        private WeakReference<MainActivity> mActivity;
-
-        /**
-         * Tag string to use in logging message.
-         */
-        private final String CLASS_NAME;
-
-        /**
-         * Class constructor constructs mActivity as weak reference to
-         * the {@link MainActivity}.
-         *
-         * @param activity The corresponding activity.
-         */
-        private LocationHandler(final MainActivity activity) {
-            super();
-            CLASS_NAME = activity.getClass().getSimpleName()
-                    + " " + LocationHandler.class.getSimpleName()
-                    + " " + activity.hashCode()
-                    + " " + hashCode() + " ";
-            mActivity = new WeakReference<>(activity);
-        }
-
-        private void clear() {
-            if (mActivity != null) {
-                mActivity.clear();
-            }
-            mActivity = null;
-        }
-
-        /**
-         * This hook method is dispatched in response to receiving the
-         * Location back from the {@link LocationService}.
-         */
-        @Override
-        public void handleMessage(@NonNull final Message message) {
-            // Bail out if the {@link MainActivity} is gone.
-            if (mActivity == null) {
-                AppLogger.e(CLASS_NAME + "enclosing weak reference null");
-                return;
-            }
-            if (mActivity.get() == null) {
-                AppLogger.e(CLASS_NAME + "enclosing activity null");
-                return;
-            }
-
-            // Try to extract the location from the message.
-//            String countryCode = LocationService.getCountryCode(message);
-            // See if the get Location worked or not.
-//            if (countryCode == null) {
-//                countryCode = Country.COUNTRY_CODE_DEFAULT;
-//            }
-            mActivity.get().connectToMediaBrowser();
         }
     }
 
