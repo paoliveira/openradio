@@ -94,7 +94,6 @@ import com.yuriy.openradio.view.dialog.EqualizerDialog;
 import com.yuriy.openradio.view.dialog.FeatureSortDialog;
 import com.yuriy.openradio.view.dialog.RemoveStationDialog;
 import com.yuriy.openradio.view.dialog.SearchDialog;
-import com.yuriy.openradio.view.dialog.UseLocationDialog;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
 import java.lang.ref.WeakReference;
@@ -724,6 +723,15 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Updates root view is there was changes in collection.
+     * Should be call only if current media id is {@link MediaIdHelper#MEDIA_ID_ROOT}.
+     */
+    private void updateRootView() {
+        unsubscribeFromItem(MediaIdHelper.MEDIA_ID_ROOT);
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_ROOT);
+    }
+
+    /**
      * Show progress bar.
      */
     private void showProgressBar() {
@@ -804,7 +812,7 @@ public final class MainActivity extends AppCompatActivity {
 
         // Create filter and add actions
         final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(AppLocalBroadcast.getActionLocationDisabled());
+        intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged());
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
         // Register receiver
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
@@ -915,7 +923,7 @@ public final class MainActivity extends AppCompatActivity {
                 break;
         }
         mProgressBarCrs.setVisibility(View.GONE);
-        mProgressBar.setVisibility(View.GONE);
+        hideProgressBar();
 
         final long bufferedDuration = (state.getBufferedPosition() - state.getPosition()) / 1000;
         updateBufferedTime(bufferedDuration);
@@ -1036,27 +1044,21 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onLocationDisabled() {
+        public void onLocationChanged() {
             final MainActivity reference = mReference.get();
             if (reference == null) {
                 return;
             }
-            if (AppPreferencesManager.isLocationDialogShown(reference)) {
-                return;
-            }
 
             if (reference.mIsOnSaveInstancePassed.get()) {
-                AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState");
+                AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState");
                 return;
             }
 
-            final DialogFragment useLocationServiceDialog = BaseDialogFragment.newInstance(
-                    UseLocationDialog.class.getName()
-            );
-            useLocationServiceDialog.setCancelable(false);
-            useLocationServiceDialog.show(reference.getSupportFragmentManager(), UseLocationDialog.DIALOG_TAG);
-
-            AppPreferencesManager.setLocationDialogShown(reference, true);
+            AppLogger.d(CLASS_NAME + "Location Changed received");
+            if (TextUtils.equals(reference.mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)) {
+                reference.updateRootView();
+            }
         }
 
         @Override
@@ -1307,7 +1309,7 @@ public final class MainActivity extends AppCompatActivity {
         if (TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
                 || TextUtils.equals(mCurrentParentId, MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)) {
-            mMediaPresenter.update();
+            updateRootView();
         }
     }
 

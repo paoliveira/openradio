@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,9 +89,9 @@ public final class AppLocalReceiver extends BroadcastReceiver {
             return;
         }
 
-        if (action.equals(AppLocalBroadcast.getActionLocationDisabled())) {
+        if (action.equals(AppLocalBroadcast.getActionLocationChanged())) {
             if (mCallback != null) {
-                mCallback.onLocationDisabled();
+                mCallback.onLocationChanged();
             }
         }
 

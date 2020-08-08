@@ -255,11 +255,6 @@ public final class MediaPresenter {
         }
     }
 
-    public void update() {
-        mMediaRsrMgr.disconnect();
-        mMediaRsrMgr.connect();
-    }
-
     public void connect() {
         if (mMediaRsrMgr == null) {
             return;

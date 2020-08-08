@@ -22,10 +22,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.JobIntentService;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationAvailability;
@@ -33,6 +35,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.model.storage.LocationPreferencesManager;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.utils.AppLogger;
@@ -331,11 +334,6 @@ public final class LocationService extends JobIntentService {
     private FusedLocationProviderClient mFusedLocationClient;
 
     /**
-     * Easy and fast way to cache country code.
-     */
-    private static String sCountryCode;
-
-    /**
      * Private constructor.
      */
     public LocationService() {
@@ -382,11 +380,7 @@ public final class LocationService extends JobIntentService {
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
         AppLogger.d(CLASS_NAME + "Handle Location intent:" + intent);
-        sCountryCode = LocationPreferencesManager.getLastCountryCode(this);
-        fetchLocation();
-    }
-
-    private void fetchLocation() {
+        final Context context = LocationService.this.getApplicationContext();
         // Use simple thread here and not executor's API because executor can handle new call in the same thread.
         // While this is good resource keeper, Loop handling will be more complicated. Keep things simple - create
         // new thread on each request. The good news is - new request is only happening on app start up.
@@ -394,14 +388,18 @@ public final class LocationService extends JobIntentService {
         final Thread thread = new Thread(
                 () -> {
                     Looper.prepare();
-                    final Context context = LocationService.this;
                     requestCountryCode(
                             context,
                             countryCode -> {
-                                sCountryCode = countryCode;
-                                LocationPreferencesManager.setLastCountryCode(context, countryCode);
+                                final String curCountryCode = LocationPreferencesManager.getLastCountryCode(context);
+                                if (!TextUtils.equals(curCountryCode, countryCode)) {
+                                    LocationPreferencesManager.setLastCountryCode(context, countryCode);
+                                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(
+                                            AppLocalBroadcast.createIntentLocationChanged()
+                                    );
+                                }
                                 latch.countDown();
-                                Looper looper = Looper.myLooper();
+                                final Looper looper = Looper.myLooper();
                                 if (looper != null) {
                                     looper.quit();
                                 }
@@ -417,13 +415,6 @@ public final class LocationService extends JobIntentService {
         } catch (final InterruptedException e) {
             //
         }
-    }
-
-    /**
-     * @return Cached country code.
-     */
-    public static String getCountryCode() {
-        return sCountryCode;
     }
 
     /**

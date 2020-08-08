@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,9 +28,9 @@ package com.yuriy.openradio.broadcast;
 public interface AppLocalReceiverCallback {
 
     /**
-     * Dispatches when Location Services detects as disabled.
+     * Dispatches when Location Services detects new location.
      */
-    void onLocationDisabled();
+    void onLocationChanged();
 
     /**
      * Dispatches when Index of the current Radio station changed.

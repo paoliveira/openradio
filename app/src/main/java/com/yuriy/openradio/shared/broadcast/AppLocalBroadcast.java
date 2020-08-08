@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.yuriy.openradio.shared.broadcast;
 
 import android.content.Intent;
 
-import com.yuriy.openradio.shared.vo.RadioStationToAdd;
-
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -29,39 +27,31 @@ import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 public final class AppLocalBroadcast {
 
     /**
-     * Action name for the "Disable Location service" on the mobile device.
+     * Action name for event when current location of device is changed.
      */
-    private static final String ACTION_LOCATION_DISABLED = "ACTION_LOCATION_DISABLED";
-
+    private static final String ACTION_LOCATION_CHANGED = "ACTION_LOCATION_CHANGED";
     /**
      * Action name for the "Current index on queue" changed,
      * when currently selected Radio Station was changed.
      */
     private static final String ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED
             = "ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED";
-
     /**
      * Action name for the "Master Volume Changed" event,
      * when volume of application's player was changed.
      */
     private static final String ACTION_MASTER_VOLUME_CHANGED = "ACTION_MASTER_VOLUME_CHANGED";
-
     private static final String ACTION_VALIDATE_OF_RS_FAILED = "ACTION_VALIDATE_OF_RS_FAILED";
-
     private static final String ACTION_VALIDATE_OF_RS_SUCCESS = "ACTION_VALIDATE_OF_RS_SUCCESS";
-
     /**
      * Key value for the Currently selected index in the Intent's bundles.
      */
     private static final String KEY_CURRENT_INDEX_ON_QUEUE = "KEY_CURRENT_INDEX_ON_QUEUE";
-
     /**
      * Key value for the Currently selected Media Id in the Intent's bundles.
      */
     private static final String KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE";
-
     private static final String KEY_VALIDATED_RS_FAIL_REASON = "KEY_VALIDATED_RS_FAIL_REASON";
-
     private static final String KEY_VALIDATED_RS_SUCCESS_MESSAGE = "KEY_VALIDATED_RS_SUCCESS_MESSAGE";
 
     /**
@@ -70,10 +60,10 @@ public final class AppLocalBroadcast {
     private AppLocalBroadcast() { }
 
     /**
-     * @return Name for the Location Disabled action.
+     * @return Name for the Location Changed action.
      */
-    public static String getActionLocationDisabled() {
-        return ACTION_LOCATION_DISABLED;
+    public static String getActionLocationChanged() {
+        return ACTION_LOCATION_CHANGED;
     }
 
     /**
@@ -119,10 +109,10 @@ public final class AppLocalBroadcast {
     }
 
     /**
-     * @return Instance of the {@link Intent} that indicates about disabled Location Service.
+     * @return Instance of the {@link Intent} that indicates about changed Location.
      */
-    public static Intent createIntentLocationDisabled() {
-        return new Intent(ACTION_LOCATION_DISABLED);
+    public static Intent createIntentLocationChanged() {
+        return new Intent(ACTION_LOCATION_CHANGED);
     }
 
     /**

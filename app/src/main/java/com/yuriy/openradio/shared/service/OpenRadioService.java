@@ -80,6 +80,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.model.storage.LocationPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager;
 import com.yuriy.openradio.shared.model.storage.cache.CacheType;
@@ -528,9 +529,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         // If Parent Id contains Country Code - use it in the API.
         String countryCode = MediaIdHelper.getCountryCode(mCurrentParentId);
         if (TextUtils.isEmpty(countryCode)) {
-            // At this point in time, Location Service must got country code and informed activity to
-            // start this service.
-            countryCode = LocationService.getCountryCode();
+            // Otherwise, use whatever is stored in preferences.
+            countryCode = LocationPreferencesManager.getLastCountryCode(getApplicationContext());
         }
 
         final Context context = getApplicationContext();
