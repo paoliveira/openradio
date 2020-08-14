@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.notification;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -119,7 +118,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
         mNotificationColor = getNotificationColor();
 
-        mNotificationManager = NotificationManagerCompat.from(mService.getApplicationContext());
+        mNotificationManager = NotificationManagerCompat.from(mService);
 
         String pkg = mService.getPackageName();
         mPauseIntent = PendingIntent.getBroadcast(mService, 100,
@@ -189,14 +188,14 @@ public final class MediaNotification extends BroadcastReceiver {
      * was destroyed this has no effect.
      */
     public void stopNotification() {
-        AppLogger.d(CLASS_NAME + " stop");
+        AppLogger.d(CLASS_NAME + " stop, ORS[" + mService.hashCode() + "]");
         mStarted.set(false);
         mController.unregisterCallback(mCb);
+        mNotificationManager.cancelAll();
         try {
-            mNotificationManager.cancelAll();
             mService.unregisterReceiver(this);
         } catch (final IllegalArgumentException ex) {
-            AppLogger.e(CLASS_NAME + " error while clear notifications:" + ex);
+            AppLogger.e(CLASS_NAME + " error while unregister:" + ex);
         }
     }
 
@@ -393,7 +392,7 @@ public final class MediaNotification extends BroadcastReceiver {
                         "title:" + description.getTitle() +
                         "subtitle:" + description.getSubtitle()
         );
-
+        AppLogger.d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]");
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
         if (fetchArtUrl != null && !BitmapUtils.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
@@ -426,7 +425,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setContentTitle("Open Radio")
                 .setContentText("Open Radio just started")
                 .setLargeIcon(art);
-        AppLogger.d(CLASS_NAME + " show Just Started notification");
+        AppLogger.d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]");
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
@@ -480,7 +479,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setLargeIcon(BitmapFactory.decodeResource(
                         mService.getResources(), R.drawable.ic_radio_station
                 ));
-
+        AppLogger.d(CLASS_NAME + " No Radio Station, ORS[" + mService.hashCode() + "]");
         mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 
@@ -549,6 +548,7 @@ public final class MediaNotification extends BroadcastReceiver {
     private void doNotifySafely(@NonNull final NotificationCompat.Builder builder) {
         // Address NPE inside ApplicationPackageManager when build notification
         try {
+            AppLogger.d(CLASS_NAME + " notify safely, ORS[" + mService.hashCode() + "]");
             mNotificationManager.notify(NOTIFICATION_ID, builder.build());
         } catch (final Exception e) {
             AppLogger.e("Can not do notification:" + e);

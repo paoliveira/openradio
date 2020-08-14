@@ -121,7 +121,7 @@ import wseemann.media.jplaylistparser.playlist.PlaylistEntry;
 public final class OpenRadioService extends MediaBrowserServiceCompat
         implements AudioManager.OnAudioFocusChangeListener {
 
-    private static final String CLASS_NAME = "ORS ";
+    private static String CLASS_NAME;
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
     private static final String VALUE_NAME_GET_RADIO_STATION_COMMAND
             = "VALUE_NAME_GET_RADIO_STATION_COMMAND";
@@ -292,7 +292,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     public OpenRadioService() {
         super();
-        AppLogger.i(CLASS_NAME + " " + hashCode());
+        CLASS_NAME = "ORS[" + hashCode() + "] ";
+        AppLogger.i(CLASS_NAME);
         setPlaybackState(PlaybackStateCompat.STATE_NONE);
         mStartIds = new ConcurrentLinkedQueue<>();
         mListener = new ExoPlayerListener();
@@ -355,7 +356,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         final long start = System.currentTimeMillis();
         super.onCreate();
 
-        AppLogger.i(CLASS_NAME + "On Create:" + hashCode());
+        AppLogger.i(CLASS_NAME + "On Create");
         final Context context = getApplicationContext();
 
         final UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
@@ -1127,7 +1128,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + "RelaxResources. releaseMediaPlayer=" + releaseMediaPlayer);
 
         // stop being a foreground service
-        stopForeground(false);
+        stopForeground(true);
         // reset the delayed stop handler.
         mDelayedStopHandler.removeCallbacksAndMessages(null);
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY);
