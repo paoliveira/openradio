@@ -119,7 +119,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
         mNotificationColor = getNotificationColor();
 
-        mNotificationManager = NotificationManagerCompat.from(mService);
+        mNotificationManager = NotificationManagerCompat.from(mService.getApplicationContext());
 
         String pkg = mService.getPackageName();
         mPauseIntent = PendingIntent.getBroadcast(mService, 100,
@@ -193,12 +193,11 @@ public final class MediaNotification extends BroadcastReceiver {
         mStarted.set(false);
         mController.unregisterCallback(mCb);
         try {
-            mNotificationManager.cancel(NOTIFICATION_ID);
+            mNotificationManager.cancelAll();
             mService.unregisterReceiver(this);
         } catch (final IllegalArgumentException ex) {
-            // ignore if the receiver is not registered.
+            AppLogger.e(CLASS_NAME + " error while clear notifications:" + ex);
         }
-        mService.stopForeground(true);
     }
 
     @Override
@@ -427,6 +426,7 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setContentTitle("Open Radio")
                 .setContentText("Open Radio just started")
                 .setLargeIcon(art);
+        AppLogger.d(CLASS_NAME + " show Just Started notification");
         mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
     }
 

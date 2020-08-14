@@ -1515,8 +1515,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         giveUpAudioFocus();
 
         if (mMediaNotification != null) {
-            updatePlaybackState(withError);
             mMediaNotification.stopNotification();
+            updatePlaybackState(withError);
         }
     }
 
