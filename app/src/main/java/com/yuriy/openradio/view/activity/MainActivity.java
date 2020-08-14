@@ -70,6 +70,7 @@ import com.yuriy.openradio.shared.permission.PermissionListener;
 import com.yuriy.openradio.shared.permission.PermissionStatusListener;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
+import com.yuriy.openradio.shared.service.BackgroundService;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
@@ -415,7 +416,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "OnDestroy");
 
-        startService(OpenRadioService.makeStopServiceIntent(getApplicationContext()));
+        BackgroundService.makeStopServiceIntent(getApplicationContext());
         PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
         // Unregister local receivers

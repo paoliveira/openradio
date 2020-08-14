@@ -105,6 +105,7 @@ import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
 import wseemann.media.jplaylistparser.parser.AutoDetectParser;
@@ -284,6 +285,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     @NonNull
     private final Downloader mDownloader;
+    private final ConcurrentLinkedQueue<Integer> mStartIds;
 
     /**
      * Default constructor.
@@ -292,6 +294,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         super();
         AppLogger.i(CLASS_NAME + " " + hashCode());
         setPlaybackState(PlaybackStateCompat.STATE_NONE);
+        mStartIds = new ConcurrentLinkedQueue<>();
         mListener = new ExoPlayerListener();
         mRadioStationsStorage = new RadioStationsStorage();
         mDelayedStopHandler = new DelayedStopHandler();
@@ -343,10 +346,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 return;
             }
             AppLogger.d(CLASS_NAME + "Stopping service with delay handler.");
-
-            // TODO: Investigate, seems like service is busy by other resource.
-            // Since onDestroy not necessary invoked upon stopSelf, this is a hack to terminate application.
-            android.os.Process.killProcess(android.os.Process.myPid());
+            stopSelfResultInt();
         }
     }
 
@@ -446,11 +446,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
     @Override
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
-        AppLogger.i(CLASS_NAME + "On Start Command: " + intent);
+        AppLogger.i(CLASS_NAME + "On Start Command:" + intent + ", id:" + startId);
         AnalyticsUtils.logMessage(
                 "OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent
                         + ", " + IntentUtils.intentBundleToString(intent)
         );
+
+        mStartIds.add(startId);
 
         if (intent != null) {
             sendMessage(intent);
@@ -2148,11 +2150,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     mLastPlayedUrl = null;
                     mLastKnownRS = null;
                     handleStopRequest();
-                    stopSelf();
+                    stopSelfResultInt();
                 });
                 break;
             default:
                 AppLogger.w(CLASS_NAME + "Unknown command:" + command);
+        }
+    }
+
+    private void stopSelfResultInt() {
+        while (!mStartIds.isEmpty()) {
+            final int id = mStartIds.poll();
+            final boolean result = stopSelfResult(id);
+            AppLogger.i(CLASS_NAME + "service " + (result ? "stopped" : "not stopped") + " for " + id);
         }
     }
 
