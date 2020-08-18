@@ -9,7 +9,7 @@ project.ext {
     compileSdkVersion = 30
     minSdkVersion = 17
     targetSdkVersion = 30
-    buildToolsVersion = "30.0.1"
+    buildToolsVersion = "30.0.2"
 
     /**
      * Libraries versions
@@ -43,7 +43,7 @@ project.ext {
      */
     apiKey = ""
     crashlyticsVersion = "2.10.1"
-    firebaseVersion = "17.4.4"
+    firebaseVersion = "17.5.0"
 
     /**
      * Sign
