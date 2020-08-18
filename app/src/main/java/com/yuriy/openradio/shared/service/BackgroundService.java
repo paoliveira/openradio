@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
+import androidx.core.content.ContextCompat;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 
@@ -59,7 +60,10 @@ public final class BackgroundService extends JobIntentService {
         }
         switch (intent.getStringExtra(KEY_CMD)) {
             case KEY_CMD_NAME_STOP_ORS:
-                startService(OpenRadioService.makeStopServiceIntent(getApplicationContext()));
+                ContextCompat.startForegroundService(
+                        getApplicationContext(),
+                        OpenRadioService.makeStopServiceIntent(getApplicationContext())
+                );
                 break;
         }
     }

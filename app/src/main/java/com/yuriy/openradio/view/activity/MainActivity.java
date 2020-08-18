@@ -18,6 +18,7 @@ package com.yuriy.openradio.view.activity;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -221,6 +222,27 @@ public final class MainActivity extends AppCompatActivity {
 
         // Set content.
         setContentView(R.layout.main_drawer);
+
+        // FOR TEST:
+        final IntentFilter testFilter = new IntentFilter();
+        testFilter.addAction("android.intent.action.INSERT");
+        //you may want to set whatever filters here...
+        //define the broadcast receiver
+        final BroadcastReceiver testReceiver = new BroadcastReceiver() {
+
+            @Override
+            public void onReceive(final Context context, final Intent intent) {
+                if (intent == null) {
+                    return;
+                }
+                final String action = intent.getAction();
+                AppLogger.d("Test action:" + action);
+                finish();
+            }
+        };
+        //register the broadcast receiver
+        registerReceiver(testReceiver, testFilter);
+
 
         mPlayBtn = findViewById(R.id.crs_play_btn_view);
         mPauseBtn = findViewById(R.id.crs_pause_btn_view);
