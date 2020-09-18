@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,81 +26,76 @@ import android.os.Build;
  */
 public final class NotificationChannelFactory {
 
-    public NotificationChannelFactory() {
+    private final NotificationManager mManager;
+    private NotificationChannel mChannel;
+    private NotificationChannel mChannelNoStream;
+
+    public NotificationChannelFactory(final Context context) {
         super();
+        mManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
-    static String createChannel(final Context context, final NotificationData notificationData) {
+    void createChannel(final NotificationData data) {
         // NotificationChannels are required for Notifications on O (API 26) and above.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // The id of the channel.
-            final String channelId = notificationData.getChannelId();
-            // The user-visible name of the channel.
-            final CharSequence channelName = notificationData.getChannelName();
-            // The user-visible description of the channel.
-            final String channelDescription = notificationData.getChannelDescription();
-            final int channelImportance = notificationData.getChannelImportance();
-            final boolean channelEnableVibrate = notificationData.getChannelEnableVibrate();
-            final int channelLocksScreenVisibility =
-                    notificationData.getChannelLockScreenVisibility();
-            // Initializes NotificationChannel.
-            final NotificationChannel notificationChannel =
-                    new NotificationChannel(channelId, channelName, channelImportance);
-            notificationChannel.setDescription(channelDescription);
-            notificationChannel.enableVibration(channelEnableVibrate);
-            notificationChannel.setLockscreenVisibility(channelLocksScreenVisibility);
-            // Keep this nulls to suspend bug in Android O when each notification provides with a sound
-            notificationChannel.setSound(null, null);
-            // Adds NotificationChannel to system. Attempting to create an existing notification
-            // channel with its original values performs no operation, so it's safe to perform the
-            // below sequence.
-            final NotificationManager notificationManager =
-                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager != null) {
-                notificationManager.createNotificationChannel(notificationChannel);
-            }
-            return channelId;
-        } else {
-            // Returns null for pre-O (26) devices.
-            return null;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        if (mChannel != null) {
+            return;
+        }
+        // The id of the channel.
+        final String id = data.getChannelId();
+        // The user-visible name of the channel.
+        final CharSequence name = data.getChannelName();
+        // The user-visible description of the channel.
+        final String description = data.getChannelDescription();
+        final int importance = data.getChannelImportance();
+        final boolean enableVibrate = data.getChannelEnableVibrate();
+        final int lockScreenVisibility = data.getChannelLockScreenVisibility();
+        // Initializes NotificationChannel.
+        mChannel = new NotificationChannel(id, name, importance);
+        mChannel.setDescription(description);
+        mChannel.enableVibration(enableVibrate);
+        mChannel.setLockscreenVisibility(lockScreenVisibility);
+        // Keep this nulls to suspend bug in Android O when each notification provides with a sound
+        mChannel.setSound(null, null);
+        // Adds NotificationChannel to system. Attempting to create an existing notification
+        // channel with its original values performs no operation, so it's safe to perform the
+        // below sequence.
+        if (mManager != null) {
+            mManager.createNotificationChannel(mChannel);
         }
     }
 
-    static String createChannelNoStream(final Context context,
-                                        final NoMediaNotificationData notificationData) {
-
+    void createChannelNoStream(final NoMediaNotificationData data) {
         // NotificationChannels are required for Notifications on O (API 26) and above.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // The id of the channel.
-            final String channelId = notificationData.getChannelId();
-            // The user-visible name of the channel.
-            final CharSequence channelName = notificationData.getChannelName();
-            // The user-visible description of the channel.
-            final String channelDescription = notificationData.getChannelDescription();
-            final int channelImportance = notificationData.getChannelImportance();
-            final boolean channelEnableVibrate = notificationData.getChannelEnableVibrate();
-            final int channelLocksScreenVisibility =
-                    notificationData.getChannelLockScreenVisibility();
-            // Initializes NotificationChannel.
-            final NotificationChannel notificationChannel =
-                    new NotificationChannel(channelId, channelName, channelImportance);
-            notificationChannel.setDescription(channelDescription);
-            notificationChannel.enableVibration(channelEnableVibrate);
-            notificationChannel.setLockscreenVisibility(channelLocksScreenVisibility);
-            // Keep this nulls to suspend bug in Android O when each notification provides with a sound
-            notificationChannel.setSound(null, null);
-            // Adds NotificationChannel to system. Attempting to create an existing notification
-            // channel with its original values performs no operation, so it's safe to perform the
-            // below sequence.
-            final NotificationManager notificationManager =
-                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            if (notificationManager != null) {
-                notificationManager.createNotificationChannel(notificationChannel);
-            }
-            return channelId;
-        } else {
-            // Returns null for pre-O (26) devices.
-            return null;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return;
+        }
+        if (mChannelNoStream != null) {
+            return;
+        }
+        // The id of the channel.
+        final String id = data.getChannelId();
+        // The user-visible name of the channel.
+        final CharSequence name = data.getChannelName();
+        // The user-visible description of the channel.
+        final String description = data.getChannelDescription();
+        final int importance = data.getChannelImportance();
+        final boolean enableVibrate = data.getChannelEnableVibrate();
+        final int lockScreenVisibility = data.getChannelLockScreenVisibility();
+        // Initializes NotificationChannel.
+        mChannelNoStream = new NotificationChannel(id, name, importance);
+        mChannelNoStream.setDescription(description);
+        mChannelNoStream.enableVibration(enableVibrate);
+        mChannelNoStream.setLockscreenVisibility(lockScreenVisibility);
+        // Keep this nulls to suspend bug in Android O when each notification provides with a sound
+        mChannelNoStream.setSound(null, null);
+        // Adds NotificationChannel to system. Attempting to create an existing notification
+        // channel with its original values performs no operation, so it's safe to perform the
+        // below sequence.
+        if (mManager != null) {
+            mManager.createNotificationChannel(mChannelNoStream);
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import android.text.TextUtils;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.shared.model.Dependencies;
+import com.yuriy.openradio.shared.model.LifecycleModel;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
@@ -34,18 +34,25 @@ import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.HiltAndroidApp;
+
 /**
  * Created with Android Studio.
  * User: Yuriy Chernyshov
  * Date: 12/21/13
  * Time: 6:29 PM
  */
+@HiltAndroidApp
 public final class MainApp extends Application {
 
     /**
      * Tag string to use in logging message.
      */
     private static final String CLASS_NAME = MainApp.class.getSimpleName() + " ";
+    @Inject
+    LifecycleModel mLifecycleModel;
 
     /**
      * Constructor.
@@ -59,7 +66,7 @@ public final class MainApp extends Application {
         super.onCreate();
         AppLogger.d(CLASS_NAME + "OnCreate");
         final Context context = this;
-        Dependencies.INSTANCE.init(context);
+        mLifecycleModel.init();
         final Thread thread = new Thread(
                 () -> {
                     final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled(

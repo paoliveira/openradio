@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import dagger.hilt.android.qualifiers.ApplicationContext;
+
+@Singleton
 public final class MediaPresenter {
 
     private static final String CLASS_NAME = MediaPresenter.class.getSimpleName();
@@ -74,7 +80,8 @@ public final class MediaPresenter {
     private Activity mActivity;
     private MediaPresenterListener mListener;
 
-    public MediaPresenter(final Context context) {
+    @Inject
+    public MediaPresenter(@ApplicationContext final Context context) {
         super();
         mMediaRsrMgr = new MediaResourcesManager(context, getClass().getSimpleName());
     }

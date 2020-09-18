@@ -87,9 +87,8 @@ public final class MediaNotification extends BroadcastReceiver {
     private MediaMetadataCompat mMetadata;
     private final MediaControllerCompat.Callback mCb;
 
-    private NotificationCompat.Builder mNotificationBuilder;
     private final NotificationManagerCompat mNotificationManager;
-    private NotificationCompat.Action mPlayPauseAction;
+//    private NotificationCompat.Action mPlayPauseAction;
 
     private final PendingIntent mPauseIntent;
     private final PendingIntent mPlayIntent;
@@ -99,12 +98,14 @@ public final class MediaNotification extends BroadcastReceiver {
     private final int mNotificationColor;
 
     private final AtomicBoolean mStarted = new AtomicBoolean(false);
+    private final NotificationChannelFactory mNotificationChannelFactory;
 
     public MediaNotification(@NonNull final OpenRadioService service) {
         super();
 
-        mCb = new MediaControllerCompatCallback(this);
+        mCb = new MediaControllerCompatCallback();
         mService = service;
+        mNotificationChannelFactory = new NotificationChannelFactory(mService);
         updateSessionToken();
 
         // simple album art cache that holds no more than
@@ -180,7 +181,7 @@ public final class MediaNotification extends BroadcastReceiver {
 
         mStarted.set(true);
         // The notification must be updated after setting started to true
-        updateNotificationMetadata();
+        handleNotification();
     }
 
     /**
@@ -247,60 +248,38 @@ public final class MediaNotification extends BroadcastReceiver {
         }
     }
 
-    private static final class MediaControllerCompatCallback extends MediaControllerCompat.Callback {
+    private final class MediaControllerCompatCallback extends MediaControllerCompat.Callback {
 
-        private final WeakReference<MediaNotification> mReference;
-
-        private MediaControllerCompatCallback(final MediaNotification reference) {
+        private MediaControllerCompatCallback() {
             super();
-            mReference = new WeakReference<>(reference);
         }
 
         @Override
         public void onPlaybackStateChanged(final @NonNull PlaybackStateCompat state) {
             AppLogger.d(CLASS_NAME + " Received new playback state:" + state);
-
-            final MediaNotification reference = mReference.get();
-            if (reference == null) {
-                AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
-                return;
-            }
-            reference.mPlaybackState = state;
-            reference.updateNotificationPlaybackState();
+            mPlaybackState = state;
+            handleNotification();
         }
 
         @Override
         public void onMetadataChanged(final MediaMetadataCompat metadata) {
             AppLogger.d(CLASS_NAME + " Received new metadata:" + metadata);
-
-            final MediaNotification reference = mReference.get();
-            if (reference == null) {
-                AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
-                return;
-            }
             if (metadata != null) {
-                reference.mMetadata = metadata;
+                mMetadata = metadata;
             } else {
-                AppLogger.e("OnMetadataChanged null metadata, prev metadata " + reference.mMetadata);
+                AppLogger.e("OnMetadataChanged null metadata, prev metadata " + mMetadata);
             }
-
-            reference.updateNotificationMetadata();
+            handleNotification();
         }
 
         @Override
         public void onSessionDestroyed() {
             AppLogger.d(CLASS_NAME + " Session was destroyed, resetting to the new session token");
-
-            final MediaNotification reference = mReference.get();
-            if (reference == null) {
-                AppLogger.w(CLASS_NAME + " reference to enclosing class is null");
-                return;
-            }
-            reference.updateSessionToken();
+            updateSessionToken();
         }
     }
 
-    public void updateNotificationMetadata() {
+    public void handleNotification() {
         if (mMetadata == null) {
             showNoStreamNotification();
             return;
@@ -314,23 +293,17 @@ public final class MediaNotification extends BroadcastReceiver {
             return;
         }
 
-        updatePlayPauseAction();
-
-        final Context context = mService;
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(
+                mService, MediaNotificationData.CHANNEL_ID
+        );
 
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        final String notificationChannelId = NotificationChannelFactory.createChannel(
-                context,
-                new MediaNotificationData(context, mMetadata)
-        );
-        mNotificationBuilder = new NotificationCompat.Builder(context, notificationChannelId);
-
-        mNotificationBuilder.setContentIntent(makePendingIntent());
+        mNotificationChannelFactory.createChannel(new MediaNotificationData(mService, mMetadata));
 
         int playPauseActionIndex = 0;
         // If skip to previous action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
-            mNotificationBuilder.addAction(
+            builder.addAction(
                     R.drawable.ic_skip_previous_white_24dp,
                     mService.getString(R.string.label_previous),
                     mPreviousIntent
@@ -368,20 +341,20 @@ public final class MediaNotification extends BroadcastReceiver {
 
         // If skip to next action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
-            mNotificationBuilder.addAction(
+            builder.addAction(
                     R.drawable.ic_skip_next_white_24dp,
                     mService.getString(R.string.label_next),
                     mNextIntent
             );
         }
 
-        mNotificationBuilder.addAction(mPlayPauseAction);
-        mNotificationBuilder
+        builder
+                .setContentIntent(makePendingIntent())
+                .addAction(getPlayPauseAction())
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setUsesChronometer(true)
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle())
                 .setLargeIcon(art);
@@ -393,7 +366,7 @@ public final class MediaNotification extends BroadcastReceiver {
                         "subtitle:" + description.getSubtitle()
         );
         AppLogger.d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]");
-        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
+        mService.startForeground(NOTIFICATION_ID, builder.build());
         if (fetchArtUrl != null && !BitmapUtils.isUrlLocalResource(fetchArtUrl)) {
             fetchBitmapFromURLAsync(fetchArtUrl);
         }
@@ -405,28 +378,23 @@ public final class MediaNotification extends BroadcastReceiver {
         );
         // Build the style.
         final androidx.media.app.NotificationCompat.MediaStyle mediaStyle
-                = new androidx.media.app.NotificationCompat.MediaStyle()
-                .setMediaSession(mSessionToken);
+                = new androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mSessionToken);
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        final String notificationChannelId = NotificationChannelFactory.createChannel(
-                mService,
-                new ServiceStartedNotificationData(mService.getApplicationContext())
-        );
+        mNotificationChannelFactory.createChannel(new ServiceStartedNotificationData(mService));
 
-        mNotificationBuilder = new NotificationCompat.Builder(
-                mService, notificationChannelId
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(
+                mService, ServiceStartedNotificationData.CHANNEL_ID
         );
-        mNotificationBuilder
+        builder
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setUsesChronometer(false)
                 .setContentTitle("Open Radio")
                 .setContentText("Open Radio just started")
                 .setLargeIcon(art);
         AppLogger.d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]");
-        mService.startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
+        mService.startForeground(NOTIFICATION_ID, builder.build());
     }
 
     public void doInitialNotification(final RadioStation radioStation) {
@@ -436,7 +404,7 @@ public final class MediaNotification extends BroadcastReceiver {
                     "StartNotification null metadata, after created from RadioStation."
             );
         }
-        updateNotificationMetadata();
+        handleNotification();
     }
 
     @Nullable
@@ -444,31 +412,27 @@ public final class MediaNotification extends BroadcastReceiver {
         if (mService == null) {
             return null;
         }
-        final Class clazz = mService.isTv() ? TvMainActivity.class : MainActivity.class;
         return PendingIntent.getActivity(
                 mService, 0,
-                new Intent(mService, clazz),
+                new Intent(mService, mService.isTv() ? TvMainActivity.class : MainActivity.class),
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
     }
 
     private void showNoStreamNotification() {
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        final String notificationChannelId = NotificationChannelFactory.createChannelNoStream(
-                mService.getApplicationContext(),
-                new NoMediaNotificationData(mService.getApplicationContext())
-        );
+        mNotificationChannelFactory.createChannelNoStream(new NoMediaNotificationData(mService));
 
         // Build the style.
         androidx.media.app.NotificationCompat.MediaStyle mediaStyle
                 = new androidx.media.app.NotificationCompat.MediaStyle()
                 .setMediaSession(mSessionToken);
 
-        mNotificationBuilder = new NotificationCompat.Builder(
-                mService, notificationChannelId
+        final NotificationCompat.Builder builder = new NotificationCompat.Builder(
+                mService, NoMediaNotificationData.CHANNEL_ID
         );
 
-        mNotificationBuilder
+        builder
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setSmallIcon(R.drawable.ic_notification)
@@ -480,10 +444,10 @@ public final class MediaNotification extends BroadcastReceiver {
                         mService.getResources(), R.drawable.ic_radio_station
                 ));
         AppLogger.d(CLASS_NAME + " No Radio Station, ORS[" + mService.hashCode() + "]");
-        mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+        doNotifySafely(builder);
     }
 
-    private void updatePlayPauseAction() {
+    private NotificationCompat.Action getPlayPauseAction() {
         String label;
         int icon;
         PendingIntent intent;
@@ -496,53 +460,7 @@ public final class MediaNotification extends BroadcastReceiver {
             icon = R.drawable.ic_play_arrow_white_24dp;
             intent = mPlayIntent;
         }
-        if (mPlayPauseAction == null) {
-            mPlayPauseAction = new NotificationCompat.Action(icon, label, intent);
-        } else {
-            mPlayPauseAction.icon = icon;
-            mPlayPauseAction.title = label;
-            mPlayPauseAction.actionIntent = intent;
-        }
-    }
-
-    private void updateNotificationPlaybackState() {
-        AppLogger.d(
-                CLASS_NAME + " updateNotificationPlaybackState, playbackState:" + mPlaybackState
-                        + ", started:" + mStarted.get()
-        );
-        if (mPlaybackState == null || !mStarted.get()) {
-            AppLogger.d(CLASS_NAME + " updateNotificationPlaybackState. cancelling notification!");
-            mService.stopForeground(true);
-            return;
-        }
-        if (mNotificationBuilder == null) {
-            AppLogger.d(
-                    CLASS_NAME + " updateNotificationPlaybackState. there is no notificationBuilder. " +
-                            "Ignoring request to update state!"
-            );
-            return;
-        }
-        if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
-            mNotificationBuilder
-                    .setWhen(System.currentTimeMillis() - mPlaybackState.getPosition())
-                    .setShowWhen(true)
-                    .setUsesChronometer(true);
-        } else {
-            mNotificationBuilder
-                    .setWhen(0)
-                    .setShowWhen(false)
-                    .setUsesChronometer(false);
-        }
-
-        updatePlayPauseAction();
-
-        // Make sure that the notification can be dismissed by the user when we are not playing:
-        mNotificationBuilder.setOngoing(mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING);
-
-        mNotificationBuilder.setDefaults(0);
-        mNotificationBuilder.setSound(null);
-
-        doNotifySafely(mNotificationBuilder);
+        return new NotificationCompat.Action(icon, label, intent);
     }
 
     private void doNotifySafely(@NonNull final NotificationCompat.Builder builder) {
@@ -636,16 +554,11 @@ public final class MediaNotification extends BroadcastReceiver {
                 // Service is stopped. If notification is go on the service will start again.
                 return;
             }
-            if (bitmap != null && reference.mMetadata != null
-                    && reference.mNotificationBuilder != null) {
+            if (bitmap != null && reference.mMetadata != null) {
                 // If the media is still the same, update the notification:
                 AppLogger.d(CLASS_NAME + " GetBitmapFromURLAsync: set bitmap to " + mSource);
-                reference.mNotificationBuilder.setLargeIcon(bitmap);
-
-                reference.mNotificationBuilder.setDefaults(0);
-                reference.mNotificationBuilder.setSound(null);
-
-                reference.doNotifySafely(reference.mNotificationBuilder);
+                // TODO: Update notification with image
+                // reference.handleNotification();
             }
         }
     }

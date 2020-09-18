@@ -48,7 +48,6 @@ import androidx.leanback.widget.RowPresenter;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.TvServicePlayerAdapter;
-import com.yuriy.openradio.shared.model.Dependencies;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.permission.PermissionListener;
 import com.yuriy.openradio.shared.permission.PermissionStatusListener;
@@ -74,13 +73,19 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
+@AndroidEntryPoint
 public class TvMainFragment extends PlaybackSupportFragment {
 
     private static final String CLASS_NAME = TvMainFragment.class.getSimpleName();
     private static final int PLAYLIST_ACTION_ID = 0;
     private static final int FAVORITE_ACTION_ID = 1;
 
-    private MediaPresenter mMediaPresenter;
+    @Inject
+    MediaPresenter mMediaPresenter;
     private ArrayObjectAdapter mRowsAdapter;
     private PlaybackBannerControlGlue<TvServicePlayerAdapter> mGlue;
     private ImageView mDummyView;
@@ -119,8 +124,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
         mDummyView = new ImageView(context);
         // Handles loading the  image in a background thread
         mImageWorker = ImageFetcherFactory.getTvPlayerImageFetcher(getActivity());
-
-        mMediaPresenter = Dependencies.INSTANCE.getMediaPresenter();
 
         final MediaBrowserCompat.SubscriptionCallback subscriptionCb = new MediaBrowserSubscriptionCallback(this);
         final MediaPresenterListener listener = new MediaPresenterListenerImpl(this);

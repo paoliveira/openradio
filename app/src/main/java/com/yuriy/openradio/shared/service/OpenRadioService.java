@@ -428,7 +428,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             // Pre-O behavior.
             context.startService(new Intent(context, OpenRadioService.class));
         }
-        mMediaNotification.updateNotificationMetadata();
+        mMediaNotification.handleNotification();
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -2208,7 +2208,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         @Override
-        public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+        public void onPlaybackStateChanged(final int playbackState) {
             AppLogger.d(CLASS_NAME + "OnPlayerStateChanged " + playbackState);
             switch (playbackState) {
                 case Player.STATE_BUFFERING:

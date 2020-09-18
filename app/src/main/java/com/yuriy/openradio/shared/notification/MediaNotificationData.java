@@ -31,6 +31,8 @@ import com.yuriy.openradio.R;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 final class MediaNotificationData extends NotificationData {
+
+    public static final String CHANNEL_ID = "channel_id_1";
     
     MediaNotificationData(@NonNull Context context,
                           @NonNull final MediaMetadataCompat metadata) {
@@ -48,7 +50,7 @@ final class MediaNotificationData extends NotificationData {
             mContentText = context.getString(R.string.notification_str);
         }
 
-        mChannelId = "channel_id_1";
+        mChannelId = CHANNEL_ID;
         mChannelName = context.getString(R.string.radio_station_str);
         mChannelDescription = "Updates about current Radio Station";
     }

@@ -33,6 +33,8 @@ import com.yuriy.openradio.R;
  */
 public final class NoMediaNotificationData {
 
+    public static final String CHANNEL_ID = "channel_id_3";
+
     // Standard notification values:
     private String mContentTitle;
     private String mContentText;
@@ -52,7 +54,7 @@ public final class NoMediaNotificationData {
         mContentTitle = context.getString(R.string.app_name);
         mContentText = context.getString(R.string.no_radio_station_selected);
         mPriority = NotificationCompat.PRIORITY_DEFAULT;
-        mChannelId = "channel_id_2";
+        mChannelId = CHANNEL_ID;
         mChannelName = "No Radio Station";
         mChannelDescription = context.getString(R.string.radio_station_not_available);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

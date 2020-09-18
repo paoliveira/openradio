@@ -43,9 +43,12 @@ import com.yuriy.openradio.view.fragment.TvMainFragment;
 
 import java.util.List;
 
+import dagger.hilt.android.AndroidEntryPoint;
+
 /*
  * Main TV Activity class that loads main TV fragment.
  */
+@AndroidEntryPoint
 public final class TvMainActivity extends FragmentActivity {
 
     private static final String CLASS_NAME = TvMainActivity.class.getSimpleName() + " ";
@@ -75,7 +78,7 @@ public final class TvMainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "destroyed " + this.hashCode());
-        BackgroundService.makeStopServiceIntent(getApplicationContext());
+        BackgroundService.makeIntentStopServiceFromDestroy(getApplicationContext());
     }
 
     @Override

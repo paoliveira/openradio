@@ -30,11 +30,13 @@ import com.yuriy.openradio.R;
  */
 final class ServiceStartedNotificationData extends NotificationData {
 
+    public static final String CHANNEL_ID = "channel_id_2";
+
     ServiceStartedNotificationData(@NonNull final Context context) {
         super();
         mContentTitle = context.getString(R.string.notification_str);
         mContentText = context.getString(R.string.notification_str);
-        mChannelId = "channel_id_1";
+        mChannelId = CHANNEL_ID;
         mChannelName = context.getString(R.string.radio_station_str);
         mChannelDescription = "Radio Station just started";
     }

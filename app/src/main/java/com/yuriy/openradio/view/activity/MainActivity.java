@@ -61,7 +61,7 @@ import com.yuriy.openradio.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.shared.model.Dependencies;
+import com.yuriy.openradio.shared.model.LifecycleModel;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
@@ -102,6 +102,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.inject.Inject;
+
+import dagger.hilt.android.AndroidEntryPoint;
+
 /**
  * Created with Android Studio.
  * Author: Chernyshov Yuriy - Mobile Development
@@ -110,6 +114,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
+@AndroidEntryPoint
 public final class MainActivity extends AppCompatActivity {
 
     /**
@@ -195,7 +200,10 @@ public final class MainActivity extends AppCompatActivity {
     private View mPlayBtn;
     private View mPauseBtn;
     private ProgressBar mProgressBarCrs;
-    private MediaPresenter mMediaPresenter;
+    @Inject
+    MediaPresenter mMediaPresenter;
+    @Inject
+    LifecycleModel mLifecycleModel;
 
     /**
      * Default constructor.
@@ -302,7 +310,6 @@ public final class MainActivity extends AppCompatActivity {
 
         final MediaBrowserCompat.SubscriptionCallback medSubscriptionCb = new MediaBrowserSubscriptionCallback(this);
         final MediaPresenterListener mediaPresenterLstnr = new MediaPresenterListenerImpl();
-        mMediaPresenter = Dependencies.INSTANCE.getMediaPresenter();
         mMediaPresenter.init(
                 this,
                 savedInstanceState,
@@ -416,7 +423,7 @@ public final class MainActivity extends AppCompatActivity {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "OnDestroy");
 
-        BackgroundService.makeStopServiceIntent(getApplicationContext());
+        BackgroundService.makeIntentStopServiceFromDestroy(getApplicationContext());
         PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
         // Unregister local receivers
