@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.service;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Process;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
@@ -34,10 +35,10 @@ import dagger.hilt.android.AndroidEntryPoint;
 @AndroidEntryPoint
 public final class BackgroundService extends JobIntentService {
 
-    private static final String CLASS_NAME = BackgroundService.class.getSimpleName() + " ";
+    private static final String CLASS_NAME = BackgroundService.class.getSimpleName();
     private static final int JOB_ID = 2000;
-    private static final String KEY_CMD = "KEY_COMMAND";
-    private static final String KEY_CMD_NAME_STOP_ORS_FROM_DESTROY = "KEY_CMD_NAME_STOP_ORS";
+    private static final String KEY_CMD = CLASS_NAME + "_KEY_COMMAND";
+    private static final String KEY_CMD_NAME_STOP_ORS_FROM_DESTROY = CLASS_NAME + "_KEY_CMD_NAME_STOP_ORS";
     @Inject
     LifecycleModel mLifecycleModel;
 
@@ -59,6 +60,7 @@ public final class BackgroundService extends JobIntentService {
      * @param context Context of callee.
      */
     public static void makeIntentStopServiceFromDestroy(final Context context) {
+        AppLogger.d(CLASS_NAME + " create stop service intent");
         // Create an Intent to start job in the background via a Service.
         final Intent intent = makeIntent(context);
         intent.putExtra(KEY_CMD, KEY_CMD_NAME_STOP_ORS_FROM_DESTROY);
@@ -67,26 +69,24 @@ public final class BackgroundService extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        AppLogger.d(CLASS_NAME + "on handle work");
+        AppLogger.d(CLASS_NAME + " on handle work:" + intent);
         if (!intent.hasExtra(KEY_CMD)) {
             return;
         }
-        switch (intent.getStringExtra(KEY_CMD)) {
-            case KEY_CMD_NAME_STOP_ORS_FROM_DESTROY:
-                final Lifecycle.Event event = mLifecycleModel.getEvent();
-                AppLogger.d("App state " + event);
-                // This means stop was invoked when destroy was invoked from very background state.
-                // For instance, when application consumed too much resources and system decided to free resources.
-                if (mLifecycleModel.isAppInBg()) {
-                    AppLogger.e("Kill app process.");
-                    android.os.Process.killProcess(android.os.Process.myPid());
-                    break;
-                }
-                ContextCompat.startForegroundService(
-                        getApplicationContext(),
-                        OpenRadioService.makeStopServiceIntent(getApplicationContext())
-                );
-                break;
+        if (KEY_CMD_NAME_STOP_ORS_FROM_DESTROY.equals(intent.getStringExtra(KEY_CMD))) {
+            final Lifecycle.Event event = mLifecycleModel.getEvent();
+            AppLogger.d("App state " + event);
+            // This means stop was invoked when destroy was invoked from very background state.
+            // For instance, when application consumed too much resources and system decided to free resources.
+            if (mLifecycleModel.isAppInBg()) {
+                AppLogger.e("Kill app process.");
+                Process.killProcess(Process.myPid());
+                return;
+            }
+            ContextCompat.startForegroundService(
+                    getApplicationContext(),
+                    OpenRadioService.makeStopServiceIntent(getApplicationContext())
+            );
         }
     }
 }
