@@ -21,6 +21,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -423,16 +424,16 @@ public final class MainActivity extends AppCompatActivity {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "OnDestroy");
 
-        BackgroundService.makeIntentStopServiceFromDestroy(getApplicationContext());
+        mMediaPresenter.clean();
+        if (!mIsOnSaveInstancePassed.get()) {
+            mMediaPresenter.destroy();
+            BackgroundService.makeIntentStopServiceFromDestroy(getApplicationContext());
+        }
         PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
         // Unregister local receivers
         unregisterReceivers();
 
-        mMediaPresenter.clean();
-        if (!mIsOnSaveInstancePassed.get()) {
-            mMediaPresenter.destroy();
-        }
         mBrowserAdapter.clear();
     }
 
@@ -517,6 +518,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected final void onSaveInstanceState(@NonNull final Bundle outState) {
+        AppLogger.d(CLASS_NAME + "OnSaveInstance:" + outState);
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
 

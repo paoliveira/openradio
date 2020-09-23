@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.notification;
 import android.app.NotificationManager;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 /**
@@ -30,14 +31,14 @@ import androidx.core.app.NotificationCompat;
 public abstract class NotificationData {
 
     // Standard notification values:
-    String mContentTitle;
-    String mContentText;
+    private String mContentTitle;
+    private String mContentText;
     private int mPriority;
 
     // Notification channel values (O and above):
-    String mChannelId;
-    CharSequence mChannelName;
-    String mChannelDescription;
+    private String mChannelId;
+    private CharSequence mChannelName;
+    private String mChannelDescription;
     private int mChannelImportance;
     private boolean mChannelEnableVibrate;
     private int mChannelLockScreenVisibility;
@@ -122,5 +123,21 @@ public abstract class NotificationData {
 
     public void setChannelLockScreenVisibility(final int value) {
         mChannelLockScreenVisibility = value;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "NotificationData{" +
+                "id='" + mChannelId + '\'' +
+                ", title='" + mContentTitle + '\'' +
+                ", text='" + mContentText + '\'' +
+                ", priority=" + mPriority +
+                ", name=" + mChannelName +
+                ", description='" + mChannelDescription + '\'' +
+                ", importance=" + mChannelImportance +
+                ", enableVibrate=" + mChannelEnableVibrate +
+                ", lockScreenVisibility=" + mChannelLockScreenVisibility +
+                '}';
     }
 }

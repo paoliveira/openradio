@@ -34,10 +34,10 @@ final class ServiceStartedNotificationData extends NotificationData {
 
     ServiceStartedNotificationData(@NonNull final Context context) {
         super();
-        mContentTitle = context.getString(R.string.notification_str);
-        mContentText = context.getString(R.string.notification_str);
-        mChannelId = CHANNEL_ID;
-        mChannelName = context.getString(R.string.radio_station_str);
-        mChannelDescription = "Radio Station just started";
+        setContentTitle(context.getString(R.string.notification_str));
+        setContentText(context.getString(R.string.notification_str));
+        setChannelId(CHANNEL_ID);
+        setChannelName(context.getString(R.string.radio_station_str));
+        setChannelDescription("Radio Station just started");
     }
 }

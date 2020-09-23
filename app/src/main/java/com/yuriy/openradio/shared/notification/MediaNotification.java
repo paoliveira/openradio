@@ -295,7 +295,6 @@ public final class MediaNotification extends BroadcastReceiver {
 
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         mNotificationChannelFactory.createChannel(new MediaNotificationData(mService, mMetadata));
-
         int playPauseActionIndex = 0;
         // If skip to previous action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
@@ -316,8 +315,8 @@ public final class MediaNotification extends BroadcastReceiver {
 
         final MediaDescriptionCompat description = mMetadata.getDescription();
 
-        LruCacheObject cacheObject = null;
-        String fetchArtUrl = null;
+        LruCacheObject cacheObject;
+//        String fetchArtUrl = null;
         Bitmap art = description.getIconBitmap();
         if (art == null && description.getIconUri() != null) {
             // This sample assumes the iconUri will be a valid URL formatted String, but
@@ -332,7 +331,7 @@ public final class MediaNotification extends BroadcastReceiver {
             }
             art = cacheObject != null ? cacheObject.getBitmap() : null;
             if (art == null) {
-                fetchArtUrl = artUrl;
+//                fetchArtUrl = artUrl;
                 // use a placeholder art while the remote art is being downloaded
                 art = BitmapFactory.decodeResource(
                         mService.getResources(), R.drawable.ic_radio_station

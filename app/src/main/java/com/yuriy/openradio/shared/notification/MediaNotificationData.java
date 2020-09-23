@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,18 +40,18 @@ final class MediaNotificationData extends NotificationData {
 
         final MediaDescriptionCompat description = metadata.getDescription();
         if (description.getTitle() != null) {
-            mContentTitle = description.getTitle().toString();
+            setContentTitle(description.getTitle().toString());
         } else {
-            mContentTitle = context.getString(R.string.notification_str);
+            setContentTitle(context.getString(R.string.notification_str));
         }
         if (description.getSubtitle() != null) {
-            mContentText = description.getSubtitle().toString();
+            setContentText(description.getSubtitle().toString());
         } else {
-            mContentText = context.getString(R.string.notification_str);
+            setContentText(context.getString(R.string.notification_str));
         }
 
-        mChannelId = CHANNEL_ID;
-        mChannelName = context.getString(R.string.radio_station_str);
-        mChannelDescription = "Updates about current Radio Station";
+        setChannelId(CHANNEL_ID);
+        setChannelName(context.getString(R.string.radio_station_str));
+        setChannelDescription("Updates about current Radio Station");
     }
 }

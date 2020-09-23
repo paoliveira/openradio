@@ -441,12 +441,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     @Override
-    public void onConfigurationChanged(final Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        AppLogger.i(CLASS_NAME + "On Config changed: " + newConfig);
-    }
-
-    @Override
     public final int onStartCommand(final Intent intent, final int flags, final int startId) {
         AppLogger.i(CLASS_NAME + "On Start Command:" + intent + ", id:" + startId);
         AnalyticsUtils.logMessage(
