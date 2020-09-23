@@ -52,15 +52,6 @@ public final class MediaPresenter {
     private static final String CLASS_NAME = MediaPresenter.class.getSimpleName();
 
     /**
-     * Key value for the Media Stack for the store Bundle.
-     */
-    private static final String BUNDLE_ARG_MEDIA_ITEMS_STACK = "BUNDLE_ARG_MEDIA_ITEMS_STACK";
-    /**
-     * Key value for the List-Position map for the store Bundle.
-     */
-    private static final String BUNDLE_ARG_LIST_POSITION_MAP = "BUNDLE_ARG_LIST_POSITION_MAP";
-
-    /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
     private final MediaResourcesManager mMediaRsrMgr;

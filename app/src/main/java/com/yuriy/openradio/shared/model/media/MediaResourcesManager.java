@@ -75,6 +75,7 @@ public final class MediaResourcesManager {
     /**
      * Callee {@link Activity}.
      */
+    @Nullable
     private Activity mActivity;
 
     /**
@@ -218,27 +219,19 @@ public final class MediaResourcesManager {
     }
 
     /**
-     * @return
+     * @return Metadata.
      */
     public MediaMetadataCompat getMediaMetadata() {
         return mMediaController != null ? mMediaController.getMetadata() : null;
     }
 
     /**
-     * @param mediaId
+     * @param mediaId media id of the item to play.
      */
     public void playFromMediaId(final String mediaId) {
         if (mTransportControls != null) {
             mTransportControls.playFromMediaId(mediaId, null);
         }
-    }
-
-    private static Bundle createRootHints(final Bundle savedInstance) {
-        final Bundle bundle = new Bundle();
-        OpenRadioService.putCurrentParentId(bundle, OpenRadioService.getCurrentParentId(savedInstance));
-        OpenRadioService.putCurrentPlaybackState(bundle, OpenRadioService.getCurrentPlaybackState(savedInstance));
-        OpenRadioService.putRestoreState(bundle, OpenRadioService.getRestoreState(savedInstance));
-        return bundle;
     }
 
     private void handleMediaBrowserConnected() {
@@ -300,7 +293,9 @@ public final class MediaResourcesManager {
             manager.mMediaController.unregisterCallback(manager.mMediaSessionCallback);
             manager.mTransportControls = null;
             manager.mMediaController = null;
-            MediaControllerCompat.setMediaController(manager.mActivity, null);
+            if (manager.mActivity != null) {
+                MediaControllerCompat.setMediaController(manager.mActivity, null);
+            }
         }
 
         @Override
