@@ -1,8 +1,8 @@
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
-apply plugin: 'dagger.hilt.android.plugin'
-apply from: 'constants.gradle'
+apply plugin: "com.google.gms.google-services"
+apply plugin: "com.android.application"
+apply plugin: "dagger.hilt.android.plugin"
+apply plugin: "com.google.firebase.crashlytics"
+apply from: "constants.gradle"
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
@@ -36,8 +36,6 @@ android {
         versionName project.ext.versionName
         multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        manifestPlaceholders = [crashlytics_api_key: project.ext.apiKey]
     }
 
     compileOptions {
@@ -68,12 +66,25 @@ android {
     aaptOptions {
         cruncherEnabled = true
     }
+
+    // To keep ancient code alive:
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES.txt'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/dependencies.txt'
+        exclude 'META-INF/LGPL2.1'
+    }
 }
 
 dependencies {
-    compileOnly "org.checkerframework:checker-compat-qual:$checkerCompatQualVersion"
-    compileOnly "org.checkerframework:checker-qual:$checkerQualVersion"
-
+    implementation "org.checkerframework:checker-compat-qual:$checkerCompatQualVersion"
+    implementation "org.checkerframework:checker-qual:$checkerQualVersion"
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
     implementation "com.android.support:support-v4:$supportVersion"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
@@ -81,9 +92,8 @@ dependencies {
     implementation "androidx.leanback:leanback:1.0.0"
     implementation "com.google.android.material:material:$materialVersion"
     implementation "log4j:log4j:$log4jVersion"
-    implementation("com.crashlytics.sdk.android:crashlytics:$crashlyticsVersion") {
-        transitive = true
-    }
+    implementation 'com.google.firebase:firebase-installations:16.3.3'
+    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
     implementation ("com.google.firebase:firebase-analytics:$firebaseVersion") {
         exclude group: "com.google.android.gms", module: "play-services-ads-identifier"
     }
@@ -99,6 +109,14 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation "com.google.dagger:hilt-android:2.28-alpha"
     annotationProcessor "com.google.dagger:hilt-android-compiler:2.28-alpha"
+
+    implementation 'com.google.http-client:google-http-client-gson:1.26.0'
+    implementation('com.google.api-client:google-api-client-android:1.26.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-drive:v3-rev136-1.25.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 
     androidTestImplementation(
             "androidx.test.espresso:espresso-core:$espressoVersion",

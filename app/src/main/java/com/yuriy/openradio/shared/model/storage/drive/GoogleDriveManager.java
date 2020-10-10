@@ -17,15 +17,13 @@
 package com.yuriy.openradio.shared.model.storage.drive;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
+import com.google.api.client.extensions.android.http.AndroidHttp;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.drive.Drive;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
@@ -61,24 +59,6 @@ public final class GoogleDriveManager {
         void onAccountRequested();
 
         /**
-         * Google Drive client start to connect.
-         */
-        void onConnect();
-
-        /**
-         * Google Drive client connected.
-         */
-        void onConnected();
-
-        /**
-         * Google Drive client failed with {@link ConnectionResult}. Typically this is means to perform another
-         * actions based on the result, such as show Auth window or select user to associate with Google Drive client.
-         *
-         * @param connectionResult Result object of the failure.
-         */
-        void onConnectionFailed(final ConnectionResult connectionResult);
-
-        /**
          * Google Drive client start to perform command, such as {@link Command#UPLOAD} or {@link Command#DOWNLOAD}.
          *
          * @param command Command which is started.
@@ -112,9 +92,9 @@ public final class GoogleDriveManager {
     private static final String FILE_NAME_RADIO_STATIONS = "RadioStations.txt";
 
     /**
-     * Google API client.
+     * Google Drive API helper.
      */
-    private GoogleApiClient mGoogleApiClient;
+    private GoogleDriveHelper mGoogleDriveApiHelper;
 
     /**
      *
@@ -147,39 +127,12 @@ public final class GoogleDriveManager {
         mListener = listener;
     }
 
-    /**
-     * Release associated resources.
-     */
-    public void release() {
-        // Not implemented
-    }
-
-    /**
-     * Disconnect Google Drive client.
-     */
-    public void disconnect() {
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
-    }
-
-    /**
-     * Connect Google Drive client.
-     */
-    public void connect() {
-        if (mGoogleApiClient != null) {
-            mListener.onAccountRequested();
-            mListener.onConnect();
-        }
-    }
-
-    public void connect(final String account) {
-        if (mGoogleApiClient != null) {
+    public void connect(final GoogleAccountCredential account) {
+        if (mGoogleDriveApiHelper != null) {
             return;
         }
-
-        mGoogleApiClient = getGoogleApiClient(mContext, account);
-        mGoogleApiClient.connect();
+        mGoogleDriveApiHelper = getGoogleApiClient(account);
+        handleNextCommand();
     }
 
     /**
@@ -203,12 +156,10 @@ public final class GoogleDriveManager {
      */
     private void queueCommand(final Command command) {
         addCommand(command);
-        if (mGoogleApiClient == null) {
+        if (mGoogleDriveApiHelper == null) {
             mListener.onAccountRequested();
         } else {
-            if (!mGoogleApiClient.isConnecting()) {
-                handleNextCommand();
-            }
+            handleNextCommand();
         }
     }
 
@@ -248,11 +199,9 @@ public final class GoogleDriveManager {
     private void uploadInternal(final String folderName, final String fileName, final String data,
                                 final GoogleDriveRequest.Listener listener) {
         final GoogleDriveRequest request = new GoogleDriveRequest(
-                mGoogleApiClient, folderName, fileName, data, listener
+                mGoogleDriveApiHelper, folderName, fileName, data, listener
         );
         final GoogleDriveResult result = new GoogleDriveResult();
-
-        request.setExecutorService(ConcurrentUtils.API_CALL_EXECUTOR);
 
         final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
         final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder();
@@ -278,10 +227,8 @@ public final class GoogleDriveManager {
     private void downloadInternal(final String folderName, final String fileName,
                                   final GoogleDriveRequest.Listener listener) {
         final GoogleDriveRequest request = new GoogleDriveRequest(
-                mGoogleApiClient, folderName, fileName, null, listener
+                mGoogleDriveApiHelper, folderName, fileName, null, listener
         );
-
-        request.setExecutorService(ConcurrentUtils.API_CALL_EXECUTOR);
 
         final GoogleDriveResult result = new GoogleDriveResult();
 
@@ -317,23 +264,19 @@ public final class GoogleDriveManager {
     }
 
     /**
-     * Returns instance to Google Drive client.
+     * Returns instance to Google Drive API helper.
      *
-     * @param context Context of application.
-     * @return Instance of the {@link GoogleApiClient}.
+     * @return Instance of the {@link GoogleDriveHelper}.
      */
-    private GoogleApiClient getGoogleApiClient(final Context context,
-                                               @Nullable final String accountName) {
-        final GoogleApiClient.Builder builder = new GoogleApiClient.Builder(context)
-                .addApi(Drive.API)
-                .addScope(Drive.SCOPE_FILE)
-                .addConnectionCallbacks(new ConnectionCallbackImpl(this))
-                .addOnConnectionFailedListener(new ConnectionFailedListenerImpl(this));
-        if (!TextUtils.isEmpty(accountName)) {
-            builder.setAccountName(accountName);
-        }
-        mGoogleApiClient = builder.build();
-        return mGoogleApiClient;
+    private GoogleDriveHelper getGoogleApiClient(@NonNull final GoogleAccountCredential account) {
+
+        final Drive drive = new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), account)
+                .setApplicationName("Drive API Migration")
+                .build();
+
+        // The DriveServiceHelper encapsulates all REST API and SAF functionality.
+        // Its instantiation is required before handling any onClick actions.
+        return new GoogleDriveHelper(drive);
     }
 
     /**
@@ -421,59 +364,6 @@ public final class GoogleDriveManager {
         return categories;
     }
 
-    private static final class ConnectionCallbackImpl implements GoogleApiClient.ConnectionCallbacks {
-
-        private final WeakReference<GoogleDriveManager> mReference;
-
-        private ConnectionCallbackImpl(final GoogleDriveManager reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnected(@Nullable final Bundle bundle) {
-            AppLogger.d("On Connected:" + bundle);
-            final GoogleDriveManager manager = mReference.get();
-            if (manager == null) {
-                return;
-            }
-            manager.handleNextCommand();
-
-            manager.mListener.onConnected();
-        }
-
-        @Override
-        public void onConnectionSuspended(final int i) {
-            AppLogger.d("On Connection suspended:" + i);
-
-            final GoogleDriveManager manager = mReference.get();
-            if (manager == null) {
-                return;
-            }
-            manager.mListener.onConnectionFailed(null);
-        }
-    }
-
-    private static final class ConnectionFailedListenerImpl implements GoogleApiClient.OnConnectionFailedListener {
-
-        private final WeakReference<GoogleDriveManager> mReference;
-
-        private ConnectionFailedListenerImpl(final GoogleDriveManager reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onConnectionFailed(@NonNull final ConnectionResult connectionResult) {
-            AppLogger.e("On Connection failed:" + connectionResult);
-            final GoogleDriveManager manager = mReference.get();
-            if (manager == null) {
-                return;
-            }
-            manager.mListener.onConnectionFailed(connectionResult);
-        }
-    }
-
     private static final class GoogleDriveRequestListenerImpl implements GoogleDriveRequest.Listener {
 
         private final WeakReference<GoogleDriveManager> mReference;
@@ -529,9 +419,6 @@ public final class GoogleDriveManager {
 
         @Override
         public void onError(final GoogleDriveError error) {
-            AnalyticsUtils.logCustomEvent(
-                    AnalyticsUtils.EVENT_NAME_GOOGLE_DRIVE, "Error", error.toString()
-            );
             final GoogleDriveManager manager = mReference.get();
             if (manager == null) {
                 return;

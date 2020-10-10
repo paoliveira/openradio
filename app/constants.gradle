@@ -22,7 +22,7 @@ project.ext {
     glideVersion = "4.11.0"
     googlePlayServicesDriveVersion = "17.0.0"
     googlePlayServicesAuthVersion = "18.1.0"
-    googlePlayServicesLocationVersion = "17.0.0"
+    googlePlayServicesLocationVersion = "17.1.0"
     constraintLayoutVersion = "1.1.3"
     log4jVersion = "1.2.17"
     junitVersion = "4.13"
@@ -42,8 +42,7 @@ project.ext {
      * Firebase
      */
     apiKey = ""
-    crashlyticsVersion = "2.10.1"
-    firebaseVersion = "17.5.0"
+    firebaseVersion = "17.6.0"
 
     /**
      * Sign
@@ -66,17 +65,4 @@ project.ext {
     } else {
         throw new GradleException("Could not read sign.properties !")
     }
-
-    final def crashlyticsApiKeyFile = file('crashlytics.properties')
-    if (crashlyticsApiKeyFile.canRead()) {
-        final Properties properties = new Properties()
-        properties.load(new FileInputStream(crashlyticsApiKeyFile))
-        def apiKey = properties['apiKey'].toString()
-        println "Crashlytics API key " + apiKey
-
-        project.ext.apiKey = apiKey
-    } else {
-        throw new GradleException("Could not read crashlytics.properties !")
-    }
-
 }

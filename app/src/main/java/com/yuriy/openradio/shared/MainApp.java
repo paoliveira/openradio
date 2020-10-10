@@ -64,6 +64,7 @@ public final class MainApp extends Application {
     @Override
     public final void onCreate() {
         super.onCreate();
+        AnalyticsUtils.init();
         AppLogger.d(CLASS_NAME + "OnCreate");
         final Context context = this;
         mLifecycleModel.init();
@@ -75,9 +76,6 @@ public final class MainApp extends Application {
                     AppLogger.initLogger(context);
                     AppLogger.setLoggingEnabled(isLoggingEnabled);
                     printFirstLogMessage(context);
-
-                    AnalyticsUtils.init(context);
-
                     correctBufferSettings(context);
                     migrateImagesToIntStorage(context);
                 }

@@ -61,7 +61,7 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
                 bitrateStr = "0";
             }
             radioStation.getMediaStream().setVariant(
-                    Integer.valueOf(bitrateStr),
+                    Integer.parseInt(bitrateStr),
                     JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
             );
             radioStation.setCountry(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY));

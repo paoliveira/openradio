@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
-import androidx.annotation.Nullable;
-
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.tasks.Task;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
 /**
  * Created by Chernyshov Yurii
@@ -39,9 +37,8 @@ final class GoogleDriveQueryFolder extends GoogleDriveQueryDrive {
     }
 
     @Override
-    @Nullable
-    protected DriveFolder getDriveFolder(final GoogleDriveRequest request, final GoogleDriveResult result) {
-        return Drive.DriveApi.getRootFolder(request.getGoogleApiClient());
+    protected Task<FileList> getQueryTask(final GoogleDriveRequest request) {
+        return request.getGoogleApiClient().queryFolder(request.getFolderName());
     }
 
     @Override
@@ -50,7 +47,7 @@ final class GoogleDriveQueryFolder extends GoogleDriveQueryDrive {
     }
 
     @Override
-    protected void setResult(final GoogleDriveResult result, final DriveId driveId) {
-        result.setFolder(driveId.asDriveFolder());
+    protected void setResult(final GoogleDriveResult result, final File driveId) {
+        result.setFolder(driveId);
     }
 }

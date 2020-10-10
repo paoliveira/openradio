@@ -16,18 +16,10 @@
 
 package com.yuriy.openradio.shared.utils;
 
-import android.content.Context;
-import android.os.Bundle;
 import android.util.Log;
 
-import com.crashlytics.android.Crashlytics;
-import com.crashlytics.android.answers.Answers;
-import com.crashlytics.android.answers.CustomEvent;
-import com.crashlytics.android.core.CrashlyticsCore;
-import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.yuriy.openradio.BuildConfig;
-
-import io.fabric.sdk.android.Fabric;
 
 /**
  * Created by Yuriy Chernyshov
@@ -39,9 +31,6 @@ import io.fabric.sdk.android.Fabric;
  */
 public final class AnalyticsUtils {
 
-    public static final String EVENT_NAME_GOOGLE_DRIVE = "GoogleDrive";
-    private static FirebaseAnalytics sFirebaseAnalytics;
-
     /**
      * Default constructor.
      */
@@ -49,57 +38,21 @@ public final class AnalyticsUtils {
         super();
     }
 
-    public static void init(final Context context) {
-        sFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
-        final Bundle bundle = new Bundle();
-        sFirebaseAnalytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, bundle);
-
-        final CrashlyticsCore crashlyticsCore = new CrashlyticsCore.Builder()
-                .disabled(BuildConfig.DEBUG)
-                .build();
-        Fabric.with(context, new Crashlytics.Builder().core(crashlyticsCore).build());
+    public static void init() {
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG);
     }
 
     /**
-     * All logged exceptions will appear as “non-fatal” issues in the Fabric dashboard.
+     * All logged exceptions will appear as “non-fatal” issues in the crash report dashboard.
      *
      * @param exception Exception.
      */
     public static void logException(final Exception exception) {
         AppLogger.e(Log.getStackTraceString(exception));
-        if (!Fabric.isInitialized()) {
-            return;
-        }
-        Crashlytics.logException(exception);
+        FirebaseCrashlytics.getInstance().recordException(exception);
     }
 
     public static void logMessage(final String message) {
-        if (!Fabric.isInitialized()) {
-            return;
-        }
-        Crashlytics.log(message);
-    }
-
-    /**
-     * Logs custom event to the Fabric dashboard.
-     *
-     * @param name Event name.
-     */
-    public static void logCustomEvent(final String name, final String key, final String value) {
-        final boolean isFabricInit = Fabric.isInitialized();
-        AppLogger.d("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
-        if (!isFabricInit) {
-            return;
-        }
-        Answers.getInstance().logCustom(new CustomEvent(name).putCustomAttribute(key, value));
-    }
-
-    public static void logCustomEvent(final String name, final String key, final Number value) {
-        final boolean isFabricInit = Fabric.isInitialized();
-        AppLogger.d("Ev:" + name + ", key:" + key + ", val:" + value + ", FabricInit:" + isFabricInit);
-        if (!isFabricInit) {
-            return;
-        }
-        Answers.getInstance().logCustom(new CustomEvent(name).putCustomAttribute(key, value));
+        FirebaseCrashlytics.getInstance().log(message);
     }
 }

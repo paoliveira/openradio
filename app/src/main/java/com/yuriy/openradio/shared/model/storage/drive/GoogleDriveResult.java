@@ -16,8 +16,7 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
-import com.google.android.gms.drive.DriveFile;
-import com.google.android.gms.drive.DriveFolder;
+import com.google.api.services.drive.model.File;
 
 /**
  * Created by Chernyshov Yurii
@@ -28,27 +27,27 @@ import com.google.android.gms.drive.DriveFolder;
 
 public final class GoogleDriveResult {
 
-    private DriveFolder mFolder;
+    private File mFolder;
 
-    private DriveFile mFile;
+    private File mFile;
 
     public GoogleDriveResult() {
         super();
     }
 
-    public DriveFile getFile() {
+    public File getFile() {
         return mFile;
     }
 
-    public void setFile(final DriveFile value) {
+    public void setFile(final File value) {
         mFile = value;
     }
 
-    public DriveFolder getFolder() {
+    public File getFolder() {
         return mFolder;
     }
 
-    public void setFolder(final DriveFolder value) {
+    public void setFolder(final File value) {
         mFolder = value;
     }
 }

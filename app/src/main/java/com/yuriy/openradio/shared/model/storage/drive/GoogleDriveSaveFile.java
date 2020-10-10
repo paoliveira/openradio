@@ -18,16 +18,7 @@ package com.yuriy.openradio.shared.model.storage.drive;
 
 import android.util.Base64;
 
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.DriveContents;
-import com.google.android.gms.drive.MetadataChangeSet;
-import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 
 /**
  * Created by Chernyshov Yurii
@@ -49,61 +40,18 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
     protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result) {
         AppLogger.d("Save file '" + request.getFileName() + "'");
 
-        // create new contents resource
-        Drive.DriveApi.newDriveContents(request.getGoogleApiClient()).setResultCallback(
-                driveContentsResult -> request.getExecutorService().submit(
-                        () -> {
-                            if (!driveContentsResult.getStatus().isSuccess()) {
-                                request.getListener().onError(new GoogleDriveError(
-                                        "File '" + request.getFileName() + "' is not saved"
-                                ));
-                                return;
-                            }
-                            final DriveContents driveContents = driveContentsResult.getDriveContents();
-                            handleSaveFile(driveContents, request, result);
+        // Create new file and save data to it.
+        final String data = Base64.encodeToString(request.getData().getBytes(), Base64.DEFAULT);
+        request.getGoogleApiClient().createFile(result.getFolder().getId(), request.getFileName(), data)
+                .addOnSuccessListener(
+                        fileId -> {
+                            AppLogger.d("File '" + fileId + "' created");
+                            request.getListener().onUploadComplete();
                         }
                 )
-        );
-    }
-
-    private void handleSaveFile(final DriveContents driveContents,
-                                final GoogleDriveRequest request, final GoogleDriveResult result) {
-        final OutputStream outputStream = driveContents.getOutputStream();
-        final Writer writer = new OutputStreamWriter(outputStream);
-        final String data = Base64.encodeToString(request.getData().getBytes(), Base64.DEFAULT);
-        try {
-            writer.write(data);
-        } catch (final IOException e) {
-            AnalyticsUtils.logException(e);
-        } finally {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                /* Ignore */
-            }
-        }
-
-        final String name = request.getFileName();
-        final MetadataChangeSet changeSet = new MetadataChangeSet.Builder()
-                .setTitle(name)
-                .setMimeType("text/plain")
-                .build();
-
-        // create a file on root folder
-        result.getFolder()
-                .createFile(request.getGoogleApiClient(), changeSet, driveContents)
-                .setResultCallback(
-                        driveFileResult -> request.getExecutorService().submit(
-                                () -> {
-                                    if (driveFileResult.getStatus().isSuccess()) {
-                                        AppLogger.d("File '" + name + "' saved");
-                                        request.getListener().onUploadComplete();
-                                    } else {
-                                        request.getListener().onError(
-                                                new GoogleDriveError("File '" + name + "' is not saved")
-                                        );
-                                    }
-                                }
+                .addOnFailureListener(
+                        e -> request.getListener().onError(
+                                new GoogleDriveError("File '" + request.getFileName() + "' is not created")
                         )
                 );
     }

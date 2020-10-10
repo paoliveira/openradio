@@ -84,10 +84,6 @@
             android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/ic_notification" />
 
-        <meta-data
-            android:name="com.crashlytics.ApiKey"
-            android:value="${crashlytics_api_key}" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"

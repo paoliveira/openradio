@@ -18,8 +18,6 @@ package com.yuriy.openradio.shared.model.storage.drive;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.drive.Drive;
-import com.google.android.gms.drive.MetadataChangeSet;
 import com.yuriy.openradio.shared.utils.AppLogger;
 
 /**
@@ -41,33 +39,31 @@ final class GoogleDriveCreateFolder extends GoogleDriveAPIChain {
     @Override
     protected void handleRequest(@NonNull final GoogleDriveRequest request,
                                  @NonNull final GoogleDriveResult result) {
-        requestSync(request.getGoogleApiClient());
-
         final String name = request.getFolderName();
 
         if (result.getFolder() != null) {
             AppLogger.d("Folder " + name + " exists, path execution farther");
             handleNext(request, result);
         } else {
-            final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(name).build();
-            Drive.DriveApi
-                    .getRootFolder(request.getGoogleApiClient())
-                    .createFolder(request.getGoogleApiClient(), changeSet)
-                    .setResultCallback(
-                            driveFolderResult -> request.getExecutorService().submit(
-                                    () -> {
-                                        if (driveFolderResult.getStatus().isSuccess()) {
-                                            AppLogger.d("Folder " + name + " created, pass execution farther");
-                                            result.setFolder(driveFolderResult.getDriveFolder());
-                                            handleNext(request, result);
-                                        } else {
-                                            request.getListener().onError(
-                                                    new GoogleDriveError("Folder " + name + " is not created")
-                                            );
-                                        }
-                                    }
-                            )
-                    );
+//            final MetadataChangeSet changeSet = new MetadataChangeSet.Builder().setTitle(name).build();
+//            Drive.DriveApi
+//                    .getRootFolder(request.getGoogleApiClient())
+//                    .createFolder(request.getGoogleApiClient(), changeSet)
+//                    .setResultCallback(
+//                            driveFolderResult -> request.getExecutorService().submit(
+//                                    () -> {
+//                                        if (driveFolderResult.getStatus().isSuccess()) {
+//                                            AppLogger.d("Folder " + name + " created, pass execution farther");
+//                                            result.setFolder(driveFolderResult.getDriveFolder());
+//                                            handleNext(request, result);
+//                                        } else {
+//                                            request.getListener().onError(
+//                                                    new GoogleDriveError("Folder " + name + " is not created")
+//                                            );
+//                                        }
+//                                    }
+//                            )
+//                    );
         }
     }
 }

@@ -16,8 +16,9 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
-import com.google.android.gms.drive.DriveFolder;
-import com.google.android.gms.drive.DriveId;
+import com.google.android.gms.tasks.Task;
+import com.google.api.services.drive.model.File;
+import com.google.api.services.drive.model.FileList;
 
 /**
  * Created by Chernyshov Yurii
@@ -36,8 +37,8 @@ final class GoogleDriveQueryFile extends GoogleDriveQueryDrive {
     }
 
     @Override
-    protected DriveFolder getDriveFolder(final GoogleDriveRequest request, final GoogleDriveResult result) {
-        return result.getFolder();
+    protected Task<FileList> getQueryTask(final GoogleDriveRequest request) {
+        return request.getGoogleApiClient().queryFile(request.getFileName());
     }
 
     @Override
@@ -46,7 +47,7 @@ final class GoogleDriveQueryFile extends GoogleDriveQueryDrive {
     }
 
     @Override
-    protected void setResult(final GoogleDriveResult result, final DriveId driveId) {
-        result.setFile(driveId.asDriveFile());
+    protected void setResult(final GoogleDriveResult result, final File driveId) {
+        result.setFile(driveId);
     }
 }

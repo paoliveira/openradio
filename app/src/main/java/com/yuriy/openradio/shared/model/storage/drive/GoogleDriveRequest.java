@@ -16,12 +16,6 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
-import androidx.annotation.NonNull;
-
-import com.google.android.gms.common.api.GoogleApiClient;
-
-import java.util.concurrent.ExecutorService;
-
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -42,7 +36,7 @@ public final class GoogleDriveRequest {
         void onError(final GoogleDriveError error);
     }
 
-    private final GoogleApiClient mGoogleApiClient;
+    private final GoogleDriveHelper mGoogleApiClient;
 
     private final String mFolderName;
 
@@ -52,9 +46,7 @@ public final class GoogleDriveRequest {
 
     private final Listener mListener;
 
-    private ExecutorService mExecutorService;
-
-    public GoogleDriveRequest(final GoogleApiClient googleApiClient, final String folderName, final String fileName,
+    public GoogleDriveRequest(final GoogleDriveHelper googleApiClient, final String folderName, final String fileName,
                               final String data, final Listener listener) {
         super();
         mGoogleApiClient = googleApiClient;
@@ -64,7 +56,7 @@ public final class GoogleDriveRequest {
         mListener = listener;
     }
 
-    public GoogleApiClient getGoogleApiClient() {
+    public GoogleDriveHelper getGoogleApiClient() {
         return mGoogleApiClient;
     }
 
@@ -82,14 +74,5 @@ public final class GoogleDriveRequest {
 
     public Listener getListener() {
         return mListener;
-    }
-
-    @NonNull
-    public ExecutorService getExecutorService() {
-        return mExecutorService;
-    }
-
-    public void setExecutorService(@NonNull final ExecutorService value) {
-        mExecutorService = value;
     }
 }

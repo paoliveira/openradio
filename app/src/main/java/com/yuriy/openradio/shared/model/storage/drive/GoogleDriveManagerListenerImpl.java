@@ -4,10 +4,8 @@ import android.content.Context;
 import android.os.Handler;
 import android.text.TextUtils;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog;
@@ -17,11 +15,10 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
     public interface Listener {
         FragmentManager getSupportFragmentManager();
         void onAccountRequested();
-        void requestGoogleDriveSignIn(final ConnectionResult connectionResult);
         void onComplete();
     }
 
-    private Context mContext;
+    private final Context mContext;
     private final Handler mHandler;
     private final Thread mUiThread;
     private final Listener mListener;
@@ -32,26 +29,6 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
         mHandler = new Handler();
         mContext = context;
         mListener = listener;
-    }
-
-    @Override
-    public void onConnectionFailed(@Nullable final ConnectionResult connectionResult) {
-        if (connectionResult != null) {
-            mListener.requestGoogleDriveSignIn(connectionResult);
-        } else {
-            SafeToast.showAnyThread(
-                    mContext, mContext.getString(R.string.google_drive_conn_error)
-            );
-        }
-
-        runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
-                    mListener.getSupportFragmentManager()
-            );
-            if (dialog != null) {
-                dialog.hideTitleProgress();
-            }
-        });
     }
 
     @Override
@@ -113,30 +90,6 @@ public class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listen
             );
             if (dialog != null) {
                 dialog.hideProgress(command);
-            }
-        });
-    }
-
-    @Override
-    public void onConnect() {
-        runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
-                    mListener.getSupportFragmentManager()
-            );
-            if (dialog != null) {
-                dialog.showTitleProgress();
-            }
-        });
-    }
-
-    @Override
-    public void onConnected() {
-        runOnUiThread(() -> {
-            final GoogleDriveDialog dialog = GoogleDriveDialog.findGoogleDriveDialog(
-                    mListener.getSupportFragmentManager()
-            );
-            if (dialog != null) {
-                dialog.hideTitleProgress();
             }
         });
     }

@@ -18,13 +18,8 @@ package com.yuriy.openradio.shared.model.storage.drive;
 
 import android.util.Base64;
 
-import com.google.android.gms.drive.DriveContents;
-import com.google.android.gms.drive.DriveFile;
+import com.google.api.services.drive.model.File;
 import com.yuriy.openradio.shared.utils.AppLogger;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 /**
  * Created by Chernyshov Yurii
@@ -46,7 +41,7 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
     protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result) {
         AppLogger.d("Read file '" + request.getFileName() + "'");
 
-        final DriveFile driveFile = result.getFile();
+        final File driveFile = result.getFile();
         if (driveFile == null) {
             request.getListener().onError(
                     new GoogleDriveError("Error while get file '" + request.getFileName() + "'")
@@ -54,49 +49,20 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
             return;
         }
 
-        driveFile
-                .open(request.getGoogleApiClient(), DriveFile.MODE_READ_ONLY, null)
-                .setResultCallback(
-                        driveContentsResult -> request.getExecutorService().submit(
-                                () -> {
-                                    if (!driveContentsResult.getStatus().isSuccess()) {
-                                        request.getListener().onError(
-                                                new GoogleDriveError("Error while open file '" + request.getFileName() + "'")
-                                        );
-                                        return;
-                                    }
-                                    final DriveContents driveContents = driveContentsResult.getDriveContents();
-                                    final BufferedReader reader = new BufferedReader(
-                                            new InputStreamReader(driveContents.getInputStream())
-                                    );
-                                    final StringBuilder builder = new StringBuilder();
-                                    String line;
-                                    try {
-                                        while ((line = reader.readLine()) != null) {
-                                            builder.append(line);
-                                        }
-                                        final String data = new String(Base64.decode(builder.toString(), Base64.DEFAULT));
-                                        request.getListener().onDownloadComplete(
-                                                data,
-                                                request.getFileName()
-                                        );
-                                    } catch (final IOException e) {
-                                        request.getListener().onError(
-                                                new GoogleDriveError(
-                                                        "Error while download file '" + request.getFileName() + "'"
-                                                )
-                                        );
-                                    } finally {
-                                        try {
-                                            reader.close();
-                                        } catch (IOException e) {
-                                        /* Ignore */
-                                        }
-                                    }
-
-                                    driveContents.discard(request.getGoogleApiClient());
-                                }
+        request.getGoogleApiClient().readFile(driveFile.getId())
+                .addOnSuccessListener(
+                        pair -> request.getListener().onDownloadComplete(
+                                new String(Base64.decode(pair.second, Base64.DEFAULT)),
+                                request.getFileName()
                         )
+                )
+                .addOnFailureListener(
+                        e -> {
+                            AppLogger.d("File read error:" + e);
+                            request.getListener().onError(
+                                    new GoogleDriveError("Error while open file '" + request.getFileName() + "'")
+                            );
+                        }
                 );
     }
 }

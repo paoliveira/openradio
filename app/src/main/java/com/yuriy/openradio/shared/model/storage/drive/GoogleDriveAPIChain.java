@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.drive.Drive;
 import com.yuriy.openradio.shared.utils.AppLogger;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Chernyshov Yurii
@@ -40,10 +36,6 @@ abstract class GoogleDriveAPIChain {
     }
 
     abstract protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result);
-
-    protected void requestSync(final GoogleApiClient googleApiClient) {
-        Drive.DriveApi.requestSync(googleApiClient).await(3, TimeUnit.SECONDS);
-    }
 
     public void setNext(final GoogleDriveAPIChain value) {
         mNext = value;
