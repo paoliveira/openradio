@@ -47,7 +47,7 @@ final class GoogleDriveQueryFolder extends GoogleDriveQueryDrive {
     }
 
     @Override
-    protected void setResult(final GoogleDriveResult result, final File driveId) {
-        result.setFolder(driveId);
+    protected void setResult(final GoogleDriveResult result, final File file) {
+        result.setFolderId(file.getId());
     }
 }

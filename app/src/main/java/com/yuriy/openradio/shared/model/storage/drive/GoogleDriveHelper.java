@@ -45,12 +45,31 @@ public final class GoogleDriveHelper {
                     .setName(name);
             // Convert content to an AbstractInputStreamContent instance.
             final ByteArrayContent contentStream = ByteArrayContent.fromString(MIME_TYPE_TEXT, content);
-            final File googleFile = mDriveService.files().create(metadata, contentStream).execute();
-            if (googleFile == null) {
+            final File file = mDriveService.files().create(metadata, contentStream).execute();
+            if (file == null) {
                 throw new IOException("Null result when requesting file creation.");
             }
-            return googleFile.getId();
+            return file.getId();
         });
+    }
+
+    /**
+     *
+     * @param name
+     * @return
+     */
+    public final Task<String> createFolder(@NonNull final String name) {
+        return Tasks.call(mExecutor, () -> {
+                    final File metadata = new File()
+                            .setMimeType(MIME_TYPE_FOLDER)
+                            .setName(name);
+                    final File folder = mDriveService.files().create(metadata)
+                            .setFields("id")
+                            .execute();
+                    return folder.getId();
+                }
+        );
+
     }
 
     /**

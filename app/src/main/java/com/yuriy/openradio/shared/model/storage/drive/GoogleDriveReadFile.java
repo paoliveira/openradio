@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.model.storage.drive;
 
 import android.util.Base64;
 
-import com.google.api.services.drive.model.File;
 import com.yuriy.openradio.shared.utils.AppLogger;
 
 /**
@@ -41,15 +40,15 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
     protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result) {
         AppLogger.d("Read file '" + request.getFileName() + "'");
 
-        final File driveFile = result.getFile();
-        if (driveFile == null) {
+        final String fileId = result.getFileId();
+        if (fileId == null) {
             request.getListener().onError(
                     new GoogleDriveError("Error while get file '" + request.getFileName() + "'")
             );
             return;
         }
 
-        request.getGoogleApiClient().readFile(driveFile.getId())
+        request.getGoogleApiClient().readFile(fileId)
                 .addOnSuccessListener(
                         pair -> request.getListener().onDownloadComplete(
                                 new String(Base64.decode(pair.second, Base64.DEFAULT)),

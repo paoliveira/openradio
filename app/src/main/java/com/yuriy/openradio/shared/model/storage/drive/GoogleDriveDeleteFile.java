@@ -37,9 +37,9 @@ final class GoogleDriveDeleteFile extends GoogleDriveAPIChain {
     @Override
     protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result) {
         final String name = request.getFileName();
-        if (result.getFile() != null) {
+        if (result.getFileId() != null) {
             AppLogger.d("Delete file '" + name + "'");
-            request.getGoogleApiClient().deleteFile(result.getFile().getId())
+            request.getGoogleApiClient().deleteFile(result.getFileId())
                     .addOnSuccessListener(
                             aVoid -> {
                                 AppLogger.d("File '" + name + "' deleted, path execution farther");

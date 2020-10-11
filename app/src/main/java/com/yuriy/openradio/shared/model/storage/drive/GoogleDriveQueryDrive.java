@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.model.storage.drive;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -68,8 +69,11 @@ abstract class GoogleDriveQueryDrive extends GoogleDriveAPIChain {
         );
         task.addOnFailureListener(
                 e -> {
-                    AppLogger.e("Can not query google drive folder:" + e);
-                    // TODO: Handle error
+                    request.getListener().onError(
+                            new GoogleDriveError(
+                                    "Can not query resource '" + getName(request) + "' " + Log.getStackTraceString(e)
+                            )
+                    );
                     latch.countDown();
                 }
         );

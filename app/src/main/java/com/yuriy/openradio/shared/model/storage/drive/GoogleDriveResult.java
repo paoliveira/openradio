@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,6 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
-import com.google.api.services.drive.model.File;
-
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -27,27 +25,29 @@ import com.google.api.services.drive.model.File;
 
 public final class GoogleDriveResult {
 
-    private File mFolder;
+    private String mFolderId;
 
-    private File mFile;
+    private String mFileId;
 
     public GoogleDriveResult() {
         super();
+        mFolderId = null;
+        mFileId = null;
     }
 
-    public File getFile() {
-        return mFile;
+    public String getFileId() {
+        return mFileId;
     }
 
-    public void setFile(final File value) {
-        mFile = value;
+    public void setFileId(final String value) {
+        mFileId = value;
     }
 
-    public File getFolder() {
-        return mFolder;
+    public String getFolderId() {
+        return mFolderId;
     }
 
-    public void setFolder(final File value) {
-        mFolder = value;
+    public void setFolderId(final String value) {
+        mFolderId = value;
     }
 }

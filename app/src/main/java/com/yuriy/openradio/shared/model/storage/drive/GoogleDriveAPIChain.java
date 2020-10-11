@@ -17,6 +17,8 @@
 package com.yuriy.openradio.shared.model.storage.drive;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 
 /**
  * Created by Chernyshov Yurii
@@ -46,6 +48,12 @@ abstract class GoogleDriveAPIChain {
             AppLogger.d("No more requests to handle");
             return;
         }
-        mNext.handleRequest(request, result);
+        if (AppUtils.isUiThread()) {
+            ConcurrentUtils.API_CALL_EXECUTOR.submit(
+                    () -> mNext.handleRequest(request, result)
+            );
+        } else {
+            mNext.handleRequest(request, result);
+        }
     }
 }

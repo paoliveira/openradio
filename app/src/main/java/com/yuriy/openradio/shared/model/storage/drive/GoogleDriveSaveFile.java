@@ -42,7 +42,7 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
 
         // Create new file and save data to it.
         final String data = Base64.encodeToString(request.getData().getBytes(), Base64.DEFAULT);
-        request.getGoogleApiClient().createFile(result.getFolder().getId(), request.getFileName(), data)
+        request.getGoogleApiClient().createFile(result.getFolderId(), request.getFileName(), data)
                 .addOnSuccessListener(
                         fileId -> {
                             AppLogger.d("File '" + fileId + "' created");
