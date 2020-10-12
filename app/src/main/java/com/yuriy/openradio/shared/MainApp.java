@@ -16,10 +16,13 @@
 
 package com.yuriy.openradio.shared;
 
-import android.app.Application;
 import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
+
+import androidx.annotation.NonNull;
+import androidx.multidex.MultiDex;
+import androidx.multidex.MultiDexApplication;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
@@ -45,7 +48,7 @@ import dagger.hilt.android.HiltAndroidApp;
  * Time: 6:29 PM
  */
 @HiltAndroidApp
-public final class MainApp extends Application {
+public final class MainApp extends MultiDexApplication {
 
     /**
      * Tag string to use in logging message.
@@ -59,6 +62,12 @@ public final class MainApp extends Application {
      */
     public MainApp() {
         super();
+    }
+
+    @Override
+    protected void attachBaseContext(@NonNull final Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
     }
 
     @Override

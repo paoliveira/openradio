@@ -16,14 +16,20 @@
 
 package com.yuriy.openradio.shared.model.storage.drive;
 
+import android.accounts.Account;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.common.Scopes;
+import com.google.android.gms.common.api.Scope;
 import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
@@ -36,6 +42,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -127,7 +134,7 @@ public final class GoogleDriveManager {
         mListener = listener;
     }
 
-    public void connect(final GoogleAccountCredential account) {
+    public void connect(final Account account) {
         if (mGoogleDriveApiHelper != null) {
             return;
         }
@@ -157,7 +164,13 @@ public final class GoogleDriveManager {
     private void queueCommand(final Command command) {
         addCommand(command);
         if (mGoogleDriveApiHelper == null) {
-            mListener.onAccountRequested();
+            // Check if the user is already signed in and all required scopes are granted
+            final GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(mContext);
+            if (account != null && GoogleSignIn.hasPermissions(account, new Scope(Scopes.DRIVE_FILE))) {
+                connect(account.getAccount());
+            } else {
+                mListener.onAccountRequested();
+            }
         } else {
             handleNextCommand();
         }
@@ -268,9 +281,14 @@ public final class GoogleDriveManager {
      *
      * @return Instance of the {@link GoogleDriveHelper}.
      */
-    private GoogleDriveHelper getGoogleApiClient(@NonNull final GoogleAccountCredential account) {
-
-        final Drive drive = new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), account)
+    private GoogleDriveHelper getGoogleApiClient(@NonNull final Account account) {
+// Use the authenticated account to sign in to the Drive service.
+        final GoogleAccountCredential credential =
+                GoogleAccountCredential.usingOAuth2(
+                        mContext, Collections.singleton(DriveScopes.DRIVE_FILE)
+                );
+        credential.setSelectedAccount(account);
+        final Drive drive = new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential)
                 .setApplicationName("Drive API Migration")
                 .build();
 

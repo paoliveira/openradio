@@ -44,7 +44,7 @@
     <string name="google_drive_error_when_read">Error while read Radio Stations from Google Drive</string>
     <string name="google_drive_data_saved">Radio Stations are saved to Google Drive</string>
     <string name="google_drive_data_read">Radio Stations are read from Google Drive</string>
-    <string name="google_drive_conn_error">Error to connect to Google Drive</string>
+    <string name="google_drive_conn_error">Error while connecting to Google Drive</string>
     <string name="can_not_get_account_name">Can not get Google Account name</string>
     <string name="category_empty">Category is empty</string>
     <string name="google_drive">Google Drive</string>

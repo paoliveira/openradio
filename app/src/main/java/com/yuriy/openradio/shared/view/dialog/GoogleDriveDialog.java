@@ -21,6 +21,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -35,7 +36,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.Scope;
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
 import com.google.api.services.drive.DriveScopes;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager;
@@ -44,8 +44,6 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
-
-import java.util.Collections;
 
 /**
  * Created by Yuriy Chernyshov
@@ -157,26 +155,19 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         AppLogger.d(CLASS_NAME + " OnActivityResult: request:" + requestCode + " result:" + resultCode);
-        if (resultCode != Activity.RESULT_OK) {
-            return;
-        }
         if (requestCode == ACCOUNT_REQUEST_CODE) {
             GoogleSignIn.getSignedInAccountFromIntent(data)
                     .addOnSuccessListener(googleAccount -> {
                                 AppLogger.d("Signed in as " + googleAccount.getEmail());
-
-                                // Use the authenticated account to sign in to the Drive service.
-                                final GoogleAccountCredential credential =
-                                        GoogleAccountCredential.usingOAuth2(
-                                                getContext(), Collections.singleton(DriveScopes.DRIVE_FILE)
-                                        );
-                                credential.setSelectedAccount(googleAccount.getAccount());
-                                mGoogleDriveManager.connect(credential);
+                                mGoogleDriveManager.connect(googleAccount.getAccount());
                             }
                     )
-                    .addOnFailureListener(exception -> SafeToast.showAnyThread(
-                            getContext(), getString(R.string.can_not_get_account_name)
-                            )
+                    .addOnFailureListener(exception -> {
+                        AppLogger.e("Can't do sign in:" + Log.getStackTraceString(exception));
+                        SafeToast.showAnyThread(
+                                        getContext(), getString(R.string.can_not_get_account_name)
+                                );
+                            }
                     );
         }
     }
