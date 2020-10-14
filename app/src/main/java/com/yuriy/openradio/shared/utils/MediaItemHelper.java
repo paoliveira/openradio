@@ -444,6 +444,13 @@ public final class MediaItemHelper {
                 && (list.get(0) == null || list.get(0) instanceof MediaItemListEnded);
     }
 
+    public static String playbackStateToString(@Nullable final PlaybackStateCompat state) {
+        if (state == null) {
+            return "UNDEFINED";
+        }
+        return playbackStateToString(state.getState());
+    }
+
     public static String playbackStateToString(final int state) {
         switch (state) {
             case PlaybackStateCompat.STATE_STOPPED:

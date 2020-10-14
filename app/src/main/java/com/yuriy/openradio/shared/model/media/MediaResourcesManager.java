@@ -326,10 +326,14 @@ public final class MediaResourcesManager {
         }
 
         @Override
-        public void onPlaybackStateChanged(final PlaybackStateCompat state) {
+        public void onPlaybackStateChanged(@Nullable final PlaybackStateCompat state) {
+            if (state == null) {
+                AppLogger.e(CLASS_NAME + "PlaybackStateChanged to null state");
+                return;
+            }
             AppLogger.d(
                     CLASS_NAME + "psc:["
-                            + MediaItemHelper.playbackStateToString(state.getState()) + "]" + state
+                            + MediaItemHelper.playbackStateToString(state) + "]" + state
             );
             mCurrentState = state;
             if (MediaResourcesManager.this.mListener == null) {
