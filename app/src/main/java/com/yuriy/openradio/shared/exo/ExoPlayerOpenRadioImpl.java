@@ -625,9 +625,7 @@ public final class ExoPlayerOpenRadioImpl {
                         if (TextUtils.isEmpty(title)) {
                             return;
                         }
-                        if (title.startsWith(" ")) {
-                            title = title.replaceFirst(" ", "");
-                        }
+                        title = title.trim();
                         mMetadataListener.onMetaData(title);
                     }
                 }

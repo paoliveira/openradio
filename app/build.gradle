@@ -123,7 +123,7 @@ dependencies {
             {exclude group: "com.android.support", module: "support-annotations"}
     )
     androidTestImplementation "androidx.test.ext:junit:1.1.2"
-    
+
     testImplementation "junit:junit:$junitVersion"
     testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
 }
