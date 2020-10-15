@@ -54,7 +54,6 @@ public final class HTTPDownloaderImpl implements Downloader {
     /**
      * Tag to use in logging message.
      */
-    @SuppressWarnings("unused")
     private static final String CLASS_NAME = HTTPDownloaderImpl.class.getSimpleName();
 
     /**

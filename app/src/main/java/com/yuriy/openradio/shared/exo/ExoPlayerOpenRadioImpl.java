@@ -228,7 +228,7 @@ public final class ExoPlayerOpenRadioImpl {
 
         final List<Renderer> renderersList = new ArrayList<>();
         buildRenderers(mContext, mMainHandler, renderersList);
-        mRenderers = renderersList.toArray(new Renderer[renderersList.size()]);
+        mRenderers = renderersList.toArray(new Renderer[0]);
 
         final TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
         final ExoPlayer.Builder builder = new ExoPlayer.Builder(mContext, mRenderers);

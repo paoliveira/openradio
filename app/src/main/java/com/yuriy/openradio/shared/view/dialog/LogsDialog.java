@@ -70,6 +70,7 @@ public final class LogsDialog extends BaseDialogFragment {
 
     private SendLogEmailTask mSendLogMailTask;
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
 

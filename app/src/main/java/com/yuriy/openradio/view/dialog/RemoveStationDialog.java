@@ -22,6 +22,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.view.activity.MainActivity;
@@ -54,6 +56,7 @@ public final class RemoveStationDialog extends BaseDialogFragment {
      */
     private static final String KEY_NAME = "KEY_NAME";
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
         final MainActivity activity = (MainActivity) getActivity();

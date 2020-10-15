@@ -140,7 +140,7 @@ public final class AppLogger {
                 logs.addAll(Arrays.asList(getLogs(dir)));
             }
         }
-        return logs.toArray(new File[logs.size()]);
+        return logs.toArray(new File[0]);
     }
 
     public static File[] getInternalLogs() {

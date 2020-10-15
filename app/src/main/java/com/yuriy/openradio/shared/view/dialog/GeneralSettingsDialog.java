@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.yuriy.openradio.R;
@@ -54,6 +55,7 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
 
     private EditText mUserAgentEditView;
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
 

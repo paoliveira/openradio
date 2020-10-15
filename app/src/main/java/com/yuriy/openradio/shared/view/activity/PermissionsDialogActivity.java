@@ -50,9 +50,9 @@ public final class PermissionsDialogActivity extends Activity {
         }
 
         // Should we show an explanation?
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissionName)) {
+//        if (ActivityCompat.shouldShowRequestPermissionRationale(this, permissionName)) {
             // Explain to the user why we need this permission.
-        }
+//        }
 
         ActivityCompat.requestPermissions(
                 this,

@@ -21,7 +21,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.net.Network;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
 
@@ -51,7 +50,7 @@ public final class ConnectivityReceiver extends AbstractReceiver {
         /**
          * Call when connectivity changed.
          *
-         * @param isConnected Whther or not connectivity available.
+         * @param isConnected Whether or not connectivity available.
          */
         void onConnectivityChange(final boolean isConnected);
     }

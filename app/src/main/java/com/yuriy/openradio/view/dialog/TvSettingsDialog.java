@@ -190,7 +190,7 @@ public final class TvSettingsDialog extends BaseDialogFragment {
 
     private static class ArrayAdapterExt extends ArrayAdapter<String> {
 
-        private Map<String, Integer> mMap = new HashMap<>();
+        private final Map<String, Integer> mMap = new HashMap<>();
 
         private ArrayAdapterExt(Context context, int textViewResourceId,
                                 List<String> objects) {

@@ -27,7 +27,7 @@ public final class PlaylistEntry {
     /**
      * A map of all metadata attributes.
      */
-    private Map<String, String[]> metadata = null;
+    private final Map<String, String[]> metadata;
 
     public static final String TRACK = "track";
     public static final String URI = "uri";
@@ -46,7 +46,7 @@ public final class PlaylistEntry {
      * @return Metadata names
      */
     private String[] names() {
-        return metadata.keySet().toArray(new String[metadata.keySet().size()]);
+        return metadata.keySet().toArray(new String[0]);
     }
 
     /**

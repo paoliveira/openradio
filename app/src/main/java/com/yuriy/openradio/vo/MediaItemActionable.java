@@ -32,6 +32,7 @@ public class MediaItemActionable extends MediaBrowserCompat.MediaItem implements
         return mMediaRowActions;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "MediaItemActionable{" +

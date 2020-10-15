@@ -311,7 +311,7 @@ public final class MediaItemHelper {
         final String artist = radioStation.getCountry();
         final String genre = radioStation.getGenre();
         final String source = radioStation.getMediaStream().getVariant(0).getUrl();
-        final String id = String.valueOf(radioStation.getId());
+        final String id = radioStation.getId();
         String subTitle = TextUtils.isEmpty(streamTitle) ? radioStation.getCountry() : streamTitle;
         if (TextUtils.isEmpty(subTitle)) {
             subTitle = artist;

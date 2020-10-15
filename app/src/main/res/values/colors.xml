@@ -12,7 +12,5 @@
     <color name="item_bg_color_selected_sort_mode">#FF3A4A47</color>
     <color name="text_color">#FFC0C0C0</color>
     <color name="favorite_color">#F4CE88</color>
-    <color name="default_background">#0096a6</color>
-    <color name="accent">#80D3FB</color>
 
 </resources>

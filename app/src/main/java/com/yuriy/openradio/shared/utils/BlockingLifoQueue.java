@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.shared.utils;
 
+import androidx.annotation.NonNull;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -106,7 +108,7 @@ public final class BlockingLifoQueue<T> implements BlockingQueue<T> {
         return mDeque.pollLast();
     }
 
-    public boolean addAll(final Collection<? extends T> c) {
+    public boolean addAll(@NonNull final Collection<? extends T> c) {
         mDeque.addAll(c);
         return true;
     }
@@ -115,7 +117,7 @@ public final class BlockingLifoQueue<T> implements BlockingQueue<T> {
         mDeque.clear();
     }
 
-    public boolean containsAll(final Collection<?> c) {
+    public boolean containsAll(@NonNull final Collection<?> c) {
         return mDeque.containsAll(c);
     }
 
@@ -127,11 +129,11 @@ public final class BlockingLifoQueue<T> implements BlockingQueue<T> {
         return mDeque.descendingIterator();
     }
 
-    public boolean removeAll(final Collection<?> c) {
+    public boolean removeAll(@NonNull final Collection<?> c) {
         return mDeque.removeAll(c);
     }
 
-    public boolean retainAll(final Collection<?> c) {
+    public boolean retainAll(@NonNull final Collection<?> c) {
         return mDeque.retainAll(c);
     }
 
@@ -143,7 +145,7 @@ public final class BlockingLifoQueue<T> implements BlockingQueue<T> {
         return mDeque.toArray();
     }
 
-    public <P> P[] toArray(final P[] a) {
+    public <P> P[] toArray(@NonNull final P[] a) {
         return mDeque.toArray(a);
     }
 }

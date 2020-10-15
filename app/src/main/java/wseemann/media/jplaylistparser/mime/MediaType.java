@@ -217,6 +217,7 @@ public final class MediaType implements Comparable<MediaType> {
         this.string = string;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return string;

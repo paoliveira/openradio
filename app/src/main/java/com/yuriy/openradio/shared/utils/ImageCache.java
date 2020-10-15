@@ -27,6 +27,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Environment;
 
+import androidx.annotation.NonNull;
 import androidx.collection.LruCache;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -139,7 +140,7 @@ public class ImageCache {
             // require knowledge of the expected size of the bitmaps. From Honeycomb to JellyBean
             // the size would need to be precise, from KitKat onward the size would just need to
             // be the upper bound (due to changes in how inBitmap can re-use bitmaps).
-            mReusableBitmaps = Collections.synchronizedSet(new HashSet<SoftReference<Bitmap>>());
+            mReusableBitmaps = Collections.synchronizedSet(new HashSet<>());
 
             mMemoryCache = new LruCache<String, BitmapDrawable>(mCacheParams.memCacheSize) {
 
@@ -147,9 +148,9 @@ public class ImageCache {
                  * Notify the removed entry that is no longer being cached
                  */
                 @Override
-                protected void entryRemoved(boolean evicted, String key,
-                        BitmapDrawable oldValue, BitmapDrawable newValue) {
-                    if (RecyclingBitmapDrawable.class.isInstance(oldValue)) {
+                protected void entryRemoved(boolean evicted, @NonNull String key,
+                        @NonNull BitmapDrawable oldValue, BitmapDrawable newValue) {
+                    if (oldValue instanceof RecyclingBitmapDrawable) {
                         // The removed entry is a recycling drawable, so notify it
                         // that it has been removed from the memory cache
                         ((RecyclingBitmapDrawable) oldValue).setIsCached(false);
@@ -167,7 +168,7 @@ public class ImageCache {
                  * for a bitmap cache
                  */
                 @Override
-                protected int sizeOf(String key, BitmapDrawable value) {
+                protected int sizeOf(@NonNull String key, @NonNull BitmapDrawable value) {
                     final int bitmapSize = getBitmapSize(value) / 1024;
                     return bitmapSize == 0 ? 1 : bitmapSize;
                 }
@@ -229,7 +230,7 @@ public class ImageCache {
 
         // Add to memory cache
         if (mMemoryCache != null) {
-            if (RecyclingBitmapDrawable.class.isInstance(value)) {
+            if (value instanceof RecyclingBitmapDrawable) {
                 // The removed entry is a recycling drawable, so notify it
                 // that it has been added into the memory cache
                 ((RecyclingBitmapDrawable) value).setIsCached(true);
@@ -305,7 +306,9 @@ public class ImageCache {
             while (mDiskCacheStarting) {
                 try {
                     mDiskCacheLock.wait();
-                } catch (InterruptedException e) {}
+                } catch (InterruptedException e) {
+                    // Ignore
+                }
             }
             if (mDiskLruCache != null) {
                 InputStream inputStream = null;
@@ -330,7 +333,9 @@ public class ImageCache {
                         if (inputStream != null) {
                             inputStream.close();
                         }
-                    } catch (IOException e) {}
+                    } catch (IOException e) {
+                        // Ignore
+                    }
                 }
             }
             return bitmap;

@@ -26,7 +26,6 @@ import com.yuriy.openradio.shared.vo.EqualizerState;
 
 import org.json.JSONObject;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**

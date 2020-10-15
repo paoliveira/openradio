@@ -66,14 +66,13 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     /**
      * Tag string to use in logging messages.
      */
-    @SuppressWarnings("unused")
     private static final String CLASS_NAME = ApiServiceProviderImpl.class.getSimpleName() + " ";
 
     /**
      * Implementation of the {@link DataParser} which allows to
      * parse raw response of the data into different formats.
      */
-    private DataParser mDataParser;
+    private final DataParser mDataParser;
 
     /**
      *

@@ -73,7 +73,6 @@ public final class FileUtils {
             return false;
         }
         if (isFileExists(file)) {
-            //noinspection ResultOfMethodCallIgnored
             return file.delete();
         }
         return false;

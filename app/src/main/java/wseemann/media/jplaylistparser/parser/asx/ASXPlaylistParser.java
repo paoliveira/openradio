@@ -134,8 +134,8 @@ public final class ASXPlaylistParser extends AbstractParser {
     private void parseXML(String xml, Playlist playlist) {
         SAXBuilder builder = new SAXBuilder();
         Reader in;
-        Document doc = null;
-        Element root = null;
+        Document doc;
+        Element root;
 
         try {
             xml = validateXML(xml, builder);
@@ -258,7 +258,7 @@ public final class ASXPlaylistParser extends AbstractParser {
     }
 
     private <T> List<T> castList(Class<? extends T> castClass, List<?> c) {
-        List<T> list = new ArrayList<T>(c.size());
+        List<T> list = new ArrayList<>(c.size());
 
         for (Object o : c) {
             list.add(castClass.cast(o));

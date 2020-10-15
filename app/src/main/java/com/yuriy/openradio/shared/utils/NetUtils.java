@@ -33,6 +33,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
 
+import okhttp3.internal.Util;
+
 public final class NetUtils {
 
     private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
@@ -73,7 +75,7 @@ public final class NetUtils {
                 connection.setRequestProperty("enctype", "application/x-www-form-urlencoded");
                 try (final OutputStream outputStream = connection.getOutputStream();
                      final BufferedWriter writer
-                             = new BufferedWriter(new OutputStreamWriter(outputStream, AppUtils.UTF8))) {
+                             = new BufferedWriter(new OutputStreamWriter(outputStream, Util.UTF_8))) {
                     writer.write(getPostParametersQuery(parameters));
                     writer.flush();
                 } catch (final IOException exception) {

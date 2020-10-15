@@ -159,10 +159,10 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
             }
         }
 
-        int minBuffer = Integer.valueOf(minBufferStr);
-        int maxBuffer = Integer.valueOf(maxBufferStr);
-        int playBuffer = Integer.valueOf(playBufferStr);
-        int playBufferRebuffer = Integer.valueOf(playBufferRebufferStr);
+        int minBuffer = Integer.parseInt(minBufferStr);
+        int maxBuffer = Integer.parseInt(maxBufferStr);
+        int playBuffer = Integer.parseInt(playBufferStr);
+        int playBufferRebuffer = Integer.parseInt(playBufferRebufferStr);
 
         if (maxBuffer < minBuffer) {
             SafeToast.showAnyThread(context, "Min Buffer is greater than Max Buffer");
@@ -192,7 +192,7 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         }
         final int valueInt;
         try {
-            valueInt = Integer.valueOf(value);
+            valueInt = Integer.parseInt(value);
         } catch (final NumberFormatException e) {
             return false;
         }

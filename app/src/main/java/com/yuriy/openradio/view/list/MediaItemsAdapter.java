@@ -54,9 +54,6 @@ import java.util.List;
  */
 public final class MediaItemsAdapter extends BaseAdapter {
 
-    @SuppressWarnings("unused")
-    private static final String CLASS_NAME = MediaItemsAdapter.class.getSimpleName() + " ";
-
     private ListAdapterViewHolder mViewHolder;
     private MainActivity mActivity;
     private ImageWorker mImageFetcher;

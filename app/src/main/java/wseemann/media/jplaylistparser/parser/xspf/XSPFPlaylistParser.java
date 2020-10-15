@@ -147,7 +147,7 @@ public final class XSPFPlaylistParser extends AbstractParser {
     }
 
     private <T> List<T> castList(final Class<? extends T> castClass, final List<?> c) {
-        final List<T> list = new ArrayList<T>(c.size());
+        final List<T> list = new ArrayList<>(c.size());
 
         for (final Object o : c) {
             list.add(castClass.cast(o));

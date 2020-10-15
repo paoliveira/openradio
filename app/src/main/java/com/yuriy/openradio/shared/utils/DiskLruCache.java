@@ -35,7 +35,6 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -108,7 +107,6 @@ public final class DiskLruCache implements Closeable {
     private static final String REMOVE = "REMOVE";
     private static final String READ = "READ";
 
-    private static final Charset UTF_8 = Charset.forName("UTF-8");
     private static final int IO_BUFFER_SIZE = 8 * 1024;
 
     /*
@@ -727,7 +725,7 @@ public final class DiskLruCache implements Closeable {
     }
 
     private static String inputStreamToString(InputStream in) throws IOException {
-        return readFully(new InputStreamReader(in, UTF_8));
+        return readFully(new InputStreamReader(in, AppUtils.UTF_8));
     }
 
     /**
@@ -832,7 +830,7 @@ public final class DiskLruCache implements Closeable {
         public void set(int index, String value) throws IOException {
             Writer writer = null;
             try {
-                writer = new OutputStreamWriter(newOutputStream(index), UTF_8);
+                writer = new OutputStreamWriter(newOutputStream(index), AppUtils.UTF_8);
                 writer.write(value);
             } finally {
                 closeQuietly(writer);

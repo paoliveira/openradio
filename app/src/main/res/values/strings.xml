@@ -7,7 +7,6 @@
     <string name="app_logs_label">Application Logs</string>
     <string name="send_logs_chooser_title">Send Logs by:</string>
     <string name="cant_start_activity">Can not start Activity</string>
-    <string name="cant_send_logs">Can not send Logs</string>
     <string name="logs_sent_msg">Logs are sent</string>
     <string name="about_thanks_1">This project is use the Community Radio Browser API - a service that provides a list of radio stations broadcasting their live stream on the Internet:</string>
     <string name="about_thanks_1_title">Community Radio Browser API</string>
@@ -44,11 +43,9 @@
     <string name="google_drive_error_when_read">Error while read Radio Stations from Google Drive</string>
     <string name="google_drive_data_saved">Radio Stations are saved to Google Drive</string>
     <string name="google_drive_data_read">Radio Stations are read from Google Drive</string>
-    <string name="google_drive_conn_error">Error while connecting to Google Drive</string>
     <string name="can_not_get_account_name">Can not get Google Account name</string>
     <string name="category_empty">Category is empty</string>
     <string name="google_drive">Google Drive</string>
-    <string name="action_google_drive">Google Drive</string>
     <string name="google_drive_init_warning">Initial connection may take a long time.</string>
     <string name="google_drive_upload_info">Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!</string>
     <string name="upload">Upload</string>
@@ -77,11 +74,6 @@
     <string name="label_play">Play</string>
     <string name="eq_label">Equalizer</string>
     <string name="search_label">Search</string>
-    <string name="action_about">About</string>
-    <string name="skip_previous">Skip to previous</string>
-    <string name="skip_next">Skip to next</string>
-    <string name="play_pause">Play or Pause</string>
-    <string name="close_label">Close</string>
     <string name="use_location_service_message">Location Service is disabled on the device.\nIn order to use additional features of the Open Radio (such that Radio Stations of the current location) it is necessary to enable Location Service.</string>
     <string name="location_service">Location Service</string>
     <string name="enable_location_service_btn_label">Enable Location Service</string>
@@ -90,10 +82,6 @@
     <string name="add_station_dialog_title">Add Radio Station</string>
     <string name="add_station_dialog_button_label">Add</string>
     <string name="cancel_label">Cancel</string>
-    <string name="location_label">Location</string>
-    <string name="cant_read_folder">Folder can\'t be read!</string>
-    <string name="select_label">Select</string>
-    <string name="remove_station_dialog_title">Remove Radio Station</string>
     <string name="remove_station_dialog_button_label">Remove</string>
     <string name="remove_station_dialog_main_text">You are going to remove Radio Station:\n%s\nAre You sure?</string>
     <string name="add_station_home_page_label">Home page:</string>
@@ -126,7 +114,6 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="no_location_setting_desc">Can not find Location Settings</string>
-    <string name="tv_header_menu_radio_stations">Radio Stations</string>
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="equalizer_presets_label">System presets:</string>
     <string name="eq_not_available">Equalizer is not available</string>

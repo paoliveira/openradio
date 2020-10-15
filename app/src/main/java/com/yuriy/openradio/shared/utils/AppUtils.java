@@ -38,6 +38,7 @@ import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Locale;
@@ -61,6 +62,11 @@ public final class AppUtils {
 
     public static final String UTF8 = "UTF-8";
     public static final String DRAWABLE_PATH = "android.resource://com.yuriy.openradio/drawable/";
+
+    @SuppressWarnings("all")
+    public static final Charset UTF_8 = Charset.forName("UTF-8");
+    @SuppressWarnings("all")
+    public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
     private static final String[] ANDROID_AUTO_PACKAGE_NAMES = new String[]{
             "com.google.android.projection.gearhead",

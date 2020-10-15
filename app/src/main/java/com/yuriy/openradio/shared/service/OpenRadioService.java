@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.service;
 
+import android.annotation.SuppressLint;
 import android.app.UiModeManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -328,6 +329,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     /**
      *
      */
+    @SuppressLint("HandlerLeak")
     private final class DelayedStopHandler extends Handler {
 
         /**

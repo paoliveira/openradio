@@ -23,6 +23,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.utils.AppUtils;
@@ -59,6 +61,7 @@ public final class AboutDialog extends BaseDialogFragment {
     private static final String PROJECT_HOME_URL
             = "https://bitbucket.org/ChernyshovYuriy/openradio";
 
+    @NonNull
     @Override
     public Dialog onCreateDialog(final Bundle savedInstanceState) {
 

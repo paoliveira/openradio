@@ -32,9 +32,6 @@ public final class RadioStationsStorage {
 
     public static final int UNKNOWN_INDEX = -1;
 
-    @SuppressWarnings("unused")
-    private static final String CLASS_NAME = RadioStationsStorage.class.getSimpleName();
-
     /**
      * Collection of the Radio Stations.
      */
