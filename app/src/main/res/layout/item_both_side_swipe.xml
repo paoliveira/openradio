@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.yuriy.openradio.view.list.BothSideCoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@id/backgroundView">
+
+        <ImageButton
+            android:id="@+id/delete_btn_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:background="@color/accent_color"
+            android:padding="10dp"
+            android:src="@drawable/ic_delete" />
+
+        <ImageButton
+            android:id="@+id/action_btn_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentEnd="true"
+            android:layout_gravity="end"
+            android:background="@color/design_default_color_secondary"
+            android:padding="10dp"
+            android:src="@drawable/ic_action" />
+    </RelativeLayout>
+
+    <include layout="@layout/category_list_item" />
+
+</com.yuriy.openradio.view.list.BothSideCoordinatorLayout>

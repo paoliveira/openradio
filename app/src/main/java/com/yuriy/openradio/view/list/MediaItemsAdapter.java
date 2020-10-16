@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,17 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.xenione.libs.swipemaker.SwipeLayout;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
@@ -52,13 +54,19 @@ import java.util.List;
  * On 12/18/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class MediaItemsAdapter extends BaseAdapter {
+public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdapter.ViewHolder> {
 
-    private ListAdapterViewHolder mViewHolder;
+    public interface Listener {
+        void onItemDismissed(MediaBrowserCompat.MediaItem item);
+        void onItemAction(MediaBrowserCompat.MediaItem item);
+        void onItemTap(MediaBrowserCompat.MediaItem item);
+    }
+
     private MainActivity mActivity;
     private ImageWorker mImageFetcher;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
     private String mParentId;
+    private Listener mListener;
 
     /**
      * The currently selected / active Item Id.
@@ -79,20 +87,78 @@ public final class MediaItemsAdapter extends BaseAdapter {
         mImageFetcher = imageFetcher;
     }
 
+    @NonNull
     @Override
-    public final int getCount() {
+    public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
+        return new ViewHolder(
+                LayoutInflater.from(parent.getContext()).inflate(R.layout.item_both_side_swipe, parent, false)
+        );
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
+        final MediaBrowserCompat.MediaItem mediaItem = getItem(position);
+        if (mediaItem == null) {
+            return;
+        }
+        if (mActivity == null) {
+            return;
+        }
+        if (mImageFetcher == null) {
+            return;
+        }
+
+        final MediaDescriptionCompat description = mediaItem.getDescription();
+
+        handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, getParentId());
+
+        updateImage(description, holder.mImageView, mImageFetcher, mediaItem.isPlayable());
+
+        updateBitrateView(
+                MediaItemHelper.getBitrateField(mediaItem), holder.mBitrateView, mediaItem.isPlayable()
+        );
+
+        if (mediaItem.isPlayable()) {
+            handleFavoriteAction(
+                    holder.mFavoriteCheckView, description, mediaItem, mActivity
+            );
+        } else {
+            holder.mFavoriteCheckView.setVisibility(View.GONE);
+        }
+
+        holder.mDelete.setOnClickListener(new OnDismissListener(mediaItem));
+        holder.mAction.setOnClickListener(new OnActionListener(mediaItem));
+        holder.mSwipeLayout.setOnClickListener(new OnItemTapListener(mediaItem));
+
+        int color;
+        if (position == getActiveItemId()
+                || (mActivity.mDragMediaItem != null && mActivity.mDragMediaItem == mediaItem)) {
+            color = R.color.list_item_selected_bg_color;
+            if (mActivity.mIsSortMode) {
+                color = R.color.item_bg_color_selected_sort_mode;
+            }
+        } else {
+            color = R.color.transparent_color;
+            if (mActivity.mIsSortMode) {
+                color = R.color.item_bg_color_sort_mode;
+            }
+        }
+
+//        holder.mRootView.setBackgroundColor(mActivity.getResources().getColor(color));
+    }
+
+    @Override
+    public int getItemCount() {
         return mAdapterData.getItemsCount();
     }
 
-    @Override
     @Nullable
-    public final MediaBrowserCompat.MediaItem getItem(final int position) {
+    public MediaBrowserCompat.MediaItem getItem(final int position) {
         return mAdapterData.getItem(position);
     }
 
-    @Override
-    public final long getItemId(final int position) {
-        return position;
+    public void setListener(final Listener listener) {
+        mListener = listener;
     }
 
     /**
@@ -142,60 +208,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
         return mActiveItemId;
     }
 
-    @Override
-    public final View getView(final int position, View convertView, final ViewGroup parent) {
-        final MediaBrowserCompat.MediaItem mediaItem = getItem(position);
-        convertView = prepareViewAndHolder(convertView);
-
-        if (mediaItem == null) {
-            return convertView;
-        }
-        if (mActivity == null) {
-            return convertView;
-        }
-        if (mImageFetcher == null) {
-            return convertView;
-        }
-
-        final MediaDescriptionCompat description = mediaItem.getDescription();
-
-        handleNameAndDescriptionView(mViewHolder.mNameView, mViewHolder.mDescriptionView, description, getParentId());
-
-        updateImage(description, mViewHolder.mImageView, mImageFetcher, mediaItem.isPlayable());
-
-        updateBitrateView(
-                MediaItemHelper.getBitrateField(mediaItem), mViewHolder.mBitrateView, mediaItem.isPlayable()
-        );
-
-        if (mediaItem.isPlayable()) {
-            handleFavoriteAction(
-                    mViewHolder.mFavoriteCheckView, description, mediaItem, mActivity
-            );
-        } else {
-            mViewHolder.mFavoriteCheckView.setVisibility(View.GONE);
-        }
-
-        int color;
-        if (position == getActiveItemId()
-                || (mActivity.mDragMediaItem != null && mActivity.mDragMediaItem == mediaItem)) {
-            color = R.color.list_item_selected_bg_color;
-            if (mActivity.mIsSortMode) {
-                color = R.color.item_bg_color_selected_sort_mode;
-            }
-        } else {
-            color = R.color.transparent_color;
-            if (mActivity.mIsSortMode) {
-                color = R.color.item_bg_color_sort_mode;
-            }
-        }
-
-        mViewHolder.mRootView.setBackgroundColor(
-                mActivity.getResources().getColor(color)
-        );
-
-        return convertView;
-    }
-
     /**
      * Add {@link MediaBrowserCompat.MediaItem}s into the collection.
      *
@@ -236,25 +248,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
         clearData();
         mActivity = null;
         mImageFetcher = null;
-    }
-
-    /**
-     * Prepare view holder for the item rendering.
-     *
-     * @param convertView      {@link View} associated with List Item
-     * @return View
-     */
-    private View prepareViewAndHolder(View convertView) {
-        // If there is no View created - create it here and set it's Tag
-        if (convertView == null) {
-            convertView = LayoutInflater.from(mActivity).inflate(R.layout.category_list_item, null);
-            mViewHolder = createViewHolder(convertView);
-            convertView.setTag(mViewHolder);
-        } else {
-            // Get View by provided Tag
-            mViewHolder = (ListAdapterViewHolder) convertView.getTag();
-        }
-        return convertView;
     }
 
     public static void updateBitrateView(final int bitrate,
@@ -303,23 +296,6 @@ public final class MediaItemsAdapter extends BaseAdapter {
             descriptionView.setVisibility(View.VISIBLE);
         }
         nameView.setLayoutParams(layoutParams);
-    }
-
-    /**
-     * Create View holder to keep reference to the layout items
-     *
-     * @param view {@link android.view.View}
-     * @return {@link ListAdapterViewHolder} object
-     */
-    private ListAdapterViewHolder createViewHolder(final View view) {
-        final ListAdapterViewHolder viewHolder = new ListAdapterViewHolder();
-        viewHolder.mNameView = view.findViewById(R.id.name_view);
-        viewHolder.mDescriptionView = view.findViewById(R.id.description_view);
-        viewHolder.mImageView = view.findViewById(R.id.img_view);
-        viewHolder.mFavoriteCheckView = view.findViewById(R.id.favorite_check_view);
-        viewHolder.mRootView = view.findViewById(R.id.category_list_root_view);
-        viewHolder.mBitrateView = view.findViewById(R.id.bitrate_view);
-        return viewHolder;
     }
 
     /**
@@ -385,5 +361,98 @@ public final class MediaItemsAdapter extends BaseAdapter {
                     context.startService(intent);
                 }
         );
+    }
+
+    private final class OnDismissListener implements View.OnClickListener {
+
+        private final MediaBrowserCompat.MediaItem mItem;
+
+        public OnDismissListener(final MediaBrowserCompat.MediaItem item) {
+            super();
+            mItem = item;
+        }
+
+        @Override
+        public void onClick(final View view) {
+            mListener.onItemDismissed(mItem);
+        }
+    }
+
+    private final class OnActionListener implements View.OnClickListener {
+
+        private final MediaBrowserCompat.MediaItem mItem;
+
+        public OnActionListener(final MediaBrowserCompat.MediaItem item) {
+            super();
+            mItem = item;
+        }
+
+        @Override
+        public void onClick(final View view) {
+            mListener.onItemAction(mItem);
+        }
+    }
+
+    private final class OnItemTapListener implements View.OnClickListener {
+
+        private final MediaBrowserCompat.MediaItem mItem;
+
+        public OnItemTapListener(final MediaBrowserCompat.MediaItem item) {
+            super();
+            mItem = item;
+        }
+
+        @Override
+        public void onClick(final View view) {
+            mListener.onItemTap(mItem);
+        }
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+
+        /**
+         * Title text view.
+         */
+        private final TextView mNameView;
+
+        private final TextView mBitrateView;
+
+        /**
+         * Description text view.
+         */
+        private final TextView mDescriptionView;
+
+        /**
+         * Category image view.
+         */
+        private final ImageView mImageView;
+
+        /**
+         * Check box vew for the "Favorites" option.
+         */
+        private final CheckBox mFavoriteCheckView;
+
+        /**
+         * Root view of the layout.
+         */
+        private final RelativeLayout mRootView;
+
+        private final SwipeLayout mSwipeLayout;
+
+        private final ImageButton mDelete;
+        private final ImageButton mAction;
+
+        public ViewHolder(final View view) {
+            super(view);
+            mNameView = view.findViewById(R.id.name_view);
+            mDescriptionView = view.findViewById(R.id.description_view);
+            mImageView = view.findViewById(R.id.img_view);
+            mFavoriteCheckView = view.findViewById(R.id.favorite_check_view);
+            mRootView = view.findViewById(R.id.backgroundView);
+            mBitrateView = view.findViewById(R.id.bitrate_view);
+            mDelete = view.findViewById(R.id.delete_btn_view);
+            mAction = view.findViewById(R.id.action_btn_view);
+            mSwipeLayout = view.findViewById(R.id.foregroundView);
+        }
     }
 }

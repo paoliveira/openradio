@@ -53,6 +53,8 @@ import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -168,7 +170,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener for the List view click event.
      */
-    private final AdapterView.OnItemClickListener mOnItemClickLstnr;
+    private final MediaItemsAdapter.Listener mMediaItemListener;
     /**
      * Listener for the List touch event.
      */
@@ -196,7 +198,7 @@ public final class MainActivity extends AppCompatActivity {
      */
     private final ScreenReceiver mScreenBroadcastRcvr;
     private TextView mBufferedTextView;
-    private ListView mListView;
+    private RecyclerView mListView;
     private View mPlayBtn;
     private View mPauseBtn;
     private ProgressBar mProgressBarCrs;
@@ -214,7 +216,7 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
         mPermissionStatusLstnr = new PermissionListener(this);
         mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback(this);
-        mOnItemClickLstnr = new OnItemClickListener(this);
+        mMediaItemListener = new MediaItemListenerImpl(this);
         mOnTouchLstnr = new OnTouchListener(this);
         mOnScrollLstnr = new OnScrollListener(this);
         mIsOnSaveInstancePassed = new AtomicBoolean(false);
@@ -350,14 +352,17 @@ public final class MainActivity extends AppCompatActivity {
 
         // Get list view reference from the inflated xml
         mListView = findViewById(R.id.list_view);
+        mListView.setHasFixedSize(true);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+        mListView.setLayoutManager(layoutManager);
         // Set adapter
         mListView.setAdapter(mBrowserAdapter);
-        // Set click listener
-        mListView.setOnItemClickListener(mOnItemClickLstnr);
-        // Set touch listener.
-        mListView.setOnTouchListener(mOnTouchLstnr);
-        // Set scroll listener.
-        mListView.setOnScrollListener(mOnScrollLstnr);
+//        // Set touch listener.
+//        mListView.setOnTouchListener(mOnTouchLstnr);
+//        // Set scroll listener.
+//        mListView.setOnScrollListener(mOnScrollLstnr);
+        mBrowserAdapter.setListener(mMediaItemListener);
+        AppLogger.d("TRACE:" + mListView.getLayoutManager());
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
@@ -530,7 +535,7 @@ public final class MainActivity extends AppCompatActivity {
         OpenRadioService.putRestoreState(outState, true);
 
         // Get first visible item id
-        int firstVisiblePosition = mListView.getFirstVisiblePosition();
+        int firstVisiblePosition = 0;
         // Just in case ...
         if (firstVisiblePosition < 0) {
             firstVisiblePosition = 0;
@@ -581,7 +586,7 @@ public final class MainActivity extends AppCompatActivity {
         // This will make selected item highlighted.
         setActiveItem(clickedPosition);
         // This actually do scroll to the position.
-        mListView.setSelection(selectedPosition);
+//        mListView.setSelection(selectedPosition);
     }
 
     /**
@@ -668,7 +673,7 @@ public final class MainActivity extends AppCompatActivity {
      * Handle event of the list view item stop drag.
      */
     private void stopDrag() {
-        final int itemsNumber = mBrowserAdapter.getCount();
+        final int itemsNumber = mBrowserAdapter.getItemCount();
         if (mStartDragSelectedItem != null) {
             MediaBrowserCompat.MediaItem mediaItem;
             for (int i = 0; i < itemsNumber; ++i) {
@@ -807,7 +812,6 @@ public final class MainActivity extends AppCompatActivity {
         if (mListView == null) {
             return;
         }
-        mBrowserAdapter.notifyDataSetInvalidated();
         mBrowserAdapter.setActiveItemId(position);
         mBrowserAdapter.notifyDataSetChanged();
     }
@@ -1160,7 +1164,6 @@ public final class MainActivity extends AppCompatActivity {
 
             activity.mBrowserAdapter.setParentId(parentId);
             activity.mBrowserAdapter.clearData();
-            activity.mBrowserAdapter.notifyDataSetInvalidated();
             activity.mBrowserAdapter.addAll(children);
             activity.mBrowserAdapter.notifyDataSetChanged();
 
@@ -1189,7 +1192,7 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Listener of the List Item click event.
      */
-    private static final class OnItemClickListener implements AdapterView.OnItemClickListener {
+    private static final class MediaItemListenerImpl implements MediaItemsAdapter.Listener {
 
         /**
          * Weak reference to the Main Activity.
@@ -1206,24 +1209,33 @@ public final class MainActivity extends AppCompatActivity {
          *
          * @param mainActivity Reference to the Main Activity.
          */
-        private OnItemClickListener(final MainActivity mainActivity) {
+        private MediaItemListenerImpl(final MainActivity mainActivity) {
             super();
             CLASS_NAME = mainActivity.getClass().getSimpleName()
-                    + " " + OnItemClickListener.class.getSimpleName()
+                    + " " + MediaItemListenerImpl.class.getSimpleName()
                     + " " + mainActivity.hashCode()
                     + " " + hashCode() + " ";
             mReference = new WeakReference<>(mainActivity);
         }
 
         @Override
-        public void onItemClick(final AdapterView<?> parent, final View view, final int position,
-                                final long id) {
+        public void onItemDismissed(MediaBrowserCompat.MediaItem item) {
+
+        }
+
+        @Override
+        public void onItemAction(MediaBrowserCompat.MediaItem item) {
+
+        }
+
+        @Override
+        public void onItemTap(MediaBrowserCompat.MediaItem item) {
             final MainActivity mainActivity = mReference.get();
             if (mainActivity == null) {
                 AppLogger.w(CLASS_NAME + "OnItemClick return, reference to MainActivity is null");
                 return;
             }
-            mainActivity.handleOnItemClick(position);
+            mainActivity.mMediaPresenter.handleItemClick(item, 0);
         }
     }
 

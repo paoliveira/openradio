@@ -38,7 +38,7 @@
         android:paddingRight="@dimen/activity_vertical_margin"
         android:background="@android:color/white"/>
 
-    <ListView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list_view"
         android:layout_below="@id/last_played_separator_item_view"
         android:padding="@dimen/activity_vertical_margin"

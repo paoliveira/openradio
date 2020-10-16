@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/category_list_root_view"
+<com.xenione.libs.swipemaker.SwipeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@id/foregroundView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="10dp">
@@ -29,8 +28,8 @@
         android:id="@+id/bitrate_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="5dp"
-        android:layout_below="@+id/img_view"/>
+        android:layout_below="@+id/img_view"
+        android:paddingTop="5dp" />
 
     <TextView
         android:id="@+id/description_view"
@@ -38,20 +37,20 @@
         android:layout_below="@+id/name_view"
         android:layout_toStartOf="@+id/favorite_check_view"
         android:layout_toEndOf="@+id/img_view"
-        android:paddingEnd="15dp"
-        android:textSize="18sp"
+        android:ellipsize="end"
         android:maxLines="1"
-        android:ellipsize="end"/>
+        android:paddingEnd="15dp"
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/name_view"
         style="@style/text_style"
         android:layout_toStartOf="@+id/favorite_check_view"
         android:layout_toEndOf="@+id/img_view"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:paddingEnd="15dp"
         android:textSize="22sp"
-        android:textStyle="bold"
-        android:maxLines="2"
-        android:ellipsize="end"/>
+        android:textStyle="bold" />
 
-</RelativeLayout>
+</com.xenione.libs.swipemaker.SwipeLayout>
