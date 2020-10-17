@@ -675,7 +675,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             LatestRadioStationStorage.add(radioStation, getApplicationContext());
         }
         configMediaPlayerState();
-        mMediaNotification.doInitialNotification(getCurrentPlayingRadioStation());
+        mMediaNotification.doInitialNotification(getApplicationContext(), getCurrentPlayingRadioStation());
         updateMetadata(mCurrentStreamTitle);
     }
 
@@ -1041,7 +1041,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             updatePlaybackState(new PlaybackStateError(getString(R.string.no_data_message)));
         }
 
-        return MediaItemHelper.metadataFromRadioStation(radioStation);
+        return MediaItemHelper.metadataFromRadioStation(getApplicationContext(), radioStation);
     }
 
     //TODO: Translate
@@ -1068,8 +1068,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             return;
         }
         final MediaMetadataCompat metadata = MediaItemHelper.metadataFromRadioStation(
-                radioStation,
-                streamTitle
+                getApplicationContext(), radioStation, streamTitle
         );
         if (metadata == null) {
             AppLogger.w(CLASS_NAME + "Can not update Metadata - MediaMetadata is null");
@@ -1430,7 +1429,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_BUFFERING
                 || mState == PlaybackStateCompat.STATE_PLAYING
                 || mState == PlaybackStateCompat.STATE_PAUSED) {
-            mMediaNotification.startNotification(getCurrentPlayingRadioStation());
+            mMediaNotification.startNotification(getApplicationContext(), getCurrentPlayingRadioStation());
         }
     }
 
@@ -1595,9 +1594,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                         return;
                     }
 
-                    int favoriteIcon = R.drawable.ic_star_off;
+                    int favoriteIcon = R.drawable.ic_favorite_off;
                     if (FavoritesStorage.isFavorite(radioStation, getApplicationContext())) {
-                        favoriteIcon = R.drawable.ic_star_on;
+                        favoriteIcon = R.drawable.ic_favorite_on;
                     }
                     stateBuilder.addCustomAction(
                             CUSTOM_ACTION_THUMBS_UP,

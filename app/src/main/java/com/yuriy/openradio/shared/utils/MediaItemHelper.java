@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,25 +46,35 @@ import java.util.List;
  */
 public final class MediaItemHelper {
 
-    private static final String CLASS_NAME = MediaItemHelper.class.getSimpleName();
-
+    private static int DRAWABLE_ID_UNDEFINED = -1;
     private static final String KEY_IS_FAVORITE = "KEY_IS_FAVORITE";
-
     private static final String KEY_IS_LAST_PLAYED = "KEY_IS_LAST_PLAYED";
-
     private static final String KEY_IS_LOCAL = "KEY_IS_LOCAL";
-
     private static final String KEY_SORT_ID = "KEY_SORT_ID";
-
     private static final String KEY_CURRENT_STREAM_TITLE = "CURRENT_STREAM_TITLE";
-
     private static final String KEY_BITRATE = "KEY_BITRATE";
+    private static final String KEY_DRAWABLE_ID = "DRAWABLE_ID";
 
     /**
      * Default constructor.
      */
     private MediaItemHelper() {
         super();
+    }
+
+    public static void setDrawableId(@NonNull final Bundle bundle, final int drawableId) {
+        bundle.putInt(KEY_DRAWABLE_ID, drawableId);
+    }
+
+    public static int getDrawableId(@Nullable final Bundle bundle) {
+        if (bundle == null) {
+            return DRAWABLE_ID_UNDEFINED;
+        }
+        return bundle.getInt(KEY_DRAWABLE_ID, DRAWABLE_ID_UNDEFINED);
+    }
+
+    public static boolean isDrawableIdValid(final int drawableId) {
+        return drawableId != DRAWABLE_ID_UNDEFINED;
     }
 
     public static void updateBitrateField(@NonNull final Bundle bundle, final int bitrate) {
@@ -283,8 +293,9 @@ public final class MediaItemHelper {
      * @param radioStation {@link RadioStation}.
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadataCompat metadataFromRadioStation(final RadioStation radioStation) {
-        return metadataFromRadioStation(radioStation, null);
+    public static MediaMetadataCompat metadataFromRadioStation(final Context context,
+                                                               final RadioStation radioStation) {
+        return metadataFromRadioStation(context, radioStation, null);
     }
 
     /**
@@ -295,13 +306,14 @@ public final class MediaItemHelper {
      * @param streamTitle  Title of the current stream.
      * @return {@link android.media.MediaMetadata}
      */
-    public static MediaMetadataCompat metadataFromRadioStation(final RadioStation radioStation,
+    public static MediaMetadataCompat metadataFromRadioStation(final Context context,
+                                                               final RadioStation radioStation,
                                                                @Nullable final String streamTitle) {
 
         if (radioStation == null) {
             return null;
         }
-        String iconUrl = AppUtils.DRAWABLE_PATH + "ic_radio_station_empty";
+        String iconUrl = "";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
@@ -340,6 +352,7 @@ public final class MediaItemHelper {
             extras = new Bundle();
             updateExtras(description, extras);
         }
+        setDrawableId(extras, R.drawable.ic_radio_station_empty);
         extras.putInt(KEY_SORT_ID, radioStation.getSortId());
 
         return mediaMetadataCompat;
@@ -372,8 +385,9 @@ public final class MediaItemHelper {
      * @param radioStation {@link RadioStation}.
      * @return {@link MediaDescriptionCompat}
      */
-    public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final RadioStation radioStation) {
-        String iconUrl = AppUtils.DRAWABLE_PATH + "ic_radio_station_empty";
+    public static MediaDescriptionCompat buildMediaDescriptionFromRadioStation(final Context context,
+                                                                               final RadioStation radioStation) {
+        String iconUrl = "";
         if (radioStation.getImageUrl() != null && !radioStation.getImageUrl().isEmpty()
                 && !radioStation.getImageUrl().equalsIgnoreCase("null")) {
             iconUrl = radioStation.getImageUrl();
@@ -386,6 +400,7 @@ public final class MediaItemHelper {
         final Bundle bundle = new Bundle();
 
         updateBitrateField(bundle, radioStation.getMediaStream().getVariant(0).getBitrate());
+        setDrawableId(bundle, R.drawable.ic_radio_station_empty);
 
         return new MediaDescriptionCompat.Builder()
                 .setDescription(genre)
@@ -406,8 +421,7 @@ public final class MediaItemHelper {
     public static MediaMetadataCompat buildMediaMetadataForEmptyCategory(final Context context,
                                                                          final String parentId) {
 
-        final String iconUrl = AppUtils.DRAWABLE_PATH + "ic_radio_station_empty";
-
+        final String iconUrl = AppUtils.getUriForDrawable(context, R.drawable.ic_radio_station_empty).toString();
         final String title = context.getString(R.string.category_empty);
         final String artist = "";
         final String genre = "";
@@ -417,7 +431,8 @@ public final class MediaItemHelper {
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
-        return new MediaMetadataCompat.Builder()
+
+        final MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, parentId)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
@@ -425,6 +440,8 @@ public final class MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .build();
+        setDrawableId(metadata.getBundle(), R.drawable.ic_radio_station_empty);
+        return metadata;
     }
 
     /**

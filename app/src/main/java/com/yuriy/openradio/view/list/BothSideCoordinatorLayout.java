@@ -35,10 +35,10 @@ public class BothSideCoordinatorLayout extends AbsCoordinatorLayout {
 
     @Override
     public void doInitialViewsLocation() {
-        final SwipeLayout foregroundView = findViewById(R.id.foregroundView);
-        final View delete = findViewById(R.id.delete_btn_view);
-        final View action = findViewById(R.id.action_btn_view);
-        foregroundView.anchor(-action.getWidth(), 0, delete.getRight());
+        final SwipeLayout foregroundView = findViewById(R.id.foreground_view);
+        final View settings = findViewById(R.id.settings_btn_view);
+        final View favorite = findViewById(R.id.favorite_view);
+        foregroundView.anchor(-favorite.getWidth(), 0, settings.getRight());
     }
 
     @Override

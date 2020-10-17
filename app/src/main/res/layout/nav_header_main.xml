@@ -13,8 +13,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="28dp"
-        app:srcCompat="@drawable/ic_launcher"/>
+        app:srcCompat="@mipmap/ic_launcher"/>
 
     <TextView
         android:layout_width="match_parent"

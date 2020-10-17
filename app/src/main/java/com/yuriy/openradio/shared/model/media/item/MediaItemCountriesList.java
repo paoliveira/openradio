@@ -99,7 +99,6 @@ public final class MediaItemCountriesList implements MediaItemCommand {
         final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
         Bitmap bitmap;
         int identifier;
-        Uri uri;
         MediaDescriptionCompat.Builder builder;
 
         for (final Country country : list) {
@@ -118,9 +117,9 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                     .setSubtitle(country.getCode());
 
             if (dependencies.isAndroidAuto()) {
-                uri = Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp");
-
-                builder.setIconUri(uri);
+                builder.setIconUri(
+                        AppUtils.getUriForDrawable(dependencies.getContext(), R.drawable.ic_public_black_24dp)
+                );
             } else {
                 identifier = dependencies.getContext().getResources().getIdentifier(
                         "flag_" + country.getCode().toLowerCase(),

@@ -5,7 +5,7 @@
 
     <item android:id="@+id/action_eq"
         android:title="@string/eq_label"
-        android:icon="@drawable/ic_eq"
+        android:icon="@drawable/ic_equalizer"
         app:showAsAction="ifRoom" />
 
     <item android:id="@+id/action_search"

@@ -18,16 +18,19 @@ package com.yuriy.openradio.shared.utils;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -61,7 +64,6 @@ public final class AppUtils {
     public static final int TIME_OUT = 2000;
 
     public static final String UTF8 = "UTF-8";
-    public static final String DRAWABLE_PATH = "android.resource://com.yuriy.openradio/drawable/";
 
     @SuppressWarnings("all")
     public static final Charset UTF_8 = Charset.forName("UTF-8");
@@ -83,6 +85,18 @@ public final class AppUtils {
      */
     private AppUtils() {
         super();
+    }
+
+    public static Uri getUriForDrawable(@NonNull final Context context, final int drawableId) {
+        try {
+            return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
+                    "://" + context.getResources().getResourcePackageName(drawableId)
+                    + '/' + context.getResources().getResourceTypeName(drawableId)
+                    + '/' + context.getResources().getResourceEntryName(drawableId));
+        } catch (final Exception e) {
+            AppLogger.e("Can not get uri for " + drawableId + ", exception:" + Log.getStackTraceString(e));
+            return Uri.EMPTY;
+        }
     }
 
     /**

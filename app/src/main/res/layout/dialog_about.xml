@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:text="@string/about_author_name"
-                android:textColor="@color/blue_light_color"
+                android:textColor="@color/or_color_blue_light"
                 android:textStyle="bold"/>
 
         </LinearLayout>
@@ -65,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
                 android:text="@string/app_name"
-                android:textColor="@color/blue_light_color"
+                android:textColor="@color/or_color_blue_light"
                 android:textStyle="bold"/>
 
         </LinearLayout>

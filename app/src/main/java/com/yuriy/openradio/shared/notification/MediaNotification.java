@@ -154,7 +154,7 @@ public final class MediaNotification extends BroadcastReceiver {
      * updated. The notification will automatically be removed if the session is
      * destroyed before {@link #stopNotification} is called.
      */
-    public void startNotification(final RadioStation radioStation) {
+    public void startNotification(final Context context, final RadioStation radioStation) {
         if (mStarted.get()) {
             return;
         }
@@ -170,7 +170,7 @@ public final class MediaNotification extends BroadcastReceiver {
         if (metadata != null) {
             mMetadata = metadata;
         } else {
-            mMetadata = MediaItemHelper.metadataFromRadioStation(radioStation);
+            mMetadata = MediaItemHelper.metadataFromRadioStation(context, radioStation);
         }
         PlaybackStateCompat playbackState = mController.getPlaybackState();
         if (playbackState != null) {
@@ -303,7 +303,7 @@ public final class MediaNotification extends BroadcastReceiver {
         // If skip to previous action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
             builder.addAction(
-                    R.drawable.ic_skip_previous_white_24dp,
+                    R.drawable.ic_skip_prev,
                     mService.getString(R.string.label_previous),
                     mPreviousIntent
             );
@@ -346,7 +346,7 @@ public final class MediaNotification extends BroadcastReceiver {
         // If skip to next action is enabled
         if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
             builder.addAction(
-                    R.drawable.ic_skip_next_white_24dp,
+                    R.drawable.ic_skip_next,
                     mService.getString(R.string.label_next),
                     mNextIntent
             );
@@ -357,11 +357,10 @@ public final class MediaNotification extends BroadcastReceiver {
                 .addAction(getPlayPauseAction())
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setLargeIcon(art)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle(description.getTitle())
-                .setContentText(description.getSubtitle())
-                .setLargeIcon(art);
+                .setContentText(description.getSubtitle());
 
         AppLogger.d(
                 CLASS_NAME + " Update Notification " +
@@ -395,7 +394,6 @@ public final class MediaNotification extends BroadcastReceiver {
         builder
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
-                .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle("Open Radio")
                 .setContentText("Open Radio just started")
@@ -404,8 +402,8 @@ public final class MediaNotification extends BroadcastReceiver {
         mService.startForeground(NOTIFICATION_ID, builder.build());
     }
 
-    public void doInitialNotification(final RadioStation radioStation) {
-        mMetadata = MediaItemHelper.metadataFromRadioStation(radioStation);
+    public void doInitialNotification(final Context context, final RadioStation radioStation) {
+        mMetadata = MediaItemHelper.metadataFromRadioStation(context, radioStation);
         if (mMetadata == null) {
             AppLogger.e(
                     "StartNotification null metadata, after created from RadioStation."
@@ -442,7 +440,6 @@ public final class MediaNotification extends BroadcastReceiver {
         builder
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
-                .setSmallIcon(R.drawable.ic_notification)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle("Open Radio")
                 .setContentText("No Radio Station selected")
@@ -460,11 +457,11 @@ public final class MediaNotification extends BroadcastReceiver {
         PendingIntent intent;
         if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
             label = mService.getString(R.string.label_pause);
-            icon = R.drawable.ic_pause_white_24dp;
+            icon = R.drawable.ic_pause;
             intent = mPauseIntent;
         } else {
             label = mService.getString(R.string.label_play);
-            icon = R.drawable.ic_play_arrow_white_24dp;
+            icon = R.drawable.ic_play_arrow;
             intent = mPlayIntent;
         }
         return new NotificationCompat.Action(icon, label, intent);

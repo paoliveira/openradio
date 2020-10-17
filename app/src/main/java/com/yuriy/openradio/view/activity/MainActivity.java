@@ -32,12 +32,8 @@ import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.CheckBox;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -172,11 +168,6 @@ public final class MainActivity extends AppCompatActivity {
      */
     private final MediaItemsAdapter.Listener mMediaItemListener;
     /**
-     * Listener for the List touch event.
-     */
-    private final OnTouchListener mOnTouchLstnr;
-    private final OnScrollListener mOnScrollLstnr;
-    /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private final AtomicBoolean mIsOnSaveInstancePassed;
@@ -192,7 +183,6 @@ public final class MainActivity extends AppCompatActivity {
      * Drag and drop position.
      */
     private int mDropPosition = -1;
-    public boolean mIsSortMode = false;
     /**
      * Receiver for the Screen OF/ON events.
      */
@@ -216,9 +206,7 @@ public final class MainActivity extends AppCompatActivity {
         mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
         mPermissionStatusLstnr = new PermissionListener(this);
         mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback(this);
-        mMediaItemListener = new MediaItemListenerImpl(this);
-        mOnTouchLstnr = new OnTouchListener(this);
-        mOnScrollLstnr = new OnScrollListener(this);
+        mMediaItemListener = new MediaItemListenerImpl();
         mIsOnSaveInstancePassed = new AtomicBoolean(false);
         mScreenBroadcastRcvr = new ScreenReceiver();
     }
@@ -460,18 +448,17 @@ public final class MainActivity extends AppCompatActivity {
     public boolean onContextItemSelected(final MenuItem item) {
         switch (item.getItemId()) {
             case R.id.sort_radio_stations_menu:
-                mIsSortMode = true;
                 mBrowserAdapter.notifyDataSetChanged();
                 break;
             case R.id.delete_radio_station_menu:
-                if (mOnTouchLstnr.mPosition != -1) {
-                    handleDeleteRadioStationMenu(mOnTouchLstnr.mPosition);
-                }
+//                if (mOnTouchLstnr.mPosition != -1) {
+//                    handleDeleteRadioStationMenu(mOnTouchLstnr.mPosition);
+//                }
                 break;
             case R.id.edit_radio_station_menu:
-                if (mOnTouchLstnr.mPosition != -1) {
-                    handleEditRadioStationMenu(mOnTouchLstnr.mPosition);
-                }
+//                if (mOnTouchLstnr.mPosition != -1) {
+//                    handleEditRadioStationMenu(mOnTouchLstnr.mPosition);
+//                }
                 break;
         }
         return super.onContextItemSelected(item);
@@ -549,12 +536,6 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     public final void onBackPressed() {
-
-        if (mIsSortMode) {
-            mIsSortMode = false;
-            mBrowserAdapter.notifyDataSetChanged();
-            return;
-        }
 
         hideNoDataMessage();
         hideProgressBar();
@@ -981,7 +962,7 @@ public final class MainActivity extends AppCompatActivity {
 
         final MediaDescriptionCompat description = mLastKnownMetadata != null
                 ? mLastKnownMetadata.getDescription()
-                : MediaItemHelper.buildMediaDescriptionFromRadioStation(radioStation);
+                : MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation);
 
         final TextView nameView = findViewById(R.id.crs_name_view);
         if (nameView != null) {
@@ -1000,7 +981,7 @@ public final class MainActivity extends AppCompatActivity {
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(radioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             );
             MediaItemHelper.updateFavoriteField(
@@ -1190,32 +1171,15 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Listener of the List Item click event.
+     * Listener of the List Item events.
      */
-    private static final class MediaItemListenerImpl implements MediaItemsAdapter.Listener {
-
-        /**
-         * Weak reference to the Main Activity.
-         */
-        private final WeakReference<MainActivity> mReference;
-
-        /**
-         * Tag string to use in logging message.
-         */
-        private final String CLASS_NAME;
+    private final class MediaItemListenerImpl implements MediaItemsAdapter.Listener {
 
         /**
          * Constructor.
-         *
-         * @param mainActivity Reference to the Main Activity.
          */
-        private MediaItemListenerImpl(final MainActivity mainActivity) {
+        private MediaItemListenerImpl() {
             super();
-            CLASS_NAME = mainActivity.getClass().getSimpleName()
-                    + " " + MediaItemListenerImpl.class.getSimpleName()
-                    + " " + mainActivity.hashCode()
-                    + " " + hashCode() + " ";
-            mReference = new WeakReference<>(mainActivity);
         }
 
         @Override
@@ -1224,104 +1188,91 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onItemAction(MediaBrowserCompat.MediaItem item) {
-
-        }
-
-        @Override
-        public void onItemTap(MediaBrowserCompat.MediaItem item) {
-            final MainActivity mainActivity = mReference.get();
-            if (mainActivity == null) {
-                AppLogger.w(CLASS_NAME + "OnItemClick return, reference to MainActivity is null");
-                return;
-            }
-            mainActivity.mMediaPresenter.handleItemClick(item, 0);
+        public void onItemTap(final MediaBrowserCompat.MediaItem item) {
+            mMediaPresenter.handleItemClick(item, 0);
         }
     }
 
-    /**
-     * Touch listener for the List View.
-     */
-    private static final class OnTouchListener implements AdapterView.OnTouchListener {
-
-        /**
-         * Weak reference to the Main Activity.
-         */
-        private final WeakReference<MainActivity> mReference;
-
-        /**
-         * Tag string to use in logging message.
-         */
-        private final String CLASS_NAME;
-
-        /**
-         * Position of the item under the touch event.
-         */
-        private int mPosition = -1;
-
-        /**
-         * Constructor.
-         *
-         * @param mainActivity Reference to the Main Activity.
-         */
-        private OnTouchListener(final MainActivity mainActivity) {
-            super();
-            CLASS_NAME = mainActivity.getClass().getSimpleName()
-                    + " " + OnTouchListener.class.getSimpleName()
-                    + " " + mainActivity.hashCode()
-                    + " " + hashCode() + " ";
-            mReference = new WeakReference<>(mainActivity);
-        }
-
-        @Override
-        public boolean onTouch(final View listView, final MotionEvent event) {
-            mPosition = ((ListView) listView).pointToPosition(
-                    (int) event.getX(), (int) event.getY()
-            );
-
-            final MainActivity mainActivity = mReference.get();
-            if (mainActivity == null) {
-                AppLogger.w(CLASS_NAME + "OnItemTouch return, reference to MainActivity is null");
-                return false;
-            }
-
-            if (!mainActivity.mIsSortMode) {
-                return false;
-            }
-
-            // Do drag and drop sort only for Favorites and Local Radio Stations
-            if (!MediaIdHelper.isMediaIdSortable(mainActivity.mCurrentParentId)) {
-                return false;
-            }
-
-            if (mPosition < 0) {
-                return true;
-            }
-            switch (event.getAction()) {
-                case MotionEvent.ACTION_DOWN: {
-                    mainActivity.startDrag(mainActivity.mBrowserAdapter.getItem(mPosition));
-                    break;
-                }
-                case MotionEvent.ACTION_MOVE: {
-                    if (mPosition < 0) {
-                        break;
-                    }
-                    if (mPosition != mainActivity.mDropPosition) {
-                        mainActivity.mDropPosition = mPosition;
-                        mainActivity.handleDragChangedEvent();
-                    }
-                    return true;
-                }
-                case MotionEvent.ACTION_UP:
-                case MotionEvent.ACTION_CANCEL:
-                case MotionEvent.ACTION_OUTSIDE: {
-                    mainActivity.stopDrag();
-                    return true;
-                }
-            }
-            return true;
-        }
-    }
+//    private static final class OnTouchListener implements AdapterView.OnTouchListener {
+//
+//        /**
+//         * Weak reference to the Main Activity.
+//         */
+//        private final WeakReference<MainActivity> mReference;
+//
+//        /**
+//         * Tag string to use in logging message.
+//         */
+//        private final String CLASS_NAME;
+//
+//        /**
+//         * Position of the item under the touch event.
+//         */
+//        private int mPosition = -1;
+//
+//        /**
+//         * Constructor.
+//         *
+//         * @param mainActivity Reference to the Main Activity.
+//         */
+//        private OnTouchListener(final MainActivity mainActivity) {
+//            super();
+//            CLASS_NAME = mainActivity.getClass().getSimpleName()
+//                    + " " + OnTouchListener.class.getSimpleName()
+//                    + " " + mainActivity.hashCode()
+//                    + " " + hashCode() + " ";
+//            mReference = new WeakReference<>(mainActivity);
+//        }
+//
+//        @Override
+//        public boolean onTouch(final View listView, final MotionEvent event) {
+//            mPosition = ((ListView) listView).pointToPosition(
+//                    (int) event.getX(), (int) event.getY()
+//            );
+//
+//            final MainActivity mainActivity = mReference.get();
+//            if (mainActivity == null) {
+//                AppLogger.w(CLASS_NAME + "OnItemTouch return, reference to MainActivity is null");
+//                return false;
+//            }
+//
+//            if (!mainActivity.mIsSortMode) {
+//                return false;
+//            }
+//
+//            // Do drag and drop sort only for Favorites and Local Radio Stations
+//            if (!MediaIdHelper.isMediaIdSortable(mainActivity.mCurrentParentId)) {
+//                return false;
+//            }
+//
+//            if (mPosition < 0) {
+//                return true;
+//            }
+//            switch (event.getAction()) {
+//                case MotionEvent.ACTION_DOWN: {
+//                    mainActivity.startDrag(mainActivity.mBrowserAdapter.getItem(mPosition));
+//                    break;
+//                }
+//                case MotionEvent.ACTION_MOVE: {
+//                    if (mPosition < 0) {
+//                        break;
+//                    }
+//                    if (mPosition != mainActivity.mDropPosition) {
+//                        mainActivity.mDropPosition = mPosition;
+//                        mainActivity.handleDragChangedEvent();
+//                    }
+//                    return true;
+//                }
+//                case MotionEvent.ACTION_UP:
+//                case MotionEvent.ACTION_CANCEL:
+//                case MotionEvent.ACTION_OUTSIDE: {
+//                    mainActivity.stopDrag();
+//                    return true;
+//                }
+//            }
+//            return true;
+//        }
+//    }
 
     /**
      * Update List only if parent is Root or Favorites or Locals.
@@ -1347,42 +1298,42 @@ public final class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static final class OnScrollListener implements AbsListView.OnScrollListener {
-
-        private final WeakReference<MainActivity> mReference;
-        private int mFirstVisibleItem;
-        private int mVisibleItemCount;
-        private int mTotalItemCount;
-
-        private OnScrollListener(final MainActivity reference) {
-            super();
-            mReference = new WeakReference<>(reference);
-        }
-
-        @Override
-        public void onScrollStateChanged(final AbsListView view, final int scrollState) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            if (scrollState != SCROLL_STATE_IDLE) {
-                return;
-            }
-
-            reference.onScrollCompleted(mFirstVisibleItem);
-            if (mFirstVisibleItem + mVisibleItemCount == mTotalItemCount) {
-                reference.onScrolledToEnd();
-            }
-        }
-
-        @Override
-        public void onScroll(final AbsListView view, final int firstVisibleItem,
-                             final int visibleItemCount, final int totalItemCount) {
-            mFirstVisibleItem = firstVisibleItem;
-            mVisibleItemCount = visibleItemCount;
-            mTotalItemCount = totalItemCount;
-        }
-    }
+//    private static final class OnScrollListener implements AbsListView.OnScrollListener {
+//
+//        private final WeakReference<MainActivity> mReference;
+//        private int mFirstVisibleItem;
+//        private int mVisibleItemCount;
+//        private int mTotalItemCount;
+//
+//        private OnScrollListener(final MainActivity reference) {
+//            super();
+//            mReference = new WeakReference<>(reference);
+//        }
+//
+//        @Override
+//        public void onScrollStateChanged(final AbsListView view, final int scrollState) {
+//            final MainActivity reference = mReference.get();
+//            if (reference == null) {
+//                return;
+//            }
+//            if (scrollState != SCROLL_STATE_IDLE) {
+//                return;
+//            }
+//
+//            reference.onScrollCompleted(mFirstVisibleItem);
+//            if (mFirstVisibleItem + mVisibleItemCount == mTotalItemCount) {
+//                reference.onScrolledToEnd();
+//            }
+//        }
+//
+//        @Override
+//        public void onScroll(final AbsListView view, final int firstVisibleItem,
+//                             final int visibleItemCount, final int totalItemCount) {
+//            mFirstVisibleItem = firstVisibleItem;
+//            mVisibleItemCount = visibleItemCount;
+//            mTotalItemCount = totalItemCount;
+//        }
+//    }
 
     private final class MediaPresenterListenerImpl implements MediaPresenterListener {
 

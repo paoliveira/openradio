@@ -25,22 +25,23 @@ public class HorizontalOrientationStrategy extends OrientationStrategy {
     @Override
     public boolean onInterceptTouchEvent(final MotionEvent event) {
         final int action = event.getAction();
+        final int eventX = (int) event.getX();
         if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
             fling();
             return false;
         }
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-                mLastTouchX = (int) event.getX();
+                mLastTouchX = eventX;
                 mHelperScroller.finish();
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
-                int deltaX = Math.abs((int) event.getX() - mLastTouchX);
+                int deltaX = Math.abs(eventX - mLastTouchX);
                 mIsDragging = deltaX > mTouchSlop;
                 if (mIsDragging) {
                     disallowParentInterceptTouchEvent(true);
-                    mLastTouchX = (int) event.getX();
+                    mLastTouchX = eventX;
                 }
             }
         }
@@ -51,7 +52,13 @@ public class HorizontalOrientationStrategy extends OrientationStrategy {
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
         final int action = event.getAction();
+        final int eventX = (int) event.getX();
         if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
+
+            if (isDragDisabled() && (mLastTouchX != eventX)) {
+                return true;
+            }
+
             if (mIsDragging) {
                 disallowParentInterceptTouchEvent(false);
             }
@@ -63,16 +70,19 @@ public class HorizontalOrientationStrategy extends OrientationStrategy {
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
-                mLastTouchX = (int) event.getX();
+                mLastTouchX = eventX;
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
-                int deltaX = (int) event.getX() - mLastTouchX;
+                if (isDragDisabled()) {
+                    break;
+                }
+                final int deltaX = eventX - mLastTouchX;
                 if (mIsDragging) {
                     translateBy(deltaX);
                 } else if (Math.abs(deltaX) > mTouchSlop) {
                     disallowParentInterceptTouchEvent(true);
-                    mLastTouchX = (int) event.getX();
+                    mLastTouchX = eventX;
                     mIsDragging = true;
                 }
                 break;

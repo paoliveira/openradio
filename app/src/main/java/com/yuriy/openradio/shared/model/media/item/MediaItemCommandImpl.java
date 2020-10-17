@@ -100,7 +100,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
         for (final RadioStation radioStation : radioStations) {
 
             final MediaDescriptionCompat mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                    radioStation
+                    dependencies.getContext(), radioStation
             );
 
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(

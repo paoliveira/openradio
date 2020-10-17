@@ -11,7 +11,6 @@ import android.widget.RelativeLayout;
 import com.xenione.libs.swipemaker.orientation.HorizontalOrientationStrategy;
 import com.xenione.libs.swipemaker.orientation.OrientationStrategy;
 import com.xenione.libs.swipemaker.orientation.OrientationStrategyFactory;
-import com.xenione.libs.swipemaker.orientation.VerticalOrientationStrategy;
 
 /**
  * Created by Eugeni on 10/04/2016.
@@ -19,22 +18,13 @@ import com.xenione.libs.swipemaker.orientation.VerticalOrientationStrategy;
 public final class SwipeLayout extends RelativeLayout {
 
     public enum Orientation {
-        HORIZONTAL,
-        VERTICAL;
+        HORIZONTAL;
 
         Orientation() {
         }
 
         private OrientationStrategyFactory get() {
-            switch (this) {
-                case HORIZONTAL: {
-                    return new HorizontalOrientationStrategyFactory();
-                }
-                default:
-                case VERTICAL: {
-                    return new VerticalOrientationStrategyFactory();
-                }
-            }
+            return new HorizontalOrientationStrategyFactory();
         }
     }
 
@@ -54,6 +44,7 @@ public final class SwipeLayout extends RelativeLayout {
 
     public SwipeLayout(final Context context, final AttributeSet attrs, final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        mOrientationStrategy = Orientation.HORIZONTAL.get().make(this);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
@@ -61,40 +52,30 @@ public final class SwipeLayout extends RelativeLayout {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public void setOrientation(final Orientation orientation) {
-        mOrientationStrategy = orientation.get().make(this);
-    }
-
-    public void setOrientation(final OrientationStrategyFactory factory) {
-        mOrientationStrategy = factory.make(this);
-    }
-
     public void startWith(int position) {
-        makeSureOrientationStrategy();
         mOrientationStrategy.startWith(position);
     }
 
     public void anchor(final Integer... points) {
-        makeSureOrientationStrategy();
         mOrientationStrategy.setAnchor(points);
     }
 
     public void setOnTranslateChangeListener(final OnTranslateChangeListener listener) {
-        makeSureOrientationStrategy();
         mOrientationStrategy.setOnTranslateChangeListener(listener);
+    }
+
+    public void isDragDisabled(final boolean value) {
+        mOrientationStrategy.isDragDisabled(value);
     }
 
     @Override
     public boolean onInterceptTouchEvent(final MotionEvent event) {
-        makeSureOrientationStrategy();
         return mOrientationStrategy.onInterceptTouchEvent(event);
     }
 
     @Override
     public boolean onTouchEvent(final MotionEvent event) {
-        makeSureOrientationStrategy();
-        final boolean handled = mOrientationStrategy.onTouchEvent(event);
-        if (!handled) {
+        if (!mOrientationStrategy.onTouchEvent(event)) {
             super.onTouchEvent(event);
         }
         return true;
@@ -102,13 +83,6 @@ public final class SwipeLayout extends RelativeLayout {
 
     public void translateTo(final int position) {
         mOrientationStrategy.translateTo(position);
-    }
-
-    private void makeSureOrientationStrategy() {
-        if (mOrientationStrategy != null) {
-            return;
-        }
-        mOrientationStrategy = Orientation.HORIZONTAL.get().make(this);
     }
 
     private static class HorizontalOrientationStrategyFactory implements OrientationStrategyFactory {
@@ -120,18 +94,6 @@ public final class SwipeLayout extends RelativeLayout {
         @Override
         public OrientationStrategy make(final View view) {
             return new HorizontalOrientationStrategy(view);
-        }
-    }
-
-    private static class VerticalOrientationStrategyFactory implements OrientationStrategyFactory {
-
-        private VerticalOrientationStrategyFactory() {
-            super();
-        }
-
-        @Override
-        public OrientationStrategy make(final View view) {
-            return new VerticalOrientationStrategy(view);
         }
     }
 }

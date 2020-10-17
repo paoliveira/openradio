@@ -52,7 +52,7 @@ public class ImageFetcherFactory {
     public static ImageWorker getTvPlayerImageFetcher(final FragmentActivity context) {
         return getImageFetcher(
                 context,
-                context.getResources().getDimensionPixelSize(R.dimen.list_item_tv_width),
+                context.getResources().getDimensionPixelSize(R.dimen.list_item_tv_img_width),
                 TV_PLAYER_IMAGE_CACHE_DIR,
                 true
         );

@@ -23,6 +23,7 @@ public abstract class OrientationStrategy implements Runnable {
     private SwipeLayout.OnTranslateChangeListener mOnTranslateChangeListener;
     final int mTouchSlop;
     ScrollerHelper mHelperScroller;
+    private boolean mIsDragDisabled;
 
     public OrientationStrategy(final View view) {
         this(view, ViewConfiguration.get(view.getContext()).getScaledTouchSlop());
@@ -41,6 +42,14 @@ public abstract class OrientationStrategy implements Runnable {
 
     public void setOnTranslateChangeListener(final SwipeLayout.OnTranslateChangeListener listener) {
         mOnTranslateChangeListener = listener;
+    }
+
+    public boolean isDragDisabled() {
+        return mIsDragDisabled;
+    }
+
+    public void isDragDisabled(final boolean value) {
+        mIsDragDisabled = value;
     }
 
     public abstract boolean onTouchEvent(final MotionEvent event);

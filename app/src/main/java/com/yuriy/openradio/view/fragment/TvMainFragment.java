@@ -353,7 +353,7 @@ public class TvMainFragment extends PlaybackSupportFragment {
 
             if (MediaItemHelper.isFavoriteField(mediaItem)) {
                 int favoriteTextColor = viewHolder.view.getContext().getResources().getColor(
-                        R.color.favorite_color
+                        R.color.or_color_favorite
                 );
                 viewHolder.getMediaItemNumberView().setTextColor(favoriteTextColor);
                 viewHolder.getMediaItemNameView().setTextColor(favoriteTextColor);
@@ -424,17 +424,17 @@ public class TvMainFragment extends PlaybackSupportFragment {
             } else {
                 if (mediaItem.isPlayable()) {
                     action.getDrawables()[0] = mContext.getResources().getDrawable(
-                            R.drawable.tv_ic_favorites_off_24,
+                            R.drawable.ic_favorite_off,
                             mContext.getTheme()
                     );
                     action.getDrawables()[1] = mContext.getResources().getDrawable(
-                            R.drawable.tv_ic_favorites_on_24,
+                            R.drawable.ic_favorite_on,
                             mContext.getTheme()
                     );
                 } else {
                     final WrappedDrawable drawable = new WrappedDrawable(
                             BitmapUtils.drawableFromUri(
-                                    mContext, mediaItem.getDescription().getIconUri()
+                                    mContext, mediaItem.getDescription().getIconUri(), R.drawable.ic_favorite_off
                             )
                     );
                     drawable.setBounds(0, 0, (int) (24 * density), (int) (24 * density));

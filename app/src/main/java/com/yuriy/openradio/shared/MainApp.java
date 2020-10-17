@@ -21,6 +21,7 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.multidex.MultiDex;
 import androidx.multidex.MultiDexApplication;
 
@@ -75,6 +76,7 @@ public final class MainApp extends MultiDexApplication {
         super.onCreate();
         AnalyticsUtils.init();
         AppLogger.d(CLASS_NAME + "OnCreate");
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         final Context context = this;
         mLifecycleModel.init();
         final Thread thread = new Thread(

@@ -19,7 +19,7 @@ package com.yuriy.openradio.shared.model.media.item;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.text.TextUtils;
@@ -33,7 +33,6 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.BitmapsOverlay;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
@@ -65,13 +64,7 @@ public final class MediaItemRoot implements MediaItemCommand {
         AppLogger.d(LOG_TAG + " invoked");
         final Context context = dependencies.getContext();
         dependencies.getRadioStationsStorage().clear();
-
         dependencies.getResult().detach();
-
-        final Bitmap iconBitmap = BitmapFactory.decodeResource(
-                context.getResources(),
-                R.drawable.ic_all_categories
-        );
 
         // TODO: Refactor these to factory.
 
@@ -86,7 +79,7 @@ public final class MediaItemRoot implements MediaItemCommand {
                 // Add Radio Station to Menu
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                         MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                                latestRadioStation
+                                context, latestRadioStation
                         ),
                         MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
                 );
@@ -107,19 +100,9 @@ public final class MediaItemRoot implements MediaItemCommand {
             final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
                     .setTitle(context.getString(R.string.favorites_list_title));
-            if (dependencies.isAndroidAuto()) {
-                builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_stars_black_24dp"));
-            } else {
-                final int identifier = context.getResources().getIdentifier(
-                        "ic_favorites_on",
-                        "drawable", context.getPackageName()
-                );
-                // Overlay base image with the appropriate flag
-                final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-                final Bitmap bitmap = overlay.execute(context, identifier, iconBitmap);
-                builder.setIconBitmap(bitmap);
-            }
-
+            final Bundle bundle = new Bundle();
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_stars_black_24dp);
+            builder.setExtras(bundle);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
@@ -132,13 +115,9 @@ public final class MediaItemRoot implements MediaItemCommand {
             final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
                     .setTitle(context.getString(R.string.new_stations_title));
-
-            if (dependencies.isAndroidAuto()) {
-                builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_fiber_new_black_24dp"));
-            } else {
-                builder.setIconBitmap(iconBitmap);
-            }
-
+            final Bundle bundle = new Bundle();
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_fiber_new_black_24dp);
+            builder.setExtras(bundle);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
@@ -151,13 +130,9 @@ public final class MediaItemRoot implements MediaItemCommand {
             final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
                     .setTitle(context.getString(R.string.popular_stations_title));
-
-            if (dependencies.isAndroidAuto()) {
-                builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_trending_up_black_24dp"));
-            } else {
-                builder.setIconBitmap(iconBitmap);
-            }
-
+            final Bundle bundle = new Bundle();
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_trending_up_black_24dp);
+            builder.setExtras(bundle);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
@@ -168,12 +143,14 @@ public final class MediaItemRoot implements MediaItemCommand {
         // Do not show list of Worldwide Stations for the Auto version
         if (!dependencies.isAndroidAuto()) {
             // Worldwide Stations
+            final Bundle bundle = new Bundle();
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_all_categories);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             new MediaDescriptionCompat.Builder()
                                     .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
                                     .setTitle(context.getString(R.string.all_categories_title))
-                                    .setIconBitmap(iconBitmap)
+                                    .setExtras(bundle)
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )
             );
@@ -183,11 +160,9 @@ public final class MediaItemRoot implements MediaItemCommand {
         final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
                 .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
                 .setTitle(context.getString(R.string.countries_list_title));
-        if (dependencies.isAndroidAuto()) {
-            builder.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_public_black_24dp"));
-        } else {
-            builder.setIconBitmap(iconBitmap);
-        }
+        final Bundle bundle = new Bundle();
+        MediaItemHelper.setDrawableId(bundle, R.drawable.ic_public_black_24dp);
+        builder.setExtras(bundle);
         dependencies.addMediaItem(
                 new MediaBrowserCompat.MediaItem(
                         builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
@@ -200,6 +175,10 @@ public final class MediaItemRoot implements MediaItemCommand {
             final int identifier = context.getResources().getIdentifier(
                     "flag_" + dependencies.getCountryCode().toLowerCase(),
                     "drawable", context.getPackageName()
+            );
+            final Bitmap iconBitmap = BitmapFactory.decodeResource(
+                    context.getResources(),
+                    R.drawable.ic_all_categories
             );
             // Overlay base image with the appropriate flag
             final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
@@ -221,17 +200,9 @@ public final class MediaItemRoot implements MediaItemCommand {
             final MediaDescriptionCompat.Builder builder1 = new MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
                     .setTitle(context.getString(R.string.local_radio_stations_list_title));
-
-            if (dependencies.isAndroidAuto()) {
-                builder1.setIconUri(Uri.parse(AppUtils.DRAWABLE_PATH + "ic_phone_android_black_24dp"));
-            } else {
-                final Bitmap bitmap = BitmapFactory.decodeResource(
-                        context.getResources(),
-                        R.drawable.ic_local_stations
-                );
-                builder1.setIconBitmap(bitmap);
-            }
-
+            final Bundle bundle1 = new Bundle();
+            MediaItemHelper.setDrawableId(bundle1, R.drawable.ic_locals);
+            builder1.setExtras(bundle1);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE

@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.shared.model.media.item;
 
-import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
@@ -25,9 +25,9 @@ import androidx.annotation.NonNull;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
+import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.Category;
 
 import java.util.List;
@@ -68,7 +68,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
      * Load All Categories into Menu.
      *
      * @param playbackStateListener Listener of the Playback State changes.
-     * @param dependencies           Instance of the {@link MediaItemCommandDependencies} which holds various
+     * @param dependencies          Instance of the {@link MediaItemCommandDependencies} which holds various
      *                              references needed to execute command.
      */
     private void loadAllCategories(final IUpdatePlaybackState playbackStateListener,
@@ -86,15 +86,15 @@ public final class MediaItemAllCategories implements MediaItemCommand {
             return;
         }
 
-        final String iconUrl = AppUtils.DRAWABLE_PATH + "ic_child_categories";
-
         for (final Category category : list) {
+            final Bundle bundle = new Bundle();
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_child_categories);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             new MediaDescriptionCompat.Builder()
                                     .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.getId())
                                     .setTitle(category.getTitle())
-                                    .setIconUri(Uri.parse(iconUrl))
+                                    .setExtras(bundle)
                                     .setSubtitle(category.getDescription())
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )

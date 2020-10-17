@@ -27,7 +27,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 
 import java.io.ByteArrayOutputStream;
@@ -273,14 +272,14 @@ public final class BitmapUtils {
      * @param uri
      * @return
      */
-    public static Drawable drawableFromUri(final Context context, final Uri uri) {
+    public static Drawable drawableFromUri(final Context context, final Uri uri, int defaultId) {
         Drawable drawable;
         try (final InputStream inputStream = context.getContentResolver().openInputStream(
                 UrlBuilder.preProcessIconUri(uri))
         ) {
             drawable = Drawable.createFromStream(inputStream, uri.toString());
         } catch (final Exception e) {
-            drawable = context.getResources().getDrawable(R.drawable.ic_favorites_off);
+            drawable = context.getResources().getDrawable(defaultId);
         }
         return drawable;
     }
