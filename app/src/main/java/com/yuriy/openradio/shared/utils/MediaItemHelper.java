@@ -421,7 +421,6 @@ public final class MediaItemHelper {
     public static MediaMetadataCompat buildMediaMetadataForEmptyCategory(final Context context,
                                                                          final String parentId) {
 
-        final String iconUrl = AppUtils.getUriForDrawable(context, R.drawable.ic_radio_station_empty).toString();
         final String title = context.getString(R.string.category_empty);
         final String artist = "";
         final String genre = "";
@@ -437,7 +436,6 @@ public final class MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .build();
         setDrawableId(metadata.getBundle(), R.drawable.ic_radio_station_empty);

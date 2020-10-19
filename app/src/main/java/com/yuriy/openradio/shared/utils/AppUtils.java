@@ -18,32 +18,27 @@ package com.yuriy.openradio.shared.utils;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.os.Looper;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Util;
-import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.io.File;
 import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
@@ -87,18 +82,6 @@ public final class AppUtils {
         super();
     }
 
-    public static Uri getUriForDrawable(@NonNull final Context context, final int drawableId) {
-        try {
-            return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
-                    "://" + context.getResources().getResourcePackageName(drawableId)
-                    + '/' + context.getResources().getResourceTypeName(drawableId)
-                    + '/' + context.getResources().getResourceEntryName(drawableId));
-        } catch (final Exception e) {
-            AppLogger.e("Can not get uri for " + drawableId + ", exception:" + Log.getStackTraceString(e));
-            return Uri.EMPTY;
-        }
-    }
-
     /**
      * Whether or not device supports Location feature.
      *
@@ -120,21 +103,6 @@ public final class AppUtils {
 
     public static boolean isUiThread() {
         return Looper.getMainLooper().getThread() == Thread.currentThread();
-    }
-
-    public static String listOfRadioStationsToString(final List<RadioStation> list) {
-        if (list == null) {
-            return "List is null";
-        }
-        if (list.isEmpty()) {
-            return "List is empty";
-        }
-        final StringBuilder builder = new StringBuilder("{");
-        for (final RadioStation station : list) {
-            builder.append(station.toString()).append(",");
-        }
-        builder.append("}");
-        return builder.toString();
     }
 
     /**

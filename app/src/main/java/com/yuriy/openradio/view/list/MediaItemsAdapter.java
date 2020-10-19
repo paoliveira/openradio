@@ -57,8 +57,8 @@ import java.util.List;
 public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdapter.ViewHolder> {
 
     public interface Listener {
-        void onItemDismissed(MediaBrowserCompat.MediaItem item);
-        void onItemTap(MediaBrowserCompat.MediaItem item);
+        void onItemDismissed(MediaBrowserCompat.MediaItem item, final int position);
+        void onItemTap(MediaBrowserCompat.MediaItem item, final int position);
     }
 
     private MainActivity mActivity;
@@ -111,7 +111,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         final boolean isPlayable = mediaItem.isPlayable();
 
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, getParentId());
-        updateImage(description, holder.mImageView, mImageFetcher, isPlayable);
+        updateImage(description, holder.mImageView, mImageFetcher);
         updateBitrateView(
                 MediaItemHelper.getBitrateField(mediaItem), holder.mBitrateView, isPlayable
         );
@@ -124,10 +124,10 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
             holder.mFavoriteCheckView.setVisibility(View.GONE);
         }
 
-        holder.mSettingsView.setOnClickListener(new OnDismissListener(mediaItem));
+        holder.mSettingsView.setOnClickListener(new OnDismissListener(mediaItem, position));
 
         holder.mForegroundView.isDragDisabled(!isPlayable);
-        holder.mForegroundView.setOnClickListener(new OnItemTapListener(mediaItem));
+        holder.mForegroundView.setOnClickListener(new OnItemTapListener(mediaItem, position));
         int color = R.color.or_color_list_item_bg;
         if (position == getActiveItemId()) {
             color = R.color.or_color_list_item_bg_selected;
@@ -143,6 +143,13 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     @Nullable
     public MediaBrowserCompat.MediaItem getItem(final int position) {
         return mAdapterData.getItem(position);
+    }
+
+    @Override
+    public void onViewRecycled(@NonNull final ViewHolder holder) {
+        super.onViewRecycled(holder);
+        holder.mImageView.setImageResource(android.R.color.transparent);
+        holder.mRoot.sync();
     }
 
     public void setListener(final Listener listener) {
@@ -292,12 +299,10 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
      * @param description Media Description of the Media Item.
      * @param view   Image View to apply image to.
      * @param imageWorker Fetcher object to download image in background thread.
-     * @param isPlayable  Is Media Item playable (whether it is Radio Station or Folder).
      */
     public static void updateImage(final MediaDescriptionCompat description,
                                    @Nullable final ImageView view,
-                                   final ImageWorker imageWorker,
-                                   final boolean isPlayable) {
+                                   final ImageWorker imageWorker) {
         if (view == null) {
             return;
         }
@@ -354,31 +359,35 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
 
     private final class OnDismissListener implements View.OnClickListener {
 
+        private final int mPosition;
         private final MediaBrowserCompat.MediaItem mItem;
 
-        public OnDismissListener(final MediaBrowserCompat.MediaItem item) {
+        public OnDismissListener(final MediaBrowserCompat.MediaItem item, final int position) {
             super();
+            mPosition = position;
             mItem = item;
         }
 
         @Override
         public void onClick(final View view) {
-            mListener.onItemDismissed(mItem);
+            mListener.onItemDismissed(mItem, mPosition);
         }
     }
 
     private final class OnItemTapListener implements View.OnClickListener {
 
+        private final int mPosition;
         private final MediaBrowserCompat.MediaItem mItem;
 
-        public OnItemTapListener(final MediaBrowserCompat.MediaItem item) {
+        public OnItemTapListener(final MediaBrowserCompat.MediaItem item, final int position) {
             super();
+            mPosition = position;
             mItem = item;
         }
 
         @Override
         public void onClick(final View view) {
-            mListener.onItemTap(mItem);
+            mListener.onItemTap(mItem, mPosition);
         }
     }
 
@@ -408,6 +417,8 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
 
         private final SwipeLayout mForegroundView;
 
+        private final BothSideCoordinatorLayout mRoot;
+
         private final ImageButton mSettingsView;
 
         public ViewHolder(final View view) {
@@ -419,6 +430,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
             mBitrateView = view.findViewById(R.id.bitrate_view);
             mSettingsView = view.findViewById(R.id.settings_btn_view);
             mForegroundView = view.findViewById(R.id.foreground_view);
+            mRoot = view.findViewById(R.id.item_root);
         }
     }
 }

@@ -282,7 +282,6 @@ public final class LocationService extends JobIntentService {
         COUNTRY_CODE_TO_NAME.put("CK", "Cook Islands");
         COUNTRY_CODE_TO_NAME.put("CW", "Curaçao");
         COUNTRY_CODE_TO_NAME.put("CX", "Christmas Island");
-        COUNTRY_CODE_TO_NAME.put("EH", "Western Sahara");
         COUNTRY_CODE_TO_NAME.put("FK", "Falkland Islands (Malvinas)");
         COUNTRY_CODE_TO_NAME.put("GF", "French Guiana");
         COUNTRY_CODE_TO_NAME.put("GG", "Guernsey");

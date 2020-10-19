@@ -17,8 +17,6 @@
 package com.yuriy.openradio.shared.model.media.item;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -33,7 +31,6 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.BitmapsOverlay;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -176,19 +173,14 @@ public final class MediaItemRoot implements MediaItemCommand {
                     "flag_" + dependencies.getCountryCode().toLowerCase(),
                     "drawable", context.getPackageName()
             );
-            final Bitmap iconBitmap = BitmapFactory.decodeResource(
-                    context.getResources(),
-                    R.drawable.ic_all_categories
-            );
-            // Overlay base image with the appropriate flag
-            final BitmapsOverlay overlay = BitmapsOverlay.getInstance();
-            final Bitmap bitmap = overlay.execute(context, identifier, iconBitmap);
+            final Bundle bundle1 = new Bundle();
+            MediaItemHelper.setDrawableId(bundle1, identifier);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             new MediaDescriptionCompat.Builder()
                                     .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
                                     .setTitle(LocationService.COUNTRY_CODE_TO_NAME.get(dependencies.getCountryCode()))
-                                    .setIconBitmap(bitmap)
+                                    .setExtras(bundle1)
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )
             );

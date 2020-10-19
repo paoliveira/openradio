@@ -16,9 +16,7 @@
 
 package com.yuriy.openradio.shared.model.media.item;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
@@ -28,10 +26,9 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.BitmapsOverlay;
 import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
+import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.Country;
 
 import java.util.Collections;
@@ -95,9 +92,6 @@ public final class MediaItemCountriesList implements MediaItemCommand {
 
         Collections.sort(list, (c1, c2) -> c1.getName().compareTo(c2.getName()));
 
-        // Overlay base image with the appropriate flag
-        final BitmapsOverlay flagLoader = BitmapsOverlay.getInstance();
-        Bitmap bitmap;
         int identifier;
         MediaDescriptionCompat.Builder builder;
 
@@ -116,26 +110,13 @@ public final class MediaItemCountriesList implements MediaItemCommand {
                     .setTitle(country.getName())
                     .setSubtitle(country.getCode());
 
-            if (dependencies.isAndroidAuto()) {
-                builder.setIconUri(
-                        AppUtils.getUriForDrawable(dependencies.getContext(), R.drawable.ic_public_black_24dp)
-                );
-            } else {
-                identifier = dependencies.getContext().getResources().getIdentifier(
-                        "flag_" + country.getCode().toLowerCase(),
-                        "drawable", dependencies.getContext().getPackageName()
-                );
-
-                bitmap = flagLoader.execute(dependencies.getContext(), identifier,
-                        BitmapFactory.decodeResource(
-                                dependencies.getContext().getResources(),
-                                R.drawable.ic_child_categories
-                        )
-                );
-
-                builder.setIconBitmap(bitmap);
-            }
-
+            identifier = dependencies.getContext().getResources().getIdentifier(
+                    "flag_" + country.getCode().toLowerCase(),
+                    "drawable", dependencies.getContext().getPackageName()
+            );
+            final Bundle bundle1 = new Bundle();
+            MediaItemHelper.setDrawableId(bundle1, identifier);
+            builder.setExtras(bundle1);
             dependencies.addMediaItem(
                     new MediaBrowserCompat.MediaItem(
                             builder.build(),

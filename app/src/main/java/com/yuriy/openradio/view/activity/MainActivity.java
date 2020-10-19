@@ -95,7 +95,6 @@ import com.yuriy.openradio.view.dialog.RemoveStationDialog;
 import com.yuriy.openradio.view.dialog.SearchDialog;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -162,6 +161,7 @@ public final class MainActivity extends AppCompatActivity {
     private String mCurrentParentId = "";
     private int mCurrentPlaybackState = PlaybackStateCompat.STATE_NONE;
     private int mListFirstVisiblePosition = 0;
+    private int mListLastVisiblePosition = 0;
     private int mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
     /**
      * Listener for the List view click event.
@@ -171,18 +171,6 @@ public final class MainActivity extends AppCompatActivity {
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private final AtomicBoolean mIsOnSaveInstancePassed;
-    /**
-     * Current dragging item.
-     */
-    public MediaBrowserCompat.MediaItem mDragMediaItem;
-    /**
-     * Currently active item when drag started.
-     */
-    private MediaBrowserCompat.MediaItem mStartDragSelectedItem;
-    /**
-     * Drag and drop position.
-     */
-    private int mDropPosition = -1;
     /**
      * Receiver for the Screen OF/ON events.
      */
@@ -196,6 +184,7 @@ public final class MainActivity extends AppCompatActivity {
     MediaPresenter mMediaPresenter;
     @Inject
     LifecycleModel mLifecycleModel;
+    private final RecyclerView.OnScrollListener mScrollListener;
 
     /**
      * Default constructor.
@@ -205,10 +194,11 @@ public final class MainActivity extends AppCompatActivity {
         CLASS_NAME = MainActivity.class.getSimpleName() + " " + hashCode() + " ";
         mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
         mPermissionStatusLstnr = new PermissionListener(this);
-        mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback(this);
+        mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback();
         mMediaItemListener = new MediaItemListenerImpl();
         mIsOnSaveInstancePassed = new AtomicBoolean(false);
         mScreenBroadcastRcvr = new ScreenReceiver();
+        mScrollListener = new ScrollListener();
     }
 
     @SuppressLint({"ClickableViewAccessibility", "NonConstantResourceId"})
@@ -298,7 +288,7 @@ public final class MainActivity extends AppCompatActivity {
 
         mLastKnownMetadata = null;
 
-        final MediaBrowserCompat.SubscriptionCallback medSubscriptionCb = new MediaBrowserSubscriptionCallback(this);
+        final MediaBrowserCompat.SubscriptionCallback medSubscriptionCb = new MediaBrowserSubscriptionCallback();
         final MediaPresenterListener mediaPresenterLstnr = new MediaPresenterListenerImpl();
         mMediaPresenter.init(
                 this,
@@ -340,17 +330,12 @@ public final class MainActivity extends AppCompatActivity {
 
         // Get list view reference from the inflated xml
         mListView = findViewById(R.id.list_view);
-        mListView.setHasFixedSize(true);
         final LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         mListView.setLayoutManager(layoutManager);
         // Set adapter
         mListView.setAdapter(mBrowserAdapter);
-//        // Set touch listener.
-//        mListView.setOnTouchListener(mOnTouchLstnr);
-//        // Set scroll listener.
-//        mListView.setOnScrollListener(mOnScrollLstnr);
+        mListView.addOnScrollListener(mScrollListener);
         mBrowserAdapter.setListener(mMediaItemListener);
-        AppLogger.d("TRACE:" + mListView.getLayoutManager());
 
         // Handle Add Radio Station button.
         final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
@@ -416,6 +401,9 @@ public final class MainActivity extends AppCompatActivity {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "OnDestroy");
 
+        if (mListView != null) {
+            mListView.removeOnScrollListener(mScrollListener);
+        }
         mMediaPresenter.clean();
         if (!mIsOnSaveInstancePassed.get()) {
             mMediaPresenter.destroy();
@@ -521,15 +509,9 @@ public final class MainActivity extends AppCompatActivity {
         OpenRadioService.putCurrentPlaybackState(outState, mCurrentPlaybackState);
         OpenRadioService.putRestoreState(outState, true);
 
-        // Get first visible item id
-        int firstVisiblePosition = 0;
-        // Just in case ...
-        if (firstVisiblePosition < 0) {
-            firstVisiblePosition = 0;
-        }
-
+        updateListVisiblePositions(mListView);
         // Save first visible ID of the List
-        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, firstVisiblePosition);
+        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
         outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mBrowserAdapter.getActiveItemId());
         super.onSaveInstanceState(outState);
     }
@@ -567,7 +549,7 @@ public final class MainActivity extends AppCompatActivity {
         // This will make selected item highlighted.
         setActiveItem(clickedPosition);
         // This actually do scroll to the position.
-//        mListView.setSelection(selectedPosition);
+        mListView.scrollToPosition(selectedPosition - 1);
     }
 
     /**
@@ -633,76 +615,6 @@ public final class MainActivity extends AppCompatActivity {
         // Save search query string, retrieve it later in the service
         AppUtils.setSearchQuery(queryString);
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-    }
-
-    /**
-     * Handle event of the list view item start drag.
-     *
-     * @param mediaItem Media Item associated with the start drag event.
-     */
-    private void startDrag(final MediaBrowserCompat.MediaItem mediaItem) {
-        mDropPosition = -1;
-        mDragMediaItem = mediaItem;
-        final int activeItemId = mBrowserAdapter.getActiveItemId();
-        if (activeItemId != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-            mStartDragSelectedItem = mBrowserAdapter.getItem(activeItemId);
-        }
-        mBrowserAdapter.notifyDataSetChanged();
-    }
-
-    /**
-     * Handle event of the list view item stop drag.
-     */
-    private void stopDrag() {
-        final int itemsNumber = mBrowserAdapter.getItemCount();
-        if (mStartDragSelectedItem != null) {
-            MediaBrowserCompat.MediaItem mediaItem;
-            for (int i = 0; i < itemsNumber; ++i) {
-                mediaItem = mBrowserAdapter.getItem(i);
-                if (mediaItem == null) {
-                    continue;
-                }
-                if (TextUtils.equals(mediaItem.getMediaId(), mStartDragSelectedItem.getMediaId())) {
-                    setActiveItem(i);
-                    break;
-                }
-            }
-        }
-        mDropPosition = -1;
-        mDragMediaItem = null;
-        mStartDragSelectedItem = null;
-        mBrowserAdapter.notifyDataSetChanged();
-
-        MediaBrowserCompat.MediaItem mediaItem;
-        final String[] mediaIds = new String[itemsNumber];
-        final int[] positions = new int[itemsNumber];
-        for (int i = 0; i < itemsNumber; ++i) {
-            mediaItem = mBrowserAdapter.getItem(i);
-            if (mediaItem == null) {
-                continue;
-            }
-            MediaItemHelper.updateSortIdField(mediaItem, i);
-            mediaIds[i] = mediaItem.getMediaId();
-            positions[i] = i;
-        }
-
-        startService(
-                OpenRadioService.makeUpdateSortIdsIntent(
-                        this,
-                        mediaIds,
-                        positions,
-                        mCurrentParentId
-                )
-        );
-    }
-
-    /**
-     *
-     */
-    private void handleDragChangedEvent() {
-        mBrowserAdapter.remove(mDragMediaItem);
-        mBrowserAdapter.addAt(mDropPosition, mDragMediaItem);
-        mBrowserAdapter.notifyDataSetChanged();
     }
 
     /**
@@ -972,7 +884,7 @@ public final class MainActivity extends AppCompatActivity {
         if (descriptionView != null) {
             descriptionView.setText(description.getDescription());
         }
-        MediaItemsAdapter.updateImage(description, findViewById(R.id.crs_img_view), mImageWorker, true);
+        MediaItemsAdapter.updateImage(description, findViewById(R.id.crs_img_view), mImageWorker);
         MediaItemsAdapter.updateBitrateView(
                 radioStation.getMediaStream().getVariant(0).getBitrate(),
                 findViewById(R.id.crs_bitrate_view),
@@ -1011,87 +923,44 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Callback receiver of the local application's event.
      */
-    private static final class LocalBroadcastReceiverCallback implements AppLocalReceiverCallback {
-
-        /**
-         * Member field to keep reference to the outer class.
-         */
-        private final WeakReference<MainActivity> mReference;
-
-        /**
-         * Tag string to use in logging message.
-         */
-        private final String CLASS_NAME;
+    private final class LocalBroadcastReceiverCallback implements AppLocalReceiverCallback {
 
         /**
          * Constructor.
-         *
-         * @param reference The reference to the outer class.
          */
-        private LocalBroadcastReceiverCallback(final MainActivity reference) {
+        private LocalBroadcastReceiverCallback() {
             super();
-            CLASS_NAME = reference.getClass().getSimpleName()
-                    + " " + LocalBroadcastReceiverCallback.class.getSimpleName()
-                    + " " + reference.hashCode()
-                    + " " + hashCode() + " ";
-            mReference = new WeakReference<>(reference);
         }
 
         @Override
         public void onLocationChanged() {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-
-            if (reference.mIsOnSaveInstancePassed.get()) {
+            if (mIsOnSaveInstancePassed.get()) {
                 AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState");
                 return;
             }
 
             AppLogger.d(CLASS_NAME + "Location Changed received");
-            if (TextUtils.equals(reference.mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)) {
-                reference.updateRootView();
+            if (TextUtils.equals(MainActivity.this.mCurrentParentId, MediaIdHelper.MEDIA_ID_ROOT)) {
+                MainActivity.this.updateRootView();
             }
         }
 
         @Override
         public void onCurrentIndexOnQueueChanged(final int index, final String mediaId) {
-            final MainActivity reference = mReference.get();
-            if (reference == null) {
-                return;
-            }
-            final int position = reference.mBrowserAdapter.getIndexForMediaId(mediaId);
+            final int position = MainActivity.this.mBrowserAdapter.getIndexForMediaId(mediaId);
             if (position != -1) {
-                reference.setActiveItem(position);
+                MainActivity.this.setActiveItem(position);
             }
         }
     }
 
-    private static final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
-
-        /**
-         * Weak reference to the outer activity.
-         */
-        private final WeakReference<MainActivity> mReference;
-
-        /**
-         * Tag string to use in logging message.
-         */
-        private final String CLASS_NAME;
+    private final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
 
         /**
          * Constructor.
-         *
-         * @param reference Reference to the Activity.
          */
-        private MediaBrowserSubscriptionCallback(final MainActivity reference) {
+        private MediaBrowserSubscriptionCallback() {
             super();
-            CLASS_NAME = reference.getClass().getSimpleName()
-                    + " " + MediaBrowserSubscriptionCallback.class.getSimpleName()
-                    + " " + reference.hashCode()
-                    + " " + hashCode() + " ";
-            mReference = new WeakReference<>(reference);
         }
 
         @SuppressLint("RestrictedApi")
@@ -1102,13 +971,7 @@ public final class MainActivity extends AppCompatActivity {
                     CLASS_NAME + "Children loaded:" + parentId + ", children:" + children.size()
             );
 
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                AppLogger.w(CLASS_NAME + "On children loaded -> activity ref is null");
-                return;
-            }
-
-            if (activity.mIsOnSaveInstancePassed.get()) {
+            if (MainActivity.this.mIsOnSaveInstancePassed.get()) {
                 AppLogger.w(CLASS_NAME + "Can perform on children loaded after OnSaveInstanceState");
                 return;
             }
@@ -1116,22 +979,20 @@ public final class MainActivity extends AppCompatActivity {
             // In case of Catalog is sortable and user do not know about it - show
             // help dialog to guide through functionality.
             if (MediaIdHelper.isMediaIdSortable(parentId)) {
-                final boolean isSortDialogShown = AppPreferencesManager.isSortDialogShown(
-                        activity
-                );
+                final boolean isSortDialogShown = AppPreferencesManager.isSortDialogShown(MainActivity.this);
                 if (!isSortDialogShown) {
                     final DialogFragment featureSortDialog = BaseDialogFragment.newInstance(
                             FeatureSortDialog.class.getName()
                     );
                     featureSortDialog.setCancelable(false);
-                    featureSortDialog.show(activity.getSupportFragmentManager(), FeatureSortDialog.DIALOG_TAG);
+                    featureSortDialog.show(getSupportFragmentManager(), FeatureSortDialog.DIALOG_TAG);
                 }
             }
 
-            activity.mCurrentParentId = parentId;
-            activity.hideProgressBar();
+            MainActivity.this.mCurrentParentId = parentId;
+            MainActivity.this.hideProgressBar();
 
-            final FloatingActionButton addBtn = activity.findViewById(R.id.add_station_btn);
+            final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
             if (parentId.equals(MediaIdHelper.MEDIA_ID_ROOT)) {
                 addBtn.setVisibility(View.VISIBLE);
             } else {
@@ -1143,29 +1004,23 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            activity.mBrowserAdapter.setParentId(parentId);
-            activity.mBrowserAdapter.clearData();
-            activity.mBrowserAdapter.addAll(children);
-            activity.mBrowserAdapter.notifyDataSetChanged();
+            MainActivity.this.mBrowserAdapter.setParentId(parentId);
+            MainActivity.this.mBrowserAdapter.clearData();
+            MainActivity.this.mBrowserAdapter.addAll(children);
+            MainActivity.this.mBrowserAdapter.notifyDataSetChanged();
 
             if (children.isEmpty()) {
-                activity.showNoDataMessage();
+                MainActivity.this.showNoDataMessage();
             }
 
-            activity.restoreSelectedPosition();
+            MainActivity.this.restoreSelectedPosition();
         }
 
         @Override
         public void onError(@NonNull final String id) {
-
-            final MainActivity activity = mReference.get();
-            if (activity == null) {
-                return;
-            }
-
-            activity.hideProgressBar();
+            MainActivity.this.hideProgressBar();
             SafeToast.showAnyThread(
-                    activity, activity.getString(R.string.error_loading_media)
+                    MainActivity.this, MainActivity.this.getString(R.string.error_loading_media)
             );
         }
     }
@@ -1183,96 +1038,16 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onItemDismissed(MediaBrowserCompat.MediaItem item) {
+        public void onItemDismissed(MediaBrowserCompat.MediaItem item, final int position) {
 
         }
 
         @Override
-        public void onItemTap(final MediaBrowserCompat.MediaItem item) {
-            mMediaPresenter.handleItemClick(item, 0);
+        public void onItemTap(final MediaBrowserCompat.MediaItem item, final int position) {
+            MainActivity.this.setActiveItem(position);
+            MainActivity.this.mMediaPresenter.handleItemClick(item, position);
         }
     }
-
-//    private static final class OnTouchListener implements AdapterView.OnTouchListener {
-//
-//        /**
-//         * Weak reference to the Main Activity.
-//         */
-//        private final WeakReference<MainActivity> mReference;
-//
-//        /**
-//         * Tag string to use in logging message.
-//         */
-//        private final String CLASS_NAME;
-//
-//        /**
-//         * Position of the item under the touch event.
-//         */
-//        private int mPosition = -1;
-//
-//        /**
-//         * Constructor.
-//         *
-//         * @param mainActivity Reference to the Main Activity.
-//         */
-//        private OnTouchListener(final MainActivity mainActivity) {
-//            super();
-//            CLASS_NAME = mainActivity.getClass().getSimpleName()
-//                    + " " + OnTouchListener.class.getSimpleName()
-//                    + " " + mainActivity.hashCode()
-//                    + " " + hashCode() + " ";
-//            mReference = new WeakReference<>(mainActivity);
-//        }
-//
-//        @Override
-//        public boolean onTouch(final View listView, final MotionEvent event) {
-//            mPosition = ((ListView) listView).pointToPosition(
-//                    (int) event.getX(), (int) event.getY()
-//            );
-//
-//            final MainActivity mainActivity = mReference.get();
-//            if (mainActivity == null) {
-//                AppLogger.w(CLASS_NAME + "OnItemTouch return, reference to MainActivity is null");
-//                return false;
-//            }
-//
-//            if (!mainActivity.mIsSortMode) {
-//                return false;
-//            }
-//
-//            // Do drag and drop sort only for Favorites and Local Radio Stations
-//            if (!MediaIdHelper.isMediaIdSortable(mainActivity.mCurrentParentId)) {
-//                return false;
-//            }
-//
-//            if (mPosition < 0) {
-//                return true;
-//            }
-//            switch (event.getAction()) {
-//                case MotionEvent.ACTION_DOWN: {
-//                    mainActivity.startDrag(mainActivity.mBrowserAdapter.getItem(mPosition));
-//                    break;
-//                }
-//                case MotionEvent.ACTION_MOVE: {
-//                    if (mPosition < 0) {
-//                        break;
-//                    }
-//                    if (mPosition != mainActivity.mDropPosition) {
-//                        mainActivity.mDropPosition = mPosition;
-//                        mainActivity.handleDragChangedEvent();
-//                    }
-//                    return true;
-//                }
-//                case MotionEvent.ACTION_UP:
-//                case MotionEvent.ACTION_CANCEL:
-//                case MotionEvent.ACTION_OUTSIDE: {
-//                    mainActivity.stopDrag();
-//                    return true;
-//                }
-//            }
-//            return true;
-//        }
-//    }
 
     /**
      * Update List only if parent is Root or Favorites or Locals.
@@ -1284,56 +1059,6 @@ public final class MainActivity extends AppCompatActivity {
             updateRootView();
         }
     }
-
-    private void onScrollCompleted(final int firstVisibleItem) {
-        mMediaPresenter.handleItemSelect(null, firstVisibleItem);
-    }
-
-    private void onScrolledToEnd() {
-        if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
-            unsubscribeFromItem(mCurrentParentId);
-            mMediaPresenter.addMediaItemToStack(mCurrentParentId);
-        } else {
-            AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
-        }
-    }
-
-//    private static final class OnScrollListener implements AbsListView.OnScrollListener {
-//
-//        private final WeakReference<MainActivity> mReference;
-//        private int mFirstVisibleItem;
-//        private int mVisibleItemCount;
-//        private int mTotalItemCount;
-//
-//        private OnScrollListener(final MainActivity reference) {
-//            super();
-//            mReference = new WeakReference<>(reference);
-//        }
-//
-//        @Override
-//        public void onScrollStateChanged(final AbsListView view, final int scrollState) {
-//            final MainActivity reference = mReference.get();
-//            if (reference == null) {
-//                return;
-//            }
-//            if (scrollState != SCROLL_STATE_IDLE) {
-//                return;
-//            }
-//
-//            reference.onScrollCompleted(mFirstVisibleItem);
-//            if (mFirstVisibleItem + mVisibleItemCount == mTotalItemCount) {
-//                reference.onScrolledToEnd();
-//            }
-//        }
-//
-//        @Override
-//        public void onScroll(final AbsListView view, final int firstVisibleItem,
-//                             final int visibleItemCount, final int totalItemCount) {
-//            mFirstVisibleItem = firstVisibleItem;
-//            mVisibleItemCount = visibleItemCount;
-//            mTotalItemCount = totalItemCount;
-//        }
-//    }
 
     private final class MediaPresenterListenerImpl implements MediaPresenterListener {
 
@@ -1354,6 +1079,44 @@ public final class MainActivity extends AppCompatActivity {
         @Override
         public void handlePlaybackStateChanged(final PlaybackStateCompat state) {
             MainActivity.this.handlePlaybackStateChanged(state);
+        }
+    }
+
+    private void updateListVisiblePositions(@NonNull final RecyclerView recyclerView) {
+        final LinearLayoutManager layoutManager = ((LinearLayoutManager) recyclerView.getLayoutManager());
+        if (layoutManager == null) {
+            mListFirstVisiblePosition = 0;
+            return;
+        }
+        mListFirstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition();
+        mListLastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition();
+    }
+
+    private void onScrolledToEnd() {
+        if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
+            unsubscribeFromItem(mCurrentParentId);
+            mMediaPresenter.addMediaItemToStack(mCurrentParentId);
+        } else {
+            AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
+        }
+    }
+
+    private final class ScrollListener extends RecyclerView.OnScrollListener {
+
+        private ScrollListener() {
+            super();
+        }
+
+        @Override
+        public void onScrollStateChanged(@NonNull final RecyclerView recyclerView, final int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+            if (newState != RecyclerView.SCROLL_STATE_IDLE) {
+                return;
+            }
+            MainActivity.this.updateListVisiblePositions(recyclerView);
+            if (MainActivity.this.mListFirstVisiblePosition == MainActivity.this.mBrowserAdapter.getItemCount()) {
+                MainActivity.this.onScrolledToEnd();
+            }
         }
     }
 }
