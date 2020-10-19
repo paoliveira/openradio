@@ -94,4 +94,19 @@ public final class RadioStationToAdd implements Serializable {
     public boolean isAddToServer() {
         return mAddToServer;
     }
+
+    @Override
+    public String toString() {
+        return "RadioStationToAdd{" +
+                "name='" + mName + '\'' +
+                ", url='" + mUrl + '\'' +
+                ", imageLocalUrl='" + mImageLocalUrl + '\'' +
+                ", imageWebUrl='" + mImageWebUrl + '\'' +
+                ", homePage='" + mHomePage + '\'' +
+                ", genre='" + mGenre + '\'' +
+                ", country='" + mCountry + '\'' +
+                ", addToFav=" + mAddToFav +
+                ", addToServer=" + mAddToServer +
+                '}';
+    }
 }

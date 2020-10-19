@@ -2052,15 +2052,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     );
                 }
 
-                Pair<Uri, List<Pair<String, String>>> urlData = UrlBuilder.addStation(rsToAdd);
-                if (!mApiServiceProvider.addStation(
-                        mDownloader, urlData.first, urlData.second, CacheType.NONE)) {
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(
-                            AppLocalBroadcast.createIntentValidateOfRSFailed(
-                                    "Radio Station can not be added to server"
-                            )
-                    );
-                    break;
+                if (rsToAdd.isAddToServer()) {
+                    final Pair<Uri, List<Pair<String, String>>> urlData = UrlBuilder.addStation(rsToAdd);
+                    if (!mApiServiceProvider.addStation(
+                            mDownloader, urlData.first, urlData.second, CacheType.NONE)) {
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(
+                                AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                        "Radio Station can not be added to server"
+                                )
+                        );
+                    } else {
+                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to server");
+                    }
                 }
 
                 String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, rsToAdd.getImageLocalUrl());
@@ -2088,7 +2091,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);
 
                 LocalBroadcastManager.getInstance(context).sendBroadcast(
-                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added successfully")
+                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to local device")
                 );
 
                 break;
