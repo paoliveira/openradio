@@ -34,14 +34,14 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.squareup.picasso.Picasso;
 import com.xenione.libs.swipemaker.SwipeLayout;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
-import com.yuriy.openradio.shared.utils.ImageFetcher;
-import com.yuriy.openradio.shared.utils.ImageWorker;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.view.activity.MainActivity;
@@ -57,12 +57,12 @@ import java.util.List;
 public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdapter.ViewHolder> {
 
     public interface Listener {
-        void onItemDismissed(MediaBrowserCompat.MediaItem item, final int position);
+        void onItemSettings(MediaBrowserCompat.MediaItem item, final int position);
+
         void onItemTap(MediaBrowserCompat.MediaItem item, final int position);
     }
 
     private MainActivity mActivity;
-    private ImageWorker mImageFetcher;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
     private String mParentId;
     private Listener mListener;
@@ -75,15 +75,13 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     /**
      * Main constructor.
      *
-     * @param activity     current {@link android.app.Activity}
-     * @param imageFetcher {@link ImageFetcher} instance
+     * @param activity current {@link android.app.Activity}
      */
-    public MediaItemsAdapter(final MainActivity activity, final ImageWorker imageFetcher) {
+    public MediaItemsAdapter(final MainActivity activity) {
         super();
         mParentId = MediaIdHelper.MEDIA_ID_ROOT;
         mAdapterData = new ListAdapterData<>();
         mActivity = activity;
-        mImageFetcher = imageFetcher;
     }
 
     @NonNull
@@ -103,17 +101,18 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         if (mActivity == null) {
             return;
         }
-        if (mImageFetcher == null) {
-            return;
-        }
 
         final MediaDescriptionCompat description = mediaItem.getDescription();
         final boolean isPlayable = mediaItem.isPlayable();
 
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, getParentId());
-        updateImage(description, holder.mImageView, mImageFetcher);
+        updateImage(description, holder.mImageView);
         updateBitrateView(
                 MediaItemHelper.getBitrateField(mediaItem), holder.mBitrateView, isPlayable
+        );
+
+        holder.mFavoriteCheckView.setButtonDrawable(
+                AppCompatResources.getDrawable(mActivity, R.drawable.src_favorite)
         );
 
         if (isPlayable) {
@@ -124,7 +123,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
             holder.mFavoriteCheckView.setVisibility(View.GONE);
         }
 
-        holder.mSettingsView.setOnClickListener(new OnDismissListener(mediaItem, position));
+        holder.mSettingsView.setOnClickListener(new OnSettingsListener(mediaItem, position));
 
         holder.mForegroundView.isDragDisabled(!isPlayable);
         holder.mForegroundView.setOnClickListener(new OnItemTapListener(mediaItem, position));
@@ -242,7 +241,6 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     public void clear() {
         clearData();
         mActivity = null;
-        mImageFetcher = null;
     }
 
     public static void updateBitrateView(final int bitrate,
@@ -294,15 +292,13 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     }
 
     /**
-     * Updates an image of the Media Item.
+     * Updates an image view of the Media Item.
      *
      * @param description Media Description of the Media Item.
-     * @param view   Image View to apply image to.
-     * @param imageWorker Fetcher object to download image in background thread.
+     * @param view        Image View to apply image to.
      */
-    public static void updateImage(final MediaDescriptionCompat description,
-                                   @Nullable final ImageView view,
-                                   final ImageWorker imageWorker) {
+    public static void updateImage(@NonNull final MediaDescriptionCompat description,
+                                   @Nullable final ImageView view) {
         if (view == null) {
             return;
         }
@@ -313,14 +309,9 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
             final int iconId = MediaItemHelper.getDrawableId(description.getExtras());
             if (MediaItemHelper.isDrawableIdValid(iconId)) {
                 view.setImageResource(iconId);
-            } else {
-                if (iconUri != null && iconUri.toString().startsWith("android")) {
-                    view.setImageURI(iconUri);
-                } else {
-                    // Load the image asynchronously into the ImageView, this also takes care of
-                    // setting a placeholder image while the background thread runs
-                    imageWorker.loadImage(iconUri, view);
-                }
+            }
+            if (iconUri != null) {
+                Picasso.get().load(iconUri).noPlaceholder().into(view);
             }
         }
     }
@@ -357,12 +348,12 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         );
     }
 
-    private final class OnDismissListener implements View.OnClickListener {
+    private final class OnSettingsListener implements View.OnClickListener {
 
         private final int mPosition;
         private final MediaBrowserCompat.MediaItem mItem;
 
-        public OnDismissListener(final MediaBrowserCompat.MediaItem item, final int position) {
+        public OnSettingsListener(final MediaBrowserCompat.MediaItem item, final int position) {
             super();
             mPosition = position;
             mItem = item;
@@ -370,7 +361,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
 
         @Override
         public void onClick(final View view) {
-            mListener.onItemDismissed(mItem, mPosition);
+            mListener.onItemSettings(mItem, mPosition);
         }
     }
 

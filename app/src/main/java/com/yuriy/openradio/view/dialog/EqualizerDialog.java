@@ -84,7 +84,7 @@ public final class EqualizerDialog extends BaseDialogFragment {
         setWindowDimensions(view, 0.8f, 0.6f);
 
         final Context context = getContext();
-        final TextView notAvailableView= view.findViewById(R.id.eq_not_available_view);
+        final TextView notAvailableView = view.findViewById(R.id.eq_not_available_view);
         if (EqualizerStorage.isEmpty(context)) {
             notAvailableView.setVisibility(View.VISIBLE);
         } else {
@@ -181,7 +181,7 @@ public final class EqualizerDialog extends BaseDialogFragment {
             upperBandLevelView.setText(msg2);
 
             final LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT - 60,120
+                    ViewGroup.LayoutParams.MATCH_PARENT - 60, 120
             );
             params.weight = 1;
 

@@ -25,7 +25,6 @@ import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -425,13 +424,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mMediaNotification = new MediaNotification(this);
         AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate");
-        if (Build.VERSION.SDK_INT >= 26) {
-            mMediaNotification.notifyServiceStarted();
-        } else {
-            // Pre-O behavior.
-            context.startService(new Intent(context, OpenRadioService.class));
-        }
-        mMediaNotification.handleNotification();
+        mMediaNotification.notifyServiceStarted();
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -675,7 +668,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             LatestRadioStationStorage.add(radioStation, getApplicationContext());
         }
         configMediaPlayerState();
-        mMediaNotification.doInitialNotification(getApplicationContext(), getCurrentPlayingRadioStation());
         updateMetadata(mCurrentStreamTitle);
     }
 
@@ -2051,15 +2043,18 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     );
                 }
 
-                Pair<Uri, List<Pair<String, String>>> urlData = UrlBuilder.addStation(rsToAdd);
-                if (!mApiServiceProvider.addStation(
-                        mDownloader, urlData.first, urlData.second, CacheType.NONE)) {
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(
-                            AppLocalBroadcast.createIntentValidateOfRSFailed(
-                                    "Radio Station can not be added to server"
-                            )
-                    );
-                    break;
+                if (rsToAdd.isAddToServer()) {
+                    final Pair<Uri, List<Pair<String, String>>> urlData = UrlBuilder.addStation(rsToAdd);
+                    if (!mApiServiceProvider.addStation(
+                            mDownloader, urlData.first, urlData.second, CacheType.NONE)) {
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(
+                                AppLocalBroadcast.createIntentValidateOfRSFailed(
+                                        "Radio Station can not be added to server"
+                                )
+                        );
+                    } else {
+                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to server");
+                    }
                 }
 
                 String imageUrlLocal = FileUtils.copyExtFileToIntDir(context, rsToAdd.getImageLocalUrl());
@@ -2087,7 +2082,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT);
 
                 LocalBroadcastManager.getInstance(context).sendBroadcast(
-                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added successfully")
+                        AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to local device")
                 );
 
                 break;

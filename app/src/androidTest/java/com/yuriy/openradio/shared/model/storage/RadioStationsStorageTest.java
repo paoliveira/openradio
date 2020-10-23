@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,15 @@
 
 package com.yuriy.openradio.shared.model.storage;
 
-import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
+import android.content.Context;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +38,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * On 19/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-
+@RunWith(AndroidJUnit4.class)
 public final class RadioStationsStorageTest {
 
     public RadioStationsStorageTest() {
@@ -42,12 +47,13 @@ public final class RadioStationsStorageTest {
 
     @Test
     public void merge() {
+        final Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         final List<RadioStation> listA = new ArrayList<>();
         final List<RadioStation> listB = new ArrayList<>();
         final RadioStation[] radioStations = new RadioStation[10];
         for (int i = 0; i < radioStations.length; i++) {
-            final RadioStation radioStation = RadioStation.makeDefaultInstance();
-            radioStation.setId(i);
+            final RadioStation radioStation = RadioStation.makeDefaultInstance(context, "123");
+//            radioStation.setId(i);
 //            radioStation.setStreamURL("Url" + i);
 
             radioStations[i] = radioStation;

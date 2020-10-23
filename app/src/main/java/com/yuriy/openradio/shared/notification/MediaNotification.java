@@ -46,6 +46,7 @@ import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.LruCacheObject;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -79,12 +80,10 @@ public final class MediaNotification extends BroadcastReceiver {
     private MediaControllerCompat.TransportControls mTransportControls;
     private final LruCache<String, LruCacheObject> mAlbumArtCache;
 
-    private PlaybackStateCompat mPlaybackState;
     private MediaMetadataCompat mMetadata;
-    private final MediaControllerCompat.Callback mCb;
+    private final MediaControllerCompatCallback mCb;
 
     private final NotificationManagerCompat mNotificationManager;
-//    private NotificationCompat.Action mPlayPauseAction;
 
     private final PendingIntent mPauseIntent;
     private final PendingIntent mPlayIntent;
@@ -136,7 +135,7 @@ public final class MediaNotification extends BroadcastReceiver {
             ApplicationInfo applicationInfo = mService.getPackageManager().getApplicationInfo(packageName, 0);
             packageContext.setTheme(applicationInfo.theme);
             Resources.Theme theme = packageContext.getTheme();
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            if (AppUtils.hasVersionLollipop()) {
                 TypedArray ta = theme.obtainStyledAttributes(new int[]{android.R.attr.colorPrimary});
                 notificationColor = ta.getColor(0, Color.DKGRAY);
                 ta.recycle();
@@ -172,16 +171,9 @@ public final class MediaNotification extends BroadcastReceiver {
         } else {
             mMetadata = MediaItemHelper.metadataFromRadioStation(context, radioStation);
         }
-        PlaybackStateCompat playbackState = mController.getPlaybackState();
-        if (playbackState != null) {
-            mPlaybackState = playbackState;
-        } else {
-            AppLogger.e("StartNotification with null playback state");
-        }
-
         mStarted.set(true);
         // The notification must be updated after setting started to true
-        handleNotification();
+        handleNotification(mController.getPlaybackState());
     }
 
     /**
@@ -250,6 +242,8 @@ public final class MediaNotification extends BroadcastReceiver {
 
     private final class MediaControllerCompatCallback extends MediaControllerCompat.Callback {
 
+        private PlaybackStateCompat mPlaybackState;
+
         private MediaControllerCompatCallback() {
             super();
         }
@@ -257,8 +251,16 @@ public final class MediaNotification extends BroadcastReceiver {
         @Override
         public void onPlaybackStateChanged(final @NonNull PlaybackStateCompat state) {
             AppLogger.d(CLASS_NAME + " Received new playback state:" + state);
+            boolean doNotify;
+            if (mPlaybackState == null) {
+                doNotify = true;
+            } else {
+                doNotify = doHandleState(mPlaybackState.getState(), state.getState());
+            }
+            if (doNotify) {
+                handleNotification(state);
+            }
             mPlaybackState = state;
-            handleNotification();
         }
 
         @Override
@@ -269,7 +271,7 @@ public final class MediaNotification extends BroadcastReceiver {
             } else {
                 AppLogger.e("OnMetadataChanged null metadata, prev metadata " + mMetadata);
             }
-            handleNotification();
+            handleNotification(mPlaybackState);
         }
 
         @Override
@@ -277,19 +279,20 @@ public final class MediaNotification extends BroadcastReceiver {
             AppLogger.d(CLASS_NAME + " Session was destroyed, resetting to the new session token");
             updateSessionToken();
         }
+
+        private boolean doHandleState(final int curState, final int newState) {
+            if (newState == curState) {
+                return false;
+            }
+            return true;
+        }
     }
 
-    public void handleNotification() {
+    public void handleNotification(final PlaybackStateCompat playbackState) {
         if (mMetadata == null) {
-            showNoStreamNotification();
             return;
         }
-        if (mPlaybackState == null) {
-            showNoStreamNotification();
-            return;
-        }
-        if (mService == null) {
-            showNoStreamNotification();
+        if (playbackState == null) {
             return;
         }
 
@@ -301,7 +304,7 @@ public final class MediaNotification extends BroadcastReceiver {
         mNotificationChannelFactory.createChannel(new MediaNotificationData(mService, mMetadata));
         int playPauseActionIndex = 0;
         // If skip to previous action is enabled
-        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
+        if ((playbackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS) != 0) {
             builder.addAction(
                     R.drawable.ic_skip_prev,
                     mService.getString(R.string.label_previous),
@@ -344,7 +347,7 @@ public final class MediaNotification extends BroadcastReceiver {
         }
 
         // If skip to next action is enabled
-        if ((mPlaybackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
+        if ((playbackState.getActions() & PlaybackStateCompat.ACTION_SKIP_TO_NEXT) != 0) {
             builder.addAction(
                     R.drawable.ic_skip_next,
                     mService.getString(R.string.label_next),
@@ -352,24 +355,29 @@ public final class MediaNotification extends BroadcastReceiver {
             );
         }
 
+        int smallIcon = AppUtils.hasVersionLollipop() ?
+                R.drawable.ic_notification :
+                R.drawable.ic_notification_drawable;
+
         builder
                 .setContentIntent(makePendingIntent())
-                .addAction(getPlayPauseAction())
+                .addAction(getPlayPauseAction(playbackState))
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setLargeIcon(art)
+                .setSmallIcon(smallIcon)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle());
 
         AppLogger.d(
                 CLASS_NAME + " Update Notification " +
-                        "state:" + mPlaybackState +
+                        "state:" + playbackState +
                         "title:" + description.getTitle() +
                         "subtitle:" + description.getSubtitle()
         );
         AppLogger.d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]");
-        mService.startForeground(NOTIFICATION_ID, builder.build());
+        mNotificationChannelFactory.updateChannel(NOTIFICATION_ID, builder.build());
         // TODO: Fetch and update Notification.
 //        if (fetchArtUrl != null && !BitmapUtils.isUrlLocalResource(fetchArtUrl)) {
 //            if (cacheObject == null) {
@@ -391,32 +399,24 @@ public final class MediaNotification extends BroadcastReceiver {
         final NotificationCompat.Builder builder = new NotificationCompat.Builder(
                 mService, ServiceStartedNotificationData.CHANNEL_ID
         );
+        int smallIcon = AppUtils.hasVersionLollipop() ?
+                R.drawable.ic_notification :
+                R.drawable.ic_notification_drawable;
         builder
+                .setContentIntent(makePendingIntent())
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle("Open Radio")
-                .setContentText("Open Radio just started")
+                .setContentText("Application just started")
+                .setSmallIcon(smallIcon)
                 .setLargeIcon(art);
         AppLogger.d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]");
         mService.startForeground(NOTIFICATION_ID, builder.build());
     }
 
-    public void doInitialNotification(final Context context, final RadioStation radioStation) {
-        mMetadata = MediaItemHelper.metadataFromRadioStation(context, radioStation);
-        if (mMetadata == null) {
-            AppLogger.e(
-                    "StartNotification null metadata, after created from RadioStation."
-            );
-        }
-        handleNotification();
-    }
-
     @Nullable
     private PendingIntent makePendingIntent() {
-        if (mService == null) {
-            return null;
-        }
         return PendingIntent.getActivity(
                 mService, 0,
                 new Intent(mService, mService.isTv() ? TvMainActivity.class : MainActivity.class),
@@ -424,38 +424,11 @@ public final class MediaNotification extends BroadcastReceiver {
         );
     }
 
-    private void showNoStreamNotification() {
-        // Create/Retrieve Notification Channel for O and beyond devices (26+).
-        mNotificationChannelFactory.createChannelNoStream(new NoMediaNotificationData(mService));
-
-        // Build the style.
-        androidx.media.app.NotificationCompat.MediaStyle mediaStyle
-                = new androidx.media.app.NotificationCompat.MediaStyle()
-                .setMediaSession(mSessionToken);
-
-        final NotificationCompat.Builder builder = new NotificationCompat.Builder(
-                mService, NoMediaNotificationData.CHANNEL_ID
-        );
-
-        builder
-                .setStyle(mediaStyle)
-                .setColor(mNotificationColor)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentTitle("Open Radio")
-                .setContentText("No Radio Station selected")
-                .setContentIntent(makePendingIntent())
-                .setLargeIcon(BitmapFactory.decodeResource(
-                        mService.getResources(), R.drawable.ic_radio_station
-                ));
-        AppLogger.d(CLASS_NAME + " No Radio Station, ORS[" + mService.hashCode() + "]");
-        doNotifySafely(builder);
-    }
-
-    private NotificationCompat.Action getPlayPauseAction() {
+    private NotificationCompat.Action getPlayPauseAction(final PlaybackStateCompat playbackState) {
         String label;
         int icon;
         PendingIntent intent;
-        if (mPlaybackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
+        if (playbackState.getState() == PlaybackStateCompat.STATE_PLAYING) {
             label = mService.getString(R.string.label_pause);
             icon = R.drawable.ic_pause;
             intent = mPauseIntent;
@@ -465,16 +438,6 @@ public final class MediaNotification extends BroadcastReceiver {
             intent = mPlayIntent;
         }
         return new NotificationCompat.Action(icon, label, intent);
-    }
-
-    private void doNotifySafely(@NonNull final NotificationCompat.Builder builder) {
-        // Address NPE inside ApplicationPackageManager when build notification
-        try {
-            AppLogger.d(CLASS_NAME + " notify safely, ORS[" + mService.hashCode() + "]");
-            mNotificationManager.notify(NOTIFICATION_ID, builder.build());
-        } catch (final Exception e) {
-            AppLogger.e("Can not do notification:" + e);
-        }
     }
 
 //    private void fetchBitmapFromURLAsync(@NonNull final String source) {

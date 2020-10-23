@@ -34,6 +34,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -42,6 +43,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -60,7 +62,6 @@ import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.model.LifecycleModel;
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
@@ -73,8 +74,6 @@ import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.ImageFetcherFactory;
-import com.yuriy.openradio.shared.utils.ImageWorker;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
@@ -88,9 +87,9 @@ import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 import com.yuriy.openradio.view.dialog.AddStationDialog;
+import com.yuriy.openradio.view.dialog.ComingSoonDialog;
 import com.yuriy.openradio.view.dialog.EditStationDialog;
 import com.yuriy.openradio.view.dialog.EqualizerDialog;
-import com.yuriy.openradio.view.dialog.FeatureSortDialog;
 import com.yuriy.openradio.view.dialog.RemoveStationDialog;
 import com.yuriy.openradio.view.dialog.SearchDialog;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
@@ -122,10 +121,6 @@ public final class MainActivity extends AppCompatActivity {
      * Adapter for the representing media items in the list.
      */
     private MediaItemsAdapter mBrowserAdapter;
-    /**
-     * Handles loading the  image in a background thread.
-     */
-    private ImageWorker mImageWorker;
     private View mCurrentRadioStationView;
     @Nullable
     private MediaMetadataCompat mLastKnownMetadata;
@@ -227,8 +222,8 @@ public final class MainActivity extends AppCompatActivity {
         final NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
-                    final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-                    clearDialogs(fragmentTransaction);
+                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    clearDialogs(transaction);
                     menuItem.setChecked(false);
                     // Handle navigation view item clicks here.
                     final int id = menuItem.getItemId();
@@ -238,35 +233,35 @@ public final class MainActivity extends AppCompatActivity {
                             final DialogFragment settingsDialog = BaseDialogFragment.newInstance(
                                     GeneralSettingsDialog.class.getName()
                             );
-                            settingsDialog.show(fragmentTransaction, GeneralSettingsDialog.DIALOG_TAG);
+                            settingsDialog.show(transaction, GeneralSettingsDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_buffering:
                             // Show Stream Buffering Dialog
                             final DialogFragment streamBufferingDialog = BaseDialogFragment.newInstance(
                                     StreamBufferingDialog.class.getName()
                             );
-                            streamBufferingDialog.show(fragmentTransaction, StreamBufferingDialog.DIALOG_TAG);
+                            streamBufferingDialog.show(transaction, StreamBufferingDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_google_drive:
                             // Show Google Drive Dialog
                             final DialogFragment googleDriveDialog = BaseDialogFragment.newInstance(
                                     GoogleDriveDialog.class.getName()
                             );
-                            googleDriveDialog.show(fragmentTransaction, GoogleDriveDialog.DIALOG_TAG);
+                            googleDriveDialog.show(transaction, GoogleDriveDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_logs:
                             // Show Application Logs Dialog
                             final DialogFragment applicationLogsDialog = BaseDialogFragment.newInstance(
                                     LogsDialog.class.getName()
                             );
-                            applicationLogsDialog.show(fragmentTransaction, LogsDialog.DIALOG_TAG);
+                            applicationLogsDialog.show(transaction, LogsDialog.DIALOG_TAG);
                             break;
                         case R.id.nav_about:
                             // Show About Dialog
                             final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
                                     AboutDialog.class.getName()
                             );
-                            aboutDialog.show(fragmentTransaction, AboutDialog.DIALOG_TAG);
+                            aboutDialog.show(transaction, AboutDialog.DIALOG_TAG);
                             break;
                         default:
 
@@ -303,11 +298,8 @@ public final class MainActivity extends AppCompatActivity {
         // Add listener for the permissions status
         PermissionChecker.addPermissionStatusListener(mPermissionStatusLstnr);
 
-        // Handles loading the  image in a background thread
-        mImageWorker = ImageFetcherFactory.getSmallImageFetcher(this);
-
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(this, mImageWorker);
+        mBrowserAdapter = new MediaItemsAdapter(this);
 
         // Initialize progress bar
         mProgressBar = findViewById(R.id.progress_bar_view);
@@ -470,15 +462,15 @@ public final class MainActivity extends AppCompatActivity {
         // DialogFragment.show() will take care of adding the fragment
         // in a transaction.  We also want to remove any currently showing
         // dialog, so make our own transaction and take care of that here.
-        final FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        clearDialogs(fragmentTransaction);
+        final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        clearDialogs(transaction);
         switch (id) {
             case R.id.action_search: {
                 // Show Search Dialog
                 final DialogFragment dialog = BaseDialogFragment.newInstance(
                         SearchDialog.class.getName()
                 );
-                dialog.show(fragmentTransaction, SearchDialog.DIALOG_TAG);
+                dialog.show(transaction, SearchDialog.DIALOG_TAG);
                 return true;
             }
             case R.id.action_eq: {
@@ -486,7 +478,7 @@ public final class MainActivity extends AppCompatActivity {
                 final DialogFragment dialog = BaseDialogFragment.newInstance(
                         EqualizerDialog.class.getName()
                 );
-                dialog.show(fragmentTransaction, EqualizerDialog.DIALOG_TAG);
+                dialog.show(transaction, EqualizerDialog.DIALOG_TAG);
                 return true;
             }
             default: {
@@ -884,7 +876,10 @@ public final class MainActivity extends AppCompatActivity {
         if (descriptionView != null) {
             descriptionView.setText(description.getDescription());
         }
-        MediaItemsAdapter.updateImage(description, findViewById(R.id.crs_img_view), mImageWorker);
+        final ImageView imgView = findViewById(R.id.crs_img_view);
+        // Show placeholder before load an image.
+        imgView.setImageResource(R.drawable.ic_radio_station);
+        MediaItemsAdapter.updateImage(description, imgView);
         MediaItemsAdapter.updateBitrateView(
                 radioStation.getMediaStream().getVariant(0).getBitrate(),
                 findViewById(R.id.crs_bitrate_view),
@@ -892,6 +887,10 @@ public final class MainActivity extends AppCompatActivity {
         );
         final CheckBox favoriteCheckView = findViewById(R.id.crs_favorite_check_view);
         if (favoriteCheckView != null) {
+            favoriteCheckView.setButtonDrawable(
+                    AppCompatResources.getDrawable(this, R.drawable.src_favorite)
+            );
+            favoriteCheckView.setChecked(false);
             final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                     MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
@@ -976,19 +975,6 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // In case of Catalog is sortable and user do not know about it - show
-            // help dialog to guide through functionality.
-            if (MediaIdHelper.isMediaIdSortable(parentId)) {
-                final boolean isSortDialogShown = AppPreferencesManager.isSortDialogShown(MainActivity.this);
-                if (!isSortDialogShown) {
-                    final DialogFragment featureSortDialog = BaseDialogFragment.newInstance(
-                            FeatureSortDialog.class.getName()
-                    );
-                    featureSortDialog.setCancelable(false);
-                    featureSortDialog.show(getSupportFragmentManager(), FeatureSortDialog.DIALOG_TAG);
-                }
-            }
-
             MainActivity.this.mCurrentParentId = parentId;
             MainActivity.this.hideProgressBar();
 
@@ -1038,8 +1024,13 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onItemDismissed(MediaBrowserCompat.MediaItem item, final int position) {
-
+        public void onItemSettings(MediaBrowserCompat.MediaItem item, final int position) {
+            final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            clearDialogs(transaction);
+            final DialogFragment fragment = BaseDialogFragment.newInstance(
+                    ComingSoonDialog.class.getName()
+            );
+            fragment.show(transaction, ComingSoonDialog.DIALOG_TAG);
         }
 
         @Override
@@ -1114,7 +1105,7 @@ public final class MainActivity extends AppCompatActivity {
                 return;
             }
             MainActivity.this.updateListVisiblePositions(recyclerView);
-            if (MainActivity.this.mListFirstVisiblePosition == MainActivity.this.mBrowserAdapter.getItemCount()) {
+            if (MainActivity.this.mListLastVisiblePosition == MainActivity.this.mBrowserAdapter.getItemCount() - 1) {
                 MainActivity.this.onScrolledToEnd();
             }
         }

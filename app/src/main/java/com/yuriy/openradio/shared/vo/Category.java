@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,14 @@ package com.yuriy.openradio.shared.vo;
  * At Android Studio
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
- */
-
-import com.yuriy.openradio.shared.utils.AppLogger;
-
-/**
- * {@link Category} is a value object that holds Radio Category data.
+ *
+ * {@link Category} is a value object that holds data related to category of Radio Stations.
  */
 public final class Category {
 
-    private static final String CLASS_NAME = Category.class.getSimpleName();
-
     private String mId;
 
-    private int mAmount;
-
-    private String mName = "";
+    private int mStationsCount;
 
     private String mDescription = "";
 
@@ -56,32 +48,30 @@ public final class Category {
         mId = value;
     }
 
-    public String getName() {
-        return mName;
-    }
-
-    public void setName(String value) {
-        if (value == null) {
-            AppLogger.w(CLASS_NAME + " Attempt to set null Name, reset it to empty String");
-            value = "";
-        }
-        mName = value;
-    }
-
     public String getDescription() {
-        return mDescription;
+        if (mDescription != null && !mDescription.isEmpty()) {
+            return mDescription;
+        }
+        String desc = String.valueOf(mStationsCount);
+        final int count = getStationsCount();
+        if (count == 0 || count > 1) {
+            desc += " radio stations";
+        } else {
+            desc += " radio station";
+        }
+        return desc;
     }
 
     public void setDescription(final String value) {
         mDescription = value;
     }
 
-    public int getAmount() {
-        return mAmount;
+    public int getStationsCount() {
+        return mStationsCount;
     }
 
-    public void setAmount(final int value) {
-        mAmount = value;
+    public void setStationsCount(final int value) {
+        mStationsCount = value;
     }
 
     public String getTitle() {

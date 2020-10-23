@@ -324,12 +324,24 @@ public final class AppUtils {
         return url.toLowerCase().startsWith("www") || url.toLowerCase().startsWith("http");
     }
 
-    static boolean hasKitKat() {
+    public static boolean hasVersionM() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    }
+
+    public static boolean hasVersionN() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
+    }
+
+    public static boolean hasVersionO() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+    }
+
+    public static boolean hasVersionKitKat() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
     }
 
-    public static boolean hasVersionM() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
+    public static boolean hasVersionLollipop() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP;
     }
 
     /**

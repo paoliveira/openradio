@@ -22,16 +22,25 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 
 /**
  * Utility class to handle operations over files.
  */
 public final class FileUtils {
+
+    private static final int IO_BUFFER_SIZE = 8 * 1024;
 
     /**
      * Private constructor to prevent this class instantiation.
@@ -109,7 +118,7 @@ public final class FileUtils {
             return null;
         }
 
-        ImageFetcher.downloadUrlToStream(context, filePath, out);
+        downloadUrlToStream(context, filePath, out);
 
         try {
             out.close();
@@ -121,6 +130,65 @@ public final class FileUtils {
             return null;
         }
         return file.getAbsolutePath();
+    }
+
+    /**
+     * Download a bitmap from a URL and write the content to an output stream.
+     *
+     * @param context      Context of a callee.
+     * @param urlString    The URL to fetch.
+     * @param outputStream
+     * @return true if successful, false otherwise
+     */
+    public static boolean downloadUrlToStream(final Context context,
+                                              final String urlString,
+                                              final OutputStream outputStream) {
+        HttpURLConnection connection = null;
+        BufferedOutputStream out = null;
+        BufferedInputStream in = null;
+
+        try {
+            if (AppUtils.isWebUrl(urlString)) {
+                if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
+                    connection = NetUtils.getHttpURLConnection(urlString, "GET");
+                    if (connection == null) {
+                        return false;
+                    }
+                    in = new BufferedInputStream(connection.getInputStream(), IO_BUFFER_SIZE);
+                }
+            } else {
+                in = new BufferedInputStream(new FileInputStream(new File(urlString)), IO_BUFFER_SIZE);
+            }
+
+            out = new BufferedOutputStream(outputStream, IO_BUFFER_SIZE);
+
+            if (in == null) {
+                return false;
+            }
+
+            int b;
+            while ((b = in.read()) != -1) {
+                out.write(b);
+            }
+            return true;
+        } catch (final SocketTimeoutException e) {
+            AnalyticsUtils.logException(new Exception("url:" + urlString, e));
+        } catch (final IOException e) {
+            AnalyticsUtils.logException(new Exception("url:" + urlString, e));
+        } finally {
+            NetUtils.closeHttpURLConnection(connection);
+            try {
+                if (out != null) {
+                    out.close();
+                }
+                if (in != null) {
+                    in.close();
+                }
+            } catch (final IOException e) {
+                /* Ignore */
+            }
+        }
+        return false;
     }
 
     /**

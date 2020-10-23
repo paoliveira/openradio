@@ -18,12 +18,12 @@ package com.yuriy.openradio.shared.notification;
 
 import android.app.NotificationManager;
 import android.content.Context;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.utils.AppUtils;
 
 /**
  * Created by Chernyshov Yurii
@@ -57,7 +57,7 @@ public final class NoMediaNotificationData {
         mChannelId = CHANNEL_ID;
         mChannelName = "No Radio Station";
         mChannelDescription = context.getString(R.string.radio_station_not_available);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (AppUtils.hasVersionN()) {
             mChannelImportance = NotificationManager.IMPORTANCE_DEFAULT;
         }
         mChannelEnableVibrate = false;

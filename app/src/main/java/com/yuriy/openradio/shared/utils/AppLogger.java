@@ -52,10 +52,6 @@ public final class AppLogger {
         super();
     }
 
-    public static boolean isDebug(final Context context) {
-        return ((context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0);
-    }
-
     public static void initLogger(final Context context) {
         initLogsDirectories(context);
         final String fileName = getCurrentLogsDirectory(context) + "/" + LOG_FILENAME;

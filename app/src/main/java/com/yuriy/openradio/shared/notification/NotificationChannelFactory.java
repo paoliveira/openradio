@@ -16,12 +16,15 @@
 
 package com.yuriy.openradio.shared.notification;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
+
+import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,42 +43,21 @@ public final class NotificationChannelFactory {
         mManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
-    void createChannel(@NonNull final NotificationData data) {
-        // NotificationChannels are required for Notifications on O (API 26) and above.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+    void updateChannel(final int id, final Notification notification) {
+        if (mManager == null) {
             return;
         }
-        // The id of the channel.
-        final String id = data.getChannelId();
-        if (mNotificationChannelMap.containsKey(id)) {
-            return;
-        }
-        // The user-visible name of the channel.
-        final CharSequence name = data.getChannelName();
-        // The user-visible description of the channel.
-        final String description = data.getChannelDescription();
-        final int importance = data.getChannelImportance();
-        final boolean enableVibrate = data.getChannelEnableVibrate();
-        final int lockScreenVisibility = data.getChannelLockScreenVisibility();
-        // Initializes NotificationChannel.
-        final NotificationChannel channel = new NotificationChannel(id, name, importance);
-        channel.setDescription(description);
-        channel.enableVibration(enableVibrate);
-        channel.setLockscreenVisibility(lockScreenVisibility);
-        // Keep this nulls to suspend bug in Android O when each notification provides with a sound
-        channel.setSound(null, null);
-        // Adds NotificationChannel to system. Attempting to create an existing notification
-        // channel with its original values performs no operation, so it's safe to perform the
-        // below sequence.
-        mNotificationChannelMap.put(id, channel);
-        if (mManager != null) {
-            mManager.createNotificationChannel(channel);
+        // Address NPE inside ApplicationPackageManager when build notification
+        try {
+            mManager.notify(id, notification);
+        } catch (final Exception e) {
+            AppLogger.e("Can not do notification:" + e);
         }
     }
 
-    void createChannelNoStream(@NonNull final NoMediaNotificationData data) {
+    void createChannel(@NonNull final NotificationData data) {
         // NotificationChannels are required for Notifications on O (API 26) and above.
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+        if (!AppUtils.hasVersionO()) {
             return;
         }
         // The id of the channel.

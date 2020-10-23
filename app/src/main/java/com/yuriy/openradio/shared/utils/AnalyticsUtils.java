@@ -53,6 +53,7 @@ public final class AnalyticsUtils {
     }
 
     public static void logMessage(final String message) {
+        AppLogger.d(message);
         FirebaseCrashlytics.getInstance().log(message);
     }
 }

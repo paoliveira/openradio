@@ -26,6 +26,8 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.cache.CacheType;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.IntentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
@@ -76,6 +78,7 @@ public abstract class MediaItemCommandImpl implements MediaItemCommand {
                 final MediaDescriptionCompat mediaDescription = track.getDescription();
                 final MediaBrowserCompat.MediaItem mediaItem = new MediaBrowserCompat.MediaItem(
                         mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE);
+                MediaItemHelper.setDrawableId(mediaItem.getDescription().getExtras(), R.drawable.ic_radio_station_empty);
                 dependencies.addMediaItem(mediaItem);
                 dependencies.getResult().sendResult(dependencies.getMediaItems());
                 dependencies.getResultListener().onResult();

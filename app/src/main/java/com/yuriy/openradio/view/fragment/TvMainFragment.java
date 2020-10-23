@@ -20,6 +20,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -46,6 +47,8 @@ import androidx.leanback.widget.Presenter;
 import androidx.leanback.widget.PresenterSelector;
 import androidx.leanback.widget.RowPresenter;
 
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.service.TvServicePlayerAdapter;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
@@ -59,8 +62,6 @@ import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.BitmapUtils;
-import com.yuriy.openradio.shared.utils.ImageFetcherFactory;
-import com.yuriy.openradio.shared.utils.ImageWorker;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.WrappedDrawable;
@@ -89,10 +90,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
     private ArrayObjectAdapter mRowsAdapter;
     private PlaybackBannerControlGlue<TvServicePlayerAdapter> mGlue;
     private ImageView mDummyView;
-    /**
-     * Handles loading the  image in a background thread.
-     */
-    private ImageWorker mImageWorker;
     private String mCurrentMediaId;
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
@@ -122,8 +119,6 @@ public class TvMainFragment extends PlaybackSupportFragment {
         mGlue.setHost(new PlaybackSupportFragmentGlueHost(this));
 
         mDummyView = new ImageView(context);
-        // Handles loading the  image in a background thread
-        mImageWorker = ImageFetcherFactory.getTvPlayerImageFetcher(getActivity());
 
         final MediaBrowserCompat.SubscriptionCallback subscriptionCb = new MediaBrowserSubscriptionCallback(this);
         final MediaPresenterListener listener = new MediaPresenterListenerImpl(this);
@@ -246,10 +241,27 @@ public class TvMainFragment extends PlaybackSupportFragment {
         mGlue.setTitle(description.getTitle());
         mGlue.setSubtitle(description.getSubtitle());
 
-        mImageWorker.loadImage(
-                description.getIconUri(),
-                drawable -> mGlue.setArt(drawable),
-                mDummyView
+        Picasso.get().load(description.getIconUri()).into(
+                new Target() {
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        final Context context = getContext();
+                        if (context == null) {
+                            return;
+                        }
+                        mGlue.setArt(new BitmapDrawable(context.getResources(), bitmap));
+                    }
+
+                    @Override
+                    public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+                    }
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                    }
+                }
         );
     }
 

@@ -46,7 +46,7 @@ import java.util.List;
  */
 public final class MediaItemHelper {
 
-    private static int DRAWABLE_ID_UNDEFINED = -1;
+    private static final int DRAWABLE_ID_UNDEFINED = -1;
     private static final String KEY_IS_FAVORITE = "KEY_IS_FAVORITE";
     private static final String KEY_IS_LAST_PLAYED = "KEY_IS_LAST_PLAYED";
     private static final String KEY_IS_LOCAL = "KEY_IS_LOCAL";
@@ -62,7 +62,10 @@ public final class MediaItemHelper {
         super();
     }
 
-    public static void setDrawableId(@NonNull final Bundle bundle, final int drawableId) {
+    public static void setDrawableId(@Nullable final Bundle bundle, final int drawableId) {
+        if (bundle == null) {
+            return;
+        }
         bundle.putInt(KEY_DRAWABLE_ID, drawableId);
     }
 
@@ -431,15 +434,15 @@ public final class MediaItemHelper {
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
 
-        final MediaMetadataCompat metadata = new MediaMetadataCompat.Builder()
+        return new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, parentId)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                // Workaround to include bundles into build()
+                .putLong(MediaMetadataCompat.METADATA_KEY_DOWNLOAD_STATUS, MediaDescriptionCompat.STATUS_NOT_DOWNLOADED)
                 .build();
-        setDrawableId(metadata.getBundle(), R.drawable.ic_radio_station_empty);
-        return metadata;
     }
 
     /**
