@@ -1,8 +1,6 @@
 package com.xenione.libs.swipemaker;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,7 +30,7 @@ public final class SwipeLayout extends RelativeLayout {
         void onTranslateChange(float globalPercent, int index, float relativePercent);
     }
 
-    private OrientationStrategy mOrientationStrategy;
+    private final OrientationStrategy mOrientationStrategy;
 
     public SwipeLayout(final Context context) {
         this(context, null);
@@ -45,11 +43,6 @@ public final class SwipeLayout extends RelativeLayout {
     public SwipeLayout(final Context context, final AttributeSet attrs, final int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mOrientationStrategy = Orientation.HORIZONTAL.get().make(this);
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public SwipeLayout(final Context context, final AttributeSet attrs, final int defStyleAttr, final int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
     }
 
     public void startWith(int position) {

@@ -17,13 +17,11 @@ public class HorizontalOrientationStrategy extends OrientationStrategy {
         mView = view;
     }
 
-    public HorizontalOrientationStrategy(final View view, final int slopTouch) {
-        super(view, slopTouch);
-        mView = view;
-    }
-
     @Override
     public boolean onInterceptTouchEvent(final MotionEvent event) {
+        if (isDragDisabled()) {
+            return false;
+        }
         final int action = event.getAction();
         final int eventX = (int) event.getX();
         if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
@@ -54,9 +52,8 @@ public class HorizontalOrientationStrategy extends OrientationStrategy {
         final int action = event.getAction();
         final int eventX = (int) event.getX();
         if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
-
-            if (isDragDisabled() && (mLastTouchX != eventX)) {
-                return true;
+            if (isDragDisabled()) {
+                return Math.abs(mLastTouchX - eventX) > 50;
             }
 
             if (mIsDragging) {
