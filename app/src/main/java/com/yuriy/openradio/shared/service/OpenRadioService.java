@@ -424,7 +424,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mMediaNotification = new MediaNotification(this);
         AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate");
-        mMediaNotification.notifyServiceStarted();
+        mMediaNotification.notifyService("Application just started");
 
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
@@ -1923,6 +1923,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AppLogger.d(CLASS_NAME + "rsv cmd:" + command);
         switch (command) {
             case VALUE_NAME_GET_RADIO_STATION_COMMAND: {
+                if (mMediaNotification != null) {
+                    mMediaNotification.notifyService("Update Favorite Radio Station");
+                }
                 final MediaDescriptionCompat description = extractMediaDescription(intent);
                 if (description == null) {
                     break;
@@ -2116,6 +2119,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 }
                 break;
             case VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM:
+                if (mMediaNotification != null) {
+                    mMediaNotification.notifyService("Toggle last Radio Station");
+                }
                 if (mState == PlaybackStateCompat.STATE_PLAYING) {
                     handlePauseRequest();
                 } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
@@ -2132,9 +2138,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 }
                 break;
             case VALUE_NAME_STOP_LAST_PLAYED_ITEM:
+                if (mMediaNotification != null) {
+                    mMediaNotification.notifyService("Stop play last Radio Station");
+                }
                 handlePauseRequest();
                 break;
             case VALUE_NAME_PLAY_LAST_PLAYED_ITEM:
+                if (mMediaNotification != null) {
+                    mMediaNotification.notifyService("Play last Radio Station");
+                }
                 handlePlayRequest();
                 break;
             case VALUE_NAME_UPDATE_EQUALIZER:
@@ -2144,6 +2156,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 }
                 break;
             case VALUE_NAME_STOP_SERVICE:
+                if (mMediaNotification != null) {
+                    mMediaNotification.notifyService("Stop application");
+                }
                 mMainHandler.postAtFrontOfQueue(() -> {
                     mPlayOnFocusGain = false;
                     mLastPlayedUrl = null;

@@ -386,7 +386,7 @@ public final class MediaNotification extends BroadcastReceiver {
 //        }
     }
 
-    public void notifyServiceStarted() {
+    public void notifyService(final String message) {
         final Bitmap art = BitmapFactory.decodeResource(
                 mService.getResources(), R.drawable.ic_radio_station
         );
@@ -407,8 +407,8 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentTitle("Open Radio")
-                .setContentText("Application just started")
+                .setContentTitle(mService.getString(R.string.app_name))
+                .setContentText(message)
                 .setSmallIcon(smallIcon)
                 .setLargeIcon(art);
         AppLogger.d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]");
