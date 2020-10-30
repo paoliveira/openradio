@@ -45,6 +45,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
@@ -61,7 +62,6 @@ import com.yuriy.openradio.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.shared.model.LifecycleModel;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
@@ -69,7 +69,6 @@ import com.yuriy.openradio.shared.permission.PermissionListener;
 import com.yuriy.openradio.shared.permission.PermissionStatusListener;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
-import com.yuriy.openradio.shared.service.BackgroundService;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
@@ -177,8 +176,6 @@ public final class MainActivity extends AppCompatActivity {
     private ProgressBar mProgressBarCrs;
     @Inject
     MediaPresenter mMediaPresenter;
-    @Inject
-    LifecycleModel mLifecycleModel;
     private final RecyclerView.OnScrollListener mScrollListener;
 
     /**
@@ -399,7 +396,6 @@ public final class MainActivity extends AppCompatActivity {
         mMediaPresenter.clean();
         if (!mIsOnSaveInstancePassed.get()) {
             mMediaPresenter.destroy();
-            BackgroundService.makeIntentStopServiceFromDestroy(getApplicationContext());
         }
         PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
@@ -407,6 +403,11 @@ public final class MainActivity extends AppCompatActivity {
         unregisterReceivers();
 
         mBrowserAdapter.clear();
+
+        ContextCompat.startForegroundService(
+                getApplicationContext(),
+                OpenRadioService.makeStopServiceIntent(getApplicationContext())
+        );
     }
 
     @Override

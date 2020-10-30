@@ -27,7 +27,6 @@ import androidx.multidex.MultiDexApplication;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.shared.model.LifecycleModel;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
@@ -37,8 +36,6 @@ import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.List;
-
-import javax.inject.Inject;
 
 import dagger.hilt.android.HiltAndroidApp;
 
@@ -55,8 +52,6 @@ public final class MainApp extends MultiDexApplication {
      * Tag string to use in logging message.
      */
     private static final String CLASS_NAME = MainApp.class.getSimpleName() + " ";
-    @Inject
-    LifecycleModel mLifecycleModel;
 
     /**
      * Constructor.
@@ -78,7 +73,6 @@ public final class MainApp extends MultiDexApplication {
         AppLogger.d(CLASS_NAME + "OnCreate");
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
         final Context context = this;
-        mLifecycleModel.init();
         final Thread thread = new Thread(
                 () -> {
                     final boolean isLoggingEnabled = AppPreferencesManager.areLogsEnabled(

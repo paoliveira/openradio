@@ -23,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -30,7 +31,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.shared.service.BackgroundService;
+import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
@@ -78,7 +79,10 @@ public final class TvMainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         AppLogger.i(CLASS_NAME + "destroyed " + this.hashCode());
-        BackgroundService.makeIntentStopServiceFromDestroy(getApplicationContext());
+        ContextCompat.startForegroundService(
+                getApplicationContext(),
+                OpenRadioService.makeStopServiceIntent(getApplicationContext())
+        );
     }
 
     @Override
