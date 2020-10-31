@@ -103,7 +103,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
     /**
      * Locate connected device.
      *
-     * @param context Context of collee.
+     * @param context Context of callee.
      */
     public void locateDevice(final Context context) {
         // Establish connection to the proxy.
