@@ -86,9 +86,9 @@ import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 import com.yuriy.openradio.view.dialog.AddStationDialog;
-import com.yuriy.openradio.view.dialog.ComingSoonDialog;
 import com.yuriy.openradio.view.dialog.EditStationDialog;
 import com.yuriy.openradio.view.dialog.EqualizerDialog;
+import com.yuriy.openradio.view.dialog.RSSettingsDialog;
 import com.yuriy.openradio.view.dialog.RemoveStationDialog;
 import com.yuriy.openradio.view.dialog.SearchDialog;
 import com.yuriy.openradio.view.list.MediaItemsAdapter;
@@ -780,22 +780,20 @@ public final class MainActivity extends AppCompatActivity {
         dialog.show(transaction, RemoveStationDialog.DIALOG_TAG);
     }
 
-    /**
-     * Handles action of the Radio Station edition.
-     *
-     * @param position Position (in the List) of the Radio Station to be edited.
-     */
-    private void handleEditRadioStationMenu(final int position) {
-        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
+    public void onEditRSClick(final View view) {
+        final MediaBrowserCompat.MediaItem item = (MediaBrowserCompat.MediaItem) view.getTag();
         if (item == null) {
             return;
         }
+        handleEditRadioStationMenu(item);
+    }
 
-        // If Item is not Local Radio Station - skip farther processing
-        if (!MediaItemHelper.isLocalRadioStationField(item)) {
-            return;
-        }
-
+    /**
+     * Handles edit of the Radio Station action.
+     *
+     * @param item Media item related to the Radio Station to be edited.
+     */
+    private void handleEditRadioStationMenu(@NonNull final MediaBrowserCompat.MediaItem item) {
         if (mIsOnSaveInstancePassed.get()) {
             AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState");
             return;
@@ -1025,13 +1023,16 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onItemSettings(MediaBrowserCompat.MediaItem item, final int position) {
+        public void onItemSettings(@NonNull final MediaBrowserCompat.MediaItem item, final int position) {
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             clearDialogs(transaction);
-            final DialogFragment fragment = BaseDialogFragment.newInstance(
-                    ComingSoonDialog.class.getName()
-            );
-            fragment.show(transaction, ComingSoonDialog.DIALOG_TAG);
+            final Bundle bundle = new Bundle();
+            if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(mCurrentParentId)) {
+                RSSettingsDialog.provideMediaItem(bundle, item);
+                RSSettingsDialog.providePositionInList(bundle, position);
+            }
+            final DialogFragment fragment = BaseDialogFragment.newInstance(RSSettingsDialog.class.getName(), bundle);
+            fragment.show(transaction, RSSettingsDialog.DIALOG_TAG);
         }
 
         @Override

@@ -351,17 +351,20 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     private final class OnSettingsListener implements View.OnClickListener {
 
         private final int mPosition;
+        @NonNull
         private final MediaBrowserCompat.MediaItem mItem;
 
-        public OnSettingsListener(final MediaBrowserCompat.MediaItem item, final int position) {
+        public OnSettingsListener(@NonNull final MediaBrowserCompat.MediaItem item, final int position) {
             super();
             mPosition = position;
-            mItem = item;
+            mItem = new MediaBrowserCompat.MediaItem(item.getDescription(), item.getFlags());
         }
 
         @Override
         public void onClick(final View view) {
-            mListener.onItemSettings(mItem, mPosition);
+            mListener.onItemSettings(
+                    new MediaBrowserCompat.MediaItem(mItem.getDescription(), mItem.getFlags()), mPosition
+            );
         }
     }
 

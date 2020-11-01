@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,25 +14,32 @@
     limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/dialog_coming_soon_root"
+    android:id="@+id/dialog_rs_settings_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="15dp">
 
     <TextView
+        android:id="@+id/dialog_rs_settings_rs_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="25dp"
-        android:text="@string/coming_soon"
-        android:textSize="25sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
-    <ImageView
+    <Button
+        android:id="@+id/dialog_rs_settings_edit_btn"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:srcCompat="@drawable/ic_coming_soon" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="@string/edit_station_dialog_button_label"
+        android:onClick="onEditRSClick"/>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:text="@string/remove_station_dialog_button_label" />
 
 </LinearLayout>

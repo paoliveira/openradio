@@ -69,7 +69,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="start"
-                android:paddingRight="5dp"
+                android:paddingEnd="5dp"
                 android:text="@string/about_project_home_title"
                 android:textStyle="bold"/>
 
