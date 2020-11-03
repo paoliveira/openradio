@@ -48,7 +48,6 @@ public final class RSSettingsDialog extends BaseDialogFragment {
     public static final String DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG";
 
     private static final String KEY_MEDIA_ITEM = CLASS_NAME + "_KEY_MEDIA_ITEM";
-    private static final String KEY_POSITION_IN_LIST = CLASS_NAME + "_KEY_POSITION_IN_LIST";
 
     @Override
     @NonNull
@@ -69,6 +68,7 @@ public final class RSSettingsDialog extends BaseDialogFragment {
         } else {
             view.findViewById(R.id.dialog_rs_settings_edit_remove).setVisibility(View.VISIBLE);
             view.findViewById(R.id.dialog_rs_settings_edit_btn).setTag(item);
+            view.findViewById(R.id.dialog_rs_settings_remove_btn).setTag(item);
             final TextView name = view.findViewById(R.id.dialog_rs_settings_rs_name);
             name.setText(item.getDescription().getTitle());
         }
@@ -81,10 +81,6 @@ public final class RSSettingsDialog extends BaseDialogFragment {
         bundle.putParcelable(KEY_MEDIA_ITEM, mediaItem);
     }
 
-    public static void providePositionInList(@NonNull final Bundle bundle, final int position) {
-        bundle.putInt(KEY_POSITION_IN_LIST, position);
-    }
-
     @Nullable
     private static MediaBrowserCompat.MediaItem extractMediaItem(@Nullable final Bundle bundle) {
         if (bundle == null) {
@@ -94,12 +90,5 @@ public final class RSSettingsDialog extends BaseDialogFragment {
             return null;
         }
         return (MediaBrowserCompat.MediaItem) bundle.getParcelable(KEY_MEDIA_ITEM);
-    }
-
-    private static int extractPositionInList(@Nullable final Bundle bundle) {
-        if (bundle == null) {
-            return -1;
-        }
-        return bundle.getInt(KEY_POSITION_IN_LIST, -1);
     }
 }

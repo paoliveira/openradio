@@ -50,6 +50,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -548,30 +549,39 @@ public final class MainActivity extends AppCompatActivity {
     /**
      * Clears any active dialog.
      *
-     * @param fragmentTransaction Instance of Fragment transaction.
+     * @param transaction Instance of Fragment transaction.
      */
-    private void clearDialogs(final FragmentTransaction fragmentTransaction) {
-        Fragment fragmentByTag = getSupportFragmentManager().findFragmentByTag(AboutDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
+    private void clearDialogs(final FragmentTransaction transaction) {
+        final FragmentManager manager = getSupportFragmentManager();
+        Fragment fragment = manager.findFragmentByTag(AboutDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
         }
-        fragmentByTag = getSupportFragmentManager().findFragmentByTag(SearchDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
+        fragment = manager.findFragmentByTag(SearchDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
         }
-        fragmentByTag = getSupportFragmentManager().findFragmentByTag(EqualizerDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
+        fragment = manager.findFragmentByTag(EqualizerDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
         }
-        fragmentByTag = getSupportFragmentManager().findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
+        fragment = manager.findFragmentByTag(GoogleDriveDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
         }
-        fragmentByTag = getSupportFragmentManager().findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG);
-        if (fragmentByTag != null) {
-            fragmentTransaction.remove(fragmentByTag);
+        fragment = manager.findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
         }
-        fragmentTransaction.addToBackStack(null);
+        fragment = manager.findFragmentByTag(RSSettingsDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
+        }
+        fragment = manager.findFragmentByTag(EditStationDialog.DIALOG_TAG);
+        if (fragment != null) {
+            transaction.remove(fragment);
+        }
+        transaction.commitNow();
     }
 
     /**
@@ -735,32 +745,20 @@ public final class MainActivity extends AppCompatActivity {
         mScreenBroadcastRcvr.unregister(getApplicationContext());
     }
 
-    /**
-     * Handle a click event on the List View item.
-     *
-     * @param position Position of the clicked item.
-     */
-    private void handleOnItemClick(final int position) {
-        setActiveItem(position);
-        mMediaPresenter.handleItemClick(mBrowserAdapter.getItem(position), position);
+    public void onRemoveRSClick(final View view) {
+        final MediaBrowserCompat.MediaItem item = (MediaBrowserCompat.MediaItem) view.getTag();
+        if (item == null) {
+            return;
+        }
+        handleRemoveRadioStationMenu(item);
     }
 
     /**
      * Handles action of the Radio Station deletion.
      *
-     * @param position Position (in the List) of the Radio Station to be deleted.
+     * @param item Media item related to the Radio Station to be deleted.
      */
-    private void handleDeleteRadioStationMenu(final int position) {
-        final MediaBrowserCompat.MediaItem item = mBrowserAdapter.getItem(position);
-        if (item == null) {
-            return;
-        }
-
-        // If Item is not Local Radio Station - skip farther processing
-        if (!MediaItemHelper.isLocalRadioStationField(item)) {
-            return;
-        }
-
+    private void handleRemoveRadioStationMenu(@NonNull final MediaBrowserCompat.MediaItem item) {
         String name = "";
         if (item.getDescription().getTitle() != null) {
             name = item.getDescription().getTitle().toString();
@@ -771,8 +769,10 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Show Remove Station Dialog
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        clearDialogs(transaction);
+
+        // Show Remove Station Dialog
         final Bundle bundle = RemoveStationDialog.createBundle(item.getMediaId(), name);
         final DialogFragment dialog = BaseDialogFragment.newInstance(
                 RemoveStationDialog.class.getName(), bundle
@@ -799,8 +799,10 @@ public final class MainActivity extends AppCompatActivity {
             return;
         }
 
-        // Show Edit Station Dialog
         final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        clearDialogs(transaction);
+
+        // Show Edit Station Dialog
         final DialogFragment dialog = EditStationDialog.newInstance(item.getMediaId());
         dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
@@ -1029,7 +1031,6 @@ public final class MainActivity extends AppCompatActivity {
             final Bundle bundle = new Bundle();
             if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST.equals(mCurrentParentId)) {
                 RSSettingsDialog.provideMediaItem(bundle, item);
-                RSSettingsDialog.providePositionInList(bundle, position);
             }
             final DialogFragment fragment = BaseDialogFragment.newInstance(RSSettingsDialog.class.getName(), bundle);
             fragment.show(transaction, RSSettingsDialog.DIALOG_TAG);

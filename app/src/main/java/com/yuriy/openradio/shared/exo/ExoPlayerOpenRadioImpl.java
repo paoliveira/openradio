@@ -401,6 +401,9 @@ public final class ExoPlayerOpenRadioImpl {
             AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
         } catch (final UnsupportedOperationException e) {
             AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
+        } catch (final RuntimeException e) {
+            // Some times this happen with "AudioEffect: set/get parameter error"
+            AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
         }
         if (state != null) {
             EqualizerStorage.saveEqualizerState(mContext, serializer.serialize(state));
