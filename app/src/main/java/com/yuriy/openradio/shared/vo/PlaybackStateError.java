@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 public final class PlaybackStateError {
 
     public enum Code {
+        NO_ERROR,
         GENERAL,
         UNRECOGNIZED_URL
     }
@@ -30,7 +31,7 @@ public final class PlaybackStateError {
     private final Code mCode;
 
     public PlaybackStateError() {
-        this(null, Code.GENERAL);
+        this(null, Code.NO_ERROR);
     }
 
     public PlaybackStateError(final String message) {
