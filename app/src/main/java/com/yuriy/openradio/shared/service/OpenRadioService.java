@@ -2221,7 +2221,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         }
 
         @Override
-        public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+        public void onPlaybackStateChanged(final int playbackState) {
             AppLogger.d(CLASS_NAME + "OnPlayerStateChanged " + playbackState);
             switch (playbackState) {
                 case Player.STATE_BUFFERING:

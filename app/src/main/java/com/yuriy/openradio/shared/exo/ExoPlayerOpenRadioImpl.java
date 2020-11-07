@@ -33,11 +33,11 @@ import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Renderer;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.analytics.AnalyticsCollector;
 import com.google.android.exoplayer2.audio.AudioCapabilities;
 import com.google.android.exoplayer2.audio.AudioProcessor;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
@@ -60,10 +60,9 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSource;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
-import com.google.android.exoplayer2.util.Clock;
+import com.google.android.exoplayer2.util.MimeTypes;
 import com.google.android.exoplayer2.util.Util;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.EqualizerStorage;
@@ -121,10 +120,9 @@ public final class ExoPlayerOpenRadioImpl {
         void onProgress(long position, long bufferedPosition, long duration);
 
         /**
-         * @param playWhenReady
          * @param playbackState
          */
-        void onPlayerStateChanged(final boolean playWhenReady, final int playbackState);
+        void onPlaybackStateChanged(final int playbackState);
     }
 
     /**
@@ -230,12 +228,12 @@ public final class ExoPlayerOpenRadioImpl {
 
         final List<Renderer> renderersList = new ArrayList<>();
         buildRenderers(mContext, mMainHandler, renderersList);
-        mRenderers = renderersList.toArray(new Renderer[renderersList.size()]);
+        mRenderers = renderersList.toArray(new Renderer[0]);
 
         final TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory();
-        final ExoPlayer.Builder builder = new ExoPlayer.Builder(
-                mRenderers,
-                new DefaultTrackSelector(mContext, trackSelectionFactory),
+        final ExoPlayer.Builder builder = new ExoPlayer.Builder(mContext, mRenderers);
+        builder.setTrackSelector(new DefaultTrackSelector(mContext, trackSelectionFactory));
+        builder.setLoadControl(
                 new DefaultLoadControl.Builder()
                         .setBufferDurationsMs(
                                 AppPreferencesManager.getMinBuffer(mContext),
@@ -243,13 +241,9 @@ public final class ExoPlayerOpenRadioImpl {
                                 AppPreferencesManager.getPlayBuffer(mContext),
                                 AppPreferencesManager.getPlayBufferRebuffer(mContext)
                         )
-                        .createDefaultLoadControl(),
-                DefaultBandwidthMeter.getSingletonInstance(mContext),
-                Util.getLooper(),
-                new AnalyticsCollector(Clock.DEFAULT),
-                /* useLazyPreparation= */ true,
-                Clock.DEFAULT
+                        .build()
         );
+
         mExoPlayer = builder.build();
         mExoPlayer.addListener(mComponentListener);
         mExoPlayer.setForegroundMode(true);
@@ -273,11 +267,13 @@ public final class ExoPlayerOpenRadioImpl {
         switch (type) {
             case C.TYPE_HLS:
                 mMediaSource = new HlsMediaSource.Factory(mMediaDataSourceFactory)
-                        .createMediaSource(mUri);
+                        .createMediaSource(
+                                new MediaItem.Builder().setUri(mUri).setMimeType(MimeTypes.APPLICATION_M3U8).build()
+                        );
                 break;
             case C.TYPE_OTHER:
                 mMediaSource = new ProgressiveMediaSource.Factory(mMediaDataSourceFactory)
-                        .createMediaSource(mUri);
+                        .createMediaSource(new MediaItem.Builder().setUri(mUri).build());
                 break;
             case C.TYPE_SS:
             case C.TYPE_DASH:
@@ -287,8 +283,9 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         if (mExoPlayer != null) {
-            mExoPlayer.prepare(mMediaSource);
+            mExoPlayer.setMediaSource(mMediaSource);
             mExoPlayer.setPlayWhenReady(true);
+            mExoPlayer.prepare();
         }
 
         stayAwake(true);
@@ -305,7 +302,7 @@ public final class ExoPlayerOpenRadioImpl {
             if (renderer.getTrackType() != C.TRACK_TYPE_AUDIO) {
                 continue;
             }
-            mExoPlayer.createMessage(renderer).setType(C.MSG_SET_VOLUME).setPayload(value).send();
+            mExoPlayer.createMessage(renderer).setType(Renderer.MSG_SET_VOLUME).setPayload(value).send();
         }
     }
 
@@ -403,6 +400,9 @@ public final class ExoPlayerOpenRadioImpl {
         } catch (final IllegalStateException e) {
             AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
         } catch (final UnsupportedOperationException e) {
+            AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
+        } catch (final RuntimeException e) {
+            // Some times this happen with "AudioEffect: set/get parameter error"
             AppLogger.e("Can not create state from " + mEqualizer + ", " + e);
         }
         if (state != null) {
@@ -628,9 +628,7 @@ public final class ExoPlayerOpenRadioImpl {
                         if (TextUtils.isEmpty(title)) {
                             return;
                         }
-                        if (title.startsWith(" ")) {
-                            title = title.replaceFirst(" ", "");
-                        }
+                        title = title.trim();
                         mMetadataListener.onMetaData(title);
                     }
                 }
@@ -656,13 +654,6 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onAudioSinkUnderrun(final int bufferSize,
-                                        final long bufferSizeMs,
-                                        final long elapsedSinceLastFeedMs) {
-
-        }
-
-        @Override
         public void onAudioDisabled(@NonNull final DecoderCounters counters) {
             AppLogger.d(LOG_TAG + " audioDisabled");
         }
@@ -682,14 +673,9 @@ public final class ExoPlayerOpenRadioImpl {
         }
 
         @Override
-        public void onLoadingChanged(final boolean isLoading) {
-            //AppLogger.d(LOG_TAG + " onLoadingChanged");
-        }
-
-        @Override
-        public void onPlayerStateChanged(final boolean playWhenReady, final int playbackState) {
+        public void onPlaybackStateChanged(final int playbackState) {
             AppLogger.d(LOG_TAG + " onPlayerStateChanged to " + playbackState);
-            mListener.onPlayerStateChanged(playWhenReady, playbackState);
+            mListener.onPlaybackStateChanged(playbackState);
             switch (playbackState) {
                 case Player.STATE_BUFFERING:
                     AppLogger.d(LOG_TAG + " STATE_BUFFERING");
@@ -756,11 +742,6 @@ public final class ExoPlayerOpenRadioImpl {
 
         @Override
         public void onShuffleModeEnabledChanged(final boolean shuffleModeEnabled) {
-
-        }
-
-        @Override
-        public void onSeekProcessed() {
 
         }
     }
