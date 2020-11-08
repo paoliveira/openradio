@@ -1247,10 +1247,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             AppLogger.e(CLASS_NAME + " url is null");
             return;
         }
-        if (mLastPlayedUrl == null) {
-            AppLogger.e(CLASS_NAME + " last played url is null");
-            return;
-        }
 
         // Cache URL.
         mLastPlayedUrl = url;
