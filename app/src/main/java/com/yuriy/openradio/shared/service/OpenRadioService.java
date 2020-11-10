@@ -23,7 +23,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -187,11 +186,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      */
     public static volatile int mState;
     private PauseReason mPauseReason = PauseReason.DEFAULT;
-    /**
-     * Wifi lock that we hold when streaming files from the internet,
-     * in order to prevent the device from shutting off the Wifi radio.
-     */
-    private WifiManager.WifiLock mWifiLock;
     /**
      * Collection of the Radio Stations.
      */
@@ -360,11 +354,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS, new MediaItemRecentlyAddedStations());
 
         mCurrentIndexOnQueue = -1;
-
-        // Create the Wifi lock (this does not acquire the lock, this just creates it)
-        mWifiLock = ((WifiManager) context
-                .getSystemService(Context.WIFI_SERVICE))
-                .createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "OpenRadio_lock");
 
         // Need this component for API 20 and earlier.
         // I wish to get rid of this because it keeps listen to broadcast even after application is destroyed :-(
@@ -1055,11 +1044,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         if (releaseMediaPlayer) {
             releaseExoPlayer();
         }
-
-        // we can also release the Wifi lock, if we're holding it
-        if (mWifiLock.isHeld()) {
-            mWifiLock.release();
-        }
     }
 
     /**
@@ -1189,11 +1173,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
         AppLogger.d(CLASS_NAME + "Prepare " + mLastPlayedUrl);
         mExoPlayerORImpl.prepare(Uri.parse(mLastPlayedUrl));
-
-        // If we are streaming from the internet, we want to hold a
-        // Wifi lock, which prevents the Wifi radio from going to
-        // sleep while the song is playing.
-        mWifiLock.acquire();
 
         updatePlaybackState();
     }
