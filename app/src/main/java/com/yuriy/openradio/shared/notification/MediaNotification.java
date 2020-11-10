@@ -365,6 +365,8 @@ public final class MediaNotification extends BroadcastReceiver {
                 .setLargeIcon(art)
                 .setSmallIcon(smallIcon)
                 .setOngoing(true)
+                .setDefaults(0)
+                .setSound(null)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle(description.getTitle())
                 .setContentText(description.getSubtitle());
@@ -376,7 +378,8 @@ public final class MediaNotification extends BroadcastReceiver {
                         "subtitle:" + description.getSubtitle()
         );
         AppLogger.d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]");
-        mNotificationChannelFactory.updateChannel(NOTIFICATION_ID, builder.build());
+//        mNotificationChannelFactory.updateChannel(NOTIFICATION_ID, builder.build());
+        mService.startForeground(NOTIFICATION_ID, builder.build());
         // TODO: Fetch and update Notification.
 //        if (fetchArtUrl != null && !BitmapUtils.isUrlLocalResource(fetchArtUrl)) {
 //            if (cacheObject == null) {

@@ -21,13 +21,13 @@ import android.media.audiofx.Equalizer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.PowerManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -37,6 +37,7 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioAttributes;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -137,10 +138,6 @@ public final class ExoPlayerOpenRadioImpl {
      */
     private final Listener mListener;
     /**
-     * Power wake lock to keep ExoPlayer up and running when screen is off.
-     */
-    private PowerManager.WakeLock mWakeLock = null;
-    /**
      * Current play URI.
      */
     private Uri mUri;
@@ -212,11 +209,13 @@ public final class ExoPlayerOpenRadioImpl {
                         )
                         .build()
         );
+        builder.setWakeMode(C.WAKE_MODE_NETWORK);
+        builder.setHandleAudioBecomingNoisy(true);
+        builder.setAudioAttributes(AudioAttributes.DEFAULT, true);
 
         mExoPlayer = builder.build();
         mExoPlayer.addListener(mComponentListener);
         mExoPlayer.addMetadataOutput(mComponentListener);
-        mExoPlayer.setForegroundMode(true);
     }
 
     /**
@@ -232,11 +231,10 @@ public final class ExoPlayerOpenRadioImpl {
         mUserState = UserState.PREPARE;
         mUri = uri;
         if (mExoPlayer != null) {
-            mExoPlayer.setMediaItem(new MediaItem.Builder().setUri(mUri).build());
             mExoPlayer.setPlayWhenReady(true);
+            mExoPlayer.setMediaItem(new MediaItem.Builder().setUri(mUri).build());
             mExoPlayer.prepare();
         }
-        stayAwake(true);
     }
 
     /**
@@ -268,7 +266,6 @@ public final class ExoPlayerOpenRadioImpl {
             mExoPlayer.stop();
             mExoPlayer.setPlayWhenReady(false);
         }
-        stayAwake(false);
     }
 
     /**
@@ -288,7 +285,6 @@ public final class ExoPlayerOpenRadioImpl {
     public void reset() {
         AppLogger.d(LOG_TAG + " reset");
         mUserState = UserState.RESET;
-        stayAwake(false);
         if (mExoPlayer != null) {
             mExoPlayer.stop();
         }
@@ -391,55 +387,6 @@ public final class ExoPlayerOpenRadioImpl {
         mExoPlayer = null;
         mUpdateProgressHandler = null;
         mUpdateProgressAction = null;
-    }
-
-    /**
-     * Set the low-level power management behavior for this MediaPlayer. This
-     * can be used when the MediaPlayer is not playing.
-     *
-     * <p>This function has the Player access the low-level power manager
-     * service to control the device's power usage while playing is occurring.
-     * The parameter is a combination of {@link PowerManager} wake flags.
-     * Use of this method requires {@link android.Manifest.permission#WAKE_LOCK}
-     * permission.
-     * By default, no attempt is made to keep the device awake during playback.
-     *
-     * @param context The Context to use.
-     * @param mode    The power/wake mode to set.
-     * @see PowerManager
-     */
-    public void setWakeMode(final Context context, int mode) {
-        boolean washeld = false;
-
-        if (mWakeLock != null) {
-            if (mWakeLock.isHeld()) {
-                washeld = true;
-                mWakeLock.release();
-            }
-            mWakeLock = null;
-        }
-
-        final PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
-        mWakeLock = pm.newWakeLock(mode | PowerManager.ON_AFTER_RELEASE, ExoPlayer.class.getName());
-        mWakeLock.setReferenceCounted(false);
-        if (washeld) {
-            mWakeLock.acquire();
-        }
-    }
-
-    /**
-     * Decides whether or not to stay awake.
-     *
-     * @param awake {@code true} in case of it is necessary to stay awake, {@code false} otherwise.
-     */
-    private void stayAwake(final boolean awake) {
-        if (mWakeLock != null) {
-            if (awake && !mWakeLock.isHeld()) {
-                mWakeLock.acquire();
-            } else if (!awake && mWakeLock.isHeld()) {
-                mWakeLock.release();
-            }
-        }
     }
 
     /**

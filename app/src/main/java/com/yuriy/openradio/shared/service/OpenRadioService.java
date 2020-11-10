@@ -22,7 +22,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.media.AudioManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -30,7 +29,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -119,8 +117,7 @@ import wseemann.media.jplaylistparser.playlist.PlaylistEntry;
  * On 12/13/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class OpenRadioService extends MediaBrowserServiceCompat
-        implements AudioManager.OnAudioFocusChangeListener {
+public final class OpenRadioService extends MediaBrowserServiceCompat {
 
     private static String CLASS_NAME;
     private static final String KEY_NAME_COMMAND_NAME = "KEY_NAME_COMMAND_NAME";
@@ -196,22 +193,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      */
     private WifiManager.WifiLock mWifiLock;
     /**
-     * Type of audio focus we have
-     */
-    private AudioFocus mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK;
-    /**
-     * audio manager object.
-     */
-    private AudioManager mAudioManager;
-    /**
      * Collection of the Radio Stations.
      */
     private final RadioStationsStorage mRadioStationsStorage;
     private String mCurrentMediaId;
-    /**
-     * Indicates if we should start playing immediately after we gain focus.
-     */
-    private boolean mPlayOnFocusGain;
     /**
      * Notification object.
      */
@@ -224,24 +209,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
      * Flag that indicates whether application runs over normal Android or Android TV.
      */
     private boolean mIsTv = false;
-
-    /**
-     * Enumeration for the Audio Focus states.
-     */
-    private enum AudioFocus {
-        /**
-         * There is no audio focus, and no possible to "duck"
-         */
-        NO_FOCUS_NO_DUCK,
-        /**
-         * There is no focus, but can play at a low volume ("ducking")
-         */
-        NO_FOCUS_CAN_DUCK,
-        /**
-         * There is full audio focus
-         */
-        FOCUSED
-    }
 
     private enum PauseReason {
         DEFAULT, NOISY
@@ -344,10 +311,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                 AppLogger.d(CLASS_NAME + "Ignoring delayed stop since ExoPlayerORImpl in use.");
                 return;
             }
-            if (mPlayOnFocusGain) {
-                AppLogger.d(CLASS_NAME + "Ignoring delayed stop since PlayOnFocusGain.");
-                return;
-            }
             AppLogger.d(CLASS_NAME + "Stopping service with delay handler.");
             stopSelfResultInt();
         }
@@ -426,8 +389,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate");
         mMediaNotification.notifyService("Application just started");
 
-        mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
         mMasterVolumeBroadcastReceiver.register(context);
 
         ServiceLifecyclePreferencesManager.isServiceActive(context, true);
@@ -462,7 +423,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         ServiceLifecyclePreferencesManager.isServiceActive(context, false);
 
-        mPlayOnFocusGain = false;
         if (mServiceHandler != null) {
             mServiceHandler.getLooper().quit();
         }
@@ -667,37 +627,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (radioStation != null) {
             LatestRadioStationStorage.add(radioStation, getApplicationContext());
         }
-        configMediaPlayerState();
         updateMetadata(mCurrentStreamTitle);
-    }
-
-    @Override
-    public final void onAudioFocusChange(int focusChange) {
-        AppLogger.d(CLASS_NAME + "On AudioFocusChange. focusChange=" + focusChange);
-        if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-            // We have gained focus:
-            mAudioFocus = AudioFocus.FOCUSED;
-
-        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS ||
-                focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ||
-                focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-            // We have lost focus. If we can duck (low playback volume), we can keep playing.
-            // Otherwise, we need to pause the playback.
-            boolean canDuck = focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
-            mAudioFocus = canDuck ? AudioFocus.NO_FOCUS_CAN_DUCK : AudioFocus.NO_FOCUS_NO_DUCK;
-
-            // If we are playing, we need to reset media player by calling configMediaPlayerState
-            // with mAudioFocus properly set.
-            if (mState == PlaybackStateCompat.STATE_PLAYING && !canDuck) {
-                // If we don't have audio focus and can't duck, we addToLocals the information that
-                // we were playing, so that we can resume playback once we get the focus back.
-                mPlayOnFocusGain = true;
-            }
-        } else {
-            AppLogger.e(CLASS_NAME + "OnAudioFocusChange: Ignoring unsupported focusChange: " + focusChange);
-        }
-
-        configMediaPlayerState();
     }
 
     public static void putCurrentParentId(final Bundle bundle, final String currentParentId) {
@@ -969,11 +899,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     }
             );
 
-            // Make sure the media player will acquire a wake-lock while
-            // playing. If we don't do that, the CPU might go to sleep while the
-            // song is playing, causing playback to stop.
-            mExoPlayerORImpl.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-
             AppLogger.d(CLASS_NAME + "ExoPlayer prepared");
         } else {
             AppLogger.d(CLASS_NAME + "Reset ExoPlayer");
@@ -1183,9 +1108,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         mDelayedStopHandler.removeCallbacksAndMessages(null);
 
-        mPlayOnFocusGain = true;
-        tryToGetAudioFocus();
-
         if (!mSession.isActive()) {
             mSession.setActive(true);
         }
@@ -1194,7 +1116,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             // If we're paused, just continue playback and restore the
             // 'foreground service' state.
-            configMediaPlayerState();
+            if (!mExoPlayerORImpl.isPlaying()) {
+                AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer startMediaPlayer");
+                mExoPlayerORImpl.play();
+            }
+            AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer set state playing");
+            setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing.
@@ -1271,53 +1198,12 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
         updatePlaybackState();
     }
 
-    /**
-     * Reconfigures ExoPlayer according to audio focus settings and
-     * starts/restarts it. This method starts/restarts the ExoPlayer
-     * respecting the current audio focus state. So if we have focus, it will
-     * play normally; if we don't have focus, it will either leave the
-     * ExoPlayer paused or set it to a low volume, depending on what is
-     * allowed by the current focus settings. This method assumes mPlayer !=
-     * null, so if you are calling it, you have to do so from a context where
-     * you are sure this is the case.
-     */
-    private void configMediaPlayerState() {
-        AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer. mAudioFocus=" + mAudioFocus);
-        if (mAudioFocus == AudioFocus.NO_FOCUS_NO_DUCK) {
-            // If we don't have audio focus and can't duck, we have to pause,
-            if (mState == PlaybackStateCompat.STATE_PLAYING) {
-                handlePauseRequest();
-            }
-        } else {
-            if (mExoPlayerORImpl == null) {
-                return;
-            }
-            // we have audio focus:
-            setPlayerVolume();
-            // If we were playing when we lost focus, we need to resume playing.
-            if (mPlayOnFocusGain) {
-                if (!mExoPlayerORImpl.isPlaying()) {
-                    AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer startMediaPlayer");
-                    mExoPlayerORImpl.play();
-                }
-                mPlayOnFocusGain = false;
-                AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer set state playing");
-                setPlaybackState(PlaybackStateCompat.STATE_PLAYING);
-            }
-        }
-
-        updatePlaybackState();
-    }
-
     private void setPlayerVolume() {
         if (mExoPlayerORImpl == null) {
             AppLogger.e(CLASS_NAME + "can not set player volume, player null");
             return;
         }
         float volume = AppPreferencesManager.getMasterVolume(getApplicationContext()) / 100.0F;
-        if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
-            volume = (volume * 0.2F);
-        }
         mExoPlayerORImpl.setVolume(volume);
     }
 
@@ -1349,7 +1235,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
             }
             // while paused, retain the ExoPlayer but give up audio focus
             relaxResources(false);
-            giveUpAudioFocus();
         }
         updatePlaybackState();
     }
@@ -1448,41 +1333,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
     }
 
     /**
-     * Try to get the system audio focus.
-     */
-    private void tryToGetAudioFocus() {
-        AppLogger.d(CLASS_NAME + "Try To Get Audio Focus, current focus:" + mAudioFocus);
-        if (mAudioFocus == AudioFocus.FOCUSED) {
-            return;
-        }
-
-        final int result = mAudioManager.requestAudioFocus(
-                this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN
-        );
-
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return;
-        }
-
-        AppLogger.i(CLASS_NAME + "Audio Focus focused");
-        mAudioFocus = AudioFocus.FOCUSED;
-    }
-
-    /**
-     * Give up the audio focus.
-     */
-    private void giveUpAudioFocus() {
-        AppLogger.d(CLASS_NAME + "Give Up Audio Focus " + mAudioFocus);
-        if (mAudioFocus != AudioFocus.FOCUSED) {
-            return;
-        }
-        if (mAudioManager.abandonAudioFocus(this) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return;
-        }
-        mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK;
-    }
-
-    /**
      * Handle a request to stop music
      */
     private void handleStopRequest() {
@@ -1508,7 +1358,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
 
         // let go of all resources...
         relaxResources(true);
-        giveUpAudioFocus();
 
         if (mMediaNotification != null) {
             mMediaNotification.stopNotification();
@@ -2160,7 +2009,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat
                     mMediaNotification.notifyService("Stop application");
                 }
                 mMainHandler.postAtFrontOfQueue(() -> {
-                    mPlayOnFocusGain = false;
                     mLastPlayedUrl = null;
                     mLastKnownRS = null;
                     handleStopRequest();
