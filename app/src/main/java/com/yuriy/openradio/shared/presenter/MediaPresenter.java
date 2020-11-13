@@ -115,7 +115,7 @@ public final class MediaPresenter {
         return mMediaItemsStack.size();
     }
 
-    public boolean handleBackPressed(final Activity activity) {
+    public boolean handleBackPressed(final Context context) {
         AppLogger.d(CLASS_NAME + " back pressed start:" + mMediaItemsStack.size());
 
         // If there is root category - close activity
@@ -126,7 +126,7 @@ public final class MediaPresenter {
             // Clear stack
             mMediaItemsStack.clear();
 
-            activity.startService(OpenRadioService.makeStopServiceIntent(activity));
+            context.startService(OpenRadioService.makeStopServiceIntent(context));
             AppLogger.d(CLASS_NAME + " back pressed return true, stop service");
             return true;
         }
@@ -263,8 +263,7 @@ public final class MediaPresenter {
     @NonNull
     public int[] getPositions(final String mediaItem) {
         // Restore clicked position for the Catalogue list.
-        if (!TextUtils.isEmpty(mediaItem)
-                && mPositions.containsKey(mediaItem)) {
+        if (!TextUtils.isEmpty(mediaItem) && mPositions.containsKey(mediaItem)) {
             final int[] data = mPositions.get(mediaItem);
             if (data == null) {
                 return createInitPositionEntry();

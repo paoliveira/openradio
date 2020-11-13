@@ -170,7 +170,6 @@ public final class UrlBuilder {
                 BASE_URL + "stations/search?name=" + encodeValue(query)
                         + "&offset=" + 0
                         + "&limit=" + ITEMS_PER_PAGE
-                        + "&reverse=true&order=clickcount"
         );
     }
 
