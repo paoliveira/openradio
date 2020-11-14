@@ -297,7 +297,7 @@ public final class MainActivity extends AppCompatActivity {
         PermissionChecker.addPermissionStatusListener(mPermissionStatusLstnr);
 
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(this);
+        mBrowserAdapter = new MediaItemsAdapter(getApplicationContext());
 
         // Initialize progress bar
         mProgressBar = findViewById(R.id.progress_bar_view);
@@ -516,7 +516,7 @@ public final class MainActivity extends AppCompatActivity {
         hideNoDataMessage();
         hideProgressBar();
 
-        if (mMediaPresenter.handleBackPressed(this)) {
+        if (mMediaPresenter.handleBackPressed(getApplicationContext())) {
             // perform android frameworks lifecycle
             super.onBackPressed();
         }
@@ -582,14 +582,6 @@ public final class MainActivity extends AppCompatActivity {
             transaction.remove(fragment);
         }
         transaction.commitNow();
-    }
-
-    /**
-     * Start request location procedure. Despite the fact that whether user enable Location or not,
-     * just request Location via Android API and return result via Broadcast event.
-     */
-    public final void processLocationCallback() {
-        // TODO:
     }
 
     /**

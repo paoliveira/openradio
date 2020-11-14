@@ -27,7 +27,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -38,7 +37,6 @@ import androidx.appcompat.content.res.AppCompatResources;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
-import com.xenione.libs.swipemaker.SwipeLayout;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
@@ -53,19 +51,17 @@ import java.util.List;
  * On 12/18/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdapter.ViewHolder> {
+public final class TvMediaItemsAdapter extends RecyclerView.Adapter<TvMediaItemsAdapter.ViewHolder> {
 
     public interface Listener {
-        void onItemSettings(MediaBrowserCompat.MediaItem item, final int position);
 
-        void onItemTap(MediaBrowserCompat.MediaItem item, final int position);
+        void onItemSelected(MediaBrowserCompat.MediaItem item, int position);
     }
 
-    private Context mActivity;
+    private Context mContext;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
     private String mParentId;
     private Listener mListener;
-
     /**
      * The currently selected / active Item Id.
      */
@@ -76,33 +72,42 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
      *
      * @param context current {@link android.app.Activity}
      */
-    public MediaItemsAdapter(final Context context) {
+    public TvMediaItemsAdapter(final Context context) {
         super();
         mParentId = MediaIdHelper.MEDIA_ID_ROOT;
         mAdapterData = new ListAdapterData<>();
-        mActivity = context;
+        mContext = context;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull final ViewGroup parent, final int viewType) {
         return new ViewHolder(
-                LayoutInflater.from(parent.getContext()).inflate(R.layout.item_both_side_swipe, parent, false)
+                LayoutInflater.from(parent.getContext()).inflate(R.layout.tv_category_list_item, parent, false)
         );
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final MediaBrowserCompat.MediaItem mediaItem = getItem(position);
         if (mediaItem == null) {
             return;
         }
-        if (mActivity == null) {
+        if (mContext == null) {
             return;
         }
 
         final MediaDescriptionCompat description = mediaItem.getDescription();
         final boolean isPlayable = mediaItem.isPlayable();
+
+        holder.mRoot.setOnClickListener(
+                v -> {
+                    if (mListener == null) {
+                        return;
+                    }
+                    mListener.onItemSelected(mediaItem, position);
+                }
+        );
 
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, getParentId());
         updateImage(description, holder.mImageView);
@@ -111,31 +116,35 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         );
 
         holder.mFavoriteCheckView.setButtonDrawable(
-                AppCompatResources.getDrawable(mActivity, R.drawable.src_favorite)
+                AppCompatResources.getDrawable(mContext, R.drawable.src_favorite)
         );
 
         if (isPlayable) {
             handleFavoriteAction(
-                    holder.mFavoriteCheckView, description, mediaItem, mActivity
+                    holder.mFavoriteCheckView, description, mediaItem, mContext
             );
         } else {
             holder.mFavoriteCheckView.setVisibility(View.GONE);
         }
 
-        holder.mSettingsView.setOnClickListener(new OnSettingsListener(mediaItem, position));
-
-        holder.mForegroundView.isDragDisabled(!isPlayable);
-        holder.mForegroundView.setOnClickListener(new OnItemTapListener(mediaItem, position));
-        int color = R.color.or_color_list_item_bg;
+        boolean selected = false;
         if (position == getActiveItemId()) {
-            color = R.color.or_color_list_item_bg_selected;
+            selected = true;
         }
-        holder.mForegroundView.setBackgroundColor(mActivity.getResources().getColor(color));
+        holder.mRoot.setSelected(selected);
     }
 
     @Override
     public int getItemCount() {
         return mAdapterData.getItemsCount();
+    }
+
+    public void setListener(@NonNull final Listener value) {
+        mListener = value;
+    }
+
+    public void removeListener() {
+        mListener = null;
     }
 
     @Nullable
@@ -147,11 +156,6 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     public void onViewRecycled(@NonNull final ViewHolder holder) {
         super.onViewRecycled(holder);
         holder.mImageView.setImageResource(android.R.color.transparent);
-        holder.mRoot.sync();
-    }
-
-    public void setListener(final Listener listener) {
-        mListener = listener;
     }
 
     /**
@@ -239,7 +243,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
 
     public void clear() {
         clearData();
-        mActivity = null;
+        mContext = null;
     }
 
     public static void updateBitrateView(final int bitrate,
@@ -347,43 +351,6 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         );
     }
 
-    private final class OnSettingsListener implements View.OnClickListener {
-
-        private final int mPosition;
-        @NonNull
-        private final MediaBrowserCompat.MediaItem mItem;
-
-        public OnSettingsListener(@NonNull final MediaBrowserCompat.MediaItem item, final int position) {
-            super();
-            mPosition = position;
-            mItem = new MediaBrowserCompat.MediaItem(item.getDescription(), item.getFlags());
-        }
-
-        @Override
-        public void onClick(final View view) {
-            mListener.onItemSettings(
-                    new MediaBrowserCompat.MediaItem(mItem.getDescription(), mItem.getFlags()), mPosition
-            );
-        }
-    }
-
-    private final class OnItemTapListener implements View.OnClickListener {
-
-        private final int mPosition;
-        private final MediaBrowserCompat.MediaItem mItem;
-
-        public OnItemTapListener(final MediaBrowserCompat.MediaItem item, final int position) {
-            super();
-            mPosition = position;
-            mItem = item;
-        }
-
-        @Override
-        public void onClick(final View view) {
-            mListener.onItemTap(mItem, mPosition);
-        }
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         /**
@@ -407,23 +374,17 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
          * Check box vew for the "Favorites" option.
          */
         private final CheckBox mFavoriteCheckView;
+        private RelativeLayout mRoot;
 
-        private final SwipeLayout mForegroundView;
-
-        private final BothSideCoordinatorLayout mRoot;
-
-        private final ImageButton mSettingsView;
 
         public ViewHolder(final View view) {
             super(view);
-            mNameView = view.findViewById(R.id.name_view);
-            mDescriptionView = view.findViewById(R.id.description_view);
-            mImageView = view.findViewById(R.id.img_view);
-            mFavoriteCheckView = view.findViewById(R.id.favorite_btn_view);
-            mBitrateView = view.findViewById(R.id.bitrate_view);
-            mSettingsView = view.findViewById(R.id.settings_btn_view);
-            mForegroundView = view.findViewById(R.id.foreground_view);
-            mRoot = view.findViewById(R.id.item_root);
+            mRoot = view.findViewById(R.id.tv_root_view);
+            mNameView = view.findViewById(R.id.tv_name_view);
+            mDescriptionView = view.findViewById(R.id.tv_description_view);
+            mImageView = view.findViewById(R.id.tv_img_view);
+            mFavoriteCheckView = view.findViewById(R.id.tv_favorite_btn_view);
+            mBitrateView = view.findViewById(R.id.tv_bitrate_view);
         }
     }
 }

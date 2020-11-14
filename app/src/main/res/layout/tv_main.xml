@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,49 +28,53 @@
         android:id="@+id/tv_search_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="20dp"
         android:layout_alignParentEnd="true"
         android:nextFocusDown="@id/tv_eq_btn"
         android:nextFocusForward="@id/tv_eq_btn"
+        android:padding="20dp"
         android:src="@drawable/tv_search_btn_bg" />
 
     <ImageView
         android:id="@+id/tv_eq_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:focusable="true"
-        android:layout_alignParentEnd="true"
         android:layout_below="@+id/tv_search_btn"
-        android:nextFocusDown="@id/tv_add_btn"
+        android:layout_alignParentEnd="true"
+        android:focusable="true"
         android:nextFocusUp="@id/tv_search_btn"
+        android:nextFocusDown="@id/tv_add_btn"
+        android:padding="20dp"
         android:src="@drawable/tv_eq_btn_bg" />
 
     <ImageView
         android:id="@+id/tv_add_btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="20dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:nextFocusUp="@id/tv_eq_btn"
         android:nextFocusRight="@id/tv_eq_btn"
+        android:nextFocusUp="@id/tv_eq_btn"
+        android:padding="20dp"
         android:src="@drawable/tv_add_btn_bg" />
 
-    <ImageView
-        android:id="@+id/tv_back_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/tv_settings_btn"
-        android:padding="20dp"
-        android:src="@drawable/tv_back_btn_bg"
-        android:visibility="invisible" />
-
-    <fragment
-        android:id="@+id/main_tv_fragment"
-        android:name="com.yuriy.openradio.view.fragment.TvMainFragment"
+    <include
+        android:id="@+id/tv_current_radio_station_view"
+        layout="@layout/tv_current_radio_station_item"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_toStartOf="@id/tv_search_btn"
+        android:layout_toEndOf="@id/tv_settings_btn"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tv_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tv_current_radio_station_view"
+        android:layout_margin="10dp"
+        android:layout_toStartOf="@id/tv_search_btn"
+        android:layout_toEndOf="@id/tv_settings_btn" />
 
     <ProgressBar
         android:id="@+id/progress_bar_tv_view"
@@ -80,6 +83,6 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:visibility="gone"/>
+        android:visibility="gone" />
 
 </RelativeLayout>
