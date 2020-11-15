@@ -61,7 +61,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         void onItemTap(MediaBrowserCompat.MediaItem item, final int position);
     }
 
-    private Context mActivity;
+    private Context mContext;
     private final ListAdapterData<MediaBrowserCompat.MediaItem> mAdapterData;
     private String mParentId;
     private Listener mListener;
@@ -74,13 +74,14 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
     /**
      * Main constructor.
      *
-     * @param context current {@link android.app.Activity}
+     * @param context Current {@link android.app.Activity}. This has to be activity in order to use
+     *                {@link AppCompatResources#getDrawable(Context, int)} on Android 4.
      */
     public MediaItemsAdapter(final Context context) {
         super();
         mParentId = MediaIdHelper.MEDIA_ID_ROOT;
         mAdapterData = new ListAdapterData<>();
-        mActivity = context;
+        mContext = context;
     }
 
     @NonNull
@@ -97,7 +98,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         if (mediaItem == null) {
             return;
         }
-        if (mActivity == null) {
+        if (mContext == null) {
             return;
         }
 
@@ -111,12 +112,12 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         );
 
         holder.mFavoriteCheckView.setButtonDrawable(
-                AppCompatResources.getDrawable(mActivity, R.drawable.src_favorite)
+                AppCompatResources.getDrawable(mContext, R.drawable.src_favorite)
         );
 
         if (isPlayable) {
             handleFavoriteAction(
-                    holder.mFavoriteCheckView, description, mediaItem, mActivity
+                    holder.mFavoriteCheckView, description, mediaItem, mContext
             );
         } else {
             holder.mFavoriteCheckView.setVisibility(View.GONE);
@@ -130,7 +131,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
         if (position == getActiveItemId()) {
             color = R.color.or_color_list_item_bg_selected;
         }
-        holder.mForegroundView.setBackgroundColor(mActivity.getResources().getColor(color));
+        holder.mForegroundView.setBackgroundColor(mContext.getResources().getColor(color));
     }
 
     @Override
@@ -239,7 +240,7 @@ public final class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemsAdap
 
     public void clear() {
         clearData();
-        mActivity = null;
+        mContext = null;
     }
 
     public static void updateBitrateView(final int bitrate,

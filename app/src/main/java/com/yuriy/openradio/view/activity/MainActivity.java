@@ -297,7 +297,7 @@ public final class MainActivity extends AppCompatActivity {
         PermissionChecker.addPermissionStatusListener(mPermissionStatusLstnr);
 
         // Instantiate adapter
-        mBrowserAdapter = new MediaItemsAdapter(getApplicationContext());
+        mBrowserAdapter = new MediaItemsAdapter(this);
 
         // Initialize progress bar
         mProgressBar = findViewById(R.id.progress_bar_view);

@@ -47,7 +47,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@color/or_color_accent"
-                android:button="@drawable/src_favorite" />
+                android:button="@drawable/src_favorite"/>
 
         </LinearLayout>
 
