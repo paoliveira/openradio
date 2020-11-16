@@ -27,6 +27,8 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
@@ -34,7 +36,10 @@ import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener;
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.MediaIdHelper;
+import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.view.SafeToast;
+import com.yuriy.openradio.shared.view.list.MediaItemsAdapter;
 
 import java.util.Hashtable;
 import java.util.LinkedList;
@@ -50,7 +55,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext;
 public final class MediaPresenter {
 
     private static final String CLASS_NAME = MediaPresenter.class.getSimpleName();
-
+    /**
+     * Key value for the first visible ID in the List for the store Bundle
+     */
+    private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
+    private static final String BUNDLE_ARG_LIST_CLICKED_ID = "BUNDLE_ARG_LIST_CLICKED_ID";
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
@@ -65,29 +74,52 @@ public final class MediaPresenter {
      * Contract is - array of integer has 2 elements {selected position, clicked position}.
      */
     private final Map<String, int[]> mPositions = new Hashtable<>();
-
+    private int mListFirstVisiblePosition = 0;
+    private int mListLastVisiblePosition = 0;
+    private int mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
+    /**
+     * ID of the parent of current item (whether it is directory or Radio Station).
+     */
+    private String mCurrentParentId = "";
     @Nullable
     private MediaBrowserCompat.SubscriptionCallback mCallback;
     private Activity mActivity;
     private MediaPresenterListener mListener;
+    private RecyclerView mListView;
+    private final RecyclerView.OnScrollListener mScrollListener;
+    /**
+     * Adapter for the representing media items in the list.
+     */
+    private MediaItemsAdapter mAdapter;
 
     @Inject
     public MediaPresenter(@ApplicationContext final Context context) {
         super();
+        mScrollListener = new ScrollListener();
         mMediaRsrMgr = new MediaResourcesManager(context, getClass().getSimpleName());
     }
 
-    public void init(final Activity activity,
-                     final Bundle bundle,
+    public void init(final Activity activity, final Bundle bundle, @NonNull final RecyclerView listView,
+                     @NonNull final MediaItemsAdapter adapter, final MediaItemsAdapter.Listener itemAdapterListener,
                      @NonNull final MediaBrowserCompat.SubscriptionCallback mediaSubscriptionCallback,
                      final MediaPresenterListener listener) {
         AppLogger.d(CLASS_NAME + " init");
         mCallback = mediaSubscriptionCallback;
         mActivity = activity;
         mListener = listener;
+        mListView = listView;
+        mAdapter = adapter;
         // Listener of events provided by Media Resource Manager.
         final MediaResourceManagerListener mediaRsrMgrLst = new MediaResourceManagerListenerImpl();
         mMediaRsrMgr.init(activity, bundle, mediaRsrMgrLst);
+
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
+        mListView.setLayoutManager(layoutManager);
+        // Set adapter
+        mListView.setAdapter(mAdapter);
+        mListView.addOnScrollListener(mScrollListener);
+
+        mAdapter.setListener(itemAdapterListener);
 
         if (!mMediaItemsStack.isEmpty()) {
             final String mediaId = mMediaItemsStack.get(mMediaItemsStack.size() - 1);
@@ -103,16 +135,17 @@ public final class MediaPresenter {
         mCallback = null;
         mActivity = null;
         mListener = null;
+        mAdapter.clear();
+        mAdapter.removeListener();
     }
 
     public void destroy() {
         AppLogger.d(CLASS_NAME + " destroy");
+        if (mListView != null) {
+            mListView.removeOnScrollListener(mScrollListener);
+        }
         // Disconnect Media Browser
         mMediaRsrMgr.disconnect();
-    }
-
-    public int getNumItemsInStack() {
-        return mMediaItemsStack.size();
     }
 
     public boolean handleBackPressed(final Context context) {
@@ -190,6 +223,19 @@ public final class MediaPresenter {
             mListener.showProgressBar();
         }
         mMediaRsrMgr.subscribe(mediaId, mCallback);
+    }
+
+    /**
+     * Sets the item on the provided index as active.
+     *
+     * @param position Position of the item in the list.
+     */
+    public void setActiveItem(final int position) {
+        if (mListView == null) {
+            return;
+        }
+        mAdapter.setActiveItemId(position);
+        mAdapter.notifyDataSetChanged();
     }
 
     public void handleItemSelect(final MediaBrowserCompat.MediaItem item, final int position) {
@@ -273,6 +319,71 @@ public final class MediaPresenter {
         return createInitPositionEntry();
     }
 
+    public void handleChildrenLoaded(@NonNull final String parentId,
+                                     @NonNull final List<MediaBrowserCompat.MediaItem> children) {
+        setCurrentParentId(parentId);
+
+        // No need to go on if indexed list ended with last item.
+        if (MediaItemHelper.isEndOfList(children)) {
+            return;
+        }
+
+        mAdapter.setParentId(parentId);
+        mAdapter.clearData();
+        mAdapter.addAll(children);
+        mAdapter.notifyDataSetChanged();
+
+        restoreSelectedPosition();
+    }
+
+    public void setCurrentParentId(final String value) {
+        mCurrentParentId = value;
+    }
+
+    public void restoreSelectedPosition() {
+        int selectedPosition;
+        int clickedPosition;
+        if (mListFirstVisiblePosition != -1) {
+            selectedPosition = mListFirstVisiblePosition;
+            clickedPosition = mListSavedClickedPosition;
+            mListFirstVisiblePosition = -1;
+            mListSavedClickedPosition = -1;
+        } else {
+            // Restore positions for the Catalogue list.
+            final int[] positions = getPositions(mCurrentParentId);
+            clickedPosition = positions[1];
+            selectedPosition = positions[0];
+        }
+        // This will make selected item highlighted.
+        setActiveItem(clickedPosition);
+        // This actually do scroll to the position.
+        mListView.scrollToPosition(selectedPosition - 1);
+    }
+
+    public final void handleSaveInstanceState(@NonNull final Bundle outState) {
+        OpenRadioService.putCurrentParentId(outState, mCurrentParentId);
+        updateListVisiblePositions(mListView);
+        // Save first visible ID of the List
+        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
+        outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mAdapter.getActiveItemId());
+    }
+
+    public final void handleRestoreInstanceState(@NonNull final Bundle savedInstanceState) {
+        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
+        mListSavedClickedPosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_CLICKED_ID);
+    }
+
+    public void handleCurrentIndexOnQueueChanged(final String mediaId) {
+        final int position = mAdapter.getIndexForMediaId(mediaId);
+        if (position != -1) {
+            setActiveItem(position);
+        }
+    }
+
+    public String getCurrentParentId() {
+        return mCurrentParentId;
+    }
+
     private void handleMediaResourceManagerConnected() {
         final String mediaId = mMediaItemsStack.isEmpty()
                 ? mMediaRsrMgr.getRoot()
@@ -287,6 +398,25 @@ public final class MediaPresenter {
 
     private int[] createInitPositionEntry() {
         return new int[]{0, MediaSessionCompat.QueueItem.UNKNOWN_ID};
+    }
+
+    private void updateListVisiblePositions(@NonNull final RecyclerView recyclerView) {
+        final LinearLayoutManager layoutManager = ((LinearLayoutManager) recyclerView.getLayoutManager());
+        if (layoutManager == null) {
+            mListFirstVisiblePosition = 0;
+            return;
+        }
+        mListFirstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition();
+        mListLastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition();
+    }
+
+    private void onScrolledToEnd() {
+        if (MediaIdHelper.isMediaIdRefreshable(mCurrentParentId)) {
+            unsubscribeFromItem(mCurrentParentId);
+            addMediaItemToStack(mCurrentParentId);
+        } else {
+            AppLogger.w(CLASS_NAME + "Category " + mCurrentParentId + " is not refreshable");
+        }
     }
 
     /**
@@ -330,6 +460,25 @@ public final class MediaPresenter {
             final MediaPresenter activity = MediaPresenter.this;
             if (activity.mListener != null) {
                 activity.mListener.handleMetadataChanged(metadata);
+            }
+        }
+    }
+
+    private final class ScrollListener extends RecyclerView.OnScrollListener {
+
+        private ScrollListener() {
+            super();
+        }
+
+        @Override
+        public void onScrollStateChanged(@NonNull final RecyclerView recyclerView, final int newState) {
+            super.onScrollStateChanged(recyclerView, newState);
+            if (newState != RecyclerView.SCROLL_STATE_IDLE) {
+                return;
+            }
+            MediaPresenter.this.updateListVisiblePositions(recyclerView);
+            if (MediaPresenter.this.mListLastVisiblePosition == MediaPresenter.this.mAdapter.getItemCount() - 1) {
+                MediaPresenter.this.onScrolledToEnd();
             }
         }
     }

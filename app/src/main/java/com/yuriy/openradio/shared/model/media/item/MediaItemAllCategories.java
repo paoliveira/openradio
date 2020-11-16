@@ -95,7 +95,7 @@ public final class MediaItemAllCategories implements MediaItemCommand {
                                     .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.getId())
                                     .setTitle(category.getTitle())
                                     .setExtras(bundle)
-                                    .setSubtitle(category.getDescription())
+                                    .setSubtitle(category.getDescription(dependencies.getContext()))
                                     .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                     )
             );

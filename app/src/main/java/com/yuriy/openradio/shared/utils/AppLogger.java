@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.utils;
 
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
 import android.text.TextUtils;
 import android.util.Log;
 

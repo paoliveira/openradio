@@ -16,7 +16,6 @@
 -->
 <resources>
     <color name="or_color_primary_bg">#FF303030</color>
-    <color name="or_color_white">#FFFFFFFF</color>
     <color name="or_color_blue_light">#FF33B5E5</color>
     <color name="or_color_primary">#FF3D434C</color>
     <color name="or_color_primary_dark">#FF3D434C</color>
@@ -27,6 +26,4 @@
     <color name="or_color_list_item_bg_selected">#FF3C3B48</color>
     <color name="or_color_transparent">#00000000</color>
     <color name="or_color_text">#FFC0C0C0</color>
-    <color name="or_color_favorite">#F4CE88</color>
-    <color name="or_primary_text_default_material_light">#de000000</color>
 </resources>

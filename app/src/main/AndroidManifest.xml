@@ -26,9 +26,19 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
+    <queries>
+
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+        </intent>
+
+    </queries>
+
     <!-- requestLegacyExternalStorage="true" - need for Android 10 -->
     <application
-        android:name=".shared.MainApp"
+        android:name=".MainApp"
         android:allowBackup="true"
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
@@ -40,7 +50,7 @@
         android:requestLegacyExternalStorage="true">
 
         <activity
-            android:name=".view.activity.MainActivity"
+            android:name=".mobile.view.activity.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleInstance" >
             <intent-filter>
@@ -55,7 +65,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.activity.TvMainActivity"
+            android:name=".tv.view.activity.TvMainActivity"
             android:label="@string/app_name"
             android:theme="@style/open_radio_tv"
             android:launchMode="singleInstance">
@@ -67,7 +77,7 @@
         </activity>
 
         <activity android:name=".shared.view.activity.PermissionsDialogActivity" />
-        <activity android:name=".view.activity.TvSearchActivity" />
+        <activity android:name=".tv.view.activity.TvSearchActivity" />
 
         <meta-data
             android:name="com.google.android.gms.car.application"

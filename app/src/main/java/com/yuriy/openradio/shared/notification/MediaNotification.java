@@ -50,8 +50,8 @@ import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.LruCacheObject;
 import com.yuriy.openradio.shared.vo.RadioStation;
-import com.yuriy.openradio.view.activity.MainActivity;
-import com.yuriy.openradio.view.activity.TvMainActivity;
+import com.yuriy.openradio.mobile.view.activity.MainActivity;
+import com.yuriy.openradio.tv.view.activity.TvMainActivity;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

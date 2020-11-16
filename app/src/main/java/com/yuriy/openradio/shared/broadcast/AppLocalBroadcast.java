@@ -18,6 +18,8 @@ package com.yuriy.openradio.shared.broadcast;
 
 import android.content.Intent;
 
+import androidx.annotation.NonNull;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -71,6 +73,14 @@ public final class AppLocalBroadcast {
      */
     public static String getActionCurrentIndexOnQueueChanged() {
         return ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED;
+    }
+
+    public static int getCurrentIndexOnQueue(@NonNull final Intent intent) {
+        return intent.getIntExtra(KEY_CURRENT_INDEX_ON_QUEUE, 0);
+    }
+
+    public static String getCurrentMediaIdOnQueue(@NonNull final Intent intent) {
+        return intent.getStringExtra(KEY_CURRENT_MEDIA_ID_ON_QUEUE);
     }
 
     /**

@@ -53,6 +53,8 @@
     <string name="playback_buffer_after_rebuffer_description">Duration of media that must be buffered for playback to resume after a re-buffer, in milliseconds</string>
     <string name="restore_default">Restore Default</string>
     <string name="ok_label">OK</string>
+    <string name="buffering">Buffering</string>
+    <string name="buffering_infinite">Buffering…</string>
     <string name="no_network_connection_toast">No network connection found</string>
     <string name="google_drive_error_when_save">Error while save Radio Stations to Google Drive</string>
     <string name="google_drive_error_when_read">Error while read Radio Stations from Google Drive</string>
@@ -78,7 +80,7 @@
     <string name="local_radio_stations_list_title">Locals</string>
     <string name="error_loading_media">Error Loading Media</string>
     <string name="app_settings_title">Application Settings</string>
-    <string name="stream_buffering_label">Stream Buffering</string>
+    <string name="stream_buffering_label">@string/buffering</string>
     <string name="stream_buffering_descr">Restart playback when values are changed\nRange is %1$d - %2$d milliseconds\n(%3$d second - %4$d minutes)</string>
     <string name="invalid_buffer_desc">Invalid value of buffer : </string>
     <string name="can_not_skip">Can not skip</string>
@@ -89,7 +91,6 @@
     <string name="label_play">Play</string>
     <string name="eq_label">Equalizer</string>
     <string name="search_label">Search</string>
-    <string name="enable_location_service_btn_label">Enable Location Service</string>
     <string name="content_description_category_icon">Category Icon</string>
     <string name="search_description">Type the word that you want to use as the search pattern</string>
     <string name="add_station_dialog_title">Add Radio Station</string>
@@ -113,18 +114,14 @@
     <string name="can_not_open_file">Can not open File</string>
     <string name="storage_permission_not_granted">Storage permission not granted</string>
     <string name="record_audio_permission_not_granted">Record Audio permission not granted</string>
-    <string name="sort_radio_stations_menu_label">Sort Radio Stations</string>
-    <string name="delete_station_menu_label">Delete Radio Station</string>
     <string name="download">Download</string>
     <string name="add_to_fav_string">Add to Favorites</string>
     <string name="add_to_srvr_string">Add to Server</string>
-    <string name="edit_station_menu_label">Edit Radio Station</string>
     <string name="edit_station_dialog_title">Edit Radio Station</string>
     <string name="edit_station_dialog_button_label">Edit</string>
     <string name="can_not_edit_station_label">Can not edit Radio Station</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="no_location_setting_desc">Can not find Location Settings</string>
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="equalizer_presets_label">System presets:</string>
     <string name="eq_not_available">Equalizer is not available</string>
@@ -134,12 +131,17 @@
     <string name="radio_station_not_available">Radio Station is not available</string>
     <string name="coming_soon">Coming Soon</string>
     <string name="main_menu_general">General</string>
-    <string name="main_menu_stream_buffering">Stream Buffering</string>
+    <string name="main_menu_buffering">@string/buffering</string>
     <string name="main_menu_google_drive">Google Drive</string>
     <string name="main_menu_logs">Logs</string>
     <string name="main_menu_about">About</string>
-
     <string name="easy_swipe_title">Swipe effect on list is based on:</string>
     <string name="easy_swipe_name">Easy Swipe Maker</string>
     <string name="easy_swipe_url">https://github.com/xenione/swipe-maker</string>
+    <string name="can_not_zip_logs">Can not ZIP Logs</string>
+    <string name="min_buffer_greater_max_buffer">Min Buffer is greater than Max Buffer</string>
+    <string name="play_buffer_greater_min_buffer">Play Buffer is greater than Min Buffer</string>
+    <string name="play_re_buffer_greater_min_buffer">Play Re-Buffer is greater than Min Buffer</string>
+    <string name="radio_station">radio station</string>
+    <string name="radio_stations">radio stations</string>
 </resources>

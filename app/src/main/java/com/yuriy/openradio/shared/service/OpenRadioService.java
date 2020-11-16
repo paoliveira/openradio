@@ -950,9 +950,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         return MediaItemHelper.metadataFromRadioStation(getApplicationContext(), radioStation);
     }
 
-    //TODO: Translate
-    private static final String BUFFERING_STR = "Buffering...";
-
     /**
      * Updates Metadata for the currently playing Radio Station. This method terminates without
      * throwing exception if one of the stream parameters is invalid.
@@ -962,7 +959,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
             AppLogger.e(CLASS_NAME + "update metadata with null media session");
             return;
         }
-        if (!TextUtils.equals(BUFFERING_STR, streamTitle)) {
+        if (!TextUtils.equals(getString(R.string.buffering_infinite), streamTitle)) {
             mCurrentStreamTitle = streamTitle;
         }
 
@@ -1272,7 +1269,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         // Update state only in case of play. Error cause "updatePlaybackState" which has "updateMetadata"
         // inside - infinite loop!
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
-            updateMetadata(BUFFERING_STR);
+            updateMetadata(getString(R.string.buffering_infinite));
         }
         try {
             // Try to address issue on Android 4.1.2:

@@ -143,14 +143,14 @@ public final class LogsDialog extends BaseDialogFragment {
         try {
             AppLogger.zip(getActivity());
         } catch (final IOException e) {
-            SafeToast.showAnyThread(getActivity(), "Can not ZIP Logs");
+            SafeToast.showAnyThread(getActivity(), getString(R.string.can_not_zip_logs));
             AnalyticsUtils.logException(e);
             return;
         }
 
         mSendLogMailTask = new SendLogEmailTask(this);
 
-        final String subj = "Logs report from Open Radio, "
+        final String subj = "Logs report from " + getString(R.string.app_name) + ", "
                 + "v:" + AppUtils.getApplicationVersion(getActivity())
                 + "." + AppUtils.getApplicationVersionCode(getActivity());
         final String bodyHeader = "Archive with logs is in attachment.";

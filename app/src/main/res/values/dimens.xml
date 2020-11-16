@@ -18,9 +18,7 @@
 
     <dimen name="activity_horizontal_margin">16dp</dimen>
     <dimen name="activity_vertical_margin">10dp</dimen>
-    <dimen name="list_item_tv_img_width">150dp</dimen>
     <dimen name="list_item_img_width">50dp</dimen>
-    <dimen name="small_image_fetcher">150dp</dimen>
     <dimen name="list_item_padding">10dp</dimen>
     <dimen name="list_item_bg_view_visible_width">70dp</dimen>
 

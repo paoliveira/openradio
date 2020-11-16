@@ -18,17 +18,4 @@
     <style name="open_radio_tv" parent="Theme.Leanback">
         <item name="android:windowBackground">@drawable/tv_bg_main</item>
      </style>
-
-    <style name="radio_station_regular">
-        <item name="playbackMediaItemNumberStyle">@style/RegularMediaItemNumberStyle</item>
-        <item name="playbackMediaItemNameStyle">@style/RegularMediaItemNameStyle</item>
-        <item name="playbackMediaItemDurationStyle">@style/RegularMediaItemDurationStyle</item>
-    </style>
-
-    <style name="radio_station_selected">
-        <item name="playbackMediaItemNumberStyle">@style/FavoriteMediaItemNumberStyle</item>
-        <item name="playbackMediaItemNameStyle">@style/FavoriteMediaItemNameStyle</item>
-        <item name="playbackMediaItemDurationStyle">@style/FavoriteMediaItemDurationStyle</item>
-    </style>
-
 </resources>

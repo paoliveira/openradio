@@ -35,7 +35,7 @@
         android:layout_alignParentEnd="true"
         android:focusable="true"
         android:nextFocusUp="@id/tv_search_btn"
-        android:nextFocusDown="@id/tv_add_btn"
+        android:nextFocusDown="@id/tv_settings_btn"
         android:padding="20dp"
         android:src="@drawable/tv_eq_btn_bg" />
 
@@ -45,6 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/tv_eq_btn"
         android:layout_alignParentEnd="true"
+        android:nextFocusDown="@id/tv_add_btn"
         android:padding="20dp"
         android:src="@drawable/tv_settings_btn_bg" />
 
@@ -55,7 +56,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:nextFocusRight="@id/tv_eq_btn"
-        android:nextFocusUp="@id/tv_eq_btn"
+        android:nextFocusUp="@id/tv_settings_btn"
         android:padding="20dp"
         android:src="@drawable/tv_add_btn_bg" />
 

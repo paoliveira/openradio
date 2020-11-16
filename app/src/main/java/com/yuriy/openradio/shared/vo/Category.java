@@ -16,6 +16,10 @@
 
 package com.yuriy.openradio.shared.vo;
 
+import android.content.Context;
+
+import com.yuriy.openradio.R;
+
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -48,16 +52,16 @@ public final class Category {
         mId = value;
     }
 
-    public String getDescription() {
+    public String getDescription(final Context context) {
         if (mDescription != null && !mDescription.isEmpty()) {
             return mDescription;
         }
         String desc = String.valueOf(mStationsCount);
         final int count = getStationsCount();
         if (count == 0 || count > 1) {
-            desc += " radio stations";
+            desc += " " + context.getString(R.string.radio_stations);
         } else {
-            desc += " radio station";
+            desc += " " + context.getString(R.string.radio_station);
         }
         return desc;
     }

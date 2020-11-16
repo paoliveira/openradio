@@ -165,15 +165,15 @@ public final class StreamBufferingDialog extends BaseDialogFragment {
         int playBufferRebuffer = Integer.parseInt(playBufferRebufferStr);
 
         if (maxBuffer < minBuffer) {
-            SafeToast.showAnyThread(context, "Min Buffer is greater than Max Buffer");
+            SafeToast.showAnyThread(context, getString(R.string.min_buffer_greater_max_buffer));
             return;
         }
         if (minBuffer < playBuffer) {
-            SafeToast.showAnyThread(context, "Play Buffer is greater than Min Buffer");
+            SafeToast.showAnyThread(context, getString(R.string.play_buffer_greater_min_buffer));
             return;
         }
         if (minBuffer < playBufferRebuffer) {
-            SafeToast.showAnyThread(context, "Play Re-Buffer is greater than Min Buffer");
+            SafeToast.showAnyThread(context, getString(R.string.play_re_buffer_greater_min_buffer));
             return;
         }
 
