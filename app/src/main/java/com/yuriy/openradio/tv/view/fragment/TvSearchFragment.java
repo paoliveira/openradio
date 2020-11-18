@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.leanback.app.SearchSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -74,7 +75,11 @@ public class TvSearchFragment extends SearchSupportFragment
     @Override
     public void onPause() {
         mHandler.removeCallbacksAndMessages(null);
-        super.onPause();
+        try {
+            super.onPause();
+        } catch (Exception e) {
+            AppLogger.e("Can't do normal pause of TV activity:" + Log.getStackTraceString(e));
+        }
     }
 
     @Override
