@@ -31,24 +31,18 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
-import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.MediaItem;
-import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioAttributes;
-import com.google.android.exoplayer2.audio.AudioRendererEventListener;
-import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.metadata.icy.IcyHeaders;
 import com.google.android.exoplayer2.metadata.icy.IcyInfo;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
-import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.model.storage.EqualizerStorage;
 import com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer;
@@ -392,25 +386,18 @@ public final class ExoPlayerOpenRadioImpl {
     /**
      * Listener class for the players components events.
      */
-    private final class ComponentListener implements
-            AudioRendererEventListener, MetadataOutput, Player.EventListener {
+    private final class ComponentListener implements MetadataOutput, Player.EventListener {
+
+        /**
+         * String tag to use in logs.
+         */
+        private final String LOG_TAG = ComponentListener.class.getSimpleName();
 
         /**
          * Main constructor.
          */
         private ComponentListener() {
             super();
-        }
-
-        @Override
-        public void onAudioEnabled(@NonNull final DecoderCounters counters) {
-            AppLogger.d(LOG_TAG + " audioEnabled");
-        }
-
-        @Override
-        public void onAudioSessionId(final int audioSessionId) {
-            AppLogger.d(LOG_TAG + " audioSessionId:" + audioSessionId);
-            initEqualizer(audioSessionId);
         }
 
         @Override
@@ -448,35 +435,12 @@ public final class ExoPlayerOpenRadioImpl {
             }
         }
 
-        @Override
-        public void onAudioDecoderInitialized(@NonNull final String decoderName,
-                                              final long initializedTimestampMs,
-                                              final long initializationDurationMs) {
-            AppLogger.d(LOG_TAG + " audioDecoderInitialized " + decoderName);
-        }
-
-        @Override
-        public void onAudioInputFormatChanged(@NonNull final Format format) {
-            AppLogger.d(LOG_TAG + " audioInputFormatChanged:" + format);
-        }
-
-        @Override
-        public void onAudioDisabled(@NonNull final DecoderCounters counters) {
-            AppLogger.d(LOG_TAG + " audioDisabled");
-        }
-
         // Event listener
 
         @Override
         public void onTimelineChanged(@NonNull final Timeline timeline, int reason) {
             AppLogger.d(LOG_TAG + " onTimelineChanged " + timeline + ", reason " + reason);
             updateProgress();
-        }
-
-        @Override
-        public void onTracksChanged(@NonNull final TrackGroupArray trackGroups,
-                                    @NonNull final TrackSelectionArray trackSelections) {
-            //AppLogger.d(LOG_TAG + " onTracksChanged");
         }
 
         @Override
@@ -503,6 +467,7 @@ public final class ExoPlayerOpenRadioImpl {
 
                     mListener.onPrepared();
                     mNumOfExceptions.set(0);
+                    initEqualizer(mExoPlayer.getAudioSessionId());
 
                     break;
                 default:
@@ -535,21 +500,6 @@ public final class ExoPlayerOpenRadioImpl {
         public void onPositionDiscontinuity(@Player.DiscontinuityReason int reason) {
             AppLogger.e(LOG_TAG + " onPositionDiscontinuity:" + reason);
             updateProgress();
-        }
-
-        @Override
-        public void onPlaybackParametersChanged(@NonNull final PlaybackParameters playbackParameters) {
-            //AppLogger.e(LOG_TAG + " onPlaybackParametersChanged");
-        }
-
-        @Override
-        public void onRepeatModeChanged(@Player.RepeatMode int repeatMode) {
-            //AppLogger.e(LOG_TAG + " onRepeatModeChanged");
-        }
-
-        @Override
-        public void onShuffleModeEnabledChanged(final boolean shuffleModeEnabled) {
-
         }
     }
 
