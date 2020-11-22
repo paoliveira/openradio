@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,33 +38,24 @@ import java.io.Serializable;
 public final class RadioStation implements Serializable {
 
     public static final int SORT_ID_UNSET = -1;
-
     private String mId;
-
     // TODO: Convert to enum
     private int mStatus;
-
     private String mName = "";
-
-    private String mWebSite = "";
-
+    private String mHomePage = "";
     // TODO: Convert to enum
     private String mCountry = "";
-
+    // TODO: Convert to enum
+    private String mCountryCode = "";
     private String mGenre = "";
-
     private String mImageUrl = "";
-
     private String mThumbUrl = "";
-
     @NonNull
     private final MediaStream mMediaStream;
-
     /**
      * Flag indicate that Radio Station has been added locally to the phone storage.
      */
     private boolean mIsLocal;
-
     private int mSortId = SORT_ID_UNSET;
 
     /**
@@ -85,6 +76,7 @@ public final class RadioStation implements Serializable {
     private RadioStation(final Context context, @NonNull final RadioStation radioStation) {
         super();
         mCountry = radioStation.mCountry;
+        mCountryCode = radioStation.mCountryCode;
         mGenre = radioStation.mGenre;
         setId(context, radioStation.mId);
         mImageUrl = radioStation.mImageUrl;
@@ -94,7 +86,7 @@ public final class RadioStation implements Serializable {
         mSortId = radioStation.mSortId;
         mStatus = radioStation.mStatus;
         mThumbUrl = radioStation.mThumbUrl;
-        mWebSite = radioStation.mWebSite;
+        mHomePage = radioStation.mHomePage;
     }
 
     @NonNull
@@ -134,12 +126,20 @@ public final class RadioStation implements Serializable {
         mCountry = value;
     }
 
-    public final String getWebSite() {
-        return mWebSite;
+    public String getCountryCode() {
+        return mCountryCode;
     }
 
-    public final void setWebSite(final String value) {
-        mWebSite = value;
+    public void setCountryCode(final String value) {
+        mCountryCode = value;
+    }
+
+    public final String getHomePage() {
+        return mHomePage;
+    }
+
+    public final void setHomePage(final String value) {
+        mHomePage = value;
     }
 
     public final String getGenre() {
@@ -225,7 +225,7 @@ public final class RadioStation implements Serializable {
                 ", status=" + mStatus +
                 ", name='" + mName + '\'' +
                 ", stream='" + mMediaStream + '\'' +
-                ", webSite='" + mWebSite + '\'' +
+                ", webSite='" + mHomePage + '\'' +
                 ", country='" + mCountry + '\'' +
                 ", genre='" + mGenre + '\'' +
                 ", imageUrl='" + mImageUrl + '\'' +

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,11 @@ final class RadioStationJsonHelper {
 
     static final String KEY_STREAM_URL = "StreamUrl";
 
-    static final String KEY_WEB_SITE = "Website";
+    static final String KEY_HOME_PAGE = "Website";
 
     static final String KEY_COUNTRY = "Country";
+
+    static final String KEY_COUNTRY_CODE = "CountryCode";
 
     static final String KEY_BITRATE = "Bitrate";
 

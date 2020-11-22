@@ -370,7 +370,6 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
      * @return RadioStation or null.
      * @throws JSONException
      */
-    @Nullable
     private RadioStation getRadioStation(final Context context, final JSONObject object) throws JSONException {
 
         final RadioStation radioStation = RadioStation.makeDefaultInstance(
@@ -383,11 +382,14 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         if (object.has(JsonDataParserImpl.KEY_NAME)) {
             radioStation.setName(object.getString(JsonDataParserImpl.KEY_NAME));
         }
-        if (object.has(JsonDataParserImpl.KEY_WEBSITE)) {
-            radioStation.setWebSite(object.getString(JsonDataParserImpl.KEY_WEBSITE));
+        if (object.has(JsonDataParserImpl.KEY_HOME_PAGE)) {
+            radioStation.setHomePage(object.getString(JsonDataParserImpl.KEY_HOME_PAGE));
         }
         if (object.has(JsonDataParserImpl.KEY_COUNTRY)) {
             radioStation.setCountry(object.getString(JsonDataParserImpl.KEY_COUNTRY));
+        }
+        if (object.has(JsonDataParserImpl.KEY_COUNTRY_CODE)) {
+            radioStation.setCountryCode(object.getString(JsonDataParserImpl.KEY_COUNTRY_CODE));
         }
 
         if (object.has(JsonDataParserImpl.KEY_URL)) {

@@ -179,7 +179,6 @@ public final class UrlBuilder {
         postParams.add(new Pair<>("url", rsToAdd.getUrl()));
         postParams.add(new Pair<>("homepage", rsToAdd.getHomePage()));
         postParams.add(new Pair<>("favicon", rsToAdd.getImageWebUrl()));
-        postParams.add(new Pair<>("country", rsToAdd.getCountry()));
         postParams.add(new Pair<>("countrycode", LocationService.COUNTRY_NAME_TO_CODE.get(rsToAdd.getCountry())));
         postParams.add(new Pair<>("tags", rsToAdd.getGenre()));
         return new Pair<>(Uri.parse(BASE_URL + "add"), postParams);

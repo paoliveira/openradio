@@ -60,7 +60,7 @@ public final class RadioStationJsonSerializer implements RadioStationSerializer 
             jsonObject.put(RadioStationJsonHelper.KEY_STREAM_URL, radioStation.getMediaStream().getVariant(0).getUrl());
             jsonObject.put(RadioStationJsonHelper.KEY_STATUS, radioStation.getStatus());
             jsonObject.put(RadioStationJsonHelper.KEY_THUMB_URL, radioStation.getThumbUrl());
-            jsonObject.put(RadioStationJsonHelper.KEY_WEB_SITE, radioStation.getWebSite());
+            jsonObject.put(RadioStationJsonHelper.KEY_HOME_PAGE, radioStation.getHomePage());
             jsonObject.put(RadioStationJsonHelper.KEY_IS_LOCAL, radioStation.isLocal());
             jsonObject.put(RadioStationJsonHelper.KEY_SORT_ID, radioStation.getSortId());
         } catch (final Exception e) {

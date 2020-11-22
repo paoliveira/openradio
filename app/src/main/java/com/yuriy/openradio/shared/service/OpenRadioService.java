@@ -453,6 +453,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mIsRestoreState = getRestoreState(rootHints);
         setPlaybackState(getCurrentPlaybackState(rootHints));
 
+        initInternals();
+
         return new BrowserRoot(MediaIdHelper.MEDIA_ID_ROOT, null);
     }
 
@@ -536,8 +538,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                     mMainHandler.post(
                             () -> {
                                 // Silently clear last references and try to restart:
-                                OpenRadioService.this.mLastKnownRS = null;
-                                OpenRadioService.this.mLastPlayedUrl = null;
+                                OpenRadioService.this.initInternals();
                                 OpenRadioService.this.handlePlayListUrlsExtracted(urls);
                             }
                     );
@@ -1652,11 +1653,22 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 case KeyEvent.KEYCODE_MEDIA_STOP:
                     onStop();
                     return true;
+                case KeyEvent.KEYCODE_MEDIA_NEXT:
+                    onSkipToNext();
+                    return true;
+                case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                    onSkipToPrevious();
+                    return true;
                 default:
                     AppLogger.w(CLASS_NAME + " Unhandled key code:" + keyCode);
                     return false;
             }
         }
+    }
+
+    private void initInternals() {
+        mLastKnownRS = null;
+        mLastPlayedUrl = null;
     }
 
     private void performSearch(final String query) {
@@ -1952,8 +1964,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 } else if (mState == PlaybackStateCompat.STATE_PAUSED) {
                     handlePlayRequest();
                 } else if (mState == PlaybackStateCompat.STATE_STOPPED) {
-                    mLastKnownRS = null;
-                    mLastPlayedUrl = null;
+                    initInternals();
                     handlePlayRequest();
                 } else {
                     AppLogger.w(
@@ -1985,8 +1996,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                     mMediaNotification.notifyService("Stop application");
                 }
                 mMainHandler.postAtFrontOfQueue(() -> {
-                    mLastPlayedUrl = null;
-                    mLastKnownRS = null;
+                    initInternals();
                     handleStopRequest();
                     stopSelfResultInt();
                 });

@@ -69,7 +69,7 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
             radioStation.setImageUrl(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_IMG_URL));
             radioStation.setStatus(JsonUtils.getIntValue(jsonObject, RadioStationJsonHelper.KEY_STATUS));
             radioStation.setThumbUrl(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_THUMB_URL));
-            radioStation.setWebSite(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_WEB_SITE));
+            radioStation.setHomePage(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE));
             radioStation.setIsLocal(JsonUtils.getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL));
             radioStation.setSortId(JsonUtils.getIntValue(jsonObject, RadioStationJsonHelper.KEY_SORT_ID, -1));
 

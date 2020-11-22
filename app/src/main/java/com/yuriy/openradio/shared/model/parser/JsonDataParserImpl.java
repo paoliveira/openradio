@@ -33,12 +33,44 @@ public class JsonDataParserImpl implements DataParser {
     public static final String KEY_STATION_UUID = "stationuuid";
     public static final String KEY_NAME = "name";
     public static final String KEY_COUNTRY = "country";
+    /**
+     * 2 letters, uppercase.
+     */
+    public static final String KEY_COUNTRY_CODE = "countrycode";
     public static final String KEY_BIT_RATE = "bitrate";
     public static final String KEY_STATUS = "status";
-    public static final String KEY_WEBSITE = "website";
     public static final String KEY_IMAGE = "image";
     public static final String KEY_THUMB = "thumb";
     public static final String KEY_URL = "url";
     public static final String KEY_FAV_ICON = "favicon";
     public static final String KEY_STATIONS_COUNT = "stationcount";
+    public static final String KEY_HOME_PAGE = "homepage";
+    /**
+     * string, multi value, split by comma.
+     */
+    public static final String KEY_TAGS = "tags";
+    /**
+     * string, multi value, split by comma.
+     */
+    public static final String KEY_LANGUAGE = "language";
+    /**
+     * number, integer
+     */
+    public static final String KEY_VOTES = "votes";
+    /**
+     * datetime, YYYY-MM-DD HH:mm:ss
+     * The time of the last click recorded for this stream.
+     */
+    public static final String KEY_CLICK_TIMESTAMP = "clicktimestamp";
+    /**
+     * number, integer.
+     * Clicks within the last 24 hours.
+     */
+    public static final String KEY_CLICK_COUNT = "clickcount";
+    /**
+     * number, integer.
+     * The difference of the click counts within the last 2 days.
+     * Positive values mean an increase, negative a decrease of clicks.
+     */
+    public static final String KEY_CLICK_TREND = "clicktrend";
 }
