@@ -21,6 +21,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -32,6 +33,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
+import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
 
@@ -85,7 +87,7 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         );
 
         mUserAgentEditView = view.findViewById(R.id.user_agent_input_view);
-        mUserAgentEditView.setText(AppPreferencesManager.getCustomUserAgent(context));
+        mUserAgentEditView.setText(AppUtils.getCustomUserAgent());
 
         final CheckBox userAgentCheckView = view.findViewById(R.id.user_agent_check_view);
         userAgentCheckView.setOnCheckedChangeListener(
@@ -127,6 +129,13 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
                 (buttonView, isChecked) -> AppPreferencesManager.setBtAutoPlay(context, isChecked)
         );
 
+        final Button clearCache = view.findViewById(R.id.clear_cache_btn);
+        clearCache.setOnClickListener(
+                v -> LocalBroadcastManager.getInstance(context).sendBroadcast(
+                        AppLocalBroadcast.createIntentClearCache()
+                )
+        );
+
         return createAlertDialog(view);
     }
 
@@ -151,5 +160,6 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
             return;
         }
         AppPreferencesManager.setCustomUserAgent(context, userAgent);
+        AppUtils.updateCustomUserAgent(context);
     }
 }

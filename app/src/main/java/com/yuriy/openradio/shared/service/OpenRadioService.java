@@ -51,6 +51,7 @@ import com.yuriy.openradio.shared.broadcast.AbstractReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.broadcast.BTConnectionReceiver;
 import com.yuriy.openradio.shared.broadcast.BecomingNoisyReceiver;
+import com.yuriy.openradio.shared.broadcast.ClearCacheReceiver;
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
 import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiver;
 import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver;
@@ -92,6 +93,7 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.NetUtils;
 import com.yuriy.openradio.shared.utils.PackageValidator;
+import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.vo.PlaybackStateError;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
@@ -222,6 +224,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
     public static String mCurrentParentId;
     public static boolean mIsRestoreState;
     private final MasterVolumeReceiver mMasterVolumeBroadcastReceiver;
+    private final ClearCacheReceiver mClearCacheReceiver;
     /**
      * The BroadcastReceiver that tracks network connectivity changes.
      */
@@ -278,6 +281,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mNoisyAudioStreamReceiver = new BecomingNoisyReceiver(() -> handlePauseRequest(PauseReason.NOISY));
         mConnectivityReceiver = new ConnectivityReceiver(this::handleConnectivityChange);
         mMasterVolumeBroadcastReceiver = new MasterVolumeReceiver(this::setPlayerVolume);
+        mClearCacheReceiver = new ClearCacheReceiver(this::handleClearCache);
         mDownloader = new HTTPDownloaderImpl();
     }
 
@@ -379,6 +383,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mMediaNotification.notifyService("Application just started");
 
         mMasterVolumeBroadcastReceiver.register(context);
+        mClearCacheReceiver.register(context);
 
         ServiceLifecyclePreferencesManager.isServiceActive(context, true);
 
@@ -419,9 +424,8 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mConnectivityReceiver.unregister(context);
         mNoisyAudioStreamReceiver.unregister(context);
         mMasterVolumeBroadcastReceiver.unregister(context);
-        if (mApiServiceProvider instanceof ApiServiceProviderImpl) {
-            ((ApiServiceProviderImpl) mApiServiceProvider).close();
-        }
+        mClearCacheReceiver.unregister(context);
+        mApiServiceProvider.close();
 
         stopService();
     }
@@ -1173,6 +1177,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mExoPlayerORImpl.prepare(Uri.parse(mLastPlayedUrl));
 
         updatePlaybackState();
+    }
+
+    private void handleClearCache() {
+        mApiServiceProvider.clear();
+        SafeToast.showAnyThread(this, getString(R.string.clear_completed));
     }
 
     private void setPlayerVolume() {

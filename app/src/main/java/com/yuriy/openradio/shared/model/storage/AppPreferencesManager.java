@@ -23,7 +23,6 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
-import com.yuriy.openradio.shared.utils.AppUtils;
 
 /**
  * Created by Yuriy Chernyshov
@@ -202,13 +201,12 @@ public final class AppPreferencesManager {
     /**
      * @return Value of the custom user agent, or default one in case of errors.
      */
-    public static String getCustomUserAgent(@NonNull final Context context) {
+    public static String getCustomUserAgent(@NonNull final Context context, final String defaultValue) {
         String value = getSharedPreferences(context).getString(
-                PREFS_KEY_CUSTOM_USER_AGENT,
-                AppUtils.getDefaultUserAgent(context)
+                PREFS_KEY_CUSTOM_USER_AGENT, defaultValue
         );
         if (TextUtils.isEmpty(value)) {
-            value = AppUtils.getDefaultUserAgent(context);
+            value = defaultValue;
         }
         return value;
     }
@@ -216,13 +214,10 @@ public final class AppPreferencesManager {
     /**
      * Sets the value of custom user agent.
      *
-     * @param value Custom user agent.
+     * @param value Custom user agent. Non null and not empty value.
      */
     public static void setCustomUserAgent(@NonNull final Context context,
                                           @NonNull String value) {
-        if (TextUtils.isEmpty(value)) {
-            value = AppUtils.getDefaultUserAgent(context);
-        }
         final SharedPreferences.Editor editor = getEditor(context);
         editor.putString(PREFS_KEY_CUSTOM_USER_AGENT, value);
         editor.apply();

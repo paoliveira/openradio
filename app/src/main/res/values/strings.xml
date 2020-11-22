@@ -16,6 +16,7 @@
 -->
 <resources>
     <string name="app_name">Open Radio</string>
+    <string name="app_name_user_agent">OpenRadio</string>
     <string name="about_exo_title">Playback is powered by:</string>
     <string name="about_exo_text">ExoPlayer</string>
     <string name="about_exo_url">https://github.com/google/ExoPlayer</string>
@@ -144,4 +145,7 @@
     <string name="play_re_buffer_greater_min_buffer">Play Re-Buffer is greater than Min Buffer</string>
     <string name="radio_station">radio station</string>
     <string name="radio_stations">radio stations</string>
+    <string name="cache_desc_text">Browse requests to the service are cached for one day.\nPress button to clear.</string>
+    <string name="clear_cache_lbl">Clear cache</string>
+    <string name="clear_completed">Cache is cleared</string>
 </resources>

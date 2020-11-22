@@ -102,6 +102,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         mDataParser = dataParser;
     }
 
+    @Override
     public void close() {
         if (mApiCachePersistent instanceof PersistentApiCache) {
             ((PersistentApiCache) mApiCachePersistent).close();
@@ -109,6 +110,12 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         if (mApiCacheInMemory instanceof InMemoryApiCache) {
             (mApiCacheInMemory).clear();
         }
+    }
+
+    @Override
+    public void clear() {
+        mApiCachePersistent.clear();
+        mApiCacheInMemory.clear();
     }
 
     @Override

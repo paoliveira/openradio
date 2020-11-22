@@ -79,6 +79,7 @@ public final class MainApp extends MultiDexApplication {
                     );
                     AppLogger.initLogger(context);
                     AppLogger.setLoggingEnabled(isLoggingEnabled);
+                    AppUtils.updateCustomUserAgent(context);
                     printFirstLogMessage(context);
                     correctBufferSettings(context);
                     migrateImagesToIntStorage(context);

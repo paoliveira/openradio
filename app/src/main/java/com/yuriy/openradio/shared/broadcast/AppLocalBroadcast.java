@@ -55,7 +55,7 @@ public final class AppLocalBroadcast {
     private static final String KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE";
     private static final String KEY_VALIDATED_RS_FAIL_REASON = "KEY_VALIDATED_RS_FAIL_REASON";
     private static final String KEY_VALIDATED_RS_SUCCESS_MESSAGE = "KEY_VALIDATED_RS_SUCCESS_MESSAGE";
-
+    private static final String ACTION_CLEAR_CACHE = "ACTION_CLEAR_CACHE";
     /**
      * Private constructor.
      */
@@ -88,6 +88,10 @@ public final class AppLocalBroadcast {
      */
     public static String getActionMasterVolumeChanged() {
         return ACTION_MASTER_VOLUME_CHANGED;
+    }
+
+    public static String getActionClearCache() {
+        return ACTION_CLEAR_CACHE;
     }
 
     public static String getActionValidateOfRSFailed() {
@@ -144,6 +148,10 @@ public final class AppLocalBroadcast {
      */
     public static Intent createIntentMasterVolumeChanged() {
         return new Intent(ACTION_MASTER_VOLUME_CHANGED);
+    }
+
+    public static Intent createIntentClearCache() {
+        return new Intent(ACTION_CLEAR_CACHE);
     }
 
     public static Intent createIntentValidateOfRSFailed(final String reason) {

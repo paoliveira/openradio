@@ -100,4 +100,14 @@ public interface ApiServiceProvider {
                        final Uri uri,
                        final List<Pair<String, String>> parameters,
                        final CacheType cacheType);
+
+    /**
+     * Close resources related to service provider, such as connections, streams, etc ...
+     */
+    void close();
+
+    /**
+     * Clear resources related to service provider, such as persistent or in memory storage, etc ...
+     */
+    void clear();
 }

@@ -34,6 +34,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.exoplayer2.util.Util;
+import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -74,7 +76,7 @@ public final class AppUtils {
      * Tag string to use in logging message.
      */
     private static final String CLASS_NAME = AppUtils.class.getSimpleName();
-
+    private static String sUserAgent;
     /**
      * Private constructor.
      */
@@ -201,8 +203,30 @@ public final class AppUtils {
         return new BigInteger(1, token).toString(16);
     }
 
-    public static String getDefaultUserAgent(@NonNull final Context context) {
-        return Util.getUserAgent(context, "OpenRadio");
+    /**
+     * @return Persistent value of the User Agent.
+     */
+    public static String getCustomUserAgent(@NonNull final Context context) {
+        final String defaultValue = Util.getUserAgent(context, context.getString(R.string.app_name_user_agent));
+        return AppPreferencesManager.isCustomUserAgent(context)
+                ? AppPreferencesManager.getCustomUserAgent(context, defaultValue)
+                : defaultValue;
+    }
+
+    /**
+     * Updates in memory cached value based on persistent one.
+     *
+     * @param context Context of the callee.
+     */
+    public static void updateCustomUserAgent(@NonNull final Context context) {
+        sUserAgent = getCustomUserAgent(context);
+    }
+
+    /**
+     * @return In memory cached value of the User Agent.
+     */
+    public static String getCustomUserAgent() {
+        return sUserAgent;
     }
 
     /**

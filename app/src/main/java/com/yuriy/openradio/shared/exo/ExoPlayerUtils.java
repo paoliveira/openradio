@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.exo;
 
 import android.content.Context;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
@@ -33,7 +34,6 @@ import com.google.android.exoplayer2.upstream.cache.Cache;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 
@@ -50,6 +50,7 @@ public final class ExoPlayerUtils {
     private static @MonotonicNonNull Cache sDownloadCache;
     private static @MonotonicNonNull File sDownloadDirectory;
     private static @MonotonicNonNull DatabaseProvider sDatabaseProvider;
+    private static String sUserAgent;
 
     private ExoPlayerUtils() {
         super();
@@ -64,21 +65,25 @@ public final class ExoPlayerUtils {
      * Returns a {@link DataSource.Factory}.
      */
     public static synchronized DataSource.Factory getDataSourceFactory(@NonNull final Context context) {
+        final String userAgent = AppUtils.getCustomUserAgent();
+        if (!TextUtils.equals(sUserAgent, userAgent)) {
+            sDataSourceFactory = null;
+            sHttpDataSourceFactory = null;
+        }
+        sUserAgent = userAgent;
         if (sDataSourceFactory == null) {
-            DefaultDataSourceFactory upstreamFactory =
-                    new DefaultDataSourceFactory(context, getHttpDataSourceFactory(context));
+            final HttpDataSource.Factory factory = getHttpDataSourceFactory(context, sUserAgent);
+            DefaultDataSourceFactory upstreamFactory = new DefaultDataSourceFactory(context, factory);
             sDataSourceFactory = buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache(context));
         }
         return sDataSourceFactory;
     }
 
-    public static synchronized HttpDataSource.Factory getHttpDataSourceFactory(@NonNull final Context context) {
+    public static synchronized HttpDataSource.Factory getHttpDataSourceFactory(
+            @NonNull final Context context, @NonNull final String userAgent) {
         if (sHttpDataSourceFactory == null) {
             final CronetEngineWrapper cronetEngineWrapper = new CronetEngineWrapper(context);
-            final String userAgent = AppPreferencesManager.isCustomUserAgent(context)
-                    ? AppPreferencesManager.getCustomUserAgent(context)
-                    : AppUtils.getDefaultUserAgent(context);
-            AppLogger.d("UserAgent:" + userAgent);
+            AppLogger.d("ExoPlayer UserAgent:" + userAgent);
             sHttpDataSourceFactory =
                     new CronetDataSourceFactory(cronetEngineWrapper, Executors.newSingleThreadExecutor(), userAgent);
         }

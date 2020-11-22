@@ -38,7 +38,6 @@ import okhttp3.internal.Util;
 public final class NetUtils {
 
     private static final String USER_AGENT_PARAMETER_KEY = "User-Agent";
-    private static final String USER_AGENT_PARAMETER_VALUE = "OpenRadioApp";
 
     private NetUtils() {
         super();
@@ -56,6 +55,7 @@ public final class NetUtils {
         }
     }
 
+    @Nullable
     public static HttpURLConnection getHttpURLConnection(final URL url,
                                                          final String requestMethod,
                                                          @Nullable final List<Pair<String, String>> parameters) {
@@ -68,7 +68,9 @@ public final class NetUtils {
             connection.setUseCaches(false);
             connection.setDefaultUseCaches(false);
             connection.setRequestMethod(requestMethod);
-            connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, USER_AGENT_PARAMETER_VALUE);
+            final String userAgent = AppUtils.getCustomUserAgent();
+            connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent);
+            AppLogger.d("NetUtils UserAgent:" + userAgent);
 
             // If there are http request parameters:
             if (parameters != null && !parameters.isEmpty()) {
