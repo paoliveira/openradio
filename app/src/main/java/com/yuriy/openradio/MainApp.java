@@ -100,13 +100,13 @@ public final class MainApp extends MultiDexApplication {
         firstLogMessage.append("########### Create '");
         firstLogMessage.append(context.getString(R.string.app_name));
         firstLogMessage.append("' Application ###########\n");
-        firstLogMessage.append("- processors: ");
-        firstLogMessage.append(Runtime.getRuntime().availableProcessors());
-        firstLogMessage.append("\n");
         firstLogMessage.append("- version: ");
         firstLogMessage.append(AppUtils.getApplicationVersionName(context));
         firstLogMessage.append(".");
         firstLogMessage.append(AppUtils.getApplicationVersionCode(context));
+        firstLogMessage.append("\n");
+        firstLogMessage.append("- processors: ");
+        firstLogMessage.append(Runtime.getRuntime().availableProcessors());
         firstLogMessage.append("\n");
         firstLogMessage.append("- OS ver: ");
         firstLogMessage.append(Build.VERSION.RELEASE);

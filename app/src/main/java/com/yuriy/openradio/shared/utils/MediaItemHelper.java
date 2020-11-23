@@ -327,9 +327,9 @@ public final class MediaItemHelper {
         final String genre = radioStation.getGenre();
         final String source = radioStation.getMediaStream().getVariant(0).getUrl();
         final String id = radioStation.getId();
-        String subTitle = TextUtils.isEmpty(streamTitle) ? radioStation.getCountry() : streamTitle;
-        if (TextUtils.isEmpty(subTitle)) {
-            subTitle = artist;
+        String album = streamTitle;
+        if (TextUtils.isEmpty(album)) {
+            album = "";
         }
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
@@ -339,12 +339,18 @@ public final class MediaItemHelper {
         final MediaMetadataCompat mediaMetadataCompat = new MediaMetadataCompat.Builder()
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, subTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
                 .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+
+                // This is the way information display on the screen:
+                // Title
+                // Artist
+                // Album
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+
                 .build();
 
         // Info: There is no other way to set custom values in the description's bundle ...

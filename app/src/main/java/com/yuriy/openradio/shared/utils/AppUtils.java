@@ -459,33 +459,27 @@ public final class AppUtils {
         final String value;
         switch (densityDpi) {
             case DisplayMetrics.DENSITY_LOW:
-                // LDPI
                 value = "LDPI";
                 break;
             case DisplayMetrics.DENSITY_MEDIUM:
-                // MDPI
                 value = "MDPI";
                 break;
             case DisplayMetrics.DENSITY_TV:
             case DisplayMetrics.DENSITY_HIGH:
-                // HDPI
                 value = "HDPI";
                 break;
             case DisplayMetrics.DENSITY_XHIGH:
             case DisplayMetrics.DENSITY_280:
-                // XHDPI
                 value = "XHDPI";
                 break;
             case DisplayMetrics.DENSITY_XXHIGH:
             case DisplayMetrics.DENSITY_360:
             case DisplayMetrics.DENSITY_400:
             case DisplayMetrics.DENSITY_420:
-                // XXHDPI
                 value = "XXHDPI";
                 break;
             case DisplayMetrics.DENSITY_XXXHIGH:
             case DisplayMetrics.DENSITY_560:
-                // XXXHDPI
                 value = "XXXHDPI";
                 break;
             default:
