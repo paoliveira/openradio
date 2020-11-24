@@ -148,4 +148,5 @@
     <string name="cache_desc_text">Browse requests to the service are cached for one day.\nPress button to clear.</string>
     <string name="clear_cache_lbl">Clear cache</string>
     <string name="clear_completed">Cache is cleared</string>
+    <string name="media_description_default">Live stream</string>
 </resources>

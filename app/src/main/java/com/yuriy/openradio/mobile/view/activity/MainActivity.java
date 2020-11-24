@@ -690,7 +690,6 @@ public final class MainActivity extends AppCompatActivity {
         if (radioStation == null) {
             return;
         }
-
         final MediaDescriptionCompat description = mLastKnownMetadata != null
                 ? mLastKnownMetadata.getDescription()
                 : MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation);
@@ -701,7 +700,9 @@ public final class MainActivity extends AppCompatActivity {
         }
         final TextView descriptionView = findViewById(R.id.crs_description_view);
         if (descriptionView != null) {
-            descriptionView.setText(description.getDescription());
+            descriptionView.setText(
+                    MediaItemHelper.getDisplayDescription(description, getString(R.string.media_description_default))
+            );
         }
         final ImageView imgView = findViewById(R.id.crs_img_view);
         // Show placeholder before load an image.

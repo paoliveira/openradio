@@ -348,9 +348,15 @@ public final class MediaItemHelper {
                 // Title
                 // Artist
                 // Album
+
+                // METADATA_KEY_DISPLAY_TITLE is used to indicate whether METADATA_KEY_DISPLAY_DESCRIPTION
+                // needs to be parsed as description.
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, album)
 
                 .build();
 
@@ -366,6 +372,44 @@ public final class MediaItemHelper {
         extras.putInt(KEY_SORT_ID, radioStation.getSortId());
 
         return mediaMetadataCompat;
+    }
+
+    /**
+     * Try to extract useful information from the media description. In good case - this is metadata associated
+     * with the stream, subtitles otherwise, in worse case - default string.
+     *
+     * @param value Media description to parse.
+     *
+     * @return Display description.
+     */
+    public static String getDisplayDescription(@Nullable final MediaDescriptionCompat value,
+                                               @NonNull final String defaultValue) {
+        if (value == null) {
+            return defaultValue;
+        }
+        final CharSequence descChars = value.getDescription();
+        if (descChars == null) {
+            return defaultValue;
+        }
+        String result = descChars.toString();
+        if (!TextUtils.isEmpty(result)) {
+            return result;
+        }
+        final CharSequence subTitleChars = value.getSubtitle();
+        if (subTitleChars == null) {
+            return defaultValue;
+        }
+        result = subTitleChars.toString();
+        if (!TextUtils.isEmpty(result)) {
+            return result;
+        }
+        if (value.getExtras() != null) {
+            result = value.getExtras().getString(MediaMetadataCompat.METADATA_KEY_ARTIST, defaultValue);
+        }
+        if (!TextUtils.isEmpty(result)) {
+            return result;
+        }
+        return defaultValue;
     }
 
     /**
