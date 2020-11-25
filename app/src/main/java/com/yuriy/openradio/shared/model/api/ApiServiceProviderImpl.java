@@ -232,7 +232,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
                               final List<Pair<String, String>> parameters,
                               final CacheType cacheType) {
         // Post data to the server.
-        final String response = new String(downloader.downloadDataFromUri(uri, parameters));
+        final String response = new String(downloader.downloadDataFromUri(mContext, uri, parameters));
         AppLogger.i("Add station response:" + response);
         if (TextUtils.isEmpty(response)) {
             return false;
@@ -258,7 +258,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
     @Nullable
     public RadioStation getStation(final Downloader downloader, final Uri uri, final CacheType cacheType) {
         // Download response from the server.
-        final String response = new String(downloader.downloadDataFromUri(uri));
+        final String response = new String(downloader.downloadDataFromUri(mContext, uri));
         AppLogger.i(CLASS_NAME + "Response:" + response);
 
         // Ignore empty response.
@@ -342,7 +342,7 @@ public final class ApiServiceProviderImpl implements ApiServiceProvider {
         // Finally, go to internet.
 
         // Declare and initialize variable for response.
-        final String response = new String(downloader.downloadDataFromUri(uri, parameters));
+        final String response = new String(downloader.downloadDataFromUri(mContext, uri, parameters));
         // Ignore empty response finally.
         if (response.isEmpty()) {
             array = new JSONArray();

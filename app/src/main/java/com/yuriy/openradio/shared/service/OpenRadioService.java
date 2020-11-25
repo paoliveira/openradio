@@ -568,7 +568,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
     }
 
     private String[] extractUrlsFromPlaylist(final String playlistUrl) {
-        final HttpURLConnection connection = NetUtils.getHttpURLConnection(playlistUrl, "GET");
+        final HttpURLConnection connection = NetUtils.getHttpURLConnection(
+                getApplicationContext(), playlistUrl, "GET"
+        );
         if (connection == null) {
             return new String[0];
         }
@@ -1865,7 +1867,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                     break;
                 }
 
-                if (!NetUtils.checkResource(url)) {
+                if (!NetUtils.checkResource(context, url)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's stream is invalid"
@@ -1875,7 +1877,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 }
 
                 final String imageWebUrl = rsToAdd.getImageWebUrl();
-                if (!NetUtils.checkResource(imageWebUrl)) {
+                if (!NetUtils.checkResource(context, imageWebUrl)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's web image is invalid"
@@ -1884,7 +1886,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 }
 
                 final String homePage = rsToAdd.getHomePage();
-                if (!NetUtils.checkResource(homePage)) {
+                if (!NetUtils.checkResource(context, homePage)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's home page is invalid"

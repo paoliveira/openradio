@@ -34,7 +34,7 @@ import com.google.android.exoplayer2.upstream.cache.Cache;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
-import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppUtils;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
@@ -65,7 +65,7 @@ public final class ExoPlayerUtils {
      * Returns a {@link DataSource.Factory}.
      */
     public static synchronized DataSource.Factory getDataSourceFactory(@NonNull final Context context) {
-        final String userAgent = AppUtils.getCustomUserAgent();
+        final String userAgent = AppUtils.getUserAgent(context);
         if (!TextUtils.equals(sUserAgent, userAgent)) {
             sDataSourceFactory = null;
             sHttpDataSourceFactory = null;
@@ -83,7 +83,7 @@ public final class ExoPlayerUtils {
             @NonNull final Context context, @NonNull final String userAgent) {
         if (sHttpDataSourceFactory == null) {
             final CronetEngineWrapper cronetEngineWrapper = new CronetEngineWrapper(context);
-            AppLogger.d("ExoPlayer UserAgent:" + userAgent);
+            AnalyticsUtils.logMessage("ExoPlayer UserAgent '" + userAgent+ "'");
             sHttpDataSourceFactory =
                     new CronetDataSourceFactory(cronetEngineWrapper, Executors.newSingleThreadExecutor(), userAgent);
         }

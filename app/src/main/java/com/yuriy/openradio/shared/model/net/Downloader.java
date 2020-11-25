@@ -23,8 +23,10 @@ package com.yuriy.openradio.shared.model.net;
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 
+import android.content.Context;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.core.util.Pair;
 
 import java.util.List;
@@ -42,7 +44,7 @@ public interface Downloader {
      * @param uri Provided {@link Uri}.
      * @return Downloaded data.
      */
-    byte[] downloadDataFromUri(final Uri uri);
+    byte[] downloadDataFromUri(@NonNull final Context context, final Uri uri);
 
     /**
      * Method to download data from provided {@link Uri}.
@@ -51,5 +53,5 @@ public interface Downloader {
      * @param parameters List of parameters to attach to connection.
      * @return Downloaded data.
      */
-    byte[] downloadDataFromUri(final Uri uri, final List<Pair<String, String>> parameters);
+    byte[] downloadDataFromUri(@NonNull final Context context, final Uri uri, final List<Pair<String, String>> parameters);
 }

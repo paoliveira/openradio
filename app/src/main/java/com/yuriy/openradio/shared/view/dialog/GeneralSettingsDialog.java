@@ -87,7 +87,7 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
         );
 
         mUserAgentEditView = view.findViewById(R.id.user_agent_input_view);
-        mUserAgentEditView.setText(AppUtils.getCustomUserAgent());
+        mUserAgentEditView.setText(AppUtils.getUserAgent(context));
 
         final CheckBox userAgentCheckView = view.findViewById(R.id.user_agent_check_view);
         userAgentCheckView.setOnCheckedChangeListener(
@@ -160,6 +160,5 @@ public final class GeneralSettingsDialog extends BaseDialogFragment {
             return;
         }
         AppPreferencesManager.setCustomUserAgent(context, userAgent);
-        AppUtils.updateCustomUserAgent(context);
     }
 }

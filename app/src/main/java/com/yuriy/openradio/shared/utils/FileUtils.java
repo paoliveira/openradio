@@ -150,7 +150,7 @@ public final class FileUtils {
         try {
             if (AppUtils.isWebUrl(urlString)) {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
-                    connection = NetUtils.getHttpURLConnection(urlString, "GET");
+                    connection = NetUtils.getHttpURLConnection(context, urlString, "GET");
                     if (connection == null) {
                         return false;
                     }

@@ -76,7 +76,6 @@ public final class AppUtils {
      * Tag string to use in logging message.
      */
     private static final String CLASS_NAME = AppUtils.class.getSimpleName();
-    private static String sUserAgent;
     /**
      * Private constructor.
      */
@@ -205,28 +204,14 @@ public final class AppUtils {
 
     /**
      * @return Persistent value of the User Agent.
+     *
+     * //TODO: Find a better way to handle this. This value is not changing often, need to cache it.
      */
-    public static String getCustomUserAgent(@NonNull final Context context) {
+    public static String getUserAgent(@NonNull final Context context) {
         final String defaultValue = Util.getUserAgent(context, context.getString(R.string.app_name_user_agent));
         return AppPreferencesManager.isCustomUserAgent(context)
                 ? AppPreferencesManager.getCustomUserAgent(context, defaultValue)
                 : defaultValue;
-    }
-
-    /**
-     * Updates in memory cached value based on persistent one.
-     *
-     * @param context Context of the callee.
-     */
-    public static void updateCustomUserAgent(@NonNull final Context context) {
-        sUserAgent = getCustomUserAgent(context);
-    }
-
-    /**
-     * @return In memory cached value of the User Agent.
-     */
-    public static String getCustomUserAgent() {
-        return sUserAgent;
     }
 
     /**

@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.model.net;
 
+import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
@@ -77,12 +78,12 @@ public final class HTTPDownloaderImpl implements Downloader {
     }
 
     @Override
-    public byte[] downloadDataFromUri(final Uri uri) {
-        return downloadDataFromUri(uri, new ArrayList<>());
+    public byte[] downloadDataFromUri(@NonNull final Context context, final Uri uri) {
+        return downloadDataFromUri(context, uri, new ArrayList<>());
     }
 
     @Override
-    public byte[] downloadDataFromUri(final Uri uri,
+    public byte[] downloadDataFromUri(@NonNull final Context context, final Uri uri,
                                       @NonNull final List<Pair<String, String>> parameters) {
         byte[] response = new byte[0];
 
@@ -95,6 +96,7 @@ public final class HTTPDownloaderImpl implements Downloader {
         AppLogger.i(CLASS_NAME + " Request URL:" + url.toString());
 
         final HttpURLConnection connection = NetUtils.getHttpURLConnection(
+                context,
                 url,
                 parameters.isEmpty() ? "GET" : "POST",
                 parameters

@@ -16,6 +16,8 @@
 
 package com.yuriy.openradio.shared.utils;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
@@ -44,9 +46,10 @@ public final class NetUtils {
     }
 
     @Nullable
-    public static HttpURLConnection getHttpURLConnection(final String urlString, final String requestMethod) {
+    public static HttpURLConnection getHttpURLConnection(@NonNull final Context context,
+                                                         final String urlString, final String requestMethod) {
         try {
-            return getHttpURLConnection(new URL(urlString), requestMethod, null);
+            return getHttpURLConnection(context, new URL(urlString), requestMethod, null);
         } catch (final MalformedURLException exception) {
             AnalyticsUtils.logException(
                     new RuntimeException("Can not get http connection from " + urlString, exception)
@@ -56,7 +59,8 @@ public final class NetUtils {
     }
 
     @Nullable
-    public static HttpURLConnection getHttpURLConnection(final URL url,
+    public static HttpURLConnection getHttpURLConnection(@NonNull final Context context,
+                                                         final URL url,
                                                          final String requestMethod,
                                                          @Nullable final List<Pair<String, String>> parameters) {
         HttpURLConnection connection = null;
@@ -68,7 +72,7 @@ public final class NetUtils {
             connection.setUseCaches(false);
             connection.setDefaultUseCaches(false);
             connection.setRequestMethod(requestMethod);
-            final String userAgent = AppUtils.getCustomUserAgent();
+            final String userAgent = AppUtils.getUserAgent(context);
             connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent);
             AppLogger.d("NetUtils UserAgent:" + userAgent);
 
@@ -105,8 +109,8 @@ public final class NetUtils {
         connection.disconnect();
     }
 
-    public static boolean checkResource(final String url) {
-        final HttpURLConnection connection = getHttpURLConnection(url, "GET");
+    public static boolean checkResource(@NonNull final Context context, final String url) {
+        final HttpURLConnection connection = getHttpURLConnection(context, url, "GET");
         if (connection == null) {
             return false;
         }
