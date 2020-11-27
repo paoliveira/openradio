@@ -15,8 +15,19 @@
     limitations under the License.
 -->
 <resources>
+    <!--   color for the app bar and other primary UI elements -->
+    <color name="colorPrimary">#3F51B5</color>
+
+    <!--   a darker variant of the primary color, used for
+           the status bar (on Android 5.0+) and contextual app bars -->
+    <color name="colorPrimaryDark">#303F9F</color>
+
+    <!--   a secondary color for controls like checkboxes and text fields -->
+    <color name="colorAccent">#FF4081</color>
+
     <color name="or_color_primary_bg">#FF303030</color>
     <color name="or_color_blue_light">#FF33B5E5</color>
+    <color name="or_color_white">#FFFFFFFF</color>
     <color name="or_color_primary">#FF3D434C</color>
     <color name="or_color_primary_dark">#FF3D434C</color>
     <color name="or_color_primary_light">#FF475468</color>

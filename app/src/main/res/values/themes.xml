@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,5 +16,7 @@
 <resources>
     <style name="open_radio_tv" parent="Theme.Leanback">
         <item name="android:windowBackground">@drawable/tv_bg_main</item>
-     </style>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorAccent">@color/or_color_white</item>
+    </style>
 </resources>
