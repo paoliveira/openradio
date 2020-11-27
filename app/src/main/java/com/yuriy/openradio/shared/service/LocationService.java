@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.service;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -37,7 +36,6 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.model.storage.LocationPreferencesManager;
-import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.vo.Country;
 
@@ -559,9 +557,7 @@ public final class LocationService extends JobIntentService {
                 return;
             }
             AppLogger.d(CLASS_NAME + "clear");
-            if (PermissionChecker.isGranted(mContext, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                mFusedLocationClient.removeLocationUpdates(this);
-            }
+            mFusedLocationClient.removeLocationUpdates(this);
             mListener = null;
             mContext = null;
             mFusedLocationClient = null;

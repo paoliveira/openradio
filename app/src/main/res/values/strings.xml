@@ -149,4 +149,5 @@
     <string name="clear_cache_lbl">Clear cache</string>
     <string name="clear_completed">Cache is cleared</string>
     <string name="media_description_default">Live stream</string>
+    <string name="location_access_proposed">Location access is optional to display radio stations of a country.</string>
 </resources>

@@ -21,6 +21,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -60,20 +61,18 @@ import com.yuriy.openradio.shared.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
-import com.yuriy.openradio.shared.permission.PermissionListener;
-import com.yuriy.openradio.shared.permission.PermissionStatusListener;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.IntentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.UiUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
-import com.yuriy.openradio.shared.view.activity.PermissionsDialogActivity;
 import com.yuriy.openradio.shared.view.dialog.AboutDialog;
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog;
 import com.yuriy.openradio.shared.view.dialog.EditStationDialog;
@@ -89,6 +88,7 @@ import com.yuriy.openradio.shared.view.list.MediaItemsAdapter;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -129,10 +129,6 @@ public final class MainActivity extends AppCompatActivity {
      */
     private final AppLocalReceiver mAppLocalBroadcastRcvr;
     /**
-     * Listener of the Permissions status changes.
-     */
-    private final PermissionStatusListener mPermissionStatusLstnr;
-    /**
      * Member field to keep reference to the Local broadcast receiver.
      */
     private final LocalBroadcastReceiverCallback mLocalBroadcastReceiverCb;
@@ -163,99 +159,33 @@ public final class MainActivity extends AppCompatActivity {
         super();
         CLASS_NAME = MainActivity.class.getSimpleName() + " " + hashCode() + " ";
         mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
-        mPermissionStatusLstnr = new PermissionListener(this);
         mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback();
         mMediaItemListener = new MediaItemListenerImpl();
         mIsOnSaveInstancePassed = new AtomicBoolean(false);
         mScreenBroadcastRcvr = new ScreenReceiver();
     }
 
-    @SuppressLint({"ClickableViewAccessibility", "NonConstantResourceId"})
     @Override
     protected final void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AppLogger.d(CLASS_NAME + "OnCreate:" + savedInstanceState);
 
-        // Set content.
-        setContentView(R.layout.main_drawer);
-
-        mPlayBtn = findViewById(R.id.crs_play_btn_view);
-        mPauseBtn = findViewById(R.id.crs_pause_btn_view);
-        mProgressBarCrs = findViewById(R.id.crs_progress_view);
-
-        final Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        );
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-        final NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(
-                menuItem -> {
-                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    UiUtils.clearDialogs(this, transaction);
-                    menuItem.setChecked(false);
-                    // Handle navigation view item clicks here.
-                    final int id = menuItem.getItemId();
-                    switch (id) {
-                        case R.id.nav_general:
-                            // Show Search Dialog
-                            final DialogFragment settingsDialog = BaseDialogFragment.newInstance(
-                                    GeneralSettingsDialog.class.getName()
-                            );
-                            settingsDialog.show(transaction, GeneralSettingsDialog.DIALOG_TAG);
-                            break;
-                        case R.id.nav_buffering:
-                            // Show Stream Buffering Dialog
-                            final DialogFragment streamBufferingDialog = BaseDialogFragment.newInstance(
-                                    StreamBufferingDialog.class.getName()
-                            );
-                            streamBufferingDialog.show(transaction, StreamBufferingDialog.DIALOG_TAG);
-                            break;
-                        case R.id.nav_google_drive:
-                            // Show Google Drive Dialog
-                            final DialogFragment googleDriveDialog = BaseDialogFragment.newInstance(
-                                    GoogleDriveDialog.class.getName()
-                            );
-                            googleDriveDialog.show(transaction, GoogleDriveDialog.DIALOG_TAG);
-                            break;
-                        case R.id.nav_logs:
-                            // Show Application Logs Dialog
-                            final DialogFragment applicationLogsDialog = BaseDialogFragment.newInstance(
-                                    LogsDialog.class.getName()
-                            );
-                            applicationLogsDialog.show(transaction, LogsDialog.DIALOG_TAG);
-                            break;
-                        case R.id.nav_about:
-                            // Show About Dialog
-                            final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
-                                    AboutDialog.class.getName()
-                            );
-                            aboutDialog.show(transaction, AboutDialog.DIALOG_TAG);
-                            break;
-                        default:
-
-                            break;
-                    }
-
-                    drawer.closeDrawer(GravityCompat.START);
-                    return true;
-                }
-        );
-
         final Context context = getApplicationContext();
-        final String versionText = AppUtils.getApplicationVersion(context) + "." +
-                AppUtils.getApplicationVersionCode(context);
-        final TextView versionView = navigationView.getHeaderView(0).findViewById(
-                R.id.drawer_ver_code_view
-        );
-        versionView.setText(versionText);
+
+        initUi(context);
 
         mLastKnownMetadata = null;
+        mIsOnSaveInstancePassed.set(false);
+
+        hideProgressBar();
+        updateBufferedTime(0);
+
+        mCurrentRadioStationView.setOnClickListener(
+                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(context))
+        );
+
+        // Register local receivers.
+        registerReceivers();
 
         final MediaBrowserCompat.SubscriptionCallback medSubscriptionCb = new MediaBrowserSubscriptionCallback();
         final MediaPresenterListener mediaPresenterLstnr = new MediaPresenterListenerImpl();
@@ -266,73 +196,33 @@ public final class MainActivity extends AppCompatActivity {
                 mediaPresenterLstnr
         );
 
-        // Register local receivers.
-        registerReceivers();
-
-        // Add listener for the permissions status
-        PermissionChecker.addPermissionStatusListener(mPermissionStatusLstnr);
-
-        // Initialize progress bar
-        mProgressBar = findViewById(R.id.progress_bar_view);
-
-        // Set OnSaveInstanceState to false
-        mIsOnSaveInstancePassed.set(false);
-
-        mCurrentRadioStationView = findViewById(R.id.current_radio_station_view);
-        mCurrentRadioStationView.setOnClickListener(
-                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(context))
-        );
-
-        hideProgressBar();
-
-        // Initialize No Data text view
-        mNoDataView = findViewById(R.id.no_data_view);
-
-        mBufferedTextView = findViewById(R.id.crs_buffered_view);
-        updateBufferedTime(0);
-
-        // Handle Add Radio Station button.
-        final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
-        addBtn.setOnClickListener(
-                view -> {
-                    // Show Add Station Dialog
-                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-                    final DialogFragment dialog = BaseDialogFragment.newInstance(
-                            AddStationDialog.class.getName()
-                    );
-                    dialog.show(transaction, AddStationDialog.DIALOG_TAG);
-                }
-        );
-
         restoreState(savedInstanceState);
-        connectToMediaBrowser();
 
-        if (!AppUtils.hasLocation(context)) {
-            return;
-        }
-
-        if (PermissionsDialogActivity.isLocationDenied(getIntent())) {
-            return;
-        }
-
-        final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-        );
-        if (isLocationPermissionGranted) {
-            LocationService.doEnqueueWork(context);
+        if (AppUtils.hasLocation(context)) {
+            if (PermissionChecker.isLocationGranted(context)) {
+                connectToMediaBrowser();
+                LocationService.doEnqueueWork(getApplicationContext());
+            } else {
+                PermissionChecker.requestLocationPermission(
+                        this, findViewById(R.id.drawer_layout), 1234
+                );
+            }
+        } else {
+            connectToMediaBrowser();
         }
     }
 
     @Override
     protected final void onResume() {
-        super.onResume();
-
         // Set OnSaveInstanceState to false
         mIsOnSaveInstancePassed.set(false);
+        AppLogger.i(CLASS_NAME + "OnResume");
+        super.onResume();
 
         // Hide any progress bar
         hideProgressBar();
+
+        connectToMediaBrowser();
     }
 
     @Override
@@ -344,7 +234,6 @@ public final class MainActivity extends AppCompatActivity {
         if (!mIsOnSaveInstancePassed.get()) {
             mMediaPresenter.destroy();
         }
-        PermissionChecker.removePermissionStatusListener(mPermissionStatusLstnr);
 
         // Unregister local receivers
         unregisterReceivers();
@@ -425,6 +314,109 @@ public final class MainActivity extends AppCompatActivity {
             // perform android frameworks lifecycle
             super.onBackPressed();
         }
+    }
+
+    /**
+     * Initialize UI components.
+     */
+    private void initUi(@NonNull final Context context) {
+        // Set content.
+        setContentView(R.layout.main_drawer);
+
+        mPlayBtn = findViewById(R.id.crs_play_btn_view);
+        mPauseBtn = findViewById(R.id.crs_pause_btn_view);
+        mProgressBarCrs = findViewById(R.id.crs_progress_view);
+        // Initialize progress bar
+        mProgressBar = findViewById(R.id.progress_bar_view);
+        // Initialize No Data text view
+        mNoDataView = findViewById(R.id.no_data_view);
+        mCurrentRadioStationView = findViewById(R.id.current_radio_station_view);
+        mBufferedTextView = findViewById(R.id.crs_buffered_view);
+        final Toolbar toolbar = findViewById(R.id.toolbar);
+        final DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        final NavigationView navigationView = findViewById(R.id.nav_view);
+        final FloatingActionButton addBtn = findViewById(R.id.add_station_btn);
+
+        setSupportActionBar(toolbar);
+
+        final ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close
+        );
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(
+                menuItem -> {
+                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    UiUtils.clearDialogs(this, transaction);
+                    menuItem.setChecked(false);
+                    // Handle navigation view item clicks here.
+                    final int id = menuItem.getItemId();
+                    switch (id) {
+                        case R.id.nav_general:
+                            // Show Search Dialog
+                            final DialogFragment settingsDialog = BaseDialogFragment.newInstance(
+                                    GeneralSettingsDialog.class.getName()
+                            );
+                            settingsDialog.show(transaction, GeneralSettingsDialog.DIALOG_TAG);
+                            break;
+                        case R.id.nav_buffering:
+                            // Show Stream Buffering Dialog
+                            final DialogFragment streamBufferingDialog = BaseDialogFragment.newInstance(
+                                    StreamBufferingDialog.class.getName()
+                            );
+                            streamBufferingDialog.show(transaction, StreamBufferingDialog.DIALOG_TAG);
+                            break;
+                        case R.id.nav_google_drive:
+                            // Show Google Drive Dialog
+                            final DialogFragment googleDriveDialog = BaseDialogFragment.newInstance(
+                                    GoogleDriveDialog.class.getName()
+                            );
+                            googleDriveDialog.show(transaction, GoogleDriveDialog.DIALOG_TAG);
+                            break;
+                        case R.id.nav_logs:
+                            // Show Application Logs Dialog
+                            final DialogFragment applicationLogsDialog = BaseDialogFragment.newInstance(
+                                    LogsDialog.class.getName()
+                            );
+                            applicationLogsDialog.show(transaction, LogsDialog.DIALOG_TAG);
+                            break;
+                        case R.id.nav_about:
+                            // Show About Dialog
+                            final DialogFragment aboutDialog = BaseDialogFragment.newInstance(
+                                    AboutDialog.class.getName()
+                            );
+                            aboutDialog.show(transaction, AboutDialog.DIALOG_TAG);
+                            break;
+                        default:
+
+                            break;
+                    }
+
+                    drawer.closeDrawer(GravityCompat.START);
+                    return true;
+                }
+        );
+
+        final String versionText = AppUtils.getApplicationVersion(context) + "." +
+                AppUtils.getApplicationVersionCode(context);
+        final TextView versionView = navigationView.getHeaderView(0).findViewById(
+                R.id.drawer_ver_code_view
+        );
+        versionView.setText(versionText);
+
+        // Handle Add Radio Station button.
+        addBtn.setOnClickListener(
+                view -> {
+                    // Show Add Station Dialog
+                    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+                    final DialogFragment dialog = BaseDialogFragment.newInstance(
+                            AddStationDialog.class.getName()
+                    );
+                    dialog.show(transaction, AddStationDialog.DIALOG_TAG);
+                }
+        );
     }
 
     private void connectToMediaBrowser() {
@@ -732,10 +724,34 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(final int requestCode,
+                                           @NonNull final String[] permissions,
+                                           @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        AppLogger.d(
+                CLASS_NAME + " permissions:" + Arrays.toString(permissions)
+                        + ", results:" + Arrays.toString(grantResults)
+        );
+
+        for (int i = 0; i < permissions.length; ++i) {
+            final String permission = permissions[i];
+            if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)
+                    && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                LocationService.doEnqueueWork(getApplicationContext());
+            }
+        }
+    }
+
+    @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        AppLogger.d(CLASS_NAME + "OnActivityResult: request:" + requestCode + " result:" + resultCode);
+        AppLogger.d(
+                CLASS_NAME + "OnActivityResult: request:" + requestCode
+                        + " result:" + resultCode
+                        + " intent:" + data
+                        + " data:" + IntentUtils.intentBundleToString(data)
+        );
         final GoogleDriveDialog gDriveDialog = GoogleDriveDialog.findGoogleDriveDialog(getSupportFragmentManager());
         if (gDriveDialog != null) {
             gDriveDialog.onActivityResult(requestCode, resultCode, data);
@@ -801,7 +817,7 @@ public final class MainActivity extends AppCompatActivity {
             );
 
             if (MainActivity.this.mIsOnSaveInstancePassed.get()) {
-                AppLogger.w(CLASS_NAME + "Can perform on children loaded after OnSaveInstanceState");
+                AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState");
                 return;
             }
 

@@ -20,6 +20,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -42,8 +43,6 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
-import com.yuriy.openradio.shared.permission.PermissionListener;
-import com.yuriy.openradio.shared.permission.PermissionStatusListener;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener;
 import com.yuriy.openradio.shared.service.LocationService;
@@ -63,6 +62,7 @@ import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog;
 import com.yuriy.openradio.tv.view.list.TvMediaItemsAdapter;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -82,10 +82,6 @@ public final class TvMainActivity extends FragmentActivity {
     private ProgressBar mProgressBar;
     @Inject
     MediaPresenter mMediaPresenter;
-    /**
-     * Listener of the Permissions status changes.
-     */
-    private PermissionStatusListener mPermissionStatusListener;
     private final TvMediaItemsAdapter.Listener mListener;
     private View mPlayBtn;
     private View mPauseBtn;
@@ -125,21 +121,28 @@ public final class TvMainActivity extends FragmentActivity {
                 listener
         );
 
-        mMediaPresenter.connect();
+        if (AppUtils.hasLocation(context)) {
+            if (PermissionChecker.isLocationGranted(context)) {
+                mMediaPresenter.connect();
+                LocationService.doEnqueueWork(getApplicationContext());
+            } else {
+                PermissionChecker.requestLocationPermission(
+                        this, findViewById(R.id.tv_main_layout), 1234
+                );
+            }
+        } else {
+            mMediaPresenter.connect();
+        }
+    }
 
-        if (!AppUtils.hasLocation(context)) {
-            return;
-        }
-        mPermissionStatusListener = new PermissionListener(context);
-        // Add listener for the permissions status
-        PermissionChecker.addPermissionStatusListener(mPermissionStatusListener);
-        final boolean isLocationPermissionGranted = PermissionChecker.isGranted(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-        );
-        if (isLocationPermissionGranted) {
-            LocationService.doEnqueueWork(context);
-        }
+    @Override
+    protected final void onResume() {
+        super.onResume();
+
+        // Hide any progress bar
+        hideProgressBar();
+
+        mMediaPresenter.connect();
     }
 
     @Override
@@ -149,11 +152,29 @@ public final class TvMainActivity extends FragmentActivity {
             mMediaPresenter.clean();
             mMediaPresenter.destroy();
         }
-        PermissionChecker.removePermissionStatusListener(mPermissionStatusListener);
         ContextCompat.startForegroundService(
                 getApplicationContext(),
                 OpenRadioService.makeStopServiceIntent(getApplicationContext())
         );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(final int requestCode,
+                                           @NonNull final String[] permissions,
+                                           @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        AppLogger.d(
+                CLASS_NAME + " permissions:" + Arrays.toString(permissions)
+                        + ", results:" + Arrays.toString(grantResults)
+        );
+
+        for (int i = 0; i < permissions.length; ++i) {
+            final String permission = permissions[i];
+            if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)
+                    && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                LocationService.doEnqueueWork(getApplicationContext());
+            }
+        }
     }
 
     @Override

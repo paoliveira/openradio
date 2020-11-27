@@ -35,6 +35,7 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
@@ -343,7 +344,15 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mApiServiceProvider = new ApiServiceProviderImpl(context, new JsonDataParserImpl());
 
         mBTConnectionReceiver.register(context);
-        mBTConnectionReceiver.locateDevice(context);
+        try {
+            mBTConnectionReceiver.locateDevice(context);
+        } catch (Exception e) {
+            // Happens on head units:
+            // SecurityException: query intent receivers: Requires android.permission.INTERACT_ACROSS_USERS_FULL or
+            // android.permission.INTERACT_ACROSS_USERS.
+            // Linking to BluetoothAdapter.getProfileProxy
+            AppLogger.e("Can not locate device:" + Log.getStackTraceString(e));
+        }
 
         // Add Media Items implementations to the map
         mMediaItemCommands.put(MediaIdHelper.MEDIA_ID_ROOT, new MediaItemRoot());
