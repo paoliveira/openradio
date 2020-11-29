@@ -41,6 +41,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter;
+import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.presenter.MediaPresenter;
@@ -64,6 +65,7 @@ import com.yuriy.openradio.tv.view.list.TvMediaItemsAdapter;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.inject.Inject;
 
@@ -86,10 +88,20 @@ public final class TvMainActivity extends FragmentActivity {
     private View mPlayBtn;
     private View mPauseBtn;
     private View mCurrentRadioStationView;
+    /**
+     * Guardian field to prevent UI operation after addToLocals instance passed.
+     */
+    private final AtomicBoolean mIsOnSaveInstancePassed;
+    /**
+     * Member field to keep reference to the Local broadcast receiver.
+     */
+    private final LocalBroadcastReceiverCallback mLocalBroadcastReceiverCb;
 
     public TvMainActivity() {
         super();
         mListener = new TvMediaItemsAdapterListenerImpl();
+        mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback();
+        mIsOnSaveInstancePassed = new AtomicBoolean(false);
     }
 
     @Override
@@ -112,6 +124,11 @@ public final class TvMainActivity extends FragmentActivity {
                 v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(context))
         );
 
+        mIsOnSaveInstancePassed.set(false);
+
+        // Register local receivers.
+        mMediaPresenter.registerReceivers(getApplicationContext(), mLocalBroadcastReceiverCb);
+
         final MediaBrowserCompat.SubscriptionCallback subscriptionCb = new MediaBrowserSubscriptionCallback();
         final MediaPresenterListener listener = new MediaPresenterListenerImpl();
         mMediaPresenter.init(
@@ -120,6 +137,8 @@ public final class TvMainActivity extends FragmentActivity {
                 subscriptionCb,
                 listener
         );
+
+        mMediaPresenter.restoreState(savedInstanceState);
 
         if (AppUtils.hasLocation(context)) {
             if (PermissionChecker.isLocationGranted(context)) {
@@ -137,6 +156,7 @@ public final class TvMainActivity extends FragmentActivity {
 
     @Override
     protected final void onResume() {
+        mIsOnSaveInstancePassed.set(false);
         super.onResume();
 
         // Hide any progress bar
@@ -149,6 +169,8 @@ public final class TvMainActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         if (mMediaPresenter != null) {
+            // Unregister local receivers
+            mMediaPresenter.unregisterReceivers(getApplicationContext());
             mMediaPresenter.clean();
             mMediaPresenter.destroy();
         }
@@ -156,6 +178,15 @@ public final class TvMainActivity extends FragmentActivity {
                 getApplicationContext(),
                 OpenRadioService.makeStopServiceIntent(getApplicationContext())
         );
+    }
+
+    @Override
+    protected final void onSaveInstanceState(@NonNull final Bundle outState) {
+        AppLogger.d(CLASS_NAME + "OnSaveInstance:" + outState);
+        // Track OnSaveInstanceState passed
+        mIsOnSaveInstancePassed.set(true);
+        mMediaPresenter.handleSaveInstanceState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -404,6 +435,12 @@ public final class TvMainActivity extends FragmentActivity {
             AppLogger.i(
                     CLASS_NAME + " Children loaded:" + parentId + ", children:" + children.size()
             );
+
+            if (TvMainActivity.this.mIsOnSaveInstancePassed.get()) {
+                AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState");
+                return;
+            }
+
             hideProgressBar();
             mMediaPresenter.handleChildrenLoaded(parentId, children);
         }
@@ -457,6 +494,40 @@ public final class TvMainActivity extends FragmentActivity {
         public void onItemSelected(@NonNull final MediaBrowserCompat.MediaItem item, final int position) {
             TvMainActivity.this.mMediaPresenter.setActiveItem(position);
             TvMainActivity.this.mMediaPresenter.handleItemClick(item, position);
+        }
+    }
+
+    /**
+     * Callback receiver of the local application's event.
+     */
+    private final class LocalBroadcastReceiverCallback implements AppLocalReceiverCallback {
+
+        /**
+         * Constructor.
+         */
+        private LocalBroadcastReceiverCallback() {
+            super();
+        }
+
+        @Override
+        public void onLocationChanged() {
+            if (mIsOnSaveInstancePassed.get()) {
+                AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState");
+                return;
+            }
+
+            AppLogger.d(CLASS_NAME + "Location Changed received");
+            if (TvMainActivity.this.mMediaPresenter != null) {
+                return;
+            }
+
+        }
+
+        @Override
+        public void onCurrentIndexOnQueueChanged(final int index, final String mediaId) {
+            if (TvMainActivity.this.mMediaPresenter != null) {
+                TvMainActivity.this.mMediaPresenter.handleCurrentIndexOnQueueChanged(mediaId);
+            }
         }
     }
 }

@@ -20,7 +20,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
@@ -48,16 +47,12 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter;
-import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
-import com.yuriy.openradio.shared.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback;
-import com.yuriy.openradio.shared.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
@@ -113,9 +108,6 @@ public final class MainActivity extends AppCompatActivity {
      */
     private final String CLASS_NAME;
     private View mCurrentRadioStationView;
-    @Nullable
-    private MediaMetadataCompat mLastKnownMetadata;
-    private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
     /**
      * Progress Bar view to indicate that data is loading.
      */
@@ -124,10 +116,6 @@ public final class MainActivity extends AppCompatActivity {
      * Text View to display that data has not been loaded.
      */
     private TextView mNoDataView;
-    /**
-     * Receiver for the local application;s events
-     */
-    private final AppLocalReceiver mAppLocalBroadcastRcvr;
     /**
      * Member field to keep reference to the Local broadcast receiver.
      */
@@ -141,10 +129,6 @@ public final class MainActivity extends AppCompatActivity {
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private final AtomicBoolean mIsOnSaveInstancePassed;
-    /**
-     * Receiver for the Screen OF/ON events.
-     */
-    private final ScreenReceiver mScreenBroadcastRcvr;
     private TextView mBufferedTextView;
     private View mPlayBtn;
     private View mPauseBtn;
@@ -158,11 +142,9 @@ public final class MainActivity extends AppCompatActivity {
     public MainActivity() {
         super();
         CLASS_NAME = MainActivity.class.getSimpleName() + " " + hashCode() + " ";
-        mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
         mLocalBroadcastReceiverCb = new LocalBroadcastReceiverCallback();
         mMediaItemListener = new MediaItemListenerImpl();
         mIsOnSaveInstancePassed = new AtomicBoolean(false);
-        mScreenBroadcastRcvr = new ScreenReceiver();
     }
 
     @Override
@@ -174,7 +156,6 @@ public final class MainActivity extends AppCompatActivity {
 
         initUi(context);
 
-        mLastKnownMetadata = null;
         mIsOnSaveInstancePassed.set(false);
 
         hideProgressBar();
@@ -185,7 +166,7 @@ public final class MainActivity extends AppCompatActivity {
         );
 
         // Register local receivers.
-        registerReceivers();
+        mMediaPresenter.registerReceivers(getApplicationContext(), mLocalBroadcastReceiverCb);
 
         final MediaBrowserCompat.SubscriptionCallback medSubscriptionCb = new MediaBrowserSubscriptionCallback();
         final MediaPresenterListener mediaPresenterLstnr = new MediaPresenterListenerImpl();
@@ -196,7 +177,7 @@ public final class MainActivity extends AppCompatActivity {
                 mediaPresenterLstnr
         );
 
-        restoreState(savedInstanceState);
+        mMediaPresenter.restoreState(savedInstanceState);
 
         if (AppUtils.hasLocation(context)) {
             if (PermissionChecker.isLocationGranted(context)) {
@@ -236,7 +217,7 @@ public final class MainActivity extends AppCompatActivity {
         }
 
         // Unregister local receivers
-        unregisterReceivers();
+        mMediaPresenter.unregisterReceivers(getApplicationContext());
 
         ContextCompat.startForegroundService(
                 getApplicationContext(),
@@ -292,10 +273,6 @@ public final class MainActivity extends AppCompatActivity {
         AppLogger.d(CLASS_NAME + "OnSaveInstance:" + outState);
         // Track OnSaveInstanceState passed
         mIsOnSaveInstancePassed.set(true);
-
-        if (mLastKnownMetadata != null) {
-            outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
-        }
 
         OpenRadioService.putRestoreState(outState, true);
         OpenRadioService.putCurrentPlaybackState(outState, mCurrentPlaybackState);
@@ -512,57 +489,6 @@ public final class MainActivity extends AppCompatActivity {
         mNoDataView.setVisibility(View.GONE);
     }
 
-    private void restoreState(final Bundle savedInstanceState) {
-        if (savedInstanceState == null) {
-            // Nothing to restore
-            return;
-        }
-
-        mMediaPresenter.setCurrentParentId(OpenRadioService.getCurrentParentId(savedInstanceState));
-
-        // Restore List's position
-        mMediaPresenter.handleRestoreInstanceState(savedInstanceState);
-        mMediaPresenter.restoreSelectedPosition();
-
-        final MediaMetadataCompat lastKnownMetadata = savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA);
-        if (lastKnownMetadata != null) {
-            handleMetadataChanged(lastKnownMetadata);
-        }
-    }
-
-    /**
-     * Register receiver for the application's local events.
-     */
-    private void registerReceivers() {
-
-        mAppLocalBroadcastRcvr.registerListener(mLocalBroadcastReceiverCb);
-
-        // Create filter and add actions
-        final IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged());
-        intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
-        // Register receiver
-        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(
-                mAppLocalBroadcastRcvr,
-                intentFilter
-        );
-
-        mScreenBroadcastRcvr.register(getApplicationContext());
-    }
-
-    /**
-     * Unregister receiver for the application's local events.
-     */
-    private void unregisterReceivers() {
-        mAppLocalBroadcastRcvr.unregisterListener();
-
-        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(
-                mAppLocalBroadcastRcvr
-        );
-
-        mScreenBroadcastRcvr.unregister(getApplicationContext());
-    }
-
     public void onRemoveRSClick(final View view) {
         final MediaBrowserCompat.MediaItem item = (MediaBrowserCompat.MediaItem) view.getTag();
         if (item == null) {
@@ -669,22 +595,17 @@ public final class MainActivity extends AppCompatActivity {
      *
      * @param metadata Metadata related to currently playing Radio Station.
      */
-    private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
-        if (metadata != null) {
-            if (mCurrentRadioStationView.getVisibility() != View.VISIBLE) {
-                mCurrentRadioStationView.setVisibility(View.VISIBLE);
-            }
+    private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
+        if (mCurrentRadioStationView.getVisibility() != View.VISIBLE) {
+            mCurrentRadioStationView.setVisibility(View.VISIBLE);
         }
-        mLastKnownMetadata = metadata;
         final Context context = this;
 
         final RadioStation radioStation = LatestRadioStationStorage.get(context);
         if (radioStation == null) {
             return;
         }
-        final MediaDescriptionCompat description = mLastKnownMetadata != null
-                ? mLastKnownMetadata.getDescription()
-                : MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation);
+        final MediaDescriptionCompat description = metadata.getDescription();
 
         final TextView nameView = findViewById(R.id.crs_name_view);
         if (nameView != null) {

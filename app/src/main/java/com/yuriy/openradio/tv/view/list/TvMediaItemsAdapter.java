@@ -104,6 +104,7 @@ public final class TvMediaItemsAdapter extends MediaItemsAdapter {
         boolean selected = false;
         if (position == getActiveItemId()) {
             selected = true;
+            holder.mRoot.requestFocus();
         }
         holder.mRoot.setSelected(selected);
     }

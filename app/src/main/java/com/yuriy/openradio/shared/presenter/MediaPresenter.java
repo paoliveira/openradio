@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.presenter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -27,11 +28,16 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
+import com.yuriy.openradio.shared.broadcast.AppLocalReceiver;
+import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver;
+import com.yuriy.openradio.shared.broadcast.ScreenReceiver;
 import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener;
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager;
 import com.yuriy.openradio.shared.service.OpenRadioService;
@@ -60,6 +66,7 @@ public final class MediaPresenter {
      */
     private static final String BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID";
     private static final String BUNDLE_ARG_LIST_CLICKED_ID = "BUNDLE_ARG_LIST_CLICKED_ID";
+    private static final String BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA";
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
@@ -87,15 +94,27 @@ public final class MediaPresenter {
     private MediaPresenterListener mListener;
     private RecyclerView mListView;
     private final RecyclerView.OnScrollListener mScrollListener;
+    @Nullable
+    private MediaMetadataCompat mLastKnownMetadata;
     /**
      * Adapter for the representing media items in the list.
      */
     private MediaItemsAdapter mAdapter;
+    /**
+     * Receiver for the local application;s events
+     */
+    private final AppLocalReceiver mAppLocalBroadcastRcvr;
+    /**
+     * Receiver for the Screen OF/ON events.
+     */
+    private final ScreenReceiver mScreenBroadcastRcvr;
 
     @Inject
     public MediaPresenter(@ApplicationContext final Context context) {
         super();
         mScrollListener = new ScrollListener();
+        mScreenBroadcastRcvr = new ScreenReceiver();
+        mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance();
         mMediaRsrMgr = new MediaResourcesManager(context, getClass().getSimpleName());
     }
 
@@ -343,11 +362,11 @@ public final class MediaPresenter {
     public void restoreSelectedPosition() {
         int selectedPosition;
         int clickedPosition;
-        if (mListFirstVisiblePosition != -1) {
+        if (mListFirstVisiblePosition != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
             selectedPosition = mListFirstVisiblePosition;
             clickedPosition = mListSavedClickedPosition;
-            mListFirstVisiblePosition = -1;
-            mListSavedClickedPosition = -1;
+            mListFirstVisiblePosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
+            mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
         } else {
             // Restore positions for the Catalogue list.
             final int[] positions = getPositions(mCurrentParentId);
@@ -357,15 +376,17 @@ public final class MediaPresenter {
         // This will make selected item highlighted.
         setActiveItem(clickedPosition);
         // This actually do scroll to the position.
-        mListView.scrollToPosition(selectedPosition - 1);
+        mListView.scrollToPosition(selectedPosition);
     }
 
     public final void handleSaveInstanceState(@NonNull final Bundle outState) {
         OpenRadioService.putCurrentParentId(outState, mCurrentParentId);
-        updateListVisiblePositions(mListView);
-        // Save first visible ID of the List
+        if (mLastKnownMetadata != null) {
+            outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
+        }
         outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
         outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mAdapter.getActiveItemId());
+        updateListVisiblePositions(mListView);
     }
 
     public final void handleRestoreInstanceState(@NonNull final Bundle savedInstanceState) {
@@ -374,14 +395,58 @@ public final class MediaPresenter {
     }
 
     public void handleCurrentIndexOnQueueChanged(final String mediaId) {
-        final int position = mAdapter.getIndexForMediaId(mediaId);
-        if (position != -1) {
-            setActiveItem(position);
-        }
+        setActiveItem(mAdapter.getIndexForMediaId(mediaId));
     }
 
     public String getCurrentParentId() {
         return mCurrentParentId;
+    }
+
+    public void restoreState(final Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            // Nothing to restore
+            return;
+        }
+
+        setCurrentParentId(OpenRadioService.getCurrentParentId(savedInstanceState));
+
+        handleRestoreInstanceState(savedInstanceState);
+        restoreSelectedPosition();
+
+        handleMetadataChanged(savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA));
+    }
+
+    /**
+     * Register receiver for the application's local events.
+     */
+    public void registerReceivers(final Context context, final AppLocalReceiverCallback callback) {
+
+        mAppLocalBroadcastRcvr.registerListener(callback);
+
+        // Create filter and add actions
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged());
+        intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged());
+        // Register receiver
+        LocalBroadcastManager.getInstance(context).registerReceiver(
+                mAppLocalBroadcastRcvr,
+                intentFilter
+        );
+
+        mScreenBroadcastRcvr.register(context);
+    }
+
+    /**
+     * Unregister receiver for the application's local events.
+     */
+    public void unregisterReceivers(final Context context) {
+        mAppLocalBroadcastRcvr.unregisterListener();
+
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(
+                mAppLocalBroadcastRcvr
+        );
+
+        mScreenBroadcastRcvr.unregister(context);
     }
 
     private void handleMediaResourceManagerConnected() {
@@ -389,11 +454,19 @@ public final class MediaPresenter {
                 ? mMediaRsrMgr.getRoot()
                 : mMediaItemsStack.get(mMediaItemsStack.size() - 1);
         addMediaItemToStack(mediaId);
-
         // Update metadata in case of UI started on and media service was already created and stream played.
-        if (mListener != null) {
-            mListener.handleMetadataChanged(mMediaRsrMgr.getMediaMetadata());
+        handleMetadataChanged(mMediaRsrMgr.getMediaMetadata());
+    }
+
+    private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
+        if (mListener == null) {
+            return;
         }
+        if (metadata == null) {
+            return;
+        }
+        mLastKnownMetadata = metadata;
+        mListener.handleMetadataChanged(metadata);
     }
 
     private int[] createInitPositionEntry() {

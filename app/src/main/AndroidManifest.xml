@@ -76,7 +76,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".shared.view.activity.PermissionsDialogActivity" />
         <activity android:name=".tv.view.activity.TvSearchActivity" />
 
         <meta-data
