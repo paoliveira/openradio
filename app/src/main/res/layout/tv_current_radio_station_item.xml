@@ -93,4 +93,11 @@
         android:layout_alignStart="@+id/tv_crs_description_view"
         android:paddingTop="10dp" />
 
+    <View
+        android:id="@+id/tv_last_played_separator_item_view"
+        android:layout_below="@id/tv_crs_buffered_view"
+        android:layout_width="wrap_content"
+        android:layout_height="1dp"
+        android:background="@android:color/white"/>
+
 </RelativeLayout>

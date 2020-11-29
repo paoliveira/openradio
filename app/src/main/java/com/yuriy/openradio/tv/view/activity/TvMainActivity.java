@@ -121,6 +121,8 @@ public final class TvMainActivity extends FragmentActivity {
                 listener
         );
 
+        restoreState(savedInstanceState);
+
         if (AppUtils.hasLocation(context)) {
             if (PermissionChecker.isLocationGranted(context)) {
                 mMediaPresenter.connect();
@@ -206,6 +208,19 @@ public final class TvMainActivity extends FragmentActivity {
         }
         mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
+    }
+
+    private void restoreState(final Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            // Nothing to restore
+            return;
+        }
+
+        mMediaPresenter.setCurrentParentId(OpenRadioService.getCurrentParentId(savedInstanceState));
+
+        // Restore List's position
+        mMediaPresenter.handleRestoreInstanceState(savedInstanceState);
+        mMediaPresenter.restoreSelectedPosition();
     }
 
     /**

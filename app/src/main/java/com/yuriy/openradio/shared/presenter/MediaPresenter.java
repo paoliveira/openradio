@@ -355,9 +355,10 @@ public final class MediaPresenter {
             selectedPosition = positions[0];
         }
         // This will make selected item highlighted.
-        setActiveItem(clickedPosition);
+        setActiveItem(selectedPosition);
         // This actually do scroll to the position.
-        mListView.scrollToPosition(selectedPosition - 1);
+        AppLogger.d("TRACE::scrollTo:" + selectedPosition);
+        mListView.scrollToPosition(selectedPosition);
     }
 
     public final void handleSaveInstanceState(@NonNull final Bundle outState) {

@@ -14,9 +14,10 @@
     limitations under the License.
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tv_main_layout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:id="@+id/tv_main_layout">
+    android:background="@color/or_color_primary">
 
     <ImageView
         android:id="@+id/tv_search_btn"
@@ -75,7 +76,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/tv_current_radio_station_view"
-        android:layout_margin="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
         android:layout_toStartOf="@id/tv_settings_btn" />
 
     <ProgressBar

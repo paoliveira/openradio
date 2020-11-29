@@ -97,9 +97,9 @@ public final class MobileMediaItemsAdapter extends MediaItemsAdapter {
 
         holder.mForegroundView.isDragDisabled(!isPlayable);
         holder.mForegroundView.setOnClickListener(new OnItemTapListener(mediaItem, position));
-        int color = R.color.or_color_list_item_bg;
+        int color = R.color.or_color_primary;
         if (position == getActiveItemId()) {
-            color = R.color.or_color_list_item_bg_selected;
+            color = R.color.or_color_primary_dark;
         }
         holder.mForegroundView.setBackgroundColor(mContext.getResources().getColor(color));
     }

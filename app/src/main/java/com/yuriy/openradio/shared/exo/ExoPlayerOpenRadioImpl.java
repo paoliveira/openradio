@@ -414,6 +414,7 @@ public final class ExoPlayerOpenRadioImpl {
                 if (entry == null) {
                     return;
                 }
+                AppLogger.d(LOG_TAG + " Metadata entry:" + entry);
                 if (entry instanceof IcyInfo) {
                     final IcyInfo info = (IcyInfo) metadata.get(i);
                     if (info != null) {
