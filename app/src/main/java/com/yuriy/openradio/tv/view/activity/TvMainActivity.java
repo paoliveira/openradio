@@ -40,6 +40,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.mobile.view.activity.MainActivity;
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter;
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
@@ -505,6 +506,9 @@ public final class TvMainActivity extends FragmentActivity {
 
         @Override
         public void onItemSelected(@NonNull final MediaBrowserCompat.MediaItem item, final int position) {
+            if (TvMainActivity.this.mMediaPresenter == null) {
+                return;
+            }
             TvMainActivity.this.mMediaPresenter.setActiveItem(position);
             TvMainActivity.this.mMediaPresenter.handleItemClick(item, position);
         }
