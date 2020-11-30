@@ -239,6 +239,19 @@ public final class TvMainActivity extends FragmentActivity {
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
     }
 
+    private void restoreState(final Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            // Nothing to restore
+            return;
+        }
+
+        mMediaPresenter.setCurrentParentId(OpenRadioService.getCurrentParentId(savedInstanceState));
+
+        // Restore List's position
+        mMediaPresenter.handleRestoreInstanceState(savedInstanceState);
+        mMediaPresenter.restoreSelectedPosition();
+    }
+
     /**
      * Show progress bar.
      */
