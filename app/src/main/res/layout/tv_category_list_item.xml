@@ -19,6 +19,7 @@
     android:layout_height="wrap_content"
     android:background="@drawable/tv_list_item_bg"
     android:focusable="true"
+    android:focusableInTouchMode="true"
     android:padding="@dimen/list_item_padding"
     android:nextFocusRight="@id/tv_favorite_btn_view">
 

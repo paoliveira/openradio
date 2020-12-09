@@ -19,6 +19,25 @@
     android:layout_height="wrap_content"
     android:background="@color/or_color_primary">
 
+    <include
+        android:id="@+id/tv_current_radio_station_view"
+        layout="@layout/tv_current_radio_station_item"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_toStartOf="@id/tv_settings_btn"
+        android:visibility="gone" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/tv_list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/tv_current_radio_station_view"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:layout_toStartOf="@id/tv_settings_btn" />
+
     <ImageView
         android:id="@+id/tv_search_btn"
         android:layout_width="wrap_content"
@@ -61,25 +80,6 @@
         android:nextFocusUp="@id/tv_settings_btn"
         android:padding="20dp"
         android:src="@drawable/tv_add_btn_bg" />
-
-    <include
-        android:id="@+id/tv_current_radio_station_view"
-        layout="@layout/tv_current_radio_station_item"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_toStartOf="@id/tv_settings_btn"
-        android:visibility="gone" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/tv_list_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/tv_current_radio_station_view"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="10dp"
-        android:layout_toStartOf="@id/tv_settings_btn" />
 
     <ProgressBar
         android:id="@+id/progress_bar_tv_view"
