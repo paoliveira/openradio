@@ -22,6 +22,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
+import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 
 import java.io.Serializable;
@@ -122,7 +123,10 @@ public final class RadioStation implements Serializable {
         return mCountry;
     }
 
-    public final void setCountry(final String value) {
+    public final void setCountry(String value) {
+        if (LocationService.GB_WRONG.equals(value)) {
+            value = LocationService.GB_CORRECT;
+        }
         mCountry = value;
     }
 

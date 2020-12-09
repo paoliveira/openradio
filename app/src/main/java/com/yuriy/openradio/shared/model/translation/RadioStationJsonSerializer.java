@@ -55,6 +55,7 @@ public final class RadioStationJsonSerializer implements RadioStationSerializer 
             jsonObject.put(RadioStationJsonHelper.KEY_NAME, radioStation.getName());
             jsonObject.put(RadioStationJsonHelper.KEY_BITRATE, radioStation.getMediaStream().getVariant(0).getBitrate());
             jsonObject.put(RadioStationJsonHelper.KEY_COUNTRY, radioStation.getCountry());
+            jsonObject.put(RadioStationJsonHelper.KEY_COUNTRY_CODE, radioStation.getCountryCode());
             jsonObject.put(RadioStationJsonHelper.KEY_GENRE, radioStation.getGenre());
             jsonObject.put(RadioStationJsonHelper.KEY_IMG_URL, radioStation.getImageUrl());
             jsonObject.put(RadioStationJsonHelper.KEY_STREAM_URL, radioStation.getMediaStream().getVariant(0).getUrl());

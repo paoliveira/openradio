@@ -27,7 +27,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.content.res.AppCompatResources;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.view.list.MediaItemViewHolder;
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter;
@@ -107,7 +106,6 @@ public final class TvMediaItemsAdapter extends MediaItemsAdapter {
             selected = true;
             holder.mRoot.requestFocus();
         }
-        AppLogger.d("TRACE::position:" + position + " " + getActiveItemId() + " " + selected);
         holder.mRoot.setSelected(selected);
     }
 

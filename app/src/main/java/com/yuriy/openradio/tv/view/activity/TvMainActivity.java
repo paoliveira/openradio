@@ -40,7 +40,6 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.mobile.view.activity.MainActivity;
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter;
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback;
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage;
@@ -52,6 +51,7 @@ import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
+import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.utils.UiUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.shared.view.SafeToast;
@@ -88,7 +88,6 @@ public final class TvMainActivity extends FragmentActivity {
     private final TvMediaItemsAdapter.Listener mListener;
     private View mPlayBtn;
     private View mPauseBtn;
-    private View mCurrentRadioStationView;
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
@@ -120,10 +119,6 @@ public final class TvMainActivity extends FragmentActivity {
         mProgressBar = findViewById(R.id.progress_bar_tv_view);
         mPlayBtn = findViewById(R.id.tv_crs_play_btn_view);
         mPauseBtn = findViewById(R.id.tv_crs_pause_btn_view);
-        mCurrentRadioStationView = findViewById(R.id.tv_current_radio_station_view);
-        mCurrentRadioStationView.setOnClickListener(
-                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(context))
-        );
 
         mIsOnSaveInstancePassed.set(false);
 
@@ -134,9 +129,8 @@ public final class TvMainActivity extends FragmentActivity {
         final MediaPresenterListener listener = new MediaPresenterListenerImpl();
         mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.tv_list_view),
-                new TvMediaItemsAdapter(context), mListener,
-                subscriptionCb,
-                listener
+                findViewById(R.id.tv_current_radio_station_view), new TvMediaItemsAdapter(context), mListener,
+                subscriptionCb, listener
         );
 
         mMediaPresenter.restoreState(savedInstanceState);
@@ -238,19 +232,6 @@ public final class TvMainActivity extends FragmentActivity {
         }
         mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
         mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP);
-    }
-
-    private void restoreState(final Bundle savedInstanceState) {
-        if (savedInstanceState == null) {
-            // Nothing to restore
-            return;
-        }
-
-        mMediaPresenter.setCurrentParentId(OpenRadioService.getCurrentParentId(savedInstanceState));
-
-        // Restore List's position
-        mMediaPresenter.handleRestoreInstanceState(savedInstanceState);
-        mMediaPresenter.restoreSelectedPosition();
     }
 
     /**
@@ -380,14 +361,7 @@ public final class TvMainActivity extends FragmentActivity {
      *
      * @param metadata Metadata related to currently playing Radio Station.
      */
-    private void handleMetadataChanged(@Nullable final MediaMetadataCompat metadata) {
-        if (metadata == null) {
-            AppLogger.e("Handle metadata changed, metadata is null");
-            return;
-        }
-        if (mCurrentRadioStationView.getVisibility() != View.VISIBLE) {
-            mCurrentRadioStationView.setVisibility(View.VISIBLE);
-        }
+    private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
         final Context context = this;
 
         final RadioStation radioStation = LatestRadioStationStorage.get(context);
@@ -404,7 +378,9 @@ public final class TvMainActivity extends FragmentActivity {
         }
         final TextView descriptionView = findViewById(R.id.tv_crs_description_view);
         if (descriptionView != null) {
-            descriptionView.setText(description.getDescription());
+            descriptionView.setText(
+                    MediaItemHelper.getDisplayDescription(description, getString(R.string.media_description_default))
+            );
         }
         final ImageView imgView = findViewById(R.id.tv_crs_img_view);
         // Show placeholder before load an image.
@@ -433,6 +409,18 @@ public final class TvMainActivity extends FragmentActivity {
 //        }
     }
 
+    private void handleChildrenLoaded(@NonNull final String parentId,
+                                      @NonNull final List<MediaBrowserCompat.MediaItem> children) {
+        if (mIsOnSaveInstancePassed.get()) {
+            AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState");
+            return;
+        }
+        hideProgressBar();
+        if (mMediaPresenter != null) {
+            mMediaPresenter.handleChildrenLoaded(parentId, children);
+        }
+    }
+
     private final class MediaBrowserSubscriptionCallback extends MediaBrowserCompat.SubscriptionCallback {
 
         /**
@@ -449,14 +437,7 @@ public final class TvMainActivity extends FragmentActivity {
             AppLogger.i(
                     CLASS_NAME + " Children loaded:" + parentId + ", children:" + children.size()
             );
-
-            if (TvMainActivity.this.mIsOnSaveInstancePassed.get()) {
-                AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState");
-                return;
-            }
-
-            hideProgressBar();
-            mMediaPresenter.handleChildrenLoaded(parentId, children);
+            TvMainActivity.this.handleChildrenLoaded(parentId, children);
         }
 
         @Override
@@ -532,12 +513,7 @@ public final class TvMainActivity extends FragmentActivity {
                 AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState");
                 return;
             }
-
             AppLogger.d(CLASS_NAME + "Location Changed received");
-            if (TvMainActivity.this.mMediaPresenter != null) {
-                return;
-            }
-
         }
 
         @Override

@@ -108,6 +108,7 @@ dependencies {
     implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
     implementation "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
+    implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleExtensionVersion"
     implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
     annotationProcessor "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"

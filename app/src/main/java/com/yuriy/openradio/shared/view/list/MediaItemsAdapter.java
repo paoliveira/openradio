@@ -51,6 +51,7 @@ public abstract class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemVi
 
     public interface Listener {
         void onItemSettings(MediaBrowserCompat.MediaItem item, final int position);
+
         void onItemSelected(MediaBrowserCompat.MediaItem item, final int position);
     }
 
@@ -103,7 +104,8 @@ public abstract class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemVi
      * get index of the Item by provided Media Id.
      *
      * @param mediaId Media Id of the Radio Station.
-     * @return Index of the Radio Station in the adapter, or -1 if nothing founded.
+     * @return Index of the Radio Station in the adapter,
+     * or {@link MediaSessionCompat.QueueItem#UNKNOWN_ID} if nothing founded.
      */
     public int getIndexForMediaId(final String mediaId) {
         final int count = mAdapterData.getItemsCount();
@@ -117,7 +119,7 @@ public abstract class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemVi
                 return i;
             }
         }
-        return -1;
+        return MediaSessionCompat.QueueItem.UNKNOWN_ID;
     }
 
     public String getParentId() {
@@ -215,9 +217,9 @@ public abstract class MediaItemsAdapter extends RecyclerView.Adapter<MediaItemVi
      * @param parentId
      */
     public static void handleNameAndDescriptionView(@NonNull final TextView nameView,
-                                                     @NonNull final TextView descriptionView,
-                                                     final MediaDescriptionCompat description,
-                                                     @NonNull final String parentId) {
+                                                    @NonNull final TextView descriptionView,
+                                                    final MediaDescriptionCompat description,
+                                                    @NonNull final String parentId) {
         nameView.setText(description.getTitle());
         descriptionView.setText(description.getSubtitle());
 

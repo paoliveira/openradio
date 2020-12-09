@@ -65,6 +65,7 @@ public final class RadioStationJsonDeserializer implements RadioStationDeseriali
                     JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
             );
             radioStation.setCountry(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY));
+            radioStation.setCountryCode(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE));
             radioStation.setGenre(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE));
             radioStation.setImageUrl(JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_IMG_URL));
             radioStation.setStatus(JsonUtils.getIntValue(jsonObject, RadioStationJsonHelper.KEY_STATUS));

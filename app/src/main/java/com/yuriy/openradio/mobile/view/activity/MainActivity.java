@@ -107,7 +107,6 @@ public final class MainActivity extends AppCompatActivity {
      * Tag string to use in logging message.
      */
     private final String CLASS_NAME;
-    private View mCurrentRadioStationView;
     /**
      * Progress Bar view to indicate that data is loading.
      */
@@ -161,10 +160,6 @@ public final class MainActivity extends AppCompatActivity {
         hideProgressBar();
         updateBufferedTime(0);
 
-        mCurrentRadioStationView.setOnClickListener(
-                v -> startService(OpenRadioService.makeToggleLastPlayedItemIntent(context))
-        );
-
         // Register local receivers.
         mMediaPresenter.registerReceivers(getApplicationContext(), mLocalBroadcastReceiverCb);
 
@@ -172,9 +167,8 @@ public final class MainActivity extends AppCompatActivity {
         final MediaPresenterListener mediaPresenterLstnr = new MediaPresenterListenerImpl();
         mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.list_view),
-                new MobileMediaItemsAdapter(this), mMediaItemListener,
-                medSubscriptionCb,
-                mediaPresenterLstnr
+                findViewById(R.id.current_radio_station_view), new MobileMediaItemsAdapter(this),
+                mMediaItemListener, medSubscriptionCb, mediaPresenterLstnr
         );
 
         mMediaPresenter.restoreState(savedInstanceState);
@@ -307,7 +301,6 @@ public final class MainActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.progress_bar_view);
         // Initialize No Data text view
         mNoDataView = findViewById(R.id.no_data_view);
-        mCurrentRadioStationView = findViewById(R.id.current_radio_station_view);
         mBufferedTextView = findViewById(R.id.crs_buffered_view);
         final Toolbar toolbar = findViewById(R.id.toolbar);
         final DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -596,9 +589,6 @@ public final class MainActivity extends AppCompatActivity {
      * @param metadata Metadata related to currently playing Radio Station.
      */
     private void handleMetadataChanged(@NonNull final MediaMetadataCompat metadata) {
-        if (mCurrentRadioStationView.getVisibility() != View.VISIBLE) {
-            mCurrentRadioStationView.setVisibility(View.VISIBLE);
-        }
         final Context context = this;
 
         final RadioStation radioStation = LatestRadioStationStorage.get(context);

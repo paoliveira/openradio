@@ -20,11 +20,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.text.TextUtils;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -81,9 +83,7 @@ public final class MediaPresenter {
      * Contract is - array of integer has 2 elements {selected position, clicked position}.
      */
     private final Map<String, int[]> mPositions = new Hashtable<>();
-    private int mListFirstVisiblePosition = 0;
-    private int mListLastVisiblePosition = 0;
-    private int mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
+    private int mListLastVisiblePosition;
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
@@ -108,6 +108,7 @@ public final class MediaPresenter {
      * Receiver for the Screen OF/ON events.
      */
     private final ScreenReceiver mScreenBroadcastRcvr;
+    private View mCurrentRadioStationView;
 
     @Inject
     public MediaPresenter(@ApplicationContext final Context context) {
@@ -118,7 +119,8 @@ public final class MediaPresenter {
         mMediaRsrMgr = new MediaResourcesManager(context, getClass().getSimpleName());
     }
 
-    public void init(final Activity activity, final Bundle bundle, @NonNull final RecyclerView listView,
+    public void init(@NonNull final Activity activity, final Bundle bundle, @NonNull final RecyclerView listView,
+                     @NonNull final View currentRadioStationView,
                      @NonNull final MediaItemsAdapter adapter, final MediaItemsAdapter.Listener itemAdapterListener,
                      @NonNull final MediaBrowserCompat.SubscriptionCallback mediaSubscriptionCallback,
                      final MediaPresenterListener listener) {
@@ -128,6 +130,7 @@ public final class MediaPresenter {
         mListener = listener;
         mListView = listView;
         mAdapter = adapter;
+        mCurrentRadioStationView = currentRadioStationView;
         // Listener of events provided by Media Resource Manager.
         final MediaResourceManagerListener mediaRsrMgrLst = new MediaResourceManagerListenerImpl();
         mMediaRsrMgr.init(activity, bundle, mediaRsrMgrLst);
@@ -139,6 +142,10 @@ public final class MediaPresenter {
         mListView.addOnScrollListener(mScrollListener);
 
         mAdapter.setListener(itemAdapterListener);
+
+        mCurrentRadioStationView.setOnClickListener(
+                v -> activity.startService(OpenRadioService.makeToggleLastPlayedItemIntent(activity))
+        );
 
         if (!mMediaItemsStack.isEmpty()) {
             final String mediaId = mMediaItemsStack.get(mMediaItemsStack.size() - 1);
@@ -257,22 +264,28 @@ public final class MediaPresenter {
         mAdapter.notifyDataSetChanged();
     }
 
-    public void handleItemSelect(final MediaBrowserCompat.MediaItem item, final int position) {
-        // Keep last selected position for the given category.
-        // We will use it when back to this category
+    public void updateListPositions(final int clickPosition) {
+        final LinearLayoutManager layoutManager = ((LinearLayoutManager) mListView.getLayoutManager());
+        if (layoutManager == null) {
+            return;
+        }
+        mListLastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition();
+
         final int size = mMediaItemsStack.size();
-        if (size >= 1) {
-            final String mediaItem = mMediaItemsStack.get(size - 1);
-            int[] data = mPositions.remove(mediaItem);
-            if (data == null) {
-                data = createInitPositionEntry();
-            }
-            data[0] = position;
+        if (size < 1) {
+            return;
+        }
+        final String mediaItem = mMediaItemsStack.get(size - 1);
+        int[] data = mPositions.get(mediaItem);
+        if (data == null) {
+            data = createInitPositionEntry();
             mPositions.put(mediaItem, data);
         }
+        data[0] = layoutManager.findFirstCompletelyVisibleItemPosition();
+        data[1] = clickPosition;
     }
 
-    public void handleItemClick(final MediaBrowserCompat.MediaItem item, final int position) {
+    public void handleItemClick(final MediaBrowserCompat.MediaItem item, final int clickPosition) {
         if (mActivity == null) {
             return;
         }
@@ -294,18 +307,7 @@ public final class MediaPresenter {
             }
         }
 
-        // Keep last selected position for the given category.
-        // We will use it when back to this category
-        final int size = mMediaItemsStack.size();
-        if (size >= 1) {
-            final String mediaItem = mMediaItemsStack.get(size - 1);
-            //TODO: Improve!
-            if (mPositions.containsKey(mediaItem)) {
-                mPositions.get(mediaItem)[1] = position;
-            } else {
-                mPositions.put(mediaItem, new int[]{0, position});
-            }
-        }
+        updateListPositions(clickPosition);
 
         final String mediaId = item.getMediaId();
 
@@ -338,6 +340,10 @@ public final class MediaPresenter {
         return createInitPositionEntry();
     }
 
+    private int[] createInitPositionEntry() {
+        return new int[]{0, MediaSessionCompat.QueueItem.UNKNOWN_ID};
+    }
+
     public void handleChildrenLoaded(@NonNull final String parentId,
                                      @NonNull final List<MediaBrowserCompat.MediaItem> children) {
         setCurrentParentId(parentId);
@@ -360,23 +366,17 @@ public final class MediaPresenter {
     }
 
     public void restoreSelectedPosition() {
-        int selectedPosition;
-        int clickedPosition;
-        if (mListFirstVisiblePosition != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-            selectedPosition = mListFirstVisiblePosition;
-            clickedPosition = mListSavedClickedPosition;
-            mListFirstVisiblePosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
-            mListSavedClickedPosition = MediaSessionCompat.QueueItem.UNKNOWN_ID;
-        } else {
-            // Restore positions for the Catalogue list.
-            final int[] positions = getPositions(mCurrentParentId);
-            clickedPosition = positions[1];
-            selectedPosition = positions[0];
-        }
+        // Restore positions for the Catalogue list.
+        final int[] positions = getPositions(mCurrentParentId);
+        final int clickedPosition = positions[1];
+        final int selectedPosition = positions[0];
         // This will make selected item highlighted.
-        setActiveItem(selectedPosition);
-        // This actually do scroll to the position.
-        mListView.scrollToPosition(selectedPosition);
+        setActiveItem(clickedPosition);
+        // This will do scroll to the position.
+        mListView.scrollToPosition(Math.max(selectedPosition, 0));
+        new Handler().postDelayed(
+                () -> mListView.smoothScrollToPosition(Math.max(selectedPosition, 0)), 50
+        );
     }
 
     public final void handleSaveInstanceState(@NonNull final Bundle outState) {
@@ -384,14 +384,14 @@ public final class MediaPresenter {
         if (mLastKnownMetadata != null) {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata);
         }
-        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
-        outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mAdapter.getActiveItemId());
-        updateListVisiblePositions(mListView);
+//        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
+//        outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mAdapter.getActiveItemId());
+//        updateListPositions(mAdapter.getActiveItemId());
     }
 
     public final void handleRestoreInstanceState(@NonNull final Bundle savedInstanceState) {
-        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
-        mListSavedClickedPosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_CLICKED_ID);
+//        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
+//        mListSavedClickedPosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_CLICKED_ID);
     }
 
     public void handleCurrentIndexOnQueueChanged(final String mediaId) {
@@ -465,22 +465,11 @@ public final class MediaPresenter {
         if (metadata == null) {
             return;
         }
+        if (mCurrentRadioStationView != null && mCurrentRadioStationView.getVisibility() != View.VISIBLE) {
+            mCurrentRadioStationView.setVisibility(View.VISIBLE);
+        }
         mLastKnownMetadata = metadata;
         mListener.handleMetadataChanged(metadata);
-    }
-
-    private int[] createInitPositionEntry() {
-        return new int[]{0, MediaSessionCompat.QueueItem.UNKNOWN_ID};
-    }
-
-    private void updateListVisiblePositions(@NonNull final RecyclerView recyclerView) {
-        final LinearLayoutManager layoutManager = ((LinearLayoutManager) recyclerView.getLayoutManager());
-        if (layoutManager == null) {
-            mListFirstVisiblePosition = 0;
-            return;
-        }
-        mListFirstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition();
-        mListLastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition();
     }
 
     private void onScrolledToEnd() {
@@ -530,10 +519,7 @@ public final class MediaPresenter {
             if (metadata == null) {
                 return;
             }
-            final MediaPresenter activity = MediaPresenter.this;
-            if (activity.mListener != null) {
-                activity.mListener.handleMetadataChanged(metadata);
-            }
+            handleMetadataChanged(metadata);
         }
     }
 
@@ -549,7 +535,7 @@ public final class MediaPresenter {
             if (newState != RecyclerView.SCROLL_STATE_IDLE) {
                 return;
             }
-            MediaPresenter.this.updateListVisiblePositions(recyclerView);
+            MediaPresenter.this.updateListPositions(MediaPresenter.this.mAdapter.getActiveItemId());
             if (MediaPresenter.this.mListLastVisiblePosition == MediaPresenter.this.mAdapter.getItemCount() - 1) {
                 MediaPresenter.this.onScrolledToEnd();
             }

@@ -69,6 +69,9 @@ public final class LocationService extends JobIntentService {
      */
     public static final Map<String, String> COUNTRY_NAME_TO_CODE = new TreeMap<>();
 
+    public static final String GB_WRONG = "United Kingdom of Great Britain and Northern Irela";
+    public static final String GB_CORRECT = "United Kingdom of Great Britain and Northern Ireland";
+
     // http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
     static {
         COUNTRY_CODE_TO_NAME.put("AD", "Andorra");
@@ -132,7 +135,7 @@ public final class LocationService extends JobIntentService {
         COUNTRY_CODE_TO_NAME.put("FO", "Faroe Islands");
         COUNTRY_CODE_TO_NAME.put("FR", "France");
         COUNTRY_CODE_TO_NAME.put("GA", "Gabon");
-        COUNTRY_CODE_TO_NAME.put("GB", "United Kingdom of Great Britain and Northern Ireland");
+        COUNTRY_CODE_TO_NAME.put("GB", GB_CORRECT);
         COUNTRY_CODE_TO_NAME.put("GD", "Grenada");
         COUNTRY_CODE_TO_NAME.put("GE", "Georgia");
         COUNTRY_CODE_TO_NAME.put("GH", "Ghana");

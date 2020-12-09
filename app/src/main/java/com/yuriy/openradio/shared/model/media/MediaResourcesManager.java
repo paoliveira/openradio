@@ -107,8 +107,7 @@ public final class MediaResourcesManager {
     /**
      * Creates Media Browser, assigns listener.
      */
-    public void init(@NonNull final Activity activity,
-                     Bundle bundle,
+    public void init(@NonNull final Activity activity, Bundle bundle,
                      @NonNull final MediaResourceManagerListener listener) {
         mActivity = activity;
         mListener = listener;

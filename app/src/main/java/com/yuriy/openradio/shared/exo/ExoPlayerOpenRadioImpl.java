@@ -221,9 +221,9 @@ public final class ExoPlayerOpenRadioImpl {
         if (uri == null) {
             return;
         }
-        AppLogger.d(LOG_TAG + " prepare:" + uri.toString());
         mUserState = UserState.PREPARE;
         mUri = uri;
+        AnalyticsUtils.logMessage("URI:" + mUri);
         if (mExoPlayer != null) {
             mExoPlayer.setPlayWhenReady(true);
             mExoPlayer.setMediaItem(new MediaItem.Builder().setUri(mUri).build());
