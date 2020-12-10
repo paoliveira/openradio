@@ -28,12 +28,13 @@
     <color name="or_color_transparent">#00000000</color>
     <color name="or_color_blue_light">#FF33B5E5</color>
     <color name="or_color_white">#FFFFFFFF</color>
+    <color name="or_color_green">#3E905F</color>
+    <color name="or_color_green_dark">#1B3E29</color>
 
     <color name="or_color_primary">#FF303030</color>
     <color name="or_color_primary_dark">#FF171C24</color>
 
     <color name="or_color_accent">@color/or_color_white</color>
-    <color name="or_color_accent_dark">#1B3E29</color>
 
     <color name="or_color_text">#FFC0C0C0</color>
 </resources>

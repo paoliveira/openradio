@@ -41,37 +41,37 @@ public final class PermissionChecker {
     }
 
     public static boolean isLocationGranted(@NonNull final Context context) {
-        return PermissionChecker.isGranted(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-        );
+        return PermissionChecker.isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION);
     }
 
-    /**
-     * Checks whether provided permission is granted or not.
-     *
-     * @param context    Application's context.
-     * @param permission Permission name to check.
-     * @return <b>TRUE</b> in case of provided permission is granted,
-     * <b>FALSE</b> otherwise.
-     */
-    public static boolean isGranted(final Context context, final String permission) {
-        if (!AppUtils.hasVersionM()) {
-            return true;
-        }
-        return context != null
-                && !TextUtils.isEmpty(permission)
-                && ActivityCompat.checkSelfPermission(context, permission)
-                == PackageManager.PERMISSION_GRANTED;
+    public static boolean isExternalStorageGranted(@NonNull final Context context) {
+        return PermissionChecker.isGranted(context, Manifest.permission.READ_EXTERNAL_STORAGE);
     }
 
-    /**
-     *
-     */
+    public static boolean isRecordAudioGranted(@NonNull final Context context) {
+        return PermissionChecker.isGranted(context, Manifest.permission.RECORD_AUDIO);
+    }
+
     public static void requestLocationPermission(final Activity activity, final View layout, final int requestCode) {
         requestPermission(
                 activity, layout,
                 Manifest.permission.ACCESS_FINE_LOCATION, activity.getString(R.string.location_access_proposed),
+                requestCode
+        );
+    }
+
+    public static void requestExternalStoragePermission(final Activity activity, final View layout, final int requestCode) {
+        requestPermission(
+                activity, layout,
+                Manifest.permission.READ_EXTERNAL_STORAGE, activity.getString(R.string.storage_permission_proposed),
+                requestCode
+        );
+    }
+
+    public static void requestRecordAudioPermission(final Activity activity, final View layout, final int requestCode) {
+        requestPermission(
+                activity, layout,
+                Manifest.permission.RECORD_AUDIO, activity.getString(R.string.record_audio_permission_proposed),
                 requestCode
         );
     }
@@ -101,5 +101,23 @@ public final class PermissionChecker {
                     new String[]{permissionName}, requestCode
             );
         }
+    }
+
+    /**
+     * Checks whether provided permission is granted or not.
+     *
+     * @param context    Application's context.
+     * @param permission Permission name to check.
+     * @return <b>TRUE</b> in case of provided permission is granted,
+     * <b>FALSE</b> otherwise.
+     */
+    private static boolean isGranted(final Context context, final String permission) {
+        if (!AppUtils.hasVersionM()) {
+            return true;
+        }
+        return context != null
+                && !TextUtils.isEmpty(permission)
+                && ActivityCompat.checkSelfPermission(context, permission)
+                == PackageManager.PERMISSION_GRANTED;
     }
 }

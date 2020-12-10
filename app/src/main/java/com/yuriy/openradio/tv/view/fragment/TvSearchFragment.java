@@ -16,13 +16,13 @@
 
 package com.yuriy.openradio.tv.view.fragment;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.View;
 
 import androidx.leanback.app.SearchSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
@@ -32,7 +32,6 @@ import androidx.leanback.widget.ObjectAdapter;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.permission.PermissionChecker;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.tv.view.activity.TvSearchActivity;
 
 /*
@@ -54,16 +53,30 @@ public class TvSearchFragment extends SearchSupportFragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final Context context = getContext();
-
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
-
         setSearchResultProvider(this);
+    }
 
-        if (!PermissionChecker.isGranted(context, Manifest.permission.RECORD_AUDIO)) {
-            SafeToast.showAnyThread(
-                    context, context.getString(R.string.record_audio_permission_not_granted)
-            );
+    @Override
+    public void onResume() {
+        super.onResume();
+        final Context context = getContext();
+        if (context == null) {
+            AppLogger.e("Can't do resume pause on null context");
+            return;
+        }
+        final View view = getView();
+        if (view == null) {
+            AppLogger.e("Can't do resume pause on null view");
+            return;
+        }
+        final View frame = view.findViewById(R.id.lb_search_frame);
+        if (frame == null) {
+            AppLogger.e("Can't do resume pause on null frame");
+            return;
+        }
+        if (!PermissionChecker.isRecordAudioGranted(context)) {
+            PermissionChecker.requestRecordAudioPermission(getActivity(), frame, 1234);
         }
     }
 

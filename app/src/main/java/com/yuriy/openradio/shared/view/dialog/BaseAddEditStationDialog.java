@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.view.dialog;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -197,27 +196,23 @@ public abstract class BaseAddEditStationDialog extends BaseDialogFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+
+        final Activity context = getActivity();
+        if (!PermissionChecker.isExternalStorageGranted(context)) {
+            PermissionChecker.requestExternalStoragePermission(
+                    context, getView().findViewById(R.id.dialog_add_edit_root_layout), 1234
+            );
+        }
+    }
+
+    @Override
     public void onDestroyView() {
         super.onDestroyView();
 
         mProgressView.setVisibility(View.INVISIBLE);
         mRsAddValidatedReceiver.unregister(getContext());
-    }
-
-    @Override
-    public void onActivityCreated(final Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        final Context context = getActivity();
-        if (!PermissionChecker.isGranted(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-        ) {
-            SafeToast.showAnyThread(
-                    context,
-                    context.getString(R.string.storage_permission_not_granted)
-            );
-        }
     }
 
     @Override

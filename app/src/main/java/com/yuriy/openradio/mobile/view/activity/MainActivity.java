@@ -179,7 +179,7 @@ public final class MainActivity extends AppCompatActivity {
                 LocationService.doEnqueueWork(getApplicationContext());
             } else {
                 PermissionChecker.requestLocationPermission(
-                        this, findViewById(R.id.drawer_layout), 1234
+                        this, findViewById(R.id.main_layout), 1234
                 );
             }
         } else {
