@@ -28,6 +28,7 @@ import com.yuriy.openradio.shared.utils.AppLogger;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,12 +39,12 @@ import java.util.concurrent.TimeUnit;
  */
 abstract class GoogleDriveQueryDrive extends GoogleDriveAPIChain {
 
-    GoogleDriveQueryDrive() {
-        this(false);
+    GoogleDriveQueryDrive(final ExecutorService executorService) {
+        this(false, executorService);
     }
 
-    GoogleDriveQueryDrive(final boolean isTerminator) {
-        super(isTerminator);
+    GoogleDriveQueryDrive(final boolean isTerminator, final ExecutorService executorService) {
+        super(isTerminator, executorService);
     }
 
     protected abstract Task<FileList> getQueryTask(final GoogleDriveRequest request);

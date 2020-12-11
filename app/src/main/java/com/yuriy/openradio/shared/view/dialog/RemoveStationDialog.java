@@ -25,8 +25,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.R;
-import com.yuriy.openradio.shared.view.BaseDialogFragment;
 import com.yuriy.openradio.mobile.view.activity.MainActivity;
+import com.yuriy.openradio.shared.view.BaseDialogFragment;
 
 /**
  * Created by Yuriy Chernyshov

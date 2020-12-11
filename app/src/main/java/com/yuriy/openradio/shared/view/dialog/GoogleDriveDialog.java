@@ -21,6 +21,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,17 +30,13 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.Scope;
-import com.google.api.services.drive.DriveScopes;
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveError;
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager;
-import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManagerListenerImpl;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.view.BaseDialogFragment;
@@ -83,37 +80,16 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         super.onCreate(savedInstanceState);
 
         final Context context = getContext();
-        final FragmentActivity activity = getActivity();
+        final GoogleDriveManager.Listener listener = new GoogleDriveManagerListenerImpl();
+        mGoogleDriveManager = new GoogleDriveManager(context, listener);
+    }
 
-        mGoogleDriveManager = new GoogleDriveManager(
-                context,
-                new GoogleDriveManagerListenerImpl(
-                        context,
-                        new GoogleDriveManagerListenerImpl.Listener() {
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
 
-                            @Override
-                            public FragmentManager getSupportFragmentManager() {
-                                return activity.getSupportFragmentManager();
-                            }
-
-                            @Override
-                            public void onAccountRequested() {
-                                final GoogleSignInClient client = buildGoogleSignInClient();
-                                if (!AppUtils.startActivityForResultSafe(
-                                        activity,
-                                        client.getSignInIntent(),
-                                        ACCOUNT_REQUEST_CODE)) {
-                                    GoogleDriveDialog.this.mGoogleDriveManager.connect(null);
-                                }
-                            }
-
-                            @Override
-                            public void onComplete() {
-                                //GoogleDriveDialog.this.updateListAfterDownloadFromGoogleDrive();
-                            }
-                        }
-                )
-        );
+        mGoogleDriveManager.disconnect();
+        mGoogleDriveManager = null;
     }
 
     @Override
@@ -155,21 +131,27 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         super.onActivityResult(requestCode, resultCode, data);
 
         AppLogger.d(CLASS_NAME + " OnActivityResult: request:" + requestCode + " result:" + resultCode);
-        if (requestCode == ACCOUNT_REQUEST_CODE) {
-            GoogleSignIn.getSignedInAccountFromIntent(data)
-                    .addOnSuccessListener(googleAccount -> {
-                                AppLogger.d("Signed in as " + googleAccount.getEmail());
-                                mGoogleDriveManager.connect(googleAccount.getAccount());
-                            }
-                    )
-                    .addOnFailureListener(exception -> {
-                        AppLogger.e("Can't do sign in:" + Log.getStackTraceString(exception));
-                        SafeToast.showAnyThread(
-                                        getContext(), getString(R.string.can_not_get_account_name)
-                                );
-                            }
-                    );
+        if (requestCode != ACCOUNT_REQUEST_CODE) {
+            return;
         }
+        GoogleSignIn
+                .getSignedInAccountFromIntent(data)
+                .addOnSuccessListener(googleAccount -> {
+                            if (mGoogleDriveManager == null) {
+                                showErrorToast(getString(R.string.google_drive_error_msg_2));
+                                return;
+                            }
+                            AppLogger.d("Signed in as " + googleAccount.getEmail());
+                            mGoogleDriveManager.connect(googleAccount.getAccount());
+                        }
+                )
+                .addOnFailureListener(exception -> {
+                            AppLogger.e("Can't do sign in:" + Log.getStackTraceString(exception));
+                            SafeToast.showAnyThread(
+                                    getContext(), getString(R.string.can_not_get_account_name)
+                            );
+                        }
+                );
     }
 
     @Nullable
@@ -184,21 +166,23 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         return null;
     }
 
-    /**
-     *
-     */
     private void uploadRadioStationsToGoogleDrive() {
+        if (mGoogleDriveManager == null) {
+            showErrorToast(getString(R.string.google_drive_error_msg_3));
+            return;
+        }
         mGoogleDriveManager.uploadRadioStations();
     }
 
-    /**
-     *
-     */
     private void downloadRadioStationsFromGoogleDrive() {
+        if (mGoogleDriveManager == null) {
+            showErrorToast(getString(R.string.google_drive_error_msg_4));
+            return;
+        }
         mGoogleDriveManager.downloadRadioStations();
     }
 
-    public void showProgress(final GoogleDriveManager.Command command) {
+    private void showProgress(final GoogleDriveManager.Command command) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
@@ -217,7 +201,7 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         }
     }
 
-    public void hideProgress(final GoogleDriveManager.Command command) {
+    private void hideProgress(final GoogleDriveManager.Command command) {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
@@ -236,7 +220,7 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         }
     }
 
-    public void showTitleProgress() {
+    private void showTitleProgress() {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
@@ -244,7 +228,7 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         activity.runOnUiThread(() -> mProgressBarTitle.setVisibility(View.VISIBLE));
     }
 
-    public void hideTitleProgress() {
+    private void hideTitleProgress() {
         final Activity activity = getActivity();
         if (activity == null) {
             return;
@@ -252,12 +236,74 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         activity.runOnUiThread(() -> mProgressBarTitle.setVisibility(View.GONE));
     }
 
-    private GoogleSignInClient buildGoogleSignInClient() {
-        final GoogleSignInOptions options =
-                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestEmail()
-                        .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
-                        .build();
-        return GoogleSignIn.getClient(getContext(), options);
+    private void showErrorToast(@NonNull final String message) {
+        SafeToast.showAnyThread(getContext(), message);
+    }
+
+    private final class GoogleDriveManagerListenerImpl implements GoogleDriveManager.Listener {
+
+        private GoogleDriveManagerListenerImpl() {
+            super();
+        }
+
+        @Override
+        public void onAccountRequested(final GoogleSignInClient client) {
+            if (mGoogleDriveManager == null) {
+                showErrorToast(getString(R.string.google_drive_error_msg_1));
+                return;
+            }
+            if (!AppUtils.startActivityForResultSafe(
+                    GoogleDriveDialog.this.getActivity(),
+                    client.getSignInIntent(),
+                    ACCOUNT_REQUEST_CODE)) {
+                GoogleDriveDialog.this.mGoogleDriveManager.connect(null);
+            }
+        }
+
+        @Override
+        public void onStart(final GoogleDriveManager.Command command) {
+            GoogleDriveDialog.this.showProgress(command);
+        }
+
+        @Override
+        public void onSuccess(final GoogleDriveManager.Command command) {
+            final Context context = GoogleDriveDialog.this.getContext();
+            if (context == null) {
+                AppLogger.e("Can not handle Google Drive success command, context is null");
+                return;
+            }
+            String message = null;
+            switch (command) {
+                case UPLOAD:
+                    message = context.getString(R.string.google_drive_data_saved);
+                    break;
+                case DOWNLOAD:
+                    message = context.getString(R.string.google_drive_data_read);
+                    break;
+            }
+            if (!TextUtils.isEmpty(message)) {
+                SafeToast.showAnyThread(context, message);
+            }
+
+            GoogleDriveDialog.this.hideProgress(command);
+        }
+
+        @Override
+        public void onError(final GoogleDriveManager.Command command, final GoogleDriveError error) {
+            String message = null;
+            switch (command) {
+                case UPLOAD:
+                    message = GoogleDriveDialog.this.getString(R.string.google_drive_error_when_save);
+                    break;
+                case DOWNLOAD:
+                    message = GoogleDriveDialog.this.getString(R.string.google_drive_error_when_read);
+                    break;
+            }
+            if (!TextUtils.isEmpty(message)) {
+                SafeToast.showAnyThread(GoogleDriveDialog.this.getContext(), message);
+            }
+
+            GoogleDriveDialog.this.hideProgress(command);
+        }
     }
 }

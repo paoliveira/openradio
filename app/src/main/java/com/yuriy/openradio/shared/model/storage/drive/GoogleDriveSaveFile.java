@@ -20,6 +20,8 @@ import android.util.Base64;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -28,12 +30,12 @@ import com.yuriy.openradio.shared.utils.AppLogger;
  */
 final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
 
-    GoogleDriveSaveFile() {
-        this(false);
+    GoogleDriveSaveFile(final ExecutorService executorService) {
+        this(false, executorService);
     }
 
-    GoogleDriveSaveFile(final boolean isTerminator) {
-        super(isTerminator);
+    GoogleDriveSaveFile(final boolean isTerminator, final ExecutorService executorService) {
+        super(isTerminator, executorService);
     }
 
     @Override
@@ -42,7 +44,7 @@ final class GoogleDriveSaveFile extends GoogleDriveAPIChain {
 
         // Create new file and save data to it.
         final String data = Base64.encodeToString(request.getData().getBytes(), Base64.DEFAULT);
-        request.getGoogleApiClient().createFile(result.getFolderId(), request.getFileName(), data)
+        request.getGoogleApiClient().createFile(mExecutorService, result.getFolderId(), request.getFileName(), data)
                 .addOnSuccessListener(
                         fileId -> {
                             AppLogger.d("File '" + fileId + "' created");

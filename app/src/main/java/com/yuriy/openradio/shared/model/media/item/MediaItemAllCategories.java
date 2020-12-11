@@ -25,7 +25,6 @@ import androidx.annotation.NonNull;
 import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.Category;
@@ -57,7 +56,12 @@ public final class MediaItemAllCategories implements MediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.getResult().detach();
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (dependencies.getExecutorService().isShutdown()) {
+            AppLogger.e("Can not handle MediaItemAllCategories, executor is shut down");
+            dependencies.getResult().sendError(new Bundle());
+            return;
+        }
+        dependencies.getExecutorService().submit(
                 () -> {
                     // Load all categories into menu
                     loadAllCategories(playbackStateListener, dependencies);

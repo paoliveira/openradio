@@ -87,7 +87,7 @@ import com.yuriy.openradio.shared.notification.MediaNotification;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.ConcurrentUtils;
+import com.yuriy.openradio.shared.utils.ConcurrentFactory;
 import com.yuriy.openradio.shared.utils.FileUtils;
 import com.yuriy.openradio.shared.utils.IntentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
@@ -107,6 +107,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
 import wseemann.media.jplaylistparser.parser.AutoDetectParser;
@@ -252,6 +253,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
     @NonNull
     private final Downloader mDownloader;
     private final ConcurrentLinkedQueue<Integer> mStartIds;
+    private ExecutorService mExecutorService;
 
     /**
      * Default constructor.
@@ -322,6 +324,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
         AppLogger.i(CLASS_NAME + "On Create");
         final Context context = getApplicationContext();
+        mExecutorService = ConcurrentFactory.makeApiCallExecutor();
 
         final UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
         if (uiModeManager.getCurrentModeType() == Configuration.UI_MODE_TYPE_TELEVISION) {
@@ -494,7 +497,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
         final MediaItemCommand command = mMediaItemCommands.get(MediaIdHelper.getId(mCurrentParentId));
         final MediaItemCommandDependencies dependencies = new MediaItemCommandDependencies(
-                context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
+                context, mExecutorService, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
                 countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
                 this::onResult
         );
@@ -545,7 +548,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         handleStopRequest(
                 new PlaybackStateError("Can not get play url.", PlaybackStateError.Code.UNRECOGNIZED_URL)
         );
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (mExecutorService == null || mExecutorService.isShutdown()) {
+            AppLogger.e("Can not handle unrecognized input format exception, executor is shut down");
+            return;
+        }
+        mExecutorService.submit(
                 () -> {
                     final String[] urls = extractUrlsFromPlaylist(OpenRadioService.this.mLastPlayedUrl);
                     mMainHandler.post(
@@ -850,6 +857,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
             mSession = null;
             mMediaSessionCb = null;
         }
+        mExecutorService.shutdown();
     }
 
     /**
@@ -934,7 +942,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
             return;
         }
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (mExecutorService == null || mExecutorService.isShutdown()) {
+            AppLogger.e("Can not handle get current playing RS async, executor is shut down");
+            return;
+        }
+        mExecutorService.submit(
                 () -> {
                     if (mApiServiceProvider == null) {
                         listener.onComplete(null);
@@ -1703,7 +1715,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
             return;
         }
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (mExecutorService == null || mExecutorService.isShutdown()) {
+            AppLogger.e("Can not handle perform search, executor is shut down");
+            return;
+        }
+        mExecutorService.submit(
                 () -> {
                     try {
                         executePerformSearch(query);

@@ -42,6 +42,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.mobile.view.activity.MainActivity;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.OpenRadioService;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
@@ -50,7 +51,6 @@ import com.yuriy.openradio.shared.utils.AppUtils;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.LruCacheObject;
 import com.yuriy.openradio.shared.vo.RadioStation;
-import com.yuriy.openradio.mobile.view.activity.MainActivity;
 import com.yuriy.openradio.tv.view.activity.TvMainActivity;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -281,10 +281,7 @@ public final class MediaNotification extends BroadcastReceiver {
         }
 
         private boolean doHandleState(final int curState, final int newState) {
-            if (newState == curState) {
-                return false;
-            }
-            return true;
+            return newState != curState;
         }
     }
 

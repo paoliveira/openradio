@@ -18,6 +18,8 @@ package com.yuriy.openradio.shared.model.storage.drive;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -26,12 +28,12 @@ import com.yuriy.openradio.shared.utils.AppLogger;
  */
 final class GoogleDriveDeleteFile extends GoogleDriveAPIChain {
 
-    GoogleDriveDeleteFile() {
-        this(false);
+    GoogleDriveDeleteFile(final ExecutorService executorService) {
+        this(false, executorService);
     }
 
-    GoogleDriveDeleteFile(final boolean isTerminator) {
-        super(isTerminator);
+    GoogleDriveDeleteFile(final boolean isTerminator, final ExecutorService executorService) {
+        super(isTerminator, executorService);
     }
 
     @Override
@@ -39,7 +41,7 @@ final class GoogleDriveDeleteFile extends GoogleDriveAPIChain {
         final String name = request.getFileName();
         if (result.getFileId() != null) {
             AppLogger.d("Delete file '" + name + "'");
-            request.getGoogleApiClient().deleteFile(result.getFileId())
+            request.getGoogleApiClient().deleteFile(mExecutorService, result.getFileId())
                     .addOnSuccessListener(
                             aVoid -> {
                                 AppLogger.d("File '" + name + "' deleted, path execution farther");

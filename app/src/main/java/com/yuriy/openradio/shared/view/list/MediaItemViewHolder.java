@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.xenione.libs.swipemaker.SwipeLayout;
-import com.yuriy.openradio.mobile.view.list.BothSideCoordinatorLayout;
 
 public final class MediaItemViewHolder extends RecyclerView.ViewHolder {
 

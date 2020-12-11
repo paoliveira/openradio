@@ -16,11 +16,12 @@
 
 package com.yuriy.openradio.shared.model.media.item;
 
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
@@ -57,7 +58,12 @@ public final class MediaItemChildCategories extends IndexableMediaItemCommand {
             return;
         }
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (dependencies.getExecutorService().isShutdown()) {
+            AppLogger.e("Can not handle MediaItemChildCategories, executor is shut down");
+            dependencies.getResult().sendError(new Bundle());
+            return;
+        }
+        dependencies.getExecutorService().submit(
                 () -> {
                     final String childMenuId = dependencies.getParentId()
                             .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, "");

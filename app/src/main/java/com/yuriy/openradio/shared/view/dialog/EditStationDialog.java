@@ -28,12 +28,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.mobile.view.activity.MainActivity;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.view.SafeToast;
 import com.yuriy.openradio.shared.vo.RadioStation;
 import com.yuriy.openradio.shared.vo.RadioStationToAdd;
-import com.yuriy.openradio.mobile.view.activity.MainActivity;
 
 /**
  * Created by Yuriy Chernyshov

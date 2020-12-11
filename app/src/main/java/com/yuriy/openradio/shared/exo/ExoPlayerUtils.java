@@ -36,11 +36,11 @@ import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppUtils;
+import com.yuriy.openradio.shared.utils.ConcurrentFactory;
 
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 
 import java.io.File;
-import java.util.concurrent.Executors;
 
 public final class ExoPlayerUtils {
 
@@ -85,7 +85,7 @@ public final class ExoPlayerUtils {
             final CronetEngineWrapper cronetEngineWrapper = new CronetEngineWrapper(context);
             AnalyticsUtils.logMessage("ExoPlayer UserAgent '" + userAgent+ "'");
             sHttpDataSourceFactory =
-                    new CronetDataSourceFactory(cronetEngineWrapper, Executors.newSingleThreadExecutor(), userAgent);
+                    new CronetDataSourceFactory(cronetEngineWrapper, ConcurrentFactory.makeCronetExecutor(), userAgent);
         }
         return sHttpDataSourceFactory;
     }

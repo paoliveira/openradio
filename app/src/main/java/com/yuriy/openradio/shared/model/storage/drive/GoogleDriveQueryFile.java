@@ -20,6 +20,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -28,17 +30,17 @@ import com.google.api.services.drive.model.FileList;
  */
 final class GoogleDriveQueryFile extends GoogleDriveQueryDrive {
 
-    GoogleDriveQueryFile() {
-        this(false);
+    GoogleDriveQueryFile(final ExecutorService executorService) {
+        this(false, executorService);
     }
 
-    GoogleDriveQueryFile(final boolean isTerminator) {
-        super(isTerminator);
+    GoogleDriveQueryFile(final boolean isTerminator, final ExecutorService executorService) {
+        super(isTerminator, executorService);
     }
 
     @Override
     protected Task<FileList> getQueryTask(final GoogleDriveRequest request) {
-        return request.getGoogleApiClient().queryFile(request.getFileName());
+        return request.getGoogleApiClient().queryFile(mExecutorService, request.getFileName());
     }
 
     @Override

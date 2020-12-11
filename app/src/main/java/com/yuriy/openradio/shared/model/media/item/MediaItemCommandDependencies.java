@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Yuriy Chernyshov
@@ -52,63 +53,52 @@ public final class MediaItemCommandDependencies {
      */
     @NonNull
     private final Context mContext;
-
     /**
      * String value of the Country Code.
      */
     private final String mCountryCode;
-
     /**
      *
      */
     @NonNull
     private final Downloader mDownloader;
-
     /**
      *
      */
     @NonNull
     private final ApiServiceProvider mServiceProvider;
-
     /**
      *
      */
     @NonNull
     private final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> mResult;
-
     @NonNull
     private final List<MediaBrowserCompat.MediaItem> mMediaItems;
-
     /**
      *
      */
     private final String mParentId;
-
     /**
      *
      */
     @NonNull
     private final RadioStationsStorage mRadioStationsStorage;
-
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
     private final boolean mIsAndroidAuto;
-
     private final OpenRadioService.ResultListener mResultListener;
-
     private final boolean mIsSameCatalogue;
-
     private final boolean mIsSavedInstance;
-
     private final Comparator<MediaBrowserCompat.MediaItem> mMediaItemsComparator;
-
     private final Comparator<RadioStation> mRadioStationsComparator;
+    private final ExecutorService mExecutorService;
 
     /**
      * Main constructor.
      */
     public MediaItemCommandDependencies(@NonNull final Context context,
+                                        @NonNull final ExecutorService executorService,
                                         @NonNull final Downloader downloader,
                                         @NonNull final MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result,
                                         @NonNull final RadioStationsStorage radioStationsStorage,
@@ -121,6 +111,7 @@ public final class MediaItemCommandDependencies {
                                         @NonNull final OpenRadioService.ResultListener resultListener) {
         super();
         mContext = context;
+        mExecutorService = executorService;
         mMediaItemsComparator = new MediaItemsComparator();
         mRadioStationsComparator = new RadioStationsComparator();
         mDownloader = downloader;
@@ -229,5 +220,10 @@ public final class MediaItemCommandDependencies {
 
     public boolean isSavedInstance() {
         return mIsSavedInstance;
+    }
+
+    @NonNull
+    public ExecutorService getExecutorService() {
+        return mExecutorService;
     }
 }

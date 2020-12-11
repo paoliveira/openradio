@@ -18,7 +18,8 @@ package com.yuriy.openradio.shared.model.storage.drive;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 import com.yuriy.openradio.shared.utils.AppUtils;
-import com.yuriy.openradio.shared.utils.ConcurrentUtils;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Chernyshov Yurii
@@ -29,12 +30,13 @@ import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 abstract class GoogleDriveAPIChain {
 
     private GoogleDriveAPIChain mNext;
-
     private final boolean mIsTerminator;
+    final ExecutorService mExecutorService;
 
-    GoogleDriveAPIChain(final boolean isTerminator) {
+    GoogleDriveAPIChain(final boolean isTerminator, final ExecutorService executorService) {
         super();
         mIsTerminator = isTerminator;
+        mExecutorService = executorService;
     }
 
     abstract protected void handleRequest(final GoogleDriveRequest request, final GoogleDriveResult result);
@@ -48,8 +50,13 @@ abstract class GoogleDriveAPIChain {
             AppLogger.d("No more requests to handle");
             return;
         }
+        // Callbacks from Google framework comes in UI thread.
         if (AppUtils.isUiThread()) {
-            ConcurrentUtils.API_CALL_EXECUTOR.submit(
+            if (mExecutorService.isShutdown()) {
+                AppLogger.e("Executor is terminated, can't handle requests");
+                return;
+            }
+            mExecutorService.submit(
                     () -> mNext.handleRequest(request, result)
             );
         } else {

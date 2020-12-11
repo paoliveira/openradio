@@ -150,4 +150,8 @@
     <string name="clear_completed">Cache is cleared</string>
     <string name="media_description_default">Live stream</string>
     <string name="location_access_proposed">Location access is optional to display radio stations of a country.</string>
+    <string name="google_drive_error_msg_1">Can not request account, dialog is closed.</string>
+    <string name="google_drive_error_msg_2">Can not sign in account, dialog is closed.</string>
+    <string name="google_drive_error_msg_3">Can not upload to Google Drive.</string>
+    <string name="google_drive_error_msg_4">Can not download from Google Drive.</string>
 </resources>

@@ -26,7 +26,6 @@ import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.net.UrlBuilder;
 import com.yuriy.openradio.shared.service.LocationService;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.ConcurrentUtils;
 import com.yuriy.openradio.shared.utils.MediaIdHelper;
 import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.Country;
@@ -59,7 +58,12 @@ public final class MediaItemCountriesList implements MediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.getResult().detach();
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (dependencies.getExecutorService().isShutdown()) {
+            AppLogger.e("Can not handle MediaItemCountriesList, executor is shut down");
+            dependencies.getResult().sendError(new Bundle());
+            return;
+        }
+        dependencies.getExecutorService().submit(
                 () -> {
                     // Load all countries into menu
                     loadAllCountries(playbackStateListener, dependencies);

@@ -23,6 +23,8 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 import com.google.api.client.extensions.android.http.AndroidHttp;
@@ -30,12 +32,13 @@ import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccoun
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import com.yuriy.openradio.R;
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage;
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage;
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage;
 import com.yuriy.openradio.shared.utils.AnalyticsUtils;
 import com.yuriy.openradio.shared.utils.AppLogger;
-import com.yuriy.openradio.shared.utils.ConcurrentUtils;
+import com.yuriy.openradio.shared.utils.ConcurrentFactory;
 import com.yuriy.openradio.shared.vo.RadioStation;
 
 import org.json.JSONException;
@@ -46,6 +49,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Chernyshov Yurii
@@ -63,7 +67,7 @@ public final class GoogleDriveManager {
         /**
          * Google Drive requested information about account to use.
          */
-        void onAccountRequested();
+        void onAccountRequested(final GoogleSignInClient client);
 
         /**
          * Google Drive client start to perform command, such as {@link Command#UPLOAD} or {@link Command#DOWNLOAD}.
@@ -91,26 +95,20 @@ public final class GoogleDriveManager {
     }
 
     private static final String RADIO_STATION_CATEGORY_FAVORITES = "favorites";
-
     private static final String RADIO_STATION_CATEGORY_LOCALS = "locals";
-
     private static final String FOLDER_NAME = "OPEN_RADIO";
-
     private static final String FILE_NAME_RADIO_STATIONS = "RadioStations.txt";
-
     /**
      * Google Drive API helper.
      */
     private GoogleDriveHelper mGoogleDriveApiHelper;
-
     /**
      *
      */
     private final Queue<Command> mCommands;
-
     private final Listener mListener;
-
     private final Context mContext;
+    private final ExecutorService mExecutorService;
 
     /**
      * Command to perform.
@@ -132,6 +130,7 @@ public final class GoogleDriveManager {
         mContext = context;
         mCommands = new ConcurrentLinkedQueue<>();
         mListener = listener;
+        mExecutorService = ConcurrentFactory.makeGoogleDriveExecutor();
     }
 
     public void connect(final Account account) {
@@ -140,6 +139,11 @@ public final class GoogleDriveManager {
         }
         mGoogleDriveApiHelper = getGoogleApiClient(account);
         handleNextCommand();
+    }
+
+    public void disconnect() {
+        mCommands.clear();
+        mExecutorService.shutdown();
     }
 
     /**
@@ -169,11 +173,21 @@ public final class GoogleDriveManager {
             if (account != null && GoogleSignIn.hasPermissions(account, new Scope(Scopes.DRIVE_FILE))) {
                 connect(account.getAccount());
             } else {
-                mListener.onAccountRequested();
+                final GoogleSignInClient client = buildGoogleSignInClient();
+                mListener.onAccountRequested(client);
             }
         } else {
             handleNextCommand();
         }
+    }
+
+    private GoogleSignInClient buildGoogleSignInClient() {
+        final GoogleSignInOptions options =
+                new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestEmail()
+                        .requestScopes(new Scope(DriveScopes.DRIVE_FILE))
+                        .build();
+        return GoogleSignIn.getClient(mContext, options);
     }
 
     /**
@@ -185,7 +199,11 @@ public final class GoogleDriveManager {
         final String data = mergeRadioStationCategories(favorites, locals);
         final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.UPLOAD);
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (mExecutorService.isShutdown()) {
+            AppLogger.e("Executor is terminated, can't handle upload radio stations requests");
+            return;
+        }
+        mExecutorService.submit(
                 () -> uploadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, data, listener)
         );
     }
@@ -196,7 +214,11 @@ public final class GoogleDriveManager {
     private void downloadRadioStationsAndApply() {
         final GoogleDriveRequest.Listener listener = new GoogleDriveRequestListenerImpl(this, Command.DOWNLOAD);
 
-        ConcurrentUtils.API_CALL_EXECUTOR.submit(
+        if (mExecutorService.isShutdown()) {
+            AppLogger.e("Executor is terminated, can't handle download radio stations requests");
+            return;
+        }
+        mExecutorService.submit(
                 () -> downloadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, listener)
         );
     }
@@ -216,11 +238,11 @@ public final class GoogleDriveManager {
         );
         final GoogleDriveResult result = new GoogleDriveResult();
 
-        final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
-        final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder();
-        final GoogleDriveAPIChain queryFile = new GoogleDriveQueryFile();
-        final GoogleDriveAPIChain deleteFile = new GoogleDriveDeleteFile();
-        final GoogleDriveAPIChain saveFile = new GoogleDriveSaveFile(true);
+        final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder(mExecutorService);
+        final GoogleDriveAPIChain createFolder = new GoogleDriveCreateFolder(mExecutorService);
+        final GoogleDriveAPIChain queryFile = new GoogleDriveQueryFile(mExecutorService);
+        final GoogleDriveAPIChain deleteFile = new GoogleDriveDeleteFile(mExecutorService);
+        final GoogleDriveAPIChain saveFile = new GoogleDriveSaveFile(true, mExecutorService);
 
         queryFolder.setNext(createFolder);
         createFolder.setNext(queryFile);
@@ -245,9 +267,9 @@ public final class GoogleDriveManager {
 
         final GoogleDriveResult result = new GoogleDriveResult();
 
-        final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder();
-        final GoogleDriveAPIChain queryFile = new GoogleDriveQueryFile();
-        final GoogleDriveAPIChain readFile = new GoogleDriveReadFile(true);
+        final GoogleDriveAPIChain queryFolder = new GoogleDriveQueryFolder(mExecutorService);
+        final GoogleDriveAPIChain queryFile = new GoogleDriveQueryFile(mExecutorService);
+        final GoogleDriveAPIChain readFile = new GoogleDriveReadFile(true, mExecutorService);
 
         queryFolder.setNext(queryFile);
         queryFile.setNext(readFile);
@@ -282,14 +304,14 @@ public final class GoogleDriveManager {
      * @return Instance of the {@link GoogleDriveHelper}.
      */
     private GoogleDriveHelper getGoogleApiClient(@NonNull final Account account) {
-// Use the authenticated account to sign in to the Drive service.
+        // Use the authenticated account to sign in to the Drive service.
         final GoogleAccountCredential credential =
                 GoogleAccountCredential.usingOAuth2(
                         mContext, Collections.singleton(DriveScopes.DRIVE_FILE)
                 );
         credential.setSelectedAccount(account);
         final Drive drive = new Drive.Builder(AndroidHttp.newCompatibleTransport(), new GsonFactory(), credential)
-                .setApplicationName("Drive API Migration")
+                .setApplicationName(mContext.getString(R.string.app_name))
                 .build();
 
         // The DriveServiceHelper encapsulates all REST API and SAF functionality.
@@ -304,7 +326,6 @@ public final class GoogleDriveManager {
         if (mCommands.isEmpty()) {
             return;
         }
-
         final Command command = removeCommand();
         switch (command) {
             case UPLOAD:

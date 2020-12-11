@@ -20,6 +20,8 @@ import androidx.annotation.NonNull;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -28,12 +30,12 @@ import com.yuriy.openradio.shared.utils.AppLogger;
  */
 final class GoogleDriveCreateFolder extends GoogleDriveAPIChain {
 
-    GoogleDriveCreateFolder() {
-        this(false);
+    GoogleDriveCreateFolder(final ExecutorService executorService) {
+        this(false, executorService);
     }
 
-    GoogleDriveCreateFolder(final boolean isTerminator) {
-        super(isTerminator);
+    GoogleDriveCreateFolder(final boolean isTerminator, final ExecutorService executorService) {
+        super(isTerminator, executorService);
     }
 
     @Override
@@ -44,7 +46,7 @@ final class GoogleDriveCreateFolder extends GoogleDriveAPIChain {
             AppLogger.d("Folder " + name + " exists, path execution farther");
             handleNext(request, result);
         } else {
-            request.getGoogleApiClient().createFolder(request.getFolderName())
+            request.getGoogleApiClient().createFolder(mExecutorService, request.getFolderName())
                     .addOnSuccessListener(
                             folderId -> {
                                 AppLogger.d("Folder " + name + " created, pass execution farther");

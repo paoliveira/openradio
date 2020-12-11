@@ -20,6 +20,8 @@ import android.util.Base64;
 
 import com.yuriy.openradio.shared.utils.AppLogger;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
@@ -28,12 +30,12 @@ import com.yuriy.openradio.shared.utils.AppLogger;
  */
 final class GoogleDriveReadFile extends GoogleDriveAPIChain {
 
-    GoogleDriveReadFile() {
-        this(false);
+    GoogleDriveReadFile(final ExecutorService executorService) {
+        this(false, executorService);
     }
 
-    GoogleDriveReadFile(final boolean isTerminator) {
-        super(isTerminator);
+    GoogleDriveReadFile(final boolean isTerminator, final ExecutorService executorService) {
+        super(isTerminator, executorService);
     }
 
     @Override
@@ -48,7 +50,7 @@ final class GoogleDriveReadFile extends GoogleDriveAPIChain {
             return;
         }
 
-        request.getGoogleApiClient().readFile(fileId)
+        request.getGoogleApiClient().readFile(mExecutorService, fileId)
                 .addOnSuccessListener(
                         pair -> request.getListener().onDownloadComplete(
                                 new String(Base64.decode(pair.second, Base64.DEFAULT)),
