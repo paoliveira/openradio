@@ -137,32 +137,29 @@ public final class MediaItemRoot implements MediaItemCommand {
             );
         }
 
-        // Do not show list of Worldwide Stations for the Auto version
-        if (!dependencies.isAndroidAuto()) {
-            // Worldwide Stations
-            final Bundle bundle = new Bundle();
-            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_all_categories);
-            dependencies.addMediaItem(
-                    new MediaBrowserCompat.MediaItem(
-                            new MediaDescriptionCompat.Builder()
-                                    .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
-                                    .setTitle(context.getString(R.string.all_categories_title))
-                                    .setExtras(bundle)
-                                    .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
-            );
-        }
-
-        // All countries list
+        // Worldwide Stations
         final MediaDescriptionCompat.Builder builder = new MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
-                .setTitle(context.getString(R.string.countries_list_title));
+                .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
+                .setTitle(context.getString(R.string.all_categories_title));
         final Bundle bundle = new Bundle();
-        MediaItemHelper.setDrawableId(bundle, R.drawable.ic_public_black_24dp);
+        MediaItemHelper.setDrawableId(bundle, R.drawable.ic_all_categories);
         builder.setExtras(bundle);
         dependencies.addMediaItem(
                 new MediaBrowserCompat.MediaItem(
                         builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                )
+        );
+
+        // All countries list
+        final MediaDescriptionCompat.Builder builderCounties = new MediaDescriptionCompat.Builder()
+                .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
+                .setTitle(context.getString(R.string.countries_list_title));
+        final Bundle bundleCounties = new Bundle();
+        MediaItemHelper.setDrawableId(bundleCounties, R.drawable.ic_public_black_24dp);
+        builderCounties.setExtras(bundleCounties);
+        dependencies.addMediaItem(
+                new MediaBrowserCompat.MediaItem(
+                        builderCounties.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                 )
         );
 

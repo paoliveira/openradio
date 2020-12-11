@@ -44,6 +44,7 @@ import java.util.List;
 public final class MediaItemAllCategories implements MediaItemCommand {
 
     private static final String LOG_TAG = MediaItemAllCategories.class.getSimpleName();
+    private static final int MAC_COUNTER = 200;
 
     public MediaItemAllCategories() {
         super();
@@ -86,7 +87,13 @@ public final class MediaItemAllCategories implements MediaItemCommand {
             return;
         }
 
+        // Counter of max number of categories. It is matter for Android Auto since binder can not transfer a huge
+        // amount of data.
+        int counter = 0;
         for (final Category category : list) {
+            if (dependencies.isAndroidAuto() && counter++ > MAC_COUNTER) {
+                break;
+            }
             final Bundle bundle = new Bundle();
             MediaItemHelper.setDrawableId(bundle, R.drawable.ic_child_categories);
             dependencies.addMediaItem(

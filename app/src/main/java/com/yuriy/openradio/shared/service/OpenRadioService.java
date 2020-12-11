@@ -1113,9 +1113,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         if (mState == PlaybackStateCompat.STATE_PAUSED) {
             // If we're paused, just continue playback and restore the
             // 'foreground service' state.
-            if (!mExoPlayerORImpl.isPlaying()) {
-                AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer startMediaPlayer");
+            if (mExoPlayerORImpl != null && !mExoPlayerORImpl.isPlaying()) {
                 mExoPlayerORImpl.play();
+            } else {
+                AppLogger.e(CLASS_NAME + "Handle play onUI thread with null/invalid player");
             }
             AppLogger.d(CLASS_NAME + "ConfigAndStartMediaPlayer set state playing");
             setPlaybackState(PlaybackStateCompat.STATE_PLAYING);

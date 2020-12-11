@@ -45,7 +45,7 @@ public final class UrlBuilder {
     /**
      * Number of Radio Stations in each page.
      */
-    public static final int ITEMS_PER_PAGE = 30;
+    public static final int ITEMS_PER_PAGE = 200;
 
     static final String BASE_URL_PREFIX = "https://do-look-up-dns-first";
 
@@ -57,7 +57,7 @@ public final class UrlBuilder {
             "https://nl1.api.radio-browser.info"
     };
 
-    private static final int RECENT_POPULAR_PER_PAGE = 50;
+    private static final int RECENT_POPULAR_PER_PAGE = 200;
 
     /**
      * Base URL for the API requests.
@@ -88,7 +88,7 @@ public final class UrlBuilder {
      * @return {@link Uri}
      */
     public static Uri getAllCategoriesUrl() {
-        return Uri.parse(BASE_URL + "tags?reverse=true&order=stationcount");
+        return Uri.parse(BASE_URL + "tags?reverse=true&order=stationcount&hidebroken=true");
     }
 
     /**
@@ -110,7 +110,7 @@ public final class UrlBuilder {
                                             final int pageNumber,
                                             final int numberPerPage) {
         return Uri.parse(
-                BASE_URL + "stations/bytag/" + encodeValue(categoryId) + "?reverse=true&order=stationcount"
+                BASE_URL + "stations/bytag/" + encodeValue(categoryId) + "?hidebroken=true&order=clickcount"
                         + "&offset=" + pageNumber
                         + "&limit=" + numberPerPage
         );
