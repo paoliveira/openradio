@@ -35,6 +35,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yuriy.openradio.R;
+import com.yuriy.openradio.shared.broadcast.AbstractReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast;
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiver;
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback;
@@ -107,7 +108,7 @@ public final class MediaPresenter {
     /**
      * Receiver for the Screen OF/ON events.
      */
-    private final ScreenReceiver mScreenBroadcastRcvr;
+    private final AbstractReceiver mScreenBroadcastRcvr;
     private View mCurrentRadioStationView;
 
     @Inject

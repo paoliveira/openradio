@@ -64,7 +64,7 @@ public final class BTConnectionReceiver extends AbstractReceiver {
      *
      */
     public BTConnectionReceiver(final Listener listener) {
-        super(new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED));
+        super();
         mListener = listener;
         mProfileListener = new BluetoothProfileServiceListenerImpl();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -98,6 +98,11 @@ public final class BTConnectionReceiver extends AbstractReceiver {
             mProfileListener.clear();
         }
         super.unregister(context);
+    }
+
+    @Override
+    public IntentFilter makeIntentFilter() {
+        return new IntentFilter(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
     }
 
     /**

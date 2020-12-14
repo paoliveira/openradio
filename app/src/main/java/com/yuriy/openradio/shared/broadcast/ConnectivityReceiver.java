@@ -64,7 +64,7 @@ public final class ConnectivityReceiver extends AbstractReceiver {
      * @param listener Listener for the connectivity events.
      */
     public ConnectivityReceiver(@NonNull final ConnectivityChangeListener listener) {
-        super(new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        super();
         mListener = listener;
     }
 
@@ -84,6 +84,11 @@ public final class ConnectivityReceiver extends AbstractReceiver {
         getQuality(networkInfo);
         AppLogger.i(CLASS_NAME + " network connected:" + networkInfo.isConnected());
         mListener.onConnectivityChange(networkInfo.isConnected());
+    }
+
+    @Override
+    public IntentFilter makeIntentFilter() {
+        return new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
     }
 
     /**

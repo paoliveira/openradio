@@ -54,7 +54,7 @@ public final class BecomingNoisyReceiver extends AbstractReceiver {
      * @param listener Listener.
      */
     public BecomingNoisyReceiver(final BecomingNoisyReceiverListener listener) {
-        super(new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+        super();
         mListener = listener;
     }
 
@@ -64,5 +64,10 @@ public final class BecomingNoisyReceiver extends AbstractReceiver {
         if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
             mListener.onAudioBecomingNoisy();
         }
+    }
+
+    @Override
+    public IntentFilter makeIntentFilter() {
+        return new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
     }
 }

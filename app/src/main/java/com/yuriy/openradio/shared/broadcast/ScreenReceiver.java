@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.broadcast;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,46 +29,34 @@ import com.yuriy.openradio.shared.utils.AppLogger;
  * On 01/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class ScreenReceiver {
-
-    private final BroadcastReceiver mReceiver;
+public final class ScreenReceiver extends AbstractReceiver {
 
     /**
      * Default constructor.
      */
     public ScreenReceiver() {
         super();
-        mReceiver = new BroadcastReceiverImpl();
     }
 
-    public final void register(final Context context) {
+    @Override
+    public IntentFilter makeIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-
-        context.registerReceiver(mReceiver, intentFilter);
+        return intentFilter;
     }
 
-    public final void unregister(final Context context) {
-        context.unregisterReceiver(mReceiver);
-    }
+    @Override
+    public void onReceive(final Context context, final Intent intent) {
+        super.onReceive(context, intent);
 
-    private static final class BroadcastReceiverImpl extends BroadcastReceiver {
-
-        public BroadcastReceiverImpl() {
-            super();
+        if (intent == null) {
+            return;
         }
-
-        @Override
-        public void onReceive(final Context context, final Intent intent) {
-            if (intent == null) {
-                return;
-            }
-            final String action = intent.getAction();
-            if (TextUtils.equals(action, Intent.ACTION_SCREEN_OFF)) {
-                AppLogger.i("Screen OFF");
-            } else if (TextUtils.equals(action, Intent.ACTION_SCREEN_ON)) {
-                AppLogger.i("Screen ON");
-            }
+        final String action = intent.getAction();
+        if (TextUtils.equals(action, Intent.ACTION_SCREEN_OFF)) {
+            AppLogger.i("Screen OFF");
+        } else if (TextUtils.equals(action, Intent.ACTION_SCREEN_ON)) {
+            AppLogger.i("Screen ON");
         }
     }
 }

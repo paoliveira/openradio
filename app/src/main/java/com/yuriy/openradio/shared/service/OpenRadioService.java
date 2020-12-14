@@ -231,7 +231,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      * The BroadcastReceiver that tracks network connectivity changes.
      */
     private final AbstractReceiver mConnectivityReceiver;
-    private final BecomingNoisyReceiver mNoisyAudioStreamReceiver;
+    private final AbstractReceiver mNoisyAudioStreamReceiver;
     private final BTConnectionReceiver mBTConnectionReceiver;
     /**
      * Track last selected Radio Station. This filed used when AA uses buffering/duration and the "Last Played"

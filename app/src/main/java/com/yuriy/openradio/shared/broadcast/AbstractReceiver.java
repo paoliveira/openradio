@@ -18,17 +18,16 @@ import androidx.annotation.NonNull;
 public abstract class AbstractReceiver extends BroadcastReceiver {
 
     private volatile boolean mIsRegistered;
-    private final IntentFilter mIntentFilter;
 
     /**
      *
-     * @param intentFilter
      */
-    public AbstractReceiver(@NonNull final IntentFilter intentFilter) {
+    public AbstractReceiver() {
         super();
         mIsRegistered = false;
-        mIntentFilter = intentFilter;
     }
+
+    public abstract IntentFilter makeIntentFilter();
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
@@ -37,7 +36,7 @@ public abstract class AbstractReceiver extends BroadcastReceiver {
 
     public void register(@NonNull final Context context) {
         if (!mIsRegistered) {
-            context.registerReceiver(this, mIntentFilter);
+            context.registerReceiver(this, makeIntentFilter());
         }
         mIsRegistered = true;
     }
