@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.vo.Country;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Yuriy Chernyshov
@@ -58,12 +59,13 @@ public final class MediaItemCountriesList implements MediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.getResult().detach();
 
-        if (dependencies.getExecutorService().isShutdown()) {
+        final ExecutorService executorService = dependencies.getExecutorService();
+        if (executorService.isShutdown()) {
             AppLogger.e("Can not handle MediaItemCountriesList, executor is shut down");
             dependencies.getResult().sendError(new Bundle());
             return;
         }
-        dependencies.getExecutorService().submit(
+        executorService.submit(
                 () -> {
                     // Load all countries into menu
                     loadAllCountries(playbackStateListener, dependencies);

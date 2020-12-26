@@ -27,6 +27,7 @@ import com.yuriy.openradio.shared.vo.RadioStation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Yuriy Chernyshov
@@ -61,12 +62,13 @@ public final class MediaItemSearchFromApp extends IndexableMediaItemCommand {
             return;
         }
 
-        if (dependencies.getExecutorService().isShutdown()) {
+        final ExecutorService executorService = dependencies.getExecutorService();
+        if (executorService.isShutdown()) {
             AppLogger.e("Can not handle MediaItemSearchFromApp, executor is shut down");
             dependencies.getResult().sendError(new Bundle());
             return;
         }
-        dependencies.getExecutorService().submit(
+        executorService.submit(
                 () -> {
                     final List<RadioStation> list = new ArrayList<>(
                             dependencies.getServiceProvider().getStations(

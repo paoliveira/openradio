@@ -143,7 +143,7 @@ public final class GoogleDriveManager {
 
     public void disconnect() {
         mCommands.clear();
-        mExecutorService.shutdown();
+        mExecutorService.shutdownNow();
     }
 
     /**

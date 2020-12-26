@@ -16,6 +16,14 @@
         android:name="android.hardware.microphone"
         android:required="false" />
 
+    <uses-feature
+        android:name="android.hardware.location.gps"
+        android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -40,19 +48,19 @@
     <application
         android:name=".MainApp"
         android:allowBackup="true"
+        android:banner="@mipmap/ic_banner"
         android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
-        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/AppTheme.NoActionBar"
-        android:usesCleartextTraffic="true"
-        android:banner="@mipmap/ic_banner"
-        android:requestLegacyExternalStorage="true">
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".mobile.view.activity.MainActivity"
             android:label="@string/app_name"
-            android:launchMode="singleInstance" >
+            android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -64,11 +72,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".tv.view.activity.TvMainActivity"
             android:label="@string/app_name"
-            android:theme="@style/open_radio_tv"
-            android:launchMode="singleInstance">
+            android:launchMode="singleInstance"
+            android:theme="@style/open_radio_tv">
             <!-- This filter identifies app as being enabled for TV, and lets Google Play identify it as a TV app. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -90,6 +99,7 @@
         <meta-data
             android:name="android.app.default_searchable"
             android:value=".MainActivity" />
+
         <meta-data
             android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/ic_notification" />
@@ -123,10 +133,11 @@
             </intent-filter>
         </service>
 
-        <service android:name=".shared.service.LocationService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
+        <service
+            android:name=".shared.service.LocationService"
             android:exported="false"
-            android:stopWithTask="true"/>
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:stopWithTask="true" />
 
     </application>
 

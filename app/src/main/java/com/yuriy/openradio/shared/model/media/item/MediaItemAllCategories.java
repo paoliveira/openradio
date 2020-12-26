@@ -30,6 +30,7 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper;
 import com.yuriy.openradio.shared.vo.Category;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
  * Created by Yuriy Chernyshov
@@ -56,12 +57,13 @@ public final class MediaItemAllCategories implements MediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.getResult().detach();
 
-        if (dependencies.getExecutorService().isShutdown()) {
+        final ExecutorService executorService = dependencies.getExecutorService();
+        if (executorService.isShutdown()) {
             AppLogger.e("Can not handle MediaItemAllCategories, executor is shut down");
             dependencies.getResult().sendError(new Bundle());
             return;
         }
-        dependencies.getExecutorService().submit(
+        executorService.submit(
                 () -> {
                     // Load all categories into menu
                     loadAllCategories(playbackStateListener, dependencies);

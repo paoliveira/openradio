@@ -857,7 +857,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
             mSession = null;
             mMediaSessionCb = null;
         }
-        mExecutorService.shutdown();
+        mExecutorService.shutdownNow();
     }
 
     /**
@@ -949,7 +949,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         mExecutorService.submit(
                 () -> {
                     if (mApiServiceProvider == null) {
-                        listener.onComplete(null);
+                        mMainHandler.post(() -> listener.onComplete(null));
                         return;
                     }
                     // Start download information about Radio Station
@@ -961,11 +961,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                             );
                     if (radioStationUpdated == null) {
                         AppLogger.e("Can not get Radio Station from internet");
-                        listener.onComplete(radioStation);
+                        mMainHandler.post(() -> listener.onComplete(radioStation));
                         return;
                     }
                     radioStation.setMediaStream(radioStationUpdated.getMediaStream());
-                    listener.onComplete(radioStation);
+                    mMainHandler.post(() -> listener.onComplete(radioStation));
                 }
         );
     }
@@ -1197,7 +1197,6 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING);
 
-        AppLogger.d(CLASS_NAME + "Prepare " + mLastPlayedUrl);
         mExoPlayerORImpl.prepare(Uri.parse(mLastPlayedUrl));
 
         updatePlaybackState();
@@ -1221,11 +1220,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      * Handle a request to pause radio stream.
      */
     private void handlePauseRequest() {
-        if (AppUtils.isUiThread()) {
-            handlePauseRequest(PauseReason.DEFAULT);
-        } else {
-            mMainHandler.post(() -> handlePauseRequest(PauseReason.DEFAULT));
-        }
+        handlePauseRequest(PauseReason.DEFAULT);
     }
 
     /**
@@ -1234,6 +1229,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      * @param reason Reason to pause.
      */
     private void handlePauseRequest(final PauseReason reason) {
+        if (AppUtils.isUiThread()) {
+            handlePauseRequestUiThread(reason);
+        } else {
+            mMainHandler.post(() -> handlePauseRequestUiThread(reason));
+        }
+    }
+
+    /**
+     * Handle a request to pause radio stream with reason provided in UI thread.
+     *
+     * @param reason Reason to pause.
+     */
+    private void handlePauseRequestUiThread(final PauseReason reason) {
         AppLogger.d(CLASS_NAME + "HandlePauseRequest: state=" + MediaItemHelper.playbackStateToString(mState));
 
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
@@ -1350,9 +1358,11 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
     }
 
     /**
-     * Handle a request to stop music.
+     * Handle a request to stop music in UI thread.
+     *
+     * @param error Playback error.
      */
-    private void handleStopRequest(@NonNull final PlaybackStateError error) {
+    private void handleStopRequestUiThread(@NonNull final PlaybackStateError error) {
         if (mState == PlaybackStateCompat.STATE_STOPPED) {
             return;
         }
@@ -1372,6 +1382,19 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         if (mMediaNotification != null) {
             mMediaNotification.stopNotification();
             updatePlaybackState(error);
+        }
+    }
+
+    /**
+     * Handle a request to stop music.
+     *
+     * @param error Playback error.
+     */
+    private void handleStopRequest(@NonNull final PlaybackStateError error) {
+        if (AppUtils.isUiThread()) {
+            handleStopRequestUiThread(error);
+        } else {
+            mMainHandler.post(() -> handleStopRequestUiThread(error));
         }
     }
 
@@ -1705,18 +1728,13 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
     }
 
     private void performSearch(final String query) {
-        AppLogger.i(CLASS_NAME + "Search for:" + query);
-
+        AppLogger.i(CLASS_NAME + "search for:" + query);
         if (TextUtils.isEmpty(query)) {
-            // A generic search like "Play music" sends an empty query
-            // and it's expected that we start playing something.
-            // TODO
-            handleStopRequest(new PlaybackStateError(getString(R.string.no_search_results)));
             return;
         }
 
         if (mExecutorService == null || mExecutorService.isShutdown()) {
-            AppLogger.e("Can not handle perform search, executor is shut down");
+            AppLogger.e(CLASS_NAME + "can not handle perform search, executor is shut down");
             return;
         }
         mExecutorService.submit(
@@ -1724,8 +1742,10 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                     try {
                         executePerformSearch(query);
                     } catch (final Exception e) {
-                        handleStopRequest(new PlaybackStateError(getString(R.string.no_search_results)));
-                        AnalyticsUtils.logException(e);
+                        AppLogger.e(
+                                CLASS_NAME + "can not perform search for '" + query
+                                        + "', exception:" + Log.getStackTraceString(e)
+                        );
                     }
                 }
         );
@@ -1738,8 +1758,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      */
     private void executePerformSearch(final String query) {
         if (mApiServiceProvider == null) {
-            handleStopRequest(new PlaybackStateError(getString(R.string.no_search_results)));
-            // TODO
+            AppLogger.e(CLASS_NAME + "can not handle perform search, API provider is null");
             return;
         }
 
@@ -1750,20 +1769,21 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         );
 
         if (list == null || list.isEmpty()) {
-            // if nothing was found, we need to warn the user and stop playing
-            handleStopRequest(new PlaybackStateError(getString(R.string.no_search_results)));
-            // TODO
+            SafeToast.showAnyThread(
+                    getApplicationContext(), getApplicationContext().getString(R.string.no_search_results)
+            );
             return;
         }
 
-        AppLogger.i(CLASS_NAME + "Found " + list.size() + " items");
-
-        mRadioStationsStorage.clearAndCopy(list);
-
-        // immediately start playing from the beginning of the search results
-        mCurrentIndexOnQueue = 0;
-
-        handlePlayRequest();
+        mMainHandler.post(
+                () -> {
+                    AppLogger.i(CLASS_NAME + "found " + list.size() + " items");
+                    mRadioStationsStorage.clearAndCopy(list);
+                    // immediately start playing from the beginning of the search results
+                    mCurrentIndexOnQueue = 0;
+                    handlePlayRequest();
+                }
+        );
     }
 
     /**

@@ -88,6 +88,8 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
     public void onDestroy() {
         super.onDestroy();
 
+        hideProgress(GoogleDriveManager.Command.UPLOAD);
+        hideProgress(GoogleDriveManager.Command.DOWNLOAD);
         mGoogleDriveManager.disconnect();
         mGoogleDriveManager = null;
     }
@@ -269,7 +271,7 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
         public void onSuccess(final GoogleDriveManager.Command command) {
             final Context context = GoogleDriveDialog.this.getContext();
             if (context == null) {
-                AppLogger.e("Can not handle Google Drive success command, context is null");
+                AppLogger.e("Can not handle Google Drive success, context is null");
                 return;
             }
             String message = null;
@@ -290,17 +292,22 @@ public final class GoogleDriveDialog extends BaseDialogFragment {
 
         @Override
         public void onError(final GoogleDriveManager.Command command, final GoogleDriveError error) {
+            final Context context = GoogleDriveDialog.this.getContext();
+            if (context == null) {
+                AppLogger.e("Can not handle Google Drive error, context is null, error:" + error);
+                return;
+            }
             String message = null;
             switch (command) {
                 case UPLOAD:
-                    message = GoogleDriveDialog.this.getString(R.string.google_drive_error_when_save);
+                    message = context.getString(R.string.google_drive_error_when_save);
                     break;
                 case DOWNLOAD:
-                    message = GoogleDriveDialog.this.getString(R.string.google_drive_error_when_read);
+                    message = context.getString(R.string.google_drive_error_when_read);
                     break;
             }
             if (!TextUtils.isEmpty(message)) {
-                SafeToast.showAnyThread(GoogleDriveDialog.this.getContext(), message);
+                SafeToast.showAnyThread(context, message);
             }
 
             GoogleDriveDialog.this.hideProgress(command);

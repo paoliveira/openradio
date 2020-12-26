@@ -208,15 +208,14 @@ public final class MainActivity extends AppCompatActivity {
         mMediaPresenter.clean();
         if (!mIsOnSaveInstancePassed.get()) {
             mMediaPresenter.destroy();
+            ContextCompat.startForegroundService(
+                    getApplicationContext(),
+                    OpenRadioService.makeStopServiceIntent(getApplicationContext())
+            );
         }
 
         // Unregister local receivers
         mMediaPresenter.unregisterReceivers(getApplicationContext());
-
-        ContextCompat.startForegroundService(
-                getApplicationContext(),
-                OpenRadioService.makeStopServiceIntent(getApplicationContext())
-        );
     }
 
     @Override
