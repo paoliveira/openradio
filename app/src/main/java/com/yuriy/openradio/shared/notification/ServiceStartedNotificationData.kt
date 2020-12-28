@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.notification
 
-package com.yuriy.openradio.shared.notification;
-
-import android.content.Context;
-
-import androidx.annotation.NonNull;
-
-import com.yuriy.openradio.R;
+import android.content.Context
+import com.yuriy.openradio.R
 
 /**
  * Created by Chernyshov Yurii
@@ -28,16 +24,16 @@ import com.yuriy.openradio.R;
  * On 05/11/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-final class ServiceStartedNotificationData extends NotificationData {
+internal class ServiceStartedNotificationData(context: Context) : NotificationData() {
+    companion object {
+        const val CHANNEL_ID = "channel_id_2"
+    }
 
-    public static final String CHANNEL_ID = "channel_id_2";
-
-    ServiceStartedNotificationData(@NonNull final Context context) {
-        super();
-        setContentTitle(context.getString(R.string.notification_str));
-        setContentText(context.getString(R.string.notification_str));
-        setChannelId(CHANNEL_ID);
-        setChannelName(context.getString(R.string.radio_station_str));
-        setChannelDescription("Radio Station just started");
+    init {
+        contentTitle = context.getString(R.string.notification_str)
+        contentText = context.getString(R.string.notification_str)
+        channelId = CHANNEL_ID
+        channelName = context.getString(R.string.radio_station_str)
+        channelDescription = "Radio Station just started"
     }
 }

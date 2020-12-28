@@ -53,7 +53,7 @@ object NetUtils {
     fun getHttpURLConnection(context: Context,
                              url: URL,
                              requestMethod: String?,
-                             parameters: List<Pair<String?, String?>>?): HttpURLConnection? {
+                             parameters: List<Pair<String, String>>?): HttpURLConnection? {
         var connection: HttpURLConnection? = null
         try {
             connection = url.openConnection() as HttpURLConnection
@@ -68,7 +68,7 @@ object NetUtils {
             d("NetUtils UserAgent:$userAgent")
 
             // If there are http request parameters:
-            if (parameters != null && !parameters.isEmpty()) {
+            if (parameters != null && parameters.isNotEmpty()) {
                 connection.setRequestProperty("enctype", "application/x-www-form-urlencoded")
                 try {
                     connection.outputStream.use { outputStream ->
@@ -129,7 +129,7 @@ object NetUtils {
      */
     @JvmStatic
     @Throws(UnsupportedEncodingException::class)
-    fun getPostParametersQuery(params: List<Pair<String?, String?>>): String {
+    fun getPostParametersQuery(params: List<Pair<String, String>>): String {
         val result = StringBuilder()
         var first = true
         for (pair in params) {

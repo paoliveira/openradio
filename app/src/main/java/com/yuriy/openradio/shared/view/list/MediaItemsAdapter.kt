@@ -106,7 +106,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
      *
      * @param value [MediaBrowserCompat.MediaItem]s.
      */
-    fun addAll(value: List<MediaBrowserCompat.MediaItem>?) {
+    fun addAll(value: List<MediaBrowserCompat.MediaItem>) {
         mAdapterData.addAll(value)
     }
 

@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.model.net
 
-package com.yuriy.openradio.shared.model.net;
+import android.content.Context
+import android.net.Uri
+import androidx.core.util.Pair
 
 /**
  * Created by Yuriy Chernyshov
@@ -22,36 +25,26 @@ package com.yuriy.openradio.shared.model.net;
  * On 12/15/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-
-import android.content.Context;
-import android.net.Uri;
-
-import androidx.annotation.NonNull;
-import androidx.core.util.Pair;
-
-import java.util.List;
-
 /**
- * {@link Downloader} is an interface provides method which allows to
+ * [Downloader] is an interface provides method which allows to
  * perform download operations. Different implementations will allows to perform downloading via
  * different protocols: HTTP, FTP, etc ...
  */
-public interface Downloader {
-
+interface Downloader {
     /**
-     * Method to download data from provided {@link Uri}.
+     * Method to download data from provided [Uri].
      *
-     * @param uri Provided {@link Uri}.
+     * @param uri Provided [Uri].
      * @return Downloaded data.
      */
-    byte[] downloadDataFromUri(@NonNull final Context context, final Uri uri);
+    fun downloadDataFromUri(context: Context, uri: Uri): ByteArray
 
     /**
-     * Method to download data from provided {@link Uri}.
+     * Method to download data from provided [Uri].
      *
-     * @param uri        Provided {@link Uri}.
+     * @param uri        Provided [Uri].
      * @param parameters List of parameters to attach to connection.
      * @return Downloaded data.
      */
-    byte[] downloadDataFromUri(@NonNull final Context context, final Uri uri, final List<Pair<String, String>> parameters);
+    fun downloadDataFromUri(context: Context, uri: Uri, parameters: List<Pair<String, String>>): ByteArray
 }

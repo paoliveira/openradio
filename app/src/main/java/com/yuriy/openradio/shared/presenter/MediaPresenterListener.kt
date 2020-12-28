@@ -13,17 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.presenter
 
-package com.yuriy.openradio.shared.presenter;
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.PlaybackStateCompat
 
-import android.support.v4.media.MediaMetadataCompat;
-import android.support.v4.media.session.PlaybackStateCompat;
-
-public interface MediaPresenterListener {
-
-    void showProgressBar();
-
-    void handleMetadataChanged(final MediaMetadataCompat metadata);
-
-    void handlePlaybackStateChanged(final PlaybackStateCompat state);
+interface MediaPresenterListener {
+    fun showProgressBar()
+    fun handleMetadataChanged(metadata: MediaMetadataCompat?)
+    fun handlePlaybackStateChanged(state: PlaybackStateCompat?)
 }
