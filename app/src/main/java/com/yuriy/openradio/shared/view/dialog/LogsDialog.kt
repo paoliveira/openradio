@@ -96,9 +96,14 @@ class LogsDialog : BaseDialogFragment() {
             AppLogger.w("Send Logs task is running, return")
             return
         }
-        AppLogger.deleteZipFile(activity)
+        val ctx = context
+        if (ctx == null) {
+            AppLogger.w("Send Logs with null context, return")
+            return
+        }
+        AppLogger.deleteZipFile(ctx)
         try {
-            AppLogger.zip(activity)
+            AppLogger.zip(ctx)
         } catch (e: IOException) {
             showAnyThread(activity, getString(R.string.can_not_zip_logs))
             AnalyticsUtils.logException(e)
@@ -106,8 +111,8 @@ class LogsDialog : BaseDialogFragment() {
         }
         mSendLogMailTask = SendLogEmailTask(this)
         val subj = ("Logs report from " + getString(R.string.app_name) + ", "
-                + "v:" + AppUtils.getApplicationVersion(activity)
-                + "." + AppUtils.getApplicationVersionCode(activity))
+                + "v:" + AppUtils.getApplicationVersion(ctx)
+                + "." + AppUtils.getApplicationVersionCode(ctx))
         val bodyHeader = "Archive with logs is in attachment."
         mSendLogMailTask!!.execute(MailInfo(SUPPORT_MAIL, subj, bodyHeader))
     }

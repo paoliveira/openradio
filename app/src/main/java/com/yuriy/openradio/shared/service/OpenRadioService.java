@@ -207,7 +207,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      * Flag that indicates whether application runs over normal Android or Android TV.
      */
     private boolean mIsTv = false;
-
+    private PackageValidator mPackageValidator;
     private enum PauseReason {
         DEFAULT, NOISY
     }
@@ -324,6 +324,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
         AppLogger.i(CLASS_NAME + "On Create");
         final Context context = getApplicationContext();
+
+        mPackageValidator = new PackageValidator(context, R.xml.allowed_media_browser_callers);
+
         mExecutorService = ConcurrentFactory.makeApiCallExecutor();
 
         final UiModeManager uiModeManager = (UiModeManager) getSystemService(UI_MODE_SERVICE);
@@ -449,7 +452,7 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 + ", clientUid=" + clientUid + ", rootHints=" + rootHints);
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
-        if (!PackageValidator.isCallerAllowed(getApplicationContext(), clientPackageName, clientUid)) {
+        if (!mPackageValidator.isKnownCaller(clientPackageName, clientUid)) {
             // If the request comes from an untrusted package, return null. No further calls will
             // be made to other media browsing methods.
             AppLogger.w(CLASS_NAME + "IGNORING request from untrusted package " + clientPackageName);

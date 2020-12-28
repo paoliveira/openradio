@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.utils
 
-package com.yuriy.openradio.shared.utils;
+import java.util.concurrent.*
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-public final class ConcurrentFactory {
-
-    private ConcurrentFactory() {
-        super();
+object ConcurrentFactory {
+    @JvmStatic
+    fun makeGoogleDriveExecutor(): ExecutorService {
+        return Executors.newCachedThreadPool()
     }
 
-    public static ExecutorService makeGoogleDriveExecutor() {
-        return Executors.newCachedThreadPool();
+    @JvmStatic
+    fun makeCronetExecutor(): ExecutorService {
+        return Executors.newSingleThreadExecutor()
     }
 
-    public static ExecutorService makeCronetExecutor() {
-        return Executors.newSingleThreadExecutor();
-    }
-
-    public static ExecutorService makeApiCallExecutor() {
-        return Executors.newCachedThreadPool();
+    @JvmStatic
+    fun makeApiCallExecutor(): ExecutorService {
+        return Executors.newCachedThreadPool()
     }
 }

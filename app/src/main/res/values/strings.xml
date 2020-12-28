@@ -154,4 +154,12 @@
     <string name="google_drive_error_msg_2">Can not sign in account, dialog is closed.</string>
     <string name="google_drive_error_msg_3">Can not upload to Google Drive.</string>
     <string name="google_drive_error_msg_4">Can not download from Google Drive.</string>
+    <!-- Allowed caller template -->
+    <string name="allowed_caller_log">
+        Caller has a valid certificate, but its package doesn\'t match any expected package for the
+        given certificate. To allow this caller, add the following to the allowed callers list:\n
+        <![CDATA[
+        <signature name=\"%1$s\" package=\"%2$s\">\n\t<key>%3$s</key>\n</signature>\n
+        ]]>
+    </string>
 </resources>

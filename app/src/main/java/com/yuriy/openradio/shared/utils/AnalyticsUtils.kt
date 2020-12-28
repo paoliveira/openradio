@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.utils
 
-package com.yuriy.openradio.shared.utils;
-
-import android.util.Log;
-
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
-import com.yuriy.openradio.BuildConfig;
+import android.util.Log
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.yuriy.openradio.BuildConfig
 
 /**
  * Created by Yuriy Chernyshov
@@ -27,19 +25,13 @@ import com.yuriy.openradio.BuildConfig;
  * On 7/26/16
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *  A helper class designed to assist with Analytics APIs.
+ * A helper class designed to assist with Analytics APIs.
  */
-public final class AnalyticsUtils {
+object AnalyticsUtils {
 
-    /**
-     * Default constructor.
-     */
-    private AnalyticsUtils() {
-        super();
-    }
-
-    public static void init() {
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG);
+    @JvmStatic
+    fun init() {
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
     }
 
     /**
@@ -47,13 +39,15 @@ public final class AnalyticsUtils {
      *
      * @param exception Exception.
      */
-    public static void logException(final Exception exception) {
-        AppLogger.e(Log.getStackTraceString(exception));
-        FirebaseCrashlytics.getInstance().recordException(exception);
+    @JvmStatic
+    fun logException(exception: Exception) {
+        AppLogger.e(Log.getStackTraceString(exception))
+        FirebaseCrashlytics.getInstance().recordException(exception)
     }
 
-    public static void logMessage(final String message) {
-        AppLogger.d(message);
-        FirebaseCrashlytics.getInstance().log(message);
+    @JvmStatic
+    fun logMessage(message: String) {
+        AppLogger.d(message)
+        FirebaseCrashlytics.getInstance().log(message)
     }
 }

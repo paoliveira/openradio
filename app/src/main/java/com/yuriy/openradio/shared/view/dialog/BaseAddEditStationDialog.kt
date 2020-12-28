@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -87,7 +86,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.dialog_add_edit_station, container, false)
         val layoutParams = FrameLayout.LayoutParams(
-                (AppUtils.getShortestScreenSize(activity) * 0.8).toInt(),
+                (AppUtils.getShortestScreenSize(activity!!) * 0.8).toInt(),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         )
         mRsAddValidatedReceiver = RSAddValidatedReceiver(
@@ -204,18 +203,26 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         when (requestCode) {
             IntentUtils.REQUEST_CODE_FILE_SELECTED -> {
                 val selectedImageUri = data.data
-                val context: Context? = activity
+                if (selectedImageUri == null) {
+                    AppLogger.e("Can not process image path, imahe uri is null")
+                    return
+                }
+                val ctx = context
+                if (ctx == null) {
+                    AppLogger.e("Can not process image path, context is null")
+                    return
+                }
                 //MEDIA GALLERY
                 val selectedImagePath = ImageFilePath.getPath(
-                        context, selectedImageUri
+                        ctx, selectedImageUri
                 )
                 AppLogger.d("Image Path:$selectedImagePath")
                 if (selectedImagePath != null) {
                     mImageLocalUrlEdit!!.setText(selectedImagePath)
                 } else {
                     showAnyThread(
-                            context,
-                            context!!.getString(R.string.can_not_open_file)
+                            ctx,
+                            ctx.getString(R.string.can_not_open_file)
                     )
                 }
             }

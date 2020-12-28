@@ -13,38 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.utils
 
-package com.yuriy.openradio.shared.utils;
-
-import android.support.v4.media.MediaBrowserCompat;
-
-import com.yuriy.openradio.shared.vo.RadioStation;
-
-import java.util.Comparator;
+import com.yuriy.openradio.shared.vo.RadioStation
+import java.util.*
 
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
  * On 06/05/17
  * E-Mail: chernyshov.yuriy@gmail.com
- * <p>
+ *
+ *
  * This class designed in a way to provide sort functionality for the
- * {@link MediaBrowserCompat.MediaItem}s.
+ * [MediaBrowserCompat.MediaItem]s.
  */
-public final class RadioStationsComparator implements Comparator<RadioStation> {
-
-    /**
-     * Default constructor.
-     */
-    public RadioStationsComparator() {
-        super();
-    }
-
-    @Override
-    public final int compare(final RadioStation radioStation1,
-                             final RadioStation radioStation2) {
-        final int sortId1 = radioStation1 == null ? -1 : radioStation1.getSortId();
-        final int sortId2 = radioStation1 == null ? -1 : radioStation2.getSortId();
-        return Integer.compare(sortId1, sortId2);
+class RadioStationsComparator
+/**
+ * Default constructor.
+ */
+    : Comparator<RadioStation?> {
+    override fun compare(radioStation1: RadioStation?,
+                         radioStation2: RadioStation?): Int {
+        val sortId1 = radioStation1?.sortId ?: -1
+        val sortId2 = if (radioStation1 == null) -1 else radioStation2!!.sortId
+        return sortId1.compareTo(sortId2)
     }
 }

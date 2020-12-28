@@ -14,36 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.utils
 
-package com.yuriy.openradio.shared.utils;
-
-import android.support.v4.media.MediaBrowserCompat;
-
-import java.util.Comparator;
+import android.support.v4.media.MediaBrowserCompat
+import com.yuriy.openradio.shared.utils.MediaItemHelper.getSortIdField
+import java.util.*
 
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
  * On 06/05/17
  * E-Mail: chernyshov.yuriy@gmail.com
- * <p>
+ *
+ *
  * This class designed in a way to provide sort functionality for the
- * {@link MediaBrowserCompat.MediaItem}s.
+ * [MediaBrowserCompat.MediaItem]s.
  */
-public final class MediaItemsComparator implements Comparator<MediaBrowserCompat.MediaItem> {
-
-    /**
-     * Default constructor.
-     */
-    public MediaItemsComparator() {
-        super();
-    }
-
-    @Override
-    public final int compare(final MediaBrowserCompat.MediaItem mediaItem1,
-                             final MediaBrowserCompat.MediaItem mediaItem2) {
-        final int sortId1 = MediaItemHelper.getSortIdField(mediaItem1);
-        final int sortId2 = MediaItemHelper.getSortIdField(mediaItem2);
-        return Integer.compare(sortId1, sortId2);
+class MediaItemsComparator : Comparator<MediaBrowserCompat.MediaItem?> {
+    override fun compare(mediaItem1: MediaBrowserCompat.MediaItem?,
+                         mediaItem2: MediaBrowserCompat.MediaItem?): Int {
+        val sortId1 = getSortIdField(mediaItem1)
+        val sortId2 = getSortIdField(mediaItem2)
+        return sortId1.compareTo(sortId2)
     }
 }
