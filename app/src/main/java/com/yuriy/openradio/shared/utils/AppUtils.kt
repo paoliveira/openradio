@@ -355,15 +355,15 @@ object AppUtils {
      */
     @JvmStatic
     fun capitalize(str: String): String {
-        return capitalize(str, *(null as CharArray?)!!)
+        return capitalize(str, null)
     }
 
     /**
      * See Apache utils for more details.
      * https://github.com/apache/commons-lang/blob/master/src/main/java/org/apache/commons/lang3/text/WordUtils.java
      */
-    private fun capitalize(str: String, vararg delimiters: Char): String {
-        val delimLen = delimiters.size
+    private fun capitalize(str: String, delimiters: CharArray?): String {
+        val delimLen = delimiters?.size ?: -1
         if (TextUtils.isEmpty(str) || delimLen == 0) {
             return str
         }

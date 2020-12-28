@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.view.dialog
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.support.v4.media.session.MediaSessionCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -244,7 +245,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
      */
     fun getCountryPosition(country: String?): Int {
         return if (mCountriesAdapter == null) {
-            -1
+            MediaSessionCompat.QueueItem.UNKNOWN_ID
         } else mCountriesAdapter!!.getPosition(country)
     }
 
@@ -256,7 +257,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
      */
     fun getGenrePosition(genre: String?): Int {
         return if (mGenresAdapter == null) {
-            -1
+            MediaSessionCompat.QueueItem.UNKNOWN_ID
         } else mGenresAdapter!!.getPosition(genre)
     }
 

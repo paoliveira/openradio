@@ -24,8 +24,8 @@ import org.json.JSONArray
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 interface ApiCache {
-    operator fun get(key: String?): JSONArray?
-    fun put(key: String?, data: JSONArray?)
-    fun remove(key: String?)
+    operator fun get(key: String): JSONArray
+    fun put(key: String, data: JSONArray)
+    fun remove(key: String)
     fun clear()
 }

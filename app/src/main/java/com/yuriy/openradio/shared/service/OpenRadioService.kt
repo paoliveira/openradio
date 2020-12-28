@@ -152,7 +152,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     /**
      * Index of the current playing song.
      */
-    private var mCurrentIndexOnQueue = -1
+    private var mCurrentIndexOnQueue = MediaSessionCompat.QueueItem.UNKNOWN_ID
     private var mCurrentStreamTitle: String? = null
     private var mPauseReason = PauseReason.DEFAULT
 
@@ -294,7 +294,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mMediaItemCommands[MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP] = MediaItemSearchFromApp()
         mMediaItemCommands[MediaIdHelper.MEDIA_ID_POPULAR_STATIONS] = MediaItemPopularStations()
         mMediaItemCommands[MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS] = MediaItemRecentlyAddedStations()
-        mCurrentIndexOnQueue = -1
+        mCurrentIndexOnQueue = MediaSessionCompat.QueueItem.UNKNOWN_ID
 
         // Need this component for API 20 and earlier.
         // I wish to get rid of this because it keeps listen to broadcast even after application is destroyed :-(
@@ -1084,7 +1084,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val context = applicationContext
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             if (mRestoredRS == null) {
-                mRestoredRS = LatestRadioStationStorage.get(context)
+                mRestoredRS = LatestRadioStationStorage[context]
             }
             if (mRestoredRS != null) {
                 handlePlayFromMediaId(mRestoredRS!!.id)
@@ -1099,7 +1099,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param mediaId ID of the Radio Station.
      */
     private fun handlePlayFromMediaId(mediaId: String) {
-        if (mediaId == "-1") {
+        if (mediaId == MediaSessionCompat.QueueItem.UNKNOWN_ID.toString()) {
             updatePlaybackState(
                     PlaybackStateError(getString(R.string.no_data_message), PlaybackStateError.Code.GENERAL)
             )
@@ -1116,7 +1116,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         }
         val tempIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId)
-        if (tempIndexOnQueue != -1) {
+        if (tempIndexOnQueue != MediaSessionCompat.QueueItem.UNKNOWN_ID) {
             mCurrentIndexOnQueue = tempIndexOnQueue
         }
 
@@ -1188,7 +1188,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
             // set the current index on queue from the music Id:
             mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(id.toString())
-            if (mCurrentIndexOnQueue == RadioStationsStorage.UNKNOWN_INDEX) {
+            if (mCurrentIndexOnQueue == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
                 return
             }
             dispatchCurrentIndexOnQueue(mCurrentIndexOnQueue)

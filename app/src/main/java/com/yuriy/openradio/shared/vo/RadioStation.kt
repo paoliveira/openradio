@@ -16,6 +16,7 @@
 package com.yuriy.openradio.shared.vo
 
 import android.content.Context
+import android.support.v4.media.session.MediaSessionCompat
 import android.text.TextUtils
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
@@ -55,7 +56,7 @@ class RadioStation : Serializable {
      * Flag indicate that Radio Station has been added locally to the phone storage.
      */
     var isLocal = false
-    var sortId = SORT_ID_UNSET
+    var sortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
 
     /**
      * Private constructor.
@@ -158,8 +159,6 @@ class RadioStation : Serializable {
     }
 
     companion object {
-        const val SORT_ID_UNSET = -1
-
         /**
          * Factory method to create instance of the [RadioStation].
          *

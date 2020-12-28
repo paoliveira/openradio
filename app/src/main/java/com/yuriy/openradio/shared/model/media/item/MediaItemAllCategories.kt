@@ -80,7 +80,7 @@ class MediaItemAllCategories : MediaItemCommand {
         // amount of data.
         var counter = 0
         for (category in list) {
-            if (dependencies.isAndroidAuto && counter++ > MAC_COUNTER) {
+            if (dependencies.isAndroidAuto && counter++ > MAX_COUNTER) {
                 break
             }
             val bundle = Bundle()
@@ -102,6 +102,6 @@ class MediaItemAllCategories : MediaItemCommand {
 
     companion object {
         private val LOG_TAG = MediaItemAllCategories::class.java.simpleName
-        private const val MAC_COUNTER = 200
+        private const val MAX_COUNTER = 200
     }
 }

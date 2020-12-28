@@ -27,23 +27,24 @@ import java.util.concurrent.*
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class InMemoryApiCache : ApiCache {
-    override fun get(key: String?): JSONArray? {
+
+    override fun get(key: String): JSONArray {
         if (!TextUtils.isEmpty(key) && RESPONSES_MAP.containsKey(key)) {
             val data = RESPONSES_MAP[key]
             d(CLASS_NAME + "Cached response from RAM for " + key + " is " + data)
-            return data
+            return data ?: JSONArray()
         }
-        return null
+        return JSONArray()
     }
 
-    override fun put(key: String?, data: JSONArray?) {
+    override fun put(key: String, data: JSONArray) {
         if (TextUtils.isEmpty(key)) {
             return
         }
         RESPONSES_MAP[key] = data
     }
 
-    override fun remove(key: String?) {
+    override fun remove(key: String) {
         if (TextUtils.isEmpty(key)) {
             return
         }

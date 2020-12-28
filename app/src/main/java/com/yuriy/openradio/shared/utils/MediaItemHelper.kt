@@ -37,7 +37,7 @@ import java.util.*
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 object MediaItemHelper {
-    private const val DRAWABLE_ID_UNDEFINED = -1
+    private const val DRAWABLE_ID_UNDEFINED = MediaSessionCompat.QueueItem.UNKNOWN_ID
     private const val KEY_IS_FAVORITE = "KEY_IS_FAVORITE"
     private const val KEY_IS_LAST_PLAYED = "KEY_IS_LAST_PLAYED"
     private const val KEY_IS_LOCAL = "KEY_IS_LOCAL"
@@ -45,6 +45,7 @@ object MediaItemHelper {
     private const val KEY_CURRENT_STREAM_TITLE = "CURRENT_STREAM_TITLE"
     private const val KEY_BITRATE = "KEY_BITRATE"
     private const val KEY_DRAWABLE_ID = "DRAWABLE_ID"
+
     @JvmStatic
     fun setDrawableId(bundle: Bundle?, drawableId: Int) {
         if (bundle == null) {
@@ -211,7 +212,7 @@ object MediaItemHelper {
     @JvmStatic
     fun getSortIdField(mediaItem: MediaBrowserCompat.MediaItem?): Int {
         return if (mediaItem == null) {
-            -1
+            MediaSessionCompat.QueueItem.UNKNOWN_ID
         } else getSortIdField(mediaItem.description)
     }
 
@@ -224,7 +225,7 @@ object MediaItemHelper {
      */
     fun getSortIdField(queueItem: MediaSessionCompat.QueueItem?): Int {
         return if (queueItem == null) {
-            -1
+            MediaSessionCompat.QueueItem.UNKNOWN_ID
         } else getSortIdField(queueItem.description)
     }
 
@@ -236,10 +237,11 @@ object MediaItemHelper {
      */
     private fun getSortIdField(mediaDescription: MediaDescriptionCompat?): Int {
         if (mediaDescription == null) {
-            return -1
+            return MediaSessionCompat.QueueItem.UNKNOWN_ID
         }
         val bundle = mediaDescription.extras
-        return bundle?.getInt(KEY_SORT_ID, -1) ?: -1
+        return bundle?.getInt(KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID)
+                ?: MediaSessionCompat.QueueItem.UNKNOWN_ID
     }
 
     /**
@@ -277,7 +279,7 @@ object MediaItemHelper {
             return null
         }
         var iconUrl = ""
-        if (!radioStation.imageUrl.isEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
+        if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
             iconUrl = radioStation.imageUrl
         }
         val title = radioStation.name
@@ -389,7 +391,7 @@ object MediaItemHelper {
     fun buildMediaDescriptionFromRadioStation(context: Context?,
                                               radioStation: RadioStation): MediaDescriptionCompat {
         var iconUrl = ""
-        if (!radioStation.imageUrl.isEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
+        if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
             iconUrl = radioStation.imageUrl
         }
         val title = radioStation.name

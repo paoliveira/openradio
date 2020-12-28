@@ -17,6 +17,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaSessionCompat
 import android.text.TextUtils
 import com.yuriy.openradio.shared.model.translation.RadioStationDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
@@ -52,9 +53,9 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
         @Synchronized
         protected fun add(radioStation: RadioStation,
                           context: Context?, name: String?) {
-            if (radioStation.sortId == -1) {
+            if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
                 val all = getAll(context, name)
-                var maxSortId = -1
+                var maxSortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
                 for (radioStationLocal in all) {
                     if (radioStationLocal.sortId > maxSortId) {
                         maxSortId = radioStationLocal.sortId
@@ -80,13 +81,13 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                           context: Context,
                           name: String) {
             val all = getAll(context, name)
-            var maxSortId = -1
+            var maxSortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
             for (radioStationLocal in all) {
                 if (radioStationLocal.sortId > maxSortId) {
                     maxSortId = radioStationLocal.sortId
                 }
             }
-            if (radioStation.sortId == -1) {
+            if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
                 radioStation.sortId = maxSortId + 1
             }
             addInternal(key, radioStation, context, name)
@@ -218,7 +219,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 // new feature with Radio Stations already in Favorites.
                 // Just assign another incremental value.
                 if (isListSorted == null) {
-                    isListSorted = radioStation.sortId != -1
+                    isListSorted = radioStation.sortId != MediaSessionCompat.QueueItem.UNKNOWN_ID
                 }
                 if (!isListSorted) {
                     radioStation.sortId = counter++

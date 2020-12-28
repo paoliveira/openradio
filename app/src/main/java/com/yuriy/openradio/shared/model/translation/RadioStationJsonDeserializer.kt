@@ -16,6 +16,7 @@
 package com.yuriy.openradio.shared.model.translation
 
 import android.content.Context
+import android.support.v4.media.session.MediaSessionCompat
 import android.text.TextUtils
 import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger.e
@@ -59,7 +60,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             radioStation.thumbUrl = getStringValue(jsonObject, RadioStationJsonHelper.KEY_THUMB_URL)
             radioStation.homePage = getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
-            radioStation.sortId = getIntValue(jsonObject, RadioStationJsonHelper.KEY_SORT_ID, -1)
+            radioStation.sortId = getIntValue(jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID)
             return radioStation
         } catch (e: Throwable) {
             /* Ignore this exception */

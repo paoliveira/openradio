@@ -15,6 +15,7 @@
  */
 package com.yuriy.openradio.shared.model.storage
 
+import android.support.v4.media.session.MediaSessionCompat
 import android.text.TextUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
@@ -62,7 +63,7 @@ class RadioStationsStorage {
      */
     fun getIndex(mediaId: String?): Int {
         if (TextUtils.isEmpty(mediaId)) {
-            return UNKNOWN_INDEX
+            return MediaSessionCompat.QueueItem.UNKNOWN_ID
         }
         var index = 0
         synchronized(mRadioStations) {
@@ -73,7 +74,7 @@ class RadioStationsStorage {
                 index++
             }
         }
-        return UNKNOWN_INDEX
+        return MediaSessionCompat.QueueItem.UNKNOWN_ID
     }
 
     /**
@@ -153,8 +154,6 @@ class RadioStationsStorage {
         }
 
     companion object {
-        const val UNKNOWN_INDEX = -1
-
         /**
          * Merge Radio Stations from listB to listA.
          *

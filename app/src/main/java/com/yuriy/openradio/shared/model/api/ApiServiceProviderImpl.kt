@@ -30,7 +30,6 @@ import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
@@ -93,23 +92,23 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             return allCategories
         }
         val array = downloadJsonArray(downloader, uri, cacheType)
-        var `object`: JSONObject
+        var item: JSONObject
         var category: Category
-        for (i in 0 until array!!.length()) {
+        for (i in 0 until array.length()) {
             try {
-                `object` = array[i] as JSONObject
+                item = array[i] as JSONObject
                 category = Category.makeDefaultInstance()
 
                 // TODO: Use data parser to parse JSON to value object
-                if (`object`.has(JsonDataParserImpl.KEY_NAME)) {
-                    category.id = `object`.getString(JsonDataParserImpl.KEY_NAME)
-                    category.title = capitalize(`object`.getString(JsonDataParserImpl.KEY_NAME))
-                    if (`object`.has(JsonDataParserImpl.KEY_STATIONS_COUNT)) {
-                        category.stationsCount = `object`.getInt(JsonDataParserImpl.KEY_STATIONS_COUNT)
+                if (item.has(JsonDataParserImpl.KEY_NAME)) {
+                    category.id = item.getString(JsonDataParserImpl.KEY_NAME)
+                    category.title = capitalize(item.getString(JsonDataParserImpl.KEY_NAME))
+                    if (item.has(JsonDataParserImpl.KEY_STATIONS_COUNT)) {
+                        category.stationsCount = item.getInt(JsonDataParserImpl.KEY_STATIONS_COUNT)
                     }
                 }
                 allCategories.add(category)
-            } catch (e: JSONException) {
+            } catch (e: Exception) {
                 logException(e)
             }
         }
@@ -225,7 +224,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
      */
     private fun downloadJsonArray(downloader: Downloader,
                                   uri: Uri,
-                                  cacheType: CacheType): JSONArray? {
+                                  cacheType: CacheType): JSONArray {
         return downloadJsonArray(downloader, uri, ArrayList(), cacheType)
     }
 
@@ -241,30 +240,30 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     private fun downloadJsonArray(downloader: Downloader,
                                   uri: Uri,
                                   parameters: List<Pair<String, String>>,
-                                  cacheType: CacheType?): JSONArray? {
-        var array: JSONArray? = JSONArray()
+                                  cacheType: CacheType?): JSONArray {
+        var array = JSONArray()
         if (!ConnectivityReceiver.checkConnectivityAndNotify(mContext)) {
             return array
         }
 
         // Create key to associate response with.
-        var responsesMapKey: String? = uri.toString()
+        var responsesMapKey: String = uri.toString()
         try {
             responsesMapKey += getPostParametersQuery(parameters)
         } catch (e: UnsupportedEncodingException) {
             logException(e)
-            responsesMapKey = null
+            responsesMapKey = ""
         }
 
         // Fetch RAM memory first.
         array = mApiCacheInMemory[responsesMapKey]
-        if (array != null) {
+        if (array.length() != 0) {
             return array
         }
 
         // Then look up data in the DB.
         array = mApiCachePersistent[responsesMapKey]
-        if (array != null) {
+        if (array.length() != 0) {
             mApiCacheInMemory.remove(responsesMapKey)
             mApiCacheInMemory.put(responsesMapKey, array)
             return array

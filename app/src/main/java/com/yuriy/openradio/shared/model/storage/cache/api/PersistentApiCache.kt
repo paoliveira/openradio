@@ -30,8 +30,10 @@ import org.json.JSONException
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
+
     private val mDbHelper: PersistentAPIDbHelper = PersistentAPIDbHelper(context, dbName)
-    override fun get(key: String?): JSONArray? {
+
+    override fun get(key: String): JSONArray {
         val db = mDbHelper.readableDatabase
         val selectionArgs = arrayOf(key)
         val cursor = db.query(
@@ -70,10 +72,10 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
         }
         cursor.close()
         d(CLASS_NAME + "Cached response from DB for " + key + " is " + data)
-        return data
+        return data ?: JSONArray()
     }
 
-    override fun put(key: String?, data: JSONArray?) {
+    override fun put(key: String, data: JSONArray) {
         // Gets the data repository in write mode
         val db = mDbHelper.writableDatabase
 
@@ -94,7 +96,7 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
         d(CLASS_NAME + "Clear rows:" + deletedRows)
     }
 
-    override fun remove(key: String?) {
+    override fun remove(key: String) {
         val db = mDbHelper.writableDatabase
         val selectionArgs = arrayOf(key)
         val deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, SELECTION, selectionArgs)
