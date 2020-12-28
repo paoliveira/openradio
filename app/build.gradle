@@ -2,7 +2,7 @@ apply plugin: "com.google.gms.google-services"
 apply plugin: "com.android.application"
 apply plugin: "dagger.hilt.android.plugin"
 apply plugin: "com.google.firebase.crashlytics"
-apply from: "constants.gradle"
+apply from: "../constants.gradle"
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
@@ -19,12 +19,33 @@ android {
     }
     println "Version code:" + code
 
+    /**
+     * Sign
+     */
+    def storeFileProp = ""
+    def aliasProp = ""
+    def pwdProp = ""
+
+    /**
+     * Load constants from files
+     */
+    def signConfFile = file("sign.properties")
+    if (signConfFile.canRead()) {
+        Properties signProps = new Properties()
+        signProps.load(new FileInputStream(signConfFile))
+        storeFileProp = signProps['file'].toString()
+        aliasProp = signProps['alias'].toString()
+        pwdProp = signProps['pwd'].toString()
+    } else {
+        throw new GradleException("Could not read sign.properties !")
+    }
+
     signingConfigs {
         config {
-            keyAlias project.ext.aliasProp
-            keyPassword project.ext.pwdProp
-            storeFile file(project.ext.storeFileProp)
-            storePassword project.ext.pwdProp
+            keyAlias aliasProp
+            keyPassword pwdProp
+            storeFile file(storeFileProp)
+            storePassword pwdProp
         }
     }
 
@@ -85,6 +106,9 @@ android {
 dependencies {
     api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
 
+    implementation "androidx.core:core-ktx:$kotlinCoreKtx"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$kotlinLifecycleViewmodelKtx"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "org.checkerframework:checker-compat-qual:$checkerCompatQualVersion"
     implementation "org.checkerframework:checker-qual:$checkerQualVersion"
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
@@ -111,8 +135,6 @@ dependencies {
     implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$lifecycleExtensionVersion"
     implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
-    annotationProcessor "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
-
     implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
     implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
         exclude group: "org.apache.httpcomponents"
@@ -120,16 +142,18 @@ dependencies {
     implementation("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
         exclude group: "org.apache.httpcomponents"
     }
-
     implementation "com.squareup.picasso:picasso:$picassoVersion"
+
+    annotationProcessor "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
 
     androidTestImplementation(
             "androidx.test.espresso:espresso-core:$espressoVersion",
             {exclude group: "com.android.support", module: "support-annotations"}
     )
-    androidTestImplementation "androidx.test.ext:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$junitAndroidXVersion"
 
-    testImplementation "junit:junit:$junitVersion"
+    // https://mvnrepository.com/artifact/junit/junit
+    testImplementation group: "junit", name: "junit", version: "$junitVersion"
     testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
 }
 
@@ -152,4 +176,8 @@ tasks.whenTaskAdded { task ->
             }
         }
     }
+}
+repositories {
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-eap' }
+    mavenCentral()
 }
