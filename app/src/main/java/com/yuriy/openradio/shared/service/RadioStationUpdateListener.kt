@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.service
 
-package com.yuriy.openradio.shared.service;
+import com.yuriy.openradio.shared.vo.RadioStation
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
- * On 4/27/15
+ * On 5/8/15
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * [RadioStationUpdateListener] is an interface provided response for the Radio Station
+ * update procedure.
  */
-interface LocationServiceListener {
-
-    void onCountryCodeLocated(final String countryCode);
+interface RadioStationUpdateListener {
+    /**
+     * Call this method when Radio Station has been updated.
+     * @param radioStation [RadioStation].
+     */
+    fun onComplete(radioStation: RadioStation?)
 }
