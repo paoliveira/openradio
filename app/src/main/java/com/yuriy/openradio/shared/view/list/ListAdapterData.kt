@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.view.list
 
-package com.yuriy.openradio.shared.view.list;
-
-import androidx.annotation.Nullable;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable
+import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -28,28 +24,19 @@ import java.util.List;
  * On 11/29/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-public final class ListAdapterData<T> implements Serializable {
-
+class ListAdapterData<T> : Serializable {
     /**
      * Collection of the data items.
      */
-    private final List<T> mItems;
-
-    /**
-     * Main constructor.
-     */
-    public ListAdapterData() {
-        super();
-        mItems = new ArrayList<>();
-    }
+    private val mItems: MutableList<T>
 
     /**
      * Add items to the adapter.
      *
      * @param items The items to add to collection.
      */
-    public void addAll(final List<T> items) {
-        mItems.addAll(items);
+    fun addAll(items: List<T>?) {
+        mItems.addAll(items!!)
     }
 
     /**
@@ -58,8 +45,8 @@ public final class ListAdapterData<T> implements Serializable {
      * @param position Position to add item at.
      * @param item     Item to add.
      */
-    public void addAt(final int position, final T item) {
-        mItems.add(position, item);
+    fun addAt(position: Int, item: T) {
+        mItems.add(position, item)
     }
 
     /**
@@ -67,22 +54,20 @@ public final class ListAdapterData<T> implements Serializable {
      *
      * @param item Item to be removed.
      */
-    public void remove(final T item) {
-        mItems.remove(item);
+    fun remove(item: T) {
+        mItems.remove(item)
     }
 
     /**
      * Get item at the specified position.
      *
      * @param position The position of the item.
-     * @return Item at the specified position or {@code null} if index is out of bounds.
+     * @return Item at the specified position or `null` if index is out of bounds.
      */
-    @Nullable
-    public T getItem(final int position) {
-        if (position < 0 || position >= getItemsCount()) {
-            return null;
-        }
-        return mItems.get(position);
+    fun getItem(position: Int): T? {
+        return if (position < 0 || position >= itemsCount) {
+            null
+        } else mItems[position]
     }
 
     /**
@@ -90,14 +75,20 @@ public final class ListAdapterData<T> implements Serializable {
      *
      * @return The count of the items in the collection.
      */
-    public int getItemsCount() {
-        return mItems.size();
-    }
+    val itemsCount: Int
+        get() = mItems.size
 
     /**
      * Clear collection of items.
      */
-    public void clear() {
-        mItems.clear();
+    fun clear() {
+        mItems.clear()
+    }
+
+    /**
+     * Main constructor.
+     */
+    init {
+        mItems = ArrayList()
     }
 }

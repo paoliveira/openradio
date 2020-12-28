@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.yuriy.openradio.shared.vo
 
-package com.yuriy.openradio.shared.vo;
-
-import android.support.v4.media.MediaBrowserCompat;
-import android.support.v4.media.MediaDescriptionCompat;
-
-import androidx.annotation.NonNull;
-
-import com.yuriy.openradio.shared.utils.MediaIdHelper;
+import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
+import com.yuriy.openradio.shared.utils.MediaIdHelper
 
 /**
  * Created by Chernyshov Yurii
@@ -31,23 +27,17 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper;
  *
  * This class is a value object to indicate end of the indexed list.
  */
-public class MediaItemListEnded extends MediaBrowserCompat.MediaItem {
-
+class MediaItemListEnded
+/**
+ *
+ * @param description
+ * @param flags
+ */
+private constructor(description: MediaDescriptionCompat, flags: Int) : MediaBrowserCompat.MediaItem(description, flags) {
     /**
      * Default constructor.
      */
-    public MediaItemListEnded() {
-        this(new MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIdHelper.MEDIA_ID_LIST_ENDED)
-                .build(), 1);
-    }
-
-    /**
-     *
-     * @param description
-     * @param flags
-     */
-    private MediaItemListEnded(@NonNull final MediaDescriptionCompat description, final int flags) {
-        super(description, flags);
-    }
+    constructor() : this(MediaDescriptionCompat.Builder()
+            .setMediaId(MediaIdHelper.MEDIA_ID_LIST_ENDED)
+            .build(), 1)
 }

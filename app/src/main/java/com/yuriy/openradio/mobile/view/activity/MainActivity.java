@@ -539,7 +539,9 @@ public final class MainActivity extends AppCompatActivity {
         UiUtils.clearDialogs(this, transaction);
 
         // Show Edit Station Dialog
-        final DialogFragment dialog = EditStationDialog.newInstance(item.getMediaId());
+        final DialogFragment dialog = BaseDialogFragment.newInstance(
+                EditStationDialog.class.getName(), EditStationDialog.getBundleWithMediaKey(item.getMediaId())
+        );
         dialog.show(transaction, EditStationDialog.DIALOG_TAG);
     }
 

@@ -568,13 +568,17 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
     private void handlePlayListUrlsExtracted(final String[] urls) {
         if (urls.length == 0) {
-            handleStopRequest(new PlaybackStateError(getString(R.string.media_player_error)));
+            handleStopRequest(
+                    new PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL)
+            );
             return;
         }
 
         final RadioStation radioStation = getCurrentPlayingRadioStation();
         if (radioStation == null) {
-            handleStopRequest(new PlaybackStateError(getString(R.string.media_player_error)));
+            handleStopRequest(
+                    new PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL)
+            );
             return;
         }
         // TODO: Refactor
@@ -972,7 +976,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
 
     private MediaMetadataCompat buildMetadata(final RadioStation radioStation) {
         if (radioStation.isMediaStreamEmpty()) {
-            updatePlaybackState(new PlaybackStateError(getString(R.string.no_data_message)));
+            updatePlaybackState(
+                    new PlaybackStateError(getString(R.string.no_data_message), PlaybackStateError.Code.GENERAL)
+            );
         }
 
         return MediaItemHelper.metadataFromRadioStation(getApplicationContext(), radioStation);
@@ -995,7 +1001,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         if (radioStation == null) {
             AppLogger.w(CLASS_NAME + "Can not update Metadata - Radio Station is null");
             setPlaybackState(PlaybackStateCompat.STATE_ERROR);
-            updatePlaybackState(new PlaybackStateError(getString(R.string.no_metadata)));
+            updatePlaybackState(
+                    new PlaybackStateError(getString(R.string.no_metadata), PlaybackStateError.Code.GENERAL)
+            );
             return;
         }
         final MediaMetadataCompat metadata = MediaItemHelper.metadataFromRadioStation(
@@ -1436,7 +1444,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
      */
     private void handlePlayFromMediaId(final String mediaId) {
         if (mediaId.equals("-1")) {
-            updatePlaybackState(new PlaybackStateError(getString(R.string.no_data_message)));
+            updatePlaybackState(
+                    new PlaybackStateError(getString(R.string.no_data_message), PlaybackStateError.Code.GENERAL)
+            );
             return;
         }
 
@@ -1594,7 +1604,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 AppLogger.e(CLASS_NAME + "skipToNext: cannot skip to next. next Index=" +
                         mCurrentIndexOnQueue + " queue length=" + mRadioStationsStorage.size());
 
-                handleStopRequest(new PlaybackStateError(getString(R.string.can_not_skip)));
+                handleStopRequest(
+                        new PlaybackStateError(getString(R.string.can_not_skip), PlaybackStateError.Code.GENERAL)
+                );
             }
         }
 
@@ -1623,7 +1635,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
                 AppLogger.e(CLASS_NAME + "skipToPrevious: cannot skip to previous. previous Index=" +
                         mCurrentIndexOnQueue + " queue length=" + mRadioStationsStorage.size());
 
-                handleStopRequest(new PlaybackStateError(getString(R.string.can_not_skip)));
+                handleStopRequest(
+                        new PlaybackStateError(getString(R.string.can_not_skip), PlaybackStateError.Code.GENERAL)
+                );
             }
         }
 
@@ -2091,7 +2105,9 @@ public final class OpenRadioService extends MediaBrowserServiceCompat {
         @Override
         public final void onError(final ExoPlaybackException exception) {
             AppLogger.e(CLASS_NAME + "ExoPlayer exception:" + exception);
-            OpenRadioService.this.handleStopRequest(new PlaybackStateError(getString(R.string.media_player_error)));
+            OpenRadioService.this.handleStopRequest(
+                    new PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL)
+            );
         }
 
         @Override
