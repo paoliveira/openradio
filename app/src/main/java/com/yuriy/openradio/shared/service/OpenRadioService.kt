@@ -1197,7 +1197,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             handlePlayRequest()
         }
 
-        override fun onPlayFromMediaId(mediaId: String, extras: Bundle) {
+        override fun onPlayFromMediaId(mediaId: String, extras: Bundle?) {
             super.onPlayFromMediaId(mediaId, extras)
             i(
                     CLASS_NAME + "On Play from media id:" + mediaId

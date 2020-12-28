@@ -300,8 +300,12 @@ class MediaResourcesManager(context: Context, className: String) {
             mListener!!.onQueueChanged(queue)
         }
 
-        override fun onMetadataChanged(metadata: MediaMetadataCompat) {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
             d(CLASS_NAME + "Metadata changed:" + metadata)
+            if (metadata == null) {
+                e(CLASS_NAME + "Metadata changed null")
+                return
+            }
             if (mListener == null) {
                 e(CLASS_NAME + "Metadata changed listener null")
                 return
