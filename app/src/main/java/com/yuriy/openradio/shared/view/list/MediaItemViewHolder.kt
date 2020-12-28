@@ -56,11 +56,11 @@ class MediaItemViewHolder(view: View, root_view_id: Int, name_view_id: Int,
     val mFavoriteCheckView: CheckBox = view.findViewById(favorite_view_id)
 
     @JvmField
-    val mForegroundView: SwipeLayout = view.findViewById(foreground_view_id)
+    val mForegroundView: SwipeLayout? = view.findViewById(foreground_view_id)
 
     @JvmField
     val mRoot: ViewGroup = view.findViewById(root_view_id)
 
     @JvmField
-    val mSettingsView: ImageButton = view.findViewById(settings_btn_view_id)
+    val mSettingsView: ImageButton? = view.findViewById(settings_btn_view_id)
 }

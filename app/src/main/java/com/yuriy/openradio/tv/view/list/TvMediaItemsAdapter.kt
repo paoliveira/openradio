@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter() {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaItemViewHolder {
         return MediaItemViewHolder(
                 LayoutInflater.from(parent.context).inflate(R.layout.tv_category_list_item, parent, false),

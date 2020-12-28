@@ -62,14 +62,14 @@ class MobileMediaItemsAdapter(private var mContext: Context?) : MediaItemsAdapte
         } else {
             holder.mFavoriteCheckView.visibility = View.GONE
         }
-        holder.mSettingsView.setOnClickListener(OnSettingsListener(mediaItem, position))
-        holder.mForegroundView.isDragDisabled(!isPlayable)
-        holder.mForegroundView.setOnClickListener(OnItemTapListener(mediaItem, position))
+        holder.mSettingsView?.setOnClickListener(OnSettingsListener(mediaItem, position))
+        holder.mForegroundView?.isDragDisabled(!isPlayable)
+        holder.mForegroundView?.setOnClickListener(OnItemTapListener(mediaItem, position))
         var color = R.color.or_color_primary
         if (position == activeItemId) {
             color = R.color.or_color_primary_dark
         }
-        holder.mForegroundView.setBackgroundColor(mContext!!.resources.getColor(color))
+        holder.mForegroundView?.setBackgroundColor(mContext!!.resources.getColor(color))
     }
 
     override fun clear() {
