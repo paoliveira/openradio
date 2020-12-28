@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.shared.utils
+package com.yuriy.openradio.shared.model.storage.cache.api
 
-import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+import org.json.JSONArray
 
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
- * On 06/05/17
+ * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
- *
- *
- * This class designed in a way to provide sort functionality for the
- * [MediaBrowserCompat.MediaItem]s.
  */
-class RadioStationsComparator: Comparator<RadioStation> {
-    override fun compare(radioStation1: RadioStation?,
-                         radioStation2: RadioStation?): Int {
-        val sortId1 = radioStation1?.sortId ?: -1
-        val sortId2 = if (radioStation1 == null) -1 else radioStation2!!.sortId
-        return sortId1.compareTo(sortId2)
-    }
+interface ApiCache {
+    operator fun get(key: String?): JSONArray?
+    fun put(key: String?, data: JSONArray?)
+    fun remove(key: String?)
+    fun clear()
 }

@@ -90,12 +90,12 @@ public class HorizontalOrientationStrategy extends OrientationStrategy {
     }
 
     @Override
-    int getDelta() {
+    public int getDelta() {
         return (int) mView.getTranslationX();
     }
 
     @Override
-    void setDelta(int delta) {
+    public void setDelta(int delta) {
         mView.setTranslationX(delta);
     }
 }

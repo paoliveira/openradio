@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.shared.utils
-
-import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+package com.yuriy.openradio.shared.model.translation
 
 /**
- * Created by Chernyshov Yurii
+ * Created by Yuriy Chernyshov
  * At Android Studio
- * On 06/05/17
+ * On 6/9/15
  * E-Mail: chernyshov.yuriy@gmail.com
- *
- *
- * This class designed in a way to provide sort functionality for the
- * [MediaBrowserCompat.MediaItem]s.
  */
-class RadioStationsComparator: Comparator<RadioStation> {
-    override fun compare(radioStation1: RadioStation?,
-                         radioStation2: RadioStation?): Int {
-        val sortId1 = radioStation1?.sortId ?: -1
-        val sortId2 = if (radioStation1 == null) -1 else radioStation2!!.sortId
-        return sortId1.compareTo(sortId2)
-    }
+internal object EqualizerJsonHelper {
+    /**
+     * JSON's keys
+     */
+    const val KEY_PRESETS = "Presets"
+    const val KEY_CURRENT_PRESET = "CurrentPreset"
+    const val KEY_ENABLED = "Enabed"
+    const val KEY_NUM_OF_BANDS = "NumOfBands"
+    const val KEY_BAND_LEVEL_RANGE = "BandLevelRange"
+    const val KEY_CENTER_FREQUENCIES = "CenterFrequencies"
+    const val KEY_BAND_LEVELS = "BandLevels"
 }

@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.shared.utils
+package com.yuriy.openradio.shared.model.translation
 
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
 
 /**
- * Created by Chernyshov Yurii
+ * Created by Yuriy Chernyshov
  * At Android Studio
- * On 06/05/17
+ * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *
- * This class designed in a way to provide sort functionality for the
- * [MediaBrowserCompat.MediaItem]s.
+ * [RadioStationSerializer] is an interface that provides common method to serialize
+ * [RadioStation].
  */
-class RadioStationsComparator: Comparator<RadioStation> {
-    override fun compare(radioStation1: RadioStation?,
-                         radioStation2: RadioStation?): Int {
-        val sortId1 = radioStation1?.sortId ?: -1
-        val sortId2 = if (radioStation1 == null) -1 else radioStation2!!.sortId
-        return sortId1.compareTo(sortId2)
-    }
+interface RadioStationSerializer {
+    /**
+     * Serialize [RadioStation].
+     *
+     * @param radioStation [RadioStation] to be serialized.
+     * @return String representation of the [RadioStation].
+     */
+    fun serialize(radioStation: RadioStation): String
 }

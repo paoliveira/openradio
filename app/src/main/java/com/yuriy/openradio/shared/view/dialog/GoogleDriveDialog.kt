@@ -169,7 +169,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
         showAnyThread(context, message)
     }
 
-    private inner class GoogleDriveManagerListenerImpl() : GoogleDriveManager.Listener {
+    private inner class GoogleDriveManagerListenerImpl : GoogleDriveManager.Listener {
         override fun onAccountRequested(client: GoogleSignInClient) {
             if (mGoogleDriveManager == null) {
                 showErrorToast(getString(R.string.google_drive_error_msg_1))
@@ -204,7 +204,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
             hideProgress(command)
         }
 
-        override fun onError(command: GoogleDriveManager.Command, error: GoogleDriveError) {
+        override fun onError(command: GoogleDriveManager.Command, error: GoogleDriveError?) {
             val context = this@GoogleDriveDialog.context
             if (context == null) {
                 AppLogger.e("Can not handle Google Drive error, context is null, error:$error")

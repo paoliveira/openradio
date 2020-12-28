@@ -47,10 +47,13 @@ import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.broadcast.BTConnectionReceiver
 import com.yuriy.openradio.shared.broadcast.BecomingNoisyReceiver
 import com.yuriy.openradio.shared.broadcast.ClearCacheReceiver
+import com.yuriy.openradio.shared.broadcast.ClearCacheReceiverListener
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiver
+import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiverListener
 import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver
 import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl
+import com.yuriy.openradio.shared.exo.MetadataListener
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider
 import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
 import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories
@@ -406,7 +409,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mIsRestoreState = false
         if (command != null) {
             command.execute(
-                    IUpdatePlaybackState { error: String? -> updatePlaybackState() },
+                    object : IUpdatePlaybackState {
+                        override fun updatePlaybackState(error: String?) {
+                            updatePlaybackState()
+                        }
+                    },
                     dependencies
             )
         } else {
@@ -604,11 +611,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             d(CLASS_NAME + "Create ExoPlayer")
             mExoPlayerORImpl = ExoPlayerOpenRadioImpl(
                     applicationContext,
-                    mListener
-            ) { metadata: String ->
-                d(CLASS_NAME + "Metadata title:" + metadata)
-                updateMetadata(metadata)
-            }
+                    mListener,
+                    object : MetadataListener {
+                        override fun onMetaData(title: String?) {
+                            d(CLASS_NAME + "Metadata title:" + title)
+                            updateMetadata(title)
+                        }
+                    }
+            )
             d(CLASS_NAME + "ExoPlayer prepared")
         } else {
             d(CLASS_NAME + "Reset ExoPlayer")
@@ -1679,8 +1689,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Listener for Exo Player events.
      */
     private inner class ExoPlayerListener : ExoPlayerOpenRadioImpl.Listener {
-        override fun onError(exception: ExoPlaybackException) {
-            e(CLASS_NAME + "ExoPlayer exception:" + exception)
+        override fun onError(error: ExoPlaybackException) {
+            e(CLASS_NAME + "ExoPlayer exception:" + error)
             handleStopRequest(
                     PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL)
             )
@@ -2026,10 +2036,34 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     }
                 }
         )
-        mNoisyAudioStreamReceiver = BecomingNoisyReceiver { handlePauseRequest(PauseReason.NOISY) }
-        mConnectivityReceiver = ConnectivityReceiver { isConnected: Boolean -> handleConnectivityChange(isConnected) }
-        mMasterVolumeBroadcastReceiver = MasterVolumeReceiver { setPlayerVolume() }
-        mClearCacheReceiver = ClearCacheReceiver { handleClearCache() }
+        mNoisyAudioStreamReceiver = BecomingNoisyReceiver(
+                object : BecomingNoisyReceiver.Listener {
+                    override fun onAudioBecomingNoisy() {
+                        handlePauseRequest(PauseReason.NOISY)
+                    }
+                }
+        )
+        mConnectivityReceiver = ConnectivityReceiver(
+                object : ConnectivityReceiver.Listener {
+                    override fun onConnectivityChange(isConnected: Boolean) {
+                        handleConnectivityChange(isConnected)
+                    }
+                }
+        )
+        mMasterVolumeBroadcastReceiver = MasterVolumeReceiver(
+                object  : MasterVolumeReceiverListener {
+                    override fun onMasterVolumeChanged() {
+                        setPlayerVolume()
+                    }
+                }
+        )
+        mClearCacheReceiver = ClearCacheReceiver(
+                object : ClearCacheReceiverListener {
+                    override fun onClearCache() {
+                        handleClearCache()
+                    }
+                }
+        )
         mDownloader = HTTPDownloaderImpl()
     }
 }

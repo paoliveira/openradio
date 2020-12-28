@@ -15,7 +15,6 @@
  */
 package com.yuriy.openradio.shared.view.list
 
-import android.R
 import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -28,6 +27,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
+import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.MediaIdHelper
@@ -40,9 +40,10 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
+
     interface Listener {
-        fun onItemSettings(item: MediaBrowserCompat.MediaItem?, position: Int)
-        fun onItemSelected(item: MediaBrowserCompat.MediaItem?, position: Int)
+        fun onItemSettings(item: MediaBrowserCompat.MediaItem, position: Int)
+        fun onItemSelected(item: MediaBrowserCompat.MediaItem, position: Int)
     }
 
     private val mAdapterData: ListAdapterData<MediaBrowserCompat.MediaItem> = ListAdapterData()
@@ -72,7 +73,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
 
     override fun onViewRecycled(holder: MediaItemViewHolder) {
         super.onViewRecycled(holder)
-        holder.mImageView.setImageResource(R.color.transparent)
+        holder.mImageView.setImageResource(R.color.or_color_transparent)
     }
 
     fun removeListener() {

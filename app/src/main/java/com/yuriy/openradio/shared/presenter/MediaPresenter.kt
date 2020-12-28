@@ -374,8 +374,8 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
         // Create filter and add actions
         val intentFilter = IntentFilter()
-        intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged())
-        intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged())
+        intentFilter.addAction(AppLocalBroadcast.actionLocationChanged)
+        intentFilter.addAction(AppLocalBroadcast.actionCurrentIndexOnQueueChanged)
         // Register receiver
         LocalBroadcastManager.getInstance(context!!).registerReceiver(
                 mAppLocalBroadcastRcvr,
@@ -479,7 +479,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     init {
         mScrollListener = ScrollListener()
         mScreenBroadcastRcvr = ScreenReceiver()
-        mAppLocalBroadcastRcvr = AppLocalReceiver.getInstance()
+        mAppLocalBroadcastRcvr = AppLocalReceiver.instance
         mMediaRsrMgr = MediaResourcesManager(context!!, javaClass.simpleName)
     }
 }

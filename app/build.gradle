@@ -3,6 +3,7 @@ apply plugin: "com.android.application"
 apply plugin: "dagger.hilt.android.plugin"
 apply plugin: "com.google.firebase.crashlytics"
 apply plugin: "kotlin-android"
+apply plugin: 'kotlin-kapt'
 apply from: "../constants.gradle"
 
 android {
@@ -146,6 +147,7 @@ dependencies {
     implementation "com.squareup.picasso:picasso:$picassoVersion"
 
     annotationProcessor "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
+    kapt "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
 
     androidTestImplementation(
             "androidx.test.espresso:espresso-core:$espressoVersion",

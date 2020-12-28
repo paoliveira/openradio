@@ -57,7 +57,7 @@ import java.util.*
  * [ApiServiceProviderImpl] is the implementation of the
  * [ApiServiceProvider] interface.
  */
-class ApiServiceProviderImpl(context: Context, dataParser: DataParser?) : ApiServiceProvider {
+class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServiceProvider {
     /**
      * Implementation of the [DataParser] which allows to
      * parse raw response of the data into different formats.

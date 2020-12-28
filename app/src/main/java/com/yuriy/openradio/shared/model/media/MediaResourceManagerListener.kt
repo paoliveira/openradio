@@ -13,26 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.shared.utils
+package com.yuriy.openradio.shared.model.media
 
-import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
- * On 06/05/17
+ * On 29/06/17
  * E-Mail: chernyshov.yuriy@gmail.com
  *
+ * Interface designed to composite actions performed on [android.support.v4.media.MediaBrowserCompat].
  *
- * This class designed in a way to provide sort functionality for the
- * [MediaBrowserCompat.MediaItem]s.
  */
-class RadioStationsComparator: Comparator<RadioStation> {
-    override fun compare(radioStation1: RadioStation?,
-                         radioStation2: RadioStation?): Int {
-        val sortId1 = radioStation1?.sortId ?: -1
-        val sortId2 = if (radioStation1 == null) -1 else radioStation2!!.sortId
-        return sortId1.compareTo(sortId2)
-    }
+interface MediaResourceManagerListener {
+    fun onConnected()
+    fun onPlaybackStateChanged(state: PlaybackStateCompat)
+    fun onQueueChanged(queue: List<MediaSessionCompat.QueueItem>)
+    fun onMetadataChanged(metadata: MediaMetadataCompat, queue: List<MediaSessionCompat.QueueItem>?)
 }
