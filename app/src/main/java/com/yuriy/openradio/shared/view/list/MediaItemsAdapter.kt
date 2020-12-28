@@ -213,7 +213,12 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
                     view.setImageResource(iconId)
                 }
                 if (iconUri != null) {
-                    Picasso.get().load(iconUri).noPlaceholder().into(view)
+                    Picasso.get()
+                            .load(iconUri)
+                            .resize(2048, 1600)
+                            .onlyScaleDown() // the image will only be resized if it's bigger than 2048 x 1600 pixels.
+                            .noPlaceholder()
+                            .into(view)
                 }
             }
         }
