@@ -32,7 +32,6 @@ import androidx.annotation.MainThread
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.R
-import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.permission.PermissionChecker.isLocationGranted
