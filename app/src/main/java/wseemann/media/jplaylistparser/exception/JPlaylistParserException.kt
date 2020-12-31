@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-package wseemann.media.jplaylistparser.exception;
+package wseemann.media.jplaylistparser.exception
 
-public class JPlaylistParserException extends Exception {
-
-	public JPlaylistParserException(final String msg) {
-        super(msg);
-    }
-
-    public JPlaylistParserException(final String msg, final Throwable cause) {
-        super(msg, cause);
-    }
-}
+class JPlaylistParserException(msg: String?) : Exception(msg)

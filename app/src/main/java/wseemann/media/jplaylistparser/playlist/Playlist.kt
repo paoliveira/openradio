@@ -14,31 +14,28 @@
  * limitations under the License.
  */
 
-package wseemann.media.jplaylistparser.playlist;
+package wseemann.media.jplaylistparser.playlist
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*
 
-public final class Playlist {
+class Playlist {
 
-	private final List<PlaylistEntry> mPlaylistEntries;
-	
+    private val mPlaylistEntries: MutableList<PlaylistEntry>
+
+    fun add(playlistEntry: PlaylistEntry) {
+        mPlaylistEntries.add(playlistEntry)
+    }
+
+    /**
+     * @return the PlaylistEntries
+     */
+    val playlistEntries: List<PlaylistEntry>
+        get() = mPlaylistEntries
+
     /**
      * Constructs a new, empty playlist.
      */
-	public Playlist() {
-		super();
-		mPlaylistEntries = new ArrayList<>();
-	}
-
-	public final void add(final PlaylistEntry playlistEntry) {
-		mPlaylistEntries.add(playlistEntry);
-	}
-	
-	/**
-	 * @return the PlaylistEntries
-	 */
-	public final List<PlaylistEntry> getPlaylistEntries() {
-		return mPlaylistEntries;
-	}
+    init {
+        mPlaylistEntries = ArrayList()
+    }
 }

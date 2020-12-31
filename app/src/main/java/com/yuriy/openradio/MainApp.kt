@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio
 
 import android.content.Context
@@ -33,9 +34,8 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.setPlayBuf
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.setPlayBufferRebuffer
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.add
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocals
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.init
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.i
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.initLogger
 import com.yuriy.openradio.shared.utils.AppLogger.setLoggingEnabled
 import com.yuriy.openradio.shared.utils.AppUtils.getApplicationVersionCode
@@ -55,6 +55,7 @@ import dagger.hilt.android.HiltAndroidApp
  */
 @HiltAndroidApp
 class MainApp : MultiDexApplication() {
+
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         MultiDex.install(this)
@@ -62,8 +63,8 @@ class MainApp : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        init()
-        d(CLASS_NAME + "OnCreate")
+        AnalyticsUtils.init()
+        AppLogger.d(CLASS_NAME + "OnCreate")
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         val context: Context = this
         val thread = Thread {
@@ -115,7 +116,7 @@ class MainApp : MultiDexApplication() {
             firstLogMessage.append("\n")
             firstLogMessage.append("- Country: ")
             firstLogMessage.append(getUserCountry(context))
-            i(firstLogMessage.toString())
+            AppLogger.i(firstLogMessage.toString())
         }
 
         /**
@@ -150,7 +151,7 @@ class MainApp : MultiDexApplication() {
          * @param context Context of a callee.
          */
         private fun migrateImagesToIntStorage(context: Context) {
-            d(CLASS_NAME + "Migrate image to int. storage started")
+            AppLogger.d(CLASS_NAME + "Migrate image to int. storage started")
             val list: List<RadioStation> = getAllLocals(context)
             var imageUrl: String
             var imageUrlLocal: String?
@@ -171,7 +172,7 @@ class MainApp : MultiDexApplication() {
                 radioStation.thumbUrl = imageUrlLocal
                 add(radioStation, context)
             }
-            d(CLASS_NAME + "Migrate image to int. storage completed")
+            AppLogger.d(CLASS_NAME + "Migrate image to int. storage completed")
         }
     }
 }

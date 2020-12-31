@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package wseemann.media.jplaylistparser.parser;
+package wseemann.media.jplaylistparser.parser
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Set;
+import wseemann.media.jplaylistparser.exception.JPlaylistParserException
+import wseemann.media.jplaylistparser.mime.MediaType
+import wseemann.media.jplaylistparser.playlist.Playlist
+import java.io.IOException
+import java.io.InputStream
 
-import wseemann.media.jplaylistparser.exception.JPlaylistParserException;
-import wseemann.media.jplaylistparser.mime.MediaType;
-import wseemann.media.jplaylistparser.playlist.Playlist;
+internal interface Parser {
 
-interface Parser {
+    val supportedTypes: Set<MediaType?>
 
-    Set<MediaType> getSupportedTypes();
-
-    void parse(final String uri,
-               final InputStream stream,
-               final Playlist playlist) throws IOException, JPlaylistParserException;
+    @Throws(IOException::class, JPlaylistParserException::class)
+    fun parse(uri: String, stream: InputStream, playlist: Playlist)
 }

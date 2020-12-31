@@ -120,12 +120,11 @@ dependencies {
     implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
 
+    // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
+    implementation "com.google.firebase:firebase-analytics-ktx"
+    implementation "com.google.firebase:firebase-crashlytics-ktx"
     implementation "com.google.android.material:material:$materialVersion"
-    implementation "com.google.firebase:firebase-installations:$firebaseInstallationsVersion"
-    implementation "com.google.firebase:firebase-crashlytics:$firebaseCrashlyticsVersion"
-    implementation ("com.google.firebase:firebase-analytics:$firebaseVersion") {
-        exclude group: "com.google.android.gms", module: "play-services-ads-identifier"
-    }
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
     implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"

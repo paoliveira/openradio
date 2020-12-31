@@ -15,8 +15,11 @@
  */
 package com.yuriy.openradio.shared.utils
 
+import android.os.Bundle
 import android.util.Log
-import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.analytics.ktx.analytics
+import com.google.firebase.crashlytics.ktx.crashlytics
+import com.google.firebase.ktx.Firebase
 import com.yuriy.openradio.BuildConfig
 
 /**
@@ -29,9 +32,12 @@ import com.yuriy.openradio.BuildConfig
  */
 object AnalyticsUtils {
 
+    private const val EVENT_UNSUPPORTED_PLAYLIST = "EVENT_UNSUPPORTED_PLAYLIST"
+    private const val KEY_URL = "KEY_URL"
+
     @JvmStatic
     fun init() {
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+        Firebase.crashlytics.setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
     }
 
     /**
@@ -42,12 +48,19 @@ object AnalyticsUtils {
     @JvmStatic
     fun logException(exception: Exception) {
         AppLogger.e(Log.getStackTraceString(exception))
-        FirebaseCrashlytics.getInstance().recordException(exception)
+        Firebase.crashlytics.recordException(exception)
     }
 
     @JvmStatic
     fun logMessage(message: String) {
         AppLogger.d(message)
-        FirebaseCrashlytics.getInstance().log(message)
+        Firebase.crashlytics.log(message)
+    }
+
+    @JvmStatic
+    fun logUnsupportedPlaylist(playlistUrl: String) {
+        val bundle = Bundle()
+        bundle.putString(KEY_URL, playlistUrl)
+        Firebase.analytics.logEvent(EVENT_UNSUPPORTED_PLAYLIST, bundle)
     }
 }

@@ -85,6 +85,7 @@ import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
@@ -461,7 +462,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         )
         GlobalScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
-                val urls = extractUrlsFromPlaylist(mLastPlayedUrl)
+                val playlistUrl = mLastPlayedUrl
+                if (playlistUrl.isNullOrEmpty()) {
+                    e("HandleUnrecognizedInputFormatException with empty URL")
+                    return@withTimeout
+                }
+                val urls = extractUrlsFromPlaylist(playlistUrl)
                 mMainHandler.post {
                     // Silently clear last references and try to restart:
                     initInternals()
@@ -491,18 +497,18 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         handlePlayRequest()
     }
 
-    private fun extractUrlsFromPlaylist(playlistUrl: String?): Array<String?> {
+    private fun extractUrlsFromPlaylist(playlistUrl: String): Array<String?> {
         val connection = getHttpURLConnection(
-                applicationContext, playlistUrl!!, "GET"
+                applicationContext, playlistUrl, "GET"
         ) ?: return arrayOfNulls(0)
-        var `is`: InputStream? = null
+        var inputStream: InputStream? = null
         var result: Array<String?>? = null
         try {
             val contentType = connection.contentType
-            `is` = connection.inputStream
+            inputStream = connection.inputStream
             val parser = AutoDetectParser(AppUtils.TIME_OUT)
             val playlist = Playlist()
-            parser.parse(playlistUrl, contentType, `is`, playlist)
+            parser.parse(playlistUrl, contentType, inputStream, playlist)
             val length = playlist.playlistEntries.size
             result = arrayOfNulls(length)
             d(CLASS_NAME + "Found " + length + " streams associated with " + playlistUrl)
@@ -522,9 +528,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             logException(Exception(errorMessage, e))
         } finally {
             closeHttpURLConnection(connection)
-            if (`is` != null) {
+            if (inputStream != null) {
                 try {
-                    `is`.close()
+                    inputStream.close()
                 } catch (e: IOException) {
                     /**/
                 }
