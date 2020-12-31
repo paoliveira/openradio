@@ -91,7 +91,7 @@ class EqualizerDialog : BaseDialogFragment() {
         spinner.adapter = adapter
         spinner.setSelection(state.currentPreset.toInt())
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View, position: Int, id: Long) {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 AppLogger.d(CLASS_NAME + " use preset: " + presets[position])
                 state.currentPreset = position.toShort()
                 val serializer: EqualizerStateSerializer = EqualizerJsonStateSerializer()
