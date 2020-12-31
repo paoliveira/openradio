@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.model.storage.drive
 
 import com.yuriy.openradio.shared.utils.AppLogger.d
-import java.util.concurrent.*
 
 /**
  * Created by Chernyshov Yurii
@@ -24,9 +23,7 @@ import java.util.concurrent.*
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-internal class GoogleDriveCreateFolder(isTerminator: Boolean, executorService: ExecutorService) :
-        GoogleDriveAPIChain(isTerminator, executorService) {
-    constructor(executorService: ExecutorService) : this(false, executorService)
+internal class GoogleDriveCreateFolder(isTerminator: Boolean = false) : GoogleDriveAPIChain(isTerminator) {
 
     override fun handleRequest(request: GoogleDriveRequest,
                                result: GoogleDriveResult) {
@@ -35,13 +32,13 @@ internal class GoogleDriveCreateFolder(isTerminator: Boolean, executorService: E
             d("Folder $name exists, path execution farther")
             handleNext(request, result)
         } else {
-            request.googleApiClient.createFolder(mExecutorService, request.folderName)
+            request.googleApiClient.createFolder(request.folderName)
                     .addOnSuccessListener { folderId: String? ->
                         d("Folder $name created, pass execution farther")
                         result.folderId = folderId
                         handleNext(request, result)
                     }
-                    .addOnFailureListener { e: Exception? ->
+                    .addOnFailureListener {
                         request.listener.onError(
                                 GoogleDriveError("Folder $name is not created")
                         )

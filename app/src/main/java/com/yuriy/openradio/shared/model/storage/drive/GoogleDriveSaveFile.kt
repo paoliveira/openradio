@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.drive
 
 import android.util.Base64
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import java.util.concurrent.*
+import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created by Chernyshov Yurii
@@ -25,20 +25,18 @@ import java.util.concurrent.*
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-internal class GoogleDriveSaveFile(isTerminator: Boolean, executorService: ExecutorService) :
-        GoogleDriveAPIChain(isTerminator, executorService) {
+internal class GoogleDriveSaveFile(isTerminator: Boolean) : GoogleDriveAPIChain(isTerminator) {
 
     override fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult) {
-        d("Save file '" + request.fileName + "'")
-
+        AppLogger.d("Save file '" + request.fileName + "'")
         // Create new file and save data to it.
         val data = Base64.encodeToString(request.data!!.toByteArray(), Base64.DEFAULT)
-        request.googleApiClient.createFile(mExecutorService, result.folderId, request.fileName, data)
+        request.googleApiClient.createFile(result.folderId, request.fileName, data)
                 .addOnSuccessListener { fileId: String ->
-                    d("File '$fileId' created")
+                    AppLogger.d("File '$fileId' created")
                     request.listener.onUploadComplete()
                 }
-                .addOnFailureListener { e: Exception? ->
+                .addOnFailureListener {
                     request.listener.onError(
                             GoogleDriveError("File '" + request.fileName + "' is not created")
                     )

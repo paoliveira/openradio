@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media.item
 
 import android.os.Bundle
@@ -26,7 +27,7 @@ import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AppLogger.d
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
 import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
@@ -40,14 +41,12 @@ import com.yuriy.openradio.shared.vo.RadioStation
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *
  * [MediaItemRoot] is concrete implementation of the [MediaItemCommand] that
  * designed to prepare data to display root menu items.
  */
 class MediaItemRoot : MediaItemCommand {
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
-        d("$LOG_TAG invoked")
+    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+        AppLogger.d("$LOG_TAG invoked")
         val context = dependencies.context
         dependencies.radioStationsStorage.clear()
         dependencies.result.detach()
@@ -186,7 +185,7 @@ class MediaItemRoot : MediaItemCommand {
                     )
             )
         }
-        d("$LOG_TAG invocation completed")
+        AppLogger.d("$LOG_TAG invocation completed")
         dependencies.result.sendResult(dependencies.mediaItems)
         dependencies.resultListener.onResult()
     }

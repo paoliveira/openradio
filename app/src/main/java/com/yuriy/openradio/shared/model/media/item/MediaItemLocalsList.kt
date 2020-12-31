@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,20 @@
  */
 package com.yuriy.openradio.shared.model.media.item
 
+import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
-import com.yuriy.openradio.shared.utils.AppLogger.d
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateLocalRadioStationField
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateSortIdField
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Created by Yuriy Chernyshov
@@ -35,31 +40,34 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.updateSortIdField
  * designed to prepare data to display radio stations from Locals list.
  */
 class MediaItemLocalsList : MediaItemCommand {
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
-        d("$LOG_TAG invoked")
+    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+        AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.result.detach()
-        val context = dependencies.context
-        val list = LocalRadioStationsStorage.getAllLocals(context)
-        dependencies.radioStationsStorage.clearAndCopy(list)
-        for (radioStation in list) {
-            val mediaDescription = buildMediaDescriptionFromRadioStation(
-                    context, radioStation
-            )
-            val mediaItem = MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
-            if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
-                updateLocalRadioStationField(mediaItem, true)
-            }
-            if (FavoritesStorage.isFavorite(radioStation, context)) {
-                updateFavoriteField(mediaItem, true)
-            }
-            updateSortIdField(mediaItem, radioStation.sortId)
-            dependencies.addMediaItem(mediaItem)
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
+                val context = dependencies.context
+                val list = LocalRadioStationsStorage.getAllLocals(context)
+                dependencies.radioStationsStorage.clearAndCopy(list)
+                for (radioStation in list) {
+                    val mediaDescription = buildMediaDescriptionFromRadioStation(
+                            context, radioStation
+                    )
+                    val mediaItem = MediaBrowserCompat.MediaItem(
+                            mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+                    if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
+                        updateLocalRadioStationField(mediaItem, true)
+                    }
+                    if (FavoritesStorage.isFavorite(radioStation, context)) {
+                        updateFavoriteField(mediaItem, true)
+                    }
+                    updateSortIdField(mediaItem, radioStation.sortId)
+                    dependencies.addMediaItem(mediaItem)
+                }
+                dependencies.result.sendResult(dependencies.mediaItems)
+                dependencies.resultListener.onResult()
+            } ?: dependencies.result.sendError(Bundle())
         }
-        dependencies.result.sendResult(dependencies.mediaItems)
-        dependencies.resultListener.onResult()
     }
 
     companion object {

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.drive
 
 import com.google.android.gms.tasks.Task
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.model.FileList
-import java.util.concurrent.*
 
 /**
  * Created by Chernyshov Yurii
@@ -26,12 +26,10 @@ import java.util.concurrent.*
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-internal class GoogleDriveQueryFolder(isTerminator: Boolean, executorService: ExecutorService) :
-        GoogleDriveQueryDrive(isTerminator, executorService) {
-    constructor(executorService: ExecutorService) : this(false, executorService)
+internal class GoogleDriveQueryFolder(isTerminator: Boolean = false) : GoogleDriveQueryDrive(isTerminator) {
 
     override fun getQueryTask(request: GoogleDriveRequest): Task<FileList> {
-        return request.googleApiClient.queryFolder(mExecutorService, request.folderName)
+        return request.googleApiClient.queryFolder(request.folderName)
     }
 
     override fun getName(request: GoogleDriveRequest): String {

@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.drive
 
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.model.media.item.MediaItemCommand
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils.isUiThread
-import java.util.concurrent.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Created by Chernyshov Yurii
@@ -26,10 +30,9 @@ import java.util.concurrent.*
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-abstract class GoogleDriveAPIChain(private val mIsTerminator: Boolean, executorService: ExecutorService) {
+abstract class GoogleDriveAPIChain(private val mIsTerminator: Boolean) {
 
     private var mNext: GoogleDriveAPIChain? = null
-    val mExecutorService: ExecutorService = executorService
 
     abstract fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult)
 
@@ -39,16 +42,16 @@ abstract class GoogleDriveAPIChain(private val mIsTerminator: Boolean, executorS
 
     fun handleNext(request: GoogleDriveRequest, result: GoogleDriveResult) {
         if (mIsTerminator) {
-            d("No more requests to handle")
+            AppLogger.d("No more requests to handle")
             return
         }
         // Callbacks from Google framework comes in UI thread.
-        if (isUiThread()) {
-            if (mExecutorService.isShutdown) {
-                e("Executor is terminated, can't handle requests")
-                return
+        if (!isUiThread()) {
+            GlobalScope.launch(Dispatchers.IO) {
+                withTimeoutOrNull(GoogleDriveHelper.CMD_TIMEOUT_MS) {
+                    mNext!!.handleRequest(request, result)
+                } ?: request.listener.onError(GoogleDriveError("Timeout when executing $request"))
             }
-            mExecutorService.submit { mNext!!.handleRequest(request, result) }
         } else {
             mNext!!.handleRequest(request, result)
         }

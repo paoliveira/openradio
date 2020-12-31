@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media.item
 
 import android.support.v4.media.MediaBrowserCompat
@@ -20,7 +21,7 @@ import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
-import com.yuriy.openradio.shared.utils.AppLogger.d
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
 import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaMetadataForEmptyCategory
@@ -34,19 +35,14 @@ import com.yuriy.openradio.shared.vo.RadioStation
  * At Android Studio
  * On 14/01/18
  * E-Mail: chernyshov.yuriy@gmail.com
- *
- *
  */
-abstract class MediaItemCommandImpl
-/**
- *
- */
-internal constructor() : MediaItemCommand {
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
-        d("$CLASS_NAME invoked")
+abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
+
+    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+
+        AppLogger.d("$CLASS_NAME invoked")
         if (!dependencies.isSameCatalogue) {
-            d("$CLASS_NAME not the same catalogue, clear list")
+            AppLogger.d("$CLASS_NAME not the same catalogue, clear list")
             dependencies.radioStationsStorage.clear()
         }
     }
@@ -55,7 +51,7 @@ internal constructor() : MediaItemCommand {
     fun handleDataLoaded(playbackStateListener: IUpdatePlaybackState?,
                          dependencies: MediaItemCommandDependencies,
                          list: List<RadioStation>) {
-        d(CLASS_NAME + " loaded " + list.size + " items")
+        AppLogger.d(CLASS_NAME + " loaded " + list.size + " items")
         if (list.isEmpty()) {
             if (doLoadNoDataReceived()) {
                 val track = buildMediaMetadataForEmptyCategory(
@@ -84,7 +80,7 @@ internal constructor() : MediaItemCommand {
         val radioStations = dependencies.radioStationsStorage.all
         for (radioStation in radioStations) {
             val mediaDescription = buildMediaDescriptionFromRadioStation(
-                    dependencies.context, radioStation!!
+                    dependencies.context, radioStation
             )
             val mediaItem = MediaBrowserCompat.MediaItem(
                     mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
@@ -93,13 +89,14 @@ internal constructor() : MediaItemCommand {
             }
             dependencies.addMediaItem(mediaItem)
         }
-        d(CLASS_NAME + " deliver " + dependencies.mediaItems.size + " items")
+        AppLogger.d(CLASS_NAME + " deliver " + dependencies.mediaItems.size + " items")
         dependencies.result.sendResult(dependencies.mediaItems)
         dependencies.resultListener.onResult()
     }
 
     companion object {
         private val CLASS_NAME = MediaItemCommandImpl::class.java.simpleName
+
         @JvmStatic
         fun getCacheType(dependencies: MediaItemCommandDependencies): CacheType {
             return if (dependencies.isSavedInstance) {

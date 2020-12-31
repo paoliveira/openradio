@@ -32,9 +32,9 @@ import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
-import com.yuriy.openradio.shared.utils.ConcurrentFactory.makeCronetExecutor
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import java.io.File
+import java.util.concurrent.*
 
 object ExoPlayerUtils {
 
@@ -78,7 +78,9 @@ object ExoPlayerUtils {
         if (sHttpDataSourceFactory == null) {
             val cronetEngineWrapper = CronetEngineWrapper(context)
             logMessage("ExoPlayer UserAgent '$userAgent'")
-            sHttpDataSourceFactory = CronetDataSourceFactory(cronetEngineWrapper, makeCronetExecutor(), userAgent)
+            sHttpDataSourceFactory = CronetDataSourceFactory(
+                    cronetEngineWrapper, Executors.newSingleThreadExecutor(), userAgent
+            )
         }
         return sHttpDataSourceFactory
     }

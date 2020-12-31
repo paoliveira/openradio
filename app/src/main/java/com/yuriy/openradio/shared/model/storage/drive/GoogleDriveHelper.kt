@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.drive
 
 import androidx.core.util.Pair
@@ -22,7 +23,6 @@ import com.google.api.client.http.ByteArrayContent
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.model.FileList
-import com.yuriy.openradio.shared.utils.AppLogger.e
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -32,17 +32,20 @@ import java.util.concurrent.*
  * A utility for performing read/write operations on Drive files via the REST API.
  */
 class GoogleDriveHelper(private val mDriveService: Drive) {
+
+    companion object {
+        const val CMD_TIMEOUT_MS = 3000L
+        private const val MIME_TYPE_TEXT = "text/plain"
+        private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"
+        private val executor = Executors.newCachedThreadPool()
+    }
+
     /**
      * Creates a text file in the user's My Drive folder and returns its file ID.
      */
-    fun createFile(executorService: ExecutorService,
-                   folderId: String, name: String,
+    fun createFile(folderId: String, name: String,
                    content: String): Task<String> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle create file requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
+        return Tasks.call(executor, {
             val metadata = File()
                     .setParents(listOf(folderId))
                     .setMimeType(MIME_TYPE_TEXT)
@@ -60,13 +63,8 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
      * @param name
      * @return
      */
-    fun createFolder(executorService: ExecutorService,
-                     name: String): Task<String> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle create folder requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
+    fun createFolder(name: String): Task<String> {
+        return Tasks.call(executor, {
             val metadata = File()
                     .setMimeType(MIME_TYPE_FOLDER)
                     .setName(name)
@@ -82,14 +80,8 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
      * Opens the file identified by `fileId` and returns a [Pair] of its name and
      * contents.
      */
-    fun readFile(executorService: ExecutorService,
-                 fileId: String): Task<Pair<String, String>> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle read file requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
-
+    fun readFile(fileId: String): Task<Pair<String, String>> {
+        return Tasks.call(executor, {
             // Retrieve the metadata as a File object.
             val metadata = mDriveService.files()[fileId].execute()
             val name = metadata.name
@@ -110,16 +102,10 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
     /**
      * Updates the file identified by `fileId` with the given `name` and `content`.
      */
-    fun saveFile(executorService: ExecutorService,
-                 fileId: String,
+    fun saveFile(fileId: String,
                  name: String,
                  content: String): Task<Void?> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle save file requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
-
+        return Tasks.call(executor, {
             // Create a File containing any metadata changes.
             val metadata = File().setName(name)
             // Convert content to an AbstractInputStreamContent instance.
@@ -130,14 +116,8 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
         })
     }
 
-    fun deleteFile(executorService: ExecutorService,
-                   fileId: String): Task<Void?> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle delete file requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
-
+    fun deleteFile(fileId: String): Task<Void?> {
+        return Tasks.call(executor, {
             // Delete file with specified id..
             mDriveService.files().delete(fileId).execute()
             null
@@ -146,18 +126,11 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
     }
 
     /**
-     * Returns a [FileList] containing folder with given name in the user's My Drive.
-     *
-     *
      * The returned list will only contain folder visible to this app, i.e. those which were
      * created by this app.
      */
-    fun queryFolder(executorService: ExecutorService, name: String): Task<FileList> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle query folder requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
+    fun queryFolder(name: String): Task<FileList> {
+        return Tasks.call(executor, {
             mDriveService.files().list()
                     .setSpaces("drive")
                     .setQ("mimeType='$MIME_TYPE_FOLDER' and trashed=false and name='$name'")
@@ -167,28 +140,16 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
     }
 
     /**
-     * Returns a [FileList] containing file with given name in the user's My Drive.
-     *
-     *
      * The returned list will only contain folder visible to this app, i.e. those which were
      * created by this app.
      */
-    fun queryFile(executorService: ExecutorService, fileName: String): Task<FileList> {
-        if (executorService.isShutdown) {
-            e("Executor is terminated, can't handle query file requests")
-            return Tasks.forCanceled()
-        }
-        return Tasks.call(executorService, {
+    fun queryFile(fileName: String): Task<FileList> {
+        return Tasks.call(executor, {
             mDriveService.files().list()
                     .setSpaces("drive")
                     .setQ("mimeType='$MIME_TYPE_TEXT' and trashed=false and name='$fileName'")
                     .execute()
         }
         )
-    }
-
-    companion object {
-        private const val MIME_TYPE_TEXT = "text/plain"
-        private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"
     }
 }

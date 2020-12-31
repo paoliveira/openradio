@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 - 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2014 - 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.service
 
 import android.annotation.SuppressLint
@@ -91,7 +92,6 @@ import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.isAutomotive
 import com.yuriy.openradio.shared.utils.AppUtils.isUiThread
-import com.yuriy.openradio.shared.utils.ConcurrentFactory.makeApiCallExecutor
 import com.yuriy.openradio.shared.utils.FileUtils
 import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
 import com.yuriy.openradio.shared.utils.IntentUtils.bundleToString
@@ -111,6 +111,10 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeCopyInstance
 import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException
 import wseemann.media.jplaylistparser.parser.AutoDetectParser
 import wseemann.media.jplaylistparser.playlist.Playlist
@@ -226,7 +230,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private val mDownloader: Downloader
     private val mStartIds: ConcurrentLinkedQueue<Int>
-    private var mExecutorService: ExecutorService? = null
 
     interface ResultListener {
         fun onResult()
@@ -253,7 +256,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         i(CLASS_NAME + "On Create")
         val context = applicationContext
         mPackageValidator = PackageValidator(context, R.xml.allowed_media_browser_callers)
-        mExecutorService = makeApiCallExecutor()
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
             d(CLASS_NAME + "running on a TV Device")
@@ -309,7 +311,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 mediaButtonReceiver,
                 null
         )
-        setSessionToken(mSession!!.sessionToken)
+        sessionToken = mSession!!.sessionToken
         mMediaSessionCb = MediaSessionCallback()
         mSession!!.setCallback(mMediaSessionCb)
         mSession!!.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
@@ -323,14 +325,16 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         i(CLASS_NAME + "Created in " + (System.currentTimeMillis() - start) + " ms")
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         i(CLASS_NAME + "On Start Command:" + intent + ", id:" + startId)
         logMessage(
                 "OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent
                         + ", " + intentBundleToString(intent)
         )
         mStartIds.add(startId)
-        sendMessage(intent)
+        if (intent != null) {
+            sendMessage(intent)
+        }
         logMessage("OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent + " competed")
         return super.onStartCommand(intent, flags, startId)
     }
@@ -400,12 +404,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val context = applicationContext
         val command = mMediaItemCommands[getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
-                context, mExecutorService!!, mDownloader, result, mRadioStationsStorage, mApiServiceProvider!!,
-                countryCode!!, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState, object : ResultListener {
-            override fun onResult() {
-                this@OpenRadioService.onResult()
-            }
-        })
+                context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider!!,
+                countryCode!!, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
+                object : ResultListener {
+                    override fun onResult() {
+                        this@OpenRadioService.onResult()
+                    }
+                }
+        )
         mIsRestoreState = false
         if (command != null) {
             command.execute(
@@ -453,23 +459,20 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         handleStopRequest(
                 PlaybackStateError("Can not get play url.", PlaybackStateError.Code.UNRECOGNIZED_URL)
         )
-        if (mExecutorService == null || mExecutorService!!.isShutdown) {
-            e("Can not handle unrecognized input format exception, executor is shut down")
-            return
-        }
-        mExecutorService!!.submit {
-            val urls = extractUrlsFromPlaylist(mLastPlayedUrl)
-            mMainHandler.post {
-
-                // Silently clear last references and try to restart:
-                initInternals()
-                handlePlayListUrlsExtracted(urls)
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeout(API_CALL_TIMEOUT_MS) {
+                val urls = extractUrlsFromPlaylist(mLastPlayedUrl)
+                mMainHandler.post {
+                    // Silently clear last references and try to restart:
+                    initInternals()
+                    handlePlayListUrlsExtracted(urls)
+                }
             }
         }
     }
 
     private fun handlePlayListUrlsExtracted(urls: Array<String?>) {
-        if (urls.size == 0) {
+        if (urls.isEmpty()) {
             handleStopRequest(
                     PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL)
             )
@@ -586,7 +589,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             mSession = null
             mMediaSessionCb = null
         }
-        mExecutorService!!.shutdownNow()
     }
 
     /**
@@ -647,29 +649,27 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             listener.onComplete(radioStation)
             return
         }
-        if (mExecutorService == null || mExecutorService!!.isShutdown) {
-            e("Can not handle get current playing RS async, executor is shut down")
-            return
-        }
-        mExecutorService!!.submit {
-            if (mApiServiceProvider == null) {
-                mMainHandler.post { listener.onComplete(null) }
-                return@submit
-            }
-            // Start download information about Radio Station
-            val radioStationUpdated = mApiServiceProvider!!
-                    .getStation(
-                            mDownloader,
-                            UrlBuilder.getStation(radioStation.id),
-                            CacheType.NONE
-                    )
-            if (radioStationUpdated == null) {
-                e("Can not get Radio Station from internet")
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeout(API_CALL_TIMEOUT_MS) {
+                if (mApiServiceProvider == null) {
+                    mMainHandler.post { listener.onComplete(null) }
+                    return@withTimeout
+                }
+                // Start download information about Radio Station
+                val radioStationUpdated = mApiServiceProvider!!
+                        .getStation(
+                                mDownloader,
+                                UrlBuilder.getStation(radioStation.id),
+                                CacheType.NONE
+                        )
+                if (radioStationUpdated == null) {
+                    e("Can not get Radio Station from internet")
+                    mMainHandler.post { listener.onComplete(radioStation) }
+                    return@withTimeout
+                }
+                radioStation.mediaStream = radioStationUpdated.mediaStream
                 mMainHandler.post { listener.onComplete(radioStation) }
-                return@submit
             }
-            radioStation.mediaStream = radioStationUpdated.mediaStream
-            mMainHandler.post { listener.onComplete(radioStation) }
         }
     }
 
@@ -1380,18 +1380,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         if (TextUtils.isEmpty(query)) {
             return
         }
-        if (mExecutorService == null || mExecutorService!!.isShutdown) {
-            e(CLASS_NAME + "can not handle perform search, executor is shut down")
-            return
-        }
-        mExecutorService!!.submit {
-            try {
-                executePerformSearch(query)
-            } catch (e: Exception) {
-                e(
-                        CLASS_NAME + "can not perform search for '" + query
-                                + "', exception:" + Log.getStackTraceString(e)
-                )
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeout(API_CALL_TIMEOUT_MS) {
+                try {
+                    executePerformSearch(query)
+                } catch (e: Exception) {
+                    e(CLASS_NAME + "can not perform search for '" + query + "', exception:" + e)
+                }
             }
         }
     }
@@ -1411,7 +1406,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 UrlBuilder.getSearchUrl(query),
                 CacheType.NONE
         )
-        if (list == null || list.isEmpty()) {
+        if (list.isEmpty()) {
             showAnyThread(
                     applicationContext, applicationContext.getString(R.string.no_search_results)
             )
@@ -1803,6 +1798,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
          */
         private const val STOP_DELAY = 30000
 
+        const val API_CALL_TIMEOUT_MS = 3000L
+
         /**
          * Current media player state.
          */
@@ -2051,7 +2048,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
         )
         mMasterVolumeBroadcastReceiver = MasterVolumeReceiver(
-                object  : MasterVolumeReceiverListener {
+                object : MasterVolumeReceiverListener {
                     override fun onMasterVolumeChanged() {
                         setPlayerVolume()
                     }

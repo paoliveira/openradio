@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import java.util.concurrent.*
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-internal class GoogleDriveReadFile(isTerminator: Boolean, executorService: ExecutorService) :
-        GoogleDriveAPIChain(isTerminator, executorService) {
+internal class GoogleDriveReadFile(isTerminator: Boolean) : GoogleDriveAPIChain(isTerminator) {
 
     override fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult) {
         d("Read file '" + request.fileName + "'")
@@ -38,7 +37,7 @@ internal class GoogleDriveReadFile(isTerminator: Boolean, executorService: Execu
             )
             return
         }
-        request.googleApiClient.readFile(mExecutorService, fileId)
+        request.googleApiClient.readFile(fileId)
                 .addOnSuccessListener { pair: Pair<String, String> ->
                     request.listener.onDownloadComplete(
                             String(Base64.decode(pair.second, Base64.DEFAULT)),

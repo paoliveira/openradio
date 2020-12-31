@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media.item
 
 import android.os.Bundle
@@ -23,12 +24,13 @@ import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlayb
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommandImpl.Companion.getCacheType
 import com.yuriy.openradio.shared.model.net.UrlBuilder.allCountriesUrl
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.w
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
-import com.yuriy.openradio.shared.vo.Country
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.*
 
 /**
@@ -37,25 +39,20 @@ import java.util.*
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *
  * [MediaItemCountriesList] is concrete implementation of the [MediaItemCommand] that
  * designed to prepare data to display list of all Countries.
  */
 class MediaItemCountriesList : MediaItemCommand {
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
-        d("$LOG_TAG invoked")
+
+    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+        AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.result.detach()
-        val executorService = dependencies.executorService
-        if (executorService.isShutdown) {
-            e("Can not handle MediaItemCountriesList, executor is shut down")
-            dependencies.result.sendError(Bundle())
-            return
-        }
-        executorService.submit {
-            // Load all countries into menu
-            loadAllCountries(playbackStateListener, dependencies)
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
+                // Load all countries into menu
+                loadAllCountries(playbackStateListener, dependencies)
+            } ?: dependencies.result.sendError(Bundle())
         }
     }
 
@@ -79,13 +76,12 @@ class MediaItemCountriesList : MediaItemCommand {
             )
             return
         }
-        Collections.sort(list) { c1: Country, c2: Country -> c1.name.compareTo(c2.name) }
         var identifier: Int
         var builder: MediaDescriptionCompat.Builder
         for (country in list) {
             if (!LocationService.COUNTRY_CODE_TO_NAME.containsKey(country.code)) {
                 // Add missing country to the Map of the existing ones.
-                w(CLASS_NAME + " Missing country:" + country)
+                AppLogger.w("$CLASS_NAME Missing country:$country")
                 continue
             }
             builder = MediaDescriptionCompat.Builder()

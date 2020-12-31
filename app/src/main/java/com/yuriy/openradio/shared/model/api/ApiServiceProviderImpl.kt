@@ -116,10 +116,10 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     }
 
     override fun getCountries(downloader: Downloader, uri: Uri, cacheType: CacheType): List<Country> {
-        val allCountries: MutableList<Country> = ArrayList()
+        val list: MutableList<Country> = ArrayList()
         if (mDataParser == null) {
             w(CLASS_NAME + "Can not parse data, parser is null")
-            return allCountries
+            return list
         }
         for (countryName in LocationService.COUNTRY_NAME_TO_CODE.keys) {
             val countryCode = LocationService.COUNTRY_NAME_TO_CODE[countryName]
@@ -127,9 +127,10 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 e("Country code not found for $countryName")
                 continue
             }
-            allCountries.add(Country(countryName, countryCode))
+            list.add(Country(countryName, countryCode))
         }
-        return allCountries
+        list.sortWith { c1: Country, c2: Country -> c1.name.compareTo(c2.name) }
+        return list
     }
 
     override fun getStations(downloader: Downloader, uri: Uri, cacheType: CacheType): List<RadioStation> {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media.item
 
 /**
@@ -22,13 +23,18 @@ package com.yuriy.openradio.shared.model.media.item
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 interface MediaItemCommand {
+
+    companion object {
+        const val CMD_TIMEOUT_MS = 3000L
+    }
+
     /**
-     * [IUpdatePlaybackState] is an interface
-     * to provide callback when an error occur during command execution.
+     * Interface to provide callback when an event occur during command execution.
      */
     interface IUpdatePlaybackState {
+
         /**
-         * Callback when an error occur during command execution.
+         * Callback when an event occur during command execution.
          *
          * @param error Description of an error.
          */
@@ -38,12 +44,9 @@ interface MediaItemCommand {
     /**
      * Common method to execute single, specific command.
      *
-     * @param playbackStateListener Implementation of the
-     * [IUpdatePlaybackState]
-     * interface.
-     * @param dependencies          Instance of the [MediaItemCommandDependencies] which holds various
-     * references needed to execute command.
+     * @param playbackStateListener Implementation of the [IUpdatePlaybackState] interface.
+     * @param dependencies Instance of the [MediaItemCommandDependencies] which holds various references needed to
+     * execute command.
      */
-    fun execute(playbackStateListener: IUpdatePlaybackState?,
-                dependencies: MediaItemCommandDependencies)
+    fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies)
 }

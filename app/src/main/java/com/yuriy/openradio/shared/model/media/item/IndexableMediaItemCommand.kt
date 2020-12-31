@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2018-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media.item
 
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.net.UrlBuilder
-import com.yuriy.openradio.shared.utils.AppLogger.d
+import com.yuriy.openradio.shared.utils.AppLogger
 import java.util.concurrent.atomic.*
 
 /**
@@ -27,14 +28,15 @@ import java.util.concurrent.atomic.*
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 abstract class IndexableMediaItemCommand internal constructor() : MediaItemCommandImpl() {
+
     /**
      * Index of the current page of the Radio Stations List.
      */
     private val mPageIndex: AtomicInteger = AtomicInteger(UrlBuilder.FIRST_PAGE_INDEX)
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
+
+    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)
-        d("$CLASS_NAME invoked")
+        AppLogger.d("$CLASS_NAME invoked")
         if (!dependencies.isSameCatalogue) {
             mPageIndex.set(UrlBuilder.FIRST_PAGE_INDEX)
         }

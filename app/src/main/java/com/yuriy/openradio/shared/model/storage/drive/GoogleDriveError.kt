@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.drive
 
 /**
@@ -22,7 +23,9 @@ package com.yuriy.openradio.shared.model.storage.drive
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class GoogleDriveError(val message: String) {
+
     var exception: Exception? = null
+
     override fun toString(): String {
         return "GoogleDriveError{message='$message', exception=$exception}"
     }

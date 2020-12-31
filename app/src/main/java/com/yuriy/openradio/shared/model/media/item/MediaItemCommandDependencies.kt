@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media.item
 
 import android.content.Context
@@ -26,7 +27,6 @@ import com.yuriy.openradio.shared.utils.MediaItemsComparator
 import com.yuriy.openradio.shared.utils.RadioStationsComparator
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
-import java.util.concurrent.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -43,7 +43,6 @@ class MediaItemCommandDependencies(
          * Context of the application.
          */
         val context: Context,
-        val executorService: ExecutorService,
         downloader: Downloader,
         result: MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>>,
         radioStationsStorage: RadioStationsStorage,
@@ -55,37 +54,17 @@ class MediaItemCommandDependencies(
         isSavedInstance: Boolean,
         resultListener: ResultListener) {
     /**
-     * Gets the application's context.
-     * @return the Application's context.
-     */
-    /**
-     *
-     * @return
-     */
-    /**
      * String value of the Country Code.
      */
     val countryCode: String
-    /**
-     *
-     * @return
-     */
     /**
      *
      */
     val downloader: Downloader
     /**
      *
-     * @return
-     */
-    /**
-     *
      */
     val serviceProvider: ApiServiceProvider
-    /**
-     *
-     * @return
-     */
     /**
      *
      */
@@ -93,24 +72,12 @@ class MediaItemCommandDependencies(
     private val mMediaItems: MutableList<MediaBrowserCompat.MediaItem>
     /**
      *
-     * @return
-     */
-    /**
-     *
      */
     val parentId: String
     /**
      *
-     * @return
-     */
-    /**
-     *
      */
     val radioStationsStorage: RadioStationsStorage
-    /**
-     *
-     * @return
-     */
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
@@ -120,6 +87,7 @@ class MediaItemCommandDependencies(
     val isSavedInstance: Boolean
     private val mMediaItemsComparator: Comparator<MediaBrowserCompat.MediaItem>
     private val mRadioStationsComparator: Comparator<RadioStation>
+
     fun addMediaItem(item: MediaBrowserCompat.MediaItem) {
         mMediaItems.add(item)
     }
