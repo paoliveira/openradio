@@ -52,7 +52,7 @@ class MediaItemCountriesList : MediaItemCommand {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 // Load all countries into menu
                 loadAllCountries(playbackStateListener, dependencies)
-            } ?: dependencies.result.sendError(Bundle())
+            } ?: dependencies.result.sendResult(null)
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.yuriy.openradio.shared.utils
 
-import android.text.TextUtils
 import java.util.*
 
 /**
@@ -72,12 +71,13 @@ object MediaIdHelper {
      */
     @JvmStatic
     fun getId(value: String?): String? {
-        if (value == null) {
+        if (value.isNullOrEmpty()) {
             return null
         }
         for (id in IDS) {
             if (value.startsWith(id) || value == id) {
-                return if (!TextUtils.isEmpty(getCountryCode(value))) {
+                val country = getCountryCode(value)
+                return if (country != null && country.isNotEmpty()) {
                     MEDIA_ID_COUNTRY_STATIONS
                 } else id
             }
@@ -94,15 +94,15 @@ object MediaIdHelper {
      * @return The value of the Country Code, `null` - otherwise.
      */
     @JvmStatic
-    fun getCountryCode(value: String): String? {
-        if (TextUtils.isEmpty(value)) {
+    fun getCountryCode(value: String?): String? {
+        if (value.isNullOrEmpty()) {
             return null
         }
         if (!value.startsWith(MEDIA_ID_COUNTRIES_LIST) || value == MEDIA_ID_COUNTRIES_LIST) {
             return null
         }
         val result = value.substring(value.length - 2)
-        return if (!TextUtils.isEmpty(value) && result.length == 2) {
+        return if (value.isNotEmpty() && result.length == 2) {
             result.toUpperCase(Locale.ROOT)
         } else null
     }
@@ -127,8 +127,11 @@ object MediaIdHelper {
      */
     @JvmStatic
     fun isMediaIdRefreshable(categoryMediaId: String): Boolean {
-        return (!TextUtils.isEmpty(categoryMediaId)
-                && (MEDIA_ID_ALL_STATIONS == categoryMediaId || MEDIA_ID_COUNTRY_STATIONS == categoryMediaId || MEDIA_ID_RADIO_STATIONS_IN_CATEGORY == categoryMediaId || categoryMediaId.contains(MEDIA_ID_COUNTRIES_LIST)
+        return (categoryMediaId.isNotEmpty()
+                && (MEDIA_ID_ALL_STATIONS == categoryMediaId
+                || MEDIA_ID_COUNTRY_STATIONS == categoryMediaId
+                || MEDIA_ID_RADIO_STATIONS_IN_CATEGORY == categoryMediaId
+                || categoryMediaId.contains(MEDIA_ID_COUNTRIES_LIST)
                 || categoryMediaId.contains(MEDIA_ID_CHILD_CATEGORIES)))
     }
 }

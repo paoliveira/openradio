@@ -397,7 +397,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mCurrentParentId = parentId
 
         // If Parent Id contains Country Code - use it in the API.
-        var countryCode = getCountryCode(mCurrentParentId!!)
+        var countryCode = getCountryCode(mCurrentParentId)
         if (TextUtils.isEmpty(countryCode)) {
             // Otherwise, use whatever is stored in preferences.
             countryCode = LocationPreferencesManager.getLastCountryCode(applicationContext)

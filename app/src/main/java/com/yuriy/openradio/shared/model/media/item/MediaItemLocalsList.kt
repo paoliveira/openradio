@@ -66,7 +66,7 @@ class MediaItemLocalsList : MediaItemCommand {
                 }
                 dependencies.result.sendResult(dependencies.mediaItems)
                 dependencies.resultListener.onResult()
-            } ?: dependencies.result.sendError(Bundle())
+            } ?: dependencies.result.sendResult(null)
         }
     }
 

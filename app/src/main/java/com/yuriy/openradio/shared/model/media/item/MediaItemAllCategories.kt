@@ -46,14 +46,14 @@ class MediaItemAllCategories : MediaItemCommand {
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.result.detach()
         if (dependencies.isSavedInstance) {
-            dependencies.result.sendError(Bundle())
+            dependencies.result.sendResult(null)
             return
         }
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 // Load all categories into menu
                 loadAllCategories(playbackStateListener, dependencies)
-            } ?: dependencies.result.sendError(Bundle())
+            } ?: dependencies.result.sendResult(null)
         }
     }
 

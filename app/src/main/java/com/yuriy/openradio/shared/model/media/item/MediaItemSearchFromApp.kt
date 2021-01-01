@@ -57,7 +57,7 @@ class MediaItemSearchFromApp : IndexableMediaItemCommand() {
                         )
                 )
                 handleDataLoaded(playbackStateListener, dependencies, list)
-            } ?: dependencies.result.sendError(Bundle())
+            } ?: dependencies.result.sendResult(null)
         }
     }
 
