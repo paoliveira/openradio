@@ -39,7 +39,6 @@ import com.yuriy.openradio.shared.vo.RadioStation
 abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
 
     override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
-
         AppLogger.d("$CLASS_NAME invoked")
         if (!dependencies.isSameCatalogue) {
             AppLogger.d("$CLASS_NAME not the same catalogue, clear list")

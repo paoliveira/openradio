@@ -44,6 +44,8 @@
     <string name="bt_auto_restart_descr">Resume playback when re-connected to the same Bluetooth Device</string>
     <string name="custom_user_agent_label">Custom User Agent</string>
     <string name="custom_user_agent_hint">Custom User Agent empty</string>
+    <string name="user_agent_empty_warning">User Agent can not be empty</string>
+    <string name="user_agent_can_not_apply">Can not apply User Agent</string>
     <string name="settings_master_volume">Master sound volume:</string>
     <string name="enable_logs_label">Enable Logs\n(enables application to save logs in a file)</string>
     <string name="send_logs_label">Send Logs</string>
@@ -123,7 +125,6 @@
     <string name="can_not_edit_station_label">Can not edit Radio Station</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="equalizer_presets_label">System presets:</string>
     <string name="eq_not_available">Equalizer is not available</string>
     <string name="notification_str">Notification</string>

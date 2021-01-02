@@ -17,11 +17,13 @@ package com.yuriy.openradio.shared.utils
 
 import android.content.Context
 import androidx.core.util.Pair
+import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.net.DownloaderException
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
+import com.yuriy.openradio.shared.view.SafeToast
 import okhttp3.internal.Util
 import java.io.BufferedWriter
 import java.io.IOException
@@ -64,7 +66,11 @@ object NetUtils {
             connection.defaultUseCaches = false
             connection.requestMethod = requestMethod
             val userAgent = getUserAgent(context)
-            connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent)
+            try {
+                connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent)
+            } catch (e:Exception) {
+                SafeToast.showAnyThread(context, context.getString(R.string.user_agent_can_not_apply))
+            }
             d("NetUtils UserAgent:$userAgent")
 
             // If there are http request parameters:

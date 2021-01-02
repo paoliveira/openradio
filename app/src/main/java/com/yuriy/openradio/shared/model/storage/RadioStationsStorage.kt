@@ -83,7 +83,7 @@ class RadioStationsStorage {
      */
     fun getById(id: String?): RadioStation? {
         var result: RadioStation? = null
-        if (TextUtils.isEmpty(id)) {
+        if (id.isNullOrEmpty()) {
             return result
         }
         synchronized(mRadioStations) {
