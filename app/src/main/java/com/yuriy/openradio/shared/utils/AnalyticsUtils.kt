@@ -34,6 +34,7 @@ object AnalyticsUtils {
 
     private const val EVENT_UNSUPPORTED_PLAYLIST = "EVENT_UNSUPPORTED_PLAYLIST"
     private const val KEY_URL = "KEY_URL"
+    private const val KEY_URL_INVALID = "KEY_URL_INVALID"
 
     @JvmStatic
     fun init() {
@@ -61,6 +62,13 @@ object AnalyticsUtils {
     fun logUnsupportedPlaylist(playlistUrl: String) {
         val bundle = Bundle()
         bundle.putString(KEY_URL, playlistUrl)
+        Firebase.analytics.logEvent(EVENT_UNSUPPORTED_PLAYLIST, bundle)
+    }
+
+    @JvmStatic
+    fun logUnsupportedInvalidPlaylist(playlistUrl: String) {
+        val bundle = Bundle()
+        bundle.putString(KEY_URL_INVALID, playlistUrl)
         Firebase.analytics.logEvent(EVENT_UNSUPPORTED_PLAYLIST, bundle)
     }
 }

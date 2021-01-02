@@ -21,6 +21,7 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import okhttp3.Call
 import okhttp3.Callback
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -196,6 +197,13 @@ class AutoDetectParser(private val mTimeout: Int) {
     }
 
     private fun getStreamExtension(url: String): String {
+        AnalyticsUtils.logMessage("UnsupportedPlaylist:$url")
+        var result = ""
+        val httpUrl = HttpUrl.parse(url)
+        if (httpUrl == null) {
+            AnalyticsUtils.logUnsupportedInvalidPlaylist(url)
+            return result
+        }
         AnalyticsUtils.logUnsupportedPlaylist(url)
         // More efficient click-tracking with HTTP GET to obtain the "302" response, but not follow the redirect
         // through to the Location.
@@ -205,7 +213,6 @@ class AutoDetectParser(private val mTimeout: Int) {
 
         val request = Request.Builder().url(url).build()
         val latch = CountDownLatch(1)
-        var result = ""
         client.newCall(request).enqueue(
                 object : Callback {
 
