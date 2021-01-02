@@ -56,7 +56,6 @@ import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog.Companion.findGoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog.Companion.findLogsDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
-import com.yuriy.openradio.tv.view.activity.TvMainActivity
 import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog
 import com.yuriy.openradio.tv.view.list.TvMediaItemsAdapter
 import dagger.hilt.android.AndroidEntryPoint
@@ -163,8 +162,8 @@ class TvMainActivity : FragmentActivity() {
                                             grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         d(
-                CLASS_NAME + " permissions:" + Arrays.toString(permissions)
-                        + ", results:" + Arrays.toString(grantResults)
+                CLASS_NAME + " permissions:" + permissions.contentToString()
+                        + ", results:" + grantResults.contentToString()
         )
         for (i in permissions.indices) {
             val permission = permissions[i]
@@ -189,7 +188,7 @@ class TvMainActivity : FragmentActivity() {
     /**
      * Process call back from the Search Dialog.
      */
-    fun onSearchDialogClick() {
+    private fun onSearchDialogClick() {
         if (mMediaPresenter == null) {
             return
         }
@@ -320,7 +319,7 @@ class TvMainActivity : FragmentActivity() {
         MediaItemsAdapter.updateImage(description, imgView)
         MediaItemsAdapter.updateBitrateView(
                 radioStation.mediaStream.getVariant(0)!!.bitrate,
-                findViewById<TextView>(R.id.tv_crs_bitrate_view),
+                findViewById(R.id.tv_crs_bitrate_view),
                 true
         )
         //        final CheckBox favoriteCheckView = findViewById(R.id.tv_crs_favorite_check_view);

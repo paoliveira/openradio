@@ -34,6 +34,7 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateLastPlayedField
 import com.yuriy.openradio.shared.vo.RadioStation
+import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -58,7 +59,7 @@ class MediaItemRoot : MediaItemCommand {
         // exposed.
         val latestRadioStation: RadioStation?
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            latestRadioStation = LatestRadioStationStorage.get(dependencies.context)
+            latestRadioStation = LatestRadioStationStorage[dependencies.context]
             if (latestRadioStation != null) {
                 dependencies.radioStationsStorage.add(latestRadioStation)
                 // Add Radio Station to Menu
@@ -154,7 +155,7 @@ class MediaItemRoot : MediaItemCommand {
         // If the Country code is known:
         if (!TextUtils.isEmpty(dependencies.countryCode)) {
             val identifier = context.resources.getIdentifier(
-                    "flag_" + dependencies.countryCode.toLowerCase(),
+                    "flag_" + dependencies.countryCode.toLowerCase(Locale.ROOT),
                     "drawable", context.packageName
             )
             val bundle1 = Bundle()

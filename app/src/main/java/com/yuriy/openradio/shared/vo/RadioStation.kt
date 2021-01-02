@@ -133,7 +133,7 @@ class RadioStation : Serializable {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
         val station = other as RadioStation
-        return if (mId != station.mId) false else mMediaStream.equals(station.mMediaStream)
+        return if (mId != station.mId) false else mMediaStream == station.mMediaStream
     }
 
     override fun hashCode(): Int {

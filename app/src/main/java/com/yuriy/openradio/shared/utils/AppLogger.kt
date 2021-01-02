@@ -72,7 +72,7 @@ object AppLogger {
         sInitLogsDirectory = FileUtils.getFilesDir(context).toString() + "/logs"
     }
 
-    fun getCurrentLogsDirectory(context: Context): String {
+    private fun getCurrentLogsDirectory(context: Context): String {
         if (AppUtils.externalStorageAvailable()) {
             val extLogsDirectory = AppUtils.getExternalStorageDir(context)
             if (!TextUtils.isEmpty(extLogsDirectory)) {
@@ -82,7 +82,7 @@ object AppLogger {
         return sInitLogsDirectory
     }
 
-    fun getLogsDirectories(context: Context): Array<File> {
+    private fun getLogsDirectories(context: Context): Array<File> {
         if (AppUtils.externalStorageAvailable()) {
             val extLogsDirectory = AppUtils.getExternalStorageDir(context)
             if (!TextUtils.isEmpty(extLogsDirectory)) {
@@ -114,24 +114,21 @@ object AppLogger {
         return file.exists() && file.delete()
     }
 
-    fun deleteLogcatFile(context: Context): Boolean {
+    private fun deleteLogcatFile(context: Context): Boolean {
         val file = getLogcatFile(context)
         return file.exists() && file.delete()
     }
 
-    fun getAllLogs(context: Context): Array<File> {
+    private fun getAllLogs(context: Context): Array<File> {
         val logs: MutableList<File> = ArrayList()
         val logDirs = getLogsDirectories(context)
         for (dir in logDirs) {
             if (dir.exists()) {
-                logs.addAll(Arrays.asList(*getLogs(dir)))
+                logs.addAll(listOf(*getLogs(dir)))
             }
         }
         return logs.toTypedArray()
     }
-
-    val internalLogs: Array<File>
-        get() = getLogs(File(sInitLogsDirectory))
 
     private fun getLogs(directory: File): Array<File> {
         require(!directory.isFile) {
@@ -139,11 +136,11 @@ object AppLogger {
                     + directory.absolutePath)
         }
         return directory.listFiles { dir: File, name: String ->
-            if (name != null && name.toLowerCase().endsWith(".log")) {
+            if (name != null && name.toLowerCase(Locale.ROOT).endsWith(".log")) {
                 return@listFiles true
             }
             for (i in 1..MAX_BACKUP_INDEX) {
-                if (name != null && name.toLowerCase().endsWith(".log.$i")) {
+                if (name != null && name.toLowerCase(Locale.ROOT).endsWith(".log.$i")) {
                     return@listFiles true
                 }
             }
@@ -157,7 +154,7 @@ object AppLogger {
         return FileUtils.createFileIfNeeded("$path/logs.zip")
     }
 
-    fun getLogcatFile(context: Context): File {
+    private fun getLogcatFile(context: Context): File {
         val path = getCurrentLogsDirectory(context)
         FileUtils.createDirIfNeeded(path)
         return FileUtils.createFileIfNeeded("$path/logcat.txt")

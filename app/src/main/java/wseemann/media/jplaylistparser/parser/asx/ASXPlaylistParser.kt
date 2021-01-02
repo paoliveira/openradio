@@ -42,8 +42,6 @@ import java.util.*
 
 class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
 
-    private val HREF_ATTRIBUTE = "href"
-
     /**
      * Retrieves the files listed in a .asx file
      *
@@ -226,5 +224,6 @@ class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
         private const val STARTTIME_ELEMENT = "STARTTIME"
         private const val TITLE_ELEMENT = "TITLE"
         private var sNumberOfFiles = 0
+        private const val HREF_ATTRIBUTE = "href"
     }
 }

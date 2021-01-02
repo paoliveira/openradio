@@ -50,16 +50,6 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
     var parentId: String = MediaIdHelper.MEDIA_ID_ROOT
     var listener: Listener? = null
     /**
-     * Returns the currently active Item Id.
-     *
-     * @return The currently active Item Id.
-     */
-    /**
-     * Set active Id from the items list.
-     *
-     * @param id Id of the Item.
-     */
-    /**
      * The currently selected / active Item Id.
      */
     var activeItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID
@@ -109,17 +99,6 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
      */
     fun addAll(value: List<MediaBrowserCompat.MediaItem>) {
         mAdapterData.addAll(value)
-    }
-
-    /**
-     * Add [MediaBrowserCompat.MediaItem] into the collection
-     * at specified position.
-     *
-     * @param position  Position to add.
-     * @param mediaItem [MediaBrowserCompat.MediaItem] to add.
-     */
-    fun addAt(position: Int, mediaItem: MediaBrowserCompat.MediaItem) {
-        mAdapterData.addAt(position, mediaItem)
     }
 
     /**

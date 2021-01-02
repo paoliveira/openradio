@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.model.media.item
 
-import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage

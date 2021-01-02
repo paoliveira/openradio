@@ -123,7 +123,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mListView!!.addOnScrollListener(mScrollListener)
         mAdapter!!.listener = itemAdapterListener
         mCurrentRadioStationView!!.setOnClickListener { v: View? -> activity.startService(makeToggleLastPlayedItemIntent(activity)) }
-        if (!mMediaItemsStack.isEmpty()) {
+        if (mMediaItemsStack.isNotEmpty()) {
             val mediaId = mMediaItemsStack[mMediaItemsStack.size - 1]
             d("$CLASS_NAME current media id:$mediaId")
             unsubscribeFromItem(mediaId)
@@ -296,7 +296,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mMediaRsrMgr.connect()
     }
 
-    fun getPositions(mediaItem: String?): IntArray {
+    private fun getPositions(mediaItem: String?): IntArray {
         // Restore clicked position for the Catalogue list.
         return if (!TextUtils.isEmpty(mediaItem) && mPositions.containsKey(mediaItem)) {
             mPositions[mediaItem] ?: return createInitPositionEntry()
@@ -322,7 +322,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         restoreSelectedPosition()
     }
 
-    fun restoreSelectedPosition() {
+    private fun restoreSelectedPosition() {
         // Restore positions for the Catalogue list.
         val positions = getPositions(currentParentId)
         val clickedPosition = positions[1]
@@ -332,7 +332,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         // This will do scroll to the position.
         mListView!!.scrollToPosition(selectedPosition.coerceAtLeast(0))
         Handler().postDelayed(
-                { mListView!!.smoothScrollToPosition(Math.max(selectedPosition, 0)) }, 50
+                { mListView!!.smoothScrollToPosition(selectedPosition.coerceAtLeast(0)) }, 50
         )
     }
 
@@ -346,7 +346,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 //        updateListPositions(mAdapter.getActiveItemId());
     }
 
-    fun handleRestoreInstanceState(savedInstanceState: Bundle) {
+    private fun handleRestoreInstanceState(savedInstanceState: Bundle) {
 //        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
 //        mListSavedClickedPosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_CLICKED_ID);
     }
@@ -428,7 +428,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     /**
      * Listener for the Media Resources related events.
      */
-    private inner class MediaResourceManagerListenerImpl: MediaResourceManagerListener {
+    private inner class MediaResourceManagerListenerImpl : MediaResourceManagerListener {
         override fun onConnected() {
             i("$CLASS_NAME Connected")
             handleMediaResourceManagerConnected()
@@ -471,8 +471,6 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         /**
          * Key value for the first visible ID in the List for the store Bundle
          */
-        private const val BUNDLE_ARG_LIST_1_VISIBLE_ID = "BUNDLE_ARG_LIST_1_VISIBLE_ID"
-        private const val BUNDLE_ARG_LIST_CLICKED_ID = "BUNDLE_ARG_LIST_CLICKED_ID"
         private const val BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA"
     }
 

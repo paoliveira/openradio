@@ -37,7 +37,6 @@ import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import java.io.File
 import java.math.BigInteger
-import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.util.*
 
@@ -56,10 +55,7 @@ object AppUtils {
      */
     const val TIME_OUT = 2000
     const val UTF8 = "UTF-8"
-    val UTF_8 = Charset.forName("UTF-8")
 
-    @JvmField
-    val ISO_8859_1 = Charset.forName("ISO-8859-1")
     private val ANDROID_AUTO_PACKAGE_NAMES = arrayOf(
             "com.google.android.projection.gearhead",
             "com.android.car"
@@ -106,22 +102,6 @@ object AppUtils {
         } else {
             w("$CLASS_NAME Can't get application version")
             "?"
-        }
-    }
-
-    /**
-     * Get application's version code.
-     *
-     * @param context Application context.
-     * @return Application Version code.
-     */
-    fun getApplicationCode(context: Context): Int {
-        val packageInfo = getPackageInfo(context)
-        return if (packageInfo != null) {
-            packageInfo.versionCode
-        } else {
-            w("$CLASS_NAME Can't get code version")
-            0
         }
     }
 
@@ -219,14 +199,6 @@ object AppUtils {
     fun getExternalStorageDir(context: Context): String? {
         val externalDir = getExternalFilesDirAPI8(context, null)
         return externalDir?.absolutePath
-    }
-
-    fun getLongestScreenSize(context: FragmentActivity): Int {
-        val displayMetrics = DisplayMetrics()
-        context.windowManager.defaultDisplay.getMetrics(displayMetrics)
-        val height = displayMetrics.heightPixels
-        val width = displayMetrics.widthPixels
-        return height.coerceAtLeast(width)
     }
 
     /**
@@ -402,13 +374,9 @@ object AppUtils {
      * from Activity to the Open Radio Service.
      */
     private val SEARCH_QUERY = StringBuilder()
+
     /**
      * @return Gets the Search query string.
-     */
-    /**
-     * Save Search query string.
-     *
-     * @param searchQuery Search query string.
      */
     @JvmStatic
     var searchQuery: String?

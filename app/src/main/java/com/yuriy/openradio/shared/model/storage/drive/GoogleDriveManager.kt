@@ -290,8 +290,7 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         if (mCommands.isEmpty()) {
             return
         }
-        val command = removeCommand()
-        when (command) {
+        when (removeCommand()) {
             Command.UPLOAD -> radioStationsAndUpload
             Command.DOWNLOAD -> downloadRadioStationsAndApply()
         }

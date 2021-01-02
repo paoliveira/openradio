@@ -29,6 +29,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * Receiver for the local broadcast event when clear internal API cache is required.
+ *
+ * @param listener Listener for the master volume changed event.
  */
 class ClearCacheReceiver(listener: ClearCacheReceiverListener) {
     private val mReceiver: BroadcastReceiver
@@ -56,9 +58,13 @@ class ClearCacheReceiver(listener: ClearCacheReceiverListener) {
 
     /**
      * Internal listener for the broadcast event when master volume changed.
+     *
+     * @param listener Listener for the master volume changed event.
      */
     private class BroadcastReceiverImpl(listener: ClearCacheReceiverListener) : BroadcastReceiver() {
+
         private val mListener: ClearCacheReceiverListener?
+
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if (!TextUtils.equals(action, AppLocalBroadcast.getActionClearCache())) {
@@ -70,21 +76,11 @@ class ClearCacheReceiver(listener: ClearCacheReceiverListener) {
             mListener.onClearCache()
         }
 
-        /**
-         * Main constructor.
-         *
-         * @param listener Listener for the master volume changed event.
-         */
         init {
             mListener = listener
         }
     }
 
-    /**
-     * Default constructor.
-     *
-     * @param listener Listener for the clear cache event.
-     */
     init {
         mReceiver = BroadcastReceiverImpl(listener)
     }

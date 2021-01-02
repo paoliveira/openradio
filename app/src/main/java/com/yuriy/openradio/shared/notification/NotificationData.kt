@@ -29,7 +29,7 @@ abstract class NotificationData internal constructor() {
     // Standard notification values:
     var contentTitle: String? = null
     var contentText: String? = null
-    var priority: Int = NotificationCompat.PRIORITY_DEFAULT
+    private var priority: Int = NotificationCompat.PRIORITY_DEFAULT
 
     // Notification channel values (O and above):
     var channelId: String? = null

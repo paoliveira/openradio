@@ -78,7 +78,7 @@ class EqualizerState() {
             mBandLevelRange = value.copyOf(value.size)
         }
     var centerFrequencies: IntArray
-        get() = Arrays.copyOf(mCenterFrequencies, mCenterFrequencies.size)
+        get() = mCenterFrequencies.copyOf(mCenterFrequencies.size)
         set(value) {
             mCenterFrequencies = value.copyOf(value.size)
         }

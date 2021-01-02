@@ -108,10 +108,13 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    /**
-     * Tag string to use in logging message.
-     */
-    private val CLASS_NAME: String = MainActivity::class.java.simpleName + " " + hashCode() + " "
+
+    companion object {
+        /**
+         * Tag string to use in logging message.
+         */
+        private val CLASS_NAME: String = MainActivity::class.java.simpleName + " "
+    }
 
     /**
      * Progress Bar view to indicate that data is loading.
@@ -298,8 +301,7 @@ class MainActivity : AppCompatActivity() {
             clearDialogs(this, transaction)
             menuItem.isChecked = false
             // Handle navigation view item clicks here.
-            val id = menuItem.itemId
-            when (id) {
+            when (menuItem.itemId) {
                 R.id.nav_general -> {
                     // Show Search Dialog
                     val settingsDialog = newInstance(
@@ -452,7 +454,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onRemoveRSClick(view: View) {
-        val item = view.tag as MediaBrowserCompat.MediaItem ?: return
+        val item = view.tag as MediaBrowserCompat.MediaItem
         handleRemoveRadioStationMenu(item)
     }
 
@@ -482,7 +484,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onEditRSClick(view: View) {
-        val item = view.tag as MediaBrowserCompat.MediaItem ?: return
+        val item = view.tag as MediaBrowserCompat.MediaItem
         handleEditRadioStationMenu(item)
     }
 

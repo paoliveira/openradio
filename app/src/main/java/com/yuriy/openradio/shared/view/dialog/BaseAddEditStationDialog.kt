@@ -44,7 +44,6 @@ import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
-import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -65,7 +64,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
 
     @JvmField
     var mNameEdit: EditText? = null
-    var mHomePageEdit: EditText? = null
+    private var mHomePageEdit: EditText? = null
 
     @JvmField
     var mUrlEdit: EditText? = null
@@ -113,8 +112,8 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         mImageLocalUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit)
         mImageWebUrlEdit = view.findViewById(R.id.add_edit_station_web_image_url_edit)
         mProgressView = view.findViewById(R.id.add_edit_station_dialog_progress_bar_view)
-        val countries: List<String> = ArrayList(LocationService.COUNTRY_CODE_TO_NAME.values)
-        Collections.sort(countries)
+        val countries: MutableList<String> = ArrayList(LocationService.COUNTRY_CODE_TO_NAME.values)
+        countries.sort()
         mCountriesSpinner = view.findViewById(R.id.add_edit_station_country_spin)
         // Create an ArrayAdapter using the string array and a default spinner layout
         mCountriesAdapter = ArrayAdapter(
@@ -262,8 +261,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
     }
 
     /**
-     * Validate provided input in order to pass data farther to
-     * generate [RadioStation].
+     * Processing provided input to perform appropriate actions on the data: add or edit Radio Station.
      *
      * @param name          Name of the Radio Station.
      * @param url           Url of the Stream associated with Radio Station.

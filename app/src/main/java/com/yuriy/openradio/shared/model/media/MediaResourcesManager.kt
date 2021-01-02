@@ -25,7 +25,6 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import com.yuriy.openradio.shared.model.media.MediaResourcesManager
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentParentId
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentPlaybackState
@@ -48,7 +47,7 @@ class MediaResourcesManager(context: Context, className: String) {
     /**
      * Tag string to use in logging message.
      */
-    private val CLASS_NAME: String = "MdRsrcsMgr $className "
+    private val mClassName: String = "MdRsrcsMgr $className "
 
     /**
      * Browses media content offered by a [android.service.media.MediaBrowserService].
@@ -103,7 +102,7 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun connect() {
         if (mMediaBrowser!!.isConnected) {
-            w(CLASS_NAME + "Connect aborted, already connected")
+            w(mClassName + "Connect aborted, already connected")
             // Register callbacks
             mMediaController!!.registerCallback(mMediaSessionCallback)
             // Set actual media controller
@@ -114,9 +113,9 @@ class MediaResourcesManager(context: Context, className: String) {
         }
         try {
             mMediaBrowser.connect()
-            i(CLASS_NAME + "Connected")
+            i(mClassName + "Connected")
         } catch (e: IllegalStateException) {
-            e(CLASS_NAME + "Can not connect:" + e)
+            e(mClassName + "Can not connect:" + e)
         }
     }
 
@@ -125,11 +124,11 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun disconnect() {
         if (!mMediaBrowser!!.isConnected) {
-            w(CLASS_NAME + "Disconnect aborted, already disconnected")
+            w(mClassName + "Disconnect aborted, already disconnected")
             return
         }
         mMediaBrowser.disconnect()
-        i(CLASS_NAME + "Disconnected")
+        i(mClassName + "Disconnected")
     }
 
     fun clean() {
@@ -152,13 +151,13 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun subscribe(parentId: String,
                   callback: MediaBrowserCompat.SubscriptionCallback?) {
-        i(CLASS_NAME + "Subscribe:" + parentId)
+        i(mClassName + "Subscribe:" + parentId)
         if (callback == null) {
-            e("$CLASS_NAME subscribe listener is null")
+            e("$mClassName subscribe listener is null")
             return
         }
         if (mSubscribed.contains(parentId)) {
-            w(CLASS_NAME + "already subscribed")
+            w(mClassName + "already subscribed")
             return
         }
         mSubscribed.add(parentId)
@@ -174,7 +173,7 @@ class MediaResourcesManager(context: Context, className: String) {
         if (!mSubscribed.contains(parentId)) {
             return
         }
-        i(CLASS_NAME + "Unsubscribe:" + parentId + ", " + mMediaBrowser)
+        i(mClassName + "Unsubscribe:" + parentId + ", " + mMediaBrowser)
         if (mMediaBrowser != null) {
             mSubscribed.remove(parentId)
             mMediaBrowser.unsubscribe(parentId)
@@ -206,9 +205,9 @@ class MediaResourcesManager(context: Context, className: String) {
     }
 
     private fun handleMediaBrowserConnected() {
-        d(CLASS_NAME + "Session token " + mMediaBrowser!!.sessionToken)
+        d(mClassName + "Session token " + mMediaBrowser!!.sessionToken)
         if (mActivity == null) {
-            e("$CLASS_NAME media browser connected when context is null, disconnect")
+            e("$mClassName media browser connected when context is null, disconnect")
             disconnect()
             return
         }
@@ -234,7 +233,7 @@ class MediaResourcesManager(context: Context, className: String) {
         if (mListener != null) {
             mListener!!.onConnected()
         } else {
-            e("$CLASS_NAME handle media browser connected, listener is null")
+            e("$mClassName handle media browser connected, listener is null")
         }
     }
 
@@ -243,12 +242,12 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     private inner class MediaBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
-            i(CLASS_NAME + "Connected")
+            i(mClassName + "Connected")
             handleMediaBrowserConnected()
         }
 
         override fun onConnectionSuspended() {
-            w(CLASS_NAME + "Connection Suspended")
+            w(mClassName + "Connection Suspended")
             val manager = this@MediaResourcesManager
             manager.mMediaController!!.unregisterCallback(manager.mMediaSessionCallback)
             manager.mTransportControls = null
@@ -259,7 +258,7 @@ class MediaResourcesManager(context: Context, className: String) {
         }
 
         override fun onConnectionFailed() {
-            e(CLASS_NAME + "Connection Failed")
+            e(mClassName + "Connection Failed")
         }
     }
 
@@ -271,47 +270,47 @@ class MediaResourcesManager(context: Context, className: String) {
     private inner class MediaSessionCallback : MediaControllerCompat.Callback() {
         private var mCurrentState: PlaybackStateCompat? = null
         override fun onSessionDestroyed() {
-            i(CLASS_NAME + "Session destroyed. Need to fetch a new Media Session")
+            i(mClassName + "Session destroyed. Need to fetch a new Media Session")
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             if (state == null) {
-                e(CLASS_NAME + "PlaybackStateChanged to null state")
+                e(mClassName + "PlaybackStateChanged to null state")
                 return
             }
             d(
-                    CLASS_NAME + "psc:["
+                    mClassName + "psc:["
                             + playbackStateToString(state) + "]" + state
             )
             mCurrentState = state
             if (mListener == null) {
-                e(CLASS_NAME + "PlaybackStateChanged listener null")
+                e(mClassName + "PlaybackStateChanged listener null")
                 return
             }
             mListener!!.onPlaybackStateChanged(state)
         }
 
         override fun onQueueChanged(queue: List<MediaSessionCompat.QueueItem>) {
-            d(CLASS_NAME + "Queue changed:" + queue)
+            d(mClassName + "Queue changed:" + queue)
             if (mListener == null) {
-                e(CLASS_NAME + "Queue changed listener null")
+                e(mClassName + "Queue changed listener null")
                 return
             }
             mListener!!.onQueueChanged(queue)
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            d(CLASS_NAME + "Metadata changed:" + metadata)
+            d(mClassName + "Metadata changed:" + metadata)
             if (metadata == null) {
-                e(CLASS_NAME + "Metadata changed null")
+                e(mClassName + "Metadata changed null")
                 return
             }
             if (mListener == null) {
-                e(CLASS_NAME + "Metadata changed listener null")
+                e(mClassName + "Metadata changed listener null")
                 return
             }
             if (mMediaController == null) {
-                e(CLASS_NAME + "Metadata changed media controller null")
+                e(mClassName + "Metadata changed media controller null")
                 return
             }
             mListener!!.onMetadataChanged(

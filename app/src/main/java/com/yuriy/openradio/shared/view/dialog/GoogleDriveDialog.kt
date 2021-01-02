@@ -34,7 +34,6 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
-import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 
 /**
  * Created by Yuriy Chernyshov
@@ -85,15 +84,9 @@ class GoogleDriveDialog : BaseDialogFragment() {
         return createAlertDialog(view)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-
-        // TODO: Save state and continue with Google Drive if procedure was interrupted by device rotation.
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        AppLogger.d(CLASS_NAME + " OnActivityResult: request:" + requestCode + " result:" + resultCode)
+        AppLogger.d("$CLASS_NAME OnActivityResult: request:$requestCode result:$resultCode")
         if (requestCode != ACCOUNT_REQUEST_CODE) {
             return
         }

@@ -43,7 +43,7 @@ class AddStationDialog : BaseAddEditStationDialog() {
 
     /**
      * Validate provided input in order to pass data farther to
-     * generate [RadioStation].
+     * generate [RadioStationToAdd].
      *
      * @param radioStationToAdd
      */

@@ -134,7 +134,7 @@ class LogsDialog : BaseDialogFragment() {
             val sendIntent = Intent(Intent.ACTION_SEND)
             sendIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(mailInfo?.mTo))
             sendIntent.putExtra(Intent.EXTRA_SUBJECT, mailInfo?.mSubj)
-            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo?.mMailBody + "\r\n");
+            sendIntent.putExtra(Intent.EXTRA_TEXT, mailInfo?.mMailBody + "\r\n")
             sendIntent.type = "vnd.android.cursor.dir/email"
             try {
                 val path = FileProvider.getUriForFile(

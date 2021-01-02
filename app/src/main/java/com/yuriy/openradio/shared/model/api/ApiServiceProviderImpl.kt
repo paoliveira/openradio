@@ -55,6 +55,9 @@ import java.util.*
  *
  * [ApiServiceProviderImpl] is the implementation of the
  * [ApiServiceProvider] interface.
+ *
+ * @param context    Context of a callee.
+ * @param dataParser Implementation of the [DataParser]
  */
 class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServiceProvider {
     /**
@@ -147,11 +150,11 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             return radioStations
         }
         val array = downloadJsonArray(downloader, uri, parameters, cacheType)
-        var `object`: JSONObject
-        for (i in 0 until array!!.length()) {
+        var jsonObject: JSONObject
+        for (i in 0 until array.length()) {
             try {
-                `object` = array[i] as JSONObject
-                val radioStation = getRadioStation(mContext, `object`)
+                jsonObject = array[i] as JSONObject
+                val radioStation = getRadioStation(mContext, jsonObject)
                 // TODO: Move this check point into Radio Station
                 if (radioStation.isMediaStreamEmpty()) {
                     continue
@@ -201,15 +204,15 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             e(CLASS_NAME + "Can not parse data, response is empty")
             return null
         }
-        val `object`: JSONObject
-        `object` = try {
+        val jsonObject: JSONObject
+        jsonObject = try {
             JSONObject(response)
         } catch (e: JSONException) {
             logException(e)
             return null
         }
         try {
-            return getRadioStation(mContext, `object`)
+            return getRadioStation(mContext, jsonObject)
         } catch (e: JSONException) {
             logException(e)
         }
@@ -300,42 +303,42 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     /**
      * Updates [RadioStation] with the values extracted from the JSOn Object.
      *
-     * @param object JSON object that holds informational parameters.
+     * @param `object` JSON object that holds informational parameters.
      * @return RadioStation or null.
      * @throws JSONException
      */
     @Throws(JSONException::class)
-    private fun getRadioStation(context: Context, `object`: JSONObject): RadioStation {
+    private fun getRadioStation(context: Context, jsonObject: JSONObject): RadioStation {
         val radioStation = makeDefaultInstance(
-                context, `object`.getString(JsonDataParserImpl.KEY_STATION_UUID)
+                context, jsonObject.getString(JsonDataParserImpl.KEY_STATION_UUID)
         )
-        if (`object`.has(JsonDataParserImpl.KEY_STATUS)) {
-            radioStation.status = `object`.getInt(JsonDataParserImpl.KEY_STATUS)
+        if (jsonObject.has(JsonDataParserImpl.KEY_STATUS)) {
+            radioStation.status = jsonObject.getInt(JsonDataParserImpl.KEY_STATUS)
         }
-        if (`object`.has(JsonDataParserImpl.KEY_NAME)) {
-            radioStation.name = `object`.getString(JsonDataParserImpl.KEY_NAME)
+        if (jsonObject.has(JsonDataParserImpl.KEY_NAME)) {
+            radioStation.name = jsonObject.getString(JsonDataParserImpl.KEY_NAME)
         }
-        if (`object`.has(JsonDataParserImpl.KEY_HOME_PAGE)) {
-            radioStation.homePage = `object`.getString(JsonDataParserImpl.KEY_HOME_PAGE)
+        if (jsonObject.has(JsonDataParserImpl.KEY_HOME_PAGE)) {
+            radioStation.homePage = jsonObject.getString(JsonDataParserImpl.KEY_HOME_PAGE)
         }
-        if (`object`.has(JsonDataParserImpl.KEY_COUNTRY)) {
-            radioStation.country = `object`.getString(JsonDataParserImpl.KEY_COUNTRY)
+        if (jsonObject.has(JsonDataParserImpl.KEY_COUNTRY)) {
+            radioStation.country = jsonObject.getString(JsonDataParserImpl.KEY_COUNTRY)
         }
-        if (`object`.has(JsonDataParserImpl.KEY_COUNTRY_CODE)) {
-            radioStation.countryCode = `object`.getString(JsonDataParserImpl.KEY_COUNTRY_CODE)
+        if (jsonObject.has(JsonDataParserImpl.KEY_COUNTRY_CODE)) {
+            radioStation.countryCode = jsonObject.getString(JsonDataParserImpl.KEY_COUNTRY_CODE)
         }
-        if (`object`.has(JsonDataParserImpl.KEY_URL)) {
+        if (jsonObject.has(JsonDataParserImpl.KEY_URL)) {
             var bitrate = 0
-            if (`object`.has(JsonDataParserImpl.KEY_BIT_RATE)) {
-                bitrate = `object`.getInt(JsonDataParserImpl.KEY_BIT_RATE)
+            if (jsonObject.has(JsonDataParserImpl.KEY_BIT_RATE)) {
+                bitrate = jsonObject.getInt(JsonDataParserImpl.KEY_BIT_RATE)
             }
             val mediaStream = MediaStream.makeDefaultInstance()
-            mediaStream.setVariant(bitrate, `object`.getString(JsonDataParserImpl.KEY_URL))
+            mediaStream.setVariant(bitrate, jsonObject.getString(JsonDataParserImpl.KEY_URL))
             radioStation.mediaStream = mediaStream
         }
-        if (`object`.has(JsonDataParserImpl.KEY_IMAGE)) {
+        if (jsonObject.has(JsonDataParserImpl.KEY_IMAGE)) {
             // TODO : Encapsulate Image in the same way as Stream.
-            val imageObject = `object`.getJSONObject(JsonDataParserImpl.KEY_IMAGE)
+            val imageObject = jsonObject.getJSONObject(JsonDataParserImpl.KEY_IMAGE)
             if (imageObject.has(JsonDataParserImpl.KEY_URL)) {
                 radioStation.imageUrl = imageObject.getString(JsonDataParserImpl.KEY_URL)
             }
@@ -348,9 +351,9 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 }
             }
         }
-        if (`object`.has(JsonDataParserImpl.KEY_FAV_ICON)) {
-            radioStation.imageUrl = `object`.getString(JsonDataParserImpl.KEY_FAV_ICON)
-            radioStation.thumbUrl = `object`.getString(JsonDataParserImpl.KEY_FAV_ICON)
+        if (jsonObject.has(JsonDataParserImpl.KEY_FAV_ICON)) {
+            radioStation.imageUrl = jsonObject.getString(JsonDataParserImpl.KEY_FAV_ICON)
+            radioStation.thumbUrl = jsonObject.getString(JsonDataParserImpl.KEY_FAV_ICON)
         }
         return radioStation
     }
@@ -362,12 +365,6 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         private val CLASS_NAME = ApiServiceProviderImpl::class.java.simpleName + " "
     }
 
-    /**
-     * Constructor.
-     *
-     * @param context    Context of a callee.
-     * @param dataParser Implementation of the [DataParser]
-     */
     init {
         mApiCachePersistent = PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME)
         mApiCacheInMemory = InMemoryApiCache()

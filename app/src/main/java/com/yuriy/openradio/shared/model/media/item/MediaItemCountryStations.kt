@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.model.media.item
 
-import android.os.Bundle
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.net.UrlBuilder.getStationsInCountry

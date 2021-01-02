@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.parser
 
 /**
@@ -28,6 +29,7 @@ package com.yuriy.openradio.shared.model.parser
  * provider impl.
  */
 class JsonDataParserImpl : DataParser {
+
     companion object {
         const val KEY_STATION_UUID = "stationuuid"
         const val KEY_NAME = "name"

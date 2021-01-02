@@ -55,7 +55,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
         mMediaId = getMediaId(arguments)
         val context: Context? = activity
         if (mMediaId != null) {
-            val radioStation = LocalRadioStationsStorage.get(mMediaId, context)
+            val radioStation = LocalRadioStationsStorage[mMediaId, context]
             if (radioStation != null) {
                 handleUI(radioStation, context)
             } else {

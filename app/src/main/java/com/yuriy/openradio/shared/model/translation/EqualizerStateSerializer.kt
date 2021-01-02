@@ -24,14 +24,14 @@ import com.yuriy.openradio.shared.vo.EqualizerState
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * [EqualizerStateSerializer] is an interface that provides common method to serialize
- * [Equalizer]'s state.
+ * [android.media.audiofx.Equalizer]'s state.
  */
 interface EqualizerStateSerializer {
     /**
-     * Serialize [Equalizer]'s state.
+     * Serialize [android.media.audiofx.Equalizer]'s state.
      *
-     * @param state [Equalizer]'s state to be serialized.
-     * @return String representation of [Equalizer]'s state.
+     * @param state [android.media.audiofx.Equalizer]'s state to be serialized.
+     * @return String representation of [android.media.audiofx.Equalizer]'s state.
      */
     fun serialize(state: EqualizerState): String
 }

@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.utils
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import com.yuriy.openradio.shared.utils.AppLogger.e
 
 /**
@@ -28,7 +27,6 @@ import com.yuriy.openradio.shared.utils.AppLogger.e
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 object IntentUtils {
-    const val REQUEST_CODE_LOCATION_SETTINGS = 100
     const val REQUEST_CODE_FILE_SELECTED = 101
 
     /**
@@ -39,15 +37,6 @@ object IntentUtils {
      */
     fun makeUrlBrowsableIntent(url: String?): Intent {
         return Intent(Intent.ACTION_VIEW, Uri.parse(url))
-    }
-
-    /**
-     * Make Intent to open Location Service settings,
-     *
-     * @return [Intent].
-     */
-    fun makeOpenLocationSettingsIntent(): Intent {
-        return Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
     }
 
     /**

@@ -39,8 +39,8 @@ class PersistentAPIDbHelper internal constructor(context: Context?, dbName: Stri
     companion object {
         private const val DATABASE_VERSION = 2
         const val DATABASE_NAME = "APICache.db"
-        private val SQL_CREATE_ENTRIES = "CREATE TABLE IF NOT EXISTS " + PersistentAPIContract.APIEntry.TABLE_NAME + " (" +
-                PersistentAPIContract.APIEntry._ID + " INTEGER PRIMARY KEY," +
+        private const val SQL_CREATE_ENTRIES = "CREATE TABLE IF NOT EXISTS " + PersistentAPIContract.APIEntry.TABLE_NAME + " (" +
+                PersistentAPIContract.APIEntry.ID + " INTEGER PRIMARY KEY," +
                 PersistentAPIContract.APIEntry.COLUMN_NAME_KEY + " TEXT," +
                 PersistentAPIContract.APIEntry.COLUMN_NAME_DATA + " TEXT, " +
                 PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP + " INTEGER)"

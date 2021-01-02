@@ -69,10 +69,6 @@ class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchRe
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun onPause() {
         mHandler.removeCallbacksAndMessages(null)
         try {

@@ -48,7 +48,7 @@ class PlaylistEntry {
         return values?.get(0)
     }
 
-    private fun _getValues(name: String): Array<String?> {
+    private fun getValuesInternal(name: String): Array<String?> {
         var values = metadata[name]
         if (values == null) {
             values = arrayOfNulls(0)
@@ -93,8 +93,8 @@ class PlaylistEntry {
         }
         val names = names()
         for (name in names) {
-            val otherValues = otherCpy._getValues(name)
-            val thisValues = _getValues(name)
+            val otherValues = otherCpy.getValuesInternal(name)
+            val thisValues = getValuesInternal(name)
             if (otherValues.size != thisValues.size) {
                 return false
             }
@@ -111,7 +111,7 @@ class PlaylistEntry {
         val builder = StringBuilder()
         val names = names()
         for (name in names) {
-            val values = _getValues(name)
+            val values = getValuesInternal(name)
             for (value in values) {
                 builder.append(name).append("=").append(value).append(" ")
             }

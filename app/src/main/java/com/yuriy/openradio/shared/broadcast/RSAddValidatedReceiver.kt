@@ -33,6 +33,8 @@ import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getActionValidateO
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * Receiver for the local broadcast event when Radio Station that supposed to be added is validated.
+ *
+ * @param listener Listener for the master volume changed event.
  */
 class RSAddValidatedReceiver(listener: RSAddValidatedReceiverListener) {
     private val mReceiver: BroadcastReceiver
@@ -61,9 +63,13 @@ class RSAddValidatedReceiver(listener: RSAddValidatedReceiverListener) {
 
     /**
      * Internal listener for the broadcast event when master volume changed.
+     *
+     * @param listener Listener for the master volume changed event.
      */
     private class BroadcastReceiverImpl(listener: RSAddValidatedReceiverListener) : BroadcastReceiver() {
+
         private val mListener: RSAddValidatedReceiverListener?
+
         override fun onReceive(context: Context, intent: Intent) {
             if (mListener == null) {
                 return
@@ -77,21 +83,11 @@ class RSAddValidatedReceiver(listener: RSAddValidatedReceiverListener) {
             }
         }
 
-        /**
-         * Main constructor.
-         *
-         * @param listener Listener for the master volume changed event.
-         */
         init {
             mListener = listener
         }
     }
 
-    /**
-     * Default constructor.
-     *
-     * @param listener Listener for the new radio station validation event.
-     */
     init {
         mReceiver = BroadcastReceiverImpl(listener)
     }

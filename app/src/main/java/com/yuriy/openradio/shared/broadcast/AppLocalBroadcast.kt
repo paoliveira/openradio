@@ -46,9 +46,9 @@ object AppLocalBroadcast {
      * Action name for the "Master Volume Changed" event,
      * when volume of application's player was changed.
      */
-    const val actionMasterVolumeChanged = "ACTION_MASTER_VOLUME_CHANGED"
-    const val actionValidateOfRSFailed = "ACTION_VALIDATE_OF_RS_FAILED"
-    const val actionValidateOfRSSuccess = "ACTION_VALIDATE_OF_RS_SUCCESS"
+    private const val actionMasterVolumeChanged = "ACTION_MASTER_VOLUME_CHANGED"
+    private const val actionValidateOfRSFailed = "ACTION_VALIDATE_OF_RS_FAILED"
+    private const val actionValidateOfRSSuccess = "ACTION_VALIDATE_OF_RS_SUCCESS"
 
     /**
      * Key value for the Currently selected index in the Intent's bundles.
@@ -61,7 +61,7 @@ object AppLocalBroadcast {
     private const val KEY_CURRENT_MEDIA_ID_ON_QUEUE = "KEY_CURRENT_MEDIA_ID_ON_QUEUE"
     private const val KEY_VALIDATED_RS_FAIL_REASON = "KEY_VALIDATED_RS_FAIL_REASON"
     private const val KEY_VALIDATED_RS_SUCCESS_MESSAGE = "KEY_VALIDATED_RS_SUCCESS_MESSAGE"
-    const val actionClearCache = "ACTION_CLEAR_CACHE"
+    private const val actionClearCache = "ACTION_CLEAR_CACHE"
     @JvmStatic
     fun getCurrentIndexOnQueue(intent: Intent): Int {
         return intent.getIntExtra(KEY_CURRENT_INDEX_ON_QUEUE, 0)

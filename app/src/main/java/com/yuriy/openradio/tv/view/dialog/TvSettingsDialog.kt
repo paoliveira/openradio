@@ -32,7 +32,6 @@ import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
-import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog
 import java.util.*
 import java.util.concurrent.atomic.*
 

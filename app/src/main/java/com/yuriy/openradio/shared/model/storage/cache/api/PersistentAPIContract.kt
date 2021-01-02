@@ -32,7 +32,7 @@ internal class PersistentAPIContract private constructor() {
          * The unique ID for a row.
          */
         // @Column(Cursor.FIELD_TYPE_INTEGER)
-        const val _ID = BaseColumns._ID
+        const val ID = BaseColumns._ID
         const val TABLE_NAME = "apicache"
         const val COLUMN_NAME_KEY = "key"
         const val COLUMN_NAME_DATA = "data"

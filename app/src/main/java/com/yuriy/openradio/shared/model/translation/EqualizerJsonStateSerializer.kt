@@ -27,7 +27,7 @@ import org.json.JSONObject
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * [EqualizerJsonStateSerializer] is implementation of the [EqualizerStateSerializer]
- * interface that serialize [Equalizer] into JSON's String.
+ * interface that serialize [android.media.audiofx.Equalizer] into JSON's String.
  */
 class EqualizerJsonStateSerializer : EqualizerStateSerializer {
 

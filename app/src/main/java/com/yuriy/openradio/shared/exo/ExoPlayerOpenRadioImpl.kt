@@ -72,6 +72,10 @@ import java.util.concurrent.atomic.*
  *
  *
  * Wrapper of the ExoPlayer.
+ *
+ * @param mContext         Application context.
+ * @param listener         Listener for the wrapper's events.
+ * @param metadataListener Listener for the stream events.
  */
 class ExoPlayerOpenRadioImpl(private val mContext: Context,
                              listener: Listener,
@@ -326,7 +330,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             mEqualizer = null
         }
         if (mExoPlayer == null) {
-            d(LOG_TAG + " ExoPlayer impl already released")
+            d("$LOG_TAG ExoPlayer impl already released")
             return
         }
         mExoPlayer!!.removeListener(mComponentListener)
@@ -342,20 +346,21 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      * Listener class for the players components events.
      */
     private inner class ComponentListener : MetadataOutput, Player.EventListener {
+
         /**
          * String tag to use in logs.
          */
-        private val LOG_TAG = ComponentListener::class.java.simpleName
+        private val mLogTag = ComponentListener::class.java.simpleName
         override fun onMetadata(metadata: Metadata) {
 
             // TODO: REFACTOR THIS QUICK CODE!!
             var entry: Metadata.Entry
             for (i in 0 until metadata.length()) {
                 entry = metadata[i]
-                d("$LOG_TAG Metadata entry:$entry")
+                d("$mLogTag Metadata entry:$entry")
                 if (entry is IcyInfo) {
                     val info = metadata[i] as IcyInfo
-                    d("$LOG_TAG IcyInfo title:$info")
+                    d("$mLogTag IcyInfo title:$info")
                     var title = info.title
                     if (TextUtils.isEmpty(title)) {
                         return
@@ -365,32 +370,32 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 }
                 if (entry is IcyHeaders) {
                     val headers = metadata[i] as IcyHeaders
-                    d("$LOG_TAG IcyHeaders name:$headers")
+                    d("$mLogTag IcyHeaders name:$headers")
                 }
             }
         }
 
         // Event listener
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-            d("$LOG_TAG onTimelineChanged $timeline, reason $reason")
+            d("$mLogTag onTimelineChanged $timeline, reason $reason")
             updateProgress()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            d("$LOG_TAG onPlayerStateChanged to $playbackState")
+            d("$mLogTag onPlayerStateChanged to $playbackState")
             mListener.onPlaybackStateChanged(playbackState)
             when (playbackState) {
-                Player.STATE_BUFFERING -> d("$LOG_TAG STATE_BUFFERING")
+                Player.STATE_BUFFERING -> d("$mLogTag STATE_BUFFERING")
                 Player.STATE_ENDED -> {
-                    d("$LOG_TAG STATE_ENDED, userState:$mUserState")
+                    d("$mLogTag STATE_ENDED, userState:$mUserState")
                     mUpdateProgressHandler!!.removeCallbacks(mUpdateProgressAction!!)
                     if (mUserState != UserState.PAUSE && mUserState != UserState.RESET) {
                         prepare(mUri)
                     }
                 }
-                Player.STATE_IDLE -> d("$LOG_TAG STATE_IDLE")
+                Player.STATE_IDLE -> d("$mLogTag STATE_IDLE")
                 Player.STATE_READY -> {
-                    d("$LOG_TAG STATE_READY")
+                    d("$mLogTag STATE_READY")
                     mListener.onPrepared()
                     mNumOfExceptions.set(0)
                     initEqualizer(mExoPlayer!!.audioSessionId)
@@ -402,10 +407,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         }
 
         override fun onPlayerError(exception: ExoPlaybackException) {
-            e("$LOG_TAG suspected url: $mUri")
-            e("""$LOG_TAG onPlayerError:
+            e("$mLogTag suspected url: $mUri")
+            e("""$mLogTag onPlayerError:
 ${Log.getStackTraceString(exception)}""")
-            e(LOG_TAG + " num of exceptions " + mNumOfExceptions.get())
+            e(mLogTag + " num of exceptions " + mNumOfExceptions.get())
             if (mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
                 if (exception.cause is UnrecognizedInputFormatException) {
                     mListener.onHandledError(exception)
@@ -419,7 +424,7 @@ ${Log.getStackTraceString(exception)}""")
         }
 
         override fun onPositionDiscontinuity(@DiscontinuityReason reason: Int) {
-            e("$LOG_TAG onPositionDiscontinuity:$reason")
+            e("$mLogTag onPositionDiscontinuity:$reason")
             updateProgress()
         }
     }
@@ -483,13 +488,6 @@ ${Log.getStackTraceString(exception)}""")
         private const val MAX_EXCEPTIONS_COUNT = 5
     }
 
-    /**
-     * Main constructor.
-     *
-     * @param context          Application context.
-     * @param listener         Listener for the wrapper's events.
-     * @param metadataListener Listener for the stream events.
-     */
     init {
         mComponentListener = ComponentListener()
         mListener = listener

@@ -73,14 +73,19 @@ class ConnectivityReceiver (private val mListener: Listener) : AbstractReceiver(
             d("$CLASS_NAME NetQ:WiFi")
         } else if (info.type == ConnectivityManager.TYPE_MOBILE) {
             d(CLASS_NAME + " NetQ:Mobile:" + info.subtype)
-            if (info.subtype == TelephonyManager.NETWORK_TYPE_GPRS) {
-                // Bandwidth between 100 kbps and below
-            } else if (info.subtype == TelephonyManager.NETWORK_TYPE_EDGE) {
-                // Bandwidth between 50-100 kbps
-            } else if (info.subtype == TelephonyManager.NETWORK_TYPE_EVDO_0) {
-                // Bandwidth between 400-1000 kbps
-            } else if (info.subtype == TelephonyManager.NETWORK_TYPE_EVDO_A) {
-                // Bandwidth between 600-1400 kbps
+            when (info.subtype) {
+                TelephonyManager.NETWORK_TYPE_GPRS -> {
+                    // Bandwidth between 100 kbps and below
+                }
+                TelephonyManager.NETWORK_TYPE_EDGE -> {
+                    // Bandwidth between 50-100 kbps
+                }
+                TelephonyManager.NETWORK_TYPE_EVDO_0 -> {
+                    // Bandwidth between 400-1000 kbps
+                }
+                TelephonyManager.NETWORK_TYPE_EVDO_A -> {
+                    // Bandwidth between 600-1400 kbps
+                }
             }
 
             // Other list of various subtypes you can check for and their bandwidth limits
@@ -92,7 +97,6 @@ class ConnectivityReceiver (private val mListener: Listener) : AbstractReceiver(
             // TelephonyManager.NETWORK_TYPE_UMTS        ~ 400-7000 kbps
             // TelephonyManager.NETWORK_TYPE_UNKNOWN     ~ Unknown
         }
-        //        AppLogger.d("LinkDownstreamBandwidthKbps: " + value);
     }
 
     companion object {
@@ -106,7 +110,7 @@ class ConnectivityReceiver (private val mListener: Listener) : AbstractReceiver(
          */
         @SuppressLint("MissingPermission")
         fun checkConnectivity(context: Context): Boolean {
-            val manager = getConnectivityManager(context) ?: return false
+            val manager = getConnectivityManager(context)
             val networkInfo = manager.activeNetworkInfo
             return !(networkInfo == null || !networkInfo.isConnectedOrConnecting)
         }

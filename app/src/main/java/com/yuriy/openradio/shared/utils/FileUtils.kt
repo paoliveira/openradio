@@ -67,7 +67,7 @@ object FileUtils {
      * @param file
      * @return
      */
-    fun deleteFile(file: File?): Boolean {
+    private fun deleteFile(file: File?): Boolean {
         if (file == null) {
             return false
         }
@@ -125,12 +125,12 @@ object FileUtils {
      * @param outputStream
      * @return true if successful, false otherwise
      */
-    fun downloadUrlToStream(context: Context?,
-                            urlString: String,
-                            outputStream: OutputStream?): Boolean {
+    private fun downloadUrlToStream(context: Context?,
+                                    urlString: String,
+                                    outputStream: OutputStream?): Boolean {
         var connection: HttpURLConnection? = null
         var out: BufferedOutputStream? = null
-        var `in`: BufferedInputStream? = null
+        var bufferedInputStream: BufferedInputStream? = null
         try {
             if (isWebUrl(urlString)) {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context!!)) {
@@ -138,17 +138,17 @@ object FileUtils {
                     if (connection == null) {
                         return false
                     }
-                    `in` = BufferedInputStream(connection.inputStream, IO_BUFFER_SIZE)
+                    bufferedInputStream = BufferedInputStream(connection.inputStream, IO_BUFFER_SIZE)
                 }
             } else {
-                `in` = BufferedInputStream(FileInputStream(File(urlString)), IO_BUFFER_SIZE)
+                bufferedInputStream = BufferedInputStream(FileInputStream(File(urlString)), IO_BUFFER_SIZE)
             }
             out = BufferedOutputStream(outputStream, IO_BUFFER_SIZE)
-            if (`in` == null) {
+            if (bufferedInputStream == null) {
                 return false
             }
             var b: Int
-            while (`in`.read().also { b = it } != -1) {
+            while (bufferedInputStream.read().also { b = it } != -1) {
                 out.write(b)
             }
             return true
@@ -160,7 +160,7 @@ object FileUtils {
             NetUtils.closeHttpURLConnection(connection)
             try {
                 out?.close()
-                `in`?.close()
+                bufferedInputStream?.close()
             } catch (e: IOException) {
                 /* Ignore */
             }
@@ -186,7 +186,7 @@ ${Log.getStackTraceString(e)}""")
         return file
     }
 
-    fun isFileExists(file: File?): Boolean {
+    private fun isFileExists(file: File?): Boolean {
         return if (file == null) {
             false
         } else file.exists() && !file.isDirectory

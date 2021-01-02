@@ -26,7 +26,7 @@ import java.util.*
  *
  *
  * This class designed in a way to provide sort functionality for the
- * [MediaBrowserCompat.MediaItem]s.
+ * [android.support.v4.media.MediaBrowserCompat.MediaItem]s.
  */
 class RadioStationsComparator: Comparator<RadioStation> {
     override fun compare(radioStation1: RadioStation?,

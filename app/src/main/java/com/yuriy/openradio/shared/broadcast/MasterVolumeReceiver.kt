@@ -30,8 +30,11 @@ import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getActionMasterVol
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * Receiver for the local broadcast event when master volume of Exo Player changed.
+ *
+ * @param listener Listener for the master volume changed event.
  */
 class MasterVolumeReceiver(listener: MasterVolumeReceiverListener) {
+
     private val mReceiver: BroadcastReceiver
 
     /**
@@ -57,9 +60,13 @@ class MasterVolumeReceiver(listener: MasterVolumeReceiverListener) {
 
     /**
      * Internal listener for the broadcast event when master volume changed.
+     *
+     * @param listener Listener for the master volume changed event.
      */
     private class BroadcastReceiverImpl(listener: MasterVolumeReceiverListener) : BroadcastReceiver() {
+
         private val mListener: MasterVolumeReceiverListener?
+
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if (!TextUtils.equals(action, getActionMasterVolumeChanged())) {
@@ -71,21 +78,11 @@ class MasterVolumeReceiver(listener: MasterVolumeReceiverListener) {
             mListener.onMasterVolumeChanged()
         }
 
-        /**
-         * Main constructor.
-         *
-         * @param listener Listener for the master volume changed event.
-         */
         init {
             mListener = listener
         }
     }
 
-    /**
-     * Default constructor.
-     *
-     * @param listener Listener for the master volume changed event.
-     */
     init {
         mReceiver = BroadcastReceiverImpl(listener)
     }

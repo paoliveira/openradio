@@ -71,12 +71,6 @@ abstract class BaseDialogFragment : DialogFragment() {
 
     companion object {
         /**
-         *
-         * @param className
-         * @param bundle
-         * @return
-         */
-        /**
          * Factory method to create instance of the provided class.
          *
          * @param className Name of the class to have instance of.

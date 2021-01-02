@@ -26,15 +26,15 @@ import com.yuriy.openradio.shared.vo.EqualizerState
  *
  *
  * [EqualizerStateSerializer] is an interface that provides common method to de-serialize
- * [Equalizer]'s state which is needed to apply to instance of [Equalizer].
+ * [android.media.audiofx.Equalizer]'s state which is needed to apply to instance of [android.media.audiofx.Equalizer].
  */
 interface EqualizerStateDeserializer {
     /**
-     * Deserialize [Equalizer]'s state.
+     * Deserialize [android.media.audiofx.Equalizer]'s state.
      *
      * @param context Context of callee.
-     * @param value   String representation of the [Equalizer]'s state.
-     * @return State of [Equalizer] as [EqualizerState] object.
+     * @param value   String representation of the [android.media.audiofx.Equalizer]'s state.
+     * @return State of [android.media.audiofx.Equalizer] as [EqualizerState] object.
      */
     fun deserialize(context: Context, value: String): EqualizerState
 }

@@ -63,7 +63,7 @@ object MediaItemHelper {
         return drawableId != DRAWABLE_ID_UNDEFINED
     }
 
-    fun updateBitrateField(bundle: Bundle, bitrate: Int) {
+    private fun updateBitrateField(bundle: Bundle, bitrate: Int) {
         bundle.putInt(KEY_BITRATE, bitrate)
     }
 
@@ -255,14 +255,7 @@ object MediaItemHelper {
         val bundle = mediaDescription.extras ?: return ""
         return bundle.getString(KEY_CURRENT_STREAM_TITLE, "")
     }
-    /**
-     * Build [android.media.MediaMetadata] from provided
-     * [RadioStation].
-     *
-     * @param radioStation [RadioStation].
-     * @param streamTitle  Title of the current stream.
-     * @return [android.media.MediaMetadata]
-     */
+
     /**
      * Build [android.media.MediaMetadata] from provided
      * [RadioStation].
@@ -368,8 +361,8 @@ object MediaItemHelper {
      * @param description Media description to update extras field on.
      * @param extras      Extras field to apply to provided Media Description.
      */
-    fun updateExtras(description: MediaDescriptionCompat,
-                     extras: Bundle?) {
+    private fun updateExtras(description: MediaDescriptionCompat,
+                             extras: Bundle?) {
         val clazz: Class<*> = description.javaClass
         try {
             val field = clazz.getDeclaredField("mExtras")

@@ -36,11 +36,6 @@ object AppPreferencesManager {
     private const val FILE_NAME = "OpenRadioPref"
 
     /**
-     * Key for the "Is Location dialog enabled shown" dialog.
-     */
-    private const val PREFS_KEY_IS_LOCATION_DIALOG_SHOWN = "IS_LOCATION_DIALOG_SHOWN"
-
-    /**
      *
      */
     private const val PREFS_KEY_ARE_LOGS_ENABLED = "IS_LOGS_ENABLED"
@@ -49,11 +44,6 @@ object AppPreferencesManager {
      *
      */
     private const val PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED = "LAST_KNOWN_RADIO_STATION_ENABLED"
-
-    /**
-     *
-     */
-    private const val PREFS_KEY_IS_SORT_DIALOG_SHOWN = "IS_SORT_DIALOG_SHOWN"
 
     /**
      *
@@ -75,28 +65,6 @@ object AppPreferencesManager {
     private const val PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK = "PREFS_KEY_BUFFER_FOR_REBUFFER_PLAYBACK"
     private const val PREFS_KEY_BT_AUTO_PLAY = "PREFS_KEY_BT_AUTO_PLAY"
     private const val MASTER_VOLUME_DEFAULT = 100
-
-    /**
-     * @return True if "Enable Location service" dialog has been shown. False - otherwise.
-     */
-    fun isLocationDialogShown(context: Context): Boolean {
-        return getSharedPreferences(context).getBoolean(
-                PREFS_KEY_IS_LOCATION_DIALOG_SHOWN,
-                false
-        )
-    }
-
-    /**
-     * Set True if "Enable Location service" dialog has been shown. False - otherwise.
-     *
-     * @param value Boolean value.
-     */
-    fun setLocationDialogShown(context: Context,
-                               value: Boolean) {
-        val editor = getEditor(context)
-        editor.putBoolean(PREFS_KEY_IS_LOCATION_DIALOG_SHOWN, value)
-        editor.apply()
-    }
 
     /**
      * @return True if it is allowed to addToLocals logs into a file. False - otherwise.
@@ -138,28 +106,6 @@ object AppPreferencesManager {
     fun lastKnownRadioStationEnabled(context: Context, value: Boolean) {
         val editor = getEditor(context)
         editor.putBoolean(PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED, value)
-        editor.apply()
-    }
-
-    /**
-     * @return True if dialog about Sort feature was shown. False - otherwise.
-     */
-    fun isSortDialogShown(context: Context): Boolean {
-        return getSharedPreferences(context).getBoolean(
-                PREFS_KEY_IS_SORT_DIALOG_SHOWN,
-                false
-        )
-    }
-
-    /**
-     * Set True if dialog about Sort feature was shown. False - otherwise.
-     *
-     * @param value Boolean value.
-     */
-    fun setSortDialogShown(context: Context,
-                           value: Boolean) {
-        val editor = getEditor(context)
-        editor.putBoolean(PREFS_KEY_IS_SORT_DIALOG_SHOWN, value)
         editor.apply()
     }
 

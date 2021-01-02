@@ -292,7 +292,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                 .setStyle(mediaStyle)
                 .setColor(mNotificationColor)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentTitle(mService.getString(com.yuriy.openradio.R.string.app_name))
+                .setContentTitle(mService.getString(R.string.app_name))
                 .setContentText(message)
                 .setSmallIcon(smallIcon)
                 .setLargeIcon(art)
@@ -331,7 +331,6 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         private const val ACTION_PLAY = "com.yuriy.openradio.play"
         private const val ACTION_PREV = "com.yuriy.openradio.prev"
         private const val ACTION_NEXT = "com.yuriy.openradio.next"
-        private const val MAX_ALBUM_ART_CACHE_SIZE = 1024 * 1024
     }
 
     init {
