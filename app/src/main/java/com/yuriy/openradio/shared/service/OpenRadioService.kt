@@ -620,7 +620,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     applicationContext,
                     mListener,
                     object : MetadataListener {
-                        override fun onMetaData(title: String?) {
+                        override fun onMetaData(title: String) {
                             d(CLASS_NAME + "Metadata title:" + title)
                             updateMetadata(title)
                         }

@@ -20,6 +20,6 @@ import android.support.v4.media.session.PlaybackStateCompat
 
 interface MediaPresenterListener {
     fun showProgressBar()
-    fun handleMetadataChanged(metadata: MediaMetadataCompat?)
-    fun handlePlaybackStateChanged(state: PlaybackStateCompat?)
+    fun handleMetadataChanged(metadata: MediaMetadataCompat)
+    fun handlePlaybackStateChanged(state: PlaybackStateCompat)
 }

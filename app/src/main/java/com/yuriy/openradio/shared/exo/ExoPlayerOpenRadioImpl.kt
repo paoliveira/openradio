@@ -20,7 +20,6 @@ import android.media.audiofx.Equalizer
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.text.TextUtils
 import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl
@@ -362,10 +361,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                     val info = metadata[i] as IcyInfo
                     d("$mLogTag IcyInfo title:$info")
                     var title = info.title
-                    if (TextUtils.isEmpty(title)) {
+                    if (title.isNullOrEmpty()) {
                         return
                     }
-                    title = title!!.trim { it <= ' ' }
+                    title = title.trim { it <= ' ' }
                     mMetadataListener.onMetaData(title)
                 }
                 if (entry is IcyHeaders) {

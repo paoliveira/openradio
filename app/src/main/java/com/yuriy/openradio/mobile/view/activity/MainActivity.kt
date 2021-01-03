@@ -231,18 +231,14 @@ class MainActivity : AppCompatActivity() {
             R.id.action_search -> {
 
                 // Show Search Dialog
-                val dialog = newInstance(
-                        SearchDialog::class.java.name
-                )
+                val dialog = newInstance(SearchDialog::class.java.name)
                 dialog!!.show(transaction, SearchDialog.DIALOG_TAG)
                 true
             }
             R.id.action_eq -> {
 
                 // Show Equalizer Dialog
-                val dialog = newInstance(
-                        EqualizerDialog::class.java.name
-                )
+                val dialog = newInstance(EqualizerDialog::class.java.name)
                 dialog!!.show(transaction, EqualizerDialog.DIALOG_TAG)
                 true
             }
@@ -304,37 +300,27 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_general -> {
                     // Show Search Dialog
-                    val settingsDialog = newInstance(
-                            GeneralSettingsDialog::class.java.name
-                    )
+                    val settingsDialog = newInstance(GeneralSettingsDialog::class.java.name)
                     settingsDialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
                 }
                 R.id.nav_buffering -> {
                     // Show Stream Buffering Dialog
-                    val streamBufferingDialog = newInstance(
-                            StreamBufferingDialog::class.java.name
-                    )
+                    val streamBufferingDialog = newInstance(StreamBufferingDialog::class.java.name)
                     streamBufferingDialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
                 }
                 R.id.nav_google_drive -> {
                     // Show Google Drive Dialog
-                    val googleDriveDialog = newInstance(
-                            GoogleDriveDialog::class.java.name
-                    )
+                    val googleDriveDialog = newInstance(GoogleDriveDialog::class.java.name)
                     googleDriveDialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                 }
                 R.id.nav_logs -> {
                     // Show Application Logs Dialog
-                    val applicationLogsDialog = newInstance(
-                            LogsDialog::class.java.name
-                    )
+                    val applicationLogsDialog = newInstance(LogsDialog::class.java.name)
                     applicationLogsDialog!!.show(transaction, LogsDialog.DIALOG_TAG)
                 }
                 R.id.nav_about -> {
                     // Show About Dialog
-                    val aboutDialog = newInstance(
-                            AboutDialog::class.java.name
-                    )
+                    val aboutDialog = newInstance(AboutDialog::class.java.name)
                     aboutDialog!!.show(transaction, AboutDialog.DIALOG_TAG)
                 }
                 else -> {
@@ -351,12 +337,10 @@ class MainActivity : AppCompatActivity() {
         versionView.text = versionText
 
         // Handle Add Radio Station button.
-        addBtn.setOnClickListener { view: View? ->
+        addBtn.setOnClickListener {
             // Show Add Station Dialog
             val transaction = supportFragmentManager.beginTransaction()
-            val dialog = newInstance(
-                    AddStationDialog::class.java.name
-            )
+            val dialog = newInstance(AddStationDialog::class.java.name)
             dialog!!.show(transaction, AddStationDialog.DIALOG_TAG)
         }
     }
@@ -477,9 +461,7 @@ class MainActivity : AppCompatActivity() {
 
         // Show Remove Station Dialog
         val bundle = createBundle(item.mediaId, name)
-        val dialog = newInstance(
-                RemoveStationDialog::class.java.name, bundle
-        )
+        val dialog = newInstance(RemoveStationDialog::class.java.name, bundle)
         dialog!!.show(transaction, RemoveStationDialog.DIALOG_TAG)
     }
 
@@ -502,9 +484,7 @@ class MainActivity : AppCompatActivity() {
         clearDialogs(this, transaction)
 
         // Show Edit Station Dialog
-        val dialog = newInstance(
-                EditStationDialog::class.java.name, getBundleWithMediaKey(item.mediaId)
-        )
+        val dialog = newInstance(EditStationDialog::class.java.name, getBundleWithMediaKey(item.mediaId))
         dialog!!.show(transaction, EditStationDialog.DIALOG_TAG)
     }
 
@@ -714,12 +694,12 @@ class MainActivity : AppCompatActivity() {
             this@MainActivity.showProgressBar()
         }
 
-        override fun handleMetadataChanged(metadata: MediaMetadataCompat?) {
-            this@MainActivity.handleMetadataChanged(metadata!!)
+        override fun handleMetadataChanged(metadata: MediaMetadataCompat) {
+            this@MainActivity.handleMetadataChanged(metadata)
         }
 
-        override fun handlePlaybackStateChanged(state: PlaybackStateCompat?) {
-            this@MainActivity.handlePlaybackStateChanged(state!!)
+        override fun handlePlaybackStateChanged(state: PlaybackStateCompat) {
+            this@MainActivity.handlePlaybackStateChanged(state)
         }
     }
 

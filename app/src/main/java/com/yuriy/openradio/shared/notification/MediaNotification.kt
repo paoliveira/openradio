@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2016-2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.notification
 
 import android.app.PendingIntent
@@ -42,13 +43,13 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.tv.view.activity.TvMainActivity
 import java.util.concurrent.atomic.*
 
-
 /**
  * Keeps track of a notification and updates it automatically for a given
  * MediaSession. Maintaining a visible notification (usually) guarantees that the music service
  * won't be killed during playback.
  */
 class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
+
     private val mService: OpenRadioService
     private var mSessionToken: MediaSessionCompat.Token? = null
     private var mController: MediaControllerCompat? = null
@@ -84,6 +85,25 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             }
             return notificationColor
         }
+
+    init {
+        mCb = MediaControllerCompatCallback()
+        mService = service
+        mNotificationChannelFactory = NotificationChannelFactory(mService)
+        updateSessionToken()
+
+        mNotificationColor = notificationColor
+        mNotificationManager = NotificationManagerCompat.from(mService)
+        val pkg = mService.packageName
+        mPauseIntent = PendingIntent.getBroadcast(mService, 100,
+                Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
+        mPlayIntent = PendingIntent.getBroadcast(mService, 100,
+                Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
+        mPreviousIntent = PendingIntent.getBroadcast(mService, 100,
+                Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
+        mNextIntent = PendingIntent.getBroadcast(mService, 100,
+                Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
+    }
 
     /**
      * Posts the notification and starts tracking the session to keep it
@@ -164,7 +184,9 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     }
 
     private inner class MediaControllerCompatCallback: MediaControllerCompat.Callback() {
+
         private var mPlaybackState: PlaybackStateCompat? = null
+
         override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
             d("$CLASS_NAME Received new playback state:$state")
             val doNotify: Boolean = if (mPlaybackState == null) {
@@ -331,24 +353,5 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         private const val ACTION_PLAY = "com.yuriy.openradio.play"
         private const val ACTION_PREV = "com.yuriy.openradio.prev"
         private const val ACTION_NEXT = "com.yuriy.openradio.next"
-    }
-
-    init {
-        mCb = MediaControllerCompatCallback()
-        mService = service
-        mNotificationChannelFactory = NotificationChannelFactory(mService)
-        updateSessionToken()
-
-        mNotificationColor = notificationColor
-        mNotificationManager = NotificationManagerCompat.from(mService)
-        val pkg = mService.packageName
-        mPauseIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
-        mPlayIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
-        mPreviousIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
-        mNextIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
     }
 }

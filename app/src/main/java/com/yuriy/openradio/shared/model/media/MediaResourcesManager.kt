@@ -268,7 +268,9 @@ class MediaResourcesManager(context: Context, className: String) {
      * the current title and description and the [PlaybackStateCompat].
      */
     private inner class MediaSessionCallback : MediaControllerCompat.Callback() {
+
         private var mCurrentState: PlaybackStateCompat? = null
+
         override fun onSessionDestroyed() {
             i(mClassName + "Session destroyed. Need to fetch a new Media Session")
         }
@@ -313,9 +315,7 @@ class MediaResourcesManager(context: Context, className: String) {
                 e(mClassName + "Metadata changed media controller null")
                 return
             }
-            mListener!!.onMetadataChanged(
-                    metadata, mMediaController!!.queue
-            )
+            mListener!!.onMetadataChanged(metadata, mMediaController!!.queue)
         }
 
         fun dispatchLatestState() {

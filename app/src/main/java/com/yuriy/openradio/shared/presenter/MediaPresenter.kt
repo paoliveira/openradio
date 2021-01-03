@@ -396,7 +396,8 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     }
 
     private fun handleMediaResourceManagerConnected() {
-        val mediaId = if (mMediaItemsStack.isEmpty()) mMediaRsrMgr!!.root else mMediaItemsStack[mMediaItemsStack.size - 1]!!
+        val size = mMediaItemsStack.size
+        val mediaId = if (size == 0) mMediaRsrMgr!!.root else mMediaItemsStack[size - 1]!!
         addMediaItemToStack(mediaId)
         // Update metadata in case of UI started on and media service was already created and stream played.
         handleMetadataChanged(mMediaRsrMgr!!.mediaMetadata)

@@ -276,14 +276,13 @@ object MediaItemHelper {
             iconUrl = radioStation.imageUrl
         }
         val title = radioStation.name
-        val artist = radioStation.country
+        val artist = streamTitle
         val genre = radioStation.genre
         val source = radioStation.mediaStream.getVariant(0)!!.url
         val id = radioStation.id
-        var album = streamTitle
-        if (TextUtils.isEmpty(album)) {
-            album = ""
-        }
+        val displatDescription = streamTitle
+        val subTitle = streamTitle
+        val album = radioStation.country
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
@@ -293,21 +292,21 @@ object MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                // This is the way information display on the screen:
-                // Title
+                // This is the way information display on Android Auto screen:
+                // DisplayTitle
                 // Artist
                 // Album
                 // METADATA_KEY_DISPLAY_TITLE is used to indicate whether METADATA_KEY_DISPLAY_DESCRIPTION
                 // needs to be parsed as description.
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, album)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, displatDescription)
                 .build()
 
         // Info: There is no other way to set custom values in the description's bundle ...
@@ -332,11 +331,7 @@ object MediaItemHelper {
      * @return Display description.
      */
     @JvmStatic
-    fun getDisplayDescription(value: MediaDescriptionCompat?,
-                              defaultValue: String): String {
-        if (value == null) {
-            return defaultValue
-        }
+    fun getDisplayDescription(value: MediaDescriptionCompat, defaultValue: String): String {
         val descChars = value.description ?: return defaultValue
         var result = descChars.toString()
         if (!TextUtils.isEmpty(result)) {

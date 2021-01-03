@@ -375,12 +375,12 @@ class TvMainActivity : FragmentActivity() {
             this@TvMainActivity.showProgressBar()
         }
 
-        override fun handleMetadataChanged(metadata: MediaMetadataCompat?) {
-            this@TvMainActivity.handleMetadataChanged(metadata!!)
+        override fun handleMetadataChanged(metadata: MediaMetadataCompat) {
+            this@TvMainActivity.handleMetadataChanged(metadata)
         }
 
-        override fun handlePlaybackStateChanged(state: PlaybackStateCompat?) {
-            this@TvMainActivity.handlePlaybackStateChanged(state!!)
+        override fun handlePlaybackStateChanged(state: PlaybackStateCompat) {
+            this@TvMainActivity.handlePlaybackStateChanged(state)
         }
     }
 

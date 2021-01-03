@@ -16,5 +16,5 @@
 package com.yuriy.openradio.shared.exo
 
 interface MetadataListener {
-    fun onMetaData(title: String?)
+    fun onMetaData(title: String)
 }
