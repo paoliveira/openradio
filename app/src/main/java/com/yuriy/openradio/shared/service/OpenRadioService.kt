@@ -456,12 +456,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * playlist.
      */
     private fun handleUnrecognizedInputFormatException() {
+        val playlistUrl = mLastPlayedUrl
         handleStopRequest(
                 PlaybackStateError("Can not get play url.", PlaybackStateError.Code.UNRECOGNIZED_URL)
         )
         GlobalScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
-                val playlistUrl = mLastPlayedUrl
                 if (playlistUrl.isNullOrEmpty()) {
                     e("HandleUnrecognizedInputFormatException with empty URL")
                     return@withTimeout
