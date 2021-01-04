@@ -196,23 +196,30 @@ class AutoDetectParser(private val mTimeout: Int) {
         return fileExtension
     }
 
-    private fun getStreamExtension(url: String): String {
-        AnalyticsUtils.logMessage("UnsupportedPlaylist:$url")
+    fun getStreamExtension(url: String, withAnalytics: Boolean = true): String {
+        if (withAnalytics) {
+            AnalyticsUtils.logMessage("UnsupportedPlaylist:$url")
+        }
         var result = ""
         val httpUrl = HttpUrl.parse(url)
         if (httpUrl == null) {
-            AnalyticsUtils.logUnsupportedInvalidPlaylist(url)
+            if (withAnalytics) {
+                AnalyticsUtils.logUnsupportedInvalidPlaylist(url)
+            }
             return result
         }
-        AnalyticsUtils.logUnsupportedPlaylist(url)
-        // More efficient click-tracking with HTTP GET to obtain the "302" response, but not follow the redirect
-        // through to the Location.
+        if (withAnalytics) {
+            AnalyticsUtils.logUnsupportedPlaylist(url)
+        }
         val client = OkHttpClient.Builder()
-                .followRedirects(false)
+                .followRedirects(true)
+                .connectTimeout(mTimeout.toLong(), TimeUnit.MILLISECONDS)
+                .readTimeout(mTimeout.toLong(), TimeUnit.MILLISECONDS)
                 .build()
 
         val request = Request.Builder().url(url).build()
         val latch = CountDownLatch(1)
+        AppLogger.d("TRACE::$url")
         client.newCall(request).enqueue(
                 object : Callback {
 
@@ -222,13 +229,24 @@ class AutoDetectParser(private val mTimeout: Int) {
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        val content = response.header("content-disposition", "")
+                        AppLogger.d("TRACE::response:${response.headers()}")
+                        var content = response.header("content-disposition", "")
                         result = getFileExtension(getFileExtFromHeaderParam(content))
+//                        if (result.isEmpty()) {
+//                            content = response.header("Content-Type", "")
+//                            if (content.isNullOrEmpty()) {
+//                                latch.countDown()
+//                                return
+//                            }
+//                            if (content.toLowerCase(Locale.ROOT) == "audio/mpeg") {
+//                                result = M3UPlaylistParser.EXTENSION
+//                            }
+//                        }
                         latch.countDown()
                     }
                 }
         )
-        latch.await(2, TimeUnit.SECONDS)
+        latch.await((mTimeout + 1000).toLong(), TimeUnit.SECONDS)
         AppLogger.d("Stream ext:$result")
         return result
     }
