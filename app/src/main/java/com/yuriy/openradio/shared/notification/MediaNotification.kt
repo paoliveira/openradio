@@ -46,6 +46,7 @@ import com.yuriy.openradio.shared.utils.AppUtils.hasVersionLollipop
 import com.yuriy.openradio.shared.utils.MediaItemHelper.metadataFromRadioStation
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.tv.view.activity.TvMainActivity
+import java.util.*
 import java.util.concurrent.atomic.*
 
 
@@ -70,6 +71,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     private val mNotificationColor: Int
     private val mStarted = AtomicBoolean(false)
     private val mNotificationChannelFactory: NotificationChannelFactory
+    private val mUseNavigationActionsInCompactView = false
     private val notificationColor: Int
         get() {
             var notificationColor = 0
@@ -235,21 +237,17 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
 
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         mNotificationChannelFactory.createChannel(MediaNotificationData(mService, mMetadata!!))
-        var playPauseActionIndex = 0
         // If skip to previous action is enabled
+        var enablePrevious = false
         if (playbackState.actions and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS != 0L) {
             builder.addAction(
                     R.drawable.ic_skip_prev,
                     mService.getString(R.string.label_previous),
                     mPreviousIntent
             )
-            playPauseActionIndex = 1
+            enablePrevious = true
         }
 
-        // Build the style.
-        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle() // only show play/pause in compact view
-                .setShowActionsInCompactView(playPauseActionIndex)
-                .setMediaSession(mSessionToken)
         val description = mMetadata!!.description
         var art = description.iconBitmap
         if (art == null && description.iconUri != null) {
@@ -283,14 +281,23 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         }
 
         // If skip to next action is enabled
+        var enableNext = false
         if (playbackState.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT != 0L) {
             builder.addAction(
                     R.drawable.ic_skip_next,
                     mService.getString(R.string.label_next),
                     mNextIntent
             )
+            enableNext = true
         }
         val smallIcon = if (hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
+        // Build the style.
+        val mActionsToShowInCompact = getActionIndicesForCompactView(
+                getActions(enableNext, enablePrevious, playbackState), playbackState
+        )
+        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(*mActionsToShowInCompact)
+                .setMediaSession(mSessionToken)
         builder
                 .setContentIntent(makePendingIntent())
                 .addAction(getPlayPauseAction(playbackState))
@@ -338,6 +345,77 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                 .setLargeIcon(art)
         d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]")
         mService.startForeground(NOTIFICATION_ID, builder.build())
+    }
+
+    /**
+     * Gets the names and order of the actions to be included in the notification at the current
+     * player state.
+     *
+     *
+     * The playback and custom actions are combined and placed in the following order if not
+     * omitted:
+     *
+     * +------------------------------------------------------------------------+
+     * | prev | &lt;&lt; | play/pause | &gt;&gt; | next | custom actions | stop |
+     * +------------------------------------------------------------------------+
+     *
+     * This method can be safely overridden. However, the names must be of the playback actions
+     * [.ACTION_PAUSE], [.ACTION_PLAY], [.ACTION_FAST_FORWARD], [ ][.ACTION_REWIND],
+     * [.ACTION_NEXT] or [.ACTION_PREVIOUS], or a key contained in the
+     * map returned by [CustomActionReceiver.createCustomActions]. Otherwise the
+     * action name is ignored.
+     */
+    private fun getActions(enableNext: Boolean, enablePrevious: Boolean,
+                           playbackState: PlaybackStateCompat): List<String> {
+        val stringActions: MutableList<String> = ArrayList()
+        if (enablePrevious) {
+            stringActions.add(ACTION_PREV)
+        }
+        if (shouldShowPauseButton(playbackState)) {
+            stringActions.add(ACTION_PAUSE)
+        } else {
+            stringActions.add(ACTION_PLAY)
+        }
+        if (enableNext) {
+            stringActions.add(ACTION_NEXT)
+        }
+        return stringActions
+    }
+
+    /**
+     * Gets an array with the indices of the buttons to be shown in compact mode.
+     *
+     *
+     * This method can be overridden. The indices must refer to the list of actions passed as the
+     * first parameter.
+     *
+     * @param actionNames The names of the actions included in the notification.
+     * @param playbackState
+     */
+    private fun getActionIndicesForCompactView(actionNames: List<String>, playbackState: PlaybackStateCompat): IntArray {
+        val pauseActionIndex = actionNames.indexOf(ACTION_PAUSE)
+        val playActionIndex = actionNames.indexOf(ACTION_PLAY)
+        val skipPreviousActionIndex = if (mUseNavigationActionsInCompactView) actionNames.indexOf(ACTION_PREV) else -1
+        val skipNextActionIndex = if (mUseNavigationActionsInCompactView) actionNames.indexOf(ACTION_NEXT) else -1
+        val actionIndices = IntArray(3)
+        var actionCounter = 0
+        if (skipPreviousActionIndex != -1) {
+            actionIndices[actionCounter++] = skipPreviousActionIndex
+        }
+        val shouldShowPauseButton: Boolean = shouldShowPauseButton(playbackState)
+        if (pauseActionIndex != -1 && shouldShowPauseButton) {
+            actionIndices[actionCounter++] = pauseActionIndex
+        } else if (playActionIndex != -1 && !shouldShowPauseButton) {
+            actionIndices[actionCounter++] = playActionIndex
+        }
+        if (skipNextActionIndex != -1) {
+            actionIndices[actionCounter++] = skipNextActionIndex
+        }
+        return actionIndices.copyOf(actionCounter)
+    }
+
+    private fun shouldShowPauseButton(playbackState: PlaybackStateCompat): Boolean {
+        return playbackState.state != PlaybackStateCompat.STATE_PLAYING
     }
 
     private fun makePendingIntent(): PendingIntent? {
