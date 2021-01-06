@@ -22,5 +22,5 @@ class BothSideCoordinatorLayout : AbsCoordinatorLayout {
         foregroundView.anchor(-favorite.width, 0, settings.right)
     }
 
-    override fun onTranslateChange(global: Float, index: Int, relative: Float) {}
+    override fun onTranslateChange(globalPercent: Float, index: Int, relativePercent: Float) {}
 }

@@ -27,341 +27,112 @@ import org.chromium.net.CronetEngine;
 
 import java.util.concurrent.Executor;
 
-import static com.google.android.exoplayer2.ExoPlayerLibraryInfo.DEFAULT_USER_AGENT;
-
 /**
  * A {@link Factory} that produces {@link CronetDataSource}.
  */
 public final class CronetDataSourceFactory extends BaseFactory {
 
-  /**
-   * The default connection timeout, in milliseconds.
-   */
-  public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS =
-      CronetDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS;
+    /**
+     * The default connection timeout, in milliseconds.
+     */
+    public static final int DEFAULT_CONNECT_TIMEOUT_MILLIS =
+            CronetDataSource.DEFAULT_CONNECT_TIMEOUT_MILLIS;
 
-  /**
-   * The default read timeout, in milliseconds.
-   */
-  public static final int DEFAULT_READ_TIMEOUT_MILLIS =
-      CronetDataSource.DEFAULT_READ_TIMEOUT_MILLIS;
+    /**
+     * The default read timeout, in milliseconds.
+     */
+    public static final int DEFAULT_READ_TIMEOUT_MILLIS =
+            CronetDataSource.DEFAULT_READ_TIMEOUT_MILLIS;
 
-  private final CronetEngineWrapper cronetEngineWrapper;
-  private final Executor executor;
-  @Nullable private final TransferListener transferListener;
-  private final int connectTimeoutMs;
-  private final int readTimeoutMs;
-  private final boolean resetTimeoutOnRedirects;
-  private final Factory fallbackFactory;
+    private final CronetEngineWrapper cronetEngineWrapper;
+    private final Executor executor;
+    @Nullable
+    private final TransferListener transferListener;
+    private final int connectTimeoutMs;
+    private final int readTimeoutMs;
+    private final boolean resetTimeoutOnRedirects;
+    private final Factory fallbackFactory;
 
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, the provided
-   * fallback {@link Factory} will be used instead.
-   *
-   * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
-   * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param fallbackFactory A {@link Factory} which is used as a fallback in case no
-   *     suitable CronetEngine can be build.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      Factory fallbackFactory) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        /* transferListener= */ null,
-        DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS,
-        false,
-        fallbackFactory);
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
-   * DefaultHttpDataSourceFactory} will be used instead.
-   *
-   * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
-   * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   */
-  public CronetDataSourceFactory(CronetEngineWrapper cronetEngineWrapper, Executor executor) {
-    this(cronetEngineWrapper, executor, DEFAULT_USER_AGENT);
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
-   * DefaultHttpDataSourceFactory} will be used instead.
-   *
-   * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
-   * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param userAgent A user agent used to create a fallback HttpDataSource if needed.
-   */
-  public CronetDataSourceFactory(
-          CronetEngineWrapper cronetEngineWrapper, Executor executor, String userAgent) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        /* transferListener= */ null,
-        DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS,
-        false,
-        new DefaultHttpDataSourceFactory(
-            userAgent,
-            /* listener= */ null,
-            DEFAULT_CONNECT_TIMEOUT_MILLIS,
-            DEFAULT_READ_TIMEOUT_MILLIS,
-            false));
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
-   * DefaultHttpDataSourceFactory} will be used instead.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param connectTimeoutMs The connection timeout, in milliseconds.
-   * @param readTimeoutMs The read timeout, in milliseconds.
-   * @param resetTimeoutOnRedirects Whether the connect timeout is reset when a redirect occurs.
-   * @param userAgent A user agent used to create a fallback HttpDataSource if needed.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      int connectTimeoutMs,
-      int readTimeoutMs,
-      boolean resetTimeoutOnRedirects,
-      String userAgent) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        /* transferListener= */ null,
-        DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS,
-        resetTimeoutOnRedirects,
-        new DefaultHttpDataSourceFactory(
-            userAgent,
-            /* listener= */ null,
-            connectTimeoutMs,
-            readTimeoutMs,
-            resetTimeoutOnRedirects));
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, the provided
-   * fallback {@link Factory} will be used instead.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param connectTimeoutMs The connection timeout, in milliseconds.
-   * @param readTimeoutMs The read timeout, in milliseconds.
-   * @param resetTimeoutOnRedirects Whether the connect timeout is reset when a redirect occurs.
-   * @param fallbackFactory A {@link Factory} which is used as a fallback in case no
-   *     suitable CronetEngine can be build.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      int connectTimeoutMs,
-      int readTimeoutMs,
-      boolean resetTimeoutOnRedirects,
-      Factory fallbackFactory) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        /* transferListener= */ null,
-        connectTimeoutMs,
-        readTimeoutMs,
-        resetTimeoutOnRedirects,
-        fallbackFactory);
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, the provided
-   * fallback {@link Factory} will be used instead.
-   *
-   * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
-   * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param transferListener An optional listener.
-   * @param fallbackFactory A {@link Factory} which is used as a fallback in case no
-   *     suitable CronetEngine can be build.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      @Nullable TransferListener transferListener,
-      Factory fallbackFactory) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        transferListener,
-        DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS,
-        false,
-        fallbackFactory);
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
-   * DefaultHttpDataSourceFactory} will be used instead.
-   *
-   * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
-   * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param transferListener An optional listener.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      @Nullable TransferListener transferListener) {
-    this(cronetEngineWrapper, executor, transferListener, DEFAULT_USER_AGENT);
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
-   * DefaultHttpDataSourceFactory} will be used instead.
-   *
-   * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
-   * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param transferListener An optional listener.
-   * @param userAgent A user agent used to create a fallback HttpDataSource if needed.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      @Nullable TransferListener transferListener,
-      String userAgent) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        transferListener,
-        DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS,
-        false,
-        new DefaultHttpDataSourceFactory(
-            userAgent,
-            transferListener,
-            DEFAULT_CONNECT_TIMEOUT_MILLIS,
-            DEFAULT_READ_TIMEOUT_MILLIS,
-            false));
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
-   * DefaultHttpDataSourceFactory} will be used instead.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param transferListener An optional listener.
-   * @param connectTimeoutMs The connection timeout, in milliseconds.
-   * @param readTimeoutMs The read timeout, in milliseconds.
-   * @param resetTimeoutOnRedirects Whether the connect timeout is reset when a redirect occurs.
-   * @param userAgent A user agent used to create a fallback HttpDataSource if needed.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      @Nullable TransferListener transferListener,
-      int connectTimeoutMs,
-      int readTimeoutMs,
-      boolean resetTimeoutOnRedirects,
-      String userAgent) {
-    this(
-        cronetEngineWrapper,
-        executor,
-        transferListener,
-        DEFAULT_CONNECT_TIMEOUT_MILLIS,
-        DEFAULT_READ_TIMEOUT_MILLIS,
-        resetTimeoutOnRedirects,
-        new DefaultHttpDataSourceFactory(
-            userAgent, transferListener, connectTimeoutMs, readTimeoutMs, resetTimeoutOnRedirects));
-  }
-
-  /**
-   * Creates an instance.
-   *
-   * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, the provided
-   * fallback {@link Factory} will be used instead.
-   *
-   * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
-   * @param executor The {@link Executor} that will perform the requests.
-   * @param transferListener An optional listener.
-   * @param connectTimeoutMs The connection timeout, in milliseconds.
-   * @param readTimeoutMs The read timeout, in milliseconds.
-   * @param resetTimeoutOnRedirects Whether the connect timeout is reset when a redirect occurs.
-   * @param fallbackFactory A {@link Factory} which is used as a fallback in case no
-   *     suitable CronetEngine can be build.
-   */
-  public CronetDataSourceFactory(
-      CronetEngineWrapper cronetEngineWrapper,
-      Executor executor,
-      @Nullable TransferListener transferListener,
-      int connectTimeoutMs,
-      int readTimeoutMs,
-      boolean resetTimeoutOnRedirects,
-      Factory fallbackFactory) {
-    this.cronetEngineWrapper = cronetEngineWrapper;
-    this.executor = executor;
-    this.transferListener = transferListener;
-    this.connectTimeoutMs = connectTimeoutMs;
-    this.readTimeoutMs = readTimeoutMs;
-    this.resetTimeoutOnRedirects = resetTimeoutOnRedirects;
-    this.fallbackFactory = fallbackFactory;
-  }
-
-  @Override
-  protected HttpDataSource createDataSourceInternal(HttpDataSource.RequestProperties
-      defaultRequestProperties) {
-    CronetEngine cronetEngine = cronetEngineWrapper.getCronetEngine();
-    if (cronetEngine == null) {
-      return fallbackFactory.createDataSource();
+    /**
+     * Creates an instance.
+     *
+     * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, a {@link
+     * DefaultHttpDataSourceFactory} will be used instead.
+     *
+     * <p>Sets {@link CronetDataSource#DEFAULT_CONNECT_TIMEOUT_MILLIS} as the connection timeout,
+     * {@link CronetDataSource#DEFAULT_READ_TIMEOUT_MILLIS} as the read timeout.
+     *
+     * @param cronetEngineWrapper A {@link CronetEngineWrapper}.
+     * @param executor            The {@link Executor} that will perform the requests.
+     * @param userAgent           A user agent used to create a fallback HttpDataSource if needed.
+     */
+    public CronetDataSourceFactory(
+            CronetEngineWrapper cronetEngineWrapper, Executor executor, String userAgent) {
+        this(
+                cronetEngineWrapper,
+                executor,
+                /* transferListener= */ null,
+                DEFAULT_CONNECT_TIMEOUT_MILLIS,
+                DEFAULT_READ_TIMEOUT_MILLIS,
+                false,
+                new DefaultHttpDataSourceFactory(
+                        userAgent,
+                        /* listener= */ null,
+                        DEFAULT_CONNECT_TIMEOUT_MILLIS,
+                        DEFAULT_READ_TIMEOUT_MILLIS,
+                        false));
     }
-    CronetDataSource dataSource =
-        new CronetDataSource(
-            cronetEngine,
-            executor,
-            connectTimeoutMs,
-            readTimeoutMs,
-            resetTimeoutOnRedirects,
-            defaultRequestProperties);
-    if (transferListener != null) {
-      dataSource.addTransferListener(transferListener);
-    }
-    return dataSource;
-  }
 
+    /**
+     * Creates an instance.
+     *
+     * <p>If the {@link CronetEngineWrapper} fails to provide a {@link CronetEngine}, the provided
+     * fallback {@link Factory} will be used instead.
+     *
+     * @param cronetEngineWrapper     A {@link CronetEngineWrapper}.
+     * @param executor                The {@link Executor} that will perform the requests.
+     * @param transferListener        An optional listener.
+     * @param connectTimeoutMs        The connection timeout, in milliseconds.
+     * @param readTimeoutMs           The read timeout, in milliseconds.
+     * @param resetTimeoutOnRedirects Whether the connect timeout is reset when a redirect occurs.
+     * @param fallbackFactory         A {@link Factory} which is used as a fallback in case no
+     *                                suitable CronetEngine can be build.
+     */
+    public CronetDataSourceFactory(
+            CronetEngineWrapper cronetEngineWrapper,
+            Executor executor,
+            @Nullable TransferListener transferListener,
+            int connectTimeoutMs,
+            int readTimeoutMs,
+            boolean resetTimeoutOnRedirects,
+            Factory fallbackFactory) {
+        this.cronetEngineWrapper = cronetEngineWrapper;
+        this.executor = executor;
+        this.transferListener = transferListener;
+        this.connectTimeoutMs = connectTimeoutMs;
+        this.readTimeoutMs = readTimeoutMs;
+        this.resetTimeoutOnRedirects = resetTimeoutOnRedirects;
+        this.fallbackFactory = fallbackFactory;
+    }
+
+    @Override
+    protected HttpDataSource createDataSourceInternal(HttpDataSource.RequestProperties
+                                                              defaultRequestProperties) {
+        CronetEngine cronetEngine = cronetEngineWrapper.getCronetEngine();
+        if (cronetEngine == null) {
+            return fallbackFactory.createDataSource();
+        }
+        CronetDataSource dataSource =
+                new CronetDataSource(
+                        cronetEngine,
+                        executor,
+                        connectTimeoutMs,
+                        readTimeoutMs,
+                        resetTimeoutOnRedirects,
+                        defaultRequestProperties);
+        if (transferListener != null) {
+            dataSource.addTransferListener(transferListener);
+        }
+        return dataSource;
+    }
 }

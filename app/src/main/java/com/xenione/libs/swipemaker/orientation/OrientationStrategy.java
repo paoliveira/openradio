@@ -97,10 +97,6 @@ public abstract class OrientationStrategy implements Runnable {
         return started;
     }
 
-    boolean isFling() {
-        return !mHelperScroller.isFinished();
-    }
-
     @Override
     public void run() {
         if (mHelperScroller.computeScrollOffset()) {
