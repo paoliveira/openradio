@@ -31,7 +31,6 @@ import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.ConditionVariable;
 import com.google.android.exoplayer2.util.Log;
 import com.google.android.exoplayer2.util.Util;
-import com.google.common.base.Predicate;
 
 import org.checkerframework.checker.nullness.qual.EnsuresNonNullIf;
 import org.chromium.net.CronetEngine;
@@ -84,12 +83,6 @@ public class CronetDataSource extends BaseDataSource implements HttpDataSource {
             super(cause, dataSpec, TYPE_OPEN);
             this.cronetConnectionStatus = cronetConnectionStatus;
         }
-
-        public OpenException(String errorMessage, DataSpec dataSpec, int cronetConnectionStatus) {
-            super(errorMessage, dataSpec, TYPE_OPEN);
-            this.cronetConnectionStatus = cronetConnectionStatus;
-        }
-
     }
 
     static {
@@ -128,9 +121,6 @@ public class CronetDataSource extends BaseDataSource implements HttpDataSource {
     private final RequestProperties requestProperties;
     private final ConditionVariable operation;
     private final Clock clock;
-
-    @Nullable
-    private Predicate<String> contentTypePredicate;
 
     // Accessed by the calling thread only.
     private boolean opened;
@@ -193,122 +183,8 @@ public class CronetDataSource extends BaseDataSource implements HttpDataSource {
                 /* handleSetCookieRequests= */ false);
     }
 
-    /**
-     * Creates an instance.
-     *
-     * @param cronetEngine         A CronetEngine.
-     * @param executor             The {@link Executor} that will handle responses. This may
-     *                             be a direct executor (i.e. executes tasks on the calling thread) in order to avoid a thread
-     *                             hop from Cronet's internal network thread to the response handling thread. However, to
-     *                             avoid slowing down overall network performance, care must be taken to make sure response
-     *                             handling is a fast operation when using a direct executor.
-     * @param contentTypePredicate An optional {@link Predicate}. If a content type is rejected by the
-     *                             predicate then an {@link InvalidContentTypeException} is thrown from {@link
-     *                             #open(DataSpec)}.
-     * @deprecated Use {@link CronetDataSource(CronetEngine, Executor)} and {@link #setContentTypePredicate(Predicate)}.
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    public CronetDataSource(
-            CronetEngine cronetEngine,
-            Executor executor,
-            @Nullable Predicate<String> contentTypePredicate) {
-        this(
-                cronetEngine,
-                executor,
-                contentTypePredicate,
-                DEFAULT_CONNECT_TIMEOUT_MILLIS,
-                DEFAULT_READ_TIMEOUT_MILLIS,
-                /* resetTimeoutOnRedirects= */ false,
-                /* defaultRequestProperties= */ null);
-    }
 
-    /**
-     * Creates an instance.
-     *
-     * @param cronetEngine             A CronetEngine.
-     * @param executor                 The {@link Executor} that will handle responses. This may
-     *                                 be a direct executor (i.e. executes tasks on the calling thread) in order to avoid a thread
-     *                                 hop from Cronet's internal network thread to the response handling thread. However, to
-     *                                 avoid slowing down overall network performance, care must be taken to make sure response
-     *                                 handling is a fast operation when using a direct executor.
-     * @param contentTypePredicate     An optional {@link Predicate}. If a content type is rejected by the
-     *                                 predicate then an {@link InvalidContentTypeException} is thrown from {@link
-     *                                 #open(DataSpec)}.
-     * @param connectTimeoutMs         The connection timeout, in milliseconds.
-     * @param readTimeoutMs            The read timeout, in milliseconds.
-     * @param resetTimeoutOnRedirects  Whether the connect timeout is reset when a redirect occurs.
-     * @param defaultRequestProperties Optional default {@link RequestProperties} to be sent to the
-     *                                 server as HTTP headers on every request.
-     * @deprecated Use {@link #CronetDataSource(CronetEngine, Executor, int, int, boolean,
-     * RequestProperties)} and {@link #setContentTypePredicate(Predicate)}.
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    public CronetDataSource(
-            CronetEngine cronetEngine,
-            Executor executor,
-            @Nullable Predicate<String> contentTypePredicate,
-            int connectTimeoutMs,
-            int readTimeoutMs,
-            boolean resetTimeoutOnRedirects,
-            @Nullable RequestProperties defaultRequestProperties) {
-        this(
-                cronetEngine,
-                executor,
-                contentTypePredicate,
-                connectTimeoutMs,
-                readTimeoutMs,
-                resetTimeoutOnRedirects,
-                defaultRequestProperties,
-                /* handleSetCookieRequests= */ false);
-    }
-
-    /**
-     * Creates an instance.
-     *
-     * @param cronetEngine             A CronetEngine.
-     * @param executor                 The {@link Executor} that will handle responses. This may
-     *                                 be a direct executor (i.e. executes tasks on the calling thread) in order to avoid a thread
-     *                                 hop from Cronet's internal network thread to the response handling thread. However, to
-     *                                 avoid slowing down overall network performance, care must be taken to make sure response
-     *                                 handling is a fast operation when using a direct executor.
-     * @param contentTypePredicate     An optional {@link Predicate}. If a content type is rejected by the
-     *                                 predicate then an {@link InvalidContentTypeException} is thrown from {@link
-     *                                 #open(DataSpec)}.
-     * @param connectTimeoutMs         The connection timeout, in milliseconds.
-     * @param readTimeoutMs            The read timeout, in milliseconds.
-     * @param resetTimeoutOnRedirects  Whether the connect timeout is reset when a redirect occurs.
-     * @param defaultRequestProperties Optional default {@link RequestProperties} to be sent to the
-     *                                 server as HTTP headers on every request.
-     * @param handleSetCookieRequests  Whether "Set-Cookie" requests on redirect should be forwarded to
-     *                                 the redirect url in the "Cookie" header.
-     * @deprecated Use {@link CronetDataSource(CronetEngine, Executor, int, int, boolean,
-     * RequestProperties, boolean)} and {@link #setContentTypePredicate(Predicate)}.
-     */
-    @Deprecated
-    public CronetDataSource(
-            CronetEngine cronetEngine,
-            Executor executor,
-            @Nullable Predicate<String> contentTypePredicate,
-            int connectTimeoutMs,
-            int readTimeoutMs,
-            boolean resetTimeoutOnRedirects,
-            @Nullable RequestProperties defaultRequestProperties,
-            boolean handleSetCookieRequests) {
-        this(
-                cronetEngine,
-                executor,
-                connectTimeoutMs,
-                readTimeoutMs,
-                resetTimeoutOnRedirects,
-                Clock.DEFAULT,
-                defaultRequestProperties,
-                handleSetCookieRequests);
-        this.contentTypePredicate = contentTypePredicate;
-    }
-
-    /* package */ CronetDataSource(
+    CronetDataSource(
             CronetEngine cronetEngine,
             Executor executor,
             int connectTimeoutMs,
@@ -427,16 +303,6 @@ public class CronetDataSource extends BaseDataSource implements HttpDataSource {
                 exception.initCause(new DataSourceException(DataSourceException.POSITION_OUT_OF_RANGE));
             }
             throw exception;
-        }
-
-        // Check for a valid content type.
-        Predicate<String> contentTypePredicate = this.contentTypePredicate;
-        if (contentTypePredicate != null) {
-            List<String> contentTypeHeaders = responseInfo.getAllHeaders().get(CONTENT_TYPE);
-            String contentType = isEmpty(contentTypeHeaders) ? null : contentTypeHeaders.get(0);
-            if (contentType != null && !contentTypePredicate.apply(contentType)) {
-                throw new InvalidContentTypeException(contentType, dataSpec);
-            }
         }
 
         // If we requested a range starting from a non-zero position and received a 200 rather than a
