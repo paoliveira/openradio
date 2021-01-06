@@ -19,7 +19,6 @@ import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.text.TextUtils
 import android.view.View
 import android.widget.CheckBox
 import android.widget.ImageView
@@ -85,7 +84,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
             if (item == null) {
                 continue
             }
-            if (TextUtils.equals(item.description.mediaId, mediaId)) {
+            if (item.description.mediaId == mediaId) {
                 return i
             }
         }

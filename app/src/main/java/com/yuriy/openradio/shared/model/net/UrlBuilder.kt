@@ -193,9 +193,9 @@ object UrlBuilder {
      * @return Modified URL.
      */
     @JvmStatic
-    fun preProcessIconUrl(url: String?): String? {
-        if (url == null || url.isEmpty()) {
-            return url
+    fun preProcessIconUrl(url: String?): String {
+        if (url.isNullOrEmpty()) {
+            return ""
         }
         return if (url.contains(OLD_IMG_BASE_URL)) {
             url.replace(OLD_IMG_BASE_URL, NEW_IMG_BASE_URL)

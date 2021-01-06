@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.model.api
 
 import android.content.Context
 import android.net.Uri
-import android.text.TextUtils
 import androidx.core.util.Pair
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.model.net.Downloader
@@ -174,7 +173,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         // Post data to the server.
         val response = String(downloader.downloadDataFromUri(mContext, uri, parameters))
         i("Add station response:$response")
-        if (TextUtils.isEmpty(response)) {
+        if (response.isEmpty()) {
             return false
         }
         var value = false
@@ -184,7 +183,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             val jsonObject = JSONObject(response)
             if (jsonObject.has("ok")) {
                 val str = jsonObject.getString("ok")
-                if (!TextUtils.isEmpty(str)) {
+                if (str.isNotEmpty()) {
                     value = str.equals("true", ignoreCase = true)
                 }
             }

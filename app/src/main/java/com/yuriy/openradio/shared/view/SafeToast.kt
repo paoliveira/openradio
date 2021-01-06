@@ -3,7 +3,6 @@ package com.yuriy.openradio.shared.view
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
-import android.text.TextUtils
 import android.widget.Toast
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -48,7 +47,7 @@ object SafeToast {
             AppLogger.w("Can not display Toast, Context is null")
             return
         }
-        if (TextUtils.isEmpty(text)) {
+        if (text.isEmpty()) {
             AppLogger.w("Can not display Toast, Text is null or empty")
             return
         }

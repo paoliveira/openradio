@@ -19,7 +19,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.text.TextUtils
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 /**
@@ -67,7 +66,7 @@ class ClearCacheReceiver(listener: ClearCacheReceiverListener) {
 
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
-            if (!TextUtils.equals(action, AppLocalBroadcast.getActionClearCache())) {
+            if (action != AppLocalBroadcast.getActionClearCache()) {
                 return
             }
             if (mListener == null) {

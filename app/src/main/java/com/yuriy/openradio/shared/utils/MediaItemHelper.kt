@@ -23,7 +23,6 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.TextUtils
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.vo.MediaItemListEnded
@@ -276,13 +275,17 @@ object MediaItemHelper {
             iconUrl = radioStation.imageUrl
         }
         val title = radioStation.name
-        val artist = streamTitle
+        var artist = streamTitle
         val genre = radioStation.genre
         val source = radioStation.mediaStream.getVariant(0)!!.url
         val id = radioStation.id
         val displatDescription = streamTitle
         val subTitle = streamTitle
         val album = radioStation.country
+
+        if (artist.isNullOrEmpty()) {
+            artist = context?.getString(R.string.media_description_default)
+        }
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
@@ -334,18 +337,18 @@ object MediaItemHelper {
     fun getDisplayDescription(value: MediaDescriptionCompat, defaultValue: String): String {
         val descChars = value.description ?: return defaultValue
         var result = descChars.toString()
-        if (!TextUtils.isEmpty(result)) {
+        if (result.isNotEmpty()) {
             return result
         }
         val subTitleChars = value.subtitle ?: return defaultValue
         result = subTitleChars.toString()
-        if (!TextUtils.isEmpty(result)) {
+        if (result.isNotEmpty()) {
             return result
         }
         if (value.extras != null) {
             result = value.extras!!.getString(MediaMetadataCompat.METADATA_KEY_ARTIST, defaultValue)
         }
-        return if (!TextUtils.isEmpty(result)) {
+        return if (result.isNotEmpty()) {
             result
         } else defaultValue
     }

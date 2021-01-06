@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.model.storage
 import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.text.TextUtils
 import com.yuriy.openradio.shared.model.translation.RadioStationDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonSerializer
@@ -148,7 +147,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
         @JvmStatic
         fun getAllFromString(context: Context, marshalledRadioStations: String): List<RadioStation> {
             val list: MutableList<RadioStation> = ArrayList()
-            if (TextUtils.isEmpty(marshalledRadioStations)) {
+            if (marshalledRadioStations.isEmpty()) {
                 return list
             }
             val deserializer: RadioStationDeserializer = RadioStationJsonDeserializer()
@@ -197,7 +196,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                     continue
                 }
                 value = map[key].toString()
-                if (TextUtils.isEmpty(value)) {
+                if (value.isEmpty()) {
                     continue
                 }
                 radioStation = deserializer.deserialize(context, value)

@@ -22,7 +22,6 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.text.TextUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
@@ -55,7 +54,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
             }
             BluetoothAdapter.STATE_DISCONNECTED -> {
                 i("$CLASS_NAME disconnected:$mConnectedDevice")
-                if (!TextUtils.isEmpty(mConnectedDevice)) {
+                if (!mConnectedDevice.isNullOrEmpty()) {
                     mListener.onDisconnected()
                 }
             }
@@ -114,7 +113,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
                     break
                 }
             }
-            if (TextUtils.equals(connectedDevice, mConnectedDevice)) {
+            if (connectedDevice == mConnectedDevice) {
                 i("$CLASS_NAME connected to same BT device.")
                 mListener.onSameDeviceConnected()
             }

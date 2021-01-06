@@ -46,7 +46,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             )
             radioStation.name = getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)
             var bitrateStr = getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0")
-            if (!TextUtils.isDigitsOnly(bitrateStr) || TextUtils.isEmpty(bitrateStr)) {
+            if (!TextUtils.isDigitsOnly(bitrateStr) || bitrateStr.isEmpty()) {
                 bitrateStr = "0"
             }
             radioStation.mediaStream.setVariant(bitrateStr.toInt(),

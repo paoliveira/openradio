@@ -19,7 +19,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.text.TextUtils
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getActionValidateOfRSFailed
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getActionValidateOfRSFailedReason
@@ -75,10 +74,10 @@ class RSAddValidatedReceiver(listener: RSAddValidatedReceiverListener) {
                 return
             }
             val action = intent.action
-            if (TextUtils.equals(action, getActionValidateOfRSSuccess())) {
+            if (action == getActionValidateOfRSSuccess()) {
                 mListener.onSuccess(getActionValidateOfRSSuccessMessage(intent))
             }
-            if (TextUtils.equals(action, getActionValidateOfRSFailed())) {
+            if (action == getActionValidateOfRSFailed()) {
                 mListener.onFailure(getActionValidateOfRSFailedReason(intent))
             }
         }

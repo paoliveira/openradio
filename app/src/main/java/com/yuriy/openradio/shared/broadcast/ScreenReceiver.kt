@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.broadcast
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.text.TextUtils
 import com.yuriy.openradio.shared.utils.AppLogger.i
 
 /**
@@ -38,9 +37,9 @@ class ScreenReceiver : AbstractReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         val action = intent.action
-        if (TextUtils.equals(action, Intent.ACTION_SCREEN_OFF)) {
+        if (Intent.ACTION_SCREEN_OFF == action) {
             i("Screen OFF")
-        } else if (TextUtils.equals(action, Intent.ACTION_SCREEN_ON)) {
+        } else if (Intent.ACTION_SCREEN_ON == action) {
             i("Screen ON")
         }
     }

@@ -18,7 +18,6 @@ package com.yuriy.openradio
 
 import android.content.Context
 import android.os.Build
-import android.text.TextUtils
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
@@ -158,7 +157,7 @@ class MainApp : MultiDexApplication() {
             val filesDir = getFilesDir(context).absolutePath
             for (radioStation in list) {
                 imageUrl = radioStation.imageUrl
-                if (TextUtils.isEmpty(imageUrl)) {
+                if (imageUrl.isEmpty()) {
                     continue
                 }
                 if (imageUrl.contains(filesDir)) {

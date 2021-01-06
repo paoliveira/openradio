@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.vo
 
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
-import android.text.TextUtils
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
@@ -99,7 +98,7 @@ class RadioStation : Serializable {
     }
 
     private fun setId(context: Context, value: String?) {
-        mId = if (TextUtils.isEmpty(value)) {
+        mId = if (value.isNullOrEmpty()) {
             AnalyticsUtils.logException(IllegalArgumentException("Radio Station ID is invalid"))
             LocalRadioStationsStorage.getId(context)
         } else {

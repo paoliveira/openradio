@@ -19,7 +19,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import android.text.TextUtils
 import android.view.View
 import androidx.core.app.ActivityCompat
 import com.google.android.material.snackbar.Snackbar
@@ -81,7 +80,7 @@ object PermissionChecker {
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permissionName)) {
             Snackbar.make(layout, permissionMessage,
                     Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok_label
-            ) { view: View? ->
+            ) {
                 // Request the permission
                 ActivityCompat.requestPermissions(
                         activity, arrayOf(permissionName),
@@ -107,7 +106,7 @@ object PermissionChecker {
     private fun isGranted(context: Context?, permission: String): Boolean {
         return if (!hasVersionM()) {
             true
-        } else context != null && !TextUtils.isEmpty(permission)
+        } else context != null && permission.isNotEmpty()
                 && (ActivityCompat.checkSelfPermission(context, permission)
                 == PackageManager.PERMISSION_GRANTED)
     }

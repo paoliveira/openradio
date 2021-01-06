@@ -145,7 +145,7 @@ class StreamBufferingDialog : BaseDialogFragment() {
     }
 
     private fun validateInput(value: String): Boolean {
-        if (TextUtils.isEmpty(value)) {
+        if (value.isEmpty()) {
             return false
         }
         if (!TextUtils.isDigitsOnly(value)) {

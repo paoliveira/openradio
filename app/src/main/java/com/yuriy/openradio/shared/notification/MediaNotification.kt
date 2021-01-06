@@ -21,27 +21,33 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.Drawable
 import android.os.RemoteException
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.TextUtils
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.activity.MainActivity
+import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.hasVersionLollipop
 import com.yuriy.openradio.shared.utils.MediaItemHelper.metadataFromRadioStation
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.tv.view.activity.TvMainActivity
 import java.util.concurrent.atomic.*
+
 
 /**
  * Keeps track of a notification and updates it automatically for a given
@@ -147,7 +153,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
         d("$CLASS_NAME Received intent with action $action")
-        if (TextUtils.isEmpty(action)) {
+        if (action.isNullOrEmpty()) {
             return
         }
         when (action) {
@@ -183,7 +189,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         }
     }
 
-    private inner class MediaControllerCompatCallback: MediaControllerCompat.Callback() {
+    private inner class MediaControllerCompatCallback : MediaControllerCompat.Callback() {
 
         private var mPlaybackState: PlaybackStateCompat? = null
 
@@ -246,17 +252,35 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                 .setMediaSession(mSessionToken)
         val description = mMetadata!!.description
         var art = description.iconBitmap
-        if (art == null) {
+        if (art == null && description.iconUri != null) {
+            val artUrl = UrlBuilder.preProcessIconUrl(description.iconUri.toString())
+            if (AppUtils.isWebUrl(artUrl)) {
+                Picasso.get()
+                        .load(artUrl)
+                        .resize(NOTIFICATION_LARGE_ICON_SIZE_PX, NOTIFICATION_LARGE_ICON_SIZE_PX)
+                        .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
+                        .into(
+                                object : Target {
+                                    override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
+                                        e("Can't load large art:$e")
+                                    }
+
+                                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+
+                                    override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                                        d("Large art loaded")
+                                        art = bitmap
+                                    }
+                                }
+                        )
+            }
+
+        } else if (art == null) {
             // use a placeholder art while the remote art is being downloaded
             art = BitmapFactory.decodeResource(mService.resources, R.drawable.ic_radio_station)
+        } else {
+            d("Art bitmap:$art")
         }
-        // TODO:
-        //if (art == null && description.iconUri != null) {
-            // This sample assumes the iconUri will be a valid URL formatted String, but
-            // it can actually be any valid Android Uri formatted String.
-            // async fetch the album art icon
-            // val artUrl = UrlBuilder.preProcessIconUrl(description.iconUri.toString())
-        //}
 
         // If skip to next action is enabled
         if (playbackState.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT != 0L) {
@@ -289,12 +313,6 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]")
         //        mNotificationChannelFactory.updateChannel(NOTIFICATION_ID, builder.build());
         mService.startForeground(NOTIFICATION_ID, builder.build())
-        // TODO: Fetch and update Notification.
-//        if (fetchArtUrl != null && !BitmapUtils.isUrlLocalResource(fetchArtUrl)) {
-//            if (cacheObject == null) {
-//                fetchBitmapFromURLAsync(fetchArtUrl);
-//            }
-//        }
     }
 
     fun notifyService(message: String?) {
@@ -349,6 +367,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     companion object {
         private val CLASS_NAME = MediaNotification::class.java.simpleName
         private const val NOTIFICATION_ID = 412
+        private const val NOTIFICATION_LARGE_ICON_SIZE_PX = 144
         private const val ACTION_PAUSE = "com.yuriy.openradio.pause"
         private const val ACTION_PLAY = "com.yuriy.openradio.play"
         private const val ACTION_PREV = "com.yuriy.openradio.prev"

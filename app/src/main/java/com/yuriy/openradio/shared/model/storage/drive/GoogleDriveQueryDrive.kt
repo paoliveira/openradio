@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.model.storage.drive
 
-import android.text.TextUtils
 import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.api.services.drive.model.File
@@ -100,7 +99,7 @@ internal abstract class GoogleDriveQueryDrive(isTerminator: Boolean) : GoogleDri
             d(" - file:$file")
             // All other fields are null, except name type and id.
             // Get the first record.
-            if (TextUtils.equals(name, file.name)) {
+            if (name == file.name) {
                 result = file.clone()
                 break
             }

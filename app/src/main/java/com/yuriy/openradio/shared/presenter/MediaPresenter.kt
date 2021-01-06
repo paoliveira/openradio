@@ -24,7 +24,6 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.TextUtils
 import android.view.View
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -180,11 +179,11 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         index = mMediaItemsStack.size - 1
         if (index >= 0) {
             val previousMediaId = mMediaItemsStack[index]
-            if (!TextUtils.isEmpty(previousMediaId)) {
+            if (!previousMediaId.isNullOrEmpty()) {
                 if (mListener != null) {
                     mListener!!.showProgressBar()
                 }
-                mMediaRsrMgr!!.subscribe(previousMediaId!!, mCallback)
+                mMediaRsrMgr!!.subscribe(previousMediaId, mCallback)
             }
         } else {
             d("$CLASS_NAME back pressed return true")
@@ -214,7 +213,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             e("$CLASS_NAME add media id to stack, callback null")
             return
         }
-        if (TextUtils.isEmpty(mediaId)) {
+        if (mediaId.isNullOrEmpty()) {
             e("$CLASS_NAME add empty media id to stack")
             return
         }
@@ -224,7 +223,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         if (mListener != null) {
             mListener!!.showProgressBar()
         }
-        mMediaRsrMgr!!.subscribe(mediaId!!, mCallback)
+        mMediaRsrMgr!!.subscribe(mediaId, mCallback)
     }
 
     /**
@@ -298,7 +297,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
     private fun getPositions(mediaItem: String?): IntArray {
         // Restore clicked position for the Catalogue list.
-        return if (!TextUtils.isEmpty(mediaItem) && mPositions.containsKey(mediaItem)) {
+        return if (!mediaItem.isNullOrEmpty() && mPositions.containsKey(mediaItem)) {
             mPositions[mediaItem] ?: return createInitPositionEntry()
         } else createInitPositionEntry()
     }

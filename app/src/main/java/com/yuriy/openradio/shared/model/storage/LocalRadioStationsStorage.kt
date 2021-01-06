@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
-import android.text.TextUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -82,7 +81,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return `true` in case of value is [.KEY_ID], `false` otherwise.
      */
     fun isKeyId(value: String?): Boolean {
-        return TextUtils.equals(KEY_ID, value)
+        return KEY_ID == value
     }
 
     /**

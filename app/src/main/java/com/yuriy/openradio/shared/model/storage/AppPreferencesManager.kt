@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.text.TextUtils
 import com.google.android.exoplayer2.DefaultLoadControl
 
 /**
@@ -138,10 +137,10 @@ object AppPreferencesManager {
         var value = getSharedPreferences(context).getString(
                 PREFS_KEY_CUSTOM_USER_AGENT, defaultValue
         )
-        if (TextUtils.isEmpty(value)) {
+        if (value.isNullOrEmpty()) {
             value = defaultValue
         }
-        return value ?: defaultValue
+        return value
     }
 
     /**

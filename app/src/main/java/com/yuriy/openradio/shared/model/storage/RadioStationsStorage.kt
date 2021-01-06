@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.support.v4.media.session.MediaSessionCompat
-import android.text.TextUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
@@ -62,7 +61,7 @@ class RadioStationsStorage {
      * @return Index of the Radio Station in the collection.
      */
     fun getIndex(mediaId: String?): Int {
-        if (TextUtils.isEmpty(mediaId)) {
+        if (mediaId.isNullOrEmpty()) {
             return MediaSessionCompat.QueueItem.UNKNOWN_ID
         }
         var index = 0
@@ -88,7 +87,7 @@ class RadioStationsStorage {
         }
         synchronized(mRadioStations) {
             for (item in mRadioStations) {
-                if (TextUtils.equals(item.id, id)) {
+                if (item.id == id) {
                     result = item
                     break
                 }
@@ -103,12 +102,12 @@ class RadioStationsStorage {
      */
     fun remove(mediaId: String?): RadioStation? {
         var result: RadioStation? = null
-        if (TextUtils.isEmpty(mediaId)) {
+        if (mediaId.isNullOrEmpty()) {
             return result
         }
         synchronized(mRadioStations) {
             for (radioStation in mRadioStations) {
-                if (TextUtils.equals(radioStation.id, mediaId)) {
+                if (radioStation.id == mediaId) {
                     mRadioStations.remove(radioStation)
                     result = radioStation
                     break

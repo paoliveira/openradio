@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import org.apache.log4j.Layout
@@ -75,7 +74,7 @@ object AppLogger {
     private fun getCurrentLogsDirectory(context: Context): String {
         if (AppUtils.externalStorageAvailable()) {
             val extLogsDirectory = AppUtils.getExternalStorageDir(context)
-            if (!TextUtils.isEmpty(extLogsDirectory)) {
+            if (!extLogsDirectory.isNullOrEmpty()) {
                 return "$extLogsDirectory/logs"
             }
         }
@@ -85,7 +84,7 @@ object AppLogger {
     private fun getLogsDirectories(context: Context): Array<File> {
         if (AppUtils.externalStorageAvailable()) {
             val extLogsDirectory = AppUtils.getExternalStorageDir(context)
-            if (!TextUtils.isEmpty(extLogsDirectory)) {
+            if (!extLogsDirectory.isNullOrEmpty()) {
                 return arrayOf(
                         File(sInitLogsDirectory), File("$extLogsDirectory/logs")
                 )

@@ -25,7 +25,6 @@ import android.os.Build
 import android.os.Environment
 import android.os.Looper
 import android.telephony.TelephonyManager
-import android.text.TextUtils
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
 import com.google.android.exoplayer2.util.Util
@@ -291,7 +290,7 @@ object AppUtils {
 
     @JvmStatic
     fun isWebUrl(url: String): Boolean {
-        return if (TextUtils.isEmpty(url)) {
+        return if (url.isEmpty()) {
             false
         } else url.toLowerCase(Locale.ROOT).startsWith("www") || url.toLowerCase(Locale.ROOT).startsWith("http")
     }
@@ -336,7 +335,7 @@ object AppUtils {
      */
     private fun capitalize(str: String, delimiters: CharArray?): String {
         val delimLen = delimiters?.size ?: -1
-        if (TextUtils.isEmpty(str) || delimLen == 0) {
+        if (str.isEmpty() || delimLen == 0) {
             return str
         }
         val buffer = str.toCharArray()

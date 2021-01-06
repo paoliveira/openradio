@@ -19,7 +19,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.text.TextUtils
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getActionMasterVolumeChanged
 
@@ -69,7 +68,7 @@ class MasterVolumeReceiver(listener: MasterVolumeReceiverListener) {
 
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
-            if (!TextUtils.equals(action, getActionMasterVolumeChanged())) {
+            if (action != getActionMasterVolumeChanged()) {
                 return
             }
             if (mListener == null) {

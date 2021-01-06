@@ -24,7 +24,6 @@ import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -610,7 +609,7 @@ class MainActivity : AppCompatActivity() {
             if (mMediaPresenter != null) {
                 return
             }
-            if (TextUtils.equals(mMediaPresenter!!.currentParentId, MediaIdHelper.MEDIA_ID_ROOT)) {
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
                 updateRootView()
             }
         }

@@ -183,10 +183,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         }
         mUserState = UserState.PREPARE
         mUri = uri
-        logMessage("URI:$mUri")
         if (mExoPlayer != null) {
             mExoPlayer!!.playWhenReady = true
-            mExoPlayer!!.setMediaItem(MediaItem.Builder().setUri(mUri).build())
+            mExoPlayer!!.setMediaItem(MediaItem.Builder().setUri(uri).build())
             mExoPlayer!!.prepare()
         }
     }

@@ -34,7 +34,6 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.text.TextUtils
 import android.util.Log
 import android.view.KeyEvent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -390,14 +389,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         i(CLASS_NAME + "OnLoadChildren " + parentId)
         var isSameCatalogue = false
         // Check whether category had changed.
-        if (TextUtils.equals(mCurrentParentId, parentId)) {
+        if (parentId == mCurrentParentId) {
             isSameCatalogue = true
         }
         mCurrentParentId = parentId
 
         // If Parent Id contains Country Code - use it in the API.
         var countryCode = getCountryCode(mCurrentParentId)
-        if (TextUtils.isEmpty(countryCode)) {
+        if (countryCode.isNullOrEmpty()) {
             // Otherwise, use whatever is stored in preferences.
             countryCode = LocationPreferencesManager.getLastCountryCode(applicationContext)
         }
@@ -562,9 +561,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val radioStation = getRadioStationByMediaId(mediaId) ?: return
         radioStation.sortId = sortId
         // This call just overrides existing Radio Station in the storage.
-        if (TextUtils.equals(MediaIdHelper.MEDIA_ID_FAVORITES_LIST, categoryMediaId)) {
+        if (MediaIdHelper.MEDIA_ID_FAVORITES_LIST == categoryMediaId) {
             FavoritesStorage.add(radioStation, applicationContext)
-        } else if (TextUtils.equals(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST, categoryMediaId)) {
+        } else if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == categoryMediaId) {
             LocalRadioStationsStorage.add(radioStation, applicationContext)
         }
     }
@@ -696,7 +695,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             e(CLASS_NAME + "update metadata with null media session")
             return
         }
-        if (!TextUtils.equals(getString(R.string.buffering_infinite), streamTitle)) {
+        if (getString(R.string.buffering_infinite) != streamTitle) {
             mCurrentStreamTitle = streamTitle
         }
         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
@@ -717,7 +716,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
         val trackId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
         // TODO: Check whether we can use media id from Radio Station
-        if (!TextUtils.equals(radioStation.id, trackId)) {
+        if (radioStation.id != trackId) {
             w(
                     CLASS_NAME + "track ID '" + trackId
                             + "' should match mediaId '" + radioStation.id + "'"
@@ -881,7 +880,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         + " id " + metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID) +
                         " source " + source
         )
-        if (TextUtils.isEmpty(source)) {
+        if (source.isNullOrEmpty()) {
             e("$CLASS_NAME source is empty")
             return
         }
@@ -889,23 +888,17 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         preparePlayer(source)
     }
 
-    private fun preparePlayer(url: String?) {
-        if (url == null) {
-            e("$CLASS_NAME url is null")
-            return
-        }
-
+    private fun preparePlayer(url: String) {
         // Cache URL.
         mLastPlayedUrl = url
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         mPauseReason = PauseReason.DEFAULT
 
-        // release everything except ExoPlayer
+        // Release everything except ExoPlayer
         relaxResources(false)
         createMediaPlayerIfNeeded()
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        mExoPlayerORImpl!!.prepare(Uri.parse(mLastPlayedUrl))
-        updatePlaybackState()
+        mExoPlayerORImpl!!.prepare(Uri.parse(url))
     }
 
     private fun handleClearCache() {
@@ -1085,7 +1078,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun onResultUiThread() {
-        if (!TextUtils.isEmpty(mCurrentMediaId) &&
+        if (!mCurrentMediaId.isNullOrEmpty() &&
                 !mRadioStationsStorage.isEmpty) {
             mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId)
             d(CLASS_NAME + "On result from command, index:" + mCurrentIndexOnQueue + ", " + mCurrentMediaId)
@@ -1388,7 +1381,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun performSearch(query: String) {
         i(CLASS_NAME + "search for:" + query)
-        if (TextUtils.isEmpty(query)) {
+        if (query.isEmpty()) {
             return
         }
         GlobalScope.launch(Dispatchers.IO) {
@@ -1472,8 +1465,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 // In this case it is not in a list of radio stations.
                 // If it exists, let's compare its id with the id provided by intent.
                 if (rs == null) {
-                    if (mLastKnownRS != null
-                            && TextUtils.equals(mLastKnownRS!!.id, description.mediaId)) {
+                    if (mLastKnownRS != null && mLastKnownRS!!.id == description.mediaId) {
                         rs = makeCopyInstance(context, mLastKnownRS!!)
                     }
                     // We failed both cases, something went wrong ...
@@ -1529,7 +1521,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     e("$CLASS_NAME Radio Station to add is null")
                     return
                 }
-                if (TextUtils.isEmpty(rsToAdd.name)) {
+                if (rsToAdd.name.isEmpty()) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's name is invalid"
@@ -1538,7 +1530,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     return
                 }
                 val url = rsToAdd.url
-                if (TextUtils.isEmpty(url)) {
+                if (url.isEmpty()) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's url is invalid"
@@ -1609,7 +1601,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             }
             VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND -> {
                 val mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID)
-                if (TextUtils.isEmpty(mediaId)) {
+                if (mediaId.isNullOrEmpty()) {
                     w(CLASS_NAME + "Can not remove Station, Media Id is empty")
                     return
                 }

@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.view.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.text.TextUtils
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -116,7 +115,7 @@ class GeneralSettingsDialog : BaseDialogFragment() {
         }
         val context = activity ?: return
         val userAgent = mUserAgentEditView!!.text.toString().trim { it <= ' ' }
-        if (TextUtils.isEmpty(userAgent)) {
+        if (userAgent.isEmpty()) {
             showAnyThread(context, getString(R.string.user_agent_empty_warning))
             return
         }

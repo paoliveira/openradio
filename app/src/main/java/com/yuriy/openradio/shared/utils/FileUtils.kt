@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
-import android.text.TextUtils
 import android.util.Log
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
@@ -94,7 +93,7 @@ object FileUtils {
      */
     @JvmStatic
     fun copyExtFileToIntDir(context: Context, filePath: String): String? {
-        if (TextUtils.isEmpty(filePath)) {
+        if (filePath.isEmpty()) {
             return filePath
         }
         val directory = getFilesDir(context)

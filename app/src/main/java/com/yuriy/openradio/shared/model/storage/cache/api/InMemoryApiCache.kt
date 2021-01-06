@@ -15,7 +15,6 @@
  */
 package com.yuriy.openradio.shared.model.storage.cache.api
 
-import android.text.TextUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import org.json.JSONArray
 import java.util.concurrent.*
@@ -29,7 +28,7 @@ import java.util.concurrent.*
 class InMemoryApiCache : ApiCache {
 
     override fun get(key: String): JSONArray {
-        if (!TextUtils.isEmpty(key) && RESPONSES_MAP.containsKey(key)) {
+        if (key.isNotEmpty() && RESPONSES_MAP.containsKey(key)) {
             val data = RESPONSES_MAP[key]
             d(CLASS_NAME + "Cached response from RAM for " + key + " is " + data)
             return data ?: JSONArray()
@@ -38,14 +37,14 @@ class InMemoryApiCache : ApiCache {
     }
 
     override fun put(key: String, data: JSONArray) {
-        if (TextUtils.isEmpty(key)) {
+        if (key.isEmpty()) {
             return
         }
         RESPONSES_MAP[key] = data
     }
 
     override fun remove(key: String) {
-        if (TextUtils.isEmpty(key)) {
+        if (key.isEmpty()) {
             return
         }
         RESPONSES_MAP.remove(key)

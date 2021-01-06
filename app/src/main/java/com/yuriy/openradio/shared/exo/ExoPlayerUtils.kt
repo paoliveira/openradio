@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.exo
 
 import android.content.Context
-import android.text.TextUtils
 import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.database.DatabaseProvider
@@ -59,7 +58,7 @@ object ExoPlayerUtils {
     @Synchronized
     fun getDataSourceFactory(context: Context): DataSource.Factory? {
         val userAgent = getUserAgent(context)
-        if (!TextUtils.equals(sUserAgent, userAgent)) {
+        if (sUserAgent == userAgent) {
             sDataSourceFactory = null
             sHttpDataSourceFactory = null
         }

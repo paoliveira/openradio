@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.view.dialog
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
-import android.text.TextUtils
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -191,9 +190,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_data_saved)
                 GoogleDriveManager.Command.DOWNLOAD -> context.getString(R.string.google_drive_data_read)
             }
-            if (!TextUtils.isEmpty(message)) {
-                showAnyThread(context, message)
-            }
+            showAnyThread(context, message)
             hideProgress(command)
         }
 
@@ -208,9 +205,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_error_when_save)
                 GoogleDriveManager.Command.DOWNLOAD -> context.getString(R.string.google_drive_error_when_read)
             }
-            if (!TextUtils.isEmpty(message)) {
-                showAnyThread(context, message)
-            }
+            showAnyThread(context, message)
             hideProgress(command)
         }
     }

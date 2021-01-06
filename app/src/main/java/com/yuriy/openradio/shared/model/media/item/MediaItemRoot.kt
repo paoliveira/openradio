@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.model.media.item
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
-import android.text.TextUtils
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
@@ -153,7 +152,7 @@ class MediaItemRoot : MediaItemCommand {
         )
 
         // If the Country code is known:
-        if (!TextUtils.isEmpty(dependencies.countryCode)) {
+        if (dependencies.countryCode.isNotEmpty()) {
             val identifier = context.resources.getIdentifier(
                     "flag_" + dependencies.countryCode.toLowerCase(Locale.ROOT),
                     "drawable", context.packageName

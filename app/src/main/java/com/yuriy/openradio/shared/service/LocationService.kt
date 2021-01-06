@@ -19,7 +19,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
-import android.text.TextUtils
 import androidx.core.app.JobIntentService
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -373,7 +372,7 @@ class LocationService : JobIntentService() {
                     object : LocationServiceListener {
                         override fun onCountryCodeLocated(countryCode: String) {
                             val curCountryCode = LocationPreferencesManager.getLastCountryCode(context)
-                            if (!TextUtils.equals(curCountryCode, countryCode)) {
+                            if (curCountryCode != countryCode) {
                                 LocationPreferencesManager.setLastCountryCode(context, countryCode)
                                 LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
                                         AppLocalBroadcast.createIntentLocationChanged()
