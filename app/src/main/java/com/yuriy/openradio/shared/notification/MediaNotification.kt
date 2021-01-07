@@ -292,11 +292,11 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         }
         val smallIcon = if (hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
         // Build the style.
-        val mActionsToShowInCompact = getActionIndicesForCompactView(
+        val actionsToShowInCompact = getActionIndicesForCompactView(
                 getActions(enableNext, enablePrevious, playbackState), playbackState
         )
         val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(*mActionsToShowInCompact)
+                .setShowActionsInCompactView(*actionsToShowInCompact)
                 .setMediaSession(mSessionToken)
         builder
                 .setContentIntent(makePendingIntent())
@@ -318,7 +318,6 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                         "subtitle:" + description.subtitle
         )
         d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]")
-        //        mNotificationChannelFactory.updateChannel(NOTIFICATION_ID, builder.build());
         mService.startForeground(NOTIFICATION_ID, builder.build())
     }
 
@@ -348,22 +347,17 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     }
 
     /**
-     * Gets the names and order of the actions to be included in the notification at the current
-     * player state.
+     * Gets the names and order of the actions to be included in the notification at the current player state.
      *
-     *
-     * The playback and custom actions are combined and placed in the following order if not
-     * omitted:
+     * The playback and custom actions are combined and placed in the following order if not omitted:
      *
      * +------------------------------------------------------------------------+
      * | prev | &lt;&lt; | play/pause | &gt;&gt; | next | custom actions | stop |
      * +------------------------------------------------------------------------+
      *
-     * This method can be safely overridden. However, the names must be of the playback actions
-     * [.ACTION_PAUSE], [.ACTION_PLAY], [.ACTION_FAST_FORWARD], [ ][.ACTION_REWIND],
-     * [.ACTION_NEXT] or [.ACTION_PREVIOUS], or a key contained in the
-     * map returned by [CustomActionReceiver.createCustomActions]. Otherwise the
-     * action name is ignored.
+     * The names must be of the playback actions
+     * [ACTION_PAUSE], [ACTION_PLAY], [ACTION_NEXT] or [ACTION_PREV].
+     * Otherwise the action name is ignored.
      */
     private fun getActions(enableNext: Boolean, enablePrevious: Boolean,
                            playbackState: PlaybackStateCompat): List<String> {
@@ -385,9 +379,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     /**
      * Gets an array with the indices of the buttons to be shown in compact mode.
      *
-     *
-     * This method can be overridden. The indices must refer to the list of actions passed as the
-     * first parameter.
+     * The indices must refer to the list of actions passed as the first parameter.
      *
      * @param actionNames The names of the actions included in the notification.
      * @param playbackState
