@@ -113,6 +113,7 @@ dependencies {
     implementation "androidx.core:core-ktx:$kotlinCoreKtx"
     implementation "androidx.leanback:leanback:$leanbackVersion"
 
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "org.checkerframework:checker-qual:$checkerQualVersion"

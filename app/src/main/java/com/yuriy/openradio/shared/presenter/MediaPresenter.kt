@@ -59,7 +59,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
-    private val mMediaRsrMgr: MediaResourcesManager?
+    private val mMediaRsrMgr: MediaResourcesManager
 
     /**
      * Stack of the media items.
@@ -100,6 +100,14 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
      */
     private val mScreenBroadcastRcvr: AbstractReceiver
     private var mCurrentRadioStationView: View? = null
+
+    init {
+        mScrollListener = ScrollListener()
+        mScreenBroadcastRcvr = ScreenReceiver()
+        mAppLocalBroadcastRcvr = AppLocalReceiver.instance
+        mMediaRsrMgr = MediaResourcesManager(context!!, javaClass.simpleName)
+    }
+
     fun init(activity: Activity, bundle: Bundle?, listView: RecyclerView,
              currentRadioStationView: View,
              adapter: MediaItemsAdapter, itemAdapterListener: MediaItemsAdapter.Listener?,
@@ -114,7 +122,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mCurrentRadioStationView = currentRadioStationView
         // Listener of events provided by Media Resource Manager.
         val mediaRsrMgrLst: MediaResourceManagerListener = MediaResourceManagerListenerImpl()
-        mMediaRsrMgr!!.init(activity, bundle, mediaRsrMgrLst)
+        mMediaRsrMgr.init(activity, bundle, mediaRsrMgrLst)
         val layoutManager = LinearLayoutManager(activity)
         mListView!!.layoutManager = layoutManager
         // Set adapter
@@ -132,7 +140,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
     fun clean() {
         d("$CLASS_NAME clean")
-        mMediaRsrMgr!!.clean()
+        mMediaRsrMgr.clean()
         mCallback = null
         mActivity = null
         mListener = null
@@ -146,7 +154,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             mListView!!.removeOnScrollListener(mScrollListener)
         }
         // Disconnect Media Browser
-        mMediaRsrMgr!!.disconnect()
+        mMediaRsrMgr.disconnect()
     }
 
     fun handleBackPressed(context: Context): Boolean {
@@ -156,7 +164,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         if (mMediaItemsStack.size == 1) {
 
             // Un-subscribe from item
-            mMediaRsrMgr!!.unsubscribe(mMediaItemsStack.removeAt(mMediaItemsStack.size - 1)!!)
+            mMediaRsrMgr.unsubscribe(mMediaItemsStack.removeAt(mMediaItemsStack.size - 1)!!)
             // Clear stack
             mMediaItemsStack.clear()
             context.startService(makeStopServiceIntent(context))
@@ -167,12 +175,12 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         if (index >= 0) {
             // Get current media item and un-subscribe.
             val currentMediaId = mMediaItemsStack.removeAt(index)
-            mMediaRsrMgr!!.unsubscribe(currentMediaId!!)
+            mMediaRsrMgr.unsubscribe(currentMediaId!!)
         }
 
         // Un-subscribe from all items.
         for (mediaItemId in mMediaItemsStack) {
-            mMediaRsrMgr!!.unsubscribe(mediaItemId!!)
+            mMediaRsrMgr.unsubscribe(mediaItemId!!)
         }
 
         // Subscribe to the previous item.
@@ -183,7 +191,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
                 if (mListener != null) {
                     mListener!!.showProgressBar()
                 }
-                mMediaRsrMgr!!.subscribe(previousMediaId, mCallback)
+                mMediaRsrMgr.subscribe(previousMediaId, mCallback)
             }
         } else {
             d("$CLASS_NAME back pressed return true")
@@ -205,7 +213,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         }
 
         // Un-subscribe from item
-        mMediaRsrMgr!!.unsubscribe(mediaId!!)
+        mMediaRsrMgr.unsubscribe(mediaId!!)
     }
 
     fun addMediaItemToStack(mediaId: String?) {
@@ -223,7 +231,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         if (mListener != null) {
             mListener!!.showProgressBar()
         }
-        mMediaRsrMgr!!.subscribe(mediaId, mCallback)
+        mMediaRsrMgr.subscribe(mediaId, mCallback)
     }
 
     /**
@@ -284,14 +292,11 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             addMediaItemToStack(mediaId)
         } else if (item.isPlayable) {
             // Else - we play an item
-            mMediaRsrMgr!!.playFromMediaId(mediaId)
+            mMediaRsrMgr.playFromMediaId(mediaId)
         }
     }
 
     fun connect() {
-        if (mMediaRsrMgr == null) {
-            return
-        }
         mMediaRsrMgr.connect()
     }
 
@@ -396,10 +401,10 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
     private fun handleMediaResourceManagerConnected() {
         val size = mMediaItemsStack.size
-        val mediaId = if (size == 0) mMediaRsrMgr!!.root else mMediaItemsStack[size - 1]!!
+        val mediaId = if (size == 0) mMediaRsrMgr.root else mMediaItemsStack[size - 1]!!
         addMediaItemToStack(mediaId)
         // Update metadata in case of UI started on and media service was already created and stream played.
-        handleMetadataChanged(mMediaRsrMgr!!.mediaMetadata)
+        handleMetadataChanged(mMediaRsrMgr.mediaMetadata)
     }
 
     private fun handleMetadataChanged(metadata: MediaMetadataCompat?) {
@@ -472,12 +477,5 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
          * Key value for the first visible ID in the List for the store Bundle
          */
         private const val BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA"
-    }
-
-    init {
-        mScrollListener = ScrollListener()
-        mScreenBroadcastRcvr = ScreenReceiver()
-        mAppLocalBroadcastRcvr = AppLocalReceiver.instance
-        mMediaRsrMgr = MediaResourcesManager(context!!, javaClass.simpleName)
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.media
 
 import android.app.Activity
@@ -36,6 +37,7 @@ import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.MediaItemHelper.playbackStateToString
 import java.util.*
+import java.util.concurrent.atomic.*
 
 /**
  * Created by Chernyshov Yurii
@@ -52,7 +54,9 @@ class MediaResourcesManager(context: Context, className: String) {
     /**
      * Browses media content offered by a [android.service.media.MediaBrowserService].
      */
-    private val mMediaBrowser: MediaBrowserCompat?
+    private val mMediaBrowser: MediaBrowserCompat
+
+    private val mIsConnectInvoked = AtomicBoolean(false)
 
     /**
      * Controller of media content offered by a [android.service.media.MediaBrowserService].
@@ -81,6 +85,22 @@ class MediaResourcesManager(context: Context, className: String) {
     private val mSubscribed: MutableSet<String>
 
     /**
+     * Constructor.
+     */
+    init {
+        mMediaSessionCallback = MediaSessionCallback()
+        mSubscribed = HashSet()
+        // Initialize Media Browser
+        val callback: MediaBrowserCompat.ConnectionCallback = MediaBrowserConnectionCallback()
+        mMediaBrowser = MediaBrowserCompat(
+                context,
+                ComponentName(context, OpenRadioService::class.java),
+                callback,
+                null
+        )
+    }
+
+    /**
      * Creates Media Browser, assigns listener.
      */
     fun init(activity: Activity, bundle: Bundle?,
@@ -101,7 +121,7 @@ class MediaResourcesManager(context: Context, className: String) {
      * Connects to the Media Browse service.
      */
     fun connect() {
-        if (mMediaBrowser!!.isConnected) {
+        if (mMediaBrowser.isConnected) {
             w(mClassName + "Connect aborted, already connected")
             // Register callbacks
             mMediaController!!.registerCallback(mMediaSessionCallback)
@@ -111,8 +131,12 @@ class MediaResourcesManager(context: Context, className: String) {
             mMediaSessionCallback.dispatchLatestState()
             return
         }
+        if (mIsConnectInvoked.get()) {
+            return
+        }
         try {
             mMediaBrowser.connect()
+            mIsConnectInvoked.set(true)
             i(mClassName + "Connected")
         } catch (e: IllegalStateException) {
             e(mClassName + "Can not connect:" + e)
@@ -123,11 +147,15 @@ class MediaResourcesManager(context: Context, className: String) {
      * Disconnects from the Media Browse service. After this, no more callbacks will be received.
      */
     fun disconnect() {
-        if (!mMediaBrowser!!.isConnected) {
+        if (!mMediaBrowser.isConnected) {
             w(mClassName + "Disconnect aborted, already disconnected")
             return
         }
+        if (!mIsConnectInvoked.get()) {
+            return
+        }
         mMediaBrowser.disconnect()
+        mIsConnectInvoked.set(false)
         i(mClassName + "Disconnected")
     }
 
@@ -161,7 +189,7 @@ class MediaResourcesManager(context: Context, className: String) {
             return
         }
         mSubscribed.add(parentId)
-        mMediaBrowser!!.subscribe(parentId, callback)
+        mMediaBrowser.subscribe(parentId, callback)
     }
 
     /**
@@ -174,10 +202,8 @@ class MediaResourcesManager(context: Context, className: String) {
             return
         }
         i(mClassName + "Unsubscribe:" + parentId + ", " + mMediaBrowser)
-        if (mMediaBrowser != null) {
-            mSubscribed.remove(parentId)
-            mMediaBrowser.unsubscribe(parentId)
-        }
+        mSubscribed.remove(parentId)
+        mMediaBrowser.unsubscribe(parentId)
     }
 
     /**
@@ -187,7 +213,7 @@ class MediaResourcesManager(context: Context, className: String) {
      * @return Root Id.
      */
     val root: String
-        get() = mMediaBrowser?.root ?: ""
+        get() = mMediaBrowser.root
 
     /**
      * @return Metadata.
@@ -205,7 +231,7 @@ class MediaResourcesManager(context: Context, className: String) {
     }
 
     private fun handleMediaBrowserConnected() {
-        d(mClassName + "Session token " + mMediaBrowser!!.sessionToken)
+        d(mClassName + "Session token " + mMediaBrowser.sessionToken)
         if (mActivity == null) {
             e("$mClassName media browser connected when context is null, disconnect")
             disconnect()
@@ -324,21 +350,5 @@ class MediaResourcesManager(context: Context, className: String) {
             }
             onPlaybackStateChanged(mCurrentState)
         }
-    }
-
-    /**
-     * Constructor.
-     */
-    init {
-        mMediaSessionCallback = MediaSessionCallback()
-        mSubscribed = HashSet()
-        // Initialize Media Browser
-        val callback: MediaBrowserCompat.ConnectionCallback = MediaBrowserConnectionCallback()
-        mMediaBrowser = MediaBrowserCompat(
-                context,
-                ComponentName(context, OpenRadioService::class.java),
-                callback,
-                null
-        )
     }
 }

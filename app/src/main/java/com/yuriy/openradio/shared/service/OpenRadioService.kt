@@ -28,6 +28,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
+import android.os.Process
 import android.os.SystemClock
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -84,13 +85,13 @@ import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.isAutomotive
-import com.yuriy.openradio.shared.utils.AppUtils.isUiThread
 import com.yuriy.openradio.shared.utils.FileUtils
 import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
 import com.yuriy.openradio.shared.utils.IntentUtils.bundleToString
@@ -110,6 +111,7 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeCopyInstance
 import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -215,14 +217,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
     private var mApiServiceProvider: ApiServiceProvider? = null
-
+    private val mUiHandlerScope = CoroutineScope(Dispatchers.Main)
     /**
      * Processes Messages sent to it from onStartCommand() that
      * indicate which command to process.
      */
     @Volatile
     private var mServiceHandler: ServiceHandler? = null
-    private val mMainHandler: Handler
 
     /**
      *
@@ -310,6 +311,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 mediaButtonReceiver,
                 null
         )
+
         sessionToken = mSession!!.sessionToken
         mMediaSessionCb = MediaSessionCallback()
         mSession!!.setCallback(mMediaSessionCb)
@@ -358,7 +360,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onGetRoot(clientPackageName: String, clientUid: Int,
                            rootHints: Bundle?): BrowserRoot? {
         d(CLASS_NAME + "clientPackageName=" + clientPackageName
-                + ", clientUid=" + clientUid + ", rootHints=" + rootHints)
+                + ", clientUid=" + clientUid + ", systemUid" + Process.SYSTEM_UID + ", myUid:" + Process.myUid()
+                + ", rootHints=" + rootHints)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
         if (!mPackageValidator!!.isKnownCaller(clientPackageName, clientUid)) {
@@ -466,7 +469,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     return@withTimeout
                 }
                 val urls = extractUrlsFromPlaylist(playlistUrl)
-                mMainHandler.post {
+                mUiHandlerScope.launch {
                     // Silently clear last references and try to restart:
                     initInternals()
                     handlePlayListUrlsExtracted(urls)
@@ -569,11 +572,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun stopService() {
-        if (isUiThread()) {
-            stopServiceUiThread()
-        } else {
-            mMainHandler.postAtFrontOfQueue { stopServiceUiThread() }
-        }
+        mUiHandlerScope.launch { stopServiceUiThread() }
     }
 
     private fun stopServiceUiThread() {
@@ -657,7 +656,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 if (mApiServiceProvider == null) {
-                    mMainHandler.post { listener.onComplete(null) }
+                    mUiHandlerScope.launch { listener.onComplete(null) }
                     return@withTimeout
                 }
                 // Start download information about Radio Station
@@ -669,10 +668,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         )
                 if (radioStationUpdated == null) {
                     e("Can not get Radio Station from internet")
-                    mMainHandler.post { listener.onComplete(null) }
+                    mUiHandlerScope.launch { listener.onComplete(null) }
                     return@withTimeout
                 }
-                mMainHandler.post { listener.onComplete(radioStationUpdated) }
+                mUiHandlerScope.launch { listener.onComplete(radioStationUpdated) }
             }
         }
     }
@@ -805,11 +804,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Handle a request to play Radio Station.
      */
     private fun handlePlayRequest() {
-        if (isUiThread()) {
-            handlePlayRequestUiThread()
-        } else {
-            mMainHandler.post { handlePlayRequestUiThread() }
-        }
+        mUiHandlerScope.launch { handlePlayRequestUiThread() }
     }
 
     private fun handlePlayRequestUiThread() {
@@ -921,11 +916,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param reason Reason to pause.
      */
     private fun handlePauseRequest(reason: PauseReason = PauseReason.DEFAULT) {
-        if (isUiThread()) {
-            handlePauseRequestUiThread(reason)
-        } else {
-            mMainHandler.post { handlePauseRequestUiThread(reason) }
-        }
+        mUiHandlerScope.launch { handlePauseRequestUiThread(reason) }
     }
 
     /**
@@ -1062,19 +1053,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param error Playback error.
      */
     private fun handleStopRequest(error: PlaybackStateError = PlaybackStateError()) {
-        if (isUiThread()) {
-            handleStopRequestUiThread(error)
-        } else {
-            mMainHandler.post { handleStopRequestUiThread(error) }
-        }
+        mUiHandlerScope.launch { handleStopRequestUiThread(error) }
     }
 
     private fun onResult() {
-        if (isUiThread()) {
-            onResultUiThread()
-        } else {
-            mMainHandler.post { onResultUiThread() }
-        }
+        mUiHandlerScope.launch { onResultUiThread() }
     }
 
     private fun onResultUiThread() {
@@ -1416,7 +1399,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             )
             return
         }
-        mMainHandler.post {
+        mUiHandlerScope.launch {
             i(CLASS_NAME + "found " + list.size + " items")
             mRadioStationsStorage.clearAndCopy(list)
             // immediately start playing from the beginning of the search results
@@ -1664,7 +1647,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 if (mMediaNotification != null) {
                     mMediaNotification!!.notifyService("Stop application")
                 }
-                mMainHandler.postAtFrontOfQueue {
+                mUiHandlerScope.launch {
                     initInternals()
                     handleStopRequest()
                     stopSelfResultInt()
@@ -2028,7 +2011,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mListener = ExoPlayerListener()
         mRadioStationsStorage = RadioStationsStorage()
         mDelayedStopHandler = DelayedStopHandler()
-        mMainHandler = Handler(Looper.getMainLooper())
         mBTConnectionReceiver = BTConnectionReceiver(
                 object : BTConnectionReceiver.Listener {
                     override fun onSameDeviceConnected() {

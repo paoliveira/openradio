@@ -77,9 +77,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      */
     fun isKnownCaller(callingPackage: String, callingUid: Int): Boolean {
         // Any debug app can run the code.
-        if (BuildConfig.DEBUG) {
-            return true
-        }
+//        if (BuildConfig.DEBUG) {
+//            return true
+//        }
         // If the caller has already been checked, return the previous result here.
         val (checkedUid, checkResult) = callerChecked[callingPackage] ?: Pair(0, false)
         if (checkedUid == callingUid) {
@@ -114,6 +114,8 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         } != null
 
         val isCallerKnown = when {
+            // Have no idea why system ui call this app on some devices.
+            callingPackage == "com.android.systemui" -> false
             // If it's our own app making the call, allow it.
             callingUid == Process.myUid() -> true
             // If it's one of the apps on the whitelist, allow it.
