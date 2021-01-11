@@ -571,10 +571,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun stopService() {
-        mUiScope.launch { stopServiceUiThread() }
-    }
-
-    private fun stopServiceUiThread() {
         d(CLASS_NAME + "stop Service")
         // Service is being killed, so make sure we release our resources
         handleStopRequest()

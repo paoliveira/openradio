@@ -44,11 +44,8 @@ import com.google.android.material.navigation.NavigationView
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
-import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage.isFavorite
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
-import com.yuriy.openradio.shared.permission.PermissionChecker.isLocationGranted
-import com.yuriy.openradio.shared.permission.PermissionChecker.requestLocationPermission
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
@@ -60,10 +57,7 @@ import com.yuriy.openradio.shared.service.OpenRadioService.Companion.putRestoreS
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.AppUtils.getApplicationVersion
-import com.yuriy.openradio.shared.utils.AppUtils.getApplicationVersionCode
-import com.yuriy.openradio.shared.utils.AppUtils.hasLocation
-import com.yuriy.openradio.shared.utils.AppUtils.searchQuery
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
@@ -152,8 +146,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         d(CLASS_NAME + "OnCreate:" + savedInstanceState)
-        val context = applicationContext
-        initUi(context)
+        initUi(applicationContext)
         mIsOnSaveInstancePassed.set(false)
         hideProgressBar()
         updateBufferedTime(0)
@@ -168,23 +161,7 @@ class MainActivity : AppCompatActivity() {
                 mMediaItemListener, medSubscriptionCb, mediaPresenterLstnr
         )
         mMediaPresenter!!.restoreState(savedInstanceState)
-        val defaultCountry = DefaultCountryStorage.getDefaultCountryCode(context)
-        if (LocationService.isDefaultLocationEnabled(context, defaultCountry)) {
-            if (hasLocation(context)) {
-                if (isLocationGranted(context)) {
-                    connectToMediaBrowser()
-                    LocationService.doEnqueueWork(applicationContext)
-                } else {
-                    requestLocationPermission(
-                            this, findViewById(R.id.main_layout), 1234
-                    )
-                }
-            } else {
-                connectToMediaBrowser()
-            }
-        } else {
-            connectToMediaBrowser()
-        }
+        mMediaPresenter!!.connect()
     }
 
     override fun onResume() {
@@ -195,7 +172,8 @@ class MainActivity : AppCompatActivity() {
 
         // Hide any progress bar
         hideProgressBar()
-        connectToMediaBrowser()
+
+        LocationService.checkCountry(this, findViewById(R.id.main_layout))
     }
 
     override fun onDestroy() {
@@ -334,8 +312,8 @@ class MainActivity : AppCompatActivity() {
             drawer.closeDrawer(GravityCompat.START)
             true
         }
-        val versionText = getApplicationVersion(context) + "." +
-                getApplicationVersionCode(context)
+        val versionText = AppUtils.getApplicationVersion(context) + "." +
+                AppUtils.getApplicationVersionCode(context)
         val versionView = navigationView.getHeaderView(0).findViewById<TextView>(
                 R.id.drawer_ver_code_view
         )
@@ -348,10 +326,6 @@ class MainActivity : AppCompatActivity() {
             val dialog = newInstance(AddStationDialog::class.java.name)
             dialog!!.show(transaction, AddStationDialog.DIALOG_TAG)
         }
-    }
-
-    private fun connectToMediaBrowser() {
-        mMediaPresenter!!.connect()
     }
 
     /**
@@ -378,7 +352,7 @@ class MainActivity : AppCompatActivity() {
     fun onSearchDialogClick(queryString: String?) {
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
         // Save search query string, retrieve it later in the service
-        searchQuery = queryString
+        AppUtils.searchQuery = queryString
         mMediaPresenter!!.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
     }
 
@@ -612,10 +586,13 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             d(CLASS_NAME + "Location Changed received")
-            if (mMediaPresenter != null) {
+            if (mMediaPresenter == null) {
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+                LocationService.checkCountry(
+                        this@MainActivity, this@MainActivity.findViewById(R.id.main_layout)
+                )
                 updateRootView()
             }
         }

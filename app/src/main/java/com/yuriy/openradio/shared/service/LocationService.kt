@@ -17,9 +17,11 @@
 package com.yuriy.openradio.shared.service
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
+import android.view.View
 import androidx.core.app.JobIntentService
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -30,9 +32,12 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
+import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
 import com.yuriy.openradio.shared.model.storage.LocationStorage
+import com.yuriy.openradio.shared.permission.PermissionChecker
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.Country
 import de.westnordost.countryboundaries.CountryBoundaries
 import java.io.IOException
@@ -67,14 +72,6 @@ class LocationService : JobIntentService() {
         private const val JOB_ID = 1000
 
         /**
-         * Factory method to make the desired Intent.
-         */
-        private fun makeIntent(context: Context): Intent {
-            // Create an intent associated with the Location Service class.
-            return Intent(context, LocationService::class.java)
-        }
-
-        /**
          * Factory method to enqueue work for Location Service.
          *
          * @param context Context of callee.
@@ -97,8 +94,31 @@ class LocationService : JobIntentService() {
             return list.toTypedArray()
         }
 
-        fun isDefaultLocationEnabled(context: Context, defaultCountry: String): Boolean {
+        fun checkCountry(activity: Activity, mainLayout: View) {
+            val defaultCountry = DefaultCountryStorage.getDefaultCountryCode(activity.applicationContext)
+            if (!isDefaultLocationEnabled(activity.applicationContext, defaultCountry)) {
+                return
+            }
+            if (!AppUtils.hasLocation(activity.applicationContext)) {
+                return
+            }
+            if (PermissionChecker.isLocationGranted(activity.applicationContext)) {
+                doEnqueueWork(activity.applicationContext)
+            } else {
+                PermissionChecker.requestLocationPermission(activity, mainLayout, 1234)
+            }
+        }
+
+        private fun isDefaultLocationEnabled(context: Context, defaultCountry: String): Boolean {
             return defaultCountry == context.getString(R.string.default_country_use_location)
+        }
+
+        /**
+         * Factory method to make the desired Intent.
+         */
+        private fun makeIntent(context: Context): Intent {
+            // Create an intent associated with the Location Service class.
+            return Intent(context, LocationService::class.java)
         }
 
         // http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
@@ -388,8 +408,8 @@ class LocationService : JobIntentService() {
                     context,
                     object : LocationServiceListener {
                         override fun onCountryCodeLocated(countryCode: String) {
-                            val curCountryCode = LocationStorage.getLastCountryCode(context)
-                            if (curCountryCode != countryCode) {
+                            val currentCode = LocationStorage.getLastCountryCode(context)
+                            if (currentCode != countryCode) {
                                 LocationStorage.setLastCountryCode(context, countryCode)
                                 LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
                                         AppLocalBroadcast.createIntentLocationChanged()

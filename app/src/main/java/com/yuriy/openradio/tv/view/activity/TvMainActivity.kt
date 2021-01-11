@@ -33,10 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
-import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
-import com.yuriy.openradio.shared.permission.PermissionChecker.isLocationGranted
-import com.yuriy.openradio.shared.permission.PermissionChecker.requestLocationPermission
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
@@ -46,7 +43,6 @@ import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.AppUtils.hasLocation
 import com.yuriy.openradio.shared.utils.AppUtils.startActivityForResultSafe
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper.getDisplayDescription
@@ -114,23 +110,7 @@ class TvMainActivity : FragmentActivity() {
                 subscriptionCb, listener
         )
         mMediaPresenter!!.restoreState(savedInstanceState)
-        val defaultCountry = DefaultCountryStorage.getDefaultCountryCode(context)
-        if (LocationService.isDefaultLocationEnabled(context, defaultCountry)) {
-            if (hasLocation(context)) {
-                if (isLocationGranted(context)) {
-                    mMediaPresenter!!.connect()
-                    doEnqueueWork(applicationContext)
-                } else {
-                    requestLocationPermission(
-                            this, findViewById(R.id.tv_main_layout), 1234
-                    )
-                }
-            } else {
-                mMediaPresenter!!.connect()
-            }
-        } else {
-            mMediaPresenter!!.connect()
-        }
+        mMediaPresenter!!.connect()
     }
 
     override fun onResume() {
@@ -139,7 +119,8 @@ class TvMainActivity : FragmentActivity() {
 
         // Hide any progress bar
         hideProgressBar()
-        mMediaPresenter!!.connect()
+
+        LocationService.checkCountry(this, findViewById(R.id.tv_main_layout))
     }
 
     override fun onDestroy() {
@@ -359,6 +340,15 @@ class TvMainActivity : FragmentActivity() {
         }
     }
 
+    /**
+     * Updates root view is there was changes in collection.
+     * Should be call only if current media id is [MediaIdHelper.MEDIA_ID_ROOT].
+     */
+    private fun updateRootView() {
+        mMediaPresenter!!.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_ROOT)
+        mMediaPresenter!!.addMediaItemToStack(MediaIdHelper.MEDIA_ID_ROOT)
+    }
+
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
         @SuppressLint("RestrictedApi")
         override fun onChildrenLoaded(parentId: String,
@@ -415,6 +405,15 @@ class TvMainActivity : FragmentActivity() {
                 return
             }
             d(CLASS_NAME + "Location Changed received")
+            if (mMediaPresenter == null) {
+                return
+            }
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+                LocationService.checkCountry(
+                        this@TvMainActivity, this@TvMainActivity.findViewById(R.id.tv_main_layout)
+                )
+                updateRootView()
+            }
         }
 
         override fun onCurrentIndexOnQueueChanged(index: Int, mediaId: String?) {

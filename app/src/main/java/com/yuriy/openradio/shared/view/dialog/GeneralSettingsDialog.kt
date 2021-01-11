@@ -117,7 +117,6 @@ class GeneralSettingsDialog : BaseDialogFragment() {
                 break
             }
         }
-        android.R.layout.simple_spinner_dropdown_item
         val adapter = CountriesArrayAdapter(context, array)
         val spinner: Spinner = view.findViewById(R.id.default_country_spinner)
         spinner.adapter = adapter
@@ -128,6 +127,9 @@ class GeneralSettingsDialog : BaseDialogFragment() {
                 val code = array[position].code
                 DefaultCountryStorage.setDefaultCountryCode(context, code)
                 LocationStorage.setLastCountryCode(context, code)
+                LocalBroadcastManager.getInstance(context).sendBroadcast(
+                        AppLocalBroadcast.createIntentLocationChanged()
+                )
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}

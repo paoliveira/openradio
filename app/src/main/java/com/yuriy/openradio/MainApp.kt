@@ -45,6 +45,9 @@ import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
 import com.yuriy.openradio.shared.utils.FileUtils.getFilesDir
 import com.yuriy.openradio.shared.vo.RadioStation
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Created with Android Studio.
@@ -57,7 +60,7 @@ class MainApp : MultiDexApplication() {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
-        MultiDex.install(this)
+        MultiDex.install(applicationContext)
     }
 
     override fun onCreate() {
@@ -65,8 +68,8 @@ class MainApp : MultiDexApplication() {
         AnalyticsUtils.init()
         AppLogger.d(CLASS_NAME + "OnCreate")
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
-        val context: Context = this
-        val thread = Thread {
+        val context = applicationContext
+        GlobalScope.launch(Dispatchers.IO) {
             val isLoggingEnabled = areLogsEnabled(
                     context
             )
@@ -76,8 +79,6 @@ class MainApp : MultiDexApplication() {
             correctBufferSettings(context)
             migrateImagesToIntStorage(context)
         }
-        thread.name = "Init-thread"
-        thread.start()
     }
 
     companion object {

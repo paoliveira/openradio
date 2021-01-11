@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.permission
 
 import android.Manifest
@@ -30,6 +31,7 @@ import com.yuriy.openradio.shared.utils.AppUtils.hasVersionM
  * introduced in API 23.
  */
 object PermissionChecker {
+
     @JvmStatic
     fun isLocationGranted(context: Context): Boolean {
         return isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -70,28 +72,30 @@ object PermissionChecker {
         )
     }
 
+    private const val KEY_PERMISSION_REQUESTED = "KEY_PERMISSION_REQUESTED"
+    private const val VALUE_PERMISSION_REQUESTED = "VALUE_PERMISSION_REQUESTED"
+
     /**
      *
      */
     private fun requestPermission(activity: Activity, layout: View,
                                   permissionName: String, permissionMessage: String,
                                   requestCode: Int) {
+        if (activity.intent != null && activity.intent.hasExtra(KEY_PERMISSION_REQUESTED)) {
+            // This is legact case. ActivityCompat.requestPermissions will invoke this activity over and over.
+            // To avoid recursion, use extras to return.
+            return
+        }
+        activity.intent.putExtra(KEY_PERMISSION_REQUESTED, VALUE_PERMISSION_REQUESTED)
         // Permission has not been granted and must be requested.
         if (ActivityCompat.shouldShowRequestPermissionRationale(activity, permissionName)) {
-            Snackbar.make(layout, permissionMessage,
-                    Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok_label
-            ) {
+            Snackbar.make(layout, permissionMessage, Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok_label) {
                 // Request the permission
-                ActivityCompat.requestPermissions(
-                        activity, arrayOf(permissionName),
-                        requestCode
-                )
+                ActivityCompat.requestPermissions(activity, arrayOf(permissionName), requestCode)
             }.show()
         } else {
             // Request the permission. The result will be received in onRequestPermissionResult().
-            ActivityCompat.requestPermissions(
-                    activity, arrayOf(permissionName), requestCode
-            )
+            ActivityCompat.requestPermissions(activity, arrayOf(permissionName), requestCode)
         }
     }
 

@@ -45,6 +45,7 @@ import java.util.*
  * designed to prepare data to display root menu items.
  */
 class MediaItemRoot : MediaItemCommand {
+
     override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
         AppLogger.d("$LOG_TAG invoked")
         val context = dependencies.context
@@ -152,7 +153,8 @@ class MediaItemRoot : MediaItemCommand {
         )
 
         // If the Country code is known:
-        if (dependencies.countryCode.isNotEmpty()) {
+        val locationStr = context.getString(R.string.default_country_use_location)
+        if (dependencies.countryCode.isNotEmpty() && dependencies.countryCode != locationStr) {
             val identifier = context.resources.getIdentifier(
                     "flag_" + dependencies.countryCode.toLowerCase(Locale.ROOT),
                     "drawable", context.packageName
