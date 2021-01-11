@@ -44,13 +44,14 @@ import com.google.android.material.navigation.NavigationView
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
+import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage.isFavorite
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.permission.PermissionChecker.isLocationGranted
 import com.yuriy.openradio.shared.permission.PermissionChecker.requestLocationPermission
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
-import com.yuriy.openradio.shared.service.LocationService.Companion.doEnqueueWork
+import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeEditRadioStationIntent
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeRemoveRadioStationIntent
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeStopServiceIntent
@@ -167,14 +168,19 @@ class MainActivity : AppCompatActivity() {
                 mMediaItemListener, medSubscriptionCb, mediaPresenterLstnr
         )
         mMediaPresenter!!.restoreState(savedInstanceState)
-        if (hasLocation(context)) {
-            if (isLocationGranted(context)) {
-                connectToMediaBrowser()
-                doEnqueueWork(applicationContext)
+        val defaultCountry = DefaultCountryStorage.getDefaultCountryCode(context)
+        if (LocationService.isDefaultLocationEnabled(context, defaultCountry)) {
+            if (hasLocation(context)) {
+                if (isLocationGranted(context)) {
+                    connectToMediaBrowser()
+                    LocationService.doEnqueueWork(applicationContext)
+                } else {
+                    requestLocationPermission(
+                            this, findViewById(R.id.main_layout), 1234
+                    )
+                }
             } else {
-                requestLocationPermission(
-                        this, findViewById(R.id.main_layout), 1234
-                )
+                connectToMediaBrowser()
             }
         } else {
             connectToMediaBrowser()
@@ -577,7 +583,7 @@ class MainActivity : AppCompatActivity() {
         for (i in permissions.indices) {
             val permission = permissions[i]
             if (permission == Manifest.permission.ACCESS_FINE_LOCATION && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                doEnqueueWork(applicationContext)
+                LocationService.doEnqueueWork(applicationContext)
             }
         }
     }

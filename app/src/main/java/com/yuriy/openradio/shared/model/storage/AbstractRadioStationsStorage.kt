@@ -50,8 +50,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          */
         @JvmStatic
         @Synchronized
-        protected fun add(radioStation: RadioStation,
-                          context: Context?, name: String?) {
+        protected fun add(radioStation: RadioStation, context: Context, name: String) {
             if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
                 val all = getAll(context, name)
                 var maxSortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
@@ -101,9 +100,8 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          */
         @JvmStatic
         @Synchronized
-        protected fun remove(radioStation: RadioStation, context: Context?,
-                             name: String?) {
-            val editor = getEditor(context!!, name)
+        protected fun remove(radioStation: RadioStation, context: Context, name: String) {
+            val editor = getEditor(context, name)
             editor.remove(createKeyForRadioStation(radioStation))
             editor.apply()
             i("Radio Station $radioStation removed")
@@ -124,7 +122,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             val builder = StringBuilder()
             for (key in map.keys) {
                 value = map[key].toString()
-                if (value == null || value.isEmpty()) {
+                if (value.isEmpty()) {
                     continue
                 }
                 builder.append(key).append(KEY_VALUE_DELIMITER).append(value).append(KEY_VALUE_PAIR_DELIMITER)
@@ -180,10 +178,10 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          * @return Collection of the Radio Stations.
          */
         @JvmStatic
-        fun getAll(context: Context?, name: String?): MutableList<RadioStation> {
+        fun getAll(context: Context, name: String): MutableList<RadioStation> {
             // TODO: Return cache when possible
             val radioStations: MutableList<RadioStation> = ArrayList()
-            val sharedPreferences = getSharedPreferences(context!!, name)
+            val sharedPreferences = getSharedPreferences(context, name)
             val map = sharedPreferences.all
             val deserializer: RadioStationDeserializer = RadioStationJsonDeserializer()
             var radioStation: RadioStation?
@@ -236,8 +234,8 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          * @return `true` in case of the are items in collection, `false` - otherwise.
          */
         @JvmStatic
-        protected fun isEmpty(context: Context?, name: String?): Boolean {
-            val sharedPreferences = getSharedPreferences(context!!, name)
+        protected fun isEmpty(context: Context, name: String): Boolean {
+            val sharedPreferences = getSharedPreferences(context, name)
             val map = sharedPreferences.all
             return map.isEmpty()
         }
@@ -251,12 +249,9 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          * @param name         Name of the file for the preferences.
          */
         @Synchronized
-        private fun addInternal(key: String,
-                                radioStation: RadioStation,
-                                context: Context?,
-                                name: String?) {
+        private fun addInternal(key: String, radioStation: RadioStation, context: Context, name: String) {
             val serializer: RadioStationSerializer = RadioStationJsonSerializer()
-            val editor = getEditor(context!!, name)
+            val editor = getEditor(context, name)
             editor.putString(key, serializer.serialize(radioStation))
             editor.apply()
             i("Radio Station added $radioStation")

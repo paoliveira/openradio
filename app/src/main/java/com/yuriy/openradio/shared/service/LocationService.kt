@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.service
 
 import android.annotation.SuppressLint
@@ -27,8 +28,9 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
-import com.yuriy.openradio.shared.model.storage.LocationPreferencesManager
+import com.yuriy.openradio.shared.model.storage.LocationStorage
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.vo.Country
@@ -50,7 +52,7 @@ class LocationService : JobIntentService() {
         private val CLASS_NAME = LocationService::class.java.simpleName + " "
 
         /**
-         * Map of the Countries Codes and Names.
+         * Map of the Countries Codes to Names.
          */
         @JvmField
         val COUNTRY_CODE_TO_NAME: MutableMap<String, String> = TreeMap()
@@ -82,6 +84,21 @@ class LocationService : JobIntentService() {
             // Create an Intent to get Location in the background via a Service.
             val intent = makeIntent(context)
             enqueueWork(context, LocationService::class.java, JOB_ID, intent)
+        }
+
+        fun getCountriesWithLocation(context: Context): Array<Country> {
+            val list = mutableListOf<Country>()
+            val locationStr = context.getString(R.string.default_country_use_location)
+            for ((name, code) in COUNTRY_NAME_TO_CODE) {
+                list.add(Country(name, code))
+            }
+            list.sortWith(compareBy({it.name}, {it.name}))
+            list.add(0, Country(locationStr, locationStr))
+            return list.toTypedArray()
+        }
+
+        fun isDefaultLocationEnabled(context: Context, defaultCountry: String): Boolean {
+            return defaultCountry == context.getString(R.string.default_country_use_location)
         }
 
         // http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2
@@ -371,9 +388,9 @@ class LocationService : JobIntentService() {
                     context,
                     object : LocationServiceListener {
                         override fun onCountryCodeLocated(countryCode: String) {
-                            val curCountryCode = LocationPreferencesManager.getLastCountryCode(context)
+                            val curCountryCode = LocationStorage.getLastCountryCode(context)
                             if (curCountryCode != countryCode) {
-                                LocationPreferencesManager.setLastCountryCode(context, countryCode)
+                                LocationStorage.setLastCountryCode(context, countryCode)
                                 LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
                                         AppLocalBroadcast.createIntentLocationChanged()
                                 )

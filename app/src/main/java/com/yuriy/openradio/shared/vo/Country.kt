@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.vo
 
 /**
@@ -21,7 +22,11 @@ package com.yuriy.openradio.shared.vo
  * On 01/11/16
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class Country(val name: String, val code: String) {
+class Country(val name: String, val code: String): Comparable<Country> {
+
+    override fun compareTo(other: Country): Int {
+        return 0
+    }
 
     override fun toString(): String {
         return "Country{name='$name', code='$code'}"

@@ -78,14 +78,13 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
-import com.yuriy.openradio.shared.model.storage.LocationPreferencesManager
+import com.yuriy.openradio.shared.model.storage.LocationStorage
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
-import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
@@ -217,7 +216,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
     private var mApiServiceProvider: ApiServiceProvider? = null
-    private val mUiHandlerScope = CoroutineScope(Dispatchers.Main)
+    private val mUiScope = CoroutineScope(Dispatchers.Main)
     /**
      * Processes Messages sent to it from onStartCommand() that
      * indicate which command to process.
@@ -401,13 +400,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         var countryCode = getCountryCode(mCurrentParentId)
         if (countryCode.isNullOrEmpty()) {
             // Otherwise, use whatever is stored in preferences.
-            countryCode = LocationPreferencesManager.getLastCountryCode(applicationContext)
+            countryCode = LocationStorage.getLastCountryCode(applicationContext)
         }
         val context = applicationContext
         val command = mMediaItemCommands[getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
                 context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider!!,
-                countryCode!!, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
+                countryCode, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
                 object : ResultListener {
                     override fun onResult() {
                         this@OpenRadioService.onResult()
@@ -469,7 +468,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     return@withTimeout
                 }
                 val urls = extractUrlsFromPlaylist(playlistUrl)
-                mUiHandlerScope.launch {
+                mUiScope.launch {
                     // Silently clear last references and try to restart:
                     initInternals()
                     handlePlayListUrlsExtracted(urls)
@@ -572,7 +571,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun stopService() {
-        mUiHandlerScope.launch { stopServiceUiThread() }
+        mUiScope.launch { stopServiceUiThread() }
     }
 
     private fun stopServiceUiThread() {
@@ -656,7 +655,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 if (mApiServiceProvider == null) {
-                    mUiHandlerScope.launch { listener.onComplete(null) }
+                    mUiScope.launch { listener.onComplete(null) }
                     return@withTimeout
                 }
                 // Start download information about Radio Station
@@ -668,10 +667,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         )
                 if (radioStationUpdated == null) {
                     e("Can not get Radio Station from internet")
-                    mUiHandlerScope.launch { listener.onComplete(null) }
+                    mUiScope.launch { listener.onComplete(null) }
                     return@withTimeout
                 }
-                mUiHandlerScope.launch { listener.onComplete(radioStationUpdated) }
+                mUiScope.launch { listener.onComplete(radioStationUpdated) }
             }
         }
     }
@@ -804,7 +803,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Handle a request to play Radio Station.
      */
     private fun handlePlayRequest() {
-        mUiHandlerScope.launch { handlePlayRequestUiThread() }
+        mUiScope.launch { handlePlayRequestUiThread() }
     }
 
     private fun handlePlayRequestUiThread() {
@@ -916,7 +915,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param reason Reason to pause.
      */
     private fun handlePauseRequest(reason: PauseReason = PauseReason.DEFAULT) {
-        mUiHandlerScope.launch { handlePauseRequestUiThread(reason) }
+        mUiScope.launch { handlePauseRequestUiThread(reason) }
     }
 
     /**
@@ -1053,11 +1052,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param error Playback error.
      */
     private fun handleStopRequest(error: PlaybackStateError = PlaybackStateError()) {
-        mUiHandlerScope.launch { handleStopRequestUiThread(error) }
+        mUiScope.launch { handleStopRequestUiThread(error) }
     }
 
     private fun onResult() {
-        mUiHandlerScope.launch { onResultUiThread() }
+        mUiScope.launch { onResultUiThread() }
     }
 
     private fun onResultUiThread() {
@@ -1399,7 +1398,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             )
             return
         }
-        mUiHandlerScope.launch {
+        mUiScope.launch {
             i(CLASS_NAME + "found " + list.size + " items")
             mRadioStationsStorage.clearAndCopy(list)
             // immediately start playing from the beginning of the search results
@@ -1647,7 +1646,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 if (mMediaNotification != null) {
                     mMediaNotification!!.notifyService("Stop application")
                 }
-                mUiHandlerScope.launch {
+                mUiScope.launch {
                     initInternals()
                     handleStopRequest()
                     stopSelfResultInt()

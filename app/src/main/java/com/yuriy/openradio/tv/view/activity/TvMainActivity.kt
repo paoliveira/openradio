@@ -33,11 +33,13 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
+import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.permission.PermissionChecker.isLocationGranted
 import com.yuriy.openradio.shared.permission.PermissionChecker.requestLocationPermission
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
+import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.LocationService.Companion.doEnqueueWork
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeStopServiceIntent
 import com.yuriy.openradio.shared.utils.AppLogger.d
@@ -112,14 +114,19 @@ class TvMainActivity : FragmentActivity() {
                 subscriptionCb, listener
         )
         mMediaPresenter!!.restoreState(savedInstanceState)
-        if (hasLocation(context)) {
-            if (isLocationGranted(context)) {
-                mMediaPresenter!!.connect()
-                doEnqueueWork(applicationContext)
+        val defaultCountry = DefaultCountryStorage.getDefaultCountryCode(context)
+        if (LocationService.isDefaultLocationEnabled(context, defaultCountry)) {
+            if (hasLocation(context)) {
+                if (isLocationGranted(context)) {
+                    mMediaPresenter!!.connect()
+                    doEnqueueWork(applicationContext)
+                } else {
+                    requestLocationPermission(
+                            this, findViewById(R.id.tv_main_layout), 1234
+                    )
+                }
             } else {
-                requestLocationPermission(
-                        this, findViewById(R.id.tv_main_layout), 1234
-                )
+                mMediaPresenter!!.connect()
             }
         } else {
             mMediaPresenter!!.connect()

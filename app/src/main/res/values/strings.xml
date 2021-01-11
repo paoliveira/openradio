@@ -42,7 +42,7 @@
     <string name="about_offline_countries_boundaries_url">https://github.com/westnordost/countryboundaries</string>
     <string name="enable_last_known_radio_station_label">Play last known Radio Station\n(enables application to play last known Radio Station automatically on start)</string>
     <string name="bt_auto_restart_descr">Resume playback when re-connected to the same Bluetooth Device</string>
-    <string name="custom_user_agent_label">Custom User Agent</string>
+    <string name="custom_user_agent_label">Custom User Agent:</string>
     <string name="custom_user_agent_hint">Custom User Agent empty</string>
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="user_agent_can_not_apply">Can not apply User Agent</string>
@@ -146,7 +146,7 @@
     <string name="play_re_buffer_greater_min_buffer">Play Re-Buffer is greater than Min Buffer</string>
     <string name="radio_station">radio station</string>
     <string name="radio_stations">radio stations</string>
-    <string name="cache_desc_text">Browse requests to the service are cached for one day.\nPress button to clear.</string>
+    <string name="cache_desc_text">Browse requests to the service are cached for one day.\nTap to clear now:</string>
     <string name="clear_cache_lbl">Clear cache</string>
     <string name="clear_completed">Cache is cleared</string>
     <string name="media_description_default">Live stream</string>
@@ -163,4 +163,6 @@
         <signature name=\"%1$s\" package=\"%2$s\">\n\t<key>%3$s</key>\n</signature>\n
         ]]>
     </string>
+    <string name="default_country_label">Default country:</string>
+    <string name="default_country_use_location">Use Location</string>
 </resources>

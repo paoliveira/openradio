@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,35 +17,29 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
+import com.yuriy.openradio.shared.vo.Country
 
 /**
- * Created by Yuriy Chernyshov
- * At Android Studio
- * On 10/25/15
- * E-Mail: chernyshov.yuriy@gmail.com
+ * Storage to keep value of selected country to display in the main view.
  */
-object EqualizerStorage : AbstractStorage() {
+object DefaultCountryStorage : AbstractStorage() {
     /**
      * Name of the Preferences.
      */
-    private const val FILE_NAME = "EqualizerStorage"
-    private const val EQUALIZER_STATE = "EQUALIZER_STATE"
-    @JvmStatic
-    fun isEmpty(context: Context): Boolean {
-        val preferences = getSharedPreferences(context, FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, "") == ""
-    }
+    private const val FILE_NAME = "DefaultCountryStorage"
+    private const val DEFAULT_COUNTRY = "DEFAULT_COUNTRY"
 
     @JvmStatic
-    fun saveEqualizerState(context: Context, state: String?) {
+    fun setDefaultCountryCode(context: Context, state: String) {
         val editor = getEditor(context, FILE_NAME)
-        editor.putString(EQUALIZER_STATE, state)
+        editor.putString(DEFAULT_COUNTRY, state)
         editor.apply()
     }
 
     @JvmStatic
-    fun loadEqualizerState(context: Context): String {
+    fun getDefaultCountryCode(context: Context): String {
         val preferences = getSharedPreferences(context, FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, "") ?: ""
+        return preferences.getString(DEFAULT_COUNTRY, Country.COUNTRY_CODE_DEFAULT)
+                ?: Country.COUNTRY_CODE_DEFAULT
     }
 }

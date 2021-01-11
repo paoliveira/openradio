@@ -24,11 +24,8 @@ import android.content.SharedPreferences
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-abstract class AbstractStorage
-/**
- * Default constructor.
- */
-{
+abstract class AbstractStorage {
+
     companion object {
         /**
          * Return an instance of the Shared Preferences.
@@ -38,8 +35,7 @@ abstract class AbstractStorage
          * @return An instance of the Shared Preferences.
          */
         @JvmStatic
-        fun getSharedPreferences(context: Context,
-                                 name: String?): SharedPreferences {
+        fun getSharedPreferences(context: Context, name: String): SharedPreferences {
             return context.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
 
@@ -52,7 +48,7 @@ abstract class AbstractStorage
          * @return [SharedPreferences.Editor].
          */
         @JvmStatic
-        fun getEditor(context: Context, name: String?): SharedPreferences.Editor {
+        fun getEditor(context: Context, name: String): SharedPreferences.Editor {
             return getSharedPreferences(context, name).edit()
         }
     }

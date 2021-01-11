@@ -41,9 +41,8 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * {@inheritDoc}
      */
     @JvmStatic
-    fun getAllFavoritesFromString(context: Context,
-                                  marshalledRadioStations: String?): List<RadioStation> {
-        return getAllFromString(context, marshalledRadioStations!!)
+    fun getAllFavoritesFromString(context: Context, marshalledRadioStations: String): List<RadioStation> {
+        return getAllFromString(context, marshalledRadioStations)
     }
 
     /**
@@ -54,7 +53,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     @Synchronized
-    fun add(radioStation: RadioStation?, context: Context?) {
+    fun add(radioStation: RadioStation?, context: Context) {
         val key = createKeyForRadioStation(radioStation!!)
         sSet.add(key)
         add(radioStation, context, FILE_NAME)
@@ -69,7 +68,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     @Synchronized
-    fun remove(radioStation: RadioStation?, context: Context?) {
+    fun remove(radioStation: RadioStation?, context: Context) {
         val key = createKeyForRadioStation(radioStation!!)
         sSet.remove(key)
         remove(radioStation, context, FILE_NAME)
@@ -82,7 +81,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @return Collection of the Favorites Radio stations.
      */
     @JvmStatic
-    fun getAll(context: Context?): MutableList<RadioStation> {
+    fun getAll(context: Context): MutableList<RadioStation> {
         return getAll(context, FILE_NAME)
     }
 
@@ -93,7 +92,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @return Favorite Radio Stations in a String representation.
      */
     @JvmStatic
-    fun getAllFavoritesAsString(context: Context?): String {
+    fun getAllFavoritesAsString(context: Context): String {
         return getAllAsString(context, FILE_NAME)
     }
 
@@ -103,7 +102,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      * @return True in case of the are Favorites in collection, False - otherwise.
      */
-    fun isFavoritesEmpty(context: Context?): Boolean {
+    fun isFavoritesEmpty(context: Context): Boolean {
         return isEmpty(context, FILE_NAME)
     }
 
@@ -115,7 +114,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @return True in case of success, False - otherwise.
      */
     @JvmStatic
-    fun isFavorite(radioStation: RadioStation, context: Context?): Boolean {
+    fun isFavorite(radioStation: RadioStation, context: Context): Boolean {
         val key = createKeyForRadioStation(radioStation)
         if (sSet.contains(key)) {
             return true
@@ -130,7 +129,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
         return false
     }
 
-    fun isFavorite(mediaItem: MediaBrowserCompat.MediaItem, context: Context?): Boolean {
+    fun isFavorite(mediaItem: MediaBrowserCompat.MediaItem, context: Context): Boolean {
         val key = createKeyForRadioStation(mediaItem)
         if (sSet.contains(key)) {
             return true

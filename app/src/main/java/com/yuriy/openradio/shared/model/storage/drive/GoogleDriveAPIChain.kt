@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.model.storage.drive
 
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils.isUiThread
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -45,14 +44,10 @@ abstract class GoogleDriveAPIChain(private val mIsTerminator: Boolean) {
             return
         }
         // Callbacks from Google framework comes in UI thread.
-        if (!isUiThread()) {
-            GlobalScope.launch(Dispatchers.IO) {
-                withTimeoutOrNull(GoogleDriveHelper.CMD_TIMEOUT_MS) {
-                    mNext!!.handleRequest(request, result)
-                } ?: request.listener.onError(GoogleDriveError("Timeout when executing $request"))
-            }
-        } else {
-            mNext!!.handleRequest(request, result)
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeoutOrNull(GoogleDriveHelper.CMD_TIMEOUT_MS) {
+                mNext!!.handleRequest(request, result)
+            } ?: request.listener.onError(GoogleDriveError("Timeout when executing $request"))
         }
     }
 }

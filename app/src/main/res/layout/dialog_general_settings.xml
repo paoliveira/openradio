@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +23,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minWidth="600dp"
         android:orientation="vertical">
 
         <TextView
@@ -36,12 +34,26 @@
             android:textSize="20sp"
             android:textStyle="bold" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:alpha="0.5"
+            android:background="@color/or_color_text" />
+
         <CheckBox
             android:id="@+id/settings_dialog_enable_last_known_radio_station_check_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
             android:text="@string/enable_last_known_radio_station_label" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:alpha="0.5"
+            android:background="@color/or_color_text" />
 
         <CheckBox
             android:id="@+id/bt_auto_restart_check_view"
@@ -50,11 +62,46 @@
             android:layout_marginBottom="15dp"
             android:text="@string/bt_auto_restart_descr" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:alpha="0.5"
+            android:background="@color/or_color_text" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="15dp"
+                android:text="@string/default_country_label"
+                android:textSize="20sp" />
+
+            <Spinner
+                android:id="@+id/default_country_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:alpha="0.5"
+            android:background="@color/or_color_text" />
+
         <CheckBox
             android:id="@+id/user_agent_check_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
+            android:layout_marginBottom="5dp"
+            android:alpha="0.5"
             android:text="@string/custom_user_agent_label" />
 
         <EditText
@@ -64,23 +111,36 @@
             android:layout_marginBottom="15dp"
             android:hint="@string/custom_user_agent_hint" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:alpha="0.5"
+            android:background="@color/or_color_text" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"
+            android:layout_marginBottom="5dp"
             android:text="@string/cache_desc_text" />
 
         <Button
             android:id="@+id/clear_cache_btn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"
+            android:layout_marginBottom="15dp"
             android:text="@string/clear_cache_lbl" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:alpha="0.5"
+            android:background="@color/or_color_text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="10dp"
             android:text="@string/settings_master_volume"
             android:textSize="20sp" />
 
@@ -89,8 +149,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="15dp"
-            android:max="100"
-            android:paddingTop="10dp" />
+            android:max="100" />
 
     </LinearLayout>
 

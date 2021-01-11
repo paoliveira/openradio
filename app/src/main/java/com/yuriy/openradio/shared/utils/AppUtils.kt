@@ -23,7 +23,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
-import android.os.Looper
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
@@ -80,11 +79,6 @@ object AppUtils {
         val result = packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION)
         i("Has Location:$result")
         return result
-    }
-
-    @JvmStatic
-    fun isUiThread(): Boolean {
-        return Looper.getMainLooper().thread === Thread.currentThread()
     }
 
     /**

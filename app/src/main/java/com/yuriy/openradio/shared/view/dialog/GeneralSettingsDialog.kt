@@ -13,25 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
 import android.view.View
+import android.widget.AdapterView
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.CompoundButton
 import android.widget.EditText
 import android.widget.SeekBar
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
+import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
+import com.yuriy.openradio.shared.model.storage.LocationStorage
+import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import com.yuriy.openradio.shared.view.list.CountriesArrayAdapter
 
 /**
  * Created by Yuriy Chernyshov
@@ -65,7 +72,7 @@ class GeneralSettingsDialog : BaseDialogFragment() {
         mUserAgentEditView = view.findViewById(R.id.user_agent_input_view)
         mUserAgentEditView?.setText(AppUtils.getUserAgent(context))
         val userAgentCheckView = view.findViewById<CheckBox>(R.id.user_agent_check_view)
-        userAgentCheckView.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+        userAgentCheckView.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             AppPreferencesManager.isCustomUserAgent(context, isChecked)
             mUserAgentEditView?.isEnabled = isChecked
         }
@@ -92,14 +99,38 @@ class GeneralSettingsDialog : BaseDialogFragment() {
         )
         val btAutoRestart = view.findViewById<CheckBox>(R.id.bt_auto_restart_check_view)
         btAutoRestart.isChecked = AppPreferencesManager.isBtAutoPlay(context)
-        btAutoRestart.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+        btAutoRestart.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             AppPreferencesManager.setBtAutoPlay(context, isChecked)
         }
         val clearCache = view.findViewById<Button>(R.id.clear_cache_btn)
-        clearCache.setOnClickListener { v: View? ->
+        clearCache.setOnClickListener {
             LocalBroadcastManager.getInstance(context).sendBroadcast(
                     AppLocalBroadcast.createIntentClearCache()
             )
+        }
+        val array = LocationService.getCountriesWithLocation(context)
+        val countryCode = DefaultCountryStorage.getDefaultCountryCode(context)
+        var idx = 0
+        for ((i, item) in array.withIndex()) {
+            if (item.code == countryCode) {
+                idx = i
+                break
+            }
+        }
+        android.R.layout.simple_spinner_dropdown_item
+        val adapter = CountriesArrayAdapter(context, array)
+        val spinner: Spinner = view.findViewById(R.id.default_country_spinner)
+        spinner.adapter = adapter
+        spinner.setSelection(idx)
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val code = array[position].code
+                DefaultCountryStorage.setDefaultCountryCode(context, code)
+                LocationStorage.setLastCountryCode(context, code)
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
         return createAlertDialog(view)
     }

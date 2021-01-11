@@ -19,7 +19,6 @@ import android.content.Context
 import android.media.audiofx.Equalizer
 import android.net.Uri
 import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl
@@ -57,10 +56,12 @@ import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.AppUtils.isUiThread
 import com.yuriy.openradio.shared.vo.EqualizerState
 import com.yuriy.openradio.shared.vo.EqualizerState.Companion.applyState
 import com.yuriy.openradio.shared.vo.EqualizerState.Companion.createState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.*
 
 /**
@@ -127,7 +128,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     /**
      * Handler for the ExoPlayer to handle events.
      */
-    private val mMainHandler: Handler = Handler(Looper.getMainLooper())
+    private val mUiScope = CoroutineScope(Dispatchers.Main)
 
     /**
      * Listener of the ExoPlayer components events.
@@ -252,11 +253,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             d("$LOG_TAG ExoPlayer impl already released")
             return
         }
-        if (isUiThread()) {
-            releaseIntrnl()
-        } else {
-            mMainHandler.post { releaseIntrnl() }
-        }
+        mUiScope.launch { releaseIntrnl() }
     }
 
     fun updateEqualizer() {

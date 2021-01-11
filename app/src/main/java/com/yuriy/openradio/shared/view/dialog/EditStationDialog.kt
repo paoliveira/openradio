@@ -44,6 +44,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
      * Media Id associated with current Radio Station.
      */
     private var mMediaId: String? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
@@ -53,11 +54,10 @@ class EditStationDialog : BaseAddEditStationDialog() {
         val addToSrvChkBox = view.findViewById<CheckBox>(R.id.add_to_srvr_check_view)
         addToSrvChkBox.visibility = View.GONE
         mMediaId = getMediaId(arguments)
-        val context: Context? = activity
         if (mMediaId != null) {
-            val radioStation = LocalRadioStationsStorage[mMediaId, context]
+            val radioStation = LocalRadioStationsStorage[mMediaId, context!!]
             if (radioStation != null) {
-                handleUI(radioStation, context)
+                handleUI(radioStation, context!!)
             } else {
                 handleInvalidRadioStation(context!!, addOrEditBtn)
             }
@@ -93,7 +93,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
      * @param radioStation Radio Station.
      * @param context      Context of a callee.
      */
-    private fun handleUI(radioStation: RadioStation, context: Context?) {
+    private fun handleUI(radioStation: RadioStation, context: Context) {
         mNameEdit!!.setText(radioStation.name)
         mUrlEdit!!.setText(radioStation.mediaStream.getVariant(0)!!.url)
         mImageLocalUrlEdit!!.setText(radioStation.imageUrl)

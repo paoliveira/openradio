@@ -92,7 +92,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     @Synchronized
-    fun add(radioStation: RadioStation?, context: Context?) {
+    fun add(radioStation: RadioStation?, context: Context) {
         add(radioStation!!, context, FILE_NAME)
     }
 
@@ -104,7 +104,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      */
     @Synchronized
-    fun remove(radioStation: RadioStation?, context: Context?) {
+    fun remove(radioStation: RadioStation?, context: Context) {
         remove(radioStation!!, context, FILE_NAME)
     }
 
@@ -122,7 +122,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return `true` in case of success or `false` if Radio Station was not found.
      */
     @Synchronized
-    fun update(mediaId: String?, context: Context?,
+    fun update(mediaId: String?, context: Context,
                name: String?, url: String?, imageUrl: String?,
                genre: String?, country: String?, addToFav: Boolean): Boolean {
         var result = false
@@ -163,7 +163,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return Radio Station or `null` if there was nothing found.
      */
     @Synchronized
-    operator fun get(mediaId: String?, context: Context?): RadioStation? {
+    operator fun get(mediaId: String?, context: Context): RadioStation? {
         val list = getAll(context, FILE_NAME)
         for (radioStation in list) {
             if (radioStation.id.endsWith(mediaId!!)) {
@@ -180,7 +180,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return Local added Radio Stations in a String representation.
      */
     @JvmStatic
-    fun getAllLocalAsString(context: Context?): String {
+    fun getAllLocalAsString(context: Context): String {
         return getAllAsString(context, FILE_NAME)
     }
 
@@ -189,8 +189,8 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     fun getAllLocalsFromString(context: Context,
-                               marshalledRadioStations: String?): List<RadioStation> {
-        return getAllFromString(context, marshalledRadioStations!!)
+                               marshalledRadioStations: String): List<RadioStation> {
+        return getAllFromString(context, marshalledRadioStations)
     }
 
     /**
@@ -200,7 +200,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return Collection of the Local Radio Stations.
      */
     @JvmStatic
-    fun getAllLocals(context: Context?): MutableList<RadioStation> {
+    fun getAllLocals(context: Context): MutableList<RadioStation> {
         val list = getAll(context, FILE_NAME)
         // Loop for the key that holds KEY for the next Local Radio Station
         // and remove it from collection.
@@ -220,7 +220,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return `true` in case of the are Local Radio Stations in collection,
      * `false` - otherwise.
      */
-    fun isLocalsEmpty(context: Context?): Boolean {
+    fun isLocalsEmpty(context: Context): Boolean {
         val list = getAll(context, FILE_NAME)
         // Loop for the key that holds KEY for the next Local Radio Station
         // and remove it from collection.
