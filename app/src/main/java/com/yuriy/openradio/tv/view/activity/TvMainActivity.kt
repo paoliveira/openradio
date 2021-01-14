@@ -29,7 +29,6 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.MainThread
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
@@ -38,7 +37,6 @@ import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.LocationService.Companion.doEnqueueWork
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeStopServiceIntent
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
@@ -79,11 +77,6 @@ class TvMainActivity : FragmentActivity() {
     private var mPauseBtn: View? = null
 
     /**
-     * Guardian field to prevent UI operation after addToLocals instance passed.
-     */
-    private val mIsOnSaveInstancePassed: AtomicBoolean
-
-    /**
      * Member field to keep reference to the Local broadcast receiver.
      */
     private val mLocalBroadcastReceiverCb: LocalBroadcastReceiverCallback
@@ -98,7 +91,6 @@ class TvMainActivity : FragmentActivity() {
         mProgressBar = findViewById(R.id.progress_bar_tv_view)
         mPlayBtn = findViewById(R.id.tv_crs_play_btn_view)
         mPauseBtn = findViewById(R.id.tv_crs_pause_btn_view)
-        mIsOnSaveInstancePassed.set(false)
 
         // Register local receivers.
         mMediaPresenter!!.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
@@ -114,33 +106,18 @@ class TvMainActivity : FragmentActivity() {
     }
 
     override fun onResume() {
-        mIsOnSaveInstancePassed.set(false)
         super.onResume()
-
-        // Hide any progress bar
+        mMediaPresenter!!.handleResume()
         hideProgressBar()
-
         LocationService.checkCountry(this, findViewById(R.id.tv_main_layout))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (mMediaPresenter != null) {
-            // Unregister local receivers
-            mMediaPresenter!!.unregisterReceivers(applicationContext)
-            mMediaPresenter!!.clean()
-            mMediaPresenter!!.destroy()
-        }
-        ContextCompat.startForegroundService(
-                applicationContext,
-                makeStopServiceIntent(applicationContext)
-        )
+        mMediaPresenter!!.handleDestroy(applicationContext)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        d(CLASS_NAME + "OnSaveInstance:" + outState)
-        // Track OnSaveInstanceState passed
-        mIsOnSaveInstancePassed.set(true)
         mMediaPresenter!!.handleSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
@@ -223,7 +200,12 @@ class TvMainActivity : FragmentActivity() {
                 mPlayBtn!!.visibility = View.VISIBLE
                 mPauseBtn!!.visibility = View.GONE
             }
-            PlaybackStateCompat.STATE_BUFFERING, PlaybackStateCompat.STATE_CONNECTING, PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.STATE_FAST_FORWARDING, PlaybackStateCompat.STATE_NONE, PlaybackStateCompat.STATE_REWINDING, PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS, PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM -> {
+            PlaybackStateCompat.STATE_BUFFERING, PlaybackStateCompat.STATE_CONNECTING,
+            PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.STATE_FAST_FORWARDING,
+            PlaybackStateCompat.STATE_NONE, PlaybackStateCompat.STATE_REWINDING,
+            PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS,
+            PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM -> {
+                //Empty
             }
         }
         hideProgressBar()
@@ -330,7 +312,7 @@ class TvMainActivity : FragmentActivity() {
 
     private fun handleChildrenLoaded(parentId: String,
                                      children: List<MediaBrowserCompat.MediaItem>) {
-        if (mIsOnSaveInstancePassed.get()) {
+        if (mMediaPresenter!!.getOnSaveInstancePassed()) {
             w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
             return
         }
@@ -400,7 +382,7 @@ class TvMainActivity : FragmentActivity() {
      */
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
         override fun onLocationChanged() {
-            if (mIsOnSaveInstancePassed.get()) {
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
                 w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
@@ -430,6 +412,5 @@ class TvMainActivity : FragmentActivity() {
     init {
         mListener = TvMediaItemsAdapterListenerImpl()
         mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
-        mIsOnSaveInstancePassed = AtomicBoolean(false)
     }
 }

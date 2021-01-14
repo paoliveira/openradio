@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 - 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2014 - 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -217,6 +217,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private var mRestoredRS: RadioStation? = null
     private var mApiServiceProvider: ApiServiceProvider? = null
     private val mUiScope = CoroutineScope(Dispatchers.Main)
+
     /**
      * Processes Messages sent to it from onStartCommand() that
      * indicate which command to process.
@@ -255,9 +256,16 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         i(CLASS_NAME + "On Create")
         val context = applicationContext
         mPackageValidator = PackageValidator(context, R.xml.allowed_media_browser_callers)
+        val orientationStr:String
+        val orientation = resources.configuration.orientation
+        orientationStr = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            "Landscape"
+        } else {
+            "Portrait"
+        }
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
-            d(CLASS_NAME + "running on a TV Device")
+            d(CLASS_NAME + "running on a TV Device in $orientationStr")
             isTv = true
         } else {
             d(CLASS_NAME + "running on a non-TV Device")
@@ -356,11 +364,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         stopService()
     }
 
-    override fun onGetRoot(clientPackageName: String, clientUid: Int,
-                           rootHints: Bundle?): BrowserRoot? {
-        d(CLASS_NAME + "clientPackageName=" + clientPackageName
-                + ", clientUid=" + clientUid + ", systemUid" + Process.SYSTEM_UID + ", myUid:" + Process.myUid()
-                + ", rootHints=" + rootHints)
+    override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
+        val str = "clientPkgName=$clientPackageName, clientUid=$clientUid, systemUid=${Process.SYSTEM_UID}, " +
+                "myUid=${Process.myUid()}, rootHints=${bundleToString(rootHints)}"
+        d(CLASS_NAME + str)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
         if (!mPackageValidator!!.isKnownCaller(clientPackageName, clientUid)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import android.os.Bundle
@@ -32,7 +33,6 @@ import com.yuriy.openradio.BuildConfig
  */
 object AnalyticsUtils {
 
-    private const val EVENT_UNSUPPORTED_PLAYLIST = "EVENT_UNSUPPORTED_PLAYLIST"
     private const val EVENT_UNSUPPORTED_PLAYLIST_V2 = "EVENT_UNSUPPORTED_PLAYLIST_V2"
     private const val KEY_URL = "KEY_URL"
     private const val KEY_URL_INVALID = "KEY_URL_INVALID"

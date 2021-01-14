@@ -36,7 +36,6 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
-import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -51,9 +50,6 @@ import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeEditRadioStationIntent
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeRemoveRadioStationIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeStopServiceIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.putCurrentPlaybackState
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.putRestoreState
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
@@ -124,17 +120,12 @@ class MainActivity : AppCompatActivity() {
      * Member field to keep reference to the Local broadcast receiver.
      */
     private val mLocalBroadcastReceiverCb: LocalBroadcastReceiverCallback
-    private var mCurrentPlaybackState = PlaybackStateCompat.STATE_NONE
 
     /**
      * Listener for the List view click event.
      */
     private val mMediaItemListener: MediaItemsAdapter.Listener
 
-    /**
-     * Guardian field to prevent UI operation after addToLocals instance passed.
-     */
-    private val mIsOnSaveInstancePassed: AtomicBoolean
     private var mBufferedTextView: TextView? = null
     private var mPlayBtn: View? = null
     private var mPauseBtn: View? = null
@@ -147,7 +138,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         d(CLASS_NAME + "OnCreate:" + savedInstanceState)
         initUi(applicationContext)
-        mIsOnSaveInstancePassed.set(false)
         hideProgressBar()
         updateBufferedTime(0)
 
@@ -165,31 +155,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        // Set OnSaveInstanceState to false
-        mIsOnSaveInstancePassed.set(false)
-        i(CLASS_NAME + "OnResume")
         super.onResume()
-
-        // Hide any progress bar
+        i(CLASS_NAME + "OnResume")
+        mMediaPresenter!!.handleResume()
         hideProgressBar()
-
         LocationService.checkCountry(this, findViewById(R.id.main_layout))
     }
 
     override fun onDestroy() {
         super.onDestroy()
         i(CLASS_NAME + "OnDestroy")
-        mMediaPresenter!!.clean()
-        if (!mIsOnSaveInstancePassed.get()) {
-            mMediaPresenter!!.destroy()
-            ContextCompat.startForegroundService(
-                    applicationContext,
-                    makeStopServiceIntent(applicationContext)
-            )
-        }
-
-        // Unregister local receivers
-        mMediaPresenter!!.unregisterReceivers(applicationContext)
+        mMediaPresenter!!.handleDestroy(applicationContext)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -233,10 +209,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         d(CLASS_NAME + "OnSaveInstance:" + outState)
-        // Track OnSaveInstanceState passed
-        mIsOnSaveInstancePassed.set(true)
-        putRestoreState(outState, true)
-        putCurrentPlaybackState(outState, mCurrentPlaybackState)
         mMediaPresenter!!.handleSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
@@ -431,7 +403,7 @@ class MainActivity : AppCompatActivity() {
         if (item.description.title != null) {
             name = item.description.title.toString()
         }
-        if (mIsOnSaveInstancePassed.get()) {
+        if (mMediaPresenter!!.getOnSaveInstancePassed()) {
             w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
             return
         }
@@ -455,7 +427,7 @@ class MainActivity : AppCompatActivity() {
      * @param item Media item related to the Radio Station to be edited.
      */
     private fun handleEditRadioStationMenu(item: MediaBrowserCompat.MediaItem) {
-        if (mIsOnSaveInstancePassed.get()) {
+        if (mMediaPresenter!!.getOnSaveInstancePassed()) {
             w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
             return
         }
@@ -469,8 +441,7 @@ class MainActivity : AppCompatActivity() {
 
     @MainThread
     private fun handlePlaybackStateChanged(state: PlaybackStateCompat) {
-        mCurrentPlaybackState = state.state
-        when (mCurrentPlaybackState) {
+        when (state.state) {
             PlaybackStateCompat.STATE_PLAYING -> {
                 mPlayBtn!!.visibility = View.GONE
                 mPauseBtn!!.visibility = View.VISIBLE
@@ -478,6 +449,13 @@ class MainActivity : AppCompatActivity() {
             PlaybackStateCompat.STATE_STOPPED, PlaybackStateCompat.STATE_PAUSED -> {
                 mPlayBtn!!.visibility = View.VISIBLE
                 mPauseBtn!!.visibility = View.GONE
+            }
+            PlaybackStateCompat.STATE_BUFFERING, PlaybackStateCompat.STATE_CONNECTING,
+            PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.STATE_FAST_FORWARDING,
+            PlaybackStateCompat.STATE_NONE, PlaybackStateCompat.STATE_REWINDING,
+            PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS,
+            PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM -> {
+                //Empty
             }
         }
         mProgressBarCrs!!.visibility = View.GONE
@@ -581,7 +559,7 @@ class MainActivity : AppCompatActivity() {
      */
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
         override fun onLocationChanged() {
-            if (mIsOnSaveInstancePassed.get()) {
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
                 w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
@@ -611,7 +589,7 @@ class MainActivity : AppCompatActivity() {
             i(
                     CLASS_NAME + "Children loaded:" + parentId + ", children:" + children.size
             )
-            if (mIsOnSaveInstancePassed.get()) {
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
                 w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
                 return
             }
@@ -691,6 +669,5 @@ class MainActivity : AppCompatActivity() {
     init {
         mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
         mMediaItemListener = MediaItemListenerImpl()
-        mIsOnSaveInstancePassed = AtomicBoolean(false)
     }
 }

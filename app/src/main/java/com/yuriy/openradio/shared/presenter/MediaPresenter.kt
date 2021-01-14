@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.presenter
 
 import android.app.Activity
@@ -25,6 +26,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -37,10 +39,7 @@ import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.broadcast.ScreenReceiver
 import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentParentId
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeStopServiceIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeToggleLastPlayedItemIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.putCurrentParentId
+import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
@@ -51,6 +50,7 @@ import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.*
+import java.util.concurrent.atomic.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -84,6 +84,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     private var mListView: RecyclerView? = null
     private val mScrollListener: RecyclerView.OnScrollListener
     private var mLastKnownMetadata: MediaMetadataCompat? = null
+    private var mCurrentPlaybackState = PlaybackStateCompat.STATE_NONE
 
     /**
      * Adapter for the representing media items in the list.
@@ -100,6 +101,10 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
      */
     private val mScreenBroadcastRcvr: AbstractReceiver
     private var mCurrentRadioStationView: View? = null
+    /**
+     * Guardian field to prevent UI operation after addToLocals instance passed.
+     */
+    private val mIsOnSaveInstancePassed = AtomicBoolean(false)
 
     init {
         mScrollListener = ScrollListener()
@@ -114,6 +119,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
              mediaSubscriptionCallback: MediaBrowserCompat.SubscriptionCallback,
              listener: MediaPresenterListener?) {
         d("$CLASS_NAME init")
+        mIsOnSaveInstancePassed.set(false)
         mCallback = mediaSubscriptionCallback
         mActivity = activity
         mListener = listener
@@ -129,7 +135,9 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mListView!!.adapter = mAdapter
         mListView!!.addOnScrollListener(mScrollListener)
         mAdapter!!.listener = itemAdapterListener
-        mCurrentRadioStationView!!.setOnClickListener { v: View? -> activity.startService(makeToggleLastPlayedItemIntent(activity)) }
+        mCurrentRadioStationView!!.setOnClickListener {
+            activity.startService(OpenRadioService.makeToggleLastPlayedItemIntent(activity))
+        }
         if (mMediaItemsStack.isNotEmpty()) {
             val mediaId = mMediaItemsStack[mMediaItemsStack.size - 1]
             d("$CLASS_NAME current media id:$mediaId")
@@ -138,7 +146,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         }
     }
 
-    fun clean() {
+    private fun clean() {
         d("$CLASS_NAME clean")
         mMediaRsrMgr.clean()
         mCallback = null
@@ -148,8 +156,26 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mAdapter!!.removeListener()
     }
 
-    fun destroy() {
-        d("$CLASS_NAME destroy")
+    fun getOnSaveInstancePassed(): Boolean {
+        return mIsOnSaveInstancePassed.get()
+    }
+
+    fun handleResume() {
+        mIsOnSaveInstancePassed.set(false)
+    }
+
+    fun handleDestroy(context: Context) {
+        clean()
+        if (!mIsOnSaveInstancePassed.get()) {
+            disconnect()
+            ContextCompat.startForegroundService(context, OpenRadioService.makeStopServiceIntent(context))
+        }
+        // Unregister local receivers
+        unregisterReceivers(context)
+    }
+
+    private fun disconnect() {
+        d("$CLASS_NAME disconnect")
         if (mListView != null) {
             mListView!!.removeOnScrollListener(mScrollListener)
         }
@@ -167,7 +193,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             mMediaRsrMgr.unsubscribe(mMediaItemsStack.removeAt(mMediaItemsStack.size - 1)!!)
             // Clear stack
             mMediaItemsStack.clear()
-            context.startService(makeStopServiceIntent(context))
+            context.startService(OpenRadioService.makeStopServiceIntent(context))
             d("$CLASS_NAME back pressed return true, stop service")
             return true
         }
@@ -341,11 +367,15 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     }
 
     fun handleSaveInstanceState(outState: Bundle) {
-        putCurrentParentId(outState, currentParentId)
+        // Track OnSaveInstanceState passed
+        mIsOnSaveInstancePassed.set(true)
+        OpenRadioService.putRestoreState(outState, true)
+        OpenRadioService.putCurrentPlaybackState(outState, mCurrentPlaybackState)
+        OpenRadioService.putCurrentParentId(outState, currentParentId)
         if (mLastKnownMetadata != null) {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata)
         }
-        //        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
+//        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
 //        outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mAdapter.getActiveItemId());
 //        updateListPositions(mAdapter.getActiveItemId());
     }
@@ -364,7 +394,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             // Nothing to restore
             return
         }
-        currentParentId = getCurrentParentId(savedInstanceState)
+        currentParentId = OpenRadioService.getCurrentParentId(savedInstanceState)
         handleRestoreInstanceState(savedInstanceState)
         restoreSelectedPosition()
         handleMetadataChanged(savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA))
@@ -441,6 +471,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
             d("$CLASS_NAME psc:$state")
+            mCurrentPlaybackState = state.state
             val activity = this@MediaPresenter
             if (activity.mListener != null) {
                 activity.mListener!!.handlePlaybackStateChanged(state)
