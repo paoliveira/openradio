@@ -83,19 +83,17 @@ import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.notification.MediaNotification
+import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.isAutomotive
-import com.yuriy.openradio.shared.utils.FileUtils
 import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
 import com.yuriy.openradio.shared.utils.IntentUtils.bundleToString
 import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
-import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaIdHelper.getCountryCode
 import com.yuriy.openradio.shared.utils.MediaIdHelper.getId
 import com.yuriy.openradio.shared.utils.MediaItemHelper.metadataFromRadioStation
@@ -103,7 +101,6 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.playbackStateToString
 import com.yuriy.openradio.shared.utils.NetUtils.checkResource
 import com.yuriy.openradio.shared.utils.NetUtils.closeHttpURLConnection
 import com.yuriy.openradio.shared.utils.NetUtils.getHttpURLConnection
-import com.yuriy.openradio.shared.utils.PackageValidator
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.vo.PlaybackStateError
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -368,6 +365,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val str = "clientPkgName=$clientPackageName, clientUid=$clientUid, systemUid=${Process.SYSTEM_UID}, " +
                 "myUid=${Process.myUid()}, rootHints=${bundleToString(rootHints)}"
         d(CLASS_NAME + str)
+        logMessage(str)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
         if (!mPackageValidator!!.isKnownCaller(clientPackageName, clientUid)) {
