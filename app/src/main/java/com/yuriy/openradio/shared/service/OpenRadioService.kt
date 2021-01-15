@@ -93,15 +93,11 @@ import com.yuriy.openradio.shared.utils.FileUtils
 import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
-import com.yuriy.openradio.shared.utils.NetUtils.checkResource
-import com.yuriy.openradio.shared.utils.NetUtils.closeHttpURLConnection
-import com.yuriy.openradio.shared.utils.NetUtils.getHttpURLConnection
+import com.yuriy.openradio.shared.utils.NetUtils
 import com.yuriy.openradio.shared.utils.PackageValidator
-import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.PlaybackStateError
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeCopyInstance
-import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -361,6 +357,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val str = "clientPkgName=$clientPackageName, clientUid=$clientUid, systemUid=${Process.SYSTEM_UID}, " +
                 "myUid=${Process.myUid()}, rootHints=${IntentUtils.bundleToString(rootHints)}"
         d(CLASS_NAME + str)
+        AnalyticsUtils.logMessage(str)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
         if (!mPackageValidator!!.isKnownCaller(clientPackageName, clientUid)) {
@@ -499,7 +496,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun extractUrlsFromPlaylist(playlistUrl: String): Array<String?> {
-        val connection = getHttpURLConnection(
+        val connection = NetUtils.getHttpURLConnection(
                 applicationContext, playlistUrl, "GET"
         ) ?: return arrayOfNulls(0)
         var inputStream: InputStream? = null
@@ -528,7 +525,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
             AnalyticsUtils.logException(Exception(errorMessage, e))
         } finally {
-            closeHttpURLConnection(connection)
+            NetUtils.closeHttpURLConnection(connection)
             if (inputStream != null) {
                 try {
                     inputStream.close()
@@ -894,7 +891,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun handleClearCache() {
         mApiServiceProvider!!.clear()
-        showAnyThread(this, getString(R.string.clear_completed))
+        SafeToast.showAnyThread(this, getString(R.string.clear_completed))
     }
 
     private fun setPlayerVolume() {
@@ -1390,7 +1387,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 CacheType.NONE
         )
         if (list.isEmpty()) {
-            showAnyThread(
+            SafeToast.showAnyThread(
                     applicationContext, applicationContext.getString(R.string.no_search_results)
             )
             return
@@ -1445,7 +1442,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 // If it exists, let's compare its id with the id provided by intent.
                 if (rs == null) {
                     if (mLastKnownRS != null && mLastKnownRS!!.id == description.mediaId) {
-                        rs = makeCopyInstance(context, mLastKnownRS!!)
+                        rs = RadioStation.makeCopyInstance(context, mLastKnownRS!!)
                     }
                     // We failed both cases, something went wrong ...
                     if (rs == null) {
@@ -1517,7 +1514,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     )
                     return
                 }
-                if (!checkResource(context, url)) {
+                if (!NetUtils.checkResource(context, url)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's stream is invalid"
@@ -1526,7 +1523,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     return
                 }
                 val imageWebUrl = rsToAdd.imageWebUrl
-                if (!checkResource(context, imageWebUrl)) {
+                if (!NetUtils.checkResource(context, imageWebUrl)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's web image is invalid"
@@ -1534,7 +1531,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     )
                 }
                 val homePage = rsToAdd.homePage
-                if (!checkResource(context, homePage)) {
+                if (!NetUtils.checkResource(context, homePage)) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                     "Radio Station's home page is invalid"
@@ -1559,7 +1556,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 if (imageUrlLocal == null) {
                     imageUrlLocal = rsToAdd.imageLocalUrl
                 }
-                val radioStation = makeDefaultInstance(
+                val radioStation = RadioStation.makeDefaultInstance(
                         context, LocalRadioStationsStorage.getId(context)
                 )
                 radioStation.name = rsToAdd.name
