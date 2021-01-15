@@ -83,23 +83,16 @@ import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.notification.MediaNotification
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.AppUtils.isAutomotive
 import com.yuriy.openradio.shared.utils.FileUtils
-import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
-import com.yuriy.openradio.shared.utils.IntentUtils.bundleToString
-import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaIdHelper.getCountryCode
-import com.yuriy.openradio.shared.utils.MediaIdHelper.getId
-import com.yuriy.openradio.shared.utils.MediaItemHelper.metadataFromRadioStation
-import com.yuriy.openradio.shared.utils.MediaItemHelper.playbackStateToString
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.NetUtils.checkResource
 import com.yuriy.openradio.shared.utils.NetUtils.closeHttpURLConnection
 import com.yuriy.openradio.shared.utils.NetUtils.getHttpURLConnection
@@ -325,7 +318,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mSession!!.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         mMediaNotification = MediaNotification(this)
-        logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate")
+        AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate")
         mMediaNotification!!.notifyService("Application just started")
         mMasterVolumeBroadcastReceiver.register(context)
         mClearCacheReceiver.register(context)
@@ -335,15 +328,15 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         i(CLASS_NAME + "On Start Command:" + intent + ", id:" + startId)
-        logMessage(
+        AnalyticsUtils.logMessage(
                 "OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent
-                        + ", " + intentBundleToString(intent)
+                        + ", " + IntentUtils.intentBundleToString(intent)
         )
         mStartIds.add(startId)
         if (intent != null) {
             sendMessage(intent)
         }
-        logMessage("OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent + " competed")
+        AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onStartCommand:" + intent + " competed")
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -366,7 +359,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
         val str = "clientPkgName=$clientPackageName, clientUid=$clientUid, systemUid=${Process.SYSTEM_UID}, " +
-                "myUid=${Process.myUid()}, rootHints=${bundleToString(rootHints)}"
+                "myUid=${Process.myUid()}, rootHints=${IntentUtils.bundleToString(rootHints)}"
         d(CLASS_NAME + str)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
@@ -376,7 +369,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             w(CLASS_NAME + "IGNORING request from untrusted package " + clientPackageName)
             return null
         }
-        mIsAndroidAuto = if (isAutomotive(clientPackageName)) {
+        mIsAndroidAuto = if (AppUtils.isAutomotive(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
             // it.
@@ -404,13 +397,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mCurrentParentId = parentId
 
         // If Parent Id contains Country Code - use it in the API.
-        var countryCode = getCountryCode(mCurrentParentId)
+        var countryCode = MediaIdHelper.getCountryCode(mCurrentParentId)
         if (countryCode.isNullOrEmpty()) {
             // Otherwise, use whatever is stored in preferences.
             countryCode = LocationStorage.getLastCountryCode(applicationContext)
         }
         val context = applicationContext
-        val command = mMediaItemCommands[getId(mCurrentParentId)]
+        val command = mMediaItemCommands[MediaIdHelper.getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
                 context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider!!,
                 countryCode, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
@@ -465,6 +458,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private fun handleUnrecognizedInputFormatException() {
         val playlistUrl = mLastPlayedUrl
+        AnalyticsUtils.logMessage("UnrecognizedInputFormat:$playlistUrl")
         handleStopRequest(
                 PlaybackStateError("Can not get play url.", PlaybackStateError.Code.UNRECOGNIZED_URL)
         )
@@ -526,13 +520,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             }
         } catch (e: SocketTimeoutException) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            logException(Exception(errorMessage, e))
+            AnalyticsUtils.logException(Exception(errorMessage, e))
         } catch (e: IOException) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            logException(Exception(errorMessage, e))
+            AnalyticsUtils.logException(Exception(errorMessage, e))
         } catch (e: JPlaylistParserException) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            logException(Exception(errorMessage, e))
+            AnalyticsUtils.logException(Exception(errorMessage, e))
         } finally {
             closeHttpURLConnection(connection)
             if (inputStream != null) {
@@ -684,7 +678,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     PlaybackStateError(getString(R.string.no_data_message), PlaybackStateError.Code.GENERAL)
             )
         }
-        return metadataFromRadioStation(applicationContext, radioStation)
+        return MediaItemHelper.metadataFromRadioStation(applicationContext, radioStation)
     }
 
     /**
@@ -708,7 +702,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             )
             return
         }
-        val metadata = metadataFromRadioStation(
+        val metadata = MediaItemHelper.metadataFromRadioStation(
                 applicationContext, radioStation, streamTitle
         )
         if (metadata == null) {
@@ -790,7 +784,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val autoPlay = AppPreferencesManager.isBtAutoPlay(applicationContext)
         d(
                 CLASS_NAME + "BTSameDeviceConnected, do auto play:" + autoPlay
-                        + ", state:" + playbackStateToString(mState)
+                        + ", state:" + MediaItemHelper.playbackStateToString(mState)
                         + ", pause reason:" + mPauseReason
         )
         if (!autoPlay) {
@@ -810,7 +804,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun handlePlayRequestUiThread() {
-        d(CLASS_NAME + "Handle PlayRequest: state=" + playbackStateToString(mState))
+        d(CLASS_NAME + "Handle PlayRequest: state=" + MediaItemHelper.playbackStateToString(mState))
         if (mSession == null) {
             e(CLASS_NAME + "handle play with null media session")
             return
@@ -927,7 +921,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param reason Reason to pause.
      */
     private fun handlePauseRequestUiThread(reason: PauseReason) {
-        d(CLASS_NAME + "HandlePauseRequest: state=" + playbackStateToString(mState))
+        d(CLASS_NAME + "HandlePauseRequest: state=" + MediaItemHelper.playbackStateToString(mState))
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
@@ -949,7 +943,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private fun updatePlaybackState(error: PlaybackStateError = PlaybackStateError()) {
         d(
                 CLASS_NAME + "set playback state to "
-                        + playbackStateToString(mState) + " error:" + error.toString()
+                        + MediaItemHelper.playbackStateToString(mState) + " error:" + error.toString()
         )
         if (mSession == null) {
             e(CLASS_NAME + "update playback with null media session")
@@ -992,7 +986,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             // IllegalStateException: beginBroadcast() called while already in a broadcast
             mSession!!.setPlaybackState(stateBuilder.build())
         } catch (e: IllegalStateException) {
-            logException(e)
+            AnalyticsUtils.logException(e)
         }
         if (mState == PlaybackStateCompat.STATE_BUFFERING
                 || mState == PlaybackStateCompat.STATE_PLAYING
@@ -1035,7 +1029,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
         d(
                 CLASS_NAME + "Handle stop request: state="
-                        + playbackStateToString(mState) + " error=" + error.toString()
+                        + MediaItemHelper.playbackStateToString(mState) + " error=" + error.toString()
         )
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         mPauseReason = PauseReason.DEFAULT
@@ -1190,7 +1184,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             super.onPlayFromMediaId(mediaId, extras)
             i(
                     mClassName + "On Play from media id:" + mediaId
-                            + " extras:" + bundleToString(extras)
+                            + " extras:" + IntentUtils.bundleToString(extras)
                             + " [ors:" + this@OpenRadioService.hashCode() + "]"
             )
             handlePlayFromMediaId(mediaId)
@@ -1295,7 +1289,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         override fun onPlayFromSearch(query: String, extras: Bundle) {
             i(
                     mClassName + "play from search:" + query
-                            + " extras:" + bundleToString(extras)
+                            + " extras:" + IntentUtils.bundleToString(extras)
                             + " [ors:" + this@OpenRadioService.hashCode() + "]"
             )
             super.onPlayFromSearch(query, extras)
@@ -1313,7 +1307,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             mLastKeyEventTime = System.currentTimeMillis()
             i(
                     mClassName + "media btn evnt:" + intent
-                            + " extra:" + intentBundleToString(intent)
+                            + " extra:" + IntentUtils.intentBundleToString(intent)
                             + " [ors:" + this@OpenRadioService.hashCode() + "]"
             )
             val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
@@ -1476,7 +1470,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 val addToFav = intent.getBooleanExtra(
                         EXTRA_KEY_STATION_ADD_TO_FAV, false
                 )
-                var imageUrlLocal = copyExtFileToIntDir(context, imageUrl!!)
+                var imageUrlLocal = FileUtils.copyExtFileToIntDir(context, imageUrl!!)
                 if (imageUrlLocal == null) {
                     imageUrlLocal = imageUrl
                 } else {
@@ -1561,7 +1555,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to server")
                     }
                 }
-                var imageUrlLocal = copyExtFileToIntDir(context, rsToAdd.imageLocalUrl)
+                var imageUrlLocal = FileUtils.copyExtFileToIntDir(context, rsToAdd.imageLocalUrl)
                 if (imageUrlLocal == null) {
                     imageUrlLocal = rsToAdd.imageLocalUrl
                 }
@@ -1625,7 +1619,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         handlePlayRequest()
                     }
                     else -> {
-                        w(CLASS_NAME + "unhandled playback state:" + playbackStateToString(mState))
+                        w(CLASS_NAME + "unhandled playback state:" + MediaItemHelper.playbackStateToString(mState))
                     }
                 }
             }
@@ -1668,7 +1662,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun setPlaybackState(state: Int) {
-        d(CLASS_NAME + "Set state " + playbackStateToString(state))
+        d(CLASS_NAME + "Set state " + MediaItemHelper.playbackStateToString(state))
         mState = state
     }
 

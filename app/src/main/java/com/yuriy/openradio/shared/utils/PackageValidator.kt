@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import android.Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE
@@ -75,11 +76,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * @param callingUid The user id of the caller.
      * @return `true` if the caller is known, `false` otherwise.
      */
-    fun isKnownCaller(callingPackage: String, callingUid: Int): Boolean {
-        // Any debug app can run the code.
-//        if (BuildConfig.DEBUG) {
-//            return true
-//        }
+    fun isKnownCaller(callingPackage: String, callingUid: Int, throwException: Boolean = true): Boolean {
         // If the caller has already been checked, return the previous result here.
         val (checkedUid, checkResult) = callerChecked[callingPackage] ?: Pair(0, false)
         if (checkedUid == callingUid) {
@@ -105,7 +102,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
         // Verify that things aren't ... broken. (This test should always pass.)
         if (callerPackageInfo.uid != callingUid) {
-            throw IllegalStateException("Caller's package UID doesn't match caller's actual UID?")
+            if (throwException) {
+                throw IllegalStateException("Caller's package UID doesn't match caller's actual UID?")
+            }
         }
 
         val callerSignature = callerPackageInfo.signature
@@ -114,8 +113,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         } != null
 
         val isCallerKnown = when {
-            // Have no idea why system ui call this app on some devices.
+            // Have no idea why these packages call Open Radio on some devices.
             callingPackage == "com.android.systemui" -> false
+            callingPackage == "com.android.bluetooth" -> false
             // If it's our own app making the call, allow it.
             callingUid == Process.myUid() -> true
             // If it's one of the apps on the whitelist, allow it.
