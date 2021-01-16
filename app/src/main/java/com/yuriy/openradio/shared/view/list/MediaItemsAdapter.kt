@@ -25,10 +25,10 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 
@@ -191,8 +191,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
                     view.setImageResource(iconId)
                 }
                 if (iconUri != null) {
-                    Picasso.get()
-                            .load(iconUri)
+                    AppUtils.getPicassoCreator(iconUri)
                             .resize(2048, 1600)
                             .onlyScaleDown() // the image will only be resized if it's bigger than 2048 x 1600 pixels.
                             .noPlaceholder()

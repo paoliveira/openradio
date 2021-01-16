@@ -71,9 +71,9 @@ class GoogleDriveDialog : BaseDialogFragment() {
         )
         setWindowDimensions(view, 0.9f, 0.9f)
         val uploadTo = view.findViewById<Button>(R.id.upload_to_google_drive_btn)
-        uploadTo.setOnClickListener { v: View? -> uploadRadioStationsToGoogleDrive() }
+        uploadTo.setOnClickListener { uploadRadioStationsToGoogleDrive() }
         val downloadFrom = view.findViewById<Button>(R.id.download_from_google_drive_btn)
-        downloadFrom.setOnClickListener { v: View? -> downloadRadioStationsFromGoogleDrive() }
+        downloadFrom.setOnClickListener { downloadRadioStationsFromGoogleDrive() }
         mProgressBarUpload = view.findViewById(R.id.upload_to_google_drive_progress)
         mProgressBarDownload = view.findViewById(R.id.download_to_google_drive_progress)
         mProgressBarTitle = view.findViewById(R.id.google_drive_title_progress)
@@ -223,7 +223,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
         private const val ACCOUNT_REQUEST_CODE = 400
         @JvmStatic
-        fun findGoogleDriveDialog(fragmentManager: FragmentManager?): GoogleDriveDialog? {
+        fun findDialog(fragmentManager: FragmentManager?): GoogleDriveDialog? {
             if (fragmentManager == null) {
                 return null
             }

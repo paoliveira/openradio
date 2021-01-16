@@ -32,6 +32,7 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.fragment.app.FragmentManager
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiver
 import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiverListener
@@ -82,6 +83,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
     private var mGenresAdapter: ArrayAdapter<CharSequence>? = null
     private var mCountriesAdapter: ArrayAdapter<String>? = null
     private var mRsAddValidatedReceiver: RSAddValidatedReceiver? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.dialog_add_edit_station, container, false)
@@ -137,7 +139,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         // Apply the mCountriesAdapter to the spinner
         mGenresSpinner?.adapter = mGenresAdapter
         val imageUrlBtn = view.findViewById<Button>(R.id.add_edit_station_image_browse_btn)
-        imageUrlBtn.setOnClickListener { viewBtn: View? ->
+        imageUrlBtn.setOnClickListener {
             val galleryIntent = Intent()
             galleryIntent.type = "image/*"
             galleryIntent.action = Intent.ACTION_GET_CONTENT
@@ -152,11 +154,11 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         }
         mAddToFavCheckView = view.findViewById(R.id.add_to_fav_check_view)
         mAddToSrvrCheckView = view.findViewById(R.id.add_to_srvr_check_view)
-        mAddToSrvrCheckView?.setOnCheckedChangeListener { buttonView: CompoundButton?, isChecked: Boolean ->
+        mAddToSrvrCheckView?.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             toggleWebImageView(view, isChecked)
         }
         val addOrEditBtn = view.findViewById<Button>(R.id.add_edit_station_dialog_add_btn_view)
-        addOrEditBtn.setOnClickListener { viewBtn: View? ->
+        addOrEditBtn.setOnClickListener {
             mProgressView?.visibility = View.VISIBLE
             processInputInternal(
                     mNameEdit?.text.toString(),
@@ -213,17 +215,12 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
                     return
                 }
                 //MEDIA GALLERY
-                val selectedImagePath = ImageFilePath.getPath(
-                        ctx, selectedImageUri
-                )
+                val selectedImagePath = ImageFilePath.getPath(ctx, selectedImageUri)
                 AppLogger.d("Image Path:$selectedImagePath")
                 if (selectedImagePath != null) {
                     mImageLocalUrlEdit!!.setText(selectedImagePath)
                 } else {
-                    showAnyThread(
-                            ctx,
-                            ctx.getString(R.string.can_not_open_file)
-                    )
+                    showAnyThread(ctx, ctx.getString(R.string.can_not_open_file))
                 }
             }
         }
@@ -290,5 +287,25 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         val edit = view.findViewById<EditText>(R.id.add_edit_station_web_image_url_edit)
         label.isEnabled = enabled
         edit.isEnabled = enabled
+    }
+
+    companion object {
+
+        @JvmStatic
+        fun findDialog(fragmentManager: FragmentManager?): BaseAddEditStationDialog? {
+            if (fragmentManager == null) {
+                return null
+            }
+            var fragment = fragmentManager.findFragmentByTag(AddStationDialog.DIALOG_TAG)
+            return if (fragment is AddStationDialog) {
+                fragment
+            } else {
+                fragment = fragmentManager.findFragmentByTag(EditStationDialog.DIALOG_TAG)
+                if (fragment is EditStationDialog) {
+                    return fragment
+                }
+                return null
+            }
+        }
     }
 }

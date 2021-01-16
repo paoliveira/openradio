@@ -21,12 +21,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
 import com.google.android.exoplayer2.util.Util
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.RequestCreator
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
@@ -286,7 +289,17 @@ object AppUtils {
     fun isWebUrl(url: String): Boolean {
         return if (url.isEmpty()) {
             false
-        } else url.toLowerCase(Locale.ROOT).startsWith("www") || url.toLowerCase(Locale.ROOT).startsWith("http")
+        } else url.toLowerCase(Locale.ROOT).startsWith("www")
+                || url.toLowerCase(Locale.ROOT).startsWith("http")
+    }
+
+    @JvmStatic
+    fun getPicassoCreator(uri: Uri): RequestCreator {
+        return if (isWebUrl(uri.toString())) {
+            Picasso.get().load(uri)
+        } else {
+            Picasso.get().load(File(uri.toString()))
+        }
     }
 
     @JvmStatic

@@ -48,8 +48,7 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeEditRadioStationIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeRemoveRadioStationIntent
+import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
@@ -61,22 +60,18 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.getDisplayDescription
 import com.yuriy.openradio.shared.utils.MediaItemHelper.isEndOfList
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
 import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
-import com.yuriy.openradio.shared.view.BaseDialogFragment.Companion.newInstance
+import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.dialog.AboutDialog
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
+import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
 import com.yuriy.openradio.shared.view.dialog.EditStationDialog
-import com.yuriy.openradio.shared.view.dialog.EditStationDialog.Companion.getBundleWithMediaKey
 import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
-import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog.Companion.findGoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
-import com.yuriy.openradio.shared.view.dialog.LogsDialog.Companion.findLogsDialog
 import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
-import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog.Companion.provideMediaItem
 import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
-import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog.Companion.createBundle
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
@@ -190,14 +185,14 @@ class MainActivity : AppCompatActivity() {
             R.id.action_search -> {
 
                 // Show Search Dialog
-                val dialog = newInstance(SearchDialog::class.java.name)
+                val dialog = BaseDialogFragment.newInstance(SearchDialog::class.java.name)
                 dialog!!.show(transaction, SearchDialog.DIALOG_TAG)
                 true
             }
             R.id.action_eq -> {
 
                 // Show Equalizer Dialog
-                val dialog = newInstance(EqualizerDialog::class.java.name)
+                val dialog = BaseDialogFragment.newInstance(EqualizerDialog::class.java.name)
                 dialog!!.show(transaction, EqualizerDialog.DIALOG_TAG)
                 true
             }
@@ -255,27 +250,27 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_general -> {
                     // Show Search Dialog
-                    val settingsDialog = newInstance(GeneralSettingsDialog::class.java.name)
+                    val settingsDialog = BaseDialogFragment.newInstance(GeneralSettingsDialog::class.java.name)
                     settingsDialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
                 }
                 R.id.nav_buffering -> {
                     // Show Stream Buffering Dialog
-                    val streamBufferingDialog = newInstance(StreamBufferingDialog::class.java.name)
+                    val streamBufferingDialog = BaseDialogFragment.newInstance(StreamBufferingDialog::class.java.name)
                     streamBufferingDialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
                 }
                 R.id.nav_google_drive -> {
                     // Show Google Drive Dialog
-                    val googleDriveDialog = newInstance(GoogleDriveDialog::class.java.name)
+                    val googleDriveDialog = BaseDialogFragment.newInstance(GoogleDriveDialog::class.java.name)
                     googleDriveDialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                 }
                 R.id.nav_logs -> {
                     // Show Application Logs Dialog
-                    val applicationLogsDialog = newInstance(LogsDialog::class.java.name)
+                    val applicationLogsDialog = BaseDialogFragment.newInstance(LogsDialog::class.java.name)
                     applicationLogsDialog!!.show(transaction, LogsDialog.DIALOG_TAG)
                 }
                 R.id.nav_about -> {
                     // Show About Dialog
-                    val aboutDialog = newInstance(AboutDialog::class.java.name)
+                    val aboutDialog = BaseDialogFragment.newInstance(AboutDialog::class.java.name)
                     aboutDialog!!.show(transaction, AboutDialog.DIALOG_TAG)
                 }
                 else -> {
@@ -295,7 +290,7 @@ class MainActivity : AppCompatActivity() {
         addBtn.setOnClickListener {
             // Show Add Station Dialog
             val transaction = supportFragmentManager.beginTransaction()
-            val dialog = newInstance(AddStationDialog::class.java.name)
+            val dialog = BaseDialogFragment.newInstance(AddStationDialog::class.java.name)
             dialog!!.show(transaction, AddStationDialog.DIALOG_TAG)
         }
     }
@@ -304,7 +299,7 @@ class MainActivity : AppCompatActivity() {
      * Process user's input in order to edit custom [RadioStation].
      */
     fun processEditStationCallback(mediaId: String?, radioStationToAdd: RadioStationToAdd?) {
-        startService(makeEditRadioStationIntent(
+        startService(OpenRadioService.makeEditRadioStationIntent(
                 this, mediaId, radioStationToAdd!!
         ))
     }
@@ -313,7 +308,7 @@ class MainActivity : AppCompatActivity() {
      * Process user's input in order to remove custom [RadioStation].
      */
     fun processRemoveStationCallback(mediaId: String?) {
-        startService(makeRemoveRadioStationIntent(this, mediaId))
+        startService(OpenRadioService.makeRemoveRadioStationIntent(this, mediaId))
     }
 
     /**
@@ -411,8 +406,8 @@ class MainActivity : AppCompatActivity() {
         clearDialogs(this, transaction)
 
         // Show Remove Station Dialog
-        val bundle = createBundle(item.mediaId, name)
-        val dialog = newInstance(RemoveStationDialog::class.java.name, bundle)
+        val bundle = RemoveStationDialog.createBundle(item.mediaId, name)
+        val dialog = BaseDialogFragment.newInstance(RemoveStationDialog::class.java.name, bundle)
         dialog!!.show(transaction, RemoveStationDialog.DIALOG_TAG)
     }
 
@@ -435,7 +430,9 @@ class MainActivity : AppCompatActivity() {
         clearDialogs(this, transaction)
 
         // Show Edit Station Dialog
-        val dialog = newInstance(EditStationDialog::class.java.name, getBundleWithMediaKey(item.mediaId))
+        val dialog = BaseDialogFragment.newInstance(
+                EditStationDialog::class.java.name, EditStationDialog.getBundleWithMediaKey(item.mediaId)
+        )
         dialog!!.show(transaction, EditStationDialog.DIALOG_TAG)
     }
 
@@ -548,10 +545,12 @@ class MainActivity : AppCompatActivity() {
                         + " intent:" + data
                         + " data:" + intentBundleToString(data)
         )
-        val gDriveDialog = findGoogleDriveDialog(supportFragmentManager)
+        val gDriveDialog = GoogleDriveDialog.findDialog(supportFragmentManager)
         gDriveDialog?.onActivityResult(requestCode, resultCode, data)
-        val logsDialog = findLogsDialog(supportFragmentManager)
+        val logsDialog = LogsDialog.findDialog(supportFragmentManager)
         logsDialog?.onActivityResult(requestCode, resultCode, data)
+        val addEditStationDialog = BaseAddEditStationDialog.findDialog(supportFragmentManager)
+        addEditStationDialog?.onActivityResult(requestCode, resultCode, data)
     }
 
     /**
@@ -634,9 +633,9 @@ class MainActivity : AppCompatActivity() {
                 currentParentId = mMediaPresenter!!.currentParentId
             }
             if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == currentParentId) {
-                provideMediaItem(bundle, item)
+                RSSettingsDialog.provideMediaItem(bundle, item)
             }
-            val fragment = newInstance(RSSettingsDialog::class.java.name, bundle)
+            val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }
 

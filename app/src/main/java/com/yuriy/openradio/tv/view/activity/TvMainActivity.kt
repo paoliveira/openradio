@@ -36,21 +36,21 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.service.LocationService.Companion.doEnqueueWork
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.AppUtils.startActivityForResultSafe
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.getDisplayDescription
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
-import com.yuriy.openradio.shared.view.BaseDialogFragment.Companion.newInstance
+import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
+import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
 import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
-import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog.Companion.findGoogleDriveDialog
-import com.yuriy.openradio.shared.view.dialog.LogsDialog.Companion.findLogsDialog
+import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
+import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog
 import com.yuriy.openradio.tv.view.list.TvMediaItemsAdapter
@@ -132,8 +132,9 @@ class TvMainActivity : FragmentActivity() {
         )
         for (i in permissions.indices) {
             val permission = permissions[i]
-            if (permission == Manifest.permission.ACCESS_FINE_LOCATION && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                doEnqueueWork(applicationContext)
+            if (permission == Manifest.permission.ACCESS_FINE_LOCATION
+                    && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                LocationService.doEnqueueWork(applicationContext)
             }
         }
     }
@@ -141,13 +142,15 @@ class TvMainActivity : FragmentActivity() {
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         d(CLASS_NAME + "on activity result, rqst:" + requestCode + " rslt:" + resultCode)
-        val gDriveDialog = findGoogleDriveDialog(supportFragmentManager)
+        val gDriveDialog = GoogleDriveDialog.findDialog(supportFragmentManager)
         gDriveDialog?.onActivityResult(requestCode, resultCode, data)
-        val logsDialog = findLogsDialog(supportFragmentManager)
+        val logsDialog = LogsDialog.findDialog(supportFragmentManager)
         logsDialog?.onActivityResult(requestCode, resultCode, data)
         if (requestCode == TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE) {
             onSearchDialogClick()
         }
+        val addEditStationDialog = BaseAddEditStationDialog.findDialog(supportFragmentManager)
+        addEditStationDialog?.onActivityResult(requestCode, resultCode, data)
     }
 
     /**
@@ -213,12 +216,12 @@ class TvMainActivity : FragmentActivity() {
 
     private fun setUpSettingsBtn() {
         val button = findViewById<ImageView>(R.id.tv_settings_btn) ?: return
-        button.setOnClickListener { v: View? -> showTvSettings() }
+        button.setOnClickListener { showTvSettings() }
     }
 
     private fun setUpSearchBtn() {
         val button = findViewById<ImageView>(R.id.tv_search_btn) ?: return
-        button.setOnClickListener { v: View? ->
+        button.setOnClickListener {
             startActivityForResultSafe(
                     this,
                     TvSearchActivity.makeStartIntent(this),
@@ -229,10 +232,10 @@ class TvMainActivity : FragmentActivity() {
 
     private fun setUpEqualizerBtn() {
         val button = findViewById<ImageView>(R.id.tv_eq_btn) ?: return
-        button.setOnClickListener { v: View? ->
+        button.setOnClickListener {
             // Show Equalizer Dialog
             val transaction = supportFragmentManager.beginTransaction()
-            val dialog = newInstance(
+            val dialog = BaseDialogFragment.newInstance(
                     EqualizerDialog::class.java.name
             )
             dialog!!.show(transaction, EqualizerDialog.DIALOG_TAG)
@@ -241,10 +244,10 @@ class TvMainActivity : FragmentActivity() {
 
     private fun setUpAddBtn() {
         val button = findViewById<ImageView>(R.id.tv_add_btn) ?: return
-        button.setOnClickListener { view: View? ->
+        button.setOnClickListener {
             // Show Add Station Dialog
             val transaction = supportFragmentManager.beginTransaction()
-            val dialog = newInstance(
+            val dialog = BaseDialogFragment.newInstance(
                     AddStationDialog::class.java.name
             )
             dialog!!.show(transaction, AddStationDialog.DIALOG_TAG)
@@ -255,7 +258,7 @@ class TvMainActivity : FragmentActivity() {
         val transaction = supportFragmentManager.beginTransaction()
         clearDialogs(this, transaction)
         // Show Settings Dialog
-        val dialogFragment = newInstance(
+        val dialogFragment = BaseDialogFragment.newInstance(
                 TvSettingsDialog::class.java.name
         )
         dialogFragment!!.show(transaction, TvSettingsDialog.DIALOG_TAG)
@@ -281,7 +284,7 @@ class TvMainActivity : FragmentActivity() {
         }
         val descriptionView = findViewById<TextView>(R.id.tv_crs_description_view)
         if (descriptionView != null) {
-            descriptionView.text = getDisplayDescription(description, getString(R.string.media_description_default))
+            descriptionView.text = MediaItemHelper.getDisplayDescription(description, getString(R.string.media_description_default))
         }
         val imgView = findViewById<ImageView>(R.id.tv_crs_img_view)
         // Show placeholder before load an image.

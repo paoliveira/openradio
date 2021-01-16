@@ -25,6 +25,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.RemoteException
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -252,27 +253,23 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         var art = description.iconBitmap
         if (art == null && description.iconUri != null) {
             val artUrl = UrlBuilder.preProcessIconUrl(description.iconUri.toString())
-            if (AppUtils.isWebUrl(artUrl)) {
-                Picasso.get()
-                        .load(artUrl)
-                        .resize(NOTIFICATION_LARGE_ICON_SIZE_PX, NOTIFICATION_LARGE_ICON_SIZE_PX)
-                        .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
-                        .into(
-                                object : Target {
-                                    override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
-                                        e("Can't load large art:$e")
-                                    }
-
-                                    override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-
-                                    override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                                        d("Large art loaded")
-                                        art = bitmap
-                                    }
+            AppUtils.getPicassoCreator(Uri.parse(artUrl))
+                    .resize(NOTIFICATION_LARGE_ICON_SIZE_PX, NOTIFICATION_LARGE_ICON_SIZE_PX)
+                    .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
+                    .into(
+                            object : Target {
+                                override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
+                                    e("Can't load large art:$e")
                                 }
-                        )
-            }
 
+                                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+
+                                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                                    d("Large art loaded")
+                                    art = bitmap
+                                }
+                            }
+                    )
         } else if (art == null) {
             // use a placeholder art while the remote art is being downloaded
             art = BitmapFactory.decodeResource(mService.resources, R.drawable.ic_radio_station)

@@ -66,14 +66,14 @@ class LogsDialog : BaseDialogFragment() {
             processEnableCheckView(context, view, checked)
         }
         val clearLogsBtn = view.findViewById<Button>(R.id.settings_dialog_clear_logs_btn_view)
-        clearLogsBtn.setOnClickListener { view12: View? ->
+        clearLogsBtn.setOnClickListener {
             val result = AppLogger.deleteAllLogs(context)
             val message = if (result) "All logs deleted" else "Can not delete logs"
             showAnyThread(context, message)
             AppLogger.initLogger(context)
         }
         val sendLogsBtn = view.findViewById<Button>(R.id.settings_dialog_send_logs_btn_view)
-        sendLogsBtn.setOnClickListener { view13: View? -> sendLogMailTask() }
+        sendLogsBtn.setOnClickListener { sendLogMailTask() }
         return createAlertDialog(view)
     }
 
@@ -196,7 +196,7 @@ class LogsDialog : BaseDialogFragment() {
         private const val SUPPORT_MAIL = "chernyshov.yuriy@gmail.com"
 
         @JvmStatic
-        fun findLogsDialog(fragmentManager: FragmentManager?): LogsDialog? {
+        fun findDialog(fragmentManager: FragmentManager?): LogsDialog? {
             if (fragmentManager == null) {
                 return null
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
@@ -175,11 +176,10 @@ object FileUtils {
     fun createFileIfNeeded(path: String): File {
         val file = File(path)
         try {
-            val result = file.createNewFile()
+            file.createNewFile()
         } catch (e: IOException) {
             logException(
-                    FileNotFoundException("""File $path not created:
-${Log.getStackTraceString(e)}""")
+                    FileNotFoundException("File $path not created:${Log.getStackTraceString(e)}")
             )
         }
         return file
