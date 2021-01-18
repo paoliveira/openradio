@@ -410,11 +410,7 @@ class TvMainActivity : FragmentActivity() {
 
         override fun onSleepTimer() {
             hideProgressBar()
-            if (mMediaPresenter != null) {
-                while (mMediaPresenter!!.handleBackPressed(applicationContext)) {
-                    // Do nothing
-                }
-            }
+            mMediaPresenter?.clearMediaItems()
             finish()
         }
     }

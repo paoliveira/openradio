@@ -65,7 +65,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
      * Stack of the media items.
      * It is used when navigating back and forth via list.
      */
-    private val mMediaItemsStack: MutableList<String?> = LinkedList()
+    private val mMediaItemsStack: MutableList<String> = LinkedList()
 
     /**
      * Map of the selected and clicked positions for lists of the media items.
@@ -183,6 +183,13 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mMediaRsrMgr.disconnect()
     }
 
+    fun clearMediaItems() {
+        for (item in mMediaItemsStack) {
+            mMediaRsrMgr.unsubscribe(item)
+        }
+        mMediaItemsStack.clear()
+    }
+
     fun handleBackPressed(context: Context): Boolean {
         d(CLASS_NAME + " back pressed start:" + mMediaItemsStack.size)
 
@@ -190,7 +197,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         if (mMediaItemsStack.size == 1) {
 
             // Un-subscribe from item
-            mMediaRsrMgr.unsubscribe(mMediaItemsStack.removeAt(mMediaItemsStack.size - 1)!!)
+            mMediaRsrMgr.unsubscribe(mMediaItemsStack.removeAt(mMediaItemsStack.size - 1))
             // Clear stack
             mMediaItemsStack.clear()
             context.startService(OpenRadioService.makeStopServiceIntent(context))
@@ -201,19 +208,19 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         if (index >= 0) {
             // Get current media item and un-subscribe.
             val currentMediaId = mMediaItemsStack.removeAt(index)
-            mMediaRsrMgr.unsubscribe(currentMediaId!!)
+            mMediaRsrMgr.unsubscribe(currentMediaId)
         }
 
         // Un-subscribe from all items.
         for (mediaItemId in mMediaItemsStack) {
-            mMediaRsrMgr.unsubscribe(mediaItemId!!)
+            mMediaRsrMgr.unsubscribe(mediaItemId)
         }
 
         // Subscribe to the previous item.
         index = mMediaItemsStack.size - 1
         if (index >= 0) {
             val previousMediaId = mMediaItemsStack[index]
-            if (!previousMediaId.isNullOrEmpty()) {
+            if (previousMediaId.isNotEmpty()) {
                 if (mListener != null) {
                     mListener!!.showProgressBar()
                 }
@@ -432,7 +439,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
     private fun handleMediaResourceManagerConnected() {
         val size = mMediaItemsStack.size
-        val mediaId = if (size == 0) mMediaRsrMgr.root else mMediaItemsStack[size - 1]!!
+        val mediaId = if (size == 0) mMediaRsrMgr.root else mMediaItemsStack[size - 1]
         addMediaItemToStack(mediaId)
         // Update metadata in case of UI started on and media service was already created and stream played.
         handleMetadataChanged(mMediaRsrMgr.mediaMetadata)

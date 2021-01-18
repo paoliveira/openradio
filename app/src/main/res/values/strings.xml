@@ -129,8 +129,6 @@
     <string name="eq_not_available">Equalizer is not available</string>
     <string name="notification_str">Notification</string>
     <string name="radio_station_str">Radio Station</string>
-    <string name="no_radio_station_selected">No Radio Station selected</string>
-    <string name="radio_station_not_available">Radio Station is not available</string>
     <string name="coming_soon">Coming Soon</string>
     <string name="main_menu_general">General</string>
     <string name="main_menu_buffering">@string/buffering</string>

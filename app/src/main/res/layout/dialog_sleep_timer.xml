@@ -66,12 +66,14 @@
 
     <LinearLayout
         android:id="@+id/sleep_timer_date_time_view"
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/sleep_timer_date_btn"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
@@ -81,6 +83,7 @@
 
         <Button
             android:id="@+id/sleep_timer_time_btn"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"

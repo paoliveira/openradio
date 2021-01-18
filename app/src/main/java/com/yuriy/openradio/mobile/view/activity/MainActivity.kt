@@ -591,11 +591,7 @@ class MainActivity : AppCompatActivity() {
         override fun onSleepTimer() {
             hideNoDataMessage()
             hideProgressBar()
-            if (mMediaPresenter != null) {
-                while (mMediaPresenter!!.handleBackPressed(applicationContext)) {
-                    // Do nothing
-                }
-            }
+            mMediaPresenter?.clearMediaItems()
             finish()
         }
     }

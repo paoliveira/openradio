@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,40 +14,43 @@
     limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/remove_station_dialog_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="15dp"
     android:orientation="vertical"
-    android:id="@+id/remove_station_dialog_root">
+    android:padding="15dp">
 
     <TextView
         android:id="@+id/remove_station_text_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/remove_station_dialog_main_text"
-        android:paddingBottom="20dp"
         android:paddingTop="20dp"
-        android:textSize="18sp"/>
+        android:paddingBottom="20dp"
+        android:text="@string/remove_station_dialog_main_text"
+        android:textSize="18sp" />
 
     <LinearLayout
+        style="?android:attr/buttonBarStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center">
+        android:gravity="center"
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/remove_station_dialog_cancel_btn_view"
-            android:text="@string/cancel_label"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:text="@string/cancel_label" />
 
         <Button
             android:id="@+id/remove_station_dialog_add_btn_view"
-            android:text="@string/remove_station_dialog_button_label"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:text="@string/remove_station_dialog_button_label" />
 
     </LinearLayout>
 
