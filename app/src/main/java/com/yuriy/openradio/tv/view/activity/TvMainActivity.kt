@@ -384,6 +384,7 @@ class TvMainActivity : FragmentActivity() {
      * Callback receiver of the local application's event.
      */
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
+
         override fun onLocationChanged() {
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
                 w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
@@ -405,6 +406,16 @@ class TvMainActivity : FragmentActivity() {
             if (mMediaPresenter != null) {
                 mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mediaId)
             }
+        }
+
+        override fun onSleepTimer() {
+            hideProgressBar()
+            if (mMediaPresenter != null) {
+                while (mMediaPresenter!!.handleBackPressed(applicationContext)) {
+                    // Do nothing
+                }
+            }
+            finish()
         }
     }
 

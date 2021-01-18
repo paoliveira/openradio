@@ -137,6 +137,7 @@
     <string name="main_menu_google_drive">Google Drive</string>
     <string name="main_menu_logs">Logs</string>
     <string name="main_menu_about">About</string>
+    <string name="main_menu_sleep_timer">Sleep Timer</string>
     <string name="easy_swipe_title">Swipe effect on list is based on:</string>
     <string name="easy_swipe_name">Easy Swipe Maker</string>
     <string name="easy_swipe_url">https://github.com/xenione/swipe-maker</string>
@@ -165,4 +166,8 @@
     </string>
     <string name="default_country_label">Default country:</string>
     <string name="default_country_use_location">Use Location</string>
+    <string name="date_lbl">Date</string>
+    <string name="time_lbl">Time</string>
+    <string name="can_not_set_time">Can not set Time</string>
+    <string name="can_not_set_date">Can not set Date</string>
 </resources>

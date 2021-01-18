@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.broadcast
 
 /**
@@ -37,4 +38,6 @@ interface AppLocalReceiverCallback {
      * @param mediaId media Id of the current Radio Station.
      */
     fun onCurrentIndexOnQueueChanged(index: Int, mediaId: String?)
+
+    fun onSleepTimer()
 }

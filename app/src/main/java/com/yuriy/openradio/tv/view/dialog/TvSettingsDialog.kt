@@ -31,6 +31,7 @@ import com.yuriy.openradio.shared.view.dialog.AboutDialog
 import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
+import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import java.util.*
 import java.util.concurrent.atomic.*
@@ -56,11 +57,12 @@ class TvSettingsDialog : BaseDialogFragment() {
         val titleText = context!!.getString(R.string.app_settings_title)
         val title = view.findViewById<TextView>(R.id.dialog_tv_settings_title_view)
         title.text = titleText
-        val listview = view.findViewById<ListView>(R.id.settings_tv_list_view)
+        val listView = view.findViewById<ListView>(R.id.settings_tv_list_view)
         // TODO: Refactor this and the same from activity_main_drawer to string resources
         val values = arrayOf(
                 getString(R.string.main_menu_general),
                 getString(R.string.main_menu_buffering),
+                getString(R.string.main_menu_sleep_timer),
                 getString(R.string.main_menu_google_drive),
                 getString(R.string.main_menu_logs),
                 getString(R.string.main_menu_about)
@@ -71,9 +73,9 @@ class TvSettingsDialog : BaseDialogFragment() {
                 getContext(),
                 android.R.layout.simple_list_item_1, list
         )
-        listview.adapter = adapter
-        listview.onItemClickListener = AdapterView.OnItemClickListener {
-            parent: AdapterView<*>?, view1: View?, position: Int, id: Long ->
+        listView.adapter = adapter
+        listView.onItemClickListener = AdapterView.OnItemClickListener {
+            _: AdapterView<*>?, _: View?, position: Int, _: Long ->
             d(CLASS_NAME + " click:" + values[position])
             if (mIsInstanceSaved.get()) {
                 return@OnItemClickListener
@@ -84,40 +86,36 @@ class TvSettingsDialog : BaseDialogFragment() {
             when (position) {
                 0 -> {
                     // Show Search Dialog
-                    val settingsDialog = newInstance(
-                            GeneralSettingsDialog::class.java.name
-                    )
-                    settingsDialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
+                    val dialog = newInstance(GeneralSettingsDialog::class.java.name)
+                    dialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
                 }
                 1 -> {
                     // Show Stream Buffering Dialog
-                    val streamBufferingDialog = newInstance(
-                            StreamBufferingDialog::class.java.name
-                    )
-                    streamBufferingDialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
+                    val dialog = newInstance(StreamBufferingDialog::class.java.name)
+                    dialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
                 }
                 2 -> {
-                    // Show Google Drive Dialog
-                    val googleDriveDialog = newInstance(
-                            GoogleDriveDialog::class.java.name
-                    )
-                    googleDriveDialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
+                    // Show Sleep Timer Dialog
+                    val dialog = newInstance(SleepTimerDialog::class.java.name)
+                    dialog!!.show(transaction, SleepTimerDialog.DIALOG_TAG)
                 }
                 3 -> {
-                    // Show Application Logs Dialog
-                    val applicationLogsDialog = newInstance(
-                            LogsDialog::class.java.name
-                    )
-                    applicationLogsDialog!!.show(transaction, LogsDialog.DIALOG_TAG)
+                    // Show Google Drive Dialog
+                    val dialog = newInstance(GoogleDriveDialog::class.java.name)
+                    dialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                 }
                 4 -> {
+                    // Show Application Logs Dialog
+                    val dialog = newInstance(LogsDialog::class.java.name)
+                    dialog!!.show(transaction, LogsDialog.DIALOG_TAG)
+                }
+                5 -> {
                     // Show About Dialog
-                    val aboutDialog = newInstance(
-                            AboutDialog::class.java.name
-                    )
-                    aboutDialog!!.show(transaction, AboutDialog.DIALOG_TAG)
+                    val dialog = newInstance(AboutDialog::class.java.name)
+                    dialog!!.show(transaction, AboutDialog.DIALOG_TAG)
                 }
                 else -> {
+                    // No dialog found.
                 }
             }
         }

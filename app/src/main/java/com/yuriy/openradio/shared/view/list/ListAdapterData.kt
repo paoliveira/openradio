@@ -40,16 +40,6 @@ class ListAdapterData<T> : Serializable {
     }
 
     /**
-     * Add provided item to the specified position.
-     *
-     * @param position Position to add item at.
-     * @param item     Item to add.
-     */
-    fun addAt(position: Int, item: T) {
-        mItems.add(position, item)
-    }
-
-    /**
      * Remove provided item from collection.
      *
      * @param item Item to be removed.

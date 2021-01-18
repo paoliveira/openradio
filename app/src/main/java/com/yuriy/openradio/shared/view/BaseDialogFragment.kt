@@ -17,13 +17,11 @@ package com.yuriy.openradio.shared.view
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.fragment.app.DialogFragment
-import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 
 /**
@@ -87,18 +85,6 @@ abstract class BaseDialogFragment : DialogFragment() {
                 AnalyticsUtils.logException(e)
             }
             return dialogFragment
-        }
-
-        /**
-         * Help method to return builder of the [AlertDialog] with Cancel button.
-         *
-         * @param context Context of the place where dialog must be shown.
-         * @return builder of the [AlertDialog].
-         */
-        protected fun createAlertDialogBuilderWithOkButton(context: Context?): AlertDialog.Builder {
-            val builder = createAlertDialogBuilder(context)
-            builder.setPositiveButton(R.string.ok_label) { dialog: DialogInterface, id: Int -> dialog.cancel() }
-            return builder
         }
 
         /**

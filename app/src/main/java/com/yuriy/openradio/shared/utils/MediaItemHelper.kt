@@ -143,35 +143,6 @@ object MediaItemHelper {
     }
 
     /**
-     * @param mediaItem   [MediaBrowserCompat.MediaItem].
-     * @param streamTitle
-     */
-    fun updateCurrentStreamTitleField(mediaItem: MediaBrowserCompat.MediaItem?,
-                                      streamTitle: String?) {
-        if (mediaItem == null) {
-            return
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras ?: return
-        bundle.putString(KEY_CURRENT_STREAM_TITLE, streamTitle)
-    }
-
-    /**
-     * Gets `true` if Media Item is known last played, `false` - otherwise.
-     *
-     * @param mediaItem [MediaBrowserCompat.MediaItem].
-     * @return `true` if Media Item is known last played, `false` - otherwise.
-     */
-    fun isLastPlayedField(mediaItem: MediaBrowserCompat.MediaItem?): Boolean {
-        if (mediaItem == null) {
-            return false
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras
-        return bundle != null && bundle.getBoolean(KEY_IS_LAST_PLAYED, false)
-    }
-
-    /**
      * Gets `true` if Item is Favorite, `false` - otherwise.
      *
      * @param mediaItem [MediaBrowserCompat.MediaItem].
@@ -184,21 +155,6 @@ object MediaItemHelper {
         val mediaDescription = mediaItem.description
         val bundle = mediaDescription.extras
         return bundle != null && bundle.getBoolean(KEY_IS_FAVORITE, false)
-    }
-
-    /**
-     * Gets `true` if Item is Local Radio Station, `false` - otherwise.
-     *
-     * @param mediaItem [MediaBrowserCompat.MediaItem].
-     * @return `true` if Item is Favorite, `false` - otherwise.
-     */
-    fun isLocalRadioStationField(mediaItem: MediaBrowserCompat.MediaItem?): Boolean {
-        if (mediaItem == null) {
-            return false
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras
-        return bundle != null && bundle.getBoolean(KEY_IS_LOCAL, false)
     }
 
     /**
@@ -244,18 +200,6 @@ object MediaItemHelper {
     }
 
     /**
-     *
-     */
-    fun getCurrentStreamTitleField(mediaItem: MediaBrowserCompat.MediaItem?): String {
-        if (mediaItem == null) {
-            return ""
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras ?: return ""
-        return bundle.getString(KEY_CURRENT_STREAM_TITLE, "")
-    }
-
-    /**
      * Build [android.media.MediaMetadata] from provided
      * [RadioStation].
      *
@@ -279,8 +223,6 @@ object MediaItemHelper {
         val genre = radioStation.genre
         val source = radioStation.mediaStream.getVariant(0)!!.url
         val id = radioStation.id
-        val displatDescription = streamTitle
-        val subTitle = streamTitle
         val album = radioStation.country
 
         if (artist.isNullOrEmpty()) {
@@ -308,8 +250,8 @@ object MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subTitle)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, displatDescription)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, streamTitle)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, streamTitle)
                 .build()
 
         // Info: There is no other way to set custom values in the description's bundle ...

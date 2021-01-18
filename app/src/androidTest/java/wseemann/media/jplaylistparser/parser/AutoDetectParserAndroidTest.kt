@@ -41,22 +41,22 @@ class AutoDetectParserAndroidTest {
     private val fileName = "undetected_streams.txt"
     private val parser = AutoDetectParser(AppUtils.TIME_OUT)
 
-    @Test
-    fun testUnrecognizedStreams() {
-        val res = readFileWithNewLineFromResources(fileName)
-        res.lineSequence().forEach {
-            var ext = ""
-            val latch = CountDownLatch(1)
-            GlobalScope.launch(Dispatchers.IO) {
-                kotlin.run {
-                    ext = parser.getStreamExtension(it.substringBefore(","), false)
-                    latch.countDown()
-                }
-            }
-            latch.await((AppUtils.TIME_OUT + 1000).toLong(), TimeUnit.SECONDS)
-            AppLogger.d("TRACE::ext:$ext")
-        }
-    }
+//    @Test
+//    fun testUnrecognizedStreams() {
+//        val res = readFileWithNewLineFromResources(fileName)
+//        res.lineSequence().forEach {
+//            var ext = ""
+//            val latch = CountDownLatch(1)
+//            GlobalScope.launch(Dispatchers.IO) {
+//                kotlin.run {
+//                    ext = parser.getStreamExtension(it.substringBefore(","), false)
+//                    latch.countDown()
+//                }
+//            }
+//            latch.await((AppUtils.TIME_OUT + 1000).toLong(), TimeUnit.SECONDS)
+//            AppLogger.d("TRACE::ext:$ext")
+//        }
+//    }
 
     @Test
     fun testUnrecognizedPlsStream() {

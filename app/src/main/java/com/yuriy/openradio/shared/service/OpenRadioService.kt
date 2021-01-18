@@ -81,7 +81,10 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.LocationStorage
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
+import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
+import com.yuriy.openradio.shared.model.timer.SleepTimerImpl
+import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
@@ -113,6 +116,7 @@ import java.io.InputStream
 import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -219,6 +223,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private val mDownloader: Downloader
     private val mStartIds: ConcurrentLinkedQueue<Int>
+    private val mTimerListener = SleepTimerListenerImpl()
+    private val mTimer = SleepTimerImpl.makeInstance(mTimerListener)
 
     interface ResultListener {
         fun onResult()
@@ -245,7 +251,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         i(CLASS_NAME + "On Create")
         val context = applicationContext
         mPackageValidator = PackageValidator(context, R.xml.allowed_media_browser_callers)
-        val orientationStr:String
+        val orientationStr: String
         val orientation = resources.configuration.orientation
         orientationStr = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
             "Landscape"
@@ -319,6 +325,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mMasterVolumeBroadcastReceiver.register(context)
         mClearCacheReceiver.register(context)
         ServiceLifecyclePreferencesManager.isServiceActive(context, true)
+
+        val sleepTimerEnabled = SleepTimerStorage.loadEnabled(context)
+        val sleepTimerDate = SleepTimerStorage.loadDate(context)
+        mTimer.handle(sleepTimerEnabled, sleepTimerDate.time)
+
         i(CLASS_NAME + "Created in " + (System.currentTimeMillis() - start) + " ms")
     }
 
@@ -1646,13 +1657,18 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     stopSelfResultInt()
                 }
             }
+            VALUE_NAME_SLEEP_TIMER -> {
+                val enabled = intent.getBooleanExtra(EXTRA_KEY_SLEEP_TIMER_ENABLED, false)
+                val time = intent.getLongExtra(EXTRA_KEY_SLEEP_TIMER_TIME, System.currentTimeMillis())
+                mTimer.handle(enabled, time)
+            }
             else -> w(CLASS_NAME + "Unknown command:" + command)
         }
     }
 
     private fun stopSelfResultInt() {
         while (!mStartIds.isEmpty()) {
-            val id = mStartIds.poll()
+            val id = mStartIds.poll() ?: continue
             val result = stopSelfResult(id)
             i(CLASS_NAME + "service " + (if (result) "stopped" else "not stopped") + " for " + id)
         }
@@ -1667,6 +1683,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Listener for Exo Player events.
      */
     private inner class ExoPlayerListener : ExoPlayerOpenRadioImpl.Listener {
+
         override fun onError(error: ExoPlaybackException) {
             e(CLASS_NAME + "ExoPlayer exception:" + error)
             handleStopRequest(
@@ -1754,6 +1771,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         private const val VALUE_NAME_PLAY_LAST_PLAYED_ITEM = "VALUE_NAME_PLAY_LAST_PLAYED_ITEM"
         private const val VALUE_NAME_STOP_LAST_PLAYED_ITEM = "VALUE_NAME_STOP_LAST_PLAYED_ITEM"
         private const val VALUE_NAME_UPDATE_EQUALIZER = "VALUE_NAME_UPDATE_EQUALIZER"
+        private const val VALUE_NAME_SLEEP_TIMER = "VALUE_NAME_SLEEP_TIMER"
         private const val EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION"
         private const val EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE"
         private const val EXTRA_KEY_STATION_NAME = "EXTRA_KEY_STATION_NAME"
@@ -1767,6 +1785,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         private const val EXTRA_KEY_MEDIA_IDS = "EXTRA_KEY_MEDIA_IDS"
         private const val EXTRA_KEY_SORT_IDS = "EXTRA_KEY_SORT_IDS"
         private const val EXTRA_KEY_RS_TO_ADD = "EXTRA_KEY_RS_TO_ADD"
+        private const val EXTRA_KEY_SLEEP_TIMER_ENABLED = "EXTRA_KEY_SLEEP_TIMER_ENABLED"
+        private const val EXTRA_KEY_SLEEP_TIMER_TIME = "EXTRA_KEY_SLEEP_TIMER_TIME"
         private const val BUNDLE_ARG_CATALOGUE_ID = "BUNDLE_ARG_CATALOGUE_ID"
         private const val BUNDLE_ARG_CURRENT_PLAYBACK_STATE = "BUNDLE_ARG_CURRENT_PLAYBACK_STATE"
         private const val BUNDLE_ARG_IS_RESTORE_STATE = "BUNDLE_ARG_IS_RESTORE_STATE"
@@ -1941,6 +1961,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             return intent
         }
 
+        fun makeSleepTimerIntent(context: Context, enabled: Boolean, time: Long): Intent {
+            val intent = Intent(context, OpenRadioService::class.java)
+            intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_SLEEP_TIMER)
+            intent.putExtra(EXTRA_KEY_SLEEP_TIMER_ENABLED, enabled)
+            intent.putExtra(EXTRA_KEY_SLEEP_TIMER_TIME, time)
+            return intent
+        }
+
         /**
          * @param context
          * @return
@@ -2044,5 +2072,18 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
         )
         mDownloader = HTTPDownloaderImpl()
+    }
+
+    inner class SleepTimerListenerImpl : SleepTimerListener {
+
+        override fun onComplete() {
+            SleepTimerStorage.saveEnabled(applicationContext, false)
+            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
+                    AppLocalBroadcast.createIntentSleepTimer()
+            )
+            initInternals()
+            handleStopRequest()
+            stopSelfResultInt()
+        }
     }
 }

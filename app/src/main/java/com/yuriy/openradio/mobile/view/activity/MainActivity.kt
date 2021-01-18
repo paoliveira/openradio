@@ -73,6 +73,7 @@ import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
+import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -250,30 +251,36 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_general -> {
                     // Show Search Dialog
-                    val settingsDialog = BaseDialogFragment.newInstance(GeneralSettingsDialog::class.java.name)
-                    settingsDialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
+                    val dialog = BaseDialogFragment.newInstance(GeneralSettingsDialog::class.java.name)
+                    dialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
                 }
                 R.id.nav_buffering -> {
                     // Show Stream Buffering Dialog
-                    val streamBufferingDialog = BaseDialogFragment.newInstance(StreamBufferingDialog::class.java.name)
-                    streamBufferingDialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
+                    val dialog = BaseDialogFragment.newInstance(StreamBufferingDialog::class.java.name)
+                    dialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
+                }
+                R.id.nav_sleep_timer -> {
+                    // Show Sleep Timer Dialog
+                    val dialog = BaseDialogFragment.newInstance(SleepTimerDialog::class.java.name)
+                    dialog!!.show(transaction, SleepTimerDialog.DIALOG_TAG)
                 }
                 R.id.nav_google_drive -> {
                     // Show Google Drive Dialog
-                    val googleDriveDialog = BaseDialogFragment.newInstance(GoogleDriveDialog::class.java.name)
-                    googleDriveDialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
+                    val dialog = BaseDialogFragment.newInstance(GoogleDriveDialog::class.java.name)
+                    dialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                 }
                 R.id.nav_logs -> {
                     // Show Application Logs Dialog
-                    val applicationLogsDialog = BaseDialogFragment.newInstance(LogsDialog::class.java.name)
-                    applicationLogsDialog!!.show(transaction, LogsDialog.DIALOG_TAG)
+                    val dialog = BaseDialogFragment.newInstance(LogsDialog::class.java.name)
+                    dialog!!.show(transaction, LogsDialog.DIALOG_TAG)
                 }
                 R.id.nav_about -> {
                     // Show About Dialog
-                    val aboutDialog = BaseDialogFragment.newInstance(AboutDialog::class.java.name)
-                    aboutDialog!!.show(transaction, AboutDialog.DIALOG_TAG)
+                    val dialog = BaseDialogFragment.newInstance(AboutDialog::class.java.name)
+                    dialog!!.show(transaction, AboutDialog.DIALOG_TAG)
                 }
                 else -> {
+                    // No dialog found.
                 }
             }
             drawer.closeDrawer(GravityCompat.START)
@@ -557,6 +564,7 @@ class MainActivity : AppCompatActivity() {
      * Callback receiver of the local application's event.
      */
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
+
         override fun onLocationChanged() {
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
                 w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
@@ -578,6 +586,17 @@ class MainActivity : AppCompatActivity() {
             if (mMediaPresenter != null) {
                 mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mediaId)
             }
+        }
+
+        override fun onSleepTimer() {
+            hideNoDataMessage()
+            hideProgressBar()
+            if (mMediaPresenter != null) {
+                while (mMediaPresenter!!.handleBackPressed(applicationContext)) {
+                    // Do nothing
+                }
+            }
+            finish()
         }
     }
 

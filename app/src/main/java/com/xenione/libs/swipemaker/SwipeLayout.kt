@@ -29,9 +29,6 @@ class SwipeLayout @JvmOverloads constructor(context: Context?,
     }
 
     private val mOrientationStrategy: OrientationStrategy?
-    fun startWith(position: Int) {
-        mOrientationStrategy!!.startWith(position)
-    }
 
     fun anchor(vararg points: Int?) {
         mOrientationStrategy!!.setAnchor(*points)
@@ -60,7 +57,7 @@ class SwipeLayout @JvmOverloads constructor(context: Context?,
         mOrientationStrategy!!.translateTo(position)
     }
 
-    private class HorizontalOrientationStrategyFactory() : OrientationStrategyFactory {
+    private class HorizontalOrientationStrategyFactory : OrientationStrategyFactory {
         override fun make(view: View?): OrientationStrategy {
             return HorizontalOrientationStrategy(view!!)
         }

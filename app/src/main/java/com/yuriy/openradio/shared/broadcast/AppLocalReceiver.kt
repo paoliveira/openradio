@@ -28,11 +28,7 @@ import com.yuriy.openradio.shared.utils.AppLogger.i
  * On 5/3/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class AppLocalReceiver
-/**
- * Private constructor.
- */
-private constructor() : BroadcastReceiver() {
+class AppLocalReceiver private constructor() : BroadcastReceiver() {
     /**
      * Callback listener of the various events.
      */
@@ -64,6 +60,11 @@ private constructor() : BroadcastReceiver() {
         if (action == AppLocalBroadcast.getActionLocationChanged()) {
             if (mCallback != null) {
                 mCallback!!.onLocationChanged()
+            }
+        }
+        if (action == AppLocalBroadcast.getActionSleepTimer()) {
+            if (mCallback != null) {
+                mCallback!!.onSleepTimer()
             }
         }
         if (action == AppLocalBroadcast.getActionCurrentIndexOnQueueChanged()) {

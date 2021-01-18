@@ -99,23 +99,6 @@ class GoogleDriveHelper(private val mDriveService: Drive) {
         )
     }
 
-    /**
-     * Updates the file identified by `fileId` with the given `name` and `content`.
-     */
-    fun saveFile(fileId: String,
-                 name: String,
-                 content: String): Task<Void?> {
-        return Tasks.call(executor, {
-            // Create a File containing any metadata changes.
-            val metadata = File().setName(name)
-            // Convert content to an AbstractInputStreamContent instance.
-            val contentStream = ByteArrayContent.fromString("text/plain", content)
-            // Update the metadata and contents.
-            mDriveService.files().update(fileId, metadata, contentStream).execute()
-            null
-        })
-    }
-
     fun deleteFile(fileId: String): Task<Void?> {
         return Tasks.call(executor, {
             // Delete file with specified id..

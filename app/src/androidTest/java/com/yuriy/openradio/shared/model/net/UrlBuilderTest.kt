@@ -36,7 +36,7 @@ class UrlBuilderTest {
     @Test
     fun preProcessIconUrlNullInput() {
         val newUrl = preProcessIconUrl(null)
-        MatcherAssert.assertThat(newUrl, Matchers.nullValue())
+        MatcherAssert.assertThat(newUrl, Matchers.isEmptyString())
     }
 
     @Test

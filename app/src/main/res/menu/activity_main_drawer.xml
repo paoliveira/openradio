@@ -28,6 +28,10 @@
             android:icon="@drawable/ic_av_timer_black_24dp"
             android:title="@string/main_menu_buffering"/>
         <item
+            android:id="@+id/nav_sleep_timer"
+            android:icon="@drawable/ic_sleep_timer"
+            android:title="@string/main_menu_sleep_timer"/>
+        <item
             android:id="@+id/nav_google_drive"
             android:icon="@drawable/ic_cloud_black_24dp"
             android:title="@string/main_menu_google_drive"/>

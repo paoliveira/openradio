@@ -9,6 +9,7 @@ import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
+import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
 
 object UiUtils {
     /**
@@ -45,6 +46,10 @@ object UiUtils {
             transaction.remove(fragment)
         }
         fragment = manager.findFragmentByTag(EditStationDialog.DIALOG_TAG)
+        if (fragment != null) {
+            transaction.remove(fragment)
+        }
+        fragment = manager.findFragmentByTag(SleepTimerDialog.DIALOG_TAG)
         if (fragment != null) {
             transaction.remove(fragment)
         }

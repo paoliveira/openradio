@@ -22,9 +22,6 @@ class ScrollerHelper(private val mScroller: OverScroller) {
         }
     }
 
-    val isFinished: Boolean
-        get() = mScroller.isFinished
-
     fun computeScrollOffset(): Boolean {
         return mScroller.computeScrollOffset()
     }

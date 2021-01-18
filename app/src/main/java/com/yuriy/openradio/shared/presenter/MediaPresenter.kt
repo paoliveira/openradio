@@ -408,8 +408,9 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
         // Create filter and add actions
         val intentFilter = IntentFilter()
-        intentFilter.addAction(AppLocalBroadcast.actionLocationChanged)
-        intentFilter.addAction(AppLocalBroadcast.actionCurrentIndexOnQueueChanged)
+        intentFilter.addAction(AppLocalBroadcast.getActionSleepTimer())
+        intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged())
+        intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged())
         // Register receiver
         LocalBroadcastManager.getInstance(context!!).registerReceiver(
                 mAppLocalBroadcastRcvr,
@@ -421,7 +422,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     /**
      * Unregister receiver for the application's local events.
      */
-    fun unregisterReceivers(context: Context?) {
+    private fun unregisterReceivers(context: Context?) {
         mAppLocalBroadcastRcvr.unregisterListener()
         LocalBroadcastManager.getInstance(context!!).unregisterReceiver(
                 mAppLocalBroadcastRcvr

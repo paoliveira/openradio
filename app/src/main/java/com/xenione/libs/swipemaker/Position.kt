@@ -66,11 +66,11 @@ class Position {
         }
     }
 
-    fun global(posX: Int): Float {
+    private fun global(posX: Int): Float {
         return if (mAnchors == null) posX.toFloat() else mAnchors!!.distance(posX)
     }
 
-    fun relative(posX: Int): Float {
+    private fun relative(posX: Int): Float {
         return if (mAnchors == null) posX.toFloat() else mAnchors!!.distance(mSection, posX)
     }
 

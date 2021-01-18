@@ -147,11 +147,6 @@ class GoogleDriveDialog : BaseDialogFragment() {
         }
     }
 
-    private fun showTitleProgress() {
-        val activity = activity ?: return
-        activity.runOnUiThread { mProgressBarTitle!!.visibility = View.VISIBLE }
-    }
-
     private fun hideTitleProgress() {
         val activity = activity ?: return
         activity.runOnUiThread { mProgressBarTitle!!.visibility = View.GONE }

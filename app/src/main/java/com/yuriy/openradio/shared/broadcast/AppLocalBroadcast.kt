@@ -30,7 +30,9 @@ object AppLocalBroadcast {
     /**
      * Action name for event when current location of device is changed.
      */
-    const val actionLocationChanged = "ACTION_LOCATION_CHANGED"
+    private const val actionLocationChanged = "ACTION_LOCATION_CHANGED"
+
+    private const val actionSleepTimer = "ACTION_SLEEP_TIMER"
     /**
      * @return Name for the Current Index on Queue Changed action.
      */
@@ -38,7 +40,7 @@ object AppLocalBroadcast {
      * Action name for the "Current index on queue" changed,
      * when currently selected Radio Station was changed.
      */
-    const val actionCurrentIndexOnQueueChanged = "ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED"
+    private const val actionCurrentIndexOnQueueChanged = "ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED"
     /**
      * @return Name for the Master Volume Changed action.
      */
@@ -99,6 +101,10 @@ object AppLocalBroadcast {
         return Intent(actionLocationChanged)
     }
 
+    fun createIntentSleepTimer(): Intent {
+        return Intent(actionSleepTimer)
+    }
+
     /**
      * @return Instance of the [Intent] that indicates Current Index of the queue item.
      *
@@ -138,6 +144,10 @@ object AppLocalBroadcast {
 
     fun getActionLocationChanged(): String {
         return actionLocationChanged
+    }
+
+    fun getActionSleepTimer(): String {
+        return actionSleepTimer
     }
 
     fun getActionCurrentIndexOnQueueChanged(): String {

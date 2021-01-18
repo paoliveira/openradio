@@ -52,13 +52,13 @@ class AutoDetectParserTest {
         val param1 = "attachment; filename=playlist_9068.pls"
         MatcherAssert.assertThat(
                 AutoDetectParser.getFileExtFromHeaderParam(param1),
-                Is.`is`("pls")
+                Is.`is`("playlist_9068.pls")
         )
 
         val param2 = "filename=playlist_9068.pls"
         MatcherAssert.assertThat(
                 AutoDetectParser.getFileExtFromHeaderParam(param2),
-                Is.`is`("pls")
+                Is.`is`("playlist_9068.pls")
         )
     }
 }

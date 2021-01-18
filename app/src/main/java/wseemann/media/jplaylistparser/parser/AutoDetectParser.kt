@@ -230,7 +230,7 @@ class AutoDetectParser(private val mTimeout: Int) {
 
                     override fun onResponse(call: Call, response: Response) {
                         AppLogger.d("TRACE::response:${response.headers()}")
-                        var content = response.header("content-disposition", "")
+                        val content = response.header("content-disposition", "")
                         result = getFileExtension(getFileExtFromHeaderParam(content))
 //                        if (result.isEmpty()) {
 //                            content = response.header("Content-Type", "")
