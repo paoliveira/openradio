@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2015-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFro
 import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateLastPlayedField
-import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
 /**
@@ -52,26 +51,16 @@ class MediaItemRoot : MediaItemCommand {
         dependencies.radioStationsStorage.clear()
         dependencies.result.detach()
 
-        // TODO: Refactor these to factory.
-
-        // Get lat known Radio Station.
-        // If this feature disabled by Settings - return null, in this case all consecutive UI views will not be
-        // exposed.
-        val latestRadioStation: RadioStation?
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            latestRadioStation = LatestRadioStationStorage[dependencies.context]
+            val latestRadioStation = LatestRadioStationStorage[dependencies.context]
             if (latestRadioStation != null) {
                 dependencies.radioStationsStorage.add(latestRadioStation)
                 // Add Radio Station to Menu
                 val mediaItem = MediaBrowserCompat.MediaItem(
-                        buildMediaDescriptionFromRadioStation(
-                                context, latestRadioStation
-                        ),
+                        buildMediaDescriptionFromRadioStation(context, latestRadioStation),
                         MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
                 )
-                updateFavoriteField(
-                        mediaItem, FavoritesStorage.isFavorite(latestRadioStation, dependencies.context)
-                )
+                updateFavoriteField(mediaItem, FavoritesStorage.isFavorite(latestRadioStation, dependencies.context))
                 updateLastPlayedField(mediaItem, true)
                 // In case of Android Auto, display latest played Radio Station on top of Menu.
                 if (dependencies.isAndroidAuto) {
@@ -90,41 +79,31 @@ class MediaItemRoot : MediaItemCommand {
             setDrawableId(bundle, R.drawable.ic_stars_black_24dp)
             builder.setExtras(bundle)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
+                    MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
             )
         }
 
         // Recently added Radio Stations
-        run {
-            val builder = MediaDescriptionCompat.Builder()
-                    .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
-                    .setTitle(context.getString(R.string.new_stations_title))
-            val bundle = Bundle()
-            setDrawableId(bundle, R.drawable.ic_fiber_new_black_24dp)
-            builder.setExtras(bundle)
-            dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
-            )
-        }
+        val builderRecent = MediaDescriptionCompat.Builder()
+                .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
+                .setTitle(context.getString(R.string.new_stations_title))
+        val bundleRecent = Bundle()
+        setDrawableId(bundleRecent, R.drawable.ic_fiber_new_black_24dp)
+        builderRecent.setExtras(bundleRecent)
+        dependencies.addMediaItem(
+                MediaBrowserCompat.MediaItem(builderRecent.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+        )
 
         // Popular Radio Stations
-        run {
-            val builder = MediaDescriptionCompat.Builder()
-                    .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
-                    .setTitle(context.getString(R.string.popular_stations_title))
-            val bundle = Bundle()
-            setDrawableId(bundle, R.drawable.ic_trending_up_black_24dp)
-            builder.setExtras(bundle)
-            dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
-            )
-        }
+        val builderPop = MediaDescriptionCompat.Builder()
+                .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
+                .setTitle(context.getString(R.string.popular_stations_title))
+        val bundlePop = Bundle()
+        setDrawableId(bundlePop, R.drawable.ic_trending_up_black_24dp)
+        builderPop.setExtras(bundlePop)
+        dependencies.addMediaItem(
+                MediaBrowserCompat.MediaItem(builderPop.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+        )
 
         // Worldwide Stations
         val builder = MediaDescriptionCompat.Builder()
@@ -134,9 +113,7 @@ class MediaItemRoot : MediaItemCommand {
         setDrawableId(bundle, R.drawable.ic_all_categories)
         builder.setExtras(bundle)
         dependencies.addMediaItem(
-                MediaBrowserCompat.MediaItem(
-                        builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                )
+                MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
         )
 
         // All countries list
@@ -147,9 +124,7 @@ class MediaItemRoot : MediaItemCommand {
         setDrawableId(bundleCounties, R.drawable.ic_public_black_24dp)
         builderCounties.setExtras(bundleCounties)
         dependencies.addMediaItem(
-                MediaBrowserCompat.MediaItem(
-                        builderCounties.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                )
+                MediaBrowserCompat.MediaItem(builderCounties.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
         )
 
         // If the Country code is known:
@@ -182,9 +157,7 @@ class MediaItemRoot : MediaItemCommand {
             setDrawableId(bundle1, R.drawable.ic_locals)
             builder1.setExtras(bundle1)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
+                    MediaBrowserCompat.MediaItem(builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
             )
         }
         AppLogger.d("$LOG_TAG invocation completed")
