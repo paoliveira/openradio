@@ -219,7 +219,7 @@ class AutoDetectParser(private val mTimeout: Int) {
 
         val request = Request.Builder().url(url).build()
         val latch = CountDownLatch(1)
-        AppLogger.d("TRACE::$url")
+        AppLogger.d("StreamExtension:$url")
         client.newCall(request).enqueue(
                 object : Callback {
 
@@ -229,7 +229,7 @@ class AutoDetectParser(private val mTimeout: Int) {
                     }
 
                     override fun onResponse(call: Call, response: Response) {
-                        AppLogger.d("TRACE::response:${response.headers()}")
+                        AppLogger.d("StreamExtension:response:${response.headers()}")
                         val content = response.header("content-disposition", "")
                         result = getFileExtension(getFileExtFromHeaderParam(content))
 //                        if (result.isEmpty()) {

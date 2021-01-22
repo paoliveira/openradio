@@ -29,6 +29,7 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.HttpURLConnection
 import java.net.InetAddress
 import java.net.MalformedURLException
 import java.net.URL
@@ -75,7 +76,7 @@ class HTTPDownloaderImpl : Downloader {
             )
         }
         d("Response code:$responseCode")
-        if (responseCode < 200 || responseCode > 299) {
+        if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
             closeHttpURLConnection(connection)
             logException(
                     DownloaderException(

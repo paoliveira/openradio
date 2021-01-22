@@ -57,7 +57,7 @@ project.ext {
      * Application constants
      */
     applicationId = "com.yuriy.openradio"
-    versionName = "7.1"
+    versionName = "7.2"
 
     /**
      * Firebase

@@ -20,8 +20,6 @@ import androidx.core.util.Pair
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.net.DownloaderException
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
 import com.yuriy.openradio.shared.view.SafeToast
 import okhttp3.internal.Util
@@ -36,7 +34,9 @@ import java.net.URLEncoder
 
 object NetUtils {
 
+    private val CLASS_NAME = NetUtils::class.java.simpleName
     private const val USER_AGENT_PARAMETER_KEY = "User-Agent"
+    private const val HEADER_FIELD_LOCATION = "Location"
 
     @JvmStatic
     fun getHttpURLConnection(context: Context,
@@ -57,46 +57,66 @@ object NetUtils {
                              requestMethod: String?,
                              parameters: List<Pair<String, String>>?): HttpURLConnection? {
         var connection: HttpURLConnection? = null
-        try {
-            connection = url.openConnection() as HttpURLConnection
-            connection.readTimeout = AppUtils.TIME_OUT
-            connection.connectTimeout = AppUtils.TIME_OUT
-            connection.instanceFollowRedirects = true
-            connection.useCaches = false
-            connection.defaultUseCaches = false
-            connection.requestMethod = requestMethod
-            val userAgent = getUserAgent(context)
-            try {
-                connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent)
-            } catch (e:Exception) {
-                SafeToast.showAnyThread(context, context.getString(R.string.user_agent_can_not_apply))
-            }
-            d("NetUtils UserAgent:$userAgent")
+        var isRedirect = false
+        var connectUrl = url
+        var maxAttempt = 3
 
-            // If there are http request parameters:
-            if (parameters != null && parameters.isNotEmpty()) {
-                connection.setRequestProperty("enctype", "application/x-www-form-urlencoded")
+        do {
+            try {
+                isRedirect = false
+                connection = connectUrl.openConnection() as HttpURLConnection
+                connection.readTimeout = AppUtils.TIME_OUT
+                connection.connectTimeout = AppUtils.TIME_OUT
+                connection.instanceFollowRedirects = true
+                connection.useCaches = false
+                connection.defaultUseCaches = false
+                connection.requestMethod = requestMethod
+                val userAgent = getUserAgent(context)
                 try {
-                    connection.outputStream.use { outputStream ->
-                        BufferedWriter(OutputStreamWriter(outputStream, Util.UTF_8)).use { writer ->
-                            writer.write(getPostParametersQuery(parameters))
-                            writer.flush()
-                        }
-                    }
-                } catch (exception: IOException) {
-                    logException(
-                            DownloaderException(
-                                    DownloaderException.createExceptionMessage(url.toString(), parameters), exception
-                            )
-                    )
+                    connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent)
+                } catch (e: Exception) {
+                    SafeToast.showAnyThread(context, context.getString(R.string.user_agent_can_not_apply))
                 }
+                AppLogger.d("$CLASS_NAME UserAgent:$userAgent")
+
+                // If there are http request parameters:
+                if (parameters != null && parameters.isNotEmpty()) {
+                    connection.setRequestProperty("enctype", "application/x-www-form-urlencoded")
+                    try {
+                        connection.outputStream.use { outputStream ->
+                            BufferedWriter(OutputStreamWriter(outputStream, Util.UTF_8)).use { writer ->
+                                writer.write(getPostParametersQuery(parameters))
+                                writer.flush()
+                            }
+                        }
+                    } catch (exception: IOException) {
+                        logException(
+                                DownloaderException(
+                                        DownloaderException.createExceptionMessage(url.toString(), parameters),
+                                        exception
+                                )
+                        )
+                    }
+                }
+                connection.connect()
+                val responseCode = connection.responseCode
+                if (responseCode == HttpURLConnection.HTTP_MOVED_PERM
+                        || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+                    if (maxAttempt-- <= 0) {
+                        AppLogger.e("$CLASS_NAME redirect reached max attempts number")
+                        break
+                    }
+                    val newUrl = connection.getHeaderField(HEADER_FIELD_LOCATION)
+                    connection.disconnect()
+                    AppLogger.i("$CLASS_NAME redirect from $connectUrl to $newUrl")
+                    connectUrl = URL(newUrl)
+                    isRedirect = true
+                }
+            } catch (exception: IOException) {
+                logException(RuntimeException("Can not get http connection from $url", exception))
             }
-            connection.connect()
-        } catch (exception: IOException) {
-            logException(
-                    RuntimeException("Can not get http connection from $url", exception)
-            )
-        }
+        } while (isRedirect)
+
         return connection
     }
 
@@ -118,7 +138,7 @@ object NetUtils {
             closeHttpURLConnection(connection)
             return false
         }
-        if (responseCode < 200 || responseCode > 299) {
+        if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
             closeHttpURLConnection(connection)
             return false
         }
@@ -148,7 +168,7 @@ object NetUtils {
             result.append("=")
             result.append(URLEncoder.encode(pair.second, AppUtils.UTF8))
         }
-        i("POST query:$result")
+        AppLogger.i("$CLASS_NAME post query:$result")
         return result.toString()
     }
 }
