@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.service
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
 import android.os.Looper
@@ -35,14 +36,12 @@ import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.model.storage.DefaultCountryStorage
 import com.yuriy.openradio.shared.model.storage.LocationStorage
 import com.yuriy.openradio.shared.permission.PermissionChecker
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.Country
 import de.westnordost.countryboundaries.CountryBoundaries
 import java.io.IOException
 import java.util.*
-import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 /**
@@ -54,7 +53,7 @@ import java.util.concurrent.atomic.*
 class LocationService : JobIntentService() {
 
     companion object {
-        private val CLASS_NAME = LocationService::class.java.simpleName + " "
+        private val TAG = LocationService::class.java.simpleName + " "
 
         /**
          * Map of the Countries Codes to Names.
@@ -71,13 +70,23 @@ class LocationService : JobIntentService() {
         const val GB_CORRECT = "United Kingdom of Great Britain and Northern Ireland"
         private const val JOB_ID = 1000
 
+        fun doCancelWork(context: Context) {
+            if (!AppUtils.hasVersionM()) {
+                return
+            }
+            context.getSystemService(JobScheduler::class.java)?.let {
+                AppLogger.i("$TAG cancelling the job.")
+                it.cancel(JOB_ID)
+            }
+        }
+
         /**
          * Factory method to enqueue work for Location Service.
          *
          * @param context Context of callee.
          */
-        @JvmStatic
         fun doEnqueueWork(context: Context) {
+            doCancelWork(context)
             // Create an Intent to get Location in the background via a Service.
             val intent = makeIntent(context)
             enqueueWork(context, LocationService::class.java, JOB_ID, intent)
@@ -89,7 +98,7 @@ class LocationService : JobIntentService() {
             for ((name, code) in COUNTRY_NAME_TO_CODE) {
                 list.add(Country(name, code))
             }
-            list.sortWith(compareBy({it.name}, {it.name}))
+            list.sortWith(compareBy({ it.name }, { it.name }))
             list.add(0, Country(locationStr, locationStr))
             return list.toTypedArray()
         }
@@ -379,6 +388,7 @@ class LocationService : JobIntentService() {
     }
 
     private var mFusedLocationClient: FusedLocationProviderClient? = null
+
     override fun onCreate() {
         super.onCreate()
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -386,7 +396,7 @@ class LocationService : JobIntentService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        d(CLASS_NAME + "Location service destroyed")
+        AppLogger.d("$TAG destroyed")
     }
 
     /**
@@ -396,40 +406,21 @@ class LocationService : JobIntentService() {
      * Intent.
      */
     override fun onHandleWork(intent: Intent) {
-        d(CLASS_NAME + "Handle Location intent:" + intent)
-        val context = this@LocationService.applicationContext
-        // Use simple thread here and not executor's API because executor can handle new call in the same thread.
-        // While this is good resource keeper, Loop handling will be more complicated. Keep things simple - create
-        // new thread on each request. The good news is - new request is only happening on app start up.
-        val latch = CountDownLatch(1)
-        val thread = Thread {
-            Looper.prepare()
-            requestCountryCode(
-                    context,
-                    object : LocationServiceListener {
-                        override fun onCountryCodeLocated(countryCode: String) {
-                            val currentCode = LocationStorage.getLastCountryCode(context)
-                            if (currentCode != countryCode) {
-                                LocationStorage.setLastCountryCode(context, countryCode)
-                                LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
-                                        AppLocalBroadcast.createIntentLocationChanged()
-                                )
-                            }
-                            latch.countDown()
-                            val looper = Looper.myLooper()
-                            looper?.quit()
+        AppLogger.d("$TAG intent:$intent")
+        requestCountryCode(
+                applicationContext,
+                object : LocationServiceListener {
+                    override fun onCountryCodeLocated(countryCode: String) {
+                        val currentCode = LocationStorage.getLastCountryCode(applicationContext)
+                        if (currentCode != countryCode) {
+                            LocationStorage.setLastCountryCode(applicationContext, countryCode)
+                            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
+                                    AppLocalBroadcast.createIntentLocationChanged()
+                            )
                         }
                     }
-            )
-            Looper.loop()
-        }
-        thread.name = "LocSrvc-Thread"
-        thread.start()
-        try {
-            latch.await(5, TimeUnit.SECONDS)
-        } catch (e: InterruptedException) {
-            //
-        }
+                }
+        )
     }
 
     /**
@@ -447,7 +438,7 @@ class LocationService : JobIntentService() {
         mFusedLocationClient!!.requestLocationUpdates(
                 createLocationRequest(),
                 locationListener,
-                null
+                Looper.getMainLooper()
         )
     }
 
@@ -471,7 +462,7 @@ class LocationService : JobIntentService() {
         private var mCountryBoundaries: CountryBoundaries? = null
         override fun onLocationAvailability(availability: LocationAvailability) {
             super.onLocationAvailability(availability)
-            d(CLASS_NAME + "On Location availability (" + mCounter.get() + "):" + availability.toString())
+            AppLogger.d("$TAG location availability (" + mCounter.get() + "):" + availability.toString())
             if (!availability.isLocationAvailable) {
                 clear()
             }
@@ -479,7 +470,7 @@ class LocationService : JobIntentService() {
 
         override fun onLocationResult(result: LocationResult) {
             super.onLocationResult(result)
-            d(CLASS_NAME + "On Location changed (" + mCounter.get() + "):" + result.lastLocation)
+            AppLogger.d("$TAG location changed (" + mCounter.get() + "):" + result.lastLocation)
             if (mCounter.getAndIncrement() < MAX_COUNT) {
                 return
             }
@@ -520,9 +511,9 @@ class LocationService : JobIntentService() {
             if (data.isEmpty()) {
                 return result
             }
-            d(CLASS_NAME + "Found " + data.size + " boundaries")
+            AppLogger.d("$TAG found " + data.size + " boundaries")
             for (id in data) {
-                d("$CLASS_NAME  $id")
+                AppLogger.d("$TAG  $id")
                 // Need to get ISO standard only.
                 if (COUNTRY_CODE_TO_NAME.containsKey(id)) {
                     // Do not break here, let's print all codes.
@@ -536,7 +527,7 @@ class LocationService : JobIntentService() {
             if (mContext == null) {
                 return
             }
-            d(CLASS_NAME + "clear")
+            AppLogger.d("$TAG clear")
             mFusedLocationClient!!.removeLocationUpdates(this)
             mContext = null
             mFusedLocationClient = null
@@ -554,7 +545,7 @@ class LocationService : JobIntentService() {
                 mCountryBoundaries = CountryBoundaries.load(mContext!!.assets.open("boundaries.ser"))
             } catch (e: IOException) {
                 // Ignore up to now ...
-                e(CLASS_NAME + "can not load boundaries.ser:" + e)
+                AppLogger.e("$TAG can not load boundaries.ser:$e")
             }
         }
     }

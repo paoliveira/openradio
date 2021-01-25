@@ -15,11 +15,9 @@
  */
 package com.yuriy.openradio.tv.view.activity
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -130,13 +128,7 @@ class TvMainActivity : FragmentActivity() {
                 CLASS_NAME + " permissions:" + permissions.contentToString()
                         + ", results:" + grantResults.contentToString()
         )
-        for (i in permissions.indices) {
-            val permission = permissions[i]
-            if (permission == Manifest.permission.ACCESS_FINE_LOCATION
-                    && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                LocationService.doEnqueueWork(applicationContext)
-            }
-        }
+        mMediaPresenter?.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

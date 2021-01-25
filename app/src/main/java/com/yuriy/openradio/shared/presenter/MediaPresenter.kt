@@ -16,9 +16,11 @@
 
 package com.yuriy.openradio.shared.presenter
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.support.v4.media.MediaBrowserCompat
@@ -39,6 +41,7 @@ import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.broadcast.ScreenReceiver
 import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager
+import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
@@ -101,6 +104,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
      */
     private val mScreenBroadcastRcvr: AbstractReceiver
     private var mCurrentRadioStationView: View? = null
+
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
@@ -172,6 +176,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         }
         // Unregister local receivers
         unregisterReceivers(context)
+        LocationService.doCancelWork(context)
     }
 
     private fun disconnect() {
@@ -331,6 +336,19 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
 
     fun connect() {
         mMediaRsrMgr.connect()
+    }
+
+    fun handlePermissionsResult(context: Context,
+                                requestCode: Int,
+                                permissions: Array<String>,
+                                grantResults: IntArray) {
+        for (i in permissions.indices) {
+            val permission = permissions[i]
+            if (permission == Manifest.permission.ACCESS_FINE_LOCATION
+                    && grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                LocationService.doEnqueueWork(context)
+            }
+        }
     }
 
     private fun getPositions(mediaItem: String?): IntArray {

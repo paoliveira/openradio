@@ -15,7 +15,7 @@
 * INTERNET - To access internet connection.
 * ACCESS_NETWORK_STATE - To monitor Internet connection state, detect connect and reconnect states.
 * WAKE_LOCK - To keep screen on while playing Radio Station.
-* ACCESS_COARSE_LOCATION and ACCESS_FINE_LOCATION - To select Country for user based on Location. This helps to navigate local Radio Stations.
+* ACCESS_FINE_LOCATION - To select Country for user based on Location. This helps to navigate local Radio Stations.
 * READ_EXTERNAL_STORAGE - To read image from phone's memory when set it as image for Local Radio Station.
 * FOREGROUND_SERVICE - To keep service active while playing stream.
 * BLUETOOTH - To connect to Bluetooth device.
