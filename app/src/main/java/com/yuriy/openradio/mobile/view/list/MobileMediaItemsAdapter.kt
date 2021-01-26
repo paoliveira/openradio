@@ -84,7 +84,9 @@ class MobileMediaItemsAdapter(private var mContext: Context?) : MediaItemsAdapte
 
     private inner class OnSettingsListener(item: MediaBrowserCompat.MediaItem, private val mPosition: Int) :
             View.OnClickListener {
+
         private val mItem: MediaBrowserCompat.MediaItem = MediaBrowserCompat.MediaItem(item.description, item.flags)
+
         override fun onClick(view: View) {
             if (listener == null) {
                 return
@@ -98,6 +100,7 @@ class MobileMediaItemsAdapter(private var mContext: Context?) : MediaItemsAdapte
 
     private inner class OnItemTapListener(private val mItem: MediaBrowserCompat.MediaItem, private val mPosition: Int) :
             View.OnClickListener {
+
         override fun onClick(view: View) {
             if (listener == null) {
                 return

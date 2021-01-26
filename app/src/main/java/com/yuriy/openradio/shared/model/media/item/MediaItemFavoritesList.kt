@@ -55,12 +55,12 @@ class MediaItemFavoritesList : MediaItemCommand {
                             context, radioStation
                     )
                     val mediaItem = MediaBrowserCompat.MediaItem(
-                            mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
-                    if (FavoritesStorage.isFavorite(radioStation, context)) {
-                        updateFavoriteField(mediaItem, true)
-                    }
+                            mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                    )
+                    updateFavoriteField(mediaItem, true)
                     updateSortIdField(mediaItem, radioStation.sortId)
                     dependencies.addMediaItem(mediaItem)
+                    AppLogger.d("$LOG_TAG sort id:${radioStation.sortId}")
                 }
                 dependencies.result.sendResult(dependencies.mediaItems)
                 dependencies.resultListener.onResult()

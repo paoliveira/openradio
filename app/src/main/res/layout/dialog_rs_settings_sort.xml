@@ -15,25 +15,22 @@
     limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/dialog_rs_settings_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="15dp">
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:orientation="horizontal">
 
-    <TextView
+    <NumberPicker
+        android:id="@+id/sort_id_picker"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginBottom="25dp"
-        android:text="@string/coming_soon"
-        android:textSize="25sp"
-        android:textStyle="bold" />
+        android:layout_marginEnd="15dp"/>
 
     <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:srcCompat="@drawable/ic_coming_soon" />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:background="@drawable/ic_sort_50"/>
 
 </LinearLayout>

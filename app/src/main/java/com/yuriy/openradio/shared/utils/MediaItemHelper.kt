@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
@@ -36,6 +37,7 @@ import java.util.*
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 object MediaItemHelper {
+
     private const val DRAWABLE_ID_UNDEFINED = MediaSessionCompat.QueueItem.UNKNOWN_ID
     private const val KEY_IS_FAVORITE = "KEY_IS_FAVORITE"
     private const val KEY_IS_LAST_PLAYED = "KEY_IS_LAST_PLAYED"
@@ -45,7 +47,6 @@ object MediaItemHelper {
     private const val KEY_BITRATE = "KEY_BITRATE"
     private const val KEY_DRAWABLE_ID = "DRAWABLE_ID"
 
-    @JvmStatic
     fun setDrawableId(bundle: Bundle?, drawableId: Int) {
         if (bundle == null) {
             return
@@ -66,7 +67,6 @@ object MediaItemHelper {
         bundle.putInt(KEY_BITRATE, bitrate)
     }
 
-    @JvmStatic
     fun getBitrateField(mediaItem: MediaBrowserCompat.MediaItem?): Int {
         if (mediaItem == null) {
             return 0
@@ -82,9 +82,7 @@ object MediaItemHelper {
      * @param mediaItem    [MediaBrowserCompat.MediaItem].
      * @param isLastPlayed Whether Media Item is known last played.
      */
-    @JvmStatic
-    fun updateLastPlayedField(mediaItem: MediaBrowserCompat.MediaItem?,
-                              isLastPlayed: Boolean) {
+    fun updateLastPlayedField(mediaItem: MediaBrowserCompat.MediaItem?, isLastPlayed: Boolean) {
         if (mediaItem == null) {
             return
         }
@@ -99,7 +97,6 @@ object MediaItemHelper {
      * @param mediaItem  [MediaBrowserCompat.MediaItem].
      * @param isFavorite Whether Item is in Favorites.
      */
-    @JvmStatic
     fun updateFavoriteField(mediaItem: MediaBrowserCompat.MediaItem?,
                             isFavorite: Boolean) {
         if (mediaItem == null) {
@@ -116,9 +113,7 @@ object MediaItemHelper {
      * @param mediaItem [MediaBrowserCompat.MediaItem].
      * @param isLocal   Whether Item is in Local Radio Stations.
      */
-    @JvmStatic
-    fun updateLocalRadioStationField(mediaItem: MediaBrowserCompat.MediaItem?,
-                                     isLocal: Boolean) {
+    fun updateLocalRadioStationField(mediaItem: MediaBrowserCompat.MediaItem?, isLocal: Boolean) {
         if (mediaItem == null) {
             return
         }
@@ -131,9 +126,7 @@ object MediaItemHelper {
      * @param mediaItem
      * @param sortId
      */
-    @JvmStatic
-    fun updateSortIdField(mediaItem: MediaBrowserCompat.MediaItem?,
-                          sortId: Int) {
+    fun updateSortIdField(mediaItem: MediaBrowserCompat.MediaItem?, sortId: Int) {
         if (mediaItem == null) {
             return
         }
@@ -206,7 +199,6 @@ object MediaItemHelper {
      * @param radioStation [RadioStation].
      * @return [android.media.MediaMetadata]
      */
-    @JvmStatic
     @JvmOverloads
     fun metadataFromRadioStation(context: Context?,
                                  radioStation: RadioStation?,
@@ -275,7 +267,6 @@ object MediaItemHelper {
      *
      * @return Display description.
      */
-    @JvmStatic
     fun getDisplayDescription(value: MediaDescriptionCompat, defaultValue: String): String {
         val descChars = value.description ?: return defaultValue
         var result = descChars.toString()
@@ -320,7 +311,6 @@ object MediaItemHelper {
      * @param radioStation [RadioStation].
      * @return [MediaDescriptionCompat]
      */
-    @JvmStatic
     fun buildMediaDescriptionFromRadioStation(context: Context?,
                                               radioStation: RadioStation): MediaDescriptionCompat {
         var iconUrl = ""
@@ -350,7 +340,6 @@ object MediaItemHelper {
      * @param context Context of the callee.
      * @return Object of the [MediaMetadataCompat] type.
      */
-    @JvmStatic
     fun buildMediaMetadataForEmptyCategory(context: Context,
                                            parentId: String?): MediaMetadataCompat {
         val title = context.getString(R.string.category_empty)
@@ -375,7 +364,6 @@ object MediaItemHelper {
     /**
      * @return
      */
-    @JvmStatic
     fun createListEndedResult(): List<MediaBrowserCompat.MediaItem> {
         return ArrayList<MediaBrowserCompat.MediaItem>(listOf(MediaItemListEnded()))
     }
@@ -384,21 +372,18 @@ object MediaItemHelper {
      * @param list
      * @return
      */
-    @JvmStatic
     fun isEndOfList(list: List<MediaBrowserCompat.MediaItem?>?): Boolean {
         return (list == null
                 || list.size == 1
                 && (list[0] == null || list[0] is MediaItemListEnded))
     }
 
-    @JvmStatic
     fun playbackStateToString(state: PlaybackStateCompat?): String {
         return if (state == null) {
             "UNDEFINED"
         } else playbackStateToString(state.state)
     }
 
-    @JvmStatic
     fun playbackStateToString(state: Int): String {
         return when (state) {
             PlaybackStateCompat.STATE_STOPPED -> "STOPPED"

@@ -53,13 +53,12 @@ class MediaItemLocalsList : MediaItemCommand {
                             context, radioStation
                     )
                     val mediaItem = MediaBrowserCompat.MediaItem(
-                            mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
-                    if (LocalRadioStationsStorage.isLocalRadioStation(radioStation, context)) {
-                        updateLocalRadioStationField(mediaItem, true)
-                    }
+                            mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+                    )
                     if (FavoritesStorage.isFavorite(radioStation, context)) {
                         updateFavoriteField(mediaItem, true)
                     }
+                    updateLocalRadioStationField(mediaItem, true)
                     updateSortIdField(mediaItem, radioStation.sortId)
                     dependencies.addMediaItem(mediaItem)
                 }

@@ -128,6 +128,12 @@ class MainActivity : AppCompatActivity() {
     @JvmField
     @Inject
     var mMediaPresenter: MediaPresenter? = null
+
+    init {
+        mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
+        mMediaItemListener = MediaItemListenerImpl()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         d(CLASS_NAME + "OnCreate:" + savedInstanceState)
@@ -632,6 +638,7 @@ class MainActivity : AppCompatActivity() {
      * Listener of the List Item events.
      */
     private inner class MediaItemListenerImpl : MediaItemsAdapter.Listener {
+
         override fun onItemSettings(item: MediaBrowserCompat.MediaItem, position: Int) {
             val transaction = supportFragmentManager.beginTransaction()
             clearDialogs(this@MainActivity, transaction)
@@ -640,9 +647,15 @@ class MainActivity : AppCompatActivity() {
             if (mMediaPresenter != null) {
                 currentParentId = mMediaPresenter!!.currentParentId
             }
-            if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == currentParentId) {
-                RSSettingsDialog.provideMediaItem(bundle, item)
-            }
+            RSSettingsDialog.provideIsLocal(
+                    bundle, (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == currentParentId)
+            )
+            RSSettingsDialog.provideIsSortable(
+                    bundle, MediaIdHelper.isMediaIdSortable(currentParentId)
+            )
+            RSSettingsDialog.provideMediaItem(
+                    bundle, item
+            )
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }
@@ -657,6 +670,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private inner class MediaPresenterListenerImpl : MediaPresenterListener {
+
         override fun showProgressBar() {
             this@MainActivity.showProgressBar()
         }
@@ -668,13 +682,5 @@ class MainActivity : AppCompatActivity() {
         override fun handlePlaybackStateChanged(state: PlaybackStateCompat) {
             this@MainActivity.handlePlaybackStateChanged(state)
         }
-    }
-
-    /**
-     * Default constructor.
-     */
-    init {
-        mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
-        mMediaItemListener = MediaItemListenerImpl()
     }
 }

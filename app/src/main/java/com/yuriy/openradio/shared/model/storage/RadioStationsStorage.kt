@@ -16,6 +16,7 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.support.v4.media.session.MediaSessionCompat
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
@@ -30,15 +31,24 @@ class RadioStationsStorage {
     }
 
     fun addAll(list: List<RadioStation>) {
-        synchronized(mRadioStations) { mRadioStations.addAll(list) }
+        synchronized(mRadioStations) {
+            AppLogger.d("$TAG add all")
+            mRadioStations.addAll(list)
+        }
     }
 
     fun add(value: RadioStation) {
-        synchronized(mRadioStations) { mRadioStations.add(value) }
+        synchronized(mRadioStations) {
+            AppLogger.d("$TAG add")
+            mRadioStations.add(value)
+        }
     }
 
     fun clear() {
-        synchronized(mRadioStations) { mRadioStations.clear() }
+        synchronized(mRadioStations) {
+            AppLogger.d("$TAG clear")
+            mRadioStations.clear()
+        }
     }
 
     val isEmpty: Boolean
@@ -49,6 +59,7 @@ class RadioStationsStorage {
         }
 
     fun size(): Int {
+        AppLogger.d("$TAG size")
         var result: Int
         synchronized(mRadioStations) { result = mRadioStations.size }
         return result
@@ -61,6 +72,7 @@ class RadioStationsStorage {
      * @return Index of the Radio Station in the collection.
      */
     fun getIndex(mediaId: String?): Int {
+        AppLogger.d("$TAG get idx")
         if (mediaId.isNullOrEmpty()) {
             return MediaSessionCompat.QueueItem.UNKNOWN_ID
         }
@@ -81,6 +93,7 @@ class RadioStationsStorage {
      * @return
      */
     fun getById(id: String?): RadioStation? {
+        AppLogger.d("$TAG get by")
         var result: RadioStation? = null
         if (id.isNullOrEmpty()) {
             return result
@@ -101,6 +114,7 @@ class RadioStationsStorage {
      * @return
      */
     fun remove(mediaId: String?): RadioStation? {
+        AppLogger.d("$TAG remove")
         var result: RadioStation? = null
         if (mediaId.isNullOrEmpty()) {
             return result
@@ -118,6 +132,7 @@ class RadioStationsStorage {
     }
 
     fun getAt(index: Int): RadioStation? {
+        AppLogger.d("$TAG get at")
         if (index < 0) {
             return null
         }
@@ -134,6 +149,7 @@ class RadioStationsStorage {
      * @return
      */
     fun isIndexPlayable(index: Int): Boolean {
+        AppLogger.d("$TAG is playable")
         return index >= 0 && index < size()
     }
 
@@ -143,6 +159,7 @@ class RadioStationsStorage {
      * @param source Source collection.
      */
     fun clearAndCopy(source: List<RadioStation>) {
+        AppLogger.d("$TAG clear and copy")
         clear()
         addAll(source)
     }
@@ -153,6 +170,8 @@ class RadioStationsStorage {
         }
 
     companion object {
+
+        private const val TAG = "RSStorage"
         /**
          * Merge Radio Stations from listB to listA.
          *
