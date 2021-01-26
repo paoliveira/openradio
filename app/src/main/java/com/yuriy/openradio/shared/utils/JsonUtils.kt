@@ -20,7 +20,7 @@ import org.json.JSONObject
 import java.util.*
 
 object JsonUtils {
-    @JvmStatic
+
     @Throws(JSONException::class)
     fun getShortArray(jsonObject: JSONObject?, key: String): ShortArray {
         if (jsonObject == null) {
@@ -41,7 +41,6 @@ object JsonUtils {
         return shortArrayOf()
     }
 
-    @JvmStatic
     @Throws(JSONException::class)
     fun getIntArray(jsonObject: JSONObject?, key: String): IntArray {
         if (jsonObject == null) {
@@ -62,7 +61,6 @@ object JsonUtils {
         return intArrayOf()
     }
 
-    @JvmStatic
     @Throws(JSONException::class)
     fun <T> getListValue(jsonObject: JSONObject?, key: String): List<T> {
         if (jsonObject == null) {
@@ -80,13 +78,11 @@ object JsonUtils {
         return ArrayList()
     }
 
-    @JvmStatic
     @Throws(JSONException::class)
     fun getStringValue(jsonObject: JSONObject?, key: String): String {
         return getStringValue(jsonObject, key, "")
     }
 
-    @JvmStatic
     @Throws(JSONException::class)
     fun getStringValue(jsonObject: JSONObject?, key: String, defaultValue: String): String {
         if (jsonObject == null) {
@@ -97,16 +93,13 @@ object JsonUtils {
         } else defaultValue
     }
 
-    @JvmStatic
     @Throws(JSONException::class)
     fun getIntValue(jsonObject: JSONObject?, key: String?): Int {
         return getIntValue(jsonObject, key, 0)
     }
 
-    @JvmStatic
     @Throws(JSONException::class)
-    fun getIntValue(jsonObject: JSONObject?,
-                    key: String?, defaultValue: Int): Int {
+    fun getIntValue(jsonObject: JSONObject?, key: String?, defaultValue: Int): Int {
         if (jsonObject == null) {
             return defaultValue
         }
@@ -115,7 +108,21 @@ object JsonUtils {
         } else defaultValue
     }
 
-    @JvmStatic
+    @Throws(JSONException::class)
+    fun getLongValue(jsonObject: JSONObject?, key: String?): Long {
+        return getLongValue(jsonObject, key, 0)
+    }
+
+    @Throws(JSONException::class)
+    fun getLongValue(jsonObject: JSONObject?, key: String?, defaultValue: Long): Long {
+        if (jsonObject == null) {
+            return defaultValue
+        }
+        return if (jsonObject.has(key)) {
+            jsonObject.getLong(key)
+        } else defaultValue
+    }
+
     @Throws(JSONException::class)
     fun getBooleanValue(jsonObject: JSONObject?, key: String?): Boolean {
         return jsonObject != null && jsonObject.has(key) && jsonObject.getBoolean(key)

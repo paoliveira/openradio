@@ -98,6 +98,7 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.NetUtils
 import com.yuriy.openradio.shared.utils.PackageValidator
+import com.yuriy.openradio.shared.utils.RadioStationsComparator
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.PlaybackStateError
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -222,6 +223,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      *
      */
     private val mDownloader: Downloader
+    private val mRadioStationsComparator: Comparator<RadioStation>
     private val mStartIds: ConcurrentLinkedQueue<Int>
     private val mTimerListener = SleepTimerListenerImpl()
     private val mTimer = SleepTimerImpl.makeInstance(mTimerListener)
@@ -419,7 +421,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     override fun onResult() {
                         this@OpenRadioService.onResult()
                     }
-                }
+                },
+                mRadioStationsComparator
         )
         mIsRestoreState = false
         if (command != null) {
@@ -568,14 +571,45 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param mediaId Media Id of the Radio Station.
      * @param sortId  Sort Id to update to.
      */
-    private fun updateSortId(mediaId: String, sortId: Int, categoryMediaId: String?) {
-        val radioStation = getRadioStationByMediaId(mediaId) ?: return
-        radioStation.sortId = sortId
-        // This call just overrides existing Radio Station in the storage.
-        if (MediaIdHelper.MEDIA_ID_FAVORITES_LIST == categoryMediaId) {
-            FavoritesStorage.add(radioStation, applicationContext)
-        } else if (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == categoryMediaId) {
-            LocalRadioStationsStorage.add(radioStation, applicationContext)
+    private fun updateSortId(mediaId: String, sortId: Int, categoryMediaId: String) {
+        // TODO: Optimize this!
+        when (categoryMediaId) {
+            MediaIdHelper.MEDIA_ID_FAVORITES_LIST -> {
+                val all = FavoritesStorage.getAll(applicationContext)
+                Collections.sort(all, mRadioStationsComparator)
+                var counter = 0
+                var value: Int
+                for (item in all) {
+                    value = if (mediaId == item.id) {
+                        sortId
+                    } else {
+                        if (item.sortId == sortId) {
+                            counter++
+                        }
+                        counter++
+                    }
+                    item.sortId = value
+                    FavoritesStorage.add(item, applicationContext)
+                }
+            }
+            MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST -> {
+                val all = LocalRadioStationsStorage.getAllLocals(applicationContext)
+                Collections.sort(all, mRadioStationsComparator)
+                var counter = 0
+                var value: Int
+                for (item in all) {
+                    value = if (mediaId == item.id) {
+                        sortId
+                    } else {
+                        if (item.sortId == sortId) {
+                            counter++
+                        }
+                        counter++
+                    }
+                    item.sortId = value
+                    LocalRadioStationsStorage.add(item, applicationContext)
+                }
+            }
         }
     }
 
@@ -1600,16 +1634,15 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
             }
             VALUE_NAME_UPDATE_SORT_IDS -> {
-                val mediaIds = intent.getStringArrayExtra(EXTRA_KEY_MEDIA_IDS)
-                val sortIds = intent.getIntArrayExtra(EXTRA_KEY_SORT_IDS)
-                val categoryMediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID)
-                if (mediaIds == null || sortIds == null) {
+                val mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_IDS)
+                val sortId = intent.getIntExtra(EXTRA_KEY_SORT_IDS, 0)
+                val categoryMediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID) ?: ""
+                if (mediaId.isNullOrEmpty()) {
                     return
                 }
-                // TODO: Optimize this algorithm, could be done in single iteration
-                for ((counter, mediaId) in mediaIds.withIndex()) {
-                    updateSortId(mediaId, sortIds[counter], categoryMediaId)
-                }
+                d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
+                updateSortId(mediaId, sortId, categoryMediaId)
+                notifyChildrenChanged(categoryMediaId)
             }
             VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
                 if (mMediaNotification != null) {
@@ -1806,17 +1839,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         /**
          * Current media player state.
          */
-        @JvmField
         @Volatile
         var mState = 0
 
-        @JvmField
         var mCurrentParentId: String? = null
 
-        @JvmField
         var mIsRestoreState = false
 
-        @JvmStatic
         fun putCurrentParentId(bundle: Bundle?, currentParentId: String?) {
             if (bundle == null) {
                 return
@@ -1824,14 +1853,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             bundle.putString(BUNDLE_ARG_CATALOGUE_ID, currentParentId)
         }
 
-        @JvmStatic
         fun getCurrentParentId(bundle: Bundle?): String {
             return if (bundle == null) {
                 ""
             } else bundle.getString(BUNDLE_ARG_CATALOGUE_ID, "")
         }
 
-        @JvmStatic
         fun putCurrentPlaybackState(bundle: Bundle?, value: Int) {
             if (bundle == null) {
                 return
@@ -1839,13 +1866,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             bundle.putInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, value)
         }
 
-        @JvmStatic
         fun getCurrentPlaybackState(bundle: Bundle?): Int {
             return bundle?.getInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, PlaybackStateCompat.STATE_NONE)
                     ?: PlaybackStateCompat.STATE_NONE
         }
 
-        @JvmStatic
         fun putRestoreState(bundle: Bundle?, value: Boolean) {
             if (bundle == null) {
                 return
@@ -1853,7 +1878,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             bundle.putBoolean(BUNDLE_ARG_IS_RESTORE_STATE, value)
         }
 
-        @JvmStatic
         fun getRestoreState(bundle: Bundle?): Boolean {
             return bundle?.getBoolean(BUNDLE_ARG_IS_RESTORE_STATE, false) ?: false
         }
@@ -1876,7 +1900,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
          *
          * @return [Intent].
          */
-        @JvmStatic
         fun makeEditRadioStationIntent(context: Context?,
                                        mediaId: String?,
                                        value: RadioStationToAdd): Intent {
@@ -1900,7 +1923,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
          * @param mediaId Media Id of the Radio Station.
          * @return [Intent].
          */
-        @JvmStatic
         fun makeRemoveRadioStationIntent(context: Context?, mediaId: String?): Intent {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND)
@@ -1911,22 +1933,21 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         /**
          * Factory method to make Intent to update Sort Ids of the Radio Stations.
          *
-         * @param context          Application context.
-         * @param mediaIds         Array of the Media Ids (of the Radio Stations).
-         * @param sortIds          Array of the corresponded Sort Ids.
-         * @param mCategoryMediaId ID of the current category
-         * ([etc ...][MediaIdHelper.MEDIA_ID_FAVORITES_LIST]).
+         * @param context               Application context.
+         * @param mediaId               Array of the Media Ids (of the Radio Stations).
+         * @param sortId                Array of the corresponded Sort Ids.
+         * @param parentCategoryMediaId ID of the current category ([etc ...][MediaIdHelper.MEDIA_ID_FAVORITES_LIST]).
          * @return [Intent].
          */
-        fun makeUpdateSortIdsIntent(context: Context?,
-                                    mediaIds: Array<String?>?,
-                                    sortIds: IntArray?,
-                                    mCategoryMediaId: String?): Intent {
+        fun makeUpdateSortIdsIntent(context: Context,
+                                    mediaId: String,
+                                    sortId: Int,
+                                    parentCategoryMediaId: String): Intent {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_UPDATE_SORT_IDS)
-            intent.putExtra(EXTRA_KEY_MEDIA_IDS, mediaIds)
-            intent.putExtra(EXTRA_KEY_SORT_IDS, sortIds)
-            intent.putExtra(EXTRA_KEY_MEDIA_ID, mCategoryMediaId)
+            intent.putExtra(EXTRA_KEY_MEDIA_IDS, mediaId)
+            intent.putExtra(EXTRA_KEY_SORT_IDS, sortId)
+            intent.putExtra(EXTRA_KEY_MEDIA_ID, parentCategoryMediaId)
             return intent
         }
 
@@ -1936,7 +1957,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
          * @param context Context of the callee.
          * @return [Intent].
          */
-        @JvmStatic
         fun makeStopServiceIntent(context: Context?): Intent {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STOP_SERVICE)
@@ -1973,21 +1993,18 @@ class OpenRadioService : MediaBrowserServiceCompat() {
          * @param context
          * @return
          */
-        @JvmStatic
         fun makeToggleLastPlayedItemIntent(context: Context?): Intent {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM)
             return intent
         }
 
-        @JvmStatic
         fun makeStopLastPlayedItemIntent(context: Context?): Intent {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STOP_LAST_PLAYED_ITEM)
             return intent
         }
 
-        @JvmStatic
         fun makePlayLastPlayedItemIntent(context: Context?): Intent {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_PLAY_LAST_PLAYED_ITEM)
@@ -2028,6 +2045,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         CLASS_NAME = "ORS[" + hashCode() + "] "
         i(CLASS_NAME)
         setPlaybackState(PlaybackStateCompat.STATE_NONE)
+        mRadioStationsComparator = RadioStationsComparator()
         mStartIds = ConcurrentLinkedQueue()
         mListener = ExoPlayerListener()
         mRadioStationsStorage = RadioStationsStorage()

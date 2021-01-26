@@ -24,7 +24,6 @@ import com.yuriy.openradio.shared.model.net.Downloader
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.service.OpenRadioService.ResultListener
 import com.yuriy.openradio.shared.utils.MediaItemsComparator
-import com.yuriy.openradio.shared.utils.RadioStationsComparator
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
@@ -52,7 +51,8 @@ class MediaItemCommandDependencies(
         isAndroidAuto: Boolean,
         isSameCatalogue: Boolean,
         isSavedInstance: Boolean,
-        resultListener: ResultListener) {
+        resultListener: ResultListener,
+        radioStationsComparator: Comparator<RadioStation>) {
     /**
      * String value of the Country Code.
      */
@@ -85,8 +85,8 @@ class MediaItemCommandDependencies(
     val resultListener: ResultListener
     val isSameCatalogue: Boolean
     val isSavedInstance: Boolean
-    private val mMediaItemsComparator: Comparator<MediaBrowserCompat.MediaItem>
     private val mRadioStationsComparator: Comparator<RadioStation>
+    private val mMediaItemsComparator: Comparator<MediaBrowserCompat.MediaItem>
 
     fun addMediaItem(item: MediaBrowserCompat.MediaItem) {
         mMediaItems.add(item)
@@ -108,7 +108,7 @@ class MediaItemCommandDependencies(
      */
     init {
         mMediaItemsComparator = MediaItemsComparator()
-        mRadioStationsComparator = RadioStationsComparator()
+        mRadioStationsComparator = radioStationsComparator
         this.downloader = downloader
         mMediaItems = ArrayList()
         this.result = result

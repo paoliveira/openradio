@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
@@ -27,10 +28,13 @@ import java.util.*
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 object FavoritesStorage : AbstractRadioStationsStorage() {
+
     /**
      * Name of the file for the Favorite Preferences.
      */
     private const val FILE_NAME = "FavoritesPreferences"
+
+    private const val KEY_IS_NEW_SORT_FEATURE = "KEY_IS_NEW_SORT_FEATURE"
 
     /**
      * Cache key of the Favorite Radio Station in order to ease load from preferences.
@@ -142,5 +146,13 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
             }
         }
         return false
+    }
+
+    fun getNewSortFeatureInited(context: Context): Boolean {
+        return getSharedPreferences(context, FILE_NAME).getBoolean(KEY_IS_NEW_SORT_FEATURE, false)
+    }
+
+    fun setNewSortFeatureInited(context: Context, value: Boolean) {
+        getEditor(context, FILE_NAME).putBoolean(KEY_IS_NEW_SORT_FEATURE, value).apply()
     }
 }

@@ -49,6 +49,16 @@ class MediaItemFavoritesList : MediaItemCommand {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val context = dependencies.context
                 val list = FavoritesStorage.getAll(context)
+
+                if (!FavoritesStorage.getNewSortFeatureInited(context)) {
+                    var counter = 0
+                    for (radioStation in list) {
+                        radioStation.sortId = counter++
+                        FavoritesStorage.add(radioStation, context)
+                    }
+                    FavoritesStorage.setNewSortFeatureInited(context, true)
+                }
+
                 dependencies.radioStationsStorage.clearAndCopy(list)
                 for (radioStation in list) {
                     val mediaDescription = buildMediaDescriptionFromRadioStation(

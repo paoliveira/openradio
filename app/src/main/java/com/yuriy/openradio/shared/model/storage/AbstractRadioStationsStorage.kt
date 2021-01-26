@@ -51,16 +51,6 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
         @JvmStatic
         @Synchronized
         protected fun add(radioStation: RadioStation, context: Context, name: String) {
-            if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-                val all = getAll(context, name)
-                var maxSortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
-                for (radioStationLocal in all) {
-                    if (radioStationLocal.sortId > maxSortId) {
-                        maxSortId = radioStationLocal.sortId
-                    }
-                }
-                radioStation.sortId = maxSortId + 1
-            }
             addInternal(createKeyForRadioStation(radioStation), radioStation, context, name)
         }
 

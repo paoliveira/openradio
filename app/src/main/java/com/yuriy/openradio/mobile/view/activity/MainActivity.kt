@@ -647,15 +647,7 @@ class MainActivity : AppCompatActivity() {
             if (mMediaPresenter != null) {
                 currentParentId = mMediaPresenter!!.currentParentId
             }
-            RSSettingsDialog.provideIsLocal(
-                    bundle, (MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == currentParentId)
-            )
-            RSSettingsDialog.provideIsSortable(
-                    bundle, MediaIdHelper.isMediaIdSortable(currentParentId)
-            )
-            RSSettingsDialog.provideMediaItem(
-                    bundle, item
-            )
+            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId)
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }

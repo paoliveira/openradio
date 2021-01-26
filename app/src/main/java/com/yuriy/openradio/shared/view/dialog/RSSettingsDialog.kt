@@ -25,7 +25,8 @@ import android.widget.NumberPicker
 import android.widget.TextView
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.activity.MainActivity
-import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.service.OpenRadioService
+import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
@@ -36,6 +37,10 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class RSSettingsDialog : BaseDialogFragment() {
+
+    private var mParentCategoryId = ""
+    private var mSortMediaId = ""
+    private var mSortNewPosition = 0
 
     override fun onCreateDialog(savedInstance: Bundle?): Dialog {
         val activity = activity as MainActivity?
@@ -53,9 +58,19 @@ class RSSettingsDialog : BaseDialogFragment() {
         return createAlertDialog(view)
     }
 
+    override fun onPause() {
+        super.onPause()
+
+        context?.startService(
+                OpenRadioService.makeUpdateSortIdsIntent(context!!, mSortMediaId, mSortNewPosition, mParentCategoryId)
+        )
+    }
+
     private fun handleUi(view: View, item: MediaBrowserCompat.MediaItem, args: Bundle?) {
-        val isLocal = extractIsLocal(args)
-        val isSortable = extractIsSortable(args)
+        mParentCategoryId = extractParentId(args)
+        mSortMediaId = item.mediaId.toString()
+        val isLocal = MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST == mParentCategoryId
+        val isSortable = MediaIdHelper.isMediaIdSortable(mParentCategoryId)
         view.findViewById<View>(R.id.dialog_rs_settings_edit_remove).visibility =
                 if (isLocal) View.VISIBLE else View.GONE
         view.findViewById<View>(R.id.dialog_rs_settings_sort).visibility =
@@ -77,8 +92,7 @@ class RSSettingsDialog : BaseDialogFragment() {
         numPicker.maxValue = 1000
         numPicker.value = MediaItemHelper.getSortIdField(item)
         numPicker.setOnValueChangedListener { _, _, newVal ->
-            AppLogger.d("$DIALOG_TAG id set to:$newVal")
-            MediaItemHelper.updateSortIdField(item, newVal)
+            mSortNewPosition = newVal
         }
     }
 
@@ -93,37 +107,20 @@ class RSSettingsDialog : BaseDialogFragment() {
          */
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
         private val KEY_MEDIA_ITEM = CLASS_NAME + "_KEY_MEDIA_ITEM"
-        private val KEY_IS_LOCAL = CLASS_NAME + "_KEY_IS_LOCAL"
-        private val KEY_IS_SORTABLE = CLASS_NAME + "_KEY_IS_SORTABLE"
+        private val KEY_PARENT_ID = CLASS_NAME + "_KEY_PARENT_ID"
 
-        fun provideMediaItem(bundle: Bundle, mediaItem: MediaBrowserCompat.MediaItem) {
+        fun provideMediaItem(bundle: Bundle, mediaItem: MediaBrowserCompat.MediaItem, parentId: String) {
             bundle.putParcelable(KEY_MEDIA_ITEM, mediaItem)
+            bundle.putString(KEY_PARENT_ID, parentId)
         }
 
-        fun provideIsLocal(bundle: Bundle, value: Boolean) {
-            bundle.putBoolean(KEY_IS_LOCAL, value)
-        }
-
-        fun provideIsSortable(bundle: Bundle, value: Boolean) {
-            bundle.putBoolean(KEY_IS_SORTABLE, value)
-        }
-
-        private fun extractIsLocal(bundle: Bundle?): Boolean {
+        private fun extractParentId(bundle: Bundle?): String {
             if (bundle == null) {
-                return false
+                return ""
             }
-            return if (!bundle.containsKey(KEY_IS_LOCAL)) {
-                false
-            } else bundle.getBoolean(KEY_IS_LOCAL, false)
-        }
-
-        private fun extractIsSortable(bundle: Bundle?): Boolean {
-            if (bundle == null) {
-                return false
-            }
-            return if (!bundle.containsKey(KEY_IS_SORTABLE)) {
-                false
-            } else bundle.getBoolean(KEY_IS_SORTABLE, false)
+            return if (!bundle.containsKey(KEY_PARENT_ID)) {
+                ""
+            } else bundle.getString(KEY_PARENT_ID, "")
         }
 
         private fun extractMediaItem(bundle: Bundle?): MediaBrowserCompat.MediaItem? {

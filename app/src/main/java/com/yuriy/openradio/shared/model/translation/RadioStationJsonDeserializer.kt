@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.translation
 
 import android.content.Context
@@ -60,14 +61,13 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             radioStation.thumbUrl = getStringValue(jsonObject, RadioStationJsonHelper.KEY_THUMB_URL)
             radioStation.homePage = getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
-            radioStation.sortId = getIntValue(jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID)
+            radioStation.sortId = getIntValue(
+                    jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID
+            )
             return radioStation
         } catch (e: Throwable) {
             /* Ignore this exception */
-            e("""
-    Error while de-marshall $value, exception:
-    ${Log.getStackTraceString(e)}
-    """.trimIndent())
+            e("Error while de-marshall $value, exception:${Log.getStackTraceString(e)}")
         }
         return null
     }
