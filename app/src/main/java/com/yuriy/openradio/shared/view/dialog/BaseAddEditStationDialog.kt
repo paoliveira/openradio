@@ -34,6 +34,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import androidx.fragment.app.FragmentManager
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.broadcast.LocalAbstractReceiver
 import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiver
 import com.yuriy.openradio.shared.broadcast.RSAddValidatedReceiverListener
 import com.yuriy.openradio.shared.permission.PermissionChecker
@@ -82,7 +83,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
     private var mAddToSrvrCheckView: CheckBox? = null
     private var mGenresAdapter: ArrayAdapter<CharSequence>? = null
     private var mCountriesAdapter: ArrayAdapter<String>? = null
-    private var mRsAddValidatedReceiver: RSAddValidatedReceiver? = null
+    private var mRsAddValidatedReceiver: LocalAbstractReceiver? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {

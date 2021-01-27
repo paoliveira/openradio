@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.exo
 
 import android.content.Context
-import android.media.audiofx.Equalizer
 import android.net.Uri
 import android.os.Handler
 import android.util.Log
@@ -41,25 +40,15 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector.ParametersBuilder
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.buildRenderersFactory
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
+import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMaxBuffer
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMinBuffer
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getPlayBuffer
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getPlayBufferRebuffer
-import com.yuriy.openradio.shared.model.storage.EqualizerStorage.isEmpty
-import com.yuriy.openradio.shared.model.storage.EqualizerStorage.loadEqualizerState
-import com.yuriy.openradio.shared.model.storage.EqualizerStorage.saveEqualizerState
-import com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateDeserializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateJsonDeserializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateSerializer
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.vo.EqualizerState
-import com.yuriy.openradio.shared.vo.EqualizerState.Companion.applyState
-import com.yuriy.openradio.shared.vo.EqualizerState.Companion.createState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -122,9 +111,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     private var mExoPlayer: SimpleExoPlayer?
 
     /**
-     * Instance of equalizer.
+     * Equalizer interface.
      */
-    private var mEqualizer: Equalizer? = null
+    private var mEqualizer = IEqualizerImpl.makeInstance(mContext)
 
     /**
      * Handler for the ExoPlayer to handle events.
@@ -135,6 +124,8 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      * Listener of the ExoPlayer components events.
      */
     private val mComponentListener: ComponentListener
+
+    private val mAudioListener: AudioListenerImpl
 
     /**
      * Instance of the ExoPlayer wrapper events.
@@ -186,6 +177,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         mUserState = UserState.PREPARE
         mUri = uri
         if (mExoPlayer != null) {
+            mExoPlayer!!.addListener(mComponentListener)
+            mExoPlayer!!.addMetadataOutput(mComponentListener)
+            mExoPlayer!!.addAudioListener(mAudioListener)
             mExoPlayer!!.playWhenReady = true
             mExoPlayer!!.setMediaItem(MediaItem.Builder().setUri(uri).build())
             mExoPlayer!!.prepare()
@@ -241,6 +235,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     fun reset() {
         d("$LOG_TAG reset")
         mUserState = UserState.RESET
+        mEqualizer.deinit()
         if (mExoPlayer != null) {
             mExoPlayer!!.stop()
         }
@@ -257,79 +252,19 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         mUiScope.launch { releaseIntrnl() }
     }
 
-    fun updateEqualizer() {
-        if (mEqualizer == null) {
-            e("Can not update equalizer")
-            return
-        }
-        val deserializer: EqualizerStateDeserializer = EqualizerStateJsonDeserializer()
-        val state = deserializer.deserialize(
-                mContext, loadEqualizerState(mContext)
-        )
-        applyState(mEqualizer!!, state)
-        state.printState()
-    }
-
-    fun saveState() {
-        if (mEqualizer == null) {
-            e("Can not save equalizer's state")
-            return
-        }
-        val serializer: EqualizerStateSerializer = EqualizerJsonStateSerializer()
-        var state: EqualizerState? = null
-        try {
-            state = createState(mEqualizer!!)
-        } catch (e: IllegalArgumentException) {
-            e("Can not create state from $mEqualizer, $e")
-        } catch (e: IllegalStateException) {
-            e("Can not create state from $mEqualizer, $e")
-        } catch (e: UnsupportedOperationException) {
-            e("Can not create state from $mEqualizer, $e")
-        } catch (e: RuntimeException) {
-            // Some times this happen with "AudioEffect: set/get parameter error"
-            e("Can not create state from $mEqualizer, $e")
-        }
-        if (state != null) {
-            saveEqualizerState(mContext, serializer.serialize(state))
-        }
-    }
-
-    private fun initEqualizer(audioSessionId: Int) {
-        if (mEqualizer != null) {
-            return
-        }
-        try {
-            logMessage("Eq pre-inited:$mEqualizer")
-            mEqualizer = Equalizer(0, audioSessionId)
-            logMessage("Eq inited:$mEqualizer")
-        } catch (e: Exception) {
-            mEqualizer = null
-            saveEqualizerState(mContext, "")
-            logException(RuntimeException("Can not init eq:$e"))
-            return
-        }
-        //TODO: Do state operations in separate thread.
-        if (isEmpty(mContext)) {
-            mEqualizer!!.enabled = false
-            mEqualizer!!.enabled = true
-            saveState()
-        } else {
-            updateEqualizer()
-        }
+    fun loadEqualizerState() {
+        mEqualizer.loadState()
     }
 
     private fun releaseIntrnl() {
-        if (mEqualizer != null) {
-            mEqualizer!!.enabled = false
-            mEqualizer!!.release()
-            logMessage("Eq de-inited:$mEqualizer")
-            mEqualizer = null
-        }
         if (mExoPlayer == null) {
             d("$LOG_TAG ExoPlayer impl already released")
             return
         }
+        mEqualizer.deinit()
         mExoPlayer!!.removeListener(mComponentListener)
+        mExoPlayer!!.removeMetadataOutput(mComponentListener)
+        mExoPlayer!!.removeAudioListener(mAudioListener)
         mUpdateProgressHandler!!.removeCallbacks(mUpdateProgressAction!!)
         reset()
         mExoPlayer!!.release()
@@ -341,7 +276,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     /**
      * Listener class for the players components events.
      */
-    private inner class ComponentListener : MetadataOutput, Player.EventListener, AudioListener {
+    private inner class ComponentListener : MetadataOutput, Player.EventListener {
 
         /**
          * String tag to use in logs.
@@ -421,10 +356,16 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             e("$mLogTag onPositionDiscontinuity:$reason")
             updateProgress()
         }
+    }
+
+    /**
+     * Listener class for the players audio events.
+     */
+    private inner class AudioListenerImpl : AudioListener {
 
         override fun onAudioSessionId(audioSessionId: Int) {
-            d("$mLogTag onAudioSessionId:$audioSessionId")
-            initEqualizer(audioSessionId)
+            d("onAudioSessionId:$audioSessionId")
+            mEqualizer.init(audioSessionId)
         }
     }
 
@@ -489,6 +430,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
 
     init {
         mComponentListener = ComponentListener()
+        mAudioListener = AudioListenerImpl()
         mListener = listener
         mMetadataListener = metadataListener
         val trackSelector = DefaultTrackSelector(mContext)
@@ -512,8 +454,5 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         builder.setHandleAudioBecomingNoisy(true)
         builder.setAudioAttributes(AudioAttributes.DEFAULT, true)
         mExoPlayer = builder.build()
-        mExoPlayer!!.addListener(mComponentListener)
-        mExoPlayer!!.addMetadataOutput(mComponentListener)
-        mExoPlayer!!.addAudioListener(mComponentListener)
     }
 }

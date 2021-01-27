@@ -70,10 +70,7 @@ class EqualizerJsonStateSerializer : EqualizerStateSerializer {
             jsonObject.put(EqualizerJsonHelper.KEY_BAND_LEVELS, builder.toString())
         } catch (e: Exception) {
             /* Ignore this exception */
-            e("""
-    Error while marshall $state, exception:
-    ${Log.getStackTraceString(e)}
-    """.trimIndent())
+            e("Error while marshall $state, exception:${Log.getStackTraceString(e)}")
         }
         return jsonObject.toString()
     }

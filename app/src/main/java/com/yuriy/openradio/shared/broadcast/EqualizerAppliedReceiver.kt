@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,21 @@ import android.content.Intent
 import android.content.IntentFilter
 
 /**
- * Receiver for the local broadcast event when clear internal API cache is required.
+ * Receiver for the local broadcast event when preset was applied to Equalizer.
  *
- * @param mListener Listener for the master volume changed event.
+ * @param mListener Listener for the Equalizer preset applied event.
  */
-class ClearCacheReceiver(private val mListener: ClearCacheReceiverListener): LocalAbstractReceiver() {
+class EqualizerAppliedReceiver(private val mListener: EqualizerAppliedReceiverListener): LocalAbstractReceiver() {
 
     override fun makeIntentFilter(): IntentFilter {
-        return IntentFilter(AppLocalBroadcast.getActionClearCache())
+        return IntentFilter(AppLocalBroadcast.getActionEqualizerApplied())
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
-        if (action != AppLocalBroadcast.getActionClearCache()) {
+        if (action != AppLocalBroadcast.getActionEqualizerApplied()) {
             return
         }
-        mListener.onClearCache()
+        mListener.onEqualizerApplied()
     }
 }

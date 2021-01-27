@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2020-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.vo
 
 import android.media.audiofx.Equalizer
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import java.util.*
 
@@ -46,7 +46,7 @@ class EqualizerState() {
             mBandLevelRange[0] = equalizer.bandLevelRange[0]
             mBandLevelRange[1] = equalizer.bandLevelRange[1]
         } else {
-            AppLogger.e("Num of bands of eq is not 2")
+            AppLogger.e("$CLASS_NAME num of bands of eq is not 2")
         }
         val numOfPresets = equalizer.numberOfPresets.toInt()
         for (i in 0 until numOfPresets) {
@@ -95,46 +95,28 @@ class EqualizerState() {
         }
 
     fun printState() {
-        AppLogger.d("Eqlsr level rng:" + mBandLevelRange.contentToString() + ", milliBel")
+        AppLogger.d("$CLASS_NAME level rng:${mBandLevelRange.contentToString()}, milliBel")
         if (mPresets.isNotEmpty()) {
-            AppLogger.d("Eqlsr cur preset:" + mPresets[currentPreset.toInt()])
+            AppLogger.d("$CLASS_NAME cur preset:${mPresets[currentPreset.toInt()]}")
         } else {
-            AppLogger.d("Eqlsr cur preset unknown")
+            AppLogger.d("$CLASS_NAME cur preset unknown")
         }
         for (i in 0 until numOfBands) {
             val lvl = mBandLevels[i]
             val cntFq = mCenterFrequencies[i]
-            AppLogger.d("Eqlsr level:$lvl, cnt fq:$cntFq")
+            AppLogger.d("$CLASS_NAME level:$lvl, cnt fq:$cntFq")
         }
     }
 
     companion object {
-        private val CLASS_NAME = EqualizerState::class.java.simpleName + " "
 
-        @JvmStatic
+        private val CLASS_NAME = EqualizerState::class.java.simpleName
+
         fun createState(equalizer: Equalizer): EqualizerState {
             return EqualizerState(equalizer)
         }
-
-        @JvmStatic
-        fun applyState(equalizer: Equalizer, state: EqualizerState) {
-            try {
-                if (!state.isEnabled) {
-                    return
-                }
-                equalizer.enabled = false
-                equalizer.enabled = true
-                equalizer.usePreset(state.currentPreset)
-            } catch (e: Exception) {
-                AnalyticsUtils.logMessage("Apply eq state:$equalizer")
-                AnalyticsUtils.logException(RuntimeException("Can not apply eq state:$e"))
-            }
-        }
     }
 
-    /**
-     * Default constructor.
-     */
     init {
         mBandLevelRange = ShortArray(2)
         mCenterFrequencies = IntArray(0)

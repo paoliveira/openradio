@@ -405,6 +405,10 @@ class TvMainActivity : FragmentActivity() {
             mMediaPresenter?.clearMediaItems()
             finish()
         }
+
+        override fun onSortIdChanged(sortId: Int) {
+            mMediaPresenter?.setActiveItem(sortId)
+        }
     }
 
     companion object {

@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.Handler
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -52,6 +51,10 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.isEndOfList
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.*
 import javax.inject.Inject
@@ -393,9 +396,10 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         setActiveItem(clickedPosition)
         // This will do scroll to the position.
         mListView!!.scrollToPosition(selectedPosition.coerceAtLeast(0))
-        Handler().postDelayed(
-                { mListView!!.smoothScrollToPosition(selectedPosition.coerceAtLeast(0)) }, 50
-        )
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(50)
+            mListView!!.smoothScrollToPosition(selectedPosition.coerceAtLeast(0))
+        }
     }
 
     fun handleSaveInstanceState(outState: Bundle) {
@@ -443,6 +447,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         intentFilter.addAction(AppLocalBroadcast.getActionSleepTimer())
         intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged())
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged())
+        intentFilter.addAction(AppLocalBroadcast.getActionSortIdChanged())
         // Register receiver
         LocalBroadcastManager.getInstance(context!!).registerReceiver(
                 mAppLocalBroadcastRcvr,
@@ -522,6 +527,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     }
 
     private inner class ScrollListener : RecyclerView.OnScrollListener() {
+
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
             if (newState != RecyclerView.SCROLL_STATE_IDLE) {

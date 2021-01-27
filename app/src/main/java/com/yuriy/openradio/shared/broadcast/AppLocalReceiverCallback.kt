@@ -40,4 +40,6 @@ interface AppLocalReceiverCallback {
     fun onCurrentIndexOnQueueChanged(index: Int, mediaId: String?)
 
     fun onSleepTimer()
+
+    fun onSortIdChanged(sortId:Int)
 }

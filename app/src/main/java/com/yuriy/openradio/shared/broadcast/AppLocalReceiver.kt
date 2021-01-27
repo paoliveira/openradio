@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.broadcast
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getCurrentIndexOnQueue
-import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast.getCurrentMediaIdOnQueue
-import com.yuriy.openradio.shared.utils.AppLogger.i
+import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created by Yuriy Chernyshov
@@ -52,7 +51,7 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        i("$CLASS_NAME On receive:$intent")
+        AppLogger.i("$CLASS_NAME On receive:$intent")
         val action = intent.action
         if (action == null || action.isEmpty()) {
             return
@@ -67,11 +66,17 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
                 mCallback!!.onSleepTimer()
             }
         }
-        if (action == AppLocalBroadcast.getActionCurrentIndexOnQueueChanged()) {
-            val currentIndex = getCurrentIndexOnQueue(intent)
-            val currentMediaId = getCurrentMediaIdOnQueue(intent)
+        if (action == AppLocalBroadcast.getActionSortIdChanged()) {
             if (mCallback != null) {
-                mCallback!!.onCurrentIndexOnQueueChanged(currentIndex, currentMediaId)
+                mCallback!!.onSortIdChanged(AppLocalBroadcast.getSortId(intent))
+            }
+        }
+        if (action == AppLocalBroadcast.getActionCurrentIndexOnQueueChanged()) {
+            if (mCallback != null) {
+                mCallback!!.onCurrentIndexOnQueueChanged(
+                        AppLocalBroadcast.getCurrentIndexOnQueue(intent),
+                        AppLocalBroadcast.getCurrentMediaIdOnQueue(intent)
+                )
             }
         }
     }

@@ -106,6 +106,7 @@ import com.yuriy.openradio.shared.vo.RadioStationToAdd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException
@@ -1643,6 +1644,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
                 updateSortId(mediaId, sortId, categoryMediaId)
                 notifyChildrenChanged(categoryMediaId)
+                GlobalScope.launch(Dispatchers.Main) {
+                    delay(100)
+                    LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
+                            AppLocalBroadcast.createIntentSortIdChanged(sortId)
+                    )
+                }
             }
             VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
                 if (mMediaNotification != null) {
@@ -1677,8 +1684,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 handlePlayRequest()
             }
             VALUE_NAME_UPDATE_EQUALIZER -> if (mExoPlayerORImpl != null) {
-                mExoPlayerORImpl!!.updateEqualizer()
-                mExoPlayerORImpl!!.saveState()
+                mExoPlayerORImpl!!.loadEqualizerState()
             }
             VALUE_NAME_STOP_SERVICE -> {
                 if (mMediaNotification != null) {

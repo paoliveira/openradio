@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 /**
- * Created by Chernyshov Yurii
- * At Android Studio
- * On 03/12/18
- * E-Mail: chernyshov.yuriy@gmail.com
- *
- * Base cass to handle broadcast receivers. For example, register and unregister safely.
+ * Base cass to handle local broadcast receivers. For example, register and unregister safely.
  */
-abstract class AbstractReceiver : BroadcastReceiver() {
+abstract class LocalAbstractReceiver : BroadcastReceiver() {
 
     @Volatile
     private var mIsRegistered = false
@@ -40,16 +36,22 @@ abstract class AbstractReceiver : BroadcastReceiver() {
         /* Handle in implementor */
     }
 
-    fun register(context: Context) {
+    fun register(context: Context?) {
+        if (context == null) {
+            return
+        }
         if (!mIsRegistered) {
-            context.registerReceiver(this, makeIntentFilter())
+            LocalBroadcastManager.getInstance(context).registerReceiver(this, makeIntentFilter())
         }
         mIsRegistered = true
     }
 
-    open fun unregister(context: Context) {
+    open fun unregister(context: Context?) {
+        if (context == null) {
+            return
+        }
         if (mIsRegistered) {
-            context.unregisterReceiver(this)
+            LocalBroadcastManager.getInstance(context).unregisterReceiver(this)
         }
         mIsRegistered = false
     }

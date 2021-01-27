@@ -136,7 +136,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        d(CLASS_NAME + "OnCreate:" + savedInstanceState)
+        d("$CLASS_NAME OnCreate:$savedInstanceState")
         initUi(applicationContext)
         hideProgressBar()
         updateBufferedTime(0)
@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        i(CLASS_NAME + "OnResume")
+        i("$CLASS_NAME OnResume")
         mMediaPresenter!!.handleResume()
         hideProgressBar()
         LocationService.checkCountry(this, findViewById(R.id.main_layout))
@@ -164,7 +164,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        i(CLASS_NAME + "OnDestroy")
+        i("$CLASS_NAME OnDestroy")
         mMediaPresenter!!.handleDestroy(applicationContext)
     }
 
@@ -208,7 +208,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        d(CLASS_NAME + "OnSaveInstance:" + outState)
+        d("$CLASS_NAME OnSaveInstance:$outState")
         mMediaPresenter!!.handleSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
@@ -593,17 +593,18 @@ class MainActivity : AppCompatActivity() {
             mMediaPresenter?.clearMediaItems()
             finish()
         }
+
+        override fun onSortIdChanged(sortId:Int) {
+            mMediaPresenter?.setActiveItem(sortId)
+        }
     }
 
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
-        @SuppressLint("RestrictedApi")
-        override fun onChildrenLoaded(parentId: String,
-                                      children: List<MediaBrowserCompat.MediaItem>) {
-            i(
-                    CLASS_NAME + "Children loaded:" + parentId + ", children:" + children.size
-            )
+
+        override fun onChildrenLoaded(parentId: String, children: List<MediaBrowserCompat.MediaItem>) {
+            i("$CLASS_NAME children loaded:$parentId, children:${children.size}")
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
+                w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
                 return
             }
             hideProgressBar()
@@ -628,9 +629,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onError(id: String) {
             hideProgressBar()
-            showAnyThread(
-                    this@MainActivity, this@MainActivity.getString(R.string.error_loading_media)
-            )
+            showAnyThread(this@MainActivity, this@MainActivity.getString(R.string.error_loading_media))
         }
     }
 

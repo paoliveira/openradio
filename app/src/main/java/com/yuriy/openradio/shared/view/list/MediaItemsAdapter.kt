@@ -52,6 +52,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
      * The currently selected / active Item Id.
      */
     var activeItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID
+
     override fun getItemCount(): Int {
         return mAdapterData.itemsCount
     }

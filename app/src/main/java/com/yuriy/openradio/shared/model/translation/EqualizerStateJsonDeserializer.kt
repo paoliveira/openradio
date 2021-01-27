@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2020-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,13 +26,8 @@ import com.yuriy.openradio.shared.utils.JsonUtils.getShortArray
 import com.yuriy.openradio.shared.vo.EqualizerState
 import org.json.JSONObject
 
-/**
- * Created by Yuriy Chernyshov
- * At Android Studio
- * On 6/9/15
- * E-Mail: chernyshov.yuriy@gmail.com
- */
 class EqualizerStateJsonDeserializer : EqualizerStateDeserializer {
+
     override fun deserialize(context: Context, value: String): EqualizerState {
         val state = EqualizerState()
         try {
@@ -45,11 +40,7 @@ class EqualizerStateJsonDeserializer : EqualizerStateDeserializer {
             state.bandLevels = getShortArray(jsonObject, EqualizerJsonHelper.KEY_BAND_LEVELS)
             state.centerFrequencies = getIntArray(jsonObject, EqualizerJsonHelper.KEY_CENTER_FREQUENCIES)
         } catch (e: Throwable) {
-            /* Ignore this exception */
-            e("""
-    Error while de-marshall $value, exception:
-    ${Log.getStackTraceString(e)}
-    """.trimIndent())
+            e("Error while de-marshall $value, exception:${Log.getStackTraceString(e)}")
         }
         return state
     }

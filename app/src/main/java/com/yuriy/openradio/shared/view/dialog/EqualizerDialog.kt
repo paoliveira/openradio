@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2020-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Activity
@@ -21,8 +22,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -33,25 +32,27 @@ import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.TextView
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.broadcast.EqualizerAppliedReceiver
+import com.yuriy.openradio.shared.broadcast.EqualizerAppliedReceiverListener
+import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.EqualizerStorage
-import com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateDeserializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateJsonDeserializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateSerializer
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.vo.EqualizerState
 
-/**
- * Created by Yuriy Chernyshov
- * At Android Studio
- * On 12/20/14
- * E-Mail: chernyshov.yuriy@gmail.com
- */
 class EqualizerDialog : BaseDialogFragment() {
 
     private var mLinearLayout: LinearLayout? = null
+    private val mEqualizerAppliedReceiver = EqualizerAppliedReceiver(
+
+            object : EqualizerAppliedReceiverListener {
+
+                override fun onEqualizerApplied() {
+                    context?.let { updateEqualizer(it, IEqualizerImpl.loadState(it)) }
+                }
+            }
+    )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val activity: Activity? = activity
@@ -68,18 +69,20 @@ class EqualizerDialog : BaseDialogFragment() {
         } else {
             notAvailableView.visibility = View.GONE
             handleEqualizer(context, view)
+            mEqualizerAppliedReceiver.register(context.applicationContext)
         }
         return createAlertDialog(view)
     }
 
-    private fun handleEqualizer(context: Context?, view: View) {
-        if (context == null) {
-            return
-        }
-        val deserializer: EqualizerStateDeserializer = EqualizerStateJsonDeserializer()
-        val state = deserializer.deserialize(
-                context, EqualizerStorage.loadEqualizerState(context)
-        )
+    override fun onStop() {
+        super.onStop()
+        context?.let { mEqualizerAppliedReceiver.unregister(it.applicationContext) }
+    }
+
+    private fun handleEqualizer(context: Context, view: View) {
+        AppLogger.d("")
+        val state = IEqualizerImpl.loadState(context)
+        updateEqualizer(context, state)
         val presets = state.presets
         val adapter = ArrayAdapter(
                 activity!!,
@@ -91,35 +94,21 @@ class EqualizerDialog : BaseDialogFragment() {
         spinner.adapter = adapter
         spinner.setSelection(state.currentPreset.toInt())
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                AppLogger.d(CLASS_NAME + " use preset: " + presets[position])
+                AppLogger.d("$CLASS_NAME use preset:${presets[position]}")
                 state.currentPreset = position.toShort()
-                val serializer: EqualizerStateSerializer = EqualizerJsonStateSerializer()
-                EqualizerStorage.saveEqualizerState(context, serializer.serialize(state))
-                val activity: Activity? = activity
-                if (activity == null) {
-                    AppLogger.e("Can not call equalizer update, activity is null")
-                    return
-                }
-                activity.startService(OpenRadioService.makeUpdateEqualizerIntent(context))
-                Handler(Looper.getMainLooper()).postDelayed(
-                        {
-                            val state1 = deserializer.deserialize(
-                                    context, EqualizerStorage.loadEqualizerState(context)
-                            )
-                            updateEqualizer(context, state1)
-                        },
-                        500
-                )
+                IEqualizerImpl.saveState(context, state)
+                context.startService(OpenRadioService.makeUpdateEqualizerIntent(context))
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-        updateEqualizer(context, state)
     }
 
-    private fun updateEqualizer(context: Context,
-                                state: EqualizerState) {
+    private fun updateEqualizer(context: Context, state: EqualizerState) {
+        AppLogger.d("$CLASS_NAME update equalizer")
+        state.printState()
         mLinearLayout!!.removeAllViews()
         val lowerEqualizerBandLevel = state.bandLevelRange[0]
         val upperEqualizerBandLevel = state.bandLevelRange[1]
@@ -191,7 +180,6 @@ class EqualizerDialog : BaseDialogFragment() {
         /**
          * Tag string to use in dialog transactions.
          */
-        @JvmField
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
     }
 }
