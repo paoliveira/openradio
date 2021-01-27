@@ -150,6 +150,13 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         }
     }
 
+    fun itemsCount(): Int {
+        if (mAdapter == null) {
+            return 0
+        }
+        return mAdapter!!.itemCount
+    }
+
     private fun clean() {
         d("$CLASS_NAME clean")
         mMediaRsrMgr.clean()

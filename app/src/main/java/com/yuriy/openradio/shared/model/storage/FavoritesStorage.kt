@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
@@ -60,6 +61,9 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
     fun add(radioStation: RadioStation?, context: Context) {
         val key = createKeyForRadioStation(radioStation!!)
         sSet.add(key)
+        if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
+            radioStation.sortId = sSet.size
+        }
         add(radioStation, context, FILE_NAME)
     }
 

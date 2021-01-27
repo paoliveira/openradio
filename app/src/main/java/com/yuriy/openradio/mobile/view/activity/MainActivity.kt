@@ -647,7 +647,7 @@ class MainActivity : AppCompatActivity() {
             if (mMediaPresenter != null) {
                 currentParentId = mMediaPresenter!!.currentParentId
             }
-            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId)
+            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId, mMediaPresenter!!.itemsCount())
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }

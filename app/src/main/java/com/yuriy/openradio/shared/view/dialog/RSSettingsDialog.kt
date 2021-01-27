@@ -41,6 +41,7 @@ class RSSettingsDialog : BaseDialogFragment() {
     private var mParentCategoryId = ""
     private var mSortMediaId = ""
     private var mSortNewPosition = 0
+    private var mSortOriginalPosition = 0
 
     override fun onCreateDialog(savedInstance: Bundle?): Dialog {
         val activity = activity as MainActivity?
@@ -60,7 +61,9 @@ class RSSettingsDialog : BaseDialogFragment() {
 
     override fun onPause() {
         super.onPause()
-
+        if (mSortNewPosition == mSortOriginalPosition) {
+            return
+        }
         context?.startService(
                 OpenRadioService.makeUpdateSortIdsIntent(context!!, mSortMediaId, mSortNewPosition, mParentCategoryId)
         )
@@ -82,15 +85,18 @@ class RSSettingsDialog : BaseDialogFragment() {
         name.text = item.description.title
 
         if (isSortable) {
-            handleSortUi(view, item)
+            handleSortUi(view, item, args)
         }
     }
 
-    private fun handleSortUi(view: View, item: MediaBrowserCompat.MediaItem) {
+    private fun handleSortUi(view: View, item: MediaBrowserCompat.MediaItem, args: Bundle?) {
+        val maxId = extractMaxId(args)
         val numPicker: NumberPicker = view.findViewById(R.id.sort_id_picker)
         numPicker.minValue = 0
-        numPicker.maxValue = 1000
+        numPicker.maxValue = maxId
         numPicker.value = MediaItemHelper.getSortIdField(item)
+        mSortNewPosition = numPicker.value
+        mSortOriginalPosition = numPicker.value
         numPicker.setOnValueChangedListener { _, _, newVal ->
             mSortNewPosition = newVal
         }
@@ -108,10 +114,14 @@ class RSSettingsDialog : BaseDialogFragment() {
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
         private val KEY_MEDIA_ITEM = CLASS_NAME + "_KEY_MEDIA_ITEM"
         private val KEY_PARENT_ID = CLASS_NAME + "_KEY_PARENT_ID"
+        private val KEY_MAX_SORT_ID = CLASS_NAME + "_KEY_MAX_SORT_ID"
 
-        fun provideMediaItem(bundle: Bundle, mediaItem: MediaBrowserCompat.MediaItem, parentId: String) {
+        fun provideMediaItem(bundle: Bundle,
+                             mediaItem: MediaBrowserCompat.MediaItem,
+                             parentId: String, maxSortId: Int) {
             bundle.putParcelable(KEY_MEDIA_ITEM, mediaItem)
             bundle.putString(KEY_PARENT_ID, parentId)
+            bundle.putInt(KEY_MAX_SORT_ID, maxSortId)
         }
 
         private fun extractParentId(bundle: Bundle?): String {
@@ -121,6 +131,15 @@ class RSSettingsDialog : BaseDialogFragment() {
             return if (!bundle.containsKey(KEY_PARENT_ID)) {
                 ""
             } else bundle.getString(KEY_PARENT_ID, "")
+        }
+
+        private fun extractMaxId(bundle: Bundle?): Int {
+            if (bundle == null) {
+                return 1000
+            }
+            return if (!bundle.containsKey(KEY_MAX_SORT_ID)) {
+                1000
+            } else bundle.getInt(KEY_MAX_SORT_ID, 1000)
         }
 
         private fun extractMediaItem(bundle: Bundle?): MediaBrowserCompat.MediaItem? {

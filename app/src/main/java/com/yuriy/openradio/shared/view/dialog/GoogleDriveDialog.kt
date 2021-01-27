@@ -69,7 +69,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 R.layout.dialog_google_drive,
                 activity!!.findViewById(R.id.dialog_google_drive_root)
         )
-        setWindowDimensions(view, 0.9f, 0.9f)
+        setWindowDimensions(view, 0.9f, 0.5f)
         val uploadTo = view.findViewById<Button>(R.id.upload_to_google_drive_btn)
         uploadTo.setOnClickListener { uploadRadioStationsToGoogleDrive() }
         val downloadFrom = view.findViewById<Button>(R.id.download_from_google_drive_btn)
