@@ -30,6 +30,7 @@ import com.google.android.exoplayer2.Player.DiscontinuityReason
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.audio.AudioListener
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.metadata.icy.IcyHeaders
@@ -340,7 +341,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     /**
      * Listener class for the players components events.
      */
-    private inner class ComponentListener : MetadataOutput, Player.EventListener {
+    private inner class ComponentListener : MetadataOutput, Player.EventListener, AudioListener {
 
         /**
          * String tag to use in logs.
@@ -393,7 +394,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                     d("$mLogTag STATE_READY")
                     mListener.onPrepared()
                     mNumOfExceptions.set(0)
-                    initEqualizer(mExoPlayer!!.audioSessionId)
                 }
                 else -> {
                 }
@@ -403,8 +403,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
 
         override fun onPlayerError(exception: ExoPlaybackException) {
             e("$mLogTag suspected url: $mUri")
-            e("""$mLogTag onPlayerError:
-${Log.getStackTraceString(exception)}""")
+            e("$mLogTag onPlayerError: ${Log.getStackTraceString(exception)}")
             e(mLogTag + " num of exceptions " + mNumOfExceptions.get())
             if (mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
                 if (exception.cause is UnrecognizedInputFormatException) {
@@ -421,6 +420,11 @@ ${Log.getStackTraceString(exception)}""")
         override fun onPositionDiscontinuity(@DiscontinuityReason reason: Int) {
             e("$mLogTag onPositionDiscontinuity:$reason")
             updateProgress()
+        }
+
+        override fun onAudioSessionId(audioSessionId: Int) {
+            d("$mLogTag onAudioSessionId:$audioSessionId")
+            initEqualizer(audioSessionId)
         }
     }
 
@@ -510,5 +514,6 @@ ${Log.getStackTraceString(exception)}""")
         mExoPlayer = builder.build()
         mExoPlayer!!.addListener(mComponentListener)
         mExoPlayer!!.addMetadataOutput(mComponentListener)
+        mExoPlayer!!.addAudioListener(mComponentListener)
     }
 }
