@@ -21,11 +21,14 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.support.v4.media.MediaBrowserCompat
 import android.view.View
+import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.TextView
+import com.squareup.picasso.Picasso
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.activity.MainActivity
 import com.yuriy.openradio.shared.service.OpenRadioService
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.view.BaseDialogFragment
@@ -83,6 +86,16 @@ class RSSettingsDialog : BaseDialogFragment() {
         view.findViewById<View>(R.id.dialog_rs_settings_remove_btn).tag = item
         val name = view.findViewById<TextView>(R.id.dialog_rs_settings_rs_name)
         name.text = item.description.title
+
+        item.description.iconUri?.let {
+            val iv: ImageView = view.findViewById(R.id.dialog_rs_settings_logo_view)
+            AppUtils.getPicassoCreator(it)
+                    .resize(500, 500)
+                    .onlyScaleDown()
+                    .noPlaceholder()
+                    .centerInside()
+                    .into(iv)
+        }
 
         if (isSortable) {
             handleSortUi(view, item, args)
