@@ -109,21 +109,6 @@ object JsonUtils {
     }
 
     @Throws(JSONException::class)
-    fun getLongValue(jsonObject: JSONObject?, key: String?): Long {
-        return getLongValue(jsonObject, key, 0)
-    }
-
-    @Throws(JSONException::class)
-    fun getLongValue(jsonObject: JSONObject?, key: String?, defaultValue: Long): Long {
-        if (jsonObject == null) {
-            return defaultValue
-        }
-        return if (jsonObject.has(key)) {
-            jsonObject.getLong(key)
-        } else defaultValue
-    }
-
-    @Throws(JSONException::class)
     fun getBooleanValue(jsonObject: JSONObject?, key: String?): Boolean {
         return jsonObject != null && jsonObject.has(key) && jsonObject.getBoolean(key)
     }

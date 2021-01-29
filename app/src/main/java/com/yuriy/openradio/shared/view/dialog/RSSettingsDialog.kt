@@ -24,10 +24,10 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.TextView
-import com.squareup.picasso.Picasso
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.activity.MainActivity
 import com.yuriy.openradio.shared.service.OpenRadioService
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
@@ -58,6 +58,7 @@ class RSSettingsDialog : BaseDialogFragment() {
             handleUi(view, item, arguments)
         } else {
             //TODO: Address null data
+            AppLogger.e("Setting dialog provided with null data")
         }
         return createAlertDialog(view)
     }

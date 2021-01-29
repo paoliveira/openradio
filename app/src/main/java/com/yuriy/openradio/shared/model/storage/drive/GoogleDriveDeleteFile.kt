@@ -28,9 +28,9 @@ internal class GoogleDriveDeleteFile(isTerminator: Boolean = false) : GoogleDriv
 
     override fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult) {
         val name = request.fileName
+        AppLogger.d("Delete file '$name'")
         if (result.fileId != null) {
-            AppLogger.d("Delete file '$name'")
-            request.googleApiClient.deleteFile(result.fileId)
+            request.googleApiClient.deleteFile(result.fileId!!)
                     .addOnSuccessListener {
                         AppLogger.d("File '$name' deleted, path execution farther")
                         handleNext(request, result)

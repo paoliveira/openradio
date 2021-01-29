@@ -28,18 +28,24 @@ import com.yuriy.openradio.shared.utils.AppLogger
 internal class GoogleDriveSaveFile(isTerminator: Boolean) : GoogleDriveAPIChain(isTerminator) {
 
     override fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult) {
-        AppLogger.d("Save file '" + request.fileName + "'")
-        // Create new file and save data to it.
-        val data = Base64.encodeToString(request.data!!.toByteArray(), Base64.DEFAULT)
-        request.googleApiClient.createFile(result.folderId, request.fileName, data)
-                .addOnSuccessListener { fileId: String ->
-                    AppLogger.d("File '$fileId' created")
-                    request.listener.onUploadComplete()
-                }
-                .addOnFailureListener {
-                    request.listener.onError(
-                            GoogleDriveError("File '" + request.fileName + "' is not created")
-                    )
-                }
+        val name = request.fileName
+        AppLogger.d("Save file '$name'")
+        if (result.fileId != null) {
+            // Create new file and save data to it.
+            val data = Base64.encodeToString(request.data!!.toByteArray(), Base64.DEFAULT)
+            request.googleApiClient.createFile(result.folderId!!, name, data)
+                    .addOnSuccessListener { fileId: String ->
+                        AppLogger.d("File '$fileId' created")
+                        request.listener.onUploadComplete()
+                    }
+                    .addOnFailureListener {
+                        request.listener.onError(
+                                GoogleDriveError("File '$name' is not created")
+                        )
+                    }
+        } else {
+            AppLogger.d("File '$name' not exists, nothing to save, path execution farther")
+            handleNext(request, result)
+        }
     }
 }

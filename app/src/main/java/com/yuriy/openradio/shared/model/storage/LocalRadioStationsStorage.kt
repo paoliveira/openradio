@@ -232,16 +232,4 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
         }
         return list.isEmpty()
     }
-
-    /**
-     * Check whether provided [RadioStation] is in Local Stations preferences.
-     *
-     * @param radioStation [RadioStation] to check in the Favorites.
-     * @param context      Context of the callee.
-     * @return True in case of success, False - otherwise.
-     */
-    fun isLocalRadioStation(radioStation: RadioStation, context: Context?): Boolean {
-        val sharedPreferences = getSharedPreferences(context!!, FILE_NAME)
-        return sharedPreferences.contains(radioStation.id)
-    }
 }

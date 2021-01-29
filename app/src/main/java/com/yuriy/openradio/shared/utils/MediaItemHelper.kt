@@ -43,7 +43,6 @@ object MediaItemHelper {
     private const val KEY_IS_LAST_PLAYED = "KEY_IS_LAST_PLAYED"
     private const val KEY_IS_LOCAL = "KEY_IS_LOCAL"
     private const val KEY_SORT_ID = "KEY_SORT_ID"
-    private const val KEY_CURRENT_STREAM_TITLE = "CURRENT_STREAM_TITLE"
     private const val KEY_BITRATE = "KEY_BITRATE"
     private const val KEY_DRAWABLE_ID = "DRAWABLE_ID"
 
@@ -162,19 +161,6 @@ object MediaItemHelper {
         return if (mediaItem == null) {
             MediaSessionCompat.QueueItem.UNKNOWN_ID
         } else getSortIdField(mediaItem.description)
-    }
-
-    /**
-     * Extracts Sort Id field from the [MediaSessionCompat.QueueItem].
-     *
-     * @param queueItem [MediaSessionCompat.QueueItem] to extract
-     * Sort Id from.
-     * @return Extracted Sort Id or -1.
-     */
-    fun getSortIdField(queueItem: MediaSessionCompat.QueueItem?): Int {
-        return if (queueItem == null) {
-            MediaSessionCompat.QueueItem.UNKNOWN_ID
-        } else getSortIdField(queueItem.description)
     }
 
     /**

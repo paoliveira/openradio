@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
-import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
@@ -130,21 +129,6 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
         val list = getAll(context)
         for (station in list) {
             if (station.id == radioStation.id) {
-                sSet.add(key)
-                return true
-            }
-        }
-        return false
-    }
-
-    fun isFavorite(mediaItem: MediaBrowserCompat.MediaItem, context: Context): Boolean {
-        val key = createKeyForRadioStation(mediaItem)
-        if (sSet.contains(key)) {
-            return true
-        }
-        val list = getAll(context)
-        for (station in list) {
-            if (station.id == mediaItem.mediaId) {
                 sSet.add(key)
                 return true
             }
