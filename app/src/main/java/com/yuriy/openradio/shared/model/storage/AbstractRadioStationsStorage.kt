@@ -63,10 +63,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          */
         @JvmStatic
         @Synchronized
-        protected fun add(key: String,
-                          radioStation: RadioStation,
-                          context: Context,
-                          name: String) {
+        protected fun add(key: String, radioStation: RadioStation, context: Context, name: String) {
             val all = getAll(context, name)
             var maxSortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
             for (radioStationLocal in all) {
@@ -94,6 +91,15 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             editor.remove(createKeyForRadioStation(radioStation))
             editor.apply()
             i("Radio Station $radioStation removed")
+        }
+
+        @JvmStatic
+        @Synchronized
+        fun clear(context: Context, name: String) {
+            val editor = getEditor(context, name)
+            editor.clear()
+            editor.apply()
+            i("Radio Stations cleared")
         }
 
         /**
@@ -213,6 +219,17 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 }
             }
             return radioStations
+        }
+
+        @JvmStatic
+        fun addAll(context: Context, name: String, list: List<RadioStation>) {
+            val serializer: RadioStationSerializer = RadioStationJsonSerializer()
+            val editor = getEditor(context, name)
+            for (radioStation in list) {
+                editor.putString(createKeyForRadioStation(radioStation), serializer.serialize(radioStation))
+            }
+            editor.apply()
+            i("${list.size} Radio Stations added")
         }
 
         /**

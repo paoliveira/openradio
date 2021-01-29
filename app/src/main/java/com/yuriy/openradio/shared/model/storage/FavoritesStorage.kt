@@ -92,6 +92,11 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
         return getAll(context, FILE_NAME)
     }
 
+    @JvmStatic
+    fun addAll(context: Context, list: List<RadioStation>) {
+        return addAll(context, FILE_NAME, list)
+    }
+
     /**
      * Return Favorite Radio Stations which are stored in the persistent storage represented in a single String.
      *

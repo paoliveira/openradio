@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import android.annotation.TargetApi
@@ -47,10 +48,10 @@ import java.util.*
  * On 11/29/14
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *
  * [AppUtils] is a helper class which holds various help-methods
  */
 object AppUtils {
+
     /**
      * Time out for the stream to decide whether there is response or not, ms.
      */
@@ -213,8 +214,8 @@ object AppUtils {
         val externalStorageAvailable: Boolean
         val externalStorageWriteable: Boolean
         when (Environment.getExternalStorageState()) {
-            Environment.MEDIA_MOUNTED ->                 // We can read and write the media
-            {
+            // We can read and write the media.
+            Environment.MEDIA_MOUNTED -> {
                 externalStorageWriteable = true
                 externalStorageAvailable = externalStorageWriteable
             }
@@ -223,9 +224,9 @@ object AppUtils {
                 externalStorageAvailable = true
                 externalStorageWriteable = false
             }
-            else ->                 // Something else is wrong. It may be one of many other states, but all we need
-                //  to know is we can neither read nor write
-            {
+            // Something else is wrong. It may be one of many other states, but all we need
+            //  to know is we can neither read nor write.
+            else -> {
                 externalStorageWriteable = false
                 externalStorageAvailable = externalStorageWriteable
             }
@@ -264,9 +265,7 @@ object AppUtils {
     @JvmStatic
     fun getUserCountry(context: Context): String? {
         try {
-            val tm = context.getSystemService(
-                    Context.TELEPHONY_SERVICE
-            ) as TelephonyManager
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
             val simCountry = tm.simCountryIso
             if (simCountry != null && simCountry.length == 2) {
                 // SIM country code is available
@@ -418,7 +417,8 @@ object AppUtils {
             DisplayMetrics.DENSITY_MEDIUM -> "MDPI"
             DisplayMetrics.DENSITY_TV, DisplayMetrics.DENSITY_HIGH -> "HDPI"
             DisplayMetrics.DENSITY_XHIGH, DisplayMetrics.DENSITY_280 -> "XHDPI"
-            DisplayMetrics.DENSITY_XXHIGH, DisplayMetrics.DENSITY_360, DisplayMetrics.DENSITY_400, DisplayMetrics.DENSITY_420 -> "XXHDPI"
+            DisplayMetrics.DENSITY_XXHIGH,
+            DisplayMetrics.DENSITY_360, DisplayMetrics.DENSITY_400, DisplayMetrics.DENSITY_420 -> "XXHDPI"
             DisplayMetrics.DENSITY_XXXHIGH, DisplayMetrics.DENSITY_560 -> "XXXHDPI"
             else -> "UNKNOWN"
         }
@@ -443,9 +443,7 @@ object AppUtils {
     }
 
     @JvmStatic
-    fun startActivityForResultSafe(context: Activity?,
-                                   intent: Intent,
-                                   resultCode: Int): Boolean {
+    fun startActivityForResultSafe(context: Activity?, intent: Intent, resultCode: Int): Boolean {
         if (context == null) {
             return false
         }

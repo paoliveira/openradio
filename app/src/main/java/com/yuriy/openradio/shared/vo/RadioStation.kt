@@ -61,7 +61,7 @@ class RadioStation : Serializable {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private constructor(context: Context, id: String) : super() {
+    private constructor(context: Context, id: String) {
         setId(context, id)
         mMediaStream = makeDefaultInstance()
     }
@@ -71,7 +71,7 @@ class RadioStation : Serializable {
      *
      * @param radioStation Object to be copied.
      */
-    private constructor(context: Context, radioStation: RadioStation) : super() {
+    private constructor(context: Context, radioStation: RadioStation) {
         mCountry = radioStation.mCountry
         countryCode = radioStation.countryCode
         genre = radioStation.genre

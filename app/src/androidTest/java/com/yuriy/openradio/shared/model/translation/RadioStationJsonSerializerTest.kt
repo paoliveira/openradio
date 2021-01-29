@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.utils
+package com.yuriy.openradio.shared.model.translation
 
-import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.yuriy.openradio.shared.utils.NetUtils.checkResource
+import com.yuriy.openradio.shared.vo.RadioStationTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class NetUtilsTest {
+class RadioStationJsonSerializerTest {
 
     @Test
-    fun testCheckImage() {
+    fun serialization() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val url = "https://djradio.gr/wp-content/uploads/2019/05/djradio-logo-smaller-white-1.png"
-        // Requires internet connection!
-        val result = checkResource(context, url)
-        MatcherAssert.assertThat(result, CoreMatchers.`is`(true))
-    }
+        val serializer: RadioStationSerializer = RadioStationJsonSerializer()
+        val radioStation = RadioStationTest.makeTestInstance(context, "id-1", 0)
+        val js = serializer.serialize(radioStation)
 
-    @Test
-    fun testUri() {
-        val uriStr = "https://urbanhitrapfr.ice.infomaniak.ch/urbanhitrapfr-128.mp3"
-        val uri = Uri.parse(uriStr)
-        MatcherAssert.assertThat(uri.toString(), CoreMatchers.`is`(uriStr))
+        MatcherAssert.assertThat(js, CoreMatchers.notNullValue())
     }
 }

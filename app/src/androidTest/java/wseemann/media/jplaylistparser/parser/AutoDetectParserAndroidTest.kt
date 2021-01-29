@@ -69,7 +69,7 @@ class AutoDetectParserAndroidTest {
             }
         }
         latch.await((AppUtils.TIME_OUT + 1000).toLong(), TimeUnit.SECONDS)
-
+        // Requires internet connection!
         Assert.assertThat(ext, Is.`is`(PLSPlaylistParser.EXTENSION))
     }
 

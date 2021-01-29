@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import java.util.*
@@ -43,9 +44,6 @@ object MediaIdHelper {
     const val MEDIA_ID_RECENT_ADDED_STATIONS = "__RECENT_ADDED_STATIONS__"
     const val MEDIA_ID_LIST_ENDED = "MEDIA_ID_LIST_ENDED"
 
-    /**
-     *
-     */
     private val IDS = arrayOf(
             MEDIA_ID_ALL_CATEGORIES,
             MEDIA_ID_COUNTRIES_LIST,
