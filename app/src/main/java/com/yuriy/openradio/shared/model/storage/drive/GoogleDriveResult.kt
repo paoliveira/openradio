@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage.drive;
+package com.yuriy.openradio.shared.model.storage.drive
 
 /**
  * Created by Chernyshov Yurii
@@ -22,32 +22,7 @@ package com.yuriy.openradio.shared.model.storage.drive;
  * On 06/07/17
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-
-public final class GoogleDriveResult {
-
-    private String mFolderId;
-
-    private String mFileId;
-
-    public GoogleDriveResult() {
-        super();
-        mFolderId = null;
-        mFileId = null;
-    }
-
-    public String getFileId() {
-        return mFileId;
-    }
-
-    public void setFileId(final String value) {
-        mFileId = value;
-    }
-
-    public String getFolderId() {
-        return mFolderId;
-    }
-
-    public void setFolderId(final String value) {
-        mFolderId = value;
-    }
+class GoogleDriveResult {
+    var folderId: String? = null
+    var fileId: String? = null
 }
