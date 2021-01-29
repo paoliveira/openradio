@@ -96,6 +96,11 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
         add(radioStation!!, context, FILE_NAME)
     }
 
+    @JvmStatic
+    fun addAll(context: Context, list: List<RadioStation>) {
+        return addAll(context, FILE_NAME, list)
+    }
+
     /**
      * Remove provided [RadioStation] from the Local radio Stations preferences
      * by the provided media Id.

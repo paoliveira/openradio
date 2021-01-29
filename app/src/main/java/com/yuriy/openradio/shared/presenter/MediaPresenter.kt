@@ -107,6 +107,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
      */
     private val mScreenBroadcastRcvr: AbstractReceiver
     private var mCurrentRadioStationView: View? = null
+    private var mCurrentMediaId: String = ""
 
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
@@ -295,6 +296,10 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         mAdapter!!.notifyDataSetChanged()
     }
 
+    fun getCurrentMediaId(): String {
+        return mCurrentMediaId
+    }
+
     fun updateListPositions(clickPosition: Int) {
         val layoutManager = mListView!!.layoutManager as LinearLayoutManager? ?: return
         mListLastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
@@ -333,14 +338,14 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             }
         }
         updateListPositions(clickPosition)
-        val mediaId = item.mediaId
+        mCurrentMediaId = item.mediaId.toString()
 
         // If it is browsable - then we navigate to the next category
         if (item.isBrowsable) {
-            addMediaItemToStack(mediaId)
+            addMediaItemToStack(mCurrentMediaId)
         } else if (item.isPlayable) {
             // Else - we play an item
-            mMediaRsrMgr.playFromMediaId(mediaId)
+            mMediaRsrMgr.playFromMediaId(mCurrentMediaId)
         }
     }
 

@@ -26,11 +26,13 @@ object AppLocalBroadcast {
     private const val ACTION_LOCATION_CHANGED = "ACTION_LOCATION_CHANGED"
     private const val ACTION_SLEEP_TIMER = "ACTION_SLEEP_TIMER"
     private const val ACTION_SORT_ID_CHANGED = "ACTION_SORT_ID_CHANGED"
+
     /**
      * Action name for the "Current index on queue" changed,
      * when currently selected Radio Station was changed.
      */
     private const val ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED = "ACTION_CURRENT_INDEX_ON_QUEUE_CHANGED"
+
     /**
      * Action name for the "Master Volume Changed" event,
      * when volume of application's player was changed.
@@ -54,9 +56,14 @@ object AppLocalBroadcast {
     private const val KEY_VALIDATED_RS_FAIL_REASON = "KEY_VALIDATED_RS_FAIL_REASON"
     private const val KEY_VALIDATED_RS_SUCCESS_MESSAGE = "KEY_VALIDATED_RS_SUCCESS_MESSAGE"
     private const val KEY_SORT_ID = "KEY_SORT_ID"
+    private const val KEY_SORT_MEDIA_ID = "KEY_SORT_MEDIA_ID"
 
     fun getSortId(intent: Intent): Int {
         return intent.getIntExtra(KEY_SORT_ID, 0)
+    }
+
+    fun getSortMediaId(intent: Intent): String {
+        return intent.getStringExtra(KEY_SORT_MEDIA_ID) ?: ""
     }
 
     fun getCurrentIndexOnQueue(intent: Intent): Int {
@@ -96,8 +103,8 @@ object AppLocalBroadcast {
         return Intent(ACTION_SLEEP_TIMER)
     }
 
-    fun createIntentSortIdChanged(sortId: Int): Intent {
-        return Intent(ACTION_SORT_ID_CHANGED).putExtra(KEY_SORT_ID, sortId)
+    fun createIntentSortIdChanged(mediaId: String, sortId: Int): Intent {
+        return Intent(ACTION_SORT_ID_CHANGED).putExtra(KEY_SORT_MEDIA_ID, mediaId).putExtra(KEY_SORT_ID, sortId)
     }
 
     /**

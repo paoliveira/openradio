@@ -41,7 +41,7 @@ interface AppLocalReceiverCallback {
 
     fun onSleepTimer()
 
-    fun onSortIdChanged(sortId:Int)
+    fun onSortIdChanged(mediaId: String, sortId: Int)
 
     fun onGoogleDriveDownloaded()
 }

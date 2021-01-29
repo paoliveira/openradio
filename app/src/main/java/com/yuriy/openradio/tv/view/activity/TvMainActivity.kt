@@ -359,6 +359,7 @@ class TvMainActivity : FragmentActivity() {
     }
 
     private inner class TvMediaItemsAdapterListenerImpl : MediaItemsAdapter.Listener {
+
         override fun onItemSettings(item: MediaBrowserCompat.MediaItem, position: Int) {
             //TODO:
         }
@@ -405,8 +406,10 @@ class TvMainActivity : FragmentActivity() {
             finish()
         }
 
-        override fun onSortIdChanged(sortId: Int) {
-            mMediaPresenter?.setActiveItem(sortId)
+        override fun onSortIdChanged(mediaId: String, sortId: Int) {
+            if (mMediaPresenter != null) {
+                mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mMediaPresenter!!.getCurrentMediaId())
+            }
         }
 
         override fun onGoogleDriveDownloaded() {

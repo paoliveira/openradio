@@ -98,6 +98,7 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.NetUtils
 import com.yuriy.openradio.shared.utils.PackageValidator
 import com.yuriy.openradio.shared.utils.RadioStationsComparator
+import com.yuriy.openradio.shared.utils.SortUtils
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.PlaybackStateError
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -535,54 +536,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             LatestRadioStationStorage.add(radioStation, applicationContext)
         }
         updateMetadata(mCurrentStreamTitle)
-    }
-
-    /**
-     * Updates Radio Station with the Sort Id by the given Media Id.
-     *
-     * @param mediaId Media Id of the Radio Station.
-     * @param sortId  Sort Id to update to.
-     */
-    private fun updateSortId(mediaId: String, sortId: Int, categoryMediaId: String) {
-        // TODO: Optimize this!
-        when (categoryMediaId) {
-            MediaIdHelper.MEDIA_ID_FAVORITES_LIST -> {
-                val all = FavoritesStorage.getAll(applicationContext)
-                Collections.sort(all, mRadioStationsComparator)
-                var counter = 0
-                var value: Int
-                for (item in all) {
-                    value = if (mediaId == item.id) {
-                        sortId
-                    } else {
-                        if (item.sortId == sortId) {
-                            counter++
-                        }
-                        counter++
-                    }
-                    item.sortId = value
-                    FavoritesStorage.add(item, applicationContext)
-                }
-            }
-            MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST -> {
-                val all = LocalRadioStationsStorage.getAllLocals(applicationContext)
-                Collections.sort(all, mRadioStationsComparator)
-                var counter = 0
-                var value: Int
-                for (item in all) {
-                    value = if (mediaId == item.id) {
-                        sortId
-                    } else {
-                        if (item.sortId == sortId) {
-                            counter++
-                        }
-                        counter++
-                    }
-                    item.sortId = value
-                    LocalRadioStationsStorage.add(item, applicationContext)
-                }
-            }
-        }
     }
 
     private fun stopService() {
@@ -1575,12 +1528,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     return
                 }
                 d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
-                updateSortId(mediaId, sortId, categoryMediaId)
+                SortUtils.updateSortIds(applicationContext, mRadioStationsComparator, mediaId, sortId, categoryMediaId)
                 notifyChildrenChanged(categoryMediaId)
                 GlobalScope.launch(Dispatchers.Main) {
                     delay(100)
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
-                            AppLocalBroadcast.createIntentSortIdChanged(sortId)
+                            AppLocalBroadcast.createIntentSortIdChanged(mediaId, sortId)
                     )
                 }
             }

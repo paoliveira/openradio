@@ -593,8 +593,10 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
 
-        override fun onSortIdChanged(sortId:Int) {
-            mMediaPresenter?.setActiveItem(sortId)
+        override fun onSortIdChanged(mediaId: String, sortId: Int) {
+            if (mMediaPresenter != null) {
+                mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mMediaPresenter!!.getCurrentMediaId())
+            }
         }
 
         override fun onGoogleDriveDownloaded() {
