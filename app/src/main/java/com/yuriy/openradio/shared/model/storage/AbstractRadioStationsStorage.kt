@@ -16,7 +16,6 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
-import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.translation.RadioStationDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
@@ -255,11 +254,6 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          */
         fun createKeyForRadioStation(radioStation: RadioStation): String {
             return radioStation.id
-        }
-
-        @JvmStatic
-        fun createKeyForRadioStation(mediaItem: MediaBrowserCompat.MediaItem): String? {
-            return mediaItem.mediaId
         }
     }
 }
