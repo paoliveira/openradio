@@ -29,6 +29,7 @@ import android.widget.TextView
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.R
+import com.yuriy.openradio.mobile.view.activity.MainActivity
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
@@ -378,12 +379,11 @@ class TvMainActivity : FragmentActivity() {
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
 
         override fun onLocationChanged() {
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
+            if (mMediaPresenter == null) {
                 return
             }
-            d(CLASS_NAME + "Location Changed received")
-            if (mMediaPresenter == null) {
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+                w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
@@ -408,6 +408,19 @@ class TvMainActivity : FragmentActivity() {
 
         override fun onSortIdChanged(sortId: Int) {
             mMediaPresenter?.setActiveItem(sortId)
+        }
+
+        override fun onGoogleDriveDownloaded() {
+            if (mMediaPresenter == null) {
+                return
+            }
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+                w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
+                return
+            }
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+                updateRootView()
+            }
         }
     }
 

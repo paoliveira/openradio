@@ -42,4 +42,6 @@ interface AppLocalReceiverCallback {
     fun onSleepTimer()
 
     fun onSortIdChanged(sortId:Int)
+
+    fun onGoogleDriveDownloaded()
 }

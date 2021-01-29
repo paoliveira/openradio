@@ -40,6 +40,7 @@ object AppLocalBroadcast {
     private const val ACTION_VALIDATE_OF_RS_SUCCESS = "ACTION_VALIDATE_OF_RS_SUCCESS"
     private const val ACTION_CLEAR_CACHE = "ACTION_CLEAR_CACHE"
     private const val ACTION_EQUALIZED_APPLIED = "ACTION_EQUALIZED_APPLIED"
+    private const val ACTION_GOOGLE_DRIVE_DOWNLOADED = "ACTION_GOOGLE_DRIVE_DOWNLOADED"
 
     /**
      * Key value for the Currently selected index in the Intent's bundles.
@@ -128,6 +129,10 @@ object AppLocalBroadcast {
         return Intent(ACTION_EQUALIZED_APPLIED)
     }
 
+    fun createIntentGoogleDriveDownloaded(): Intent {
+        return Intent(ACTION_GOOGLE_DRIVE_DOWNLOADED)
+    }
+
     fun createIntentValidateOfRSFailed(reason: String?): Intent {
         val intent = Intent(ACTION_VALIDATE_OF_RS_FAILED)
         intent.putExtra(KEY_VALIDATED_RS_FAIL_REASON, reason)
@@ -162,6 +167,10 @@ object AppLocalBroadcast {
 
     fun getActionEqualizerApplied(): String {
         return ACTION_EQUALIZED_APPLIED
+    }
+
+    fun getActionGoogleDriveDownloaded(): String {
+        return ACTION_GOOGLE_DRIVE_DOWNLOADED
     }
 
     fun getActionValidateOfRSFailed(): String {

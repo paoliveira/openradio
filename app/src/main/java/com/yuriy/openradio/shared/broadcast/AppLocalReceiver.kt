@@ -71,6 +71,11 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
                 mCallback!!.onSortIdChanged(AppLocalBroadcast.getSortId(intent))
             }
         }
+        if (action == AppLocalBroadcast.getActionGoogleDriveDownloaded()) {
+            if (mCallback != null) {
+                mCallback!!.onGoogleDriveDownloaded()
+            }
+        }
         if (action == AppLocalBroadcast.getActionCurrentIndexOnQueueChanged()) {
             if (mCallback != null) {
                 mCallback!!.onCurrentIndexOnQueueChanged(

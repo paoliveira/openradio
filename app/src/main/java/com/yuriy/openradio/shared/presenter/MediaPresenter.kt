@@ -448,6 +448,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
         intentFilter.addAction(AppLocalBroadcast.getActionLocationChanged())
         intentFilter.addAction(AppLocalBroadcast.getActionCurrentIndexOnQueueChanged())
         intentFilter.addAction(AppLocalBroadcast.getActionSortIdChanged())
+        intentFilter.addAction(AppLocalBroadcast.getActionGoogleDriveDownloaded())
         // Register receiver
         LocalBroadcastManager.getInstance(context!!).registerReceiver(
                 mAppLocalBroadcastRcvr,

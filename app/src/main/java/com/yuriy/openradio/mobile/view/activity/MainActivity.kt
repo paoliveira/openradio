@@ -565,12 +565,11 @@ class MainActivity : AppCompatActivity() {
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
 
         override fun onLocationChanged() {
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
+            if (mMediaPresenter == null) {
                 return
             }
-            d(CLASS_NAME + "Location Changed received")
-            if (mMediaPresenter == null) {
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+                w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
@@ -596,6 +595,19 @@ class MainActivity : AppCompatActivity() {
 
         override fun onSortIdChanged(sortId:Int) {
             mMediaPresenter?.setActiveItem(sortId)
+        }
+
+        override fun onGoogleDriveDownloaded() {
+            if (mMediaPresenter == null) {
+                return
+            }
+            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+                w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
+                return
+            }
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+                updateRootView()
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
@@ -23,10 +24,12 @@ import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import androidx.fragment.app.FragmentManager
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveError
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
 import com.yuriy.openradio.shared.utils.AppLogger
@@ -41,14 +44,12 @@ import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class GoogleDriveDialog : BaseDialogFragment() {
+
     private var mProgressBarUpload: ProgressBar? = null
     private var mProgressBarDownload: ProgressBar? = null
     private var mProgressBarTitle: ProgressBar? = null
-
-    /**
-     *
-     */
     private var mGoogleDriveManager: GoogleDriveManager? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val context = context
@@ -157,6 +158,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
     }
 
     private inner class GoogleDriveManagerListenerImpl : GoogleDriveManager.Listener {
+
         override fun onAccountRequested(client: GoogleSignInClient) {
             if (mGoogleDriveManager == null) {
                 showErrorToast(getString(R.string.google_drive_error_msg_1))
@@ -183,7 +185,12 @@ class GoogleDriveDialog : BaseDialogFragment() {
             val message: String
             message = when (command) {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_data_saved)
-                GoogleDriveManager.Command.DOWNLOAD -> context.getString(R.string.google_drive_data_read)
+                GoogleDriveManager.Command.DOWNLOAD -> {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                            AppLocalBroadcast.createIntentGoogleDriveDownloaded()
+                    )
+                    context.getString(R.string.google_drive_data_read)
+                }
             }
             showAnyThread(context, message)
             hideProgress(command)
@@ -214,10 +221,9 @@ class GoogleDriveDialog : BaseDialogFragment() {
         /**
          * Tag string to use in dialog transactions.
          */
-        @JvmField
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
         private const val ACCOUNT_REQUEST_CODE = 400
-        @JvmStatic
+
         fun findDialog(fragmentManager: FragmentManager?): GoogleDriveDialog? {
             if (fragmentManager == null) {
                 return null
