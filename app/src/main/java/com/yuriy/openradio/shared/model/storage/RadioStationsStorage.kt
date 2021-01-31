@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2020-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage
 
 import android.support.v4.media.session.MediaSessionCompat
@@ -21,10 +22,11 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
 class RadioStationsStorage {
+
     /**
      * Collection of the Radio Stations.
      */
-    private val mRadioStations: MutableList<RadioStation> = Collections.synchronizedList(ArrayList())
+    private val mRadioStations = Collections.synchronizedList<RadioStation>(ArrayList())
 
     fun sort(comparator: Comparator<RadioStation>) {
         synchronized(mRadioStations) { Collections.sort(mRadioStations, comparator) }
@@ -92,12 +94,9 @@ class RadioStationsStorage {
      * @param id
      * @return
      */
-    fun getById(id: String?): RadioStation? {
+    fun getById(id: String): RadioStation? {
         AppLogger.d("$TAG get by")
         var result: RadioStation? = null
-        if (id.isNullOrEmpty()) {
-            return result
-        }
         synchronized(mRadioStations) {
             for (item in mRadioStations) {
                 if (item.id == id) {
@@ -113,12 +112,9 @@ class RadioStationsStorage {
      * @param mediaId
      * @return
      */
-    fun remove(mediaId: String?): RadioStation? {
+    fun remove(mediaId: String): RadioStation? {
         AppLogger.d("$TAG remove")
         var result: RadioStation? = null
-        if (mediaId.isNullOrEmpty()) {
-            return result
-        }
         synchronized(mRadioStations) {
             for (radioStation in mRadioStations) {
                 if (radioStation.id == mediaId) {

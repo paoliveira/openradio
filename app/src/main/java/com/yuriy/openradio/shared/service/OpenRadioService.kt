@@ -477,7 +477,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         if (radioStation != null) {
             LatestRadioStationStorage.add(radioStation, applicationContext)
         }
-        updateMetadata(mCurrentStreamTitle)
+        updateMetadata(radioStation, mCurrentStreamTitle)
     }
 
     private fun stopService() {
@@ -523,7 +523,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     object : MetadataListener {
                         override fun onMetaData(title: String) {
                             d("$CLASS_NAME Metadata title:$title")
-                            updateMetadata(title)
+                            val radioStation = getRadioStationByMediaId(mCurrentMediaId)
+                            updateMetadata(radioStation, title)
                         }
                     }
             )
@@ -532,15 +533,26 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
+    private fun getCurrentPlayingRS(): RadioStation? {
+        val radioStation = getRadioStationByMediaId(mCurrentMediaId) ?: return null
+        // This indicates that Radio Station's url was not downloaded.
+        // Currently, when list of the stations received they comes without stream url
+        // and bitrate, upon selecting one - it is necessary to load additional data.
+        if (!radioStation.isMediaStreamEmpty()) {
+            return null
+        }
+        return radioStation
+    }
+
     /**
-     * Retrieve currently selected Radio Station asynchronously.<br></br>
+     * Checks currently selected Radio Station asynchronously.<br></br>
      * If the URl is not yet obtained via API the it will be retrieved as well,
      * appropriate event will be dispatched via listener.
      *
+     * @param radioStation Currently playing Radio Station, if known.
      * @param listener [RadioStationUpdateListener]
      */
-    private fun getCurrentPlayingRSAsync(listener: RadioStationUpdateListener) {
-        val radioStation = getRadioStationByMediaId(mCurrentMediaId)
+    private fun checkCurrentRsAsync(radioStation: RadioStation?, listener: RadioStationUpdateListener) {
         if (radioStation == null) {
             listener.onComplete(null)
             return
@@ -585,15 +597,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Updates Metadata for the currently playing Radio Station. This method terminates without
      * throwing exception if one of the stream parameters is invalid.
      */
-    private fun updateMetadata(streamTitle: String?) {
-        if (mSession == null) {
-            e("$CLASS_NAME update metadata with null media session")
-            return
-        }
-        if (getString(R.string.buffering_infinite) != streamTitle) {
-            mCurrentStreamTitle = streamTitle
-        }
-        val radioStation = getRadioStationByMediaId(mCurrentMediaId)
+    private fun updateMetadata(radioStation: RadioStation?, streamTitle: String?) {
         if (radioStation == null) {
             w("$CLASS_NAME can not update Metadata - Radio Station is null")
             setPlaybackState(PlaybackStateCompat.STATE_ERROR)
@@ -601,6 +605,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     PlaybackStateError(getString(R.string.no_metadata), PlaybackStateError.Code.GENERAL)
             )
             return
+        }
+        if (mSession == null) {
+            e("$CLASS_NAME update metadata with null media session")
+            return
+        }
+        if (getString(R.string.buffering_infinite) != streamTitle) {
+            mCurrentStreamTitle = streamTitle
         }
         val metadata = MediaItemHelper.metadataFromRadioStation(
                 applicationContext, radioStation, streamTitle
@@ -729,7 +740,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         } else {
             // If we're stopped or playing a song,
             // just go ahead to the new song and (re)start playing.
-            getCurrentPlayingRSAsync(
+            checkCurrentRsAsync(
+                    getRadioStationByMediaId(mCurrentMediaId),
                     object : RadioStationUpdateListener {
                         override fun onComplete(radioStation: RadioStation?) {
                             getCurrentPlayingRSAsyncCb(radioStation)
@@ -836,8 +848,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             e("$CLASS_NAME update playback with null media session")
             return
         }
+        val radioStation = getRadioStationByMediaId(mCurrentMediaId)
         val stateBuilder = PlaybackStateCompat.Builder().setActions(availableActions)
-        setCustomAction(stateBuilder)
+        setCustomAction(radioStation, stateBuilder)
 
         // If there is an error message, send it to the playback state:
         if (error.msg != null) {
@@ -866,7 +879,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         // Update state only in case of play. Error cause "updatePlaybackState" which has "updateMetadata"
         // inside - infinite loop!
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
-            updateMetadata(getString(R.string.buffering_infinite))
+            updateMetadata(radioStation, getString(R.string.buffering_infinite))
         }
         try {
             // Try to address issue on Android 4.1.2:
@@ -880,10 +893,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 || mState == PlaybackStateCompat.STATE_PAUSED) {
             mMediaNotification!!.startNotification(applicationContext, getRadioStationByMediaId(mCurrentMediaId))
         }
-    }// Always show Prev and Next buttons, play index is handling on each listener (for instance, to handle loop
-    // once end or beginning reached).
+    }
+
     /**
      * Get available actions from media control buttons.
+     * Always show Prev and Next buttons, play index is handling on each listener (for instance, to handle loop
+     * once end or beginning reached).
      *
      * @return Actions encoded in integer.
      */
@@ -993,8 +1008,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         handlePlayRequest()
     }
 
-    private fun setCustomAction(stateBuilder: PlaybackStateCompat.Builder) {
-        getCurrentPlayingRSAsync(
+    private fun setCustomAction(radioStation: RadioStation?, stateBuilder: PlaybackStateCompat.Builder) {
+        checkCurrentRsAsync(
+                radioStation,
                 object : RadioStationUpdateListener {
                     override fun onComplete(radioStation: RadioStation?) {
                         if (radioStation == null) {
@@ -1139,7 +1155,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             super.onCustomAction(action, extras)
             i("$mClassName custom action:$action [ors:${this@OpenRadioService.hashCode()}]")
             if (CUSTOM_ACTION_THUMBS_UP == action) {
-                getCurrentPlayingRSAsync(
+                checkCurrentRsAsync(
+                        getRadioStationByMediaId(mCurrentMediaId),
                         object : RadioStationUpdateListener {
                             override fun onComplete(radioStation: RadioStation?) {
                                 val context = this@OpenRadioService.applicationContext

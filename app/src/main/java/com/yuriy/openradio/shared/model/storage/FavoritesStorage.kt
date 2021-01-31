@@ -39,7 +39,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
     /**
      * Cache key of the Favorite Radio Station in order to ease load from preferences.
      */
-    private val sSet: MutableSet<String?> = HashSet()
+    private val sSet = mutableMapOf<String, Boolean>()
 
     /**
      * {@inheritDoc}
@@ -59,7 +59,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
     @Synchronized
     fun add(radioStation: RadioStation?, context: Context) {
         val key = createKeyForRadioStation(radioStation!!)
-        sSet.add(key)
+        sSet[key] = true
         if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
             radioStation.sortId = sSet.size
         }
@@ -128,16 +128,17 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
     @JvmStatic
     fun isFavorite(radioStation: RadioStation, context: Context): Boolean {
         val key = createKeyForRadioStation(radioStation)
-        if (sSet.contains(key)) {
-            return true
+        if (sSet[key] != null) {
+            return sSet[key]!!
         }
         val list = getAll(context)
         for (station in list) {
             if (station.id == radioStation.id) {
-                sSet.add(key)
+                sSet[key] = true
                 return true
             }
         }
+        sSet[key] = false
         return false
     }
 
