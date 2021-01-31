@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.broadcast
 
 import android.annotation.SuppressLint
@@ -22,9 +23,10 @@ import android.bluetooth.BluetoothProfile
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
+import android.util.Log
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.IntentUtils
 
 /**
  * Created by Chernyshov Yurii
@@ -36,6 +38,7 @@ import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
  * headphones.
  */
 class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver() {
+
     interface Listener {
         fun onSameDeviceConnected()
         fun onDisconnected()
@@ -44,16 +47,17 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
     private val mBluetoothAdapter: BluetoothAdapter?
     private val mProfileListener: BluetoothProfileServiceListenerImpl?
     private var mConnectedDevice: String? = null
+
     override fun onReceive(context: Context, intent: Intent) {
-        i("$CLASS_NAME receive:$intent")
-        i(CLASS_NAME + "  data:" + intentBundleToString(intent))
+        AppLogger.i("$CLASS_NAME receive:$intent")
+        AppLogger.i("$CLASS_NAME data:" + IntentUtils.intentBundleToString(intent))
         when (intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR)) {
             BluetoothAdapter.STATE_CONNECTED -> {
-                i("$CLASS_NAME connected")
-                locateDevice(context)
+                AppLogger.i("$CLASS_NAME connected")
+                locateDevice(context, intent)
             }
             BluetoothAdapter.STATE_DISCONNECTED -> {
-                i("$CLASS_NAME disconnected:$mConnectedDevice")
+                AppLogger.i("$CLASS_NAME disconnected:$mConnectedDevice")
                 if (!mConnectedDevice.isNullOrEmpty()) {
                     mListener.onDisconnected()
                 }
@@ -75,38 +79,46 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
      *
      * @param context Context of callee.
      */
-    fun locateDevice(context: Context?) {
+    fun locateDevice(context: Context, intent: Intent?) {
         // Establish connection to the proxy.
         if (mBluetoothAdapter == null) {
             return
         }
-        // Check whether proxy was connected.
-        mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET)
+        try {
+            // Check whether proxy was connected.
+            mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET)
+        } catch (e: Exception) {
+            // SecurityException: query intent receivers: Requires android.permission.INTERACT_ACROSS_USERS_FULL or
+            // android.permission.INTERACT_ACROSS_USERS.
+            // Linking to BluetoothAdapter.getProfileProxy
+            val msg = "$CLASS_NAME can not locate device, ctx:$context, intent:$intent, " +
+                    "data:${IntentUtils.intentBundleToString(intent)}, e:${Log.getStackTraceString(e)}"
+            AnalyticsUtils.logMessage(msg)
+            AnalyticsUtils.logException(RuntimeException(msg))
+        }
     }
 
-    /**
-     *
-     */
     private inner class BluetoothProfileServiceListenerImpl : BluetoothProfile.ServiceListener {
+
         private var mBluetoothHeadset: BluetoothHeadset? = null
         private var mProfile = 0
+
         @SuppressLint("MissingPermission")
         override fun onServiceConnected(profile: Int, proxy: BluetoothProfile) {
-            i("$CLASS_NAME connected profile:$profile")
+            AppLogger.i("$CLASS_NAME connected profile:$profile")
             mBluetoothHeadset = proxy as BluetoothHeadset
             mProfile = profile
-            i("$CLASS_NAME connected headset:$mBluetoothHeadset")
+            AppLogger.i("$CLASS_NAME connected headset:$mBluetoothHeadset")
             val list = mBluetoothHeadset!!.connectedDevices
             if (list.isEmpty()) {
-                d("$CLASS_NAME connected devices are empty")
+                AppLogger.d("$CLASS_NAME connected devices are empty")
                 return
             }
             var connectedDevice: String? = null
             for (device in list) {
-                i(
-                        CLASS_NAME + " device name:" + device.name
-                                + ", MAC:" + device.address
-                                + ", state:" + mBluetoothHeadset!!.getConnectionState(device)
+                AppLogger.i(
+                        "$CLASS_NAME device name:${device.name}, MAC:${device.address}, " +
+                                "state:${mBluetoothHeadset!!.getConnectionState(device)}"
                 )
                 if (mBluetoothHeadset!!.getConnectionState(device) == BluetoothProfile.STATE_CONNECTED) {
                     connectedDevice = device.address
@@ -114,14 +126,14 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
                 }
             }
             if (connectedDevice == mConnectedDevice) {
-                i("$CLASS_NAME connected to same BT device.")
+                AppLogger.i("$CLASS_NAME connected to same BT device.")
                 mListener.onSameDeviceConnected()
             }
             mConnectedDevice = connectedDevice
         }
 
         override fun onServiceDisconnected(profile: Int) {
-            i("$CLASS_NAME disconnected headset:$profile")
+            AppLogger.i("$CLASS_NAME disconnected headset:$profile")
             if (profile == BluetoothProfile.HEADSET) {
                 mBluetoothHeadset = null
             }
@@ -129,7 +141,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
 
         fun clear() {
             if (mBluetoothAdapter != null && mBluetoothHeadset != null) {
-                i("$CLASS_NAME clear")
+                AppLogger.i("$CLASS_NAME clear")
                 mBluetoothAdapter.closeProfileProxy(mProfile, mBluetoothHeadset)
             }
         }
@@ -139,10 +151,6 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
         private val CLASS_NAME = BTConnectionReceiver::class.java.simpleName
     }
 
-    /**
-     * Main constructor.
-     *
-     */
     init {
         mProfileListener = BluetoothProfileServiceListenerImpl()
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()

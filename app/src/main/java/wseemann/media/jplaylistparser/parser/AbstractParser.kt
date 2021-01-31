@@ -26,11 +26,19 @@ abstract class AbstractParser(private val mTimeout: Int) : Parser {
     protected fun parseEntry(playlistEntry: PlaylistEntry, playlist: Playlist) {
         val parser = AutoDetectParser(mTimeout)
         try {
+            if (mLastEntry != null && mLastEntry == playlistEntry) {
+                throw RuntimeException("Cycle detected for $playlistEntry")
+            }
+            mLastEntry = playlistEntry
             parser.parse(playlistEntry[PlaylistEntry.URI], playlist)
         } catch (e: IOException) {
             playlist.add(playlistEntry)
         } catch (e: JPlaylistParserException) {
             playlist.add(playlistEntry)
         }
+    }
+
+    companion object {
+        private var mLastEntry: PlaylistEntry? = null
     }
 }

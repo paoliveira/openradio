@@ -16,6 +16,7 @@
 package wseemann.media.jplaylistparser.parser.m3u8
 
 import android.text.TextUtils
+import wseemann.media.jplaylistparser.exception.JPlaylistParserException
 import wseemann.media.jplaylistparser.mime.MediaType
 import wseemann.media.jplaylistparser.mime.MediaType.Companion.audio
 import wseemann.media.jplaylistparser.parser.AbstractParser
@@ -44,7 +45,7 @@ class M3U8PlaylistParser(timeout: Int) : AbstractParser(timeout) {
      *
      * @throws IOException
      */
-    @Throws(IOException::class)
+    @Throws(IOException::class, JPlaylistParserException::class)
     private fun parsePlaylist(uri: String, stream: InputStream, playlist: Playlist) {
         val host = getHost(uri)
         if (TextUtils.isEmpty(host)) {

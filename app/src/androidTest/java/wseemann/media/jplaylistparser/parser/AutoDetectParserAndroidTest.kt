@@ -17,8 +17,10 @@
 package wseemann.media.jplaylistparser.parser
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.NetUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -71,6 +73,23 @@ class AutoDetectParserAndroidTest {
         latch.await((AppUtils.TIME_OUT + 1000).toLong(), TimeUnit.SECONDS)
         // Requires internet connection!
         Assert.assertThat(ext, Is.`is`(PLSPlaylistParser.EXTENSION))
+    }
+
+    @Test
+    fun testUnrecognizedPlsStream2() {
+        val url = "https://www.jesusbitte.com/doc/tv2/joda.m3u"
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val result = mutableListOf<String>()
+        val latch = CountDownLatch(1)
+        GlobalScope.launch(Dispatchers.IO) {
+            kotlin.run {
+                NetUtils.extractUrlsFromPlaylist(context, url)
+                latch.countDown()
+            }
+        }
+        latch.await((AppUtils.TIME_OUT + 1000).toLong(), TimeUnit.SECONDS)
+        // Requires internet connection!
+        AppLogger.d("Result:${result}")
     }
 
     private fun getInputStreamFromResource(fileName: String) = javaClass.classLoader?.getResourceAsStream(fileName)

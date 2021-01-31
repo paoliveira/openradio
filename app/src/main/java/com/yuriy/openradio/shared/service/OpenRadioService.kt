@@ -35,7 +35,6 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
 import android.view.KeyEvent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media.MediaBrowserServiceCompat
@@ -109,13 +108,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
-import wseemann.media.jplaylistparser.exception.JPlaylistParserException
-import wseemann.media.jplaylistparser.parser.AutoDetectParser
-import wseemann.media.jplaylistparser.playlist.Playlist
-import wseemann.media.jplaylistparser.playlist.PlaylistEntry
-import java.io.IOException
-import java.io.InputStream
-import java.net.SocketTimeoutException
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -270,15 +262,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mServiceHandler = ServiceHandler(looper)
         mApiServiceProvider = ApiServiceProviderImpl(context, JsonDataParserImpl())
         mBTConnectionReceiver.register(context)
-        try {
-            mBTConnectionReceiver.locateDevice(context)
-        } catch (e: Exception) {
-            // Happens on head units:
-            // SecurityException: query intent receivers: Requires android.permission.INTERACT_ACROSS_USERS_FULL or
-            // android.permission.INTERACT_ACROSS_USERS.
-            // Linking to BluetoothAdapter.getProfileProxy
-            e("Can not locate device:${Log.getStackTraceString(e)}")
-        }
+        mBTConnectionReceiver.locateDevice(context, null)
 
         // Add Media Items implementations to the map
         mMediaItemCommands[MediaIdHelper.MEDIA_ID_ROOT] = MediaItemRoot()
@@ -457,7 +441,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     e("HandleUnrecognizedInputFormatException with empty URL")
                     return@withTimeout
                 }
-                val urls = extractUrlsFromPlaylist(playlistUrl)
+                val urls = NetUtils.extractUrlsFromPlaylist(applicationContext, playlistUrl)
                 mUiScope.launch {
                     // Silently clear last references and try to restart:
                     initInternals()
@@ -481,48 +465,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         radioStation.mediaStream.clear()
         radioStation.mediaStream.setVariant(0, urls[0]!!)
         handlePlayRequest()
-    }
-
-    private fun extractUrlsFromPlaylist(playlistUrl: String): Array<String?> {
-        val connection = NetUtils.getHttpURLConnection(
-                applicationContext, playlistUrl, "GET"
-        ) ?: return arrayOfNulls(0)
-        var inputStream: InputStream? = null
-        var result: Array<String?>? = null
-        try {
-            val contentType = connection.contentType
-            inputStream = connection.inputStream
-            val parser = AutoDetectParser(AppUtils.TIME_OUT)
-            val playlist = Playlist()
-            parser.parse(playlistUrl, contentType, inputStream, playlist)
-            val length = playlist.playlistEntries.size
-            result = arrayOfNulls(length)
-            d(CLASS_NAME + "Found " + length + " streams associated with " + playlistUrl)
-            for (i in 0 until length) {
-                val entry = playlist.playlistEntries[i]
-                result[i] = entry[PlaylistEntry.URI]
-                d(CLASS_NAME + " - " + result[i])
-            }
-        } catch (e: SocketTimeoutException) {
-            val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            AnalyticsUtils.logException(Exception(errorMessage, e))
-        } catch (e: IOException) {
-            val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            AnalyticsUtils.logException(Exception(errorMessage, e))
-        } catch (e: JPlaylistParserException) {
-            val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            AnalyticsUtils.logException(Exception(errorMessage, e))
-        } finally {
-            NetUtils.closeHttpURLConnection(connection)
-            if (inputStream != null) {
-                try {
-                    inputStream.close()
-                } catch (e: IOException) {
-                    /**/
-                }
-            }
-        }
-        return result ?: arrayOfNulls(0)
     }
 
     private fun onPrepared() {
@@ -814,12 +756,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             e("$CLASS_NAME ignore play next song, cannot find metadata, idx $mCurrentIndexOnQueue")
             return
         }
-        val source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
+        val source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI).toLowerCase(Locale.ROOT)
         d(
                 "$CLASS_NAME play, idx:$mCurrentIndexOnQueue," +
                         " id:${metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)}, source:$source"
         )
-        if (source.isNullOrEmpty()) {
+        if (source.isEmpty()) {
             e("$CLASS_NAME source is empty")
             return
         }

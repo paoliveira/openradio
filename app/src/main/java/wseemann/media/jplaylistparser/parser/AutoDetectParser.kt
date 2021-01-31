@@ -18,7 +18,6 @@ package wseemann.media.jplaylistparser.parser
 
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppLogger.e
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
@@ -44,11 +43,7 @@ import java.util.concurrent.*
 class AutoDetectParser(private val mTimeout: Int) {
 
     @Throws(IOException::class, JPlaylistParserException::class)
-    fun parse(
-            url: String,
-            mimeType: String?,
-            stream: InputStream,
-            playlist: Playlist) {
+    fun parse(url: String, mimeType: String?, stream: InputStream, playlist: Playlist) {
         var mimeTypeCpy = mimeType
         if (mimeTypeCpy == null) {
             mimeTypeCpy = ""
@@ -148,9 +143,9 @@ class AutoDetectParser(private val mTimeout: Int) {
             inputStream = conn.inputStream
             parser.parse(urlRefetch.toString(), inputStream, playlist)
         } catch (e: SocketTimeoutException) {
-            e("Can not parse uri:$url e:$e")
+            AppLogger.e("Can not parse uri:$url e:$e")
         } catch (e: IOException) {
-            e("Can not parse uri:$url e:$e")
+            AppLogger.e("Can not parse uri:$url e:$e")
         } finally {
             conn?.disconnect()
             if (inputStream != null) {

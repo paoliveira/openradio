@@ -16,6 +16,7 @@
 
 package wseemann.media.jplaylistparser.parser.m3u
 
+import wseemann.media.jplaylistparser.exception.JPlaylistParserException
 import wseemann.media.jplaylistparser.mime.MediaType
 import wseemann.media.jplaylistparser.mime.MediaType.Companion.audio
 import wseemann.media.jplaylistparser.parser.AbstractParser
@@ -41,7 +42,7 @@ class M3UPlaylistParser(timeout: Int) : AbstractParser(timeout) {
      * Retrieves the files listed in a .m3u file
      * @throws IOException
      */
-    @Throws(IOException::class)
+    @Throws(IOException::class, JPlaylistParserException::class)
     private fun parsePlaylist(stream: InputStream, playlist: Playlist) {
         var playlistEntry = PlaylistEntry()
         stream.bufferedReader().forEachLine { it ->
@@ -61,9 +62,9 @@ class M3UPlaylistParser(timeout: Int) : AbstractParser(timeout) {
         }
     }
 
-    private fun savePlaylistFile(playlistEntry: PlaylistEntry?, playlist: Playlist) {
+    private fun savePlaylistFile(playlistEntry: PlaylistEntry, playlist: Playlist) {
         mNumberOfFiles += 1
-        playlistEntry!![PlaylistEntry.TRACK] = mNumberOfFiles.toString()
+        playlistEntry[PlaylistEntry.TRACK] = mNumberOfFiles.toString()
         parseEntry(playlistEntry, playlist)
         processingEntry = false
     }

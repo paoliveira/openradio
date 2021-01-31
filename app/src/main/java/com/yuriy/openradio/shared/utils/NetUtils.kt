@@ -23,8 +23,12 @@ import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
 import com.yuriy.openradio.shared.view.SafeToast
 import okhttp3.internal.Util
+import wseemann.media.jplaylistparser.parser.AutoDetectParser
+import wseemann.media.jplaylistparser.playlist.Playlist
+import wseemann.media.jplaylistparser.playlist.PlaylistEntry
 import java.io.BufferedWriter
 import java.io.IOException
+import java.io.InputStream
 import java.io.OutputStreamWriter
 import java.io.UnsupportedEncodingException
 import java.net.HttpURLConnection
@@ -170,5 +174,40 @@ object NetUtils {
         }
         AppLogger.i("$CLASS_NAME post query:$result")
         return result.toString()
+    }
+
+    @JvmStatic
+    fun extractUrlsFromPlaylist(context: Context, playlistUrl: String): Array<String?> {
+        val connection = getHttpURLConnection(context, playlistUrl, "GET") ?: return arrayOfNulls(0)
+        var inputStream: InputStream? = null
+        var result: Array<String?>? = null
+        try {
+            val contentType = connection.contentType
+            inputStream = connection.inputStream
+            val parser = AutoDetectParser(AppUtils.TIME_OUT)
+            val playlist = Playlist()
+            parser.parse(playlistUrl, contentType, inputStream, playlist)
+            val length = playlist.playlistEntries.size
+            result = arrayOfNulls(length)
+            AppLogger.d("$CLASS_NAME Found $length streams associated with $playlistUrl")
+            for (i in 0 until length) {
+                val entry = playlist.playlistEntries[i]
+                result[i] = entry[PlaylistEntry.URI]
+                AppLogger.d("$CLASS_NAME - $result[i]")
+            }
+        } catch (e: Exception) {
+            val errorMessage = "Can not get urls from playlist at $playlistUrl"
+            logException(Exception(errorMessage, e))
+        } finally {
+            closeHttpURLConnection(connection)
+            if (inputStream != null) {
+                try {
+                    inputStream.close()
+                } catch (e: IOException) {
+                    /**/
+                }
+            }
+        }
+        return result ?: arrayOfNulls(0)
     }
 }
