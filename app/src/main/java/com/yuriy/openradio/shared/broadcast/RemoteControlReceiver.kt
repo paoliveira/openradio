@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,10 @@ import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
 import androidx.core.content.ContextCompat
-import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager.isServiceActive
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makePlayLastPlayedItemIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeStopLastPlayedItemIntent
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.makeToggleLastPlayedItemIntent
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.w
+import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
+import com.yuriy.openradio.shared.service.OpenRadioService
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
+import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created by Yuriy Chernyshov
@@ -37,7 +34,7 @@ import com.yuriy.openradio.shared.utils.AppLogger.w
 class RemoteControlReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (!isServiceActive(context)) {
+        if (!ServiceLifecyclePreferencesManager.isServiceActive(context)) {
             return
         }
         if (Intent.ACTION_MEDIA_BUTTON != intent.action) {
@@ -45,19 +42,18 @@ class RemoteControlReceiver : BroadcastReceiver() {
         }
         val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
         val keyCode = event?.keyCode ?: Int.MIN_VALUE
-        d("$CLASS_NAME KeyCode:$keyCode")
-        logMessage("RemoteControlReceiver[" + this.hashCode() + "]->onReceive(" + keyCode + "):startForegroundService")
+        AnalyticsUtils.logMessage("$CLASS_NAME [" + this.hashCode() + "]->onReceive(" + keyCode + "):startForegroundService")
         when (keyCode) {
             KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                ContextCompat.startForegroundService(context, makePlayLastPlayedItemIntent(context))
+                ContextCompat.startForegroundService(context, OpenRadioService.makePlayLastPlayedItemIntent(context))
             }
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                ContextCompat.startForegroundService(context, makeToggleLastPlayedItemIntent(context))
+                ContextCompat.startForegroundService(context, OpenRadioService.makeToggleLastPlayedItemIntent(context))
             }
             KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> {
-                ContextCompat.startForegroundService(context, makeStopLastPlayedItemIntent(context))
+                ContextCompat.startForegroundService(context, OpenRadioService.makeStopLastPlayedItemIntent(context))
             }
-            else -> w("$CLASS_NAME Unhandled key code:$keyCode")
+            else -> AppLogger.w("$CLASS_NAME Unhandled key code:$keyCode")
         }
     }
 

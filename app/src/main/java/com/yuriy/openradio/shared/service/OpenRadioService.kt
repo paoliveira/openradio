@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.service
 
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.app.UiModeManager
 import android.content.ComponentName
 import android.content.Context
@@ -133,12 +134,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     /**
      * Media Session.
      */
-    private var mSession: MediaSessionCompat? = null
+    private lateinit var mSession: MediaSessionCompat
 
     /**
      * Callback listener to listen media session events.
      */
-    private var mMediaSessionCb: MediaSessionCompat.Callback? = null
+    private lateinit var mMediaSessionCb: MediaSessionCompat.Callback
 
     /**
      * Index of the current playing song.
@@ -156,7 +157,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     /**
      * Notification object.
      */
-    private var mMediaNotification: MediaNotification? = null
+    private lateinit var mMediaNotification: MediaNotification
 
     /**
      * Flag that indicates whether application runs over normal Android or Auto version.
@@ -169,7 +170,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     var isTv = false
         private set
 
-    private var mPackageValidator: PackageValidator? = null
+    private lateinit var mPackageValidator: PackageValidator
 
     private enum class PauseReason { DEFAULT, NOISY }
 
@@ -198,14 +199,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
-    private var mApiServiceProvider: ApiServiceProvider? = null
+    private lateinit var mApiServiceProvider: ApiServiceProvider
     private val mUiScope = CoroutineScope(Dispatchers.Main)
 
     /**
      * Processes Messages sent to it from onStartCommand() that indicate which command to process.
      */
     @Volatile
-    private var mServiceHandler: ServiceHandler? = null
+    private lateinit var mServiceHandler: ServiceHandler
 
     private val mDownloader: Downloader
     private val mRadioStationsComparator: Comparator<RadioStation>
@@ -277,21 +278,31 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mMediaItemCommands[MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS] = MediaItemRecentlyAddedStations()
         mCurrentIndexOnQueue = MediaSessionCompat.QueueItem.UNKNOWN_ID
 
+        // Build a PendingIntent that can be used to launch the UI.
+        val sessionActivityPendingIntent =
+                packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
+                    PendingIntent.getActivity(this, 0, sessionIntent, 0)
+                }
+
         // Need this component for API 20 and earlier.
         // I wish to get rid of this because it keeps listen to broadcast even after application is destroyed :-(
         val mediaButtonReceiver = ComponentName(context, RemoteControlReceiver::class.java)
 
         // Start a new MediaSession
         mSession = MediaSessionCompat(context, "OpenRadioService", mediaButtonReceiver, null)
+                .apply {
+                    setSessionActivity(sessionActivityPendingIntent)
+                    isActive = true
+                }
 
-        sessionToken = mSession!!.sessionToken
+        sessionToken = mSession.sessionToken
         mMediaSessionCb = MediaSessionCallback()
-        mSession!!.setCallback(mMediaSessionCb)
-        mSession!!.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
+        mSession.setCallback(mMediaSessionCb)
+        mSession.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
         mMediaNotification = MediaNotification(this)
         AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate")
-        mMediaNotification!!.notifyService("Application just started")
+        mMediaNotification.notifyService("Application just started")
         mMasterVolumeBroadcastReceiver.register(context)
         mClearCacheReceiver.register(context)
         ServiceLifecyclePreferencesManager.isServiceActive(context, true)
@@ -317,15 +328,17 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         super.onDestroy()
         val context = applicationContext
         ServiceLifecyclePreferencesManager.isServiceActive(context, false)
-        if (mServiceHandler != null) {
-            mServiceHandler!!.looper.quit()
+        if (this::mServiceHandler.isInitialized) {
+            mServiceHandler.looper.quit()
         }
         mBTConnectionReceiver.unregister(context)
         mConnectivityReceiver.unregister(context)
         mNoisyAudioStreamReceiver.unregister(context)
         mMasterVolumeBroadcastReceiver.unregister(context)
         mClearCacheReceiver.unregister(context)
-        mApiServiceProvider!!.close()
+        if (this::mApiServiceProvider.isInitialized) {
+            mApiServiceProvider.close()
+        }
         stopService()
     }
 
@@ -336,7 +349,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         AnalyticsUtils.logMessage(str)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
-        if (!mPackageValidator!!.isKnownCaller(clientPackageName, clientUid)) {
+        if (!mPackageValidator.isKnownCaller(clientPackageName, clientUid)) {
             // If the request comes from an untrusted package, return null. No further calls will
             // be made to other media browsing methods.
             w("$CLASS_NAME IGNORING request from untrusted package $clientPackageName")
@@ -377,7 +390,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val context = applicationContext
         val command = mMediaItemCommands[MediaIdHelper.getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
-                context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider!!,
+                context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
                 countryCode, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
                 object : ResultListener {
                     override fun onResult() {
@@ -408,10 +421,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param intent
      */
     private fun sendMessage(intent: Intent) {
+        if (!this::mServiceHandler.isInitialized) {
+            return
+        }
         // Create a Message that will be sent to ServiceHandler.
-        val message = mServiceHandler!!.makeMessage(intent)
+        val message = mServiceHandler.makeMessage(intent)
         // Send the Message to ServiceHandler.
-        mServiceHandler!!.sendMessage(message)
+        mServiceHandler.sendMessage(message)
     }
 
     /**
@@ -486,16 +502,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         handleStopRequest()
         releaseExoPlayer()
         mDelayedStopHandler.removeCallbacksAndMessages(null)
-        // In particular, always release the MediaSession to clean up resources
-        // and notify associated MediaController(s).
-        if (mSession != null) {
+        if (this::mSession.isInitialized) {
             d("$CLASS_NAME clear media session")
-            mSession!!.isActive = false
-            mSession!!.setMediaButtonReceiver(null)
-            mSession!!.setCallback(null)
-            mSession!!.release()
-            mSession = null
-            mMediaSessionCb = null
+            mSession.isActive = false
+            mSession.setMediaButtonReceiver(null)
+            mSession.setCallback(null)
+            mSession.release()
         }
     }
 
@@ -568,12 +580,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val id = radioStation.id
         GlobalScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
-                if (mApiServiceProvider == null) {
+                if (!this@OpenRadioService::mApiServiceProvider.isInitialized) {
                     mUiScope.launch { listener.onComplete(null) }
                     return@withTimeout
                 }
                 // Start download information about Radio Station
-                val radioStationUpdated = mApiServiceProvider!!
+                val radioStationUpdated = mApiServiceProvider
                         .getStation(mDownloader, UrlBuilder.getStation(id), CacheType.NONE)
                 if (radioStationUpdated == null) {
                     mUiScope.launch { listener.onComplete(null) }
@@ -598,6 +610,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * throwing exception if one of the stream parameters is invalid.
      */
     private fun updateMetadata(radioStation: RadioStation?, streamTitle: String?) {
+        if (!this::mSession.isInitialized) {
+            e("$CLASS_NAME update metadata with null media session")
+            return
+        }
         if (radioStation == null) {
             w("$CLASS_NAME can not update Metadata - Radio Station is null")
             setPlaybackState(PlaybackStateCompat.STATE_ERROR)
@@ -606,8 +622,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             )
             return
         }
-        if (mSession == null) {
-            e("$CLASS_NAME update metadata with null media session")
+        if (!mSession.isActive) {
+            e("$CLASS_NAME update metadata on inactive session")
             return
         }
         if (getString(R.string.buffering_infinite) != streamTitle) {
@@ -628,7 +644,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
         d("$CLASS_NAME updating metadata for MusicId:${radioStation.id}, title:$streamTitle")
         try {
-            mSession!!.setMetadata(metadata)
+            mSession.setMetadata(metadata)
         } catch (e: IllegalStateException) {
             e("$CLASS_NAME can not set metadata:$e")
         }
@@ -712,18 +728,18 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun handlePlayRequestUiThread() {
         d("$CLASS_NAME handle play request, state:${MediaItemHelper.playbackStateToString(mState)}")
-        if (mSession == null) {
-            e("$CLASS_NAME handle play with null media session")
+        mCurrentStreamTitle = null
+        if (!this::mSession.isInitialized) {
+            e("$CLASS_NAME handle play request with null media session")
             return
         }
-        mCurrentStreamTitle = null
         val context = applicationContext
         if (!ConnectivityReceiver.checkConnectivityAndNotify(context)) {
             return
         }
         mDelayedStopHandler.removeCallbacksAndMessages(null)
-        if (!mSession!!.isActive) {
-            mSession!!.isActive = true
+        if (!mSession.isActive) {
+            mSession.isActive = true
         }
 
         // actually play the song
@@ -795,7 +811,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun handleClearCache() {
-        mApiServiceProvider!!.clear()
+        if (this::mApiServiceProvider.isInitialized) {
+            mApiServiceProvider.clear()
+        }
         SafeToast.showAnyThread(this, getString(R.string.clear_completed))
     }
 
@@ -844,8 +862,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private fun updatePlaybackState(error: PlaybackStateError = PlaybackStateError()) {
         d("$CLASS_NAME set playback state to ${MediaItemHelper.playbackStateToString(mState)} error:$error")
-        if (mSession == null) {
-            e("$CLASS_NAME update playback with null media session")
+        if (!this::mSession.isInitialized) {
+            e("$CLASS_NAME playback state with null media session")
             return
         }
         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
@@ -884,14 +902,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         try {
             // Try to address issue on Android 4.1.2:
             // IllegalStateException: beginBroadcast() called while already in a broadcast
-            mSession!!.setPlaybackState(stateBuilder.build())
+            mSession.setPlaybackState(stateBuilder.build())
         } catch (e: IllegalStateException) {
             AnalyticsUtils.logException(e)
         }
         if (mState == PlaybackStateCompat.STATE_BUFFERING
                 || mState == PlaybackStateCompat.STATE_PLAYING
                 || mState == PlaybackStateCompat.STATE_PAUSED) {
-            mMediaNotification!!.startNotification(applicationContext, getRadioStationByMediaId(mCurrentMediaId))
+            mMediaNotification.startNotification(applicationContext, getRadioStationByMediaId(mCurrentMediaId))
         }
     }
 
@@ -936,8 +954,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         // let go of all resources...
         relaxResources(true)
-        if (mMediaNotification != null) {
-            mMediaNotification!!.stopNotification()
+        if (this::mMediaNotification.isInitialized) {
+            mMediaNotification.stopNotification()
             updatePlaybackState(error)
         }
     }
@@ -1274,11 +1292,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param query Search query.
      */
     private fun executePerformSearch(query: String) {
-        if (mApiServiceProvider == null) {
+        if (!this::mApiServiceProvider.isInitialized) {
             e("$CLASS_NAME can not handle perform search, API provider is null")
             return
         }
-        val list = mApiServiceProvider!!.getStations(mDownloader, UrlBuilder.getSearchUrl(query), CacheType.NONE)
+        val list = mApiServiceProvider.getStations(mDownloader, UrlBuilder.getSearchUrl(query), CacheType.NONE)
         if (list.isEmpty()) {
             SafeToast.showAnyThread(applicationContext, applicationContext.getString(R.string.no_search_results))
             return
@@ -1323,8 +1341,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         d("$CLASS_NAME rsv cmd:$command")
         when (command) {
             VALUE_NAME_GET_RADIO_STATION_COMMAND -> {
-                if (mMediaNotification != null) {
-                    mMediaNotification!!.notifyService("Update Favorite Radio Station")
+                if (this::mMediaNotification.isInitialized) {
+                    mMediaNotification.notifyService("Update Favorite Radio Station")
                 }
                 val description = extractMediaDescription(intent) ?: return
                 var rs = getRadioStationByMediaId(description.mediaId)
@@ -1433,7 +1451,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     val urlData = UrlBuilder.addStation(rsToAdd)
                     val uri = urlData.first ?: return
                     val pairs = urlData.second ?: return
-                    if (!mApiServiceProvider!!.addStation(mDownloader, uri, pairs, CacheType.NONE)) {
+                    if (!mApiServiceProvider.addStation(mDownloader, uri, pairs, CacheType.NONE)) {
                         LocalBroadcastManager.getInstance(context).sendBroadcast(
                                 AppLocalBroadcast.createIntentValidateOfRSFailed(
                                         "Radio Station can not be added to server"
@@ -1497,8 +1515,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
             }
             VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
-                if (mMediaNotification != null) {
-                    mMediaNotification!!.notifyService("Toggle last Radio Station")
+                if (this::mMediaNotification.isInitialized) {
+                    mMediaNotification.notifyService("Toggle last Radio Station")
                 }
                 when (mState) {
                     PlaybackStateCompat.STATE_PLAYING -> {
@@ -1517,14 +1535,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
             }
             VALUE_NAME_STOP_LAST_PLAYED_ITEM -> {
-                if (mMediaNotification != null) {
-                    mMediaNotification!!.notifyService("Stop play last Radio Station")
+                if (this::mMediaNotification.isInitialized) {
+                    mMediaNotification.notifyService("Stop play last Radio Station")
                 }
                 handlePauseRequest()
             }
             VALUE_NAME_PLAY_LAST_PLAYED_ITEM -> {
-                if (mMediaNotification != null) {
-                    mMediaNotification!!.notifyService("Play last Radio Station")
+                if (this::mMediaNotification.isInitialized) {
+                    mMediaNotification.notifyService("Play last Radio Station")
                 }
                 handlePlayRequest()
             }
@@ -1532,8 +1550,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 mExoPlayerORImpl!!.loadEqualizerState()
             }
             VALUE_NAME_STOP_SERVICE -> {
-                if (mMediaNotification != null) {
-                    mMediaNotification!!.notifyService("Stop application")
+                if (this::mMediaNotification.isInitialized) {
+                    mMediaNotification.notifyService("Stop application")
                 }
                 mUiScope.launch {
                     initInternals()
