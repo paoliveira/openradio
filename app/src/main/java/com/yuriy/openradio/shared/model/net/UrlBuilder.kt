@@ -43,13 +43,14 @@ object UrlBuilder {
     const val ITEMS_PER_PAGE = 200
     const val BASE_URL_PREFIX = "https://do-look-up-dns-first"
     const val LOOK_UP_DNS = "all.api.radio-browser.info"
+
     @JvmField
     val RESERVED_URLS = arrayOf(
             "https://de1.api.radio-browser.info",
             "https://fr1.api.radio-browser.info",
             "https://nl1.api.radio-browser.info"
     )
-    private const val RECENT_POPULAR_PER_PAGE = 200
+    const val RECENT_POPULAR_PER_PAGE = 200
 
     /**
      * Base URL for the API requests.
@@ -123,18 +124,18 @@ object UrlBuilder {
      *
      * @return [Uri]
      */
-    @JvmStatic
-    val popularStations: Uri
-        get() = Uri.parse(BASE_URL + "stations/topclick/" + RECENT_POPULAR_PER_PAGE)
+    fun getPopularStations(numOfStations: Int = RECENT_POPULAR_PER_PAGE): Uri{
+        return Uri.parse(BASE_URL + "stations/topclick/" + numOfStations)
+    }
 
     /**
      * Get Uri for the list of the recently added Radio Stations.
      *
      * @return [Uri]
      */
-    @JvmStatic
-    val recentlyAddedStations: Uri
-        get() = Uri.parse(BASE_URL + "stations/lastchange/" + RECENT_POPULAR_PER_PAGE)
+    fun getRecentlyAddedStations(numOfStations: Int = RECENT_POPULAR_PER_PAGE): Uri {
+        return Uri.parse(BASE_URL + "stations/lastchange/" + numOfStations)
+    }
 
     /**
      * Get Uri for the concrete Radio Station details.

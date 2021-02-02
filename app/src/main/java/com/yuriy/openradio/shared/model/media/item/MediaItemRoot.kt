@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFro
 import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
 import com.yuriy.openradio.shared.utils.MediaItemHelper.updateLastPlayedField
+import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
 /**
@@ -51,8 +52,9 @@ class MediaItemRoot : MediaItemCommand {
         dependencies.radioStationsStorage.clear()
         dependencies.result.detach()
 
+        var latestRadioStation: RadioStation? = null
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            val latestRadioStation = LatestRadioStationStorage[dependencies.context]
+            latestRadioStation = LatestRadioStationStorage[dependencies.context]
             if (latestRadioStation != null) {
                 dependencies.radioStationsStorage.add(latestRadioStation)
                 // Add Radio Station to Menu
@@ -63,17 +65,29 @@ class MediaItemRoot : MediaItemCommand {
                 updateFavoriteField(mediaItem, FavoritesStorage.isFavorite(latestRadioStation, dependencies.context))
                 updateLastPlayedField(mediaItem, true)
             }
-            // In case of Android Auto, fill storage with Favorites. It will allow to browse stations from steering
-            // wheel while UI is in Home and root items will contain only directories.
-            if (dependencies.isAndroidAuto) {
-                val list = FavoritesStorage.getAll(context)
-                Collections.sort(list, dependencies.mRadioStationsComparator)
-                dependencies.radioStationsStorage.addAll(list)
-            }
         }
 
         // Show Favorites if they are exists.
         if (!FavoritesStorage.isFavoritesEmpty(context)) {
+
+            // In case of Android Auto, fill storage with Favorites. It will allow to browse stations from steering
+            // wheel while UI is in Home and root items will contain only directories.
+            if (dependencies.isAndroidAuto) {
+                val list = FavoritesStorage.getAll(context)
+                if (latestRadioStation != null) {
+                    for (item in list) {
+                        // If latest known station is in favorites list, remove it (it is in the list already).
+                        // Else, just append favorites to the last known.
+                        if (item.id == latestRadioStation.id) {
+                            dependencies.radioStationsStorage.clear()
+                            break
+                        }
+                    }
+                }
+                Collections.sort(list, dependencies.mRadioStationsComparator)
+                dependencies.radioStationsStorage.addAll(list)
+            }
+
             // Favorites list
             val builder = MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)

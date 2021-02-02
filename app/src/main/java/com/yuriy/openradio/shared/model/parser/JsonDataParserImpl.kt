@@ -81,5 +81,9 @@ class JsonDataParserImpl : DataParser {
          * Positive values mean an increase, negative a decrease of clicks.
          */
         const val KEY_CLICK_TREND = "clicktrend"
+
+        const val KEY_LAST_CHECK_OK_TIME = "lastcheckoktime"
+
+        const val KEY_LAST_CHECK_OK = "lastcheckok"
     }
 }

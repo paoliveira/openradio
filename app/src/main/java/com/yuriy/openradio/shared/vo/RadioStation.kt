@@ -40,6 +40,8 @@ class RadioStation : Serializable {
     var status = 0
     var name = ""
     var homePage = ""
+    var lastCheckOkTime = ""
+    var lastCheckOk = 0
 
     // TODO: Convert to enum
     private var mCountry = ""
@@ -145,6 +147,8 @@ class RadioStation : Serializable {
         return "RS " + hashCode() + " {" +
                 "id=" + mId +
                 ", status=" + status +
+                ", lastCheckOk=" + lastCheckOk +
+                ", lastCheckOkTime=" + lastCheckOkTime +
                 ", name='" + name + '\'' +
                 ", stream='" + mMediaStream + '\'' +
                 ", webSite='" + homePage + '\'' +

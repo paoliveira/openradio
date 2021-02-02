@@ -16,7 +16,7 @@
 package com.yuriy.openradio.shared.model.media.item
 
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
-import com.yuriy.openradio.shared.model.net.UrlBuilder.popularStations
+import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +52,7 @@ class MediaItemPopularStations : MediaItemCommandImpl() {
                 val list: List<RadioStation> = ArrayList(
                         dependencies.serviceProvider.getStations(
                                 dependencies.downloader,
-                                popularStations,
+                                UrlBuilder.getPopularStations(),
                                 getCacheType(dependencies)
                         )
                 )
