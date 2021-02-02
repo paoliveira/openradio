@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.model.storage
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -115,7 +114,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @return True in case of the are Favorites in collection, False - otherwise.
      */
     fun isFavoritesEmpty(context: Context): Boolean {
-        return isEmpty(context, FILE_NAME)
+        return isEmpty(context, FILE_NAME, setOf(KEY_IS_NEW_SORT_FEATURE))
     }
 
     /**

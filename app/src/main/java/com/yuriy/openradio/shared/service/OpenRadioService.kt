@@ -170,7 +170,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     var isTv = false
         private set
 
-    private lateinit var mPackageValidator: PackageValidator
+    private val mPackageValidator: PackageValidator by lazy {
+        PackageValidator(applicationContext, R.xml.allowed_media_browser_callers)
+    }
 
     private enum class PauseReason { DEFAULT, NOISY }
 
@@ -199,7 +201,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
-    private lateinit var mApiServiceProvider: ApiServiceProvider
+    private val mApiServiceProvider: ApiServiceProvider by lazy {
+        ApiServiceProviderImpl(applicationContext, JsonDataParserImpl())
+    }
     private val mUiScope = CoroutineScope(Dispatchers.Main)
 
     /**
@@ -236,7 +240,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         super.onCreate()
         i("$CLASS_NAME On Create")
         val context = applicationContext
-        mPackageValidator = PackageValidator(context, R.xml.allowed_media_browser_callers)
         val orientationStr: String
         val orientation = resources.configuration.orientation
         orientationStr = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -261,7 +264,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val looper = thread.looper
         // Get the HandlerThread's Looper and use it for our Handler.
         mServiceHandler = ServiceHandler(looper)
-        mApiServiceProvider = ApiServiceProviderImpl(context, JsonDataParserImpl())
         mBTConnectionReceiver.register(context)
         mBTConnectionReceiver.locateDevice(context, null)
 
@@ -336,9 +338,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mNoisyAudioStreamReceiver.unregister(context)
         mMasterVolumeBroadcastReceiver.unregister(context)
         mClearCacheReceiver.unregister(context)
-        if (this::mApiServiceProvider.isInitialized) {
-            mApiServiceProvider.close()
-        }
+        mApiServiceProvider.close()
         stopService()
     }
 
@@ -580,10 +580,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val id = radioStation.id
         GlobalScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
-                if (!this@OpenRadioService::mApiServiceProvider.isInitialized) {
-                    mUiScope.launch { listener.onComplete(null) }
-                    return@withTimeout
-                }
                 // Start download information about Radio Station
                 val radioStationUpdated = mApiServiceProvider
                         .getStation(mDownloader, UrlBuilder.getStation(id), CacheType.NONE)
@@ -811,9 +807,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun handleClearCache() {
-        if (this::mApiServiceProvider.isInitialized) {
-            mApiServiceProvider.clear()
-        }
+        mApiServiceProvider.clear()
         SafeToast.showAnyThread(this, getString(R.string.clear_completed))
     }
 
@@ -1292,10 +1286,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param query Search query.
      */
     private fun executePerformSearch(query: String) {
-        if (!this::mApiServiceProvider.isInitialized) {
-            e("$CLASS_NAME can not handle perform search, API provider is null")
-            return
-        }
         val list = mApiServiceProvider.getStations(mDownloader, UrlBuilder.getSearchUrl(query), CacheType.NONE)
         if (list.isEmpty()) {
             SafeToast.showAnyThread(applicationContext, applicationContext.getString(R.string.no_search_results))

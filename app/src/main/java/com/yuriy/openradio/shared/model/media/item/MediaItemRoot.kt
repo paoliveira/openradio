@@ -62,15 +62,20 @@ class MediaItemRoot : MediaItemCommand {
                 )
                 updateFavoriteField(mediaItem, FavoritesStorage.isFavorite(latestRadioStation, dependencies.context))
                 updateLastPlayedField(mediaItem, true)
-                // In case of Android Auto, display latest played Radio Station on top of Menu.
-                if (dependencies.isAndroidAuto) {
-                    dependencies.addMediaItem(mediaItem)
-                }
             }
         }
 
         // Show Favorites if they are exists.
         if (!FavoritesStorage.isFavoritesEmpty(context)) {
+
+            // In case of Android Auto, fill storage with Favorites. It will allow to browse stations from steering
+            // wheel, while root items contains only directories.
+            if (dependencies.isAndroidAuto) {
+                val list = FavoritesStorage.getAll(context)
+                Collections.sort(list, dependencies.mRadioStationsComparator)
+                dependencies.radioStationsStorage.addAll(list)
+            }
+
             // Favorites list
             val builder = MediaDescriptionCompat.Builder()
                     .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)

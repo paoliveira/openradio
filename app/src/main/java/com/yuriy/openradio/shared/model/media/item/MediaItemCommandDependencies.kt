@@ -85,7 +85,7 @@ class MediaItemCommandDependencies(
     val resultListener: ResultListener
     val isSameCatalogue: Boolean
     val isSavedInstance: Boolean
-    private val mRadioStationsComparator: Comparator<RadioStation>
+    val mRadioStationsComparator: Comparator<RadioStation>
     private val mMediaItemsComparator: Comparator<MediaBrowserCompat.MediaItem>
 
     fun addMediaItem(item: MediaBrowserCompat.MediaItem) {

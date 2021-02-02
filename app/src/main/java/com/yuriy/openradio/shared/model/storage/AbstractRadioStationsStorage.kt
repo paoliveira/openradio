@@ -240,10 +240,17 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          * @return `true` in case of the are items in collection, `false` - otherwise.
          */
         @JvmStatic
-        protected fun isEmpty(context: Context, name: String): Boolean {
+        protected fun isEmpty(context: Context, name: String, excludeKeys: Set<String> = setOf()): Boolean {
             val sharedPreferences = getSharedPreferences(context, name)
             val map = sharedPreferences.all
-            return map.isEmpty()
+            var counter = 0
+            for (keys in map.keys) {
+                if (excludeKeys.contains(keys)) {
+                    continue
+                }
+                counter++
+            }
+            return counter == 0
         }
 
         /**
