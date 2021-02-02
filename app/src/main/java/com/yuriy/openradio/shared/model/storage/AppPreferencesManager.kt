@@ -70,10 +70,7 @@ object AppPreferencesManager {
      */
     @JvmStatic
     fun areLogsEnabled(context: Context): Boolean {
-        return getSharedPreferences(context).getBoolean(
-                PREFS_KEY_ARE_LOGS_ENABLED,
-                false
-        )
+        return getSharedPreferences(context).getBoolean(PREFS_KEY_ARE_LOGS_ENABLED,false)
     }
 
     /**
@@ -91,10 +88,7 @@ object AppPreferencesManager {
      * @return True if it is allowed to autoplay last known Radio Station on app start. False - otherwise.
      */
     fun lastKnownRadioStationEnabled(context: Context): Boolean {
-        return getSharedPreferences(context).getBoolean(
-                PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED,
-                true
-        )
+        return getSharedPreferences(context).getBoolean(PREFS_KEY_LAST_KNOWN_RADIO_STATION_ENABLED, true)
     }
 
     /**
@@ -112,10 +106,7 @@ object AppPreferencesManager {
      * @return `true` if custom user agent is enabled, `false` otherwise.
      */
     fun isCustomUserAgent(context: Context): Boolean {
-        return getSharedPreferences(context).getBoolean(
-                PREFS_KEY_IS_CUSTOM_USER_AGENT,
-                false
-        )
+        return getSharedPreferences(context).getBoolean(PREFS_KEY_IS_CUSTOM_USER_AGENT, false)
     }
 
     /**
@@ -123,8 +114,7 @@ object AppPreferencesManager {
      *
      * @param value Boolean value.
      */
-    fun isCustomUserAgent(context: Context,
-                          value: Boolean) {
+    fun isCustomUserAgent(context: Context, value: Boolean) {
         val editor = getEditor(context)
         editor.putBoolean(PREFS_KEY_IS_CUSTOM_USER_AGENT, value)
         editor.apply()
@@ -134,9 +124,7 @@ object AppPreferencesManager {
      * @return Value of the custom user agent, or default one in case of errors.
      */
     fun getCustomUserAgent(context: Context, defaultValue: String): String {
-        var value = getSharedPreferences(context).getString(
-                PREFS_KEY_CUSTOM_USER_AGENT, defaultValue
-        )
+        var value = getSharedPreferences(context).getString(PREFS_KEY_CUSTOM_USER_AGENT, defaultValue)
         if (value.isNullOrEmpty()) {
             value = defaultValue
         }
@@ -148,8 +136,7 @@ object AppPreferencesManager {
      *
      * @param value Custom user agent. Non null and not empty value.
      */
-    fun setCustomUserAgent(context: Context,
-                           value: String) {
+    fun setCustomUserAgent(context: Context, value: String) {
         val editor = getEditor(context)
         editor.putString(PREFS_KEY_CUSTOM_USER_AGENT, value)
         editor.apply()
@@ -159,10 +146,7 @@ object AppPreferencesManager {
      * @return Value of the master volume, or default one in case of errors.
      */
     fun getMasterVolume(context: Context): Int {
-        return getSharedPreferences(context).getInt(
-                PREFS_KEY_MASTER_VOLUME,
-                MASTER_VOLUME_DEFAULT
-        )
+        return getSharedPreferences(context).getInt(PREFS_KEY_MASTER_VOLUME, MASTER_VOLUME_DEFAULT)
     }
 
     /**
@@ -178,9 +162,7 @@ object AppPreferencesManager {
 
     @JvmStatic
     fun getMinBuffer(context: Context): Int {
-        return getSharedPreferences(context).getInt(
-                PREFS_KEY_MIN_BUFFER, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS
-        )
+        return getSharedPreferences(context).getInt(PREFS_KEY_MIN_BUFFER, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
     }
 
     @JvmStatic
@@ -192,9 +174,7 @@ object AppPreferencesManager {
 
     @JvmStatic
     fun getMaxBuffer(context: Context): Int {
-        return getSharedPreferences(context).getInt(
-                PREFS_KEY_MAX_BUFFER, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS
-        )
+        return getSharedPreferences(context).getInt(PREFS_KEY_MAX_BUFFER, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS)
     }
 
     @JvmStatic
