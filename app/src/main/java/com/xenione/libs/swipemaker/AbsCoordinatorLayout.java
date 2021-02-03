@@ -8,7 +8,7 @@ import android.widget.FrameLayout;
 
 import androidx.core.view.ViewCompat;
 
-import com.yuriy.openradio.R;
+import com.yuriy.openradio.gabor.R;
 
 /**
  * Created on 06/04/16.

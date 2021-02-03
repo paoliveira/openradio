@@ -1,7 +1,6 @@
 apply plugin: "com.google.gms.google-services"
 apply plugin: "com.android.application"
 apply plugin: "dagger.hilt.android.plugin"
-apply plugin: "com.google.firebase.crashlytics"
 apply from: "constants.gradle"
 
 android {
@@ -46,10 +45,11 @@ android {
 
     buildTypes {
         debug {
+//            minifyEnabled true
+//            shrinkResources true
             signingConfig signingConfigs.config
         }
         release {
-            // TODO:
 //            minifyEnabled true
 //            shrinkResources true
             signingConfig signingConfigs.config
@@ -93,14 +93,9 @@ dependencies {
     implementation "androidx.leanback:leanback:1.0.0"
     implementation "com.google.android.material:material:$materialVersion"
     implementation "log4j:log4j:$log4jVersion"
-    implementation 'com.google.firebase:firebase-installations:16.3.3'
-    implementation 'com.google.firebase:firebase-crashlytics:17.2.2'
-    implementation ("com.google.firebase:firebase-analytics:$firebaseVersion") {
-        exclude group: "com.google.android.gms", module: "play-services-ads-identifier"
-    }
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
-    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
-    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
+//    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
+//    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
     // https://mvnrepository.com/artifact/org.jdom/jdom2
     implementation group: "org.jdom", name: "jdom2", version: "2.0.6"
     implementation "de.westnordost:countryboundaries:1.5"

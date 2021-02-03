@@ -14,7 +14,7 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 -->
-<com.yuriy.openradio.view.list.BothSideCoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.yuriy.openradio.gabor.view.list.BothSideCoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/item_root"
     android:layout_width="match_parent"
@@ -57,4 +57,4 @@
         android:id="@id/foreground_view"
         layout="@layout/category_list_item" />
 
-</com.yuriy.openradio.view.list.BothSideCoordinatorLayout>
+</com.yuriy.openradio.gabor.view.list.BothSideCoordinatorLayout>

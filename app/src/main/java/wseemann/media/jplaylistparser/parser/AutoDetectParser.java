@@ -16,7 +16,7 @@
 
 package wseemann.media.jplaylistparser.parser;
 
-import com.yuriy.openradio.shared.utils.AppLogger;
+import com.yuriy.openradio.gabor.shared.utils.AppLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
