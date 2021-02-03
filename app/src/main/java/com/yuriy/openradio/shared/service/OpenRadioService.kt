@@ -855,6 +855,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param error Error object to present to the user.
      */
     private fun updatePlaybackState(error: PlaybackStateError = PlaybackStateError()) {
+        GlobalScope.launch(Dispatchers.Main) {
+            updatePlaybackStateUiThread(error)
+        }
+    }
+
+    private fun updatePlaybackStateUiThread(error: PlaybackStateError = PlaybackStateError()) {
         d("$CLASS_NAME set playback state to ${MediaItemHelper.playbackStateToString(mState)} error:$error")
         if (!this::mSession.isInitialized) {
             e("$CLASS_NAME playback state with null media session")
