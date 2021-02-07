@@ -15,17 +15,17 @@ project.ext {
     /**
      * Kotlin versions
      */
-    kotlinVersion = "1.4.21"
+    kotlinVersion = "1.4.30"
     kotlinCoreKtx = "1.3.2"
     kotlinxCoroutinesCore = "1.3.8"
-    kotlinxCoroutinesAndroid = "1.3.9"
+    kotlinxCoroutinesAndroid = "1.4.1"
 
     /**
      * Libraries versions
      */
     checkerQualVersion = "3.3.0"
     appcompatVersion = "1.2.0"
-    materialVersion = "1.2.1"
+    materialVersion = "1.3.0"
     googlePlayServicesDriveVersion = "17.0.0"
     googlePlayServicesAuthVersion = "19.0.0"
     googlePlayServicesLocationVersion = "17.1.0"
@@ -38,7 +38,7 @@ project.ext {
     espressoVersion = "3.1.0"
     // https://mvnrepository.com/artifact/org.json/json
     jsonTestVersion = "20180813"
-    exoPlayerVersion = "2.12.3"
+    exoPlayerVersion = "2.13.0"
     multidexVersion = "1.0.3"
     leanbackVersion = "1.0.0"
     firebaseInstallationsVersion = "16.3.5"

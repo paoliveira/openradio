@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl
@@ -25,11 +27,9 @@ import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Player.DiscontinuityReason
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.audio.AudioListener
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.metadata.icy.IcyHeaders
@@ -37,15 +37,11 @@ import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector.ParametersBuilder
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.buildRenderersFactory
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMaxBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMinBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getPlayBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getPlayBufferRebuffer
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
+import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.w
@@ -125,8 +121,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      */
     private val mComponentListener: ComponentListener
 
-    private val mAudioListener: AudioListenerImpl
-
     /**
      * Instance of the ExoPlayer wrapper events.
      */
@@ -162,7 +156,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     /**
      * Handler to handle playback progress runnable.
      */
-    private var mUpdateProgressHandler: Handler? = Handler()
+    private var mUpdateProgressHandler: Handler? = Handler(Looper.getMainLooper())
     private val mMetadataListener: MetadataListener
 
     /**
@@ -179,7 +173,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         if (mExoPlayer != null) {
             mExoPlayer!!.addListener(mComponentListener)
             mExoPlayer!!.addMetadataOutput(mComponentListener)
-            mExoPlayer!!.addAudioListener(mAudioListener)
             mExoPlayer!!.playWhenReady = true
             mExoPlayer!!.setMediaItem(MediaItem.Builder().setUri(uri).build())
             mExoPlayer!!.prepare()
@@ -235,7 +228,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     fun reset() {
         d("$LOG_TAG reset")
         mUserState = UserState.RESET
-        mEqualizer.deinit()
         if (mExoPlayer != null) {
             mExoPlayer!!.stop()
         }
@@ -264,7 +256,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         mEqualizer.deinit()
         mExoPlayer!!.removeListener(mComponentListener)
         mExoPlayer!!.removeMetadataOutput(mComponentListener)
-        mExoPlayer!!.removeAudioListener(mAudioListener)
         mUpdateProgressHandler!!.removeCallbacks(mUpdateProgressAction!!)
         reset()
         mExoPlayer!!.release()
@@ -348,24 +339,13 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 }
                 return
             }
-            logException(exception)
+            AnalyticsUtils.logException(exception)
             mListener.onError(exception)
         }
 
-        override fun onPositionDiscontinuity(@DiscontinuityReason reason: Int) {
+        override fun onPositionDiscontinuity(@Player.DiscontinuityReason reason: Int) {
             e("$mLogTag onPositionDiscontinuity:$reason")
             updateProgress()
-        }
-    }
-
-    /**
-     * Listener class for the players audio events.
-     */
-    private inner class AudioListenerImpl : AudioListener {
-
-        override fun onAudioSessionId(audioSessionId: Int) {
-            d("onAudioSessionId:$audioSessionId")
-            mEqualizer.init(audioSessionId)
         }
     }
 
@@ -430,11 +410,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
 
     init {
         mComponentListener = ComponentListener()
-        mAudioListener = AudioListenerImpl()
         mListener = listener
         mMetadataListener = metadataListener
         val trackSelector = DefaultTrackSelector(mContext)
-        trackSelector.parameters = ParametersBuilder(mContext).build()
+        trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(mContext).build()
         val builder = SimpleExoPlayer.Builder(
                 mContext, buildRenderersFactory(mContext)
         )
@@ -443,10 +422,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         builder.setLoadControl(
                 DefaultLoadControl.Builder()
                         .setBufferDurationsMs(
-                                getMinBuffer(mContext),
-                                getMaxBuffer(mContext),
-                                getPlayBuffer(mContext),
-                                getPlayBufferRebuffer(mContext)
+                                AppPreferencesManager.getMinBuffer(mContext),
+                                AppPreferencesManager.getMaxBuffer(mContext),
+                                AppPreferencesManager.getPlayBuffer(mContext),
+                                AppPreferencesManager.getPlayBufferRebuffer(mContext)
                         )
                         .build()
         )
@@ -454,5 +433,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         builder.setHandleAudioBecomingNoisy(true)
         builder.setAudioAttributes(AudioAttributes.DEFAULT, true)
         mExoPlayer = builder.build()
+        mEqualizer.init(mExoPlayer!!.audioSessionId)
     }
 }
