@@ -23,10 +23,12 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,9 +49,11 @@ import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.MediaIdHelper.isMediaIdRefreshable
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper.isEndOfList
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
+import com.yuriy.openradio.shared.vo.PlaybackStateError
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -281,6 +285,20 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
             mListener!!.showProgressBar()
         }
         mMediaRsrMgr.subscribe(mediaId, mCallback)
+    }
+
+    fun updateDescription(context: Context, descriptionView: TextView?, description: MediaDescriptionCompat) {
+        if (descriptionView == null) {
+            return
+        }
+        descriptionView.text = MediaItemHelper.getDisplayDescription(
+                description, context.getString(R.string.media_description_default)
+        )
+        if (PlaybackStateError.isPlaybackStateError(context, descriptionView.text.toString())) {
+            descriptionView.setBackgroundColor(context.resources.getColor(R.color.or_color_red_light))
+        } else {
+            descriptionView.setBackgroundColor(context.resources.getColor(R.color.or_color_transparent))
+        }
     }
 
     /**

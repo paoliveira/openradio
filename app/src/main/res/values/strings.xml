@@ -74,7 +74,9 @@
     <string name="upload">Upload</string>
     <string name="google_drive_download_info">Download Favorites and Local added Radio Stations from Google Drive.</string>
     <string name="can_not_play_station">Can not play Station</string>
-    <string name="media_player_error">Media Player error</string>
+    <string name="media_stream_error">Media Stream Error</string>
+    <string name="media_stream_http_403">Media Stream is Forbidden</string>
+    <string name="media_stream_http_404">Media Stream is Not Found</string>
     <string name="no_data_message">No data received</string>
     <string name="no_metadata">No Metadata</string>
     <string name="favorite">Favorite</string>

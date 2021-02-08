@@ -53,10 +53,7 @@ import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
-import com.yuriy.openradio.shared.utils.MediaItemHelper.getDisplayDescription
-import com.yuriy.openradio.shared.utils.MediaItemHelper.isEndOfList
-import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
@@ -458,11 +455,11 @@ class MainActivity : AppCompatActivity() {
                 mPlayBtn!!.visibility = View.VISIBLE
                 mPauseBtn!!.visibility = View.GONE
             }
+            PlaybackStateCompat.STATE_ERROR,
             PlaybackStateCompat.STATE_BUFFERING, PlaybackStateCompat.STATE_CONNECTING,
-            PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.STATE_FAST_FORWARDING,
-            PlaybackStateCompat.STATE_NONE, PlaybackStateCompat.STATE_REWINDING,
-            PlaybackStateCompat.STATE_SKIPPING_TO_NEXT, PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS,
-            PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM -> {
+            PlaybackStateCompat.STATE_FAST_FORWARDING, PlaybackStateCompat.STATE_NONE,
+            PlaybackStateCompat.STATE_REWINDING, PlaybackStateCompat.STATE_SKIPPING_TO_NEXT,
+            PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS, PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM -> {
                 //Empty
             }
         }
@@ -503,10 +500,9 @@ class MainActivity : AppCompatActivity() {
         if (nameView != null) {
             nameView.text = description.title
         }
-        val descriptionView = findViewById<TextView>(R.id.crs_description_view)
-        if (descriptionView != null) {
-            descriptionView.text = getDisplayDescription(description, getString(R.string.media_description_default))
-        }
+        mMediaPresenter?.updateDescription(
+                applicationContext, findViewById(R.id.crs_description_view), description
+        )
         val imgView = findViewById<ImageView>(R.id.crs_img_view)
         // Show placeholder before load an image.
         imgView.setImageResource(R.drawable.ic_radio_station)
@@ -521,10 +517,10 @@ class MainActivity : AppCompatActivity() {
             favoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(this, R.drawable.src_favorite)
             favoriteCheckView.isChecked = false
             val mediaItem = MediaBrowserCompat.MediaItem(
-                    buildMediaDescriptionFromRadioStation(context, radioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             )
-            updateFavoriteField(
+            MediaItemHelper.updateFavoriteField(
                     mediaItem,
                     isFavorite(radioStation, context)
             )
@@ -633,7 +629,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             // No need to go on if indexed list ended with last item.
-            if (isEndOfList(children)) {
+            if (MediaItemHelper.isEndOfList(children)) {
                 return
             }
             if (mMediaPresenter != null) {

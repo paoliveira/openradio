@@ -469,12 +469,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun handlePlayListUrlsExtracted(urls: Array<String?>) {
         if (urls.isEmpty()) {
-            handleStopRequest(PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL))
+            handleStopRequest(PlaybackStateError(getString(R.string.media_stream_error), PlaybackStateError.Code.GENERAL))
             return
         }
         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
         if (radioStation == null) {
-            handleStopRequest(PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL))
+            handleStopRequest(PlaybackStateError(getString(R.string.media_stream_error), PlaybackStateError.Code.GENERAL))
             return
         }
         // TODO: Refactor
@@ -898,6 +898,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         // inside - infinite loop!
         if (mState == PlaybackStateCompat.STATE_BUFFERING) {
             updateMetadata(radioStation, getString(R.string.buffering_infinite))
+        }
+        if (mState == PlaybackStateCompat.STATE_ERROR) {
+            updateMetadata(radioStation, PlaybackStateError.toDisplayString(applicationContext, error))
         }
         try {
             // Try to address issue on Android 4.1.2:
@@ -1585,7 +1588,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         override fun onError(error: ExoPlaybackException) {
             e("$CLASS_NAME ExoPlayer exception:$error")
             handleStopRequest(
-                    PlaybackStateError(getString(R.string.media_player_error), PlaybackStateError.Code.GENERAL)
+                    PlaybackStateError(
+                            getString(R.string.media_stream_error), PlaybackStateError.Code.PLAYBACK_ERROR, error
+                    )
             )
         }
 

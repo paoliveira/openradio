@@ -37,6 +37,7 @@ import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.buildRenderersFactory
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
@@ -331,8 +332,14 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             e("$mLogTag suspected url: $mUri")
             e("$mLogTag onPlayerError: ${Log.getStackTraceString(exception)}")
             e(mLogTag + " num of exceptions " + mNumOfExceptions.get())
+            val cause = exception.cause
+            e("$mLogTag cause: $cause")
+            if (cause is HttpDataSource.InvalidResponseCodeException) {
+                mListener.onError(exception)
+                return
+            }
             if (mNumOfExceptions.getAndIncrement() <= MAX_EXCEPTIONS_COUNT) {
-                if (exception.cause is UnrecognizedInputFormatException) {
+                if (cause is UnrecognizedInputFormatException) {
                     mListener.onHandledError(exception)
                 } else {
                     prepare(mUri)

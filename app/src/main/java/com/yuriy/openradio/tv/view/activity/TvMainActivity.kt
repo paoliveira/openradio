@@ -40,7 +40,6 @@ import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
 import com.yuriy.openradio.shared.utils.AppUtils.startActivityForResultSafe
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
@@ -274,10 +273,9 @@ class TvMainActivity : FragmentActivity() {
         if (nameView != null) {
             nameView.text = description.title
         }
-        val descriptionView = findViewById<TextView>(R.id.tv_crs_description_view)
-        if (descriptionView != null) {
-            descriptionView.text = MediaItemHelper.getDisplayDescription(description, getString(R.string.media_description_default))
-        }
+        mMediaPresenter?.updateDescription(
+                applicationContext, findViewById(R.id.tv_crs_description_view), description
+        )
         val imgView = findViewById<ImageView>(R.id.tv_crs_img_view)
         // Show placeholder before load an image.
         imgView.setImageResource(R.drawable.ic_radio_station)

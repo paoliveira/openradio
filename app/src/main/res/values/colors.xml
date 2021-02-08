@@ -30,6 +30,7 @@
     <color name="or_color_white">#FFFFFFFF</color>
     <color name="or_color_green">#3E905F</color>
     <color name="or_color_green_dark">#1B3E29</color>
+    <color name="or_color_red_light">#3EFA0505</color>
 
     <color name="or_color_primary">#FF303030</color>
     <color name="or_color_primary_dark">#FF171C24</color>
