@@ -193,7 +193,9 @@ object NetUtils {
             for (i in 0 until length) {
                 val entry = playlist.playlistEntries[i]
                 result[i] = entry[PlaylistEntry.URI]
-                AppLogger.d("$CLASS_NAME - $result[i]")
+                AppLogger.d("$CLASS_NAME - ${result[i]}")
+                // TODO: Improve - get the first URL currently.
+                break
             }
         } catch (e: Exception) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"

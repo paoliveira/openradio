@@ -479,7 +479,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
         // TODO: Refactor
         radioStation.mediaStream.clear()
-        radioStation.mediaStream.setVariant(0, urls[0]!!)
+        radioStation.mediaStream.setVariant(128, urls[0]!!)
         handlePlayRequest()
     }
 
@@ -780,7 +780,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             e("$CLASS_NAME ignore play next song, cannot find metadata, idx $mCurrentIndexOnQueue")
             return
         }
-        val source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI).toLowerCase(Locale.ROOT)
+        val source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
         d(
                 "$CLASS_NAME play, idx:$mCurrentIndexOnQueue," +
                         " id:${metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)}, source:$source"
