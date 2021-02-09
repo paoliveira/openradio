@@ -27,6 +27,7 @@ import com.yuriy.openradio.shared.utils.JsonUtils.getStringValue
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import org.json.JSONObject
+import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -38,6 +39,14 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
 
     override fun deserialize(context: Context, value: String): RadioStation? {
         if (value.isEmpty()) {
+            return null
+        }
+        // Those values are used in store and are related to radio stations but not radio stations themselves.
+        // It is legal but need better design.
+        if (value.toLowerCase(Locale.ROOT) == "true") {
+            return null
+        }
+        if (value.toLowerCase(Locale.ROOT) == "false") {
             return null
         }
         try {

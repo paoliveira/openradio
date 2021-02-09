@@ -29,6 +29,7 @@ import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
@@ -158,9 +159,10 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 if (radioStation.isMediaStreamEmpty()) {
                     continue
                 }
+                AppLogger.d("TRACE::$radioStation")
                 radioStations.add(radioStation)
             } catch (e: JSONException) {
-                logException(e)
+                e("$CLASS_NAME get stations exception:$e")
             }
         }
         return radioStations
@@ -203,8 +205,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             e(CLASS_NAME + "Can not parse data, response is empty")
             return null
         }
-        val jsonObject: JSONObject
-        jsonObject = try {
+        val jsonObject: JSONObject = try {
             JSONObject(response)
         } catch (e: JSONException) {
             logException(e)
@@ -326,33 +327,24 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         if (jsonObject.has(JsonDataParserImpl.KEY_COUNTRY_CODE)) {
             radioStation.countryCode = jsonObject.getString(JsonDataParserImpl.KEY_COUNTRY_CODE)
         }
-        if (jsonObject.has(JsonDataParserImpl.KEY_URL)) {
+        if (jsonObject.has(JsonDataParserImpl.KEY_URL_RESOLVED)) {
             var bitrate = 0
             if (jsonObject.has(JsonDataParserImpl.KEY_BIT_RATE)) {
                 bitrate = jsonObject.getInt(JsonDataParserImpl.KEY_BIT_RATE)
             }
             val mediaStream = MediaStream.makeDefaultInstance()
-            mediaStream.setVariant(bitrate, jsonObject.getString(JsonDataParserImpl.KEY_URL))
+            mediaStream.setVariant(bitrate, jsonObject.getString(JsonDataParserImpl.KEY_URL_RESOLVED))
             radioStation.mediaStream = mediaStream
-        }
-        if (jsonObject.has(JsonDataParserImpl.KEY_IMAGE)) {
-            // TODO : Encapsulate Image in the same way as Stream.
-            val imageObject = jsonObject.getJSONObject(JsonDataParserImpl.KEY_IMAGE)
-            if (imageObject.has(JsonDataParserImpl.KEY_URL)) {
-                radioStation.imageUrl = imageObject.getString(JsonDataParserImpl.KEY_URL)
-            }
-            if (imageObject.has(JsonDataParserImpl.KEY_THUMB)) {
-                val imageThumbObject = imageObject.getJSONObject(
-                        JsonDataParserImpl.KEY_THUMB
-                )
-                if (imageThumbObject.has(JsonDataParserImpl.KEY_URL)) {
-                    radioStation.thumbUrl = imageThumbObject.getString(JsonDataParserImpl.KEY_URL)
-                }
-            }
         }
         if (jsonObject.has(JsonDataParserImpl.KEY_FAV_ICON)) {
             radioStation.imageUrl = jsonObject.getString(JsonDataParserImpl.KEY_FAV_ICON)
             radioStation.thumbUrl = jsonObject.getString(JsonDataParserImpl.KEY_FAV_ICON)
+        }
+        if (jsonObject.has(JsonDataParserImpl.KEY_LAST_CHECK_OK)) {
+            radioStation.lastCheckOk = jsonObject.getInt(JsonDataParserImpl.KEY_LAST_CHECK_OK)
+        }
+        if (jsonObject.has(JsonDataParserImpl.KEY_LAST_CHECK_OK_TIME)) {
+            radioStation.lastCheckOkTime = jsonObject.getString(JsonDataParserImpl.KEY_LAST_CHECK_OK_TIME)
         }
         return radioStation
     }

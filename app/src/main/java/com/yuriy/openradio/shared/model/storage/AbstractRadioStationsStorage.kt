@@ -189,9 +189,6 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                     continue
                 }
                 value = map[key].toString()
-                if (value.isEmpty()) {
-                    continue
-                }
                 radioStation = deserializer.deserialize(context, value)
                 if (radioStation == null) {
                     e("Can not deserialize (getAll) from '$value'")
