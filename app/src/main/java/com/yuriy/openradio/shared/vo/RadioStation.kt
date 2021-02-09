@@ -51,6 +51,7 @@ class RadioStation : Serializable {
     var genre = ""
     var imageUrl = ""
     var thumbUrl = ""
+    var urlResolved = ""
     private val mMediaStream: MediaStream
 
     /**
@@ -86,6 +87,9 @@ class RadioStation : Serializable {
         status = radioStation.status
         thumbUrl = radioStation.thumbUrl
         homePage = radioStation.homePage
+        urlResolved = radioStation.urlResolved
+        lastCheckOk = radioStation.lastCheckOk
+        lastCheckOkTime = radioStation.lastCheckOkTime
     }
 
     val id: String
@@ -151,6 +155,7 @@ class RadioStation : Serializable {
                 ", lastCheckOkTime=" + lastCheckOkTime +
                 ", name='" + name + '\'' +
                 ", stream='" + mMediaStream + '\'' +
+                ", urlResolved='" + urlResolved + '\'' +
                 ", webSite='" + homePage + '\'' +
                 ", country='" + mCountry + '\'' +
                 ", genre='" + genre + '\'' +

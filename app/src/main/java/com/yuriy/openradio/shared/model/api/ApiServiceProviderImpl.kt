@@ -327,13 +327,13 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         if (jsonObject.has(JsonDataParserImpl.KEY_COUNTRY_CODE)) {
             radioStation.countryCode = jsonObject.getString(JsonDataParserImpl.KEY_COUNTRY_CODE)
         }
-        if (jsonObject.has(JsonDataParserImpl.KEY_URL_RESOLVED)) {
+        if (jsonObject.has(JsonDataParserImpl.KEY_URL)) {
             var bitrate = 0
             if (jsonObject.has(JsonDataParserImpl.KEY_BIT_RATE)) {
                 bitrate = jsonObject.getInt(JsonDataParserImpl.KEY_BIT_RATE)
             }
             val mediaStream = MediaStream.makeDefaultInstance()
-            mediaStream.setVariant(bitrate, jsonObject.getString(JsonDataParserImpl.KEY_URL_RESOLVED))
+            mediaStream.setVariant(bitrate, jsonObject.getString(JsonDataParserImpl.KEY_URL))
             radioStation.mediaStream = mediaStream
         }
         if (jsonObject.has(JsonDataParserImpl.KEY_FAV_ICON)) {
@@ -345,6 +345,9 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         }
         if (jsonObject.has(JsonDataParserImpl.KEY_LAST_CHECK_OK_TIME)) {
             radioStation.lastCheckOkTime = jsonObject.getString(JsonDataParserImpl.KEY_LAST_CHECK_OK_TIME)
+        }
+        if (jsonObject.has(JsonDataParserImpl.KEY_URL_RESOLVED)) {
+            radioStation.urlResolved = jsonObject.getString(JsonDataParserImpl.KEY_URL_RESOLVED)
         }
         return radioStation
     }
