@@ -26,7 +26,14 @@
         android:layout_width="@dimen/list_item_img_width"
         android:layout_height="@dimen/list_item_img_width"
         android:layout_marginEnd="15dp"
-        app:srcCompat="@drawable/ic_radio_station_empty" />
+        app:srcCompat="@drawable/ic_radio_station_empty"
+        android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/tv_crs_img_progress_view"
+        android:layout_width="@dimen/list_item_img_width"
+        android:layout_height="@dimen/list_item_img_width"
+        android:layout_marginEnd="15dp" />
 
     <TextView
         android:id="@+id/tv_crs_bitrate_view"

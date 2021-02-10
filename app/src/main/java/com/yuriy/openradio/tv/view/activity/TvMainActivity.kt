@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.tv.view.activity
 
 import android.annotation.SuppressLint
@@ -34,15 +35,12 @@ import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.AppUtils.startActivityForResultSafe
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
+import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
-import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
 import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
 import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
@@ -123,7 +121,7 @@ class TvMainActivity : FragmentActivity() {
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        d(
+        AppLogger.d(
                 CLASS_NAME + " permissions:" + permissions.contentToString()
                         + ", results:" + grantResults.contentToString()
         )
@@ -132,7 +130,7 @@ class TvMainActivity : FragmentActivity() {
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        d(CLASS_NAME + "on activity result, rqst:" + requestCode + " rslt:" + resultCode)
+        AppLogger.d(CLASS_NAME + "on activity result, rqst:" + requestCode + " rslt:" + resultCode)
         val gDriveDialog = GoogleDriveDialog.findDialog(supportFragmentManager)
         gDriveDialog?.onActivityResult(requestCode, resultCode, data)
         val logsDialog = LogsDialog.findDialog(supportFragmentManager)
@@ -213,7 +211,7 @@ class TvMainActivity : FragmentActivity() {
     private fun setUpSearchBtn() {
         val button = findViewById<ImageView>(R.id.tv_search_btn) ?: return
         button.setOnClickListener {
-            startActivityForResultSafe(
+            AppUtils.startActivityForResultSafe(
                     this,
                     TvSearchActivity.makeStartIntent(this),
                     TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
@@ -247,7 +245,7 @@ class TvMainActivity : FragmentActivity() {
 
     private fun showTvSettings() {
         val transaction = supportFragmentManager.beginTransaction()
-        clearDialogs(this, transaction)
+        UiUtils.clearDialogs(this, transaction)
         // Show Settings Dialog
         val dialogFragment = BaseDialogFragment.newInstance(
                 TvSettingsDialog::class.java.name
@@ -265,7 +263,7 @@ class TvMainActivity : FragmentActivity() {
         val context: Context = this
         val radioStation = LatestRadioStationStorage[context]
         if (radioStation == null) {
-            e("Handle metadata changed, rs is null")
+            AppLogger.e("Handle metadata changed, rs is null")
             return
         }
         val description = metadata.description
@@ -276,6 +274,7 @@ class TvMainActivity : FragmentActivity() {
         mMediaPresenter?.updateDescription(
                 applicationContext, findViewById(R.id.tv_crs_description_view), description
         )
+        findViewById<ProgressBar>(R.id.tv_crs_img_progress_view)?.visibility = View.GONE
         val imgView = findViewById<ImageView>(R.id.tv_crs_img_view)
         // Show placeholder before load an image.
         imgView.setImageResource(R.drawable.ic_radio_station)
@@ -285,7 +284,7 @@ class TvMainActivity : FragmentActivity() {
                 findViewById(R.id.tv_crs_bitrate_view),
                 true
         )
-        //        final CheckBox favoriteCheckView = findViewById(R.id.tv_crs_favorite_check_view);
+//        final CheckBox favoriteCheckView = findViewById(R.id.tv_crs_favorite_check_view);
 //        if (favoriteCheckView != null) {
 //            favoriteCheckView.setButtonDrawable(
 //                    AppCompatResources.getDrawable(this, R.drawable.src_favorite)
@@ -306,7 +305,7 @@ class TvMainActivity : FragmentActivity() {
     private fun handleChildrenLoaded(parentId: String,
                                      children: List<MediaBrowserCompat.MediaItem>) {
         if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-            w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
+            AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
             return
         }
         hideProgressBar()
@@ -328,14 +327,14 @@ class TvMainActivity : FragmentActivity() {
         @SuppressLint("RestrictedApi")
         override fun onChildrenLoaded(parentId: String,
                                       children: List<MediaBrowserCompat.MediaItem>) {
-            i(
+            AppLogger.i(
                     CLASS_NAME + " Children loaded:" + parentId + ", children:" + children.size
             )
             handleChildrenLoaded(parentId, children)
         }
 
         override fun onError(id: String) {
-            showAnyThread(
+            SafeToast.showAnyThread(
                     applicationContext,
                     getString(R.string.error_loading_media)
             )
@@ -381,7 +380,7 @@ class TvMainActivity : FragmentActivity() {
                 return
             }
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
+                AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
@@ -415,7 +414,7 @@ class TvMainActivity : FragmentActivity() {
                 return
             }
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
+                AppLogger.w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {

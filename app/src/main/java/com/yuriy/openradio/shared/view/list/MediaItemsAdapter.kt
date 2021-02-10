@@ -178,11 +178,8 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          * @param view        Image View to apply image to.
          */
         @JvmStatic
-        fun updateImage(description: MediaDescriptionCompat,
-                        view: ImageView?) {
-            if (view == null) {
-                return
-            }
+        fun updateImage(description: MediaDescriptionCompat, view: ImageView) {
+            view.visibility = View.VISIBLE
             if (description.iconBitmap != null) {
                 view.setImageBitmap(description.iconBitmap)
             } else {

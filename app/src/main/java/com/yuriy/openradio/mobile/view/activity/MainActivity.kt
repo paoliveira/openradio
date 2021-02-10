@@ -501,6 +501,7 @@ class MainActivity : AppCompatActivity() {
         mMediaPresenter?.updateDescription(
                 applicationContext, findViewById(R.id.crs_description_view), description
         )
+        findViewById<ProgressBar>(R.id.crs_img_progress_view)?.visibility = View.GONE
         val imgView = findViewById<ImageView>(R.id.crs_img_view)
         // Show placeholder before load an image.
         imgView.setImageResource(R.drawable.ic_radio_station)
