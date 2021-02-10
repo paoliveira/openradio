@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.mobile.view.activity
 
 import android.annotation.SuppressLint
@@ -41,22 +42,20 @@ import com.google.android.material.navigation.NavigationView
 import com.yuriy.openradio.R
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage.isFavorite
+import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.IntentUtils.intentBundleToString
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
-import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
+import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
-import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.AboutDialog
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
 import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
@@ -83,7 +82,6 @@ import javax.inject.Inject
  * Author: Chernyshov Yuriy - Mobile Development
  * Date: 19.12.14
  * Time: 15:13
- *
  *
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
@@ -133,7 +131,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        d("$CLASS_NAME OnCreate:$savedInstanceState")
+        AppLogger.d("$CLASS_NAME OnCreate:$savedInstanceState")
         initUi(applicationContext)
         hideProgressBar()
         updateBufferedTime(0)
@@ -153,7 +151,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        i("$CLASS_NAME OnResume")
+        AppLogger.i("$CLASS_NAME OnResume")
         mMediaPresenter!!.handleResume()
         hideProgressBar()
         LocationService.checkCountry(this, findViewById(R.id.main_layout))
@@ -161,7 +159,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        i("$CLASS_NAME OnDestroy")
+        AppLogger.i("$CLASS_NAME OnDestroy")
         mMediaPresenter!!.handleDestroy(applicationContext)
     }
 
@@ -182,7 +180,7 @@ class MainActivity : AppCompatActivity() {
         // in a transaction.  We also want to remove any currently showing
         // dialog, so make our own transaction and take care of that here.
         val transaction = supportFragmentManager.beginTransaction()
-        clearDialogs(this, transaction)
+        UiUtils.clearDialogs(this, transaction)
         return when (id) {
             R.id.action_search -> {
 
@@ -205,7 +203,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        d("$CLASS_NAME OnSaveInstance:$outState")
+        AppLogger.d("$CLASS_NAME OnSaveInstance:$outState")
         mMediaPresenter!!.handleSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
@@ -246,7 +244,7 @@ class MainActivity : AppCompatActivity() {
         toggle.syncState()
         navigationView.setNavigationItemSelectedListener { menuItem: MenuItem ->
             val transaction = supportFragmentManager.beginTransaction()
-            clearDialogs(this, transaction)
+            UiUtils.clearDialogs(this, transaction)
             menuItem.isChecked = false
             // Handle navigation view item clicks here.
             when (menuItem.itemId) {
@@ -407,11 +405,11 @@ class MainActivity : AppCompatActivity() {
             name = item.description.title.toString()
         }
         if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-            w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
+            AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
             return
         }
         val transaction = supportFragmentManager.beginTransaction()
-        clearDialogs(this, transaction)
+        UiUtils.clearDialogs(this, transaction)
 
         // Show Remove Station Dialog
         val bundle = RemoveStationDialog.createBundle(item.mediaId, name)
@@ -431,11 +429,11 @@ class MainActivity : AppCompatActivity() {
      */
     private fun handleEditRadioStationMenu(item: MediaBrowserCompat.MediaItem) {
         if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-            w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
+            AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
             return
         }
         val transaction = supportFragmentManager.beginTransaction()
-        clearDialogs(this, transaction)
+        UiUtils.clearDialogs(this, transaction)
 
         // Show Edit Station Dialog
         val dialog = BaseDialogFragment.newInstance(
@@ -522,7 +520,7 @@ class MainActivity : AppCompatActivity() {
             )
             MediaItemHelper.updateFavoriteField(
                     mediaItem,
-                    isFavorite(radioStation, context)
+                    FavoritesStorage.isFavorite(radioStation, context)
             )
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, context)
         }
@@ -532,7 +530,7 @@ class MainActivity : AppCompatActivity() {
                                             permissions: Array<String>,
                                             grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        d(
+        AppLogger.d(
                 CLASS_NAME + " permissions:" + permissions.contentToString()
                         + ", results:" + grantResults.contentToString()
         )
@@ -541,11 +539,11 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        d(
+        AppLogger.d(
                 CLASS_NAME + "OnActivityResult: request:" + requestCode
                         + " result:" + resultCode
                         + " intent:" + data
-                        + " data:" + intentBundleToString(data)
+                        + " data:" + IntentUtils.intentBundleToString(data)
         )
         val gDriveDialog = GoogleDriveDialog.findDialog(supportFragmentManager)
         gDriveDialog?.onActivityResult(requestCode, resultCode, data)
@@ -565,7 +563,7 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
+                AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
@@ -600,7 +598,7 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
+                AppLogger.w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
                 return
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
@@ -612,9 +610,9 @@ class MainActivity : AppCompatActivity() {
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
 
         override fun onChildrenLoaded(parentId: String, children: List<MediaBrowserCompat.MediaItem>) {
-            i("$CLASS_NAME children loaded:$parentId, children:${children.size}")
+            AppLogger.i("$CLASS_NAME children loaded:$parentId, children:${children.size}")
             if (mMediaPresenter!!.getOnSaveInstancePassed()) {
-                w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
+                AppLogger.w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
                 return
             }
             hideProgressBar()
@@ -639,7 +637,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onError(id: String) {
             hideProgressBar()
-            showAnyThread(this@MainActivity, this@MainActivity.getString(R.string.error_loading_media))
+            SafeToast.showAnyThread(this@MainActivity, this@MainActivity.getString(R.string.error_loading_media))
         }
     }
 
@@ -650,7 +648,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onItemSettings(item: MediaBrowserCompat.MediaItem, position: Int) {
             val transaction = supportFragmentManager.beginTransaction()
-            clearDialogs(this@MainActivity, transaction)
+            UiUtils.clearDialogs(this@MainActivity, transaction)
             val bundle = Bundle()
             var currentParentId = ""
             if (mMediaPresenter != null) {

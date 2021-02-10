@@ -169,8 +169,7 @@ class HTTPDownloaderImpl : Downloader {
     }
 
     private fun getUrl(uri: String, parameters: List<Pair<String, String>>): URL? {
-        val url: URL?
-        url = try {
+        return try {
             URL(uri)
         } catch (exception: MalformedURLException) {
             logException(
@@ -178,7 +177,6 @@ class HTTPDownloaderImpl : Downloader {
             )
             null
         }
-        return url
     }
 
     companion object {

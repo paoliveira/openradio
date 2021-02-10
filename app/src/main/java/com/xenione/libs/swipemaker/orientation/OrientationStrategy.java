@@ -22,7 +22,7 @@ public abstract class OrientationStrategy implements Runnable {
     private final View mView;
     private SwipeLayout.OnTranslateChangeListener mOnTranslateChangeListener;
     final int mTouchSlop;
-    ScrollerHelper mHelperScroller;
+    final ScrollerHelper mHelperScroller;
     private boolean mIsDragDisabled;
 
     public OrientationStrategy(final View view) {

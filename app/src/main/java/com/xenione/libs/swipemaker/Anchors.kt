@@ -45,7 +45,7 @@ class Anchors private constructor(anchor: Array<Int>) {
         }
     }
 
-    private val mAnchorHelper: AnchorHelper
+    private val mAnchorHelper: AnchorHelper = AnchorHelper(anchor)
 
     /**
      * Gives the amount of anchors that are set.
@@ -118,7 +118,4 @@ class Anchors private constructor(anchor: Array<Int>) {
         }
     }
 
-    init {
-        mAnchorHelper = AnchorHelper(anchor)
-    }
 }

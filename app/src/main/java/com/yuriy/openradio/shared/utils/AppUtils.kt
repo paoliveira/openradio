@@ -411,8 +411,7 @@ object AppUtils {
     @JvmStatic
     fun getDensity(context: Context): Array<String> {
         val densityDpi = context.resources.displayMetrics.densityDpi
-        val value: String
-        value = when (densityDpi) {
+        val value: String = when (densityDpi) {
             DisplayMetrics.DENSITY_LOW -> "LDPI"
             DisplayMetrics.DENSITY_MEDIUM -> "MDPI"
             DisplayMetrics.DENSITY_TV, DisplayMetrics.DENSITY_HIGH -> "HDPI"

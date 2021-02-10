@@ -135,8 +135,7 @@ object NetUtils {
     @JvmStatic
     fun checkResource(context: Context, url: String): Boolean {
         val connection = getHttpURLConnection(context, url, "GET") ?: return false
-        val responseCode: Int
-        responseCode = try {
+        val responseCode: Int = try {
             connection.responseCode
         } catch (exception: IOException) {
             closeHttpURLConnection(connection)

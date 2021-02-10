@@ -50,7 +50,7 @@ object UrlBuilder {
             "https://fr1.api.radio-browser.info",
             "https://nl1.api.radio-browser.info"
     )
-    const val RECENT_POPULAR_PER_PAGE = 200
+    private const val RECENT_POPULAR_PER_PAGE = 200
 
     /**
      * Base URL for the API requests.

@@ -182,8 +182,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 AppLogger.e("Can not handle Google Drive success, context is null")
                 return
             }
-            val message: String
-            message = when (command) {
+            val message: String = when (command) {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_data_saved)
                 GoogleDriveManager.Command.DOWNLOAD -> {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
@@ -202,8 +201,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 AppLogger.e("Can not handle Google Drive error, context is null, error:$error")
                 return
             }
-            val message: String
-            message = when (command) {
+            val message: String = when (command) {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_error_when_save)
                 GoogleDriveManager.Command.DOWNLOAD -> context.getString(R.string.google_drive_error_when_read)
             }

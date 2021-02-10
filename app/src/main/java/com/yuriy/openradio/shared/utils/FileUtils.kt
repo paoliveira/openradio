@@ -99,8 +99,7 @@ object FileUtils {
         }
         val directory = getFilesDir(context)
         val file = File(directory, generateRandomHexToken(16))
-        val out: OutputStream
-        out = try {
+        val out: OutputStream = try {
             FileOutputStream(file)
         } catch (e: FileNotFoundException) {
             logException(e)

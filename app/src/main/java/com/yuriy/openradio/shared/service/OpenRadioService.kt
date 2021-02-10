@@ -545,17 +545,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
-    private fun getCurrentPlayingRS(): RadioStation? {
-        val radioStation = getRadioStationByMediaId(mCurrentMediaId) ?: return null
-        // This indicates that Radio Station's url was not downloaded.
-        // Currently, when list of the stations received they comes without stream url
-        // and bitrate, upon selecting one - it is necessary to load additional data.
-        if (!radioStation.isMediaStreamEmpty()) {
-            return null
-        }
-        return radioStation
-    }
-
     /**
      * Checks currently selected Radio Station asynchronously.<br></br>
      * If the URl is not yet obtained via API the it will be retrieved as well,

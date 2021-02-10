@@ -28,7 +28,7 @@ class SwipeLayout @JvmOverloads constructor(context: Context?,
         fun onTranslateChange(globalPercent: Float, index: Int, relativePercent: Float)
     }
 
-    private val mOrientationStrategy: OrientationStrategy?
+    private val mOrientationStrategy: OrientationStrategy? = Orientation.HORIZONTAL.get().make(this)
 
     fun anchor(vararg points: Int?) {
         mOrientationStrategy!!.setAnchor(*points)
@@ -63,7 +63,4 @@ class SwipeLayout @JvmOverloads constructor(context: Context?,
         }
     }
 
-    init {
-        mOrientationStrategy = Orientation.HORIZONTAL.get().make(this)
-    }
 }
