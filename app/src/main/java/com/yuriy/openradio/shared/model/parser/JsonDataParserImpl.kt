@@ -47,40 +47,6 @@ class JsonDataParserImpl : DataParser {
         const val KEY_STATIONS_COUNT = "stationcount"
         const val KEY_HOME_PAGE = "homepage"
 
-        /**
-         * string, multi value, split by comma.
-         */
-        const val KEY_TAGS = "tags"
-
-        /**
-         * string, multi value, split by comma.
-         */
-        const val KEY_LANGUAGE = "language"
-
-        /**
-         * number, integer
-         */
-        const val KEY_VOTES = "votes"
-
-        /**
-         * datetime, YYYY-MM-DD HH:mm:ss
-         * The time of the last click recorded for this stream.
-         */
-        const val KEY_CLICK_TIMESTAMP = "clicktimestamp"
-
-        /**
-         * number, integer.
-         * Clicks within the last 24 hours.
-         */
-        const val KEY_CLICK_COUNT = "clickcount"
-
-        /**
-         * number, integer.
-         * The difference of the click counts within the last 2 days.
-         * Positive values mean an increase, negative a decrease of clicks.
-         */
-        const val KEY_CLICK_TREND = "clicktrend"
-
         const val KEY_LAST_CHECK_OK_TIME = "lastcheckoktime"
 
         const val KEY_LAST_CHECK_OK = "lastcheckok"
