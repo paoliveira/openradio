@@ -105,7 +105,7 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -204,7 +204,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private val mApiServiceProvider: ApiServiceProvider by lazy {
         ApiServiceProviderImpl(applicationContext, JsonDataParserImpl())
     }
-    private val mUiScope = CoroutineScope(Dispatchers.Main)
+    private lateinit var mUiScope: CoroutineScope
+    private lateinit var mScope: CoroutineScope
 
     /**
      * Processes Messages sent to it from onStartCommand() that indicate which command to process.
@@ -240,6 +241,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         super.onCreate()
         i("$CLASS_NAME On Create")
         val context = applicationContext
+        mUiScope = CoroutineScope(Dispatchers.Main)
+        mScope = CoroutineScope(Dispatchers.IO)
         val orientationStr: String
         val orientation = resources.configuration.orientation
         orientationStr = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -329,6 +332,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         d("$CLASS_NAME On Destroy:${hashCode()}")
         super.onDestroy()
         val context = applicationContext
+        mUiScope.cancel("Cancel on destroy")
+        mScope.cancel("Cancel on destroy")
         ServiceLifecyclePreferencesManager.isServiceActive(context, false)
         if (this::mServiceHandler.isInitialized) {
             mServiceHandler.looper.quit()
@@ -451,7 +456,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         handleStopRequest(
                 PlaybackStateError("Can not get play url.", PlaybackStateError.Code.UNRECOGNIZED_URL)
         )
-        GlobalScope.launch(Dispatchers.IO) {
+        mScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 if (playlistUrl.isNullOrEmpty()) {
                     e("HandleUnrecognizedInputFormatException with empty URL")
@@ -567,7 +572,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             return
         }
         val id = radioStation.id
-        GlobalScope.launch(Dispatchers.IO) {
+        mScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 // Start download information about Radio Station
                 val radioStationUpdated = mApiServiceProvider
@@ -708,7 +713,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Handle a request to play Radio Station.
      */
     private fun handlePlayRequest() {
-        mUiScope.launch { handlePlayRequestUiThread() }
+        mUiScope.launch {
+            handlePlayRequestUiThread() }
     }
 
     private fun handlePlayRequestUiThread() {
@@ -844,7 +850,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param error Error object to present to the user.
      */
     private fun updatePlaybackState(error: PlaybackStateError = PlaybackStateError()) {
-        GlobalScope.launch(Dispatchers.Main) {
+        mScope.launch(Dispatchers.Main) {
             updatePlaybackStateUiThread(error)
         }
     }
@@ -1267,7 +1273,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         if (query.isEmpty()) {
             return
         }
-        GlobalScope.launch(Dispatchers.IO) {
+        mScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 try {
                     executePerformSearch(query)
@@ -1495,7 +1501,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
                 SortUtils.updateSortIds(applicationContext, mRadioStationsComparator, mediaId, sortId, categoryMediaId)
                 notifyChildrenChanged(categoryMediaId)
-                GlobalScope.launch(Dispatchers.Main) {
+                mScope.launch(Dispatchers.Main) {
                     delay(100)
                     LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
                             AppLocalBroadcast.createIntentSortIdChanged(mediaId, sortId)

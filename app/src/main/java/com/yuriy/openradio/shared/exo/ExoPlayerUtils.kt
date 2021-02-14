@@ -20,7 +20,7 @@ import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
-import com.google.android.exoplayer2.ext.cronet.CronetDataSourceFactory
+import com.google.android.exoplayer2.ext.cronet.CronetDataSource
 import com.google.android.exoplayer2.ext.cronet.CronetEngineWrapper
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
@@ -75,11 +75,11 @@ object ExoPlayerUtils {
     fun getHttpDataSourceFactory(
             context: Context, userAgent: String): HttpDataSource.Factory? {
         if (sHttpDataSourceFactory == null) {
-            val cronetEngineWrapper = CronetEngineWrapper(context)
             logMessage("ExoPlayer UserAgent '$userAgent'")
-            sHttpDataSourceFactory = CronetDataSourceFactory(
-                    cronetEngineWrapper, Executors.newSingleThreadExecutor(), userAgent
-            )
+            val cronetEngineWrapper = CronetEngineWrapper(context, userAgent, false)
+            sHttpDataSourceFactory = CronetDataSource.Factory(
+                    cronetEngineWrapper, Executors.newSingleThreadExecutor()
+            ).setUserAgent(userAgent)
         }
         return sHttpDataSourceFactory
     }

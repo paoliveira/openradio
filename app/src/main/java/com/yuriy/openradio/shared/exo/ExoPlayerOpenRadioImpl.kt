@@ -57,7 +57,6 @@ import java.util.concurrent.atomic.*
  * On 11/04/17
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- *
  * Wrapper of the ExoPlayer.
  *
  * @param mContext         Application context.

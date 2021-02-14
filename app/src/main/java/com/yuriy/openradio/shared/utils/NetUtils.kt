@@ -116,7 +116,7 @@ object NetUtils {
                     connectUrl = URL(newUrl)
                     isRedirect = true
                 }
-            } catch (exception: IOException) {
+            } catch (exception: Exception) {
                 logException(RuntimeException("Can not get http connection from $url", exception))
             }
         } while (isRedirect)
