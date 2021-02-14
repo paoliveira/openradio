@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.utils
 
 import android.content.Context
 import android.util.Log
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import org.apache.log4j.Layout
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
@@ -43,13 +42,13 @@ object AppLogger {
     @JvmStatic
     fun initLogger(context: Context) {
         initLogsDirectories(context)
-        val fileName = getCurrentLogsDirectory(context) + "/" + LOG_FILENAME
+        val fileName = getCurrentLogsDirectory() + "/" + LOG_FILENAME
         logger.level = Level.DEBUG
         val layout: Layout = PatternLayout("%d [%t] %-5p %m%n")
         try {
             logger.removeAllAppenders()
         } catch (e: Exception) {
-            logException(e)
+            e("Can't remove all logs:$e")
         }
         try {
             val appender = RollingFileAppender(layout, fileName)
@@ -57,7 +56,7 @@ object AppLogger {
             appender.maxBackupIndex = MAX_BACKUP_INDEX
             logger.addAppender(appender)
         } catch (e: IOException) {
-            logException(e)
+            e("Can't append log:$e")
         }
         d("Current log stored to $fileName")
     }
@@ -71,34 +70,18 @@ object AppLogger {
         sInitLogsDirectory = FileUtils.getFilesDir(context).toString() + "/logs"
     }
 
-    private fun getCurrentLogsDirectory(context: Context): String {
-        if (AppUtils.externalStorageAvailable()) {
-            val extLogsDirectory = AppUtils.getExternalStorageDir(context)
-            if (!extLogsDirectory.isNullOrEmpty()) {
-                return "$extLogsDirectory/logs"
-            }
-        }
+    private fun getCurrentLogsDirectory(): String {
         return sInitLogsDirectory
     }
 
-    private fun getLogsDirectories(context: Context): Array<File> {
-        if (AppUtils.externalStorageAvailable()) {
-            val extLogsDirectory = AppUtils.getExternalStorageDir(context)
-            if (!extLogsDirectory.isNullOrEmpty()) {
-                return arrayOf(
-                        File(sInitLogsDirectory), File("$extLogsDirectory/logs")
-                )
-            }
-        }
-        return arrayOf(
-                File(sInitLogsDirectory)
-        )
+    private fun getLogsDirectories(): Array<File> {
+        return arrayOf(File(sInitLogsDirectory))
     }
 
-    fun deleteAllLogs(context: Context): Boolean {
-        val resultDelZip = deleteZipFile(context)
-        val resultDelLogcat = deleteLogcatFile(context)
-        val files = getAllLogs(context)
+    fun deleteAllLogs(): Boolean {
+        val resultDelZip = deleteZipFile()
+        val resultDelLogcat = deleteLogcatFile()
+        val files = getAllLogs()
         var result = true
         for (file in files) {
             if (!file.delete()) {
@@ -108,19 +91,19 @@ object AppLogger {
         return result && resultDelZip && resultDelLogcat
     }
 
-    fun deleteZipFile(context: Context): Boolean {
-        val file = getLogsZipFile(context)
+    fun deleteZipFile(): Boolean {
+        val file = getLogsZipFile()
         return file.exists() && file.delete()
     }
 
-    private fun deleteLogcatFile(context: Context): Boolean {
-        val file = getLogcatFile(context)
+    private fun deleteLogcatFile(): Boolean {
+        val file = getLogcatFile()
         return file.exists() && file.delete()
     }
 
-    private fun getAllLogs(context: Context): Array<File> {
+    private fun getAllLogs(): Array<File> {
         val logs: MutableList<File> = ArrayList()
-        val logDirs = getLogsDirectories(context)
+        val logDirs = getLogsDirectories()
         for (dir in logDirs) {
             if (dir.exists()) {
                 logs.addAll(listOf(*getLogs(dir)))
@@ -131,8 +114,7 @@ object AppLogger {
 
     private fun getLogs(directory: File): Array<File> {
         require(!directory.isFile) {
-            ("directory is not folder "
-                    + directory.absolutePath)
+            ("directory is not folder " + directory.absolutePath)
         }
         return directory.listFiles { dir: File, name: String ->
             if (name != null && name.toLowerCase(Locale.ROOT).endsWith(".log")) {
@@ -147,28 +129,28 @@ object AppLogger {
         }
     }
 
-    fun getLogsZipFile(context: Context): File {
-        val path = getCurrentLogsDirectory(context)
+    fun getLogsZipFile(): File {
+        val path = getCurrentLogsDirectory()
         FileUtils.createDirIfNeeded(path)
         return FileUtils.createFileIfNeeded("$path/logs.zip")
     }
 
-    private fun getLogcatFile(context: Context): File {
-        val path = getCurrentLogsDirectory(context)
+    private fun getLogcatFile(): File {
+        val path = getCurrentLogsDirectory()
         FileUtils.createDirIfNeeded(path)
         return FileUtils.createFileIfNeeded("$path/logcat.txt")
     }
 
     @Throws(IOException::class)
-    fun zip(context: Context) {
-        val logcatFile = getLogcatFile(context)
+    fun zip() {
+        val logcatFile = getLogcatFile()
         try {
             Runtime.getRuntime().exec("logcat -f " + logcatFile.path)
         } catch (e: Exception) {
-            logException(e)
+            e("Can't zip file:$e")
         }
-        val logs = getAllLogs(context)
-        val fileOutputStream = FileOutputStream(getLogsZipFile(context))
+        val logs = getAllLogs()
+        val fileOutputStream = FileOutputStream(getLogsZipFile())
         val zipOutputStream = ZipOutputStream(fileOutputStream)
         zipFile(logcatFile, zipOutputStream)
         for (file in logs) {
@@ -181,8 +163,7 @@ object AppLogger {
     }
 
     @Throws(IOException::class)
-    private fun zipFile(inputFile: File,
-                        zipOutputStream: ZipOutputStream) {
+    private fun zipFile(inputFile: File, zipOutputStream: ZipOutputStream) {
 
         // A ZipEntry represents a file entry in the zip archive
         // We name the ZipEntry after the original file's name

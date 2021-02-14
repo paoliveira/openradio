@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.utils
 
-import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -24,7 +23,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
@@ -179,26 +177,6 @@ object AppUtils {
     }
 
     /**
-     * Return [File] object legal to call on API 8.
-     *
-     * @param type    The type of files directory to return. May be null for the root of the
-     * files directory or one of the following Environment constants for a subdirectory:
-     * DIRECTORY_MUSIC, DIRECTORY_PODCASTS, DIRECTORY_RINGTONES, DIRECTORY_ALARMS,
-     * DIRECTORY_NOTIFICATIONS, DIRECTORY_PICTURES, or DIRECTORY_MOVIES.
-     * @param context Context of the callee.
-     * @return [File] object.
-     */
-    @TargetApi(8)
-    private fun getExternalFilesDirAPI8(context: Context, type: String?): File? {
-        return context.getExternalFilesDir(type)
-    }
-
-    fun getExternalStorageDir(context: Context): String? {
-        val externalDir = getExternalFilesDirAPI8(context, null)
-        return externalDir?.absolutePath
-    }
-
-    /**
      * @param context
      * @return
      */
@@ -208,30 +186,6 @@ object AppUtils {
         val height = displayMetrics.heightPixels
         val width = displayMetrics.widthPixels
         return height.coerceAtMost(width)
-    }
-
-    fun externalStorageAvailable(): Boolean {
-        val externalStorageAvailable: Boolean
-        val externalStorageWriteable: Boolean
-        when (Environment.getExternalStorageState()) {
-            // We can read and write the media.
-            Environment.MEDIA_MOUNTED -> {
-                externalStorageWriteable = true
-                externalStorageAvailable = externalStorageWriteable
-            }
-            Environment.MEDIA_MOUNTED_READ_ONLY -> {
-                // We can only read the media
-                externalStorageAvailable = true
-                externalStorageWriteable = false
-            }
-            // Something else is wrong. It may be one of many other states, but all we need
-            //  to know is we can neither read nor write.
-            else -> {
-                externalStorageWriteable = false
-                externalStorageAvailable = externalStorageWriteable
-            }
-        }
-        return externalStorageAvailable && externalStorageWriteable
     }
 
     @JvmStatic

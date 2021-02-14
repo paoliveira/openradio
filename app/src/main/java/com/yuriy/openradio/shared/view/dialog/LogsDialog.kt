@@ -66,7 +66,7 @@ class LogsDialog : BaseDialogFragment() {
         }
         val clearLogsBtn = view.findViewById<Button>(R.id.settings_dialog_clear_logs_btn_view)
         clearLogsBtn.setOnClickListener {
-            val result = AppLogger.deleteAllLogs(context)
+            val result = AppLogger.deleteAllLogs()
             val message = if (result) "All logs deleted" else "Can not delete logs"
             showAnyThread(context, message)
             AppLogger.initLogger(context)
@@ -89,9 +89,9 @@ class LogsDialog : BaseDialogFragment() {
     }
 
     private fun sendLogMailTask(context: Context) {
-        AppLogger.deleteZipFile(context)
+        AppLogger.deleteZipFile()
         try {
-            AppLogger.zip(context)
+            AppLogger.zip()
         } catch (e: IOException) {
             showAnyThread(activity, getString(R.string.logs_can_not_zip))
             return
@@ -115,7 +115,7 @@ class LogsDialog : BaseDialogFragment() {
             val path = FileProvider.getUriForFile(
                     context,
                     BuildConfig.APPLICATION_ID + ".provider",
-                    AppLogger.getLogsZipFile(context)
+                    AppLogger.getLogsZipFile()
             )
             intent.putExtra(Intent.EXTRA_STREAM, path)
         } catch (e: Exception) {

@@ -29,7 +29,6 @@ import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
 import com.yuriy.openradio.shared.utils.AppLogger.w
@@ -159,7 +158,6 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 if (radioStation.isMediaStreamEmpty()) {
                     continue
                 }
-                AppLogger.d("TRACE::$radioStation")
                 radioStations.add(radioStation)
             } catch (e: JSONException) {
                 e("$CLASS_NAME get stations exception:$e")

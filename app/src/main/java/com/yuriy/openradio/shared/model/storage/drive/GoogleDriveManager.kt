@@ -171,8 +171,7 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
     /**
      * Get data of all Radio Stations which are intended to upload and upload it.
      */
-    private val radioStationsAndUpload: Unit
-        get() {
+    private fun getRadioStationsAndUpload() {
             val favorites = getAllFavoritesAsString(mContext)
             val locals = getAllLocalAsString(mContext)
             val data = mergeRadioStationCategories(favorites, locals)
@@ -291,7 +290,7 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
             return
         }
         when (removeCommand()) {
-            Command.UPLOAD -> radioStationsAndUpload
+            Command.UPLOAD -> getRadioStationsAndUpload()
             Command.DOWNLOAD -> downloadRadioStationsAndApply()
         }
     }
