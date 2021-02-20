@@ -128,7 +128,7 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
     fun isFavorite(radioStation: RadioStation, context: Context): Boolean {
         val key = createKeyForRadioStation(radioStation)
         if (sSet[key] != null) {
-            return sSet[key]!!
+            return sSet[key] ?: false
         }
         val list = getAll(context)
         for (station in list) {
