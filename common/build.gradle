@@ -1,0 +1,91 @@
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply plugin: "com.google.gms.google-services"
+apply plugin: "kotlin-kapt"
+apply plugin: "dagger.hilt.android.plugin"
+apply from: "../constants.gradle"
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+
+        }
+
+        release {
+
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    aaptOptions {
+        cruncherEnabled = true
+    }
+}
+
+dependencies {
+
+    api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
+    api "androidx.media:media:$androidxMediaVersion"
+
+    implementation "com.google.android.material:material:$materialVersion"
+    implementation "androidx.appcompat:appcompat:$appcompatVersion"
+    implementation "androidx.core:core-ktx:$kotlinCoreKtx"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
+    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
+    implementation "com.google.firebase:firebase-analytics-ktx"
+    implementation "com.google.firebase:firebase-crashlytics-ktx"
+    implementation "org.checkerframework:checker-qual:$checkerQualVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
+    implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
+    implementation "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
+    implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
+    implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
+    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
+    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
+    implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
+    implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
+    implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
+        exclude group: "org.apache.httpcomponents"
+    }
+    implementation("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
+        exclude group: "org.apache.httpcomponents"
+    }
+    // https://mvnrepository.com/artifact/org.jdom/jdom2
+    implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
+    implementation "log4j:log4j:$log4jVersion"
+    implementation "com.squareup.picasso:picasso:$picassoVersion"
+    implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
+
+    kapt "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
+
+    androidTestImplementation(
+            "androidx.test.espresso:espresso-core:$espressoVersion",
+            {exclude group: "com.android.support", module: "support-annotations"}
+    )
+    androidTestImplementation "androidx.test.ext:junit:$junitAndroidXVersion"
+
+    // https://mvnrepository.com/artifact/junit/junit
+    testImplementation group: "junit", name: "junit", version: "$junitVersion"
+    testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
+}

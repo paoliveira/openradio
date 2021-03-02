@@ -1,0 +1,7 @@
+<resources>
+    <style name="open_radio_tv" parent="Theme.Leanback">
+        <item name="colorPrimary">@color/or_color_primary</item>
+        <item name="colorPrimaryDark">@color/or_color_primary_dark</item>
+        <item name="colorAccent">@color/or_color_accent</item>
+    </style>
+</resources>

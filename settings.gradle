@@ -1,1 +1,4 @@
+//include ':tv'
+include ':common'
+include ':automotive'
 include ':app'

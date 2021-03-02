@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.widget.FrameLayout
 import androidx.core.view.ViewCompat
 import com.xenione.libs.swipemaker.SwipeLayout.OnTranslateChangeListener
-import com.yuriy.openradio.R
+import com.yuriy.openradio.mobile.R
 
 /**
  * Created on 06/04/16.

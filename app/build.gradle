@@ -1,9 +1,8 @@
-apply plugin: "com.google.gms.google-services"
 apply plugin: "com.android.application"
+apply plugin: "kotlin-android"
+apply plugin: "kotlin-kapt"
 apply plugin: "dagger.hilt.android.plugin"
 apply plugin: "com.google.firebase.crashlytics"
-apply plugin: "kotlin-android"
-apply plugin: 'kotlin-kapt'
 apply from: "../constants.gradle"
 
 android {
@@ -67,6 +66,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+
     buildTypes {
         debug {
 //            minifyEnabled true
@@ -107,58 +110,18 @@ android {
 }
 
 dependencies {
-    api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
-
-    implementation "androidx.appcompat:appcompat:$appcompatVersion"
-    implementation "androidx.core:core-ktx:$kotlinCoreKtx"
-    implementation "androidx.leanback:leanback:$leanbackVersion"
-
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-    implementation "org.checkerframework:checker-qual:$checkerQualVersion"
-
-    implementation "com.android.support:multidex:$multidexVersion"
-    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
-
-    // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
-    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation "com.google.firebase:firebase-analytics-ktx"
-    implementation "com.google.firebase:firebase-crashlytics-ktx"
-    implementation "com.google.android.material:material:$materialVersion"
-    implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
-    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
-    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
-    implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
-    implementation "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
-    implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
-    implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
-    implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
-    implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
-        exclude group: "org.apache.httpcomponents"
-    }
-    implementation("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
-        exclude group: "org.apache.httpcomponents"
-    }
-
-    // https://mvnrepository.com/artifact/org.jdom/jdom2
-    implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
-
-    implementation "log4j:log4j:$log4jVersion"
-    implementation "com.squareup.picasso:picasso:$picassoVersion"
-    implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
+    implementation project(':common')
 
     kapt "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
 
-    androidTestImplementation(
-            "androidx.test.espresso:espresso-core:$espressoVersion",
-            {exclude group: "com.android.support", module: "support-annotations"}
-    )
-    androidTestImplementation "androidx.test.ext:junit:$junitAndroidXVersion"
-
-    // https://mvnrepository.com/artifact/junit/junit
-    testImplementation group: "junit", name: "junit", version: "$junitVersion"
-    testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "com.android.support:multidex:$multidexVersion"
+    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
+    implementation "com.google.android.material:material:$materialVersion"
+    implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
+    implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
 }
 
 tasks.whenTaskAdded { task ->

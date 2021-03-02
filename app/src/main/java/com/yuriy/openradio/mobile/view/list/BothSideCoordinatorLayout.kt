@@ -5,7 +5,7 @@ import android.util.AttributeSet
 import android.view.View
 import com.xenione.libs.swipemaker.AbsCoordinatorLayout
 import com.xenione.libs.swipemaker.SwipeLayout
-import com.yuriy.openradio.R
+import com.yuriy.openradio.mobile.R
 
 /**
  * Created on 06/04/16.
