@@ -72,10 +72,8 @@ import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
-import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 import java.util.concurrent.atomic.*
-import javax.inject.Inject
 
 /**
  * Created with Android Studio.
@@ -85,7 +83,6 @@ import javax.inject.Inject
  *
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
-@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -120,9 +117,7 @@ class MainActivity : AppCompatActivity() {
     private var mPauseBtn: View? = null
     private var mProgressBarCrs: ProgressBar? = null
 
-    @JvmField
-    @Inject
-    var mMediaPresenter: MediaPresenter? = null
+    private lateinit var mMediaPresenter: MediaPresenter
 
     init {
         mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
@@ -132,27 +127,30 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppLogger.d("$CLASS_NAME OnCreate:$savedInstanceState")
+
+        mMediaPresenter = MediaPresenter.getInstance(applicationContext)
+
         initUi(applicationContext)
         hideProgressBar()
         updateBufferedTime(0)
 
         // Register local receivers.
-        mMediaPresenter!!.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
+        mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
         val medSubscriptionCb: MediaBrowserCompat.SubscriptionCallback = MediaBrowserSubscriptionCallback()
         val mediaPresenterLstnr: MediaPresenterListener = MediaPresenterListenerImpl()
-        mMediaPresenter!!.init(
+        mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.list_view),
                 findViewById(R.id.current_radio_station_view), MobileMediaItemsAdapter(this),
                 mMediaItemListener, medSubscriptionCb, mediaPresenterLstnr
         )
-        mMediaPresenter!!.restoreState(savedInstanceState)
-        mMediaPresenter!!.connect()
+        mMediaPresenter.restoreState(savedInstanceState)
+        mMediaPresenter.connect()
     }
 
     override fun onResume() {
         super.onResume()
         AppLogger.i("$CLASS_NAME OnResume")
-        mMediaPresenter!!.handleResume()
+        mMediaPresenter.handleResume()
         hideProgressBar()
         LocationService.checkCountry(this, findViewById(R.id.main_layout))
     }
@@ -160,7 +158,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         AppLogger.i("$CLASS_NAME OnDestroy")
-        mMediaPresenter!!.handleDestroy(applicationContext)
+        mMediaPresenter.handleDestroy(applicationContext)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -204,14 +202,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         AppLogger.d("$CLASS_NAME OnSaveInstance:$outState")
-        mMediaPresenter!!.handleSaveInstanceState(outState)
+        mMediaPresenter.handleSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
 
     override fun onBackPressed() {
         hideNoDataMessage()
         hideProgressBar()
-        if (mMediaPresenter!!.handleBackPressed(applicationContext)) {
+        if (mMediaPresenter.handleBackPressed(applicationContext)) {
             // perform android frameworks lifecycle
             super.onBackPressed()
         }
@@ -326,7 +324,7 @@ class MainActivity : AppCompatActivity() {
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
         // Save search query string, retrieve it later in the service
         AppUtils.searchQuery = queryString
-        mMediaPresenter!!.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
     }
 
     /**
@@ -337,7 +335,7 @@ class MainActivity : AppCompatActivity() {
     private fun unsubscribeFromItem(mediaItemId: String) {
         hideNoDataMessage()
         hideProgressBar()
-        mMediaPresenter!!.unsubscribeFromItem(mediaItemId)
+        mMediaPresenter.unsubscribeFromItem(mediaItemId)
     }
 
     /**
@@ -346,7 +344,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updateRootView() {
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_ROOT)
-        mMediaPresenter!!.addMediaItemToStack(MediaIdHelper.MEDIA_ID_ROOT)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_ROOT)
     }
 
     /**
@@ -404,7 +402,7 @@ class MainActivity : AppCompatActivity() {
         if (item.description.title != null) {
             name = item.description.title.toString()
         }
-        if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+        if (mMediaPresenter.getOnSaveInstancePassed()) {
             AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
             return
         }
@@ -428,7 +426,7 @@ class MainActivity : AppCompatActivity() {
      * @param item Media item related to the Radio Station to be edited.
      */
     private fun handleEditRadioStationMenu(item: MediaBrowserCompat.MediaItem) {
-        if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+        if (mMediaPresenter.getOnSaveInstancePassed()) {
             AppLogger.w(CLASS_NAME + "Can not show Dialog after OnSaveInstanceState")
             return
         }
@@ -498,7 +496,7 @@ class MainActivity : AppCompatActivity() {
         if (nameView != null) {
             nameView.text = description.title
         }
-        mMediaPresenter?.updateDescription(
+        mMediaPresenter.updateDescription(
                 applicationContext, findViewById(R.id.crs_description_view), description
         )
         findViewById<ProgressBar>(R.id.crs_img_progress_view)?.visibility = View.GONE
@@ -535,7 +533,7 @@ class MainActivity : AppCompatActivity() {
                 CLASS_NAME + " permissions:" + permissions.contentToString()
                         + ", results:" + grantResults.contentToString()
         )
-        mMediaPresenter?.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
+        mMediaPresenter.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -560,14 +558,11 @@ class MainActivity : AppCompatActivity() {
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
 
         override fun onLocationChanged() {
-            if (mMediaPresenter == null) {
-                return
-            }
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+            if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
-            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter.currentParentId) {
                 LocationService.checkCountry(
                         this@MainActivity, this@MainActivity.findViewById(R.id.main_layout)
                 )
@@ -576,33 +571,26 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun onCurrentIndexOnQueueChanged(index: Int, mediaId: String?) {
-            if (mMediaPresenter != null) {
-                mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mediaId)
-            }
+            mMediaPresenter.handleCurrentIndexOnQueueChanged(mediaId)
         }
 
         override fun onSleepTimer() {
             hideNoDataMessage()
             hideProgressBar()
-            mMediaPresenter?.clearMediaItems()
+            mMediaPresenter.clearMediaItems()
             finish()
         }
 
         override fun onSortIdChanged(mediaId: String, sortId: Int) {
-            if (mMediaPresenter != null) {
-                mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mMediaPresenter!!.getCurrentMediaId())
-            }
+            mMediaPresenter.handleCurrentIndexOnQueueChanged(mMediaPresenter.getCurrentMediaId())
         }
 
         override fun onGoogleDriveDownloaded() {
-            if (mMediaPresenter == null) {
-                return
-            }
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+            if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
                 return
             }
-            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter.currentParentId) {
                 updateRootView()
             }
         }
@@ -612,7 +600,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onChildrenLoaded(parentId: String, children: List<MediaBrowserCompat.MediaItem>) {
             AppLogger.i("$CLASS_NAME children loaded:$parentId, children:${children.size}")
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+            if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
                 return
             }
@@ -631,9 +619,7 @@ class MainActivity : AppCompatActivity() {
             if (MediaItemHelper.isEndOfList(children)) {
                 return
             }
-            if (mMediaPresenter != null) {
-                mMediaPresenter!!.handleChildrenLoaded(parentId, children)
-            }
+            mMediaPresenter.handleChildrenLoaded(parentId, children)
         }
 
         override fun onError(id: String) {
@@ -652,20 +638,15 @@ class MainActivity : AppCompatActivity() {
             UiUtils.clearDialogs(this@MainActivity, transaction)
             val bundle = Bundle()
             var currentParentId = ""
-            if (mMediaPresenter != null) {
-                currentParentId = mMediaPresenter!!.currentParentId
-            }
-            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId, mMediaPresenter!!.itemsCount())
+            currentParentId = mMediaPresenter.currentParentId
+            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId, mMediaPresenter.itemsCount())
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }
 
         override fun onItemSelected(item: MediaBrowserCompat.MediaItem, position: Int) {
-            if (mMediaPresenter == null) {
-                return
-            }
-            mMediaPresenter!!.setActiveItem(position)
-            mMediaPresenter!!.handleItemClick(item, position)
+            mMediaPresenter.setActiveItem(position)
+            mMediaPresenter.handleItemClick(item, position)
         }
     }
 

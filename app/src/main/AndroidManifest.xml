@@ -26,7 +26,6 @@
         android:required="false" />
 
     <application
-        android:name=".MainApp"
         android:allowBackup="true"
         android:appCategory="audio"
         android:fullBackupContent="true"

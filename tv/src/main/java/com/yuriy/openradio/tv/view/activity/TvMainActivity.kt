@@ -29,7 +29,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
-import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
@@ -47,26 +46,22 @@ import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
+import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog
 import com.yuriy.openradio.tv.view.list.TvMediaItemsAdapter
-import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 import java.util.concurrent.atomic.*
-import javax.inject.Inject
 
 /*
  * Main TV Activity class that loads main TV fragment.
  */
-@AndroidEntryPoint
 class TvMainActivity : FragmentActivity() {
     /**
      * Progress Bar view to indicate that data is loading.
      */
     private var mProgressBar: ProgressBar? = null
 
-    @JvmField
-    @Inject
-    var mMediaPresenter: MediaPresenter? = null
+    private lateinit var mMediaPresenter: MediaPresenter
     private val mListener: MediaItemsAdapter.Listener
     private var mPlayBtn: View? = null
     private var mPauseBtn: View? = null
@@ -82,38 +77,40 @@ class TvMainActivity : FragmentActivity() {
         setUpSearchBtn()
         setUpSettingsBtn()
         setUpEqualizerBtn()
-        val context = applicationContext
+
+        mMediaPresenter = MediaPresenter.getInstance(applicationContext)
+
         mProgressBar = findViewById(R.id.progress_bar_tv_view)
         mPlayBtn = findViewById(R.id.tv_crs_play_btn_view)
         mPauseBtn = findViewById(R.id.tv_crs_pause_btn_view)
 
         // Register local receivers.
-        mMediaPresenter!!.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
+        mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
         val subscriptionCb: MediaBrowserCompat.SubscriptionCallback = MediaBrowserSubscriptionCallback()
         val listener: MediaPresenterListener = MediaPresenterListenerImpl()
-        mMediaPresenter!!.init(
+        mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.tv_list_view),
-                findViewById(R.id.tv_current_radio_station_view), TvMediaItemsAdapter(context), mListener,
+                findViewById(R.id.tv_current_radio_station_view), TvMediaItemsAdapter(applicationContext), mListener,
                 subscriptionCb, listener
         )
-        mMediaPresenter!!.restoreState(savedInstanceState)
-        mMediaPresenter!!.connect()
+        mMediaPresenter.restoreState(savedInstanceState)
+        mMediaPresenter.connect()
     }
 
     override fun onResume() {
         super.onResume()
-        mMediaPresenter!!.handleResume()
+        mMediaPresenter.handleResume()
         hideProgressBar()
         LocationService.checkCountry(this, findViewById(R.id.tv_main_layout))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mMediaPresenter!!.handleDestroy(applicationContext)
+        mMediaPresenter.handleDestroy(applicationContext)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        mMediaPresenter!!.handleSaveInstanceState(outState)
+        mMediaPresenter.handleSaveInstanceState(outState)
         super.onSaveInstanceState(outState)
     }
 
@@ -125,7 +122,7 @@ class TvMainActivity : FragmentActivity() {
                 CLASS_NAME + " permissions:" + permissions.contentToString()
                         + ", results:" + grantResults.contentToString()
         )
-        mMediaPresenter?.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
+        mMediaPresenter.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -146,11 +143,8 @@ class TvMainActivity : FragmentActivity() {
      * Process call back from the Search Dialog.
      */
     private fun onSearchDialogClick() {
-        if (mMediaPresenter == null) {
-            return
-        }
-        mMediaPresenter!!.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
-        mMediaPresenter!!.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
+        mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
     }
 
     /**
@@ -175,7 +169,7 @@ class TvMainActivity : FragmentActivity() {
 
     override fun onBackPressed() {
         hideProgressBar()
-        if (mMediaPresenter!!.handleBackPressed(applicationContext)) {
+        if (mMediaPresenter.handleBackPressed(applicationContext)) {
             // perform android frameworks lifecycle
             super.onBackPressed()
         }
@@ -271,7 +265,7 @@ class TvMainActivity : FragmentActivity() {
         if (nameView != null) {
             nameView.text = description.title
         }
-        mMediaPresenter?.updateDescription(
+        mMediaPresenter.updateDescription(
                 applicationContext, findViewById(R.id.tv_crs_description_view), description
         )
         findViewById<ProgressBar>(R.id.tv_crs_img_progress_view)?.visibility = View.GONE
@@ -304,14 +298,12 @@ class TvMainActivity : FragmentActivity() {
 
     private fun handleChildrenLoaded(parentId: String,
                                      children: List<MediaBrowserCompat.MediaItem>) {
-        if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+        if (mMediaPresenter.getOnSaveInstancePassed()) {
             AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
             return
         }
         hideProgressBar()
-        if (mMediaPresenter != null) {
-            mMediaPresenter!!.handleChildrenLoaded(parentId, children)
-        }
+        mMediaPresenter.handleChildrenLoaded(parentId, children)
     }
 
     /**
@@ -319,8 +311,8 @@ class TvMainActivity : FragmentActivity() {
      * Should be call only if current media id is [MediaIdHelper.MEDIA_ID_ROOT].
      */
     private fun updateRootView() {
-        mMediaPresenter!!.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_ROOT)
-        mMediaPresenter!!.addMediaItemToStack(MediaIdHelper.MEDIA_ID_ROOT)
+        mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_ROOT)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_ROOT)
     }
 
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
@@ -362,11 +354,8 @@ class TvMainActivity : FragmentActivity() {
         }
 
         override fun onItemSelected(item: MediaBrowserCompat.MediaItem, position: Int) {
-            if (mMediaPresenter == null) {
-                return
-            }
-            mMediaPresenter!!.setActiveItem(position)
-            mMediaPresenter!!.handleItemClick(item, position)
+            mMediaPresenter.setActiveItem(position)
+            mMediaPresenter.handleItemClick(item, position)
         }
     }
 
@@ -376,14 +365,11 @@ class TvMainActivity : FragmentActivity() {
     private inner class LocalBroadcastReceiverCallback : AppLocalReceiverCallback {
 
         override fun onLocationChanged() {
-            if (mMediaPresenter == null) {
-                return
-            }
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+            if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w(CLASS_NAME + "Can not do Location Changed after OnSaveInstanceState")
                 return
             }
-            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter.currentParentId) {
                 LocationService.checkCountry(
                         this@TvMainActivity, this@TvMainActivity.findViewById(R.id.tv_main_layout)
                 )
@@ -392,32 +378,25 @@ class TvMainActivity : FragmentActivity() {
         }
 
         override fun onCurrentIndexOnQueueChanged(index: Int, mediaId: String?) {
-            if (mMediaPresenter != null) {
-                mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mediaId)
-            }
+            mMediaPresenter.handleCurrentIndexOnQueueChanged(mediaId)
         }
 
         override fun onSleepTimer() {
             hideProgressBar()
-            mMediaPresenter?.clearMediaItems()
+            mMediaPresenter.clearMediaItems()
             finish()
         }
 
         override fun onSortIdChanged(mediaId: String, sortId: Int) {
-            if (mMediaPresenter != null) {
-                mMediaPresenter!!.handleCurrentIndexOnQueueChanged(mMediaPresenter!!.getCurrentMediaId())
-            }
+            mMediaPresenter.handleCurrentIndexOnQueueChanged(mMediaPresenter.getCurrentMediaId())
         }
 
         override fun onGoogleDriveDownloaded() {
-            if (mMediaPresenter == null) {
-                return
-            }
-            if (mMediaPresenter!!.getOnSaveInstancePassed()) {
+            if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w(CLASS_NAME + "Can not do GoogleDriveDownloaded after OnSaveInstanceState")
                 return
             }
-            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter!!.currentParentId) {
+            if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter.currentParentId) {
                 updateRootView()
             }
         }

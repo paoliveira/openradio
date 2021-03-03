@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.mobile
+package com.yuriy.openradio.shared
 
 import android.content.Context
 import android.os.Build
@@ -45,7 +45,6 @@ import com.yuriy.openradio.shared.utils.AppUtils.getUserCountry
 import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
 import com.yuriy.openradio.shared.utils.FileUtils.getFilesDir
 import com.yuriy.openradio.shared.vo.RadioStation
-import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -56,7 +55,6 @@ import kotlinx.coroutines.launch
  * Date: 12/21/13
  * Time: 6:29 PM
  */
-@HiltAndroidApp
 class MainApp : MultiDexApplication() {
 
     override fun attachBaseContext(base: Context) {

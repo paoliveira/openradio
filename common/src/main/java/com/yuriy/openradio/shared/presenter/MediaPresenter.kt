@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.presenter
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.IntentFilter
@@ -44,6 +45,7 @@ import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
@@ -54,22 +56,18 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper.isEndOfList
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.PlaybackStateError
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.*
-import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) {
+class MediaPresenter private constructor(context: Context) {
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
-    private val mMediaRsrMgr: MediaResourcesManager
+    private val mMediaRsrMgr = MediaResourcesManager(context, javaClass.simpleName)
 
     /**
      * Stack of the media items.
@@ -92,7 +90,7 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     private var mActivity: Activity? = null
     private var mListener: MediaPresenterListener? = null
     private var mListView: RecyclerView? = null
-    private val mScrollListener: RecyclerView.OnScrollListener
+    private val mScrollListener = ScrollListener()
     private var mLastKnownMetadata: MediaMetadataCompat? = null
     private var mCurrentPlaybackState = PlaybackStateCompat.STATE_NONE
 
@@ -104,12 +102,12 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     /**
      * Receiver for the local application;s events
      */
-    private val mAppLocalBroadcastRcvr: AppLocalReceiver
+    private val mAppLocalBroadcastRcvr = AppLocalReceiver.instance
 
     /**
      * Receiver for the Screen OF/ON events.
      */
-    private val mScreenBroadcastRcvr: AbstractReceiver
+    private val mScreenBroadcastRcvr = ScreenReceiver()
     private var mCurrentRadioStationView: View? = null
     private var mCurrentMediaId: String = ""
 
@@ -117,13 +115,6 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private val mIsOnSaveInstancePassed = AtomicBoolean(false)
-
-    init {
-        mScrollListener = ScrollListener()
-        mScreenBroadcastRcvr = ScreenReceiver()
-        mAppLocalBroadcastRcvr = AppLocalReceiver.instance
-        mMediaRsrMgr = MediaResourcesManager(context!!, javaClass.simpleName)
-    }
 
     fun init(activity: Activity, bundle: Bundle?, listView: RecyclerView,
              currentRadioStationView: View,
@@ -565,11 +556,23 @@ class MediaPresenter @Inject constructor(@ApplicationContext context: Context?) 
     }
 
     companion object {
+
         private val CLASS_NAME = MediaPresenter::class.java.simpleName
 
         /**
          * Key value for the first visible ID in the List for the store Bundle
          */
         private const val BUNDLE_ARG_LAST_KNOWN_METADATA = "BUNDLE_ARG_LAST_KNOWN_METADATA"
+
+        @SuppressLint("StaticFieldLeak")
+        private lateinit var instance: MediaPresenter
+
+        @JvmStatic
+        fun getInstance(context: Context): MediaPresenter {
+            if (!::instance.isInitialized) {
+                instance = MediaPresenter(context)
+            }
+            return instance
+        }
     }
 }

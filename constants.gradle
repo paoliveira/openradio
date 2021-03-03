@@ -44,14 +44,11 @@ project.ext {
     firebaseInstallationsVersion = "16.3.5"
     firebaseCrashlyticsVersion = "17.3.0"
     jdom2Version = "2.0.6"
-    hiltAndroidVersion = "2.28.3-alpha"
-    hiltAndroidCompilerVersion = "2.28.3-alpha"
     googleHttpClientGsonVersion = "1.26.0"
     googleApiClientAndroidVersion = "1.26.0"
     googleApiServicesDrive = "v3-rev197-1.25.0"
     picassoVersion = "2.71828"
     countryboundariesVersion = "1.5"
-    hiltAndroidGradlePlugin = "2.28.3-alpha"
     androidxMediaVersion = "1.2.1"
 
     /**

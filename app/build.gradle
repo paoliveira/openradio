@@ -1,7 +1,5 @@
 apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
-apply plugin: "kotlin-kapt"
-apply plugin: "dagger.hilt.android.plugin"
 apply plugin: "com.google.firebase.crashlytics"
 apply from: "../constants.gradle"
 
@@ -57,7 +55,6 @@ android {
         versionCode code
         versionName project.ext.versionName
         multiDexEnabled true
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -72,13 +69,9 @@ android {
 
     buildTypes {
         debug {
-//            minifyEnabled true
-//            shrinkResources true
             signingConfig signingConfigs.config
         }
         release {
-//            minifyEnabled true
-//            shrinkResources true
             signingConfig signingConfigs.config
         }
     }
@@ -112,13 +105,10 @@ android {
 dependencies {
     implementation project(':common')
 
-    kapt "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
     implementation "com.google.android.material:material:$materialVersion"
-    implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
     implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"

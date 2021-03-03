@@ -20,10 +20,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
-import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.utils.MediaItemHelper.getBitrateField
 import com.yuriy.openradio.shared.view.list.MediaItemViewHolder
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
+import com.yuriy.openradio.tv.R
 
 /**
  * Created by Yuriy Chernyshov

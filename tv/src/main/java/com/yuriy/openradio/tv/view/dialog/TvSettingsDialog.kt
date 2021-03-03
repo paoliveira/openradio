@@ -23,7 +23,6 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.TextView
-import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.UiUtils.clearDialogs
 import com.yuriy.openradio.shared.view.BaseDialogFragment
@@ -33,6 +32,7 @@ import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
+import com.yuriy.openradio.tv.R
 import java.util.*
 import java.util.concurrent.atomic.*
 

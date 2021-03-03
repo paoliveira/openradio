@@ -37,6 +37,7 @@
 
     <!-- requestLegacyExternalStorage="true" - need for Android 10 -->
     <application
+        android:name="com.yuriy.openradio.shared.MainApp"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true" >
 

@@ -31,6 +31,7 @@ import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentP
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentPlaybackState
 import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getRestoreState
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
@@ -88,6 +89,7 @@ class MediaResourcesManager(context: Context, className: String) {
      * Constructor.
      */
     init {
+        AppLogger.d("MediaResourceManager init")
         mMediaSessionCallback = MediaSessionCallback()
         mSubscribed = HashSet()
         // Initialize Media Browser

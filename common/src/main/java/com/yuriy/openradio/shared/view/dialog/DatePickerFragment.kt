@@ -41,7 +41,7 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
 
     override fun onDateSet(view: DatePicker, year: Int, month: Int, day: Int) {
         // Do something with the date chosen by the user
-        val dialog = SleepTimerDialog.findDialog(parentFragmentManager)
+        val dialog = SleepTimerDialog.findDialog(fragmentManager)
         if (dialog != null) {
             dialog.onDateSet(year, month, day)
         } else {

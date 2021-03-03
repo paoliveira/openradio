@@ -25,11 +25,11 @@ import androidx.leanback.app.SearchSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.ListRowPresenter
 import androidx.leanback.widget.ObjectAdapter
-import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.permission.PermissionChecker.isRecordAudioGranted
 import com.yuriy.openradio.shared.permission.PermissionChecker.requestRecordAudioPermission
 import com.yuriy.openradio.shared.utils.AppLogger.e
 import com.yuriy.openradio.shared.utils.AppLogger.i
+import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.view.activity.TvSearchActivity
 
 /*

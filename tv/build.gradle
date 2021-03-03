@@ -2,8 +2,8 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
 }
-apply plugin: "kotlin-kapt"
-apply plugin: "dagger.hilt.android.plugin"
+apply plugin: "com.google.gms.google-services"
+apply plugin: "com.google.firebase.crashlytics"
 apply from: "../constants.gradle"
 
 android {
@@ -16,8 +16,6 @@ android {
         targetSdkVersion project.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -39,25 +37,13 @@ android {
     }
 
     packagingOptions {
-//        exclude 'META-INF/DEPENDENCIES.txt'
-//        exclude 'META-INF/LICENSE.txt'
-//        exclude 'META-INF/NOTICE.txt'
-//        exclude 'META-INF/NOTICE'
-//        exclude 'META-INF/LICENSE'
         exclude 'META-INF/DEPENDENCIES'
-//        exclude 'META-INF/notice.txt'
-//        exclude 'META-INF/license.txt'
-//        exclude 'META-INF/dependencies.txt'
-//        exclude 'META-INF/LGPL2.1'
     }
 }
 
 dependencies {
     implementation project(':common')
 
-    kapt "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
-
-    implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
     implementation "androidx.leanback:leanback:$leanbackVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "com.google.android.material:material:$materialVersion"

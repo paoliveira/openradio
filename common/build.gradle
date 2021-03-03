@@ -2,7 +2,6 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply plugin: "com.google.gms.google-services"
 apply plugin: "kotlin-kapt"
-apply plugin: "dagger.hilt.android.plugin"
 apply from: "../constants.gradle"
 
 android {
@@ -12,6 +11,7 @@ android {
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
+        multiDexEnabled true
         versionCode 1
         versionName "1.0"
 
@@ -46,6 +46,7 @@ dependencies {
     api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
     api "androidx.media:media:$androidxMediaVersion"
 
+    implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.google.android.material:material:$materialVersion"
     implementation "androidx.appcompat:appcompat:$appcompatVersion"
     implementation "androidx.core:core-ktx:$kotlinCoreKtx"
@@ -63,7 +64,6 @@ dependencies {
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
     implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
-    implementation "com.google.dagger:hilt-android:$hiltAndroidVersion"
     implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
     implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
         exclude group: "org.apache.httpcomponents"
@@ -76,8 +76,6 @@ dependencies {
     implementation "log4j:log4j:$log4jVersion"
     implementation "com.squareup.picasso:picasso:$picassoVersion"
     implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
-
-    kapt "com.google.dagger:hilt-android-compiler:$hiltAndroidCompilerVersion"
 
     androidTestImplementation(
             "androidx.test.espresso:espresso-core:$espressoVersion",

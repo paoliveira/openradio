@@ -68,12 +68,12 @@ class SleepTimerDialog : BaseDialogFragment() {
         val dateBtn: Button = mView!!.findViewById(R.id.sleep_timer_date_btn)
         dateBtn.setOnClickListener {
             val newFragment = DatePickerFragment()
-            newFragment.show(parentFragmentManager, DatePickerFragment.TAG)
+            newFragment.show(fragmentManager!!, DatePickerFragment.TAG)
         }
         val timeBtn: Button = mView!!.findViewById(R.id.sleep_timer_time_btn)
         timeBtn.setOnClickListener {
             val newFragment = TimePickerFragment()
-            newFragment.show(parentFragmentManager, TimePickerFragment.TAG)
+            newFragment.show(fragmentManager!!, TimePickerFragment.TAG)
         }
         return createAlertDialog(mView)
     }
