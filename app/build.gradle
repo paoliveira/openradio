@@ -2,57 +2,17 @@ apply plugin: "com.android.application"
 apply plugin: "kotlin-android"
 apply plugin: "com.google.firebase.crashlytics"
 apply from: "../constants.gradle"
+apply from: "../sign.gradle"
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
     buildToolsVersion project.ext.buildToolsVersion
 
-    def versionPropsFile = file('version.properties')
-    def code = 1
-    if (versionPropsFile.canRead()) {
-        Properties versionProps = new Properties()
-        versionProps.load(new FileInputStream(versionPropsFile))
-        code = versionProps['VERSION_CODE'].toInteger()
-    } else {
-        throw new GradleException("Could not read version.properties !")
-    }
-    println "Version code:" + code
-
-    /**
-     * Sign
-     */
-    def storeFileProp = ""
-    def aliasProp = ""
-    def pwdProp = ""
-
-    /**
-     * Load constants from files
-     */
-    def signConfFile = file("sign.properties")
-    if (signConfFile.canRead()) {
-        Properties signProps = new Properties()
-        signProps.load(new FileInputStream(signConfFile))
-        storeFileProp = signProps['file'].toString()
-        aliasProp = signProps['alias'].toString()
-        pwdProp = signProps['pwd'].toString()
-    } else {
-        throw new GradleException("Could not read sign.properties !")
-    }
-
-    signingConfigs {
-        config {
-            keyAlias aliasProp
-            keyPassword pwdProp
-            storeFile file(storeFileProp)
-            storePassword pwdProp
-        }
-    }
-
     defaultConfig {
         applicationId project.ext.applicationId
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
-        versionCode code
+        versionCode project.ext.versionCode
         versionName project.ext.versionName
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true
@@ -65,6 +25,15 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+    }
+
+    signingConfigs {
+        config {
+            keyAlias aliasProp
+            keyPassword pwdProp
+            storeFile file(project.ext.storeFileProp)
+            storePassword pwdProp
+        }
     }
 
     buildTypes {
@@ -113,25 +82,4 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
     implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
-}
-
-tasks.whenTaskAdded { task ->
-    if (task.name == "signReleaseBundle") {
-        task.doLast() {
-            println "Get And Increment Version code"
-
-            def versionPropsFile = file('version.properties')
-            if (versionPropsFile.canRead()) {
-                Properties versionProps = new Properties()
-                versionProps.load(new FileInputStream(versionPropsFile))
-                def code = versionProps['VERSION_CODE'].toInteger() + 1
-                versionProps['VERSION_CODE'] = code.toString()
-                versionProps.store(versionPropsFile.newWriter(), null)
-
-                println "Version code incremented to " + code
-            } else {
-                throw new GradleException("Could not read version.properties !")
-            }
-        }
-    }
 }

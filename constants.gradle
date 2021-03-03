@@ -56,6 +56,7 @@ project.ext {
      */
     applicationId = "com.yuriy.openradio"
     versionName = "7.2"
+    versionCode = 0
 
     /**
      * Firebase
@@ -63,4 +64,12 @@ project.ext {
     apiKey = ""
     firebaseCrashlyticsGradle = "2.4.1"
     firebaseBom = "26.1.1"
+
+    /**
+     * Sign
+     */
+    storeFileProp = ""
+    aliasProp = ""
+    pwdProp = ""
+    storeFileProp = ""
 }

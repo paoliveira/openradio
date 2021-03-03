@@ -5,6 +5,7 @@ plugins {
 apply plugin: "com.google.gms.google-services"
 apply plugin: "com.google.firebase.crashlytics"
 apply from: "../constants.gradle"
+apply from: "../sign.gradle"
 
 android {
     compileSdkVersion project.ext.compileSdkVersion
@@ -14,19 +15,28 @@ android {
         applicationId project.ext.applicationId
         minSdkVersion 21
         targetSdkVersion project.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode project.ext.versionCode
+        versionName project.ext.versionName
+    }
+
+    signingConfigs {
+        config {
+            keyAlias aliasProp
+            keyPassword pwdProp
+            storeFile file(storeFileProp)
+            storePassword pwdProp
+        }
     }
 
     buildTypes {
         debug {
-
+            signingConfig signingConfigs.config
         }
-        
         release {
-
+            signingConfig signingConfigs.config
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
