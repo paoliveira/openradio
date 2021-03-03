@@ -11,7 +11,6 @@ android {
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
-        multiDexEnabled true
         versionCode 1
         versionName "1.0"
 
@@ -19,7 +18,7 @@ android {
     }
 
     buildTypes {
-        debug {
+        debuig {
 
         }
 
@@ -27,6 +26,7 @@ android {
 
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -35,13 +35,11 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-
-    aaptOptions {
-        cruncherEnabled = true
-    }
 }
 
 dependencies {
+    implementation project(':common')
+
     api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
     api "androidx.media:media:$androidxMediaVersion"
 
@@ -58,9 +56,9 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
     implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
-    implementation "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
-    implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
+    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
+    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
     implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
     implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
         exclude group: "org.apache.httpcomponents"
@@ -72,7 +70,6 @@ dependencies {
     implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
     implementation "log4j:log4j:$log4jVersion"
     implementation "com.squareup.picasso:picasso:$picassoVersion"
-    implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
 
     androidTestImplementation(
             "androidx.test.espresso:espresso-core:$espressoVersion",

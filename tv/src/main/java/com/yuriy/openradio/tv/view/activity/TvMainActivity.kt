@@ -37,7 +37,6 @@ import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
@@ -239,7 +238,7 @@ class TvMainActivity : FragmentActivity() {
 
     private fun showTvSettings() {
         val transaction = supportFragmentManager.beginTransaction()
-        UiUtils.clearDialogs(this, transaction)
+        com.yuriy.openradio.shared.utils.UiUtils.clearDialogs(this, transaction)
         // Show Settings Dialog
         val dialogFragment = BaseDialogFragment.newInstance(
                 TvSettingsDialog::class.java.name

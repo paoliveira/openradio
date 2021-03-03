@@ -43,6 +43,7 @@ android {
 
 dependencies {
     implementation project(':common')
+    implementation project(':common-ui')
 
     implementation "androidx.leanback:leanback:$leanbackVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"

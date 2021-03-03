@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "573968705407",
+    "firebase_url": "https://open-radio-ed981.firebaseio.com",
+    "project_id": "open-radio-ed981",
+    "storage_bucket": "open-radio-ed981.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:573968705407:android:3e174a5859ac2195371c4a",
+        "android_client_info": {
+          "package_name": "com.yuriy.openradio.shared"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "573968705407-gsif6p91f3bf16n0q473eb1urt10aqqb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRU-Pd5T7dikhVzekLyzSNsRvbgnRU1ak"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "573968705407-gsif6p91f3bf16n0q473eb1urt10aqqb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

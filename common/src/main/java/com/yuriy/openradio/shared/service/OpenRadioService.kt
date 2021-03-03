@@ -82,7 +82,6 @@ import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
-import com.yuriy.openradio.shared.model.timer.SleepTimerImpl
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
@@ -217,7 +216,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private val mRadioStationsComparator: Comparator<RadioStation>
     private val mStartIds: ConcurrentLinkedQueue<Int>
     private val mTimerListener = SleepTimerListenerImpl()
-    private val mTimer = SleepTimerImpl.makeInstance(mTimerListener)
+    private val mTimer = com.yuriy.openradio.shared.model.timer.SleepTimerImpl.makeInstance(mTimerListener)
 
     interface ResultListener {
         fun onResult()

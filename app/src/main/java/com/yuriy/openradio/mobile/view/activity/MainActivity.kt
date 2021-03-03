@@ -624,7 +624,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onError(id: String) {
             hideProgressBar()
-            SafeToast.showAnyThread(this@MainActivity, this@MainActivity.getString(R.string.error_loading_media))
+            com.yuriy.openradio.shared.view.SafeToast.showAnyThread(this@MainActivity, this@MainActivity.getString(R.string.error_loading_media))
         }
     }
 

@@ -23,10 +23,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.telephony.TelephonyManager
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.view.SafeToast
 
 /**
  * Created by Chernyshov Yurii
@@ -55,12 +53,12 @@ class ConnectivityReceiver (private val mListener: Listener) : AbstractReceiver(
         val manager = getConnectivityManager(context)
         val networkInfo = manager.activeNetworkInfo
         if (networkInfo == null) {
-            e("$CLASS_NAME network info is null")
+            AppLogger.e("$CLASS_NAME network info is null")
             mListener.onConnectivityChange(false)
             return
         }
         getQuality(networkInfo)
-        i(CLASS_NAME + " network connected:" + networkInfo.isConnected)
+        AppLogger.i(CLASS_NAME + " network connected:" + networkInfo.isConnected)
         mListener.onConnectivityChange(networkInfo.isConnected)
     }
 
@@ -70,9 +68,9 @@ class ConnectivityReceiver (private val mListener: Listener) : AbstractReceiver(
 
     private fun getQuality(info: NetworkInfo) {
         if (info.type == ConnectivityManager.TYPE_WIFI) {
-            d("$CLASS_NAME NetQ:WiFi")
+            AppLogger.d("$CLASS_NAME NetQ:WiFi")
         } else if (info.type == ConnectivityManager.TYPE_MOBILE) {
-            d(CLASS_NAME + " NetQ:Mobile:" + info.subtype)
+            AppLogger.d(CLASS_NAME + " NetQ:Mobile:" + info.subtype)
             when (info.subtype) {
                 TelephonyManager.NETWORK_TYPE_GPRS -> {
                     // Bandwidth between 100 kbps and below
@@ -125,7 +123,7 @@ class ConnectivityReceiver (private val mListener: Listener) : AbstractReceiver(
             if (checkConnectivity(context)) {
                 return true
             }
-            showAnyThread(
+            SafeToast.showAnyThread(
                     context,
                     context.getString(R.string.no_network_connection_toast)
             )

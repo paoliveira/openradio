@@ -55,9 +55,9 @@ class EqualizerSerializationTest {
         bandLevels[3] = bandLevel4
         bandLevels[4] = bandLevel5
         state.bandLevels = bandLevels
-        val serializer: EqualizerStateSerializer = EqualizerJsonStateSerializer()
+        val serializer: com.yuriy.openradio.shared.model.translation.EqualizerStateSerializer = com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer()
         val value = serializer.serialize(state)
-        val deserializer: EqualizerStateDeserializer = EqualizerStateJsonDeserializer()
+        val deserializer: com.yuriy.openradio.shared.model.translation.EqualizerStateDeserializer = com.yuriy.openradio.shared.model.translation.EqualizerStateJsonDeserializer()
         val newState = deserializer.deserialize(context, value)
         val newList = newState.presets
         MatcherAssert.assertThat(newList.size, CoreMatchers.`is`(3))

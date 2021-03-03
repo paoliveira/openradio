@@ -104,6 +104,7 @@ android {
 
 dependencies {
     implementation project(':common')
+    implementation project(':common-ui')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "com.android.support:multidex:$multidexVersion"

@@ -21,10 +21,6 @@ import android.media.audiofx.Equalizer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.model.storage.EqualizerStorage
-import com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateDeserializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateJsonDeserializer
-import com.yuriy.openradio.shared.model.translation.EqualizerStateSerializer
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.EqualizerState
 
@@ -81,7 +77,7 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
             AppLogger.e("$CLASS_NAME can not create state from $mEqualizer, $e")
         }
         if (state != null) {
-            Companion.saveState(mContext, state)
+            saveState(mContext, state)
         }
     }
 
@@ -90,7 +86,7 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
         if (mEqualizer == null) {
             return
         }
-        val state = Companion.loadState(mContext)
+        val state = loadState(mContext)
         try {
             AppLogger.d("$CLASS_NAME try to apply preset N:${state.currentPreset} on $mEqualizer")
             var result = (mEqualizer!!.setEnabled(false))
@@ -118,12 +114,12 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
         }
 
         fun loadState(context: Context): EqualizerState {
-            val deserializer: EqualizerStateDeserializer = EqualizerStateJsonDeserializer()
+            val deserializer: com.yuriy.openradio.shared.model.translation.EqualizerStateDeserializer = com.yuriy.openradio.shared.model.translation.EqualizerStateJsonDeserializer()
             return deserializer.deserialize(context, EqualizerStorage.loadEqualizerState(context))
         }
 
         fun saveState(context: Context, state: EqualizerState) {
-            val serializer: EqualizerStateSerializer = EqualizerJsonStateSerializer()
+            val serializer: com.yuriy.openradio.shared.model.translation.EqualizerStateSerializer = com.yuriy.openradio.shared.model.translation.EqualizerJsonStateSerializer()
             EqualizerStorage.saveEqualizerState(context, serializer.serialize(state))
         }
     }
