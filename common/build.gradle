@@ -84,24 +84,3 @@ dependencies {
     testImplementation group: "junit", name: "junit", version: "$junitVersion"
     testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
 }
-
-tasks.whenTaskAdded { task ->
-    if (task.name == "signReleaseBundle") {
-        task.doLast() {
-            println "Get And Increment Version code"
-
-            def versionPropsFile = file('version.properties')
-            if (versionPropsFile.canRead()) {
-                Properties versionProps = new Properties()
-                versionProps.load(new FileInputStream(versionPropsFile))
-                def code = versionProps['VERSION_CODE'].toInteger() + 1
-                versionProps['VERSION_CODE'] = code.toString()
-                versionProps.store(versionPropsFile.newWriter(), null)
-
-                println "Version code incremented to " + code
-            } else {
-                throw new GradleException("Could not read version.properties !")
-            }
-        }
-    }
-}
