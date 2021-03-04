@@ -21,6 +21,7 @@ import android.util.Log
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
+import com.yuriy.openradio.BuildConfig
 
 /**
  * Created by Yuriy Chernyshov
@@ -38,8 +39,7 @@ object AnalyticsUtils {
 
     @JvmStatic
     fun init() {
-        // TODO: FIX ME
-        Firebase.crashlytics.setCrashlyticsCollectionEnabled(true)
+        Firebase.crashlytics.setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
     }
 
     /**
