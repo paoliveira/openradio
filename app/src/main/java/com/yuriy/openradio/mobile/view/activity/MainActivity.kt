@@ -182,10 +182,10 @@ class MainActivity : AppCompatActivity() {
             R.id.action_search -> {
 
                 val bundle = SearchDialog.makeBundle(
-                        object : RemoveStationDialog.Listener {
+                        object : SearchDialog.Listener {
 
-                            override fun onSuccess(mediaId: String?) {
-                                onSearchDialogClick(mediaId)
+                            override fun onSuccess(queryString: String?) {
+                                onSearchDialogClick(queryString)
                             }
                         }
                 )

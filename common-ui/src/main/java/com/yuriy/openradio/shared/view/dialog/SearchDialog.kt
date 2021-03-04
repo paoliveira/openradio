@@ -78,7 +78,7 @@ class SearchDialog : BaseDialogFragment() {
         private const val KEY_LISTENER = "KEY_LISTENER"
 
         @JvmStatic
-        fun makeBundle(listener: RemoveStationDialog.Listener): Bundle {
+        fun makeBundle(listener: Listener): Bundle {
             val bundle = Bundle()
             bundle.putParcelable(KEY_LISTENER, listener)
             return bundle
