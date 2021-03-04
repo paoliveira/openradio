@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.tv.view.activity
 
 import android.content.Context
@@ -20,7 +21,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.fragment.app.FragmentActivity
-import com.yuriy.openradio.shared.utils.AppUtils.searchQuery
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.view.fragment.TvSearchFragment
 
@@ -28,7 +29,9 @@ import com.yuriy.openradio.tv.view.fragment.TvSearchFragment
  *
  */
 class TvSearchActivity : FragmentActivity() {
+
     private var mFragment: TvSearchFragment? = null
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.tv_search)
@@ -50,7 +53,7 @@ class TvSearchActivity : FragmentActivity() {
 
     fun onSearchDialogClick(queryString: String?) {
         // Save search query string, retrieve it later in the service
-        searchQuery = queryString
+        AppUtils.searchQuery = queryString
         setResult(RESULT_OK, Intent())
         finish()
     }

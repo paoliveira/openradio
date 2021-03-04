@@ -17,6 +17,8 @@ package com.yuriy.openradio.shared.view.dialog
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,20 +41,37 @@ import com.yuriy.openradio.shared.vo.RadioStationToAdd
  * Dialog to provide components to Edit Radio Station.
  */
 class EditStationDialog : BaseAddEditStationDialog() {
+
+    interface Listener: Parcelable {
+
+        fun onSuccess(mediaId: String?, radioStation: RadioStationToAdd?)
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        override fun writeToParcel(dest: Parcel?, flags: Int) {
+
+        }
+    }
+
     /**
      * Media Id associated with current Radio Station.
      */
     private var mMediaId: String? = null
 
+    private var mListener: Listener? = null
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
-        dialog!!.setTitle(R.string.edit_station_dialog_title)
+        dialog?.setTitle(R.string.edit_station_dialog_title)
         val addOrEditBtn = view!!.findViewById<Button>(R.id.add_edit_station_dialog_add_btn_view)
         addOrEditBtn.setText(R.string.edit_station_dialog_button_label)
         val addToSrvChkBox = view.findViewById<CheckBox>(R.id.add_to_srvr_check_view)
         addToSrvChkBox.visibility = View.GONE
         mMediaId = getMediaId(arguments)
+        mListener = getListener(arguments, KEY_LISTENER)
         if (mMediaId != null) {
             val radioStation = LocalRadioStationsStorage[mMediaId, context!!]
             if (radioStation != null) {
@@ -70,10 +89,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
      * Validate provided input in order to pass data farther to generate [RadioStation].
      */
     override fun processInput(radioStationToAdd: RadioStationToAdd?) {
-        //TODO: FIX ME
-//        (activity as MainActivity?)!!.processEditStationCallback(
-//                mMediaId, radioStationToAdd
-//        )
+        mListener?.onSuccess(mMediaId, radioStationToAdd)
     }
 
     /**
@@ -118,10 +134,14 @@ class EditStationDialog : BaseAddEditStationDialog() {
          * Key to keep Media Id's value in Bundle.
          */
         private const val MEDIA_ID_KEY = "MEDIA_ID_KEY"
+
+        private const val KEY_LISTENER = "KEY_LISTENER"
+
         @JvmStatic
-        fun getBundleWithMediaKey(mediaId: String?): Bundle {
+        fun makeBundle(mediaId: String?, listener: Listener): Bundle {
             val bundle = Bundle()
             bundle.putString(MEDIA_ID_KEY, mediaId)
+            bundle.putParcelable(KEY_LISTENER, listener)
             return bundle
         }
 
@@ -139,5 +159,15 @@ class EditStationDialog : BaseAddEditStationDialog() {
                 null
             } else bundle.getString(MEDIA_ID_KEY)
         }
+
+        private fun getListener(bundle: Bundle?, key: String): Listener? {
+            if (bundle == null) {
+                return null
+            }
+            return if (bundle.containsKey(key)) {
+                bundle.get(key) as Listener
+            } else null
+        }
+
     }
 }

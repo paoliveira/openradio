@@ -33,7 +33,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = project.ext.kotlinJvmTarget
     }
 
     aaptOptions {
@@ -47,7 +47,6 @@ dependencies {
 
     implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.google.android.material:material:$materialVersion"
-    implementation "androidx.appcompat:appcompat:$appcompatVersion"
     implementation "androidx.core:core-ktx:$kotlinCoreKtx"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)

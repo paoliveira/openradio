@@ -17,6 +17,8 @@ package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -31,8 +33,22 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  */
 class RemoveStationDialog : BaseDialogFragment() {
 
+    interface Listener: Parcelable {
+
+        fun onSuccess(mediaId: String?)
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        override fun writeToParcel(dest: Parcel?, flags: Int) {
+
+        }
+    }
+
+    private var mListener: Listener? = null
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-//        val activity = activity as MainActivity?
         val view = inflater.inflate(
                 R.layout.dialog_remove_station,
                 activity!!.findViewById(R.id.remove_station_dialog_root)
@@ -40,12 +56,12 @@ class RemoveStationDialog : BaseDialogFragment() {
         setWindowDimensions(view, 0.8f, 0.2f)
         val mediaId = getArgument(arguments, KEY_MEDIA_ID)
         val name = getArgument(arguments, KEY_NAME)
+        mListener = getListener(arguments, KEY_LISTENER)
         val textView = view.findViewById<TextView>(R.id.remove_station_text_view)
         textView.text = getString(R.string.remove_station_dialog_main_text, name)
         val removeBtn = view.findViewById<Button>(R.id.remove_station_dialog_add_btn_view)
         removeBtn.setOnClickListener {
-            //TODO: FIX ME
-//            activity.processRemoveStationCallback(mediaId)
+            mListener?.onSuccess(mediaId)
             dialog!!.dismiss()
         }
         val cancelBtn = view.findViewById<Button>(R.id.remove_station_dialog_cancel_btn_view)
@@ -74,11 +90,15 @@ class RemoveStationDialog : BaseDialogFragment() {
          * Key for the Name value.
          */
         private const val KEY_NAME = "KEY_NAME"
+
+        private const val KEY_LISTENER = "KEY_LISTENER"
+
         @JvmStatic
-        fun createBundle(mediaId: String?, name: String?): Bundle {
+        fun makeBundle(mediaId: String?, name: String?, listener: Listener): Bundle {
             val bundle = Bundle()
             bundle.putString(KEY_MEDIA_ID, mediaId)
             bundle.putString(KEY_NAME, name)
+            bundle.putParcelable(KEY_LISTENER, listener)
             return bundle
         }
 
@@ -97,6 +117,15 @@ class RemoveStationDialog : BaseDialogFragment() {
             return if (bundle.containsKey(key)) {
                 bundle.getString(key)
             } else ""
+        }
+
+        private fun getListener(bundle: Bundle?, key: String): Listener? {
+            if (bundle == null) {
+                return null
+            }
+            return if (bundle.containsKey(key)) {
+                bundle.get(key) as Listener
+            } else null
         }
     }
 }

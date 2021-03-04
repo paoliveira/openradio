@@ -17,6 +17,8 @@ package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
 import android.os.Bundle
+import android.os.Parcel
+import android.os.Parcelable
 import android.widget.Button
 import android.widget.EditText
 import com.yuriy.openradio.shared.R
@@ -30,20 +32,32 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  */
 class SearchDialog : BaseDialogFragment() {
 
+    interface Listener: Parcelable {
+
+        fun onSuccess(queryString: String?)
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        override fun writeToParcel(dest: Parcel?, flags: Int) {
+
+        }
+    }
+
+    private var mListener: Listener? = null
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-//        val activity = activity as MainActivity?
         val view = inflater.inflate(
                 R.layout.dialog_search,
                 activity!!.findViewById(R.id.dialog_search_root)
         )
         setWindowDimensions(view, 0.8f, 0.4f)
+        mListener = getListener(arguments, KEY_LISTENER)
         val searchEditView = view.findViewById<EditText>(R.id.search_dialog_edit_txt_view)
         val searchBtn = view.findViewById<Button>(R.id.search_dialog_btn_view)
         searchBtn.setOnClickListener {
-            if (searchEditView != null) {
-                //TODO: FIX ME
-//                activity.onSearchDialogClick(searchEditView.text.toString().trim { it <= ' ' })
-            }
+            mListener?.onSuccess(searchEditView.text.toString().trim { it <= ' ' })
             dialog!!.dismiss()
         }
         return createAlertDialog(view)
@@ -60,5 +74,23 @@ class SearchDialog : BaseDialogFragment() {
          */
         @JvmField
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
+
+        private const val KEY_LISTENER = "KEY_LISTENER"
+
+        @JvmStatic
+        fun makeBundle(listener: RemoveStationDialog.Listener): Bundle {
+            val bundle = Bundle()
+            bundle.putParcelable(KEY_LISTENER, listener)
+            return bundle
+        }
+
+        private fun getListener(bundle: Bundle?, key: String): Listener? {
+            if (bundle == null) {
+                return null
+            }
+            return if (bundle.containsKey(key)) {
+                bundle.get(key) as Listener
+            } else null
+        }
     }
 }

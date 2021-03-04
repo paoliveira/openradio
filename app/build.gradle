@@ -24,7 +24,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = project.ext.kotlinJvmTarget
     }
 
     signingConfigs {
@@ -75,6 +75,7 @@ dependencies {
     implementation project(':common')
     implementation project(':common-ui')
 
+    implementation "androidx.fragment:fragment-ktx:$fragmentKtxVersion"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
     implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"

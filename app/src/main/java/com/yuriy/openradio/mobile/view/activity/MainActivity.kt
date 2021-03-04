@@ -55,7 +55,6 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
-import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.AboutDialog
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
 import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
@@ -182,16 +181,24 @@ class MainActivity : AppCompatActivity() {
         return when (id) {
             R.id.action_search -> {
 
+                val bundle = SearchDialog.makeBundle(
+                        object : RemoveStationDialog.Listener {
+
+                            override fun onSuccess(mediaId: String?) {
+                                onSearchDialogClick(mediaId)
+                            }
+                        }
+                )
                 // Show Search Dialog
-                val dialog = BaseDialogFragment.newInstance(SearchDialog::class.java.name)
-                dialog!!.show(transaction, SearchDialog.DIALOG_TAG)
+                val dialog = BaseDialogFragment.newInstance(SearchDialog::class.java.name, bundle)
+                dialog?.show(transaction, SearchDialog.DIALOG_TAG)
                 true
             }
             R.id.action_eq -> {
 
                 // Show Equalizer Dialog
                 val dialog = BaseDialogFragment.newInstance(EqualizerDialog::class.java.name)
-                dialog!!.show(transaction, EqualizerDialog.DIALOG_TAG)
+                dialog?.show(transaction, EqualizerDialog.DIALOG_TAG)
                 true
             }
             else -> {
@@ -410,9 +417,18 @@ class MainActivity : AppCompatActivity() {
         UiUtils.clearDialogs(this, transaction)
 
         // Show Remove Station Dialog
-        val bundle = RemoveStationDialog.createBundle(item.mediaId, name)
+        val bundle = RemoveStationDialog.makeBundle(
+                item.mediaId,
+                name,
+                object : RemoveStationDialog.Listener {
+
+                    override fun onSuccess(mediaId: String?) {
+                        processRemoveStationCallback(mediaId)
+                    }
+                }
+        )
         val dialog = BaseDialogFragment.newInstance(RemoveStationDialog::class.java.name, bundle)
-        dialog!!.show(transaction, RemoveStationDialog.DIALOG_TAG)
+        dialog?.show(transaction, RemoveStationDialog.DIALOG_TAG)
     }
 
     fun onEditRSClick(view: View) {
@@ -433,10 +449,17 @@ class MainActivity : AppCompatActivity() {
         val transaction = supportFragmentManager.beginTransaction()
         UiUtils.clearDialogs(this, transaction)
 
-        // Show Edit Station Dialog
-        val dialog = BaseDialogFragment.newInstance(
-                EditStationDialog::class.java.name, EditStationDialog.getBundleWithMediaKey(item.mediaId)
+        val bundle = EditStationDialog.makeBundle(
+                item.mediaId,
+                object : EditStationDialog.Listener {
+
+                    override fun onSuccess(mediaId: String?, radioStation: RadioStationToAdd?) {
+                        processEditStationCallback(mediaId, radioStation)
+                    }
+                }
         )
+        // Show Edit Station Dialog
+        val dialog = BaseDialogFragment.newInstance(EditStationDialog::class.java.name, bundle)
         dialog!!.show(transaction, EditStationDialog.DIALOG_TAG)
     }
 
