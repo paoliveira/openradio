@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.cache.api
 
 import android.content.ContentValues
 import android.content.Context
 import android.provider.BaseColumns
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import org.json.JSONArray
-import org.json.JSONException
+import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created by Chernyshov Yurii
@@ -33,7 +31,7 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
 
     private val mDbHelper: PersistentAPIDbHelper = PersistentAPIDbHelper(context, dbName)
 
-    override fun get(key: String): JSONArray {
+    override fun get(key: String): String {
         val db = mDbHelper.readableDatabase
         val selectionArgs = arrayOf(key)
         val cursor = db.query(
@@ -45,7 +43,7 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
                 null,  // don't filter by row groups
                 null // The sort order
         )
-        var data: JSONArray? = null
+        var data = ""
         while (cursor.moveToNext()) {
             val cId = cursor.getLong(
                     cursor.getColumnIndexOrThrow(BaseColumns._ID)
@@ -59,23 +57,19 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
             val cTime = cursor.getInt(
                     cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP)
             )
-            d(CLASS_NAME + "Get id:" + cId + ", key:" + cKey + ", data:" + cData + ", time:" + cTime)
+            AppLogger.d(CLASS_NAME + "Get id:" + cId + ", key:" + cKey + ", data:" + cData + ", time:" + cTime)
             if (time - cTime > SEC_IN_DAY) {
                 // Do not return data, return null if time is expired.
                 break
             }
-            try {
-                data = JSONArray(cData)
-            } catch (e: JSONException) {
-                e(CLASS_NAME + "Can not re-create JSON Array:" + e)
-            }
+            data = cData
         }
         cursor.close()
-        d(CLASS_NAME + "Cached response from DB for " + key + " is " + data)
-        return data ?: JSONArray()
+        AppLogger.d(CLASS_NAME + "Cached response from DB for " + key + " is " + data)
+        return data
     }
 
-    override fun put(key: String, data: JSONArray) {
+    override fun put(key: String, data: String) {
         // Gets the data repository in write mode
         val db = mDbHelper.writableDatabase
 
@@ -87,20 +81,20 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
 
         // Insert the new row, returning the primary key value of the new row
         val newRowId = db.replace(PersistentAPIContract.APIEntry.TABLE_NAME, null, values)
-        d(CLASS_NAME + "New row:" + newRowId)
+        AppLogger.d(CLASS_NAME + "New row:" + newRowId)
     }
 
     override fun clear() {
         val db = mDbHelper.writableDatabase
         val deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, null, null)
-        d(CLASS_NAME + "Clear rows:" + deletedRows)
+        AppLogger.d(CLASS_NAME + "Clear rows:" + deletedRows)
     }
 
     override fun remove(key: String) {
         val db = mDbHelper.writableDatabase
         val selectionArgs = arrayOf(key)
         val deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, SELECTION, selectionArgs)
-        d(CLASS_NAME + "Remove row:" + deletedRows + ", key:" + key)
+        AppLogger.d(CLASS_NAME + "Remove row:" + deletedRows + ", key:" + key)
     }
 
     fun close() {

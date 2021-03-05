@@ -36,7 +36,6 @@ internal object RadioStationJsonHelper {
     const val KEY_BITRATE = "Bitrate"
     const val KEY_GENRE = "Genre"
     const val KEY_IMG_URL = "ImgUrl"
-    const val KEY_THUMB_URL = "ThumbUrl"
     const val KEY_IS_LOCAL = "IsLocal"
     const val KEY_SORT_ID = "SortId"
 }

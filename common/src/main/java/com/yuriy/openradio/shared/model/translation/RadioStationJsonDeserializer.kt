@@ -52,7 +52,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
         try {
             val jsonObject = JSONObject(value)
             val radioStation = makeDefaultInstance(
-                    context, getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
+                    getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
             )
             radioStation.name = getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)
             var bitrateStr = getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0")
@@ -67,7 +67,6 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             radioStation.genre = getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
             radioStation.imageUrl = getStringValue(jsonObject, RadioStationJsonHelper.KEY_IMG_URL)
             radioStation.status = getIntValue(jsonObject, RadioStationJsonHelper.KEY_STATUS)
-            radioStation.thumbUrl = getStringValue(jsonObject, RadioStationJsonHelper.KEY_THUMB_URL)
             radioStation.homePage = getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
             radioStation.sortId = getIntValue(

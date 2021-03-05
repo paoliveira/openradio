@@ -281,54 +281,6 @@ object AppUtils {
     }
 
     /**
-     * See Apache utils for more details.
-     * https://github.com/apache/commons-lang/blob/master/src/main/java/org/apache/commons/lang3/text/WordUtils.java
-     */
-    @JvmStatic
-    fun capitalize(str: String): String {
-        return capitalize(str, null)
-    }
-
-    /**
-     * See Apache utils for more details.
-     * https://github.com/apache/commons-lang/blob/master/src/main/java/org/apache/commons/lang3/text/WordUtils.java
-     */
-    private fun capitalize(str: String, delimiters: CharArray?): String {
-        val delimLen = delimiters?.size ?: -1
-        if (str.isEmpty() || delimLen == 0) {
-            return str
-        }
-        val buffer = str.toCharArray()
-        var capitalizeNext = true
-        for (i in buffer.indices) {
-            val ch = buffer[i]
-            if (isDelimiter(ch, delimiters)) {
-                capitalizeNext = true
-            } else if (capitalizeNext) {
-                buffer[i] = Character.toTitleCase(ch)
-                capitalizeNext = false
-            }
-        }
-        return String(buffer)
-    }
-
-    /**
-     * See Apache utils for more details.
-     * https://github.com/apache/commons-lang/blob/master/src/main/java/org/apache/commons/lang3/text/WordUtils.java
-     */
-    private fun isDelimiter(ch: Char, delimiters: CharArray?): Boolean {
-        if (delimiters == null) {
-            return Character.isWhitespace(ch)
-        }
-        for (delimiter in delimiters) {
-            if (ch == delimiter) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
      * Holder for the Search query. Up to now I found it as quick solution to pass query
      * from Activity to the Open Radio Service.
      */

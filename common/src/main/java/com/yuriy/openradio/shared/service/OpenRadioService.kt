@@ -1344,7 +1344,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 // If it exists, let's compare its id with the id provided by intent.
                 if (rs == null) {
                     if (mLastKnownRS != null && mLastKnownRS!!.id == description.mediaId) {
-                        rs = RadioStation.makeCopyInstance(context, mLastKnownRS!!)
+                        rs = RadioStation.makeCopyInstance(mLastKnownRS!!)
                     }
                     // We failed both cases, something went wrong ...
                     if (rs == null) {
@@ -1459,12 +1459,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     imageUrlLocal = rsToAdd.imageLocalUrl
                 }
                 val radioStation = RadioStation.makeDefaultInstance(
-                        context, LocalRadioStationsStorage.getId(context)
+                        LocalRadioStationsStorage.getId(context)
                 )
                 radioStation.name = rsToAdd.name
                 radioStation.mediaStream.setVariant(0, url)
                 radioStation.imageUrl = imageUrlLocal
-                radioStation.thumbUrl = imageUrlLocal
                 radioStation.genre = rsToAdd.genre
                 radioStation.country = rsToAdd.country
                 radioStation.setIsLocal(true)

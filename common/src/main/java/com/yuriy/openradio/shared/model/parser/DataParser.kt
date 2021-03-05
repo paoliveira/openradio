@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.parser
+
+import com.yuriy.openradio.shared.vo.Category
+import com.yuriy.openradio.shared.vo.RadioStation
 
 /**
  * Created by Yuriy Chernyshov
@@ -25,5 +29,10 @@ package com.yuriy.openradio.shared.model.parser
  * XML or any other format.
  */
 interface DataParser {
-    // TODO: Create interface and use it in API service provider impl.
+
+    fun getRadioStation(data: String): RadioStation?
+
+    fun getRadioStations(data: String): List<RadioStation>
+
+    fun getCategories(data: String): List<Category>
 }

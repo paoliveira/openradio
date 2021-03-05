@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.cache.api
 
 import org.json.JSONArray
@@ -24,8 +25,12 @@ import org.json.JSONArray
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 interface ApiCache {
-    operator fun get(key: String): JSONArray
-    fun put(key: String, data: JSONArray)
+
+    operator fun get(key: String): String
+
+    fun put(key: String, data: String)
+
     fun remove(key: String)
+
     fun clear()
 }

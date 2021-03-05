@@ -50,7 +50,7 @@ object LatestRadioStationStorage : AbstractRadioStationsStorage() {
     @JvmStatic
     @Synchronized
     fun add(radioStation: RadioStation?, context: Context) {
-        sRadioStation = makeCopyInstance(context, radioStation!!)
+        sRadioStation = makeCopyInstance(radioStation!!)
         add(KEY, radioStation, context, FILE_NAME)
     }
 
@@ -69,7 +69,7 @@ object LatestRadioStationStorage : AbstractRadioStationsStorage() {
         val list = getAll(context, FILE_NAME)
         // There is only one Radio Station in collection.
         if (list.isNotEmpty()) {
-            sRadioStation = makeCopyInstance(context, list[0])
+            sRadioStation = makeCopyInstance(list[0])
             return sRadioStation
         }
         return null

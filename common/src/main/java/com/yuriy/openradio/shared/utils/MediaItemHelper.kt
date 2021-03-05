@@ -186,16 +186,13 @@ object MediaItemHelper {
      * @return [android.media.MediaMetadata]
      */
     @JvmOverloads
-    fun metadataFromRadioStation(context: Context?,
+    fun metadataFromRadioStation(context: Context,
                                  radioStation: RadioStation?,
                                  streamTitle: String? = null): MediaMetadataCompat? {
         if (radioStation == null) {
             return null
         }
-        var iconUrl = ""
-        if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
-            iconUrl = radioStation.imageUrl
-        }
+
         val title = radioStation.name
         var artist = streamTitle
         val genre = radioStation.genre
@@ -204,7 +201,7 @@ object MediaItemHelper {
         val album = radioStation.country
 
         if (artist.isNullOrEmpty()) {
-            artist = context?.getString(R.string.media_description_default)
+            artist = context.getString(R.string.media_description_default)
         }
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
@@ -215,8 +212,8 @@ object MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, radioStation.imageUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, radioStation.imageUrl)
                 // This is the way information display on Android Auto screen:
                 // DisplayTitle
                 // Artist
@@ -226,7 +223,7 @@ object MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, radioStation.imageUrl)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, streamTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, streamTitle)

@@ -168,7 +168,6 @@ class MainApp : MultiDexApplication() {
                     imageUrlLocal = imageUrl
                 }
                 radioStation.imageUrl = imageUrlLocal
-                radioStation.thumbUrl = imageUrlLocal
                 add(radioStation, context)
             }
             AppLogger.d(CLASS_NAME + "Migrate image to int. storage completed")

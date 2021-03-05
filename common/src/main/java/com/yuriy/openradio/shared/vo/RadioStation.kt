@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.vo
 
-import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.support.v4.media.session.MediaSessionCompat
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
+import com.squareup.picasso.Picasso
+import com.squareup.picasso.Target
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
-import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeCopyInstance
-import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import java.io.Serializable
 
 /**
@@ -34,7 +37,7 @@ import java.io.Serializable
  * about concrete Radio Station.
  */
 class RadioStation : Serializable {
-    private var mId: String? = null
+    private var mId: String = ""
 
     // TODO: Convert to enum
     var status = 0
@@ -50,7 +53,6 @@ class RadioStation : Serializable {
     var countryCode = ""
     var genre = ""
     var imageUrl = ""
-    var thumbUrl = ""
     var urlResolved = ""
     private val mMediaStream: MediaStream
 
@@ -64,9 +66,9 @@ class RadioStation : Serializable {
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private constructor(context: Context, id: String) {
-        setId(context, id)
-        mMediaStream = makeDefaultInstance()
+    private constructor(id: String) {
+        setId(id)
+        mMediaStream = MediaStream.makeDefaultInstance()
     }
 
     /**
@@ -74,26 +76,48 @@ class RadioStation : Serializable {
      *
      * @param radioStation Object to be copied.
      */
-    private constructor(context: Context, radioStation: RadioStation) {
+    private constructor(radioStation: RadioStation) {
         mCountry = radioStation.mCountry
         countryCode = radioStation.countryCode
         genre = radioStation.genre
-        setId(context, radioStation.mId)
+        setId(radioStation.mId)
         imageUrl = radioStation.imageUrl
         isLocal = radioStation.isLocal
-        mMediaStream = makeCopyInstance(radioStation.mMediaStream)
+        mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream)
         name = radioStation.name
         sortId = radioStation.sortId
         status = radioStation.status
-        thumbUrl = radioStation.thumbUrl
         homePage = radioStation.homePage
         urlResolved = radioStation.urlResolved
         lastCheckOk = radioStation.lastCheckOk
         lastCheckOkTime = radioStation.lastCheckOkTime
     }
 
+    fun setImgUrl(url: String) {
+        imageUrl = url
+        if (!AppUtils.isWebUrl(imageUrl)) {
+            return
+        }
+        AppUtils.getPicassoCreator(Uri.parse(imageUrl))
+//                .resize(MediaNotification.NOTIFICATION_LARGE_ICON_SIZE_PX, MediaNotification.NOTIFICATION_LARGE_ICON_SIZE_PX)
+//                .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
+                .into(
+                        object : Target {
+                            override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
+                                AppLogger.e("Can't load large art:$e")
+                            }
+
+                            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+
+                            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                                AppLogger.d("Large art loaded")
+                            }
+                        }
+                )
+    }
+
     val id: String
-        get() = mId!!
+        get() = mId
 
     fun isMediaStreamEmpty(): Boolean {
         return mMediaStream.isEmpty
@@ -103,13 +127,8 @@ class RadioStation : Serializable {
         isLocal = value
     }
 
-    private fun setId(context: Context, value: String?) {
-        mId = if (value.isNullOrEmpty()) {
-            AnalyticsUtils.logException(IllegalArgumentException("Radio Station ID is invalid"))
-            LocalRadioStationsStorage.getId(context)
-        } else {
-            value
-        }
+    private fun setId(value: String) {
+        mId = value
     }
 
     var country: String
@@ -160,7 +179,6 @@ class RadioStation : Serializable {
                 ", country='" + mCountry + '\'' +
                 ", genre='" + genre + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
-                ", thumbUrl='" + thumbUrl + '\'' +
                 ", isLocal=" + isLocal + '\'' +
                 ", sortId=" + sortId +
                 '}'
@@ -173,8 +191,8 @@ class RadioStation : Serializable {
          * @return Instance of the [RadioStation].
          */
         @JvmStatic
-        fun makeDefaultInstance(context: Context, id: String): RadioStation {
-            return RadioStation(context, id)
+        fun makeDefaultInstance(id: String): RadioStation {
+            return RadioStation(id)
         }
 
         /**
@@ -184,8 +202,8 @@ class RadioStation : Serializable {
          * @return Copied instance of [RadioStation].
          */
         @JvmStatic
-        fun makeCopyInstance(context: Context, radioStation: RadioStation): RadioStation {
-            return RadioStation(context, radioStation)
+        fun makeCopyInstance(radioStation: RadioStation): RadioStation {
+            return RadioStation(radioStation)
         }
     }
 }

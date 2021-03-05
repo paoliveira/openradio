@@ -118,7 +118,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      * updated. The notification will automatically be removed if the session is
      * destroyed before [.stopNotification] is called.
      */
-    fun startNotification(context: Context?, radioStation: RadioStation?) {
+    fun startNotification(context: Context, radioStation: RadioStation?) {
         if (mStarted.get()) {
             return
         }
@@ -437,7 +437,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     companion object {
         private val CLASS_NAME = MediaNotification::class.java.simpleName
         private const val NOTIFICATION_ID = 412
-        private const val NOTIFICATION_LARGE_ICON_SIZE_PX = 144
+        const val NOTIFICATION_LARGE_ICON_SIZE_PX = 144
         private const val ACTION_PAUSE = "com.yuriy.openradio.pause"
         private const val ACTION_PLAY = "com.yuriy.openradio.play"
         private const val ACTION_PREV = "com.yuriy.openradio.prev"

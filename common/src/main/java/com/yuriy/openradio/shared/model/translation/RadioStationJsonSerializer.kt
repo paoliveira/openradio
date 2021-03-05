@@ -47,7 +47,6 @@ class RadioStationJsonSerializer : RadioStationSerializer {
             jsonObject.put(RadioStationJsonHelper.KEY_IMG_URL, radioStation.imageUrl)
             jsonObject.put(RadioStationJsonHelper.KEY_STREAM_URL, radioStation.mediaStream.getVariant(0)!!.url)
             jsonObject.put(RadioStationJsonHelper.KEY_STATUS, radioStation.status)
-            jsonObject.put(RadioStationJsonHelper.KEY_THUMB_URL, radioStation.thumbUrl)
             jsonObject.put(RadioStationJsonHelper.KEY_HOME_PAGE, radioStation.homePage)
             jsonObject.put(RadioStationJsonHelper.KEY_IS_LOCAL, radioStation.isLocal)
             jsonObject.put(RadioStationJsonHelper.KEY_SORT_ID, radioStation.sortId)

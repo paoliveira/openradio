@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.storage.cache.api
 
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import org.json.JSONArray
+import com.yuriy.openradio.shared.utils.AppLogger
 import java.util.concurrent.*
 
 /**
@@ -27,16 +27,16 @@ import java.util.concurrent.*
  */
 class InMemoryApiCache : ApiCache {
 
-    override fun get(key: String): JSONArray {
+    override fun get(key: String): String {
         if (key.isNotEmpty() && RESPONSES_MAP.containsKey(key)) {
             val data = RESPONSES_MAP[key]
-            d(CLASS_NAME + "Cached response from RAM for " + key + " is " + data)
-            return data ?: JSONArray()
+            AppLogger.d(CLASS_NAME + "Cached response from RAM for " + key + " is " + data)
+            return data ?: ""
         }
-        return JSONArray()
+        return ""
     }
 
-    override fun put(key: String, data: JSONArray) {
+    override fun put(key: String, data: String) {
         if (key.isEmpty()) {
             return
         }
@@ -55,11 +55,12 @@ class InMemoryApiCache : ApiCache {
     }
 
     companion object {
+
         private val CLASS_NAME = InMemoryApiCache::class.java.simpleName
 
         /**
          * Data structure to cache API responses.
          */
-        private val RESPONSES_MAP: MutableMap<String?, JSONArray?> = ConcurrentHashMap()
+        private val RESPONSES_MAP: MutableMap<String, String> = ConcurrentHashMap()
     }
 }
