@@ -50,7 +50,6 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
          */
         private const val KEY_COUNTRY_CODE = "countrycode"
         private const val KEY_BIT_RATE = "bitrate"
-        private const val KEY_STATUS = "status"
         private const val KEY_URL = "url"
         private const val KEY_URL_RESOLVED = "url_resolved"
         private const val KEY_FAV_ICON = "favicon"
@@ -136,9 +135,6 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
         }
 
         val radioStation = RadioStation.makeDefaultInstance(jsonObject.getString(KEY_STATION_UUID))
-        if (jsonObject.has(KEY_STATUS)) {
-            radioStation.status = jsonObject.getInt(KEY_STATUS)
-        }
         if (jsonObject.has(KEY_NAME)) {
             radioStation.name = jsonObject.getString(KEY_NAME)
         }

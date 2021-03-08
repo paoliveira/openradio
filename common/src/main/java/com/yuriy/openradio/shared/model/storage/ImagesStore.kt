@@ -18,7 +18,10 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.ContentResolver
 import android.content.ContentValues
+import android.content.Context
 import android.net.Uri
+import com.yuriy.openradio.shared.utils.AppLogger
+import java.io.File
 
 class ImagesStore {
 
@@ -50,14 +53,19 @@ class ImagesStore {
 
         const val CONTENT_TYPE_UNKNOWN = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$MIME_TYPE_BASE.unknown"
 
-        fun getUri(rsId: String): Uri {
+        fun getInsertUri(): Uri {
             return AUTHORITY_URI.buildUpon()
                     .appendPath("insert")
-                    .appendPath(rsId)
                     .build()
         }
 
-        fun getContentValues(rsId: String, imageUrl: String): ContentValues {
+        fun getDeleteUri(): Uri {
+            return AUTHORITY_URI.buildUpon()
+                    .appendPath("delete")
+                    .build()
+        }
+
+        fun getContentValues(rsId: String, imageUrl: String?): ContentValues {
             val values = ContentValues()
             values.put(RS_ID_KEY, rsId)
             values.put(IMG_URL_KEY, imageUrl)
@@ -78,33 +86,25 @@ class ImagesStore {
             return contentValues.getAsString(RS_ID_KEY)
         }
 
-        fun extractInsertedUri(uri: Uri?): Uri {
-            if (uri == null) {
-                return Uri.EMPTY
-            }
-            val segments = uri.pathSegments
-            if (segments.size < 2) {
-                return Uri.EMPTY
-            }
-            if (segments[segments.size - 2] != "inserted") {
-                return Uri.EMPTY
-            }
-            return Uri.parse(segments[segments.size - 1])
-        }
-
-        fun buildNotifyInsertedUri(uri: Uri, path: String): Uri {
-            return uri.buildUpon()
-                    .appendPath("inserted")
-                    .appendPath(buildImageInsertedUri(path).toString())
-                    .build()
-        }
-
-        private fun buildImageInsertedUri(path: String): Uri {
+        fun buildImageUri(rsId: String): Uri {
             return Uri.Builder()
                     .scheme(ContentResolver.SCHEME_CONTENT)
                     .authority(AUTHORITY)
-                    .appendPath(path)
+                    .appendPath(rsId)
                     .build()
+        }
+
+        fun getImage(context: Context, id: String): File {
+            val directory: File = context.cacheDir
+            var file =  try {
+                File(directory, "$id.jpeg")
+            } catch (e: Exception) {
+                null
+            }
+            if (file == null || !file.exists()) {
+                file = File("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
+            }
+            return file
         }
     }
 }

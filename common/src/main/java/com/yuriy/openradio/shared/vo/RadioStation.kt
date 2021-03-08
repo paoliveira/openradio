@@ -17,15 +17,10 @@
 package com.yuriy.openradio.shared.vo
 
 import android.content.Context
-import android.database.ContentObserver
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.storage.ImagesStore
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils
 import java.io.Serializable
 
 /**
@@ -38,10 +33,9 @@ import java.io.Serializable
  * about concrete Radio Station.
  */
 class RadioStation : Serializable {
+
     private var mId: String = ""
 
-    // TODO: Convert to enum
-    var status = 0
     var name = ""
     var homePage = ""
     var lastCheckOkTime = ""
@@ -53,8 +47,6 @@ class RadioStation : Serializable {
     // TODO: Convert to enum
     var countryCode = ""
     var genre = ""
-    private var imageUrl = ""
-    private var imageUri = Uri.EMPTY
     var urlResolved = ""
     private val mMediaStream: MediaStream
 
@@ -83,57 +75,23 @@ class RadioStation : Serializable {
         mCountry = radioStation.mCountry
         countryCode = radioStation.countryCode
         genre = radioStation.genre
-        imageUrl = radioStation.imageUrl
         isLocal = radioStation.isLocal
         mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream)
         name = radioStation.name
         sortId = radioStation.sortId
-        status = radioStation.status
         homePage = radioStation.homePage
         urlResolved = radioStation.urlResolved
         lastCheckOk = radioStation.lastCheckOk
         lastCheckOkTime = radioStation.lastCheckOkTime
     }
 
-    fun getImgUrl(): String {
-        AppLogger.d("getImgUrl:$imageUrl")
-        return imageUrl
-    }
-
     fun getImgUri(): Uri {
-        AppLogger.d("getImgUri:$imageUri")
-        return imageUri
+        return ImagesStore.buildImageUri(mId)
     }
 
     fun setImgUrl(context: Context, url: String?) {
-        AppLogger.d("setImgUrl:$url")
-        if (url.isNullOrEmpty()) {
-            imageUri = Uri.parse("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
-            return
-        }
-        if (!AppUtils.isWebUrl(url)) {
-            imageUri = Uri.parse(url)
-            return
-        }
-        if (imageUri != Uri.EMPTY) {
-            return
-        }
-        val uri = ImagesStore.getUri(id)
-        context.contentResolver.registerContentObserver(
-                uri,
-                true,
-                object : ContentObserver(Handler(Looper.getMainLooper())) {
-
-                    override fun onChange(selfChange: Boolean, uri: Uri?) {
-                        super.onChange(selfChange, uri)
-                        imageUri = ImagesStore.extractInsertedUri(uri)
-                        context.contentResolver.unregisterContentObserver(this)
-                    }
-                }
-        )
-
         context.contentResolver.insert(
-                uri, ImagesStore.getContentValues(id, url)
+                ImagesStore.getInsertUri(), ImagesStore.getContentValues(mId, url)
         )
     }
 
@@ -190,7 +148,6 @@ class RadioStation : Serializable {
     override fun toString(): String {
         return "RS " + hashCode() + " {" +
                 "id=" + mId +
-                ", status=" + status +
                 ", lastCheckOk=" + lastCheckOk +
                 ", lastCheckOkTime=" + lastCheckOkTime +
                 ", name='" + name + '\'' +
@@ -199,7 +156,6 @@ class RadioStation : Serializable {
                 ", webSite='" + homePage + '\'' +
                 ", country='" + mCountry + '\'' +
                 ", genre='" + genre + '\'' +
-                ", imageUrl='" + imageUrl + '\'' +
                 ", isLocal=" + isLocal + '\'' +
                 ", sortId=" + sortId +
                 '}'

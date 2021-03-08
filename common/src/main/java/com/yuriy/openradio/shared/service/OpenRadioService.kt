@@ -75,6 +75,7 @@ import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
+import com.yuriy.openradio.shared.model.storage.ImagesStore
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.LocationStorage
@@ -1485,6 +1486,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 val radioStation = mRadioStationsStorage.remove(mediaId)
                 if (radioStation != null) {
                     FileUtils.deleteFile(radioStation.getImgUri().toString())
+                    contentResolver.delete(ImagesStore.getDeleteUri(), "", emptyArray())
                     LocalRadioStationsStorage.remove(radioStation, context)
                 }
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)

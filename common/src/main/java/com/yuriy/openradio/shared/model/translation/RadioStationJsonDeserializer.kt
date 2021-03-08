@@ -65,8 +65,6 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             radioStation.country = getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY)
             radioStation.countryCode = getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE)
             radioStation.genre = getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
-            radioStation.setImgUrl(context, getStringValue(jsonObject, RadioStationJsonHelper.KEY_IMG_URL))
-            radioStation.status = getIntValue(jsonObject, RadioStationJsonHelper.KEY_STATUS)
             radioStation.homePage = getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
             radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
             radioStation.sortId = getIntValue(

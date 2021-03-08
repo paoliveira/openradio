@@ -75,7 +75,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
         if (mMediaId != null) {
             val radioStation = LocalRadioStationsStorage[mMediaId, context!!]
             if (radioStation != null) {
-                handleUI(radioStation, context!!)
+                handleUI(context!!, radioStation)
             } else {
                 handleInvalidRadioStation(context!!, addOrEditBtn)
             }
@@ -109,7 +109,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
      * @param radioStation Radio Station.
      * @param context      Context of a callee.
      */
-    private fun handleUI(radioStation: RadioStation, context: Context) {
+    private fun handleUI(context: Context, radioStation: RadioStation) {
         mNameEdit!!.setText(radioStation.name)
         mUrlEdit!!.setText(radioStation.mediaStream.getVariant(0)!!.url)
         mImageLocalUrlEdit!!.setText(radioStation.getImgUri().toString())

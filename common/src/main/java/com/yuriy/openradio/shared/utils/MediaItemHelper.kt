@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -294,13 +293,8 @@ object MediaItemHelper {
      * @param radioStation [RadioStation].
      * @return [MediaDescriptionCompat]
      */
-    fun buildMediaDescriptionFromRadioStation(context: Context?,
+    fun buildMediaDescriptionFromRadioStation(context: Context,
                                               radioStation: RadioStation): MediaDescriptionCompat {
-        var iconUrl = ""
-        val imgUrl = radioStation.getImgUri().toString()
-        if (imgUrl.isNotEmpty() && !imgUrl.equals("null", ignoreCase = true)) {
-            iconUrl = imgUrl
-        }
         val title = radioStation.name
         val country = radioStation.country
         val genre = radioStation.genre
@@ -314,7 +308,7 @@ object MediaItemHelper {
                 .setTitle(title)
                 .setSubtitle(country)
                 .setExtras(bundle)
-                .setIconUri(Uri.parse(iconUrl))
+                .setIconUri(radioStation.getImgUri())
                 .build()
     }
 

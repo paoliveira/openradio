@@ -27,7 +27,6 @@ internal object RadioStationJsonHelper {
      * JSON's keys
      */
     const val KEY_ID = "Id"
-    const val KEY_STATUS = "Status"
     const val KEY_NAME = "Name"
     const val KEY_STREAM_URL = "StreamUrl"
     const val KEY_HOME_PAGE = "Website"
@@ -35,7 +34,6 @@ internal object RadioStationJsonHelper {
     const val KEY_COUNTRY_CODE = "CountryCode"
     const val KEY_BITRATE = "Bitrate"
     const val KEY_GENRE = "Genre"
-    const val KEY_IMG_URL = "ImgUrl"
     const val KEY_IS_LOCAL = "IsLocal"
     const val KEY_SORT_ID = "SortId"
 }

@@ -18,15 +18,11 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.ContentProvider
 import android.content.ContentValues
-import android.content.Context
-import android.content.ContextWrapper
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.FileUtils
-import java.io.File
-import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.*
@@ -53,6 +49,7 @@ class ImagesProvider : ContentProvider() {
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri {
+        //Uri.parse("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
         if (context == null) {
             return Uri.EMPTY
         }
@@ -71,11 +68,7 @@ class ImagesProvider : ContentProvider() {
             return Uri.EMPTY
         }
         AppLogger.d("$TAG insert $rsId $imageUrl")
-        val file = getImage(context!!, rsId)
-        if (file == null) {
-            AppLogger.d("$TAG insert $file is null")
-            return Uri.EMPTY
-        }
+        val file = ImagesStore.getImage(context!!, rsId)
         AppLogger.d("$TAG file (${file.exists()}) $file")
         if (!file.exists()) {
             mExecutor.submit {
@@ -85,8 +78,6 @@ class ImagesProvider : ContentProvider() {
                     FileUtils.downloadUrlToStream(context!!, imageUrl, outputStream)
                     outputStream.flush()
                     AppLogger.d("$TAG file $file downloaded ${file.exists()}")
-
-                    notifyReady(context!!, uri, file.absolutePath)
                 } catch (e: IOException) {
                     AppLogger.e("$TAG can't download RS art:$e")
                 } finally {
@@ -97,25 +88,18 @@ class ImagesProvider : ContentProvider() {
                     }
                 }
             }
-        } else {
-            notifyReady(context!!, uri, file.absolutePath)
         }
-
         return Uri.EMPTY
     }
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
-        AppLogger.d("$TAG open file:$uri")
+        AppLogger.d("$TAG open file :$uri")
         val context = this.context ?: return null
-        val file = File(uri.path ?: "")
-        if (!file.exists()) {
-            throw FileNotFoundException(uri.path)
+        val id = uri.lastPathSegment
+        if (id.isNullOrEmpty()) {
+            return null
         }
-        // Only allow access to files under cache path
-        val cachePath = context.cacheDir.path
-        if (!file.path.startsWith(cachePath)) {
-            throw FileNotFoundException()
-        }
+        val file = ImagesStore.getImage(context, id)
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
@@ -131,19 +115,5 @@ class ImagesProvider : ContentProvider() {
     companion object {
 
         private val TAG = ImagesProvider::class.java.simpleName
-
-        private fun getImage(context: Context, id: String): File? {
-            val contextWrapper = ContextWrapper(context)
-            val directory: File = contextWrapper.cacheDir
-            return try {
-                File(directory, "$id.jpeg")
-            } catch (e: Exception) {
-                null
-            }
-        }
-
-        private fun notifyReady(context: Context, uri: Uri, path: String) {
-            context.contentResolver.notifyChange(ImagesStore.buildNotifyInsertedUri(uri, path), null)
-        }
     }
 }
