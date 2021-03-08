@@ -23,28 +23,10 @@ import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.areLogsEnabled
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMaxBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMinBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getPlayBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getPlayBufferRebuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.setMaxBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.setMinBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.setPlayBuffer
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.setPlayBufferRebuffer
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.add
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocals
+import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppLogger.initLogger
-import com.yuriy.openradio.shared.utils.AppLogger.setLoggingEnabled
-import com.yuriy.openradio.shared.utils.AppUtils.getApplicationVersionCode
-import com.yuriy.openradio.shared.utils.AppUtils.getApplicationVersionName
-import com.yuriy.openradio.shared.utils.AppUtils.getDensity
-import com.yuriy.openradio.shared.utils.AppUtils.getUserCountry
-import com.yuriy.openradio.shared.utils.FileUtils.copyExtFileToIntDir
-import com.yuriy.openradio.shared.utils.FileUtils.getFilesDir
-import com.yuriy.openradio.shared.vo.RadioStation
+import com.yuriy.openradio.shared.utils.AppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -69,14 +51,13 @@ class MainApp : MultiDexApplication() {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         val context = applicationContext
         GlobalScope.launch(Dispatchers.IO) {
-            val isLoggingEnabled = areLogsEnabled(
+            val isLoggingEnabled = AppPreferencesManager.areLogsEnabled(
                     context
             )
-            initLogger(context)
-            setLoggingEnabled(isLoggingEnabled)
+            AppLogger.initLogger(context)
+            AppLogger.setLoggingEnabled(isLoggingEnabled)
             printFirstLogMessage(context)
             correctBufferSettings(context)
-            migrateImagesToIntStorage(context)
         }
     }
 
@@ -90,16 +71,16 @@ class MainApp : MultiDexApplication() {
          * Print first log message with summary information about device and application.
          */
         private fun printFirstLogMessage(context: Context) {
-            val densities = getDensity(context)
+            val densities = AppUtils.getDensity(context)
             val firstLogMessage = StringBuilder()
             firstLogMessage.append("\n")
             firstLogMessage.append("########### Create '")
             firstLogMessage.append(context.getString(R.string.app_name))
             firstLogMessage.append("' Application ###########\n")
             firstLogMessage.append("- version: ")
-            firstLogMessage.append(getApplicationVersionName(context))
+            firstLogMessage.append(AppUtils.getApplicationVersionName(context))
             firstLogMessage.append(".")
-            firstLogMessage.append(getApplicationVersionCode(context))
+            firstLogMessage.append(AppUtils.getApplicationVersionCode(context))
             firstLogMessage.append("\n")
             firstLogMessage.append("- processors: ")
             firstLogMessage.append(Runtime.getRuntime().availableProcessors())
@@ -114,7 +95,7 @@ class MainApp : MultiDexApplication() {
             firstLogMessage.append(densities[0]).append(" ").append(densities[1])
             firstLogMessage.append("\n")
             firstLogMessage.append("- Country: ")
-            firstLogMessage.append(getUserCountry(context))
+            firstLogMessage.append(AppUtils.getUserCountry(context))
             AppLogger.i(firstLogMessage.toString())
         }
 
@@ -124,53 +105,26 @@ class MainApp : MultiDexApplication() {
          * @param context Context of a callee.
          */
         private fun correctBufferSettings(context: Context) {
-            val maxBufferMs = getMaxBuffer(context)
-            val minBufferMs = getMinBuffer(context)
-            val playBufferMs = getPlayBuffer(context)
-            val playBufferRebufferMs = getPlayBufferRebuffer(context)
+            val maxBufferMs = AppPreferencesManager.getMaxBuffer(context)
+            val minBufferMs = AppPreferencesManager.getMinBuffer(context)
+            val playBufferMs = AppPreferencesManager.getPlayBuffer(context)
+            val playBufferRebufferMs = AppPreferencesManager.getPlayBufferRebuffer(context)
             if (maxBufferMs < minBufferMs) {
-                setMaxBuffer(context, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS)
-                setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
+                AppPreferencesManager.setMaxBuffer(context, DefaultLoadControl.DEFAULT_MAX_BUFFER_MS)
+                AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
             }
             if (minBufferMs < playBufferMs) {
-                setPlayBuffer(
+                AppPreferencesManager.setPlayBuffer(
                         context, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS
                 )
-                setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
+                AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
             }
             if (minBufferMs < playBufferRebufferMs) {
-                setPlayBufferRebuffer(
+                AppPreferencesManager.setPlayBufferRebuffer(
                         context, DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_AFTER_REBUFFER_MS
                 )
-                setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
+                AppPreferencesManager.setMinBuffer(context, DefaultLoadControl.DEFAULT_MIN_BUFFER_MS)
             }
-        }
-
-        /**
-         * @param context Context of a callee.
-         */
-        private fun migrateImagesToIntStorage(context: Context) {
-            AppLogger.d(CLASS_NAME + "Migrate image to int. storage started")
-            val list: List<RadioStation> = getAllLocals(context)
-            var imageUrl: String
-            var imageUrlLocal: String?
-            val filesDir = getFilesDir(context).absolutePath
-            for (radioStation in list) {
-                imageUrl = radioStation.imageUrl
-                if (imageUrl.isEmpty()) {
-                    continue
-                }
-                if (imageUrl.contains(filesDir)) {
-                    continue
-                }
-                imageUrlLocal = copyExtFileToIntDir(context, imageUrl)
-                if (imageUrlLocal == null) {
-                    imageUrlLocal = imageUrl
-                }
-                radioStation.imageUrl = imageUrlLocal
-                add(radioStation, context)
-            }
-            AppLogger.d(CLASS_NAME + "Migrate image to int. storage completed")
         }
     }
 }

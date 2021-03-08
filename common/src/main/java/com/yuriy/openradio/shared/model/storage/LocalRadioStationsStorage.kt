@@ -140,8 +140,7 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
                 val mediaStream = makeDefaultInstance()
                 mediaStream.setVariant(128, url!!)
                 radioStation.mediaStream = mediaStream
-                //TODO: Should we remove previous image from storage?
-                radioStation.imageUrl = imageUrl!!
+                radioStation.setImgUrl(context, imageUrl)
                 radioStation.genre = genre!!
                 radioStation.country = country!!
                 if (addToFav) {

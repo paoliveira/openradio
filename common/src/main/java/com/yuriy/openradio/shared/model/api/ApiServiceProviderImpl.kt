@@ -94,8 +94,7 @@ class ApiServiceProviderImpl(context: Context, private val mDataParser: DataPars
         return mDataParser.getRadioStations(data)
     }
 
-    override fun addStation(downloader: Downloader,
-                            uri: Uri,
+    override fun addStation(downloader: Downloader, uri: Uri,
                             parameters: List<Pair<String, String>>,
                             cacheType: CacheType): Boolean {
         // Post data to the server.
@@ -194,10 +193,10 @@ class ApiServiceProviderImpl(context: Context, private val mDataParser: DataPars
             return response
         }
         // Remove previous record.
-//        mApiCachePersistent.remove(responsesMapKey)
+        mApiCachePersistent.remove(responsesMapKey)
         mApiCacheInMemory.remove(responsesMapKey)
         // Finally, cache new response.
-//        mApiCachePersistent.put(responsesMapKey, response)
+        mApiCachePersistent.put(responsesMapKey, response)
         mApiCacheInMemory.put(responsesMapKey, response)
         return response
     }

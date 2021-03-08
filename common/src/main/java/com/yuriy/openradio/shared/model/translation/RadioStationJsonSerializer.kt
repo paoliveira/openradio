@@ -44,7 +44,7 @@ class RadioStationJsonSerializer : RadioStationSerializer {
             jsonObject.put(RadioStationJsonHelper.KEY_COUNTRY, radioStation.country)
             jsonObject.put(RadioStationJsonHelper.KEY_COUNTRY_CODE, radioStation.countryCode)
             jsonObject.put(RadioStationJsonHelper.KEY_GENRE, radioStation.genre)
-            jsonObject.put(RadioStationJsonHelper.KEY_IMG_URL, radioStation.imageUrl)
+            jsonObject.put(RadioStationJsonHelper.KEY_IMG_URL, radioStation.getImgUri().toString())
             jsonObject.put(RadioStationJsonHelper.KEY_STREAM_URL, radioStation.mediaStream.getVariant(0)!!.url)
             jsonObject.put(RadioStationJsonHelper.KEY_STATUS, radioStation.status)
             jsonObject.put(RadioStationJsonHelper.KEY_HOME_PAGE, radioStation.homePage)

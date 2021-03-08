@@ -16,12 +16,13 @@
 
 package com.yuriy.openradio.shared.vo
 
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
+import android.content.Context
+import android.database.ContentObserver
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.support.v4.media.session.MediaSessionCompat
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
+import com.yuriy.openradio.shared.model.storage.ImagesStore
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -52,7 +53,8 @@ class RadioStation : Serializable {
     // TODO: Convert to enum
     var countryCode = ""
     var genre = ""
-    var imageUrl = ""
+    private var imageUrl = ""
+    private var imageUri = Uri.EMPTY
     var urlResolved = ""
     private val mMediaStream: MediaStream
 
@@ -77,10 +79,10 @@ class RadioStation : Serializable {
      * @param radioStation Object to be copied.
      */
     private constructor(radioStation: RadioStation) {
+        setId(radioStation.mId)
         mCountry = radioStation.mCountry
         countryCode = radioStation.countryCode
         genre = radioStation.genre
-        setId(radioStation.mId)
         imageUrl = radioStation.imageUrl
         isLocal = radioStation.isLocal
         mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream)
@@ -93,27 +95,46 @@ class RadioStation : Serializable {
         lastCheckOkTime = radioStation.lastCheckOkTime
     }
 
-    fun setImgUrl(url: String) {
-        imageUrl = url
-        if (!AppUtils.isWebUrl(imageUrl)) {
+    fun getImgUrl(): String {
+        AppLogger.d("getImgUrl:$imageUrl")
+        return imageUrl
+    }
+
+    fun getImgUri(): Uri {
+        AppLogger.d("getImgUri:$imageUri")
+        return imageUri
+    }
+
+    fun setImgUrl(context: Context, url: String?) {
+        AppLogger.d("setImgUrl:$url")
+        if (url.isNullOrEmpty()) {
+            imageUri = Uri.parse("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
             return
         }
-        AppUtils.getPicassoCreator(Uri.parse(imageUrl))
-//                .resize(MediaNotification.NOTIFICATION_LARGE_ICON_SIZE_PX, MediaNotification.NOTIFICATION_LARGE_ICON_SIZE_PX)
-//                .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
-                .into(
-                        object : Target {
-                            override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
-                                AppLogger.e("Can't load large art:$e")
-                            }
+        if (!AppUtils.isWebUrl(url)) {
+            imageUri = Uri.parse(url)
+            return
+        }
+        if (imageUri != Uri.EMPTY) {
+            return
+        }
+        val uri = ImagesStore.getUri(id)
+        context.contentResolver.registerContentObserver(
+                uri,
+                true,
+                object : ContentObserver(Handler(Looper.getMainLooper())) {
 
-                            override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                    override fun onChange(selfChange: Boolean, uri: Uri?) {
+                        super.onChange(selfChange, uri)
+                        imageUri = ImagesStore.extractInsertedUri(uri)
+                        context.contentResolver.unregisterContentObserver(this)
+                    }
+                }
+        )
 
-                            override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                                AppLogger.d("Large art loaded")
-                            }
-                        }
-                )
+        context.contentResolver.insert(
+                uri, ImagesStore.getContentValues(id, url)
+        )
     }
 
     val id: String
@@ -185,6 +206,7 @@ class RadioStation : Serializable {
     }
 
     companion object {
+
         /**
          * Factory method to create instance of the [RadioStation].
          *

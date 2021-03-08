@@ -251,7 +251,11 @@ object AppUtils {
         return if (isWebUrl(uri.toString())) {
             Picasso.get().load(uri)
         } else {
-            Picasso.get().load(File(uri.toString()))
+            var link = Uri.decode(uri.toString())
+            if (link.isNullOrEmpty()) {
+                link = "android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty"
+            }
+            Picasso.get().load(link)
         }
     }
 

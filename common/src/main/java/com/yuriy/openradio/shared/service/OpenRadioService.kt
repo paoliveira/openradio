@@ -201,7 +201,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
     private val mApiServiceProvider: ApiServiceProvider by lazy {
-        ApiServiceProviderImpl(applicationContext, JsonDataParserImpl())
+        ApiServiceProviderImpl(applicationContext, JsonDataParserImpl(applicationContext))
     }
     private lateinit var mUiScope: CoroutineScope
     private lateinit var mScope: CoroutineScope
@@ -1463,7 +1463,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 )
                 radioStation.name = rsToAdd.name
                 radioStation.mediaStream.setVariant(0, url)
-                radioStation.imageUrl = imageUrlLocal
+                radioStation.setImgUrl(context, imageUrlLocal)
                 radioStation.genre = rsToAdd.genre
                 radioStation.country = rsToAdd.country
                 radioStation.setIsLocal(true)
@@ -1484,7 +1484,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
                 val radioStation = mRadioStationsStorage.remove(mediaId)
                 if (radioStation != null) {
-                    FileUtils.deleteFile(radioStation.imageUrl)
+                    FileUtils.deleteFile(radioStation.getImgUri().toString())
                     LocalRadioStationsStorage.remove(radioStation, context)
                 }
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)

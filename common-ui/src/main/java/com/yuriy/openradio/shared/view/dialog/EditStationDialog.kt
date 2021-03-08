@@ -112,7 +112,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
     private fun handleUI(radioStation: RadioStation, context: Context) {
         mNameEdit!!.setText(radioStation.name)
         mUrlEdit!!.setText(radioStation.mediaStream.getVariant(0)!!.url)
-        mImageLocalUrlEdit!!.setText(radioStation.imageUrl)
+        mImageLocalUrlEdit!!.setText(radioStation.getImgUri().toString())
         mCountriesSpinner!!.setSelection(getCountryPosition(radioStation.country))
         mGenresSpinner!!.setSelection(getGenrePosition(radioStation.genre))
         mAddToFavCheckView!!.isChecked = FavoritesStorage.isFavorite(radioStation, context)

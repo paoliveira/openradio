@@ -67,8 +67,7 @@ interface ApiServiceProvider {
      * @param parameters List of parameters to attach to url connection.
      * @return collection of the Radio Stations.
      */
-    fun getStations(downloader: Downloader,
-                    uri: Uri,
+    fun getStations(downloader: Downloader, uri: Uri,
                     parameters: List<Pair<String, String>>,
                     cacheType: CacheType): List<RadioStation>
 
@@ -88,8 +87,7 @@ interface ApiServiceProvider {
      * @param uri        [Uri] of the request.
      * @param parameters List of parameters to attach to url connection.
      */
-    fun addStation(downloader: Downloader,
-                   uri: Uri,
+    fun addStation(downloader: Downloader, uri: Uri,
                    parameters: List<Pair<String, String>>,
                    cacheType: CacheType): Boolean
 

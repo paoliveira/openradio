@@ -212,8 +212,8 @@ object MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
                 .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, radioStation.imageUrl)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, radioStation.imageUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, radioStation.getImgUri().toString())
+                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, radioStation.getImgUri().toString())
                 // This is the way information display on Android Auto screen:
                 // DisplayTitle
                 // Artist
@@ -223,7 +223,7 @@ object MediaItemHelper {
                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, radioStation.imageUrl)
+                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, radioStation.getImgUri().toString())
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, streamTitle)
                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, streamTitle)
@@ -297,8 +297,9 @@ object MediaItemHelper {
     fun buildMediaDescriptionFromRadioStation(context: Context?,
                                               radioStation: RadioStation): MediaDescriptionCompat {
         var iconUrl = ""
-        if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
-            iconUrl = radioStation.imageUrl
+        val imgUrl = radioStation.getImgUri().toString()
+        if (imgUrl.isNotEmpty() && !imgUrl.equals("null", ignoreCase = true)) {
+            iconUrl = imgUrl
         }
         val title = radioStation.name
         val country = radioStation.country

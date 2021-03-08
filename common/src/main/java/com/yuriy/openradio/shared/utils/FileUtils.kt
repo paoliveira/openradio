@@ -99,7 +99,7 @@ object FileUtils {
         }
         val directory = getFilesDir(context)
         val file = File(directory, generateRandomHexToken(16))
-        val out: OutputStream = try {
+        val out = try {
             FileOutputStream(file)
         } catch (e: FileNotFoundException) {
             logException(e)
@@ -124,15 +124,15 @@ object FileUtils {
      * @param outputStream
      * @return true if successful, false otherwise
      */
-    private fun downloadUrlToStream(context: Context?,
-                                    urlString: String,
-                                    outputStream: OutputStream?): Boolean {
+    fun downloadUrlToStream(context: Context,
+                            urlString: String,
+                            outputStream: OutputStream): Boolean {
         var connection: HttpURLConnection? = null
         var out: BufferedOutputStream? = null
         var bufferedInputStream: BufferedInputStream? = null
         try {
             if (isWebUrl(urlString)) {
-                if (ConnectivityReceiver.checkConnectivityAndNotify(context!!)) {
+                if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
                     connection = NetUtils.getHttpURLConnection(context, urlString, "GET")
                     if (connection == null) {
                         return false

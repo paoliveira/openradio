@@ -47,6 +47,7 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
     }
 
     abstract fun doLoadNoDataReceived(): Boolean
+
     fun handleDataLoaded(playbackStateListener: IUpdatePlaybackState?,
                          dependencies: MediaItemCommandDependencies,
                          list: List<RadioStation>) {

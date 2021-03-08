@@ -31,7 +31,7 @@ import java.util.zip.*
 
 object AppLogger {
 
-    private const val LOG_TAG = "OPEN_RADIO"
+    private const val LOG_TAG = "OPENRADIO"
     private const val LOG_FILENAME = "OpenRadio.log"
     private const val MAX_BACKUP_INDEX = 3
     private const val MAX_FILE_SIZE = "750KB"
