@@ -30,22 +30,17 @@ internal class GoogleDriveSaveFile(isTerminator: Boolean) : GoogleDriveAPIChain(
     override fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult) {
         val name = request.fileName
         AppLogger.d("Save file '$name'")
-        if (result.fileId != null) {
-            // Create new file and save data to it.
-            val data = Base64.encodeToString(request.data!!.toByteArray(), Base64.DEFAULT)
-            request.googleApiClient.createFile(result.folderId!!, name, data)
-                    .addOnSuccessListener { fileId: String ->
-                        AppLogger.d("File '$fileId' created")
-                        request.listener.onUploadComplete()
-                    }
-                    .addOnFailureListener {
-                        request.listener.onError(
-                                GoogleDriveError("File '$name' is not created")
-                        )
-                    }
-        } else {
-            AppLogger.d("File '$name' not exists, nothing to save, path execution farther")
-            handleNext(request, result)
-        }
+        // Create new file and save data to it.
+        val data = Base64.encodeToString(request.data!!.toByteArray(), Base64.DEFAULT)
+        request.googleApiClient.createFile(result.folderId!!, name, data)
+                .addOnSuccessListener { fileId: String ->
+                    AppLogger.d("File '$fileId' created")
+                    request.listener.onUploadComplete()
+                }
+                .addOnFailureListener {
+                    request.listener.onError(
+                            GoogleDriveError("File '$name' is not created")
+                    )
+                }
     }
 }
