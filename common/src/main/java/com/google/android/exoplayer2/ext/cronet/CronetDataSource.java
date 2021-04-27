@@ -321,7 +321,7 @@ public class CronetDataSource extends BaseDataSource implements HttpDataSource {
   private final ConditionVariable operation;
   private final Clock clock;
 
-  @Nullable private Predicate<String> contentTypePredicate;
+  @Nullable private final Predicate<String> contentTypePredicate;
 
   // Accessed by the calling thread only.
   private boolean opened;
