@@ -109,12 +109,4 @@
         android:focusableInTouchMode="false"
         android:indeterminate="true" />
 
-    <TextView
-        android:id="@+id/crs_buffered_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/crs_description_view"
-        android:layout_alignStart="@+id/crs_description_view"
-        android:paddingTop="10dp" />
-
 </RelativeLayout>

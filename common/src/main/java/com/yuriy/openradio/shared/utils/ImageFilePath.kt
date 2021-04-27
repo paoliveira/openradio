@@ -23,8 +23,6 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppUtils.hasVersionKitKat
 
 /**
  * Created by Chernyshov Yurii
@@ -47,7 +45,7 @@ object ImageFilePath {
     fun getPath(context: Context, uri: Uri): String? {
 
         // DocumentProvider
-        if (hasVersionKitKat() && DocumentsContract.isDocumentUri(context, uri)) {
+        if (AppUtils.hasVersionKitKat() && DocumentsContract.isDocumentUri(context, uri)) {
 
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
@@ -127,7 +125,7 @@ object ImageFilePath {
                     }
         } catch (e: Exception) {
             val msg = "Can not get data column for " + (originalUri?.toString() ?: "null.")
-            logException(Exception(msg, e))
+            AppLogger.e("$msg, e:$e")
         }
         return null
     }

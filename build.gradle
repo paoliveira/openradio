@@ -2,9 +2,6 @@
 buildscript {
 
     apply from: "constants.gradle"
-    ext {
-        kotlinVersion = '1.4.31'
-    }
 
     repositories {
         google()

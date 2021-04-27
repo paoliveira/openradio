@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.fragment.app.DialogFragment
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
+import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created with Android Studio.
@@ -82,7 +82,7 @@ abstract class BaseDialogFragment : DialogFragment() {
                 dialogFragment = Class.forName(className).getConstructor().newInstance() as BaseDialogFragment
                 dialogFragment.arguments = bundle
             } catch (e: Exception) {
-                AnalyticsUtils.logException(e)
+                AppLogger.e("$e")
             }
             return dialogFragment
         }

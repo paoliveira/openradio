@@ -85,10 +85,7 @@ import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.FileUtils
 import com.yuriy.openradio.shared.utils.IntentUtils
@@ -181,8 +178,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
     private val mMediaItemCommands: MutableMap<String?, MediaItemCommand> = HashMap()
-    private var mPosition: Long = 0
-    private var mBufferedPosition: Long = 0
     private var mLastPlayedUrl: String? = null
     private val mMasterVolumeBroadcastReceiver: MasterVolumeReceiver
     private val mClearCacheReceiver: ClearCacheReceiver
@@ -227,10 +222,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun handleMessage(msg: Message) {
             if (mExoPlayerORImpl != null && mExoPlayerORImpl!!.isPlaying) {
-                d("$CLASS_NAME ignoring delayed stop since ExoPlayerORImpl in use.")
+                AppLogger.d("$CLASS_NAME ignoring delayed stop since ExoPlayerORImpl in use.")
                 return
             }
-            d("$CLASS_NAME stopping service with delay handler.")
+            AppLogger.d("$CLASS_NAME stopping service with delay handler.")
             stopSelfResultInt()
         }
     }
@@ -238,7 +233,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         val start = System.currentTimeMillis()
         super.onCreate()
-        i("$CLASS_NAME On Create")
+        AppLogger.i("$CLASS_NAME On Create")
         val context = applicationContext
         mUiScope = CoroutineScope(Dispatchers.Main)
         mScope = CoroutineScope(Dispatchers.IO)
@@ -251,10 +246,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
         val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
         if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
-            d("$CLASS_NAME running on a TV Device in $orientationStr")
+            AppLogger.d("$CLASS_NAME running on a TV Device in $orientationStr")
             isTv = true
         } else {
-            d("$CLASS_NAME running on a non-TV Device")
+            AppLogger.d("$CLASS_NAME running on a non-TV Device")
         }
 
         // Create and start a background HandlerThread since by
@@ -315,11 +310,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val sleepTimerDate = SleepTimerStorage.loadDate(context)
         mTimer.handle(sleepTimerEnabled, sleepTimerDate.time)
 
-        i("$CLASS_NAME created in ${(System.currentTimeMillis() - start)} ms")
+        AppLogger.i("$CLASS_NAME created in ${(System.currentTimeMillis() - start)} ms")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        i("$CLASS_NAME on start command:$intent, id:$startId")
+        AppLogger.i("$CLASS_NAME on start command:$intent, id:$startId")
         mStartIds.add(startId)
         if (intent != null) {
             sendMessage(intent)
@@ -328,7 +323,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     override fun onDestroy() {
-        d("$CLASS_NAME On Destroy:${hashCode()}")
+        AppLogger.d("$CLASS_NAME On Destroy:${hashCode()}")
         super.onDestroy()
         val context = applicationContext
         mUiScope.cancel("Cancel on destroy")
@@ -349,24 +344,24 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
         val str = "clientPkgName=$clientPackageName, clientUid=$clientUid, systemUid=${Process.SYSTEM_UID}, " +
                 "myUid=${Process.myUid()}, rootHints=${IntentUtils.bundleToString(rootHints)}"
-        d(CLASS_NAME + str)
+        AppLogger.d(CLASS_NAME + str)
         AnalyticsUtils.logMessage(str)
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
         // need to check the origin:
         if (!mPackageValidator.isKnownCaller(clientPackageName, clientUid)) {
             // If the request comes from an untrusted package, return null. No further calls will
             // be made to other media browsing methods.
-            w("$CLASS_NAME IGNORING request from untrusted package $clientPackageName")
+            AppLogger.w("$CLASS_NAME IGNORING request from untrusted package $clientPackageName")
             return null
         }
         mIsAndroidAuto = if (AppUtils.isAutomotive(clientPackageName)) {
             // Optional: if your app needs to adapt ads, music library or anything else that
             // needs to run differently when connected to the car, this is where you should handle
             // it.
-            i("$CLASS_NAME package name is Android Auto")
+            AppLogger.i("$CLASS_NAME package name is Android Auto")
             true
         } else {
-            i("$CLASS_NAME package name is not Android Auto")
+            AppLogger.i("$CLASS_NAME package name is not Android Auto")
             false
         }
         mCurrentParentId = getCurrentParentId(rootHints)
@@ -377,7 +372,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     override fun onLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>) {
-        i("$CLASS_NAME OnLoadChildren $parentId")
+        AppLogger.i("$CLASS_NAME OnLoadChildren $parentId")
         var isSameCatalogue = false
         // Check whether category had changed.
         if (parentId == mCurrentParentId) {
@@ -414,7 +409,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     dependencies
             )
         } else {
-            w("$CLASS_NAME skipping unmatched parentId: $mCurrentParentId")
+            AppLogger.w("$CLASS_NAME skipping unmatched parentId: $mCurrentParentId")
             result.sendResult(dependencies.mediaItems)
         }
         // Registers BroadcastReceiver to track network connection changes.
@@ -438,7 +433,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param exception
      */
     private fun onHandledError(exception: ExoPlaybackException) {
-        e("$CLASS_NAME ExoPlayer handled exception:$exception")
+        AppLogger.e("$CLASS_NAME ExoPlayer handled exception:$exception")
         val throwable = exception.cause
         if (throwable is UnrecognizedInputFormatException) {
             handleUnrecognizedInputFormatException()
@@ -458,7 +453,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 if (playlistUrl.isNullOrEmpty()) {
-                    e("HandleUnrecognizedInputFormatException with empty URL")
+                    AppLogger.e("HandleUnrecognizedInputFormatException with empty URL")
                     return@withTimeout
                 }
                 val urls = NetUtils.extractUrlsFromPlaylist(applicationContext, playlistUrl)
@@ -488,7 +483,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun onPrepared() {
-        i("$CLASS_NAME ExoPlayer prepared")
+        AppLogger.i("$CLASS_NAME ExoPlayer prepared")
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
@@ -501,13 +496,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun stopService() {
-        d("$CLASS_NAME stop Service")
+        AppLogger.d("$CLASS_NAME stop Service")
         // Service is being killed, so make sure we release our resources
         handleStopRequest()
         releaseExoPlayer()
         mDelayedStopHandler.removeCallbacksAndMessages(null)
         if (this::mSession.isInitialized) {
-            d("$CLASS_NAME clear media session")
+            AppLogger.d("$CLASS_NAME clear media session")
             mSession.isActive = false
             mSession.setMediaButtonReceiver(null)
             mSession.setCallback(null)
@@ -538,7 +533,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     applicationContext, mListener,
                     object : MetadataListener {
                         override fun onMetaData(title: String) {
-                            d("$CLASS_NAME Metadata title:$title")
+                            AppLogger.d("$CLASS_NAME Metadata title:$title")
                             val radioStation = getRadioStationByMediaId(mCurrentMediaId)
                             updateMetadata(radioStation, title)
                         }
@@ -600,11 +595,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private fun updateMetadata(radioStation: RadioStation?, streamTitle: String?) {
         if (!this::mSession.isInitialized) {
-            e("$CLASS_NAME update metadata with null media session")
+            AppLogger.e("$CLASS_NAME update metadata with null media session")
             return
         }
         if (radioStation == null) {
-            w("$CLASS_NAME can not update Metadata - Radio Station is null")
+            AppLogger.w("$CLASS_NAME can not update Metadata - Radio Station is null")
             setPlaybackState(PlaybackStateCompat.STATE_ERROR)
             updatePlaybackState(
                     PlaybackStateError(getString(R.string.no_metadata), PlaybackStateError.Code.GENERAL)
@@ -612,7 +607,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             return
         }
         if (!mSession.isActive) {
-            e("$CLASS_NAME update metadata on inactive session")
+            AppLogger.e("$CLASS_NAME update metadata on inactive session")
             return
         }
         if (getString(R.string.buffering_infinite) != streamTitle) {
@@ -622,20 +617,20 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 applicationContext, radioStation, streamTitle
         )
         if (metadata == null) {
-            w("$CLASS_NAME can not update Metadata - MediaMetadata is null")
+            AppLogger.w("$CLASS_NAME can not update Metadata - MediaMetadata is null")
             return
         }
         val trackId = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)
         // TODO: Check whether we can use media id from Radio Station
         if (radioStation.id != trackId) {
-            w("$CLASS_NAME track ID '$trackId' should match mediaId '${radioStation.id}'")
+            AppLogger.w("$CLASS_NAME track ID '$trackId' should match mediaId '${radioStation.id}'")
             return
         }
-        d("$CLASS_NAME updating metadata for MusicId:${radioStation.id}, title:$streamTitle")
+        AppLogger.d("$CLASS_NAME updating metadata for MusicId:${radioStation.id}, title:$streamTitle")
         try {
             mSession.setMetadata(metadata)
         } catch (e: IllegalStateException) {
-            e("$CLASS_NAME can not set metadata:$e")
+            AppLogger.e("$CLASS_NAME can not set metadata:$e")
         }
     }
 
@@ -676,7 +671,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * be released or not
      */
     private fun relaxResources(releaseMediaPlayer: Boolean) {
-        d("$CLASS_NAME relax resources, release:$releaseMediaPlayer")
+        AppLogger.d("$CLASS_NAME relax resources, release:$releaseMediaPlayer")
 
         // stop being a foreground service
         stopForeground(true)
@@ -695,7 +690,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private fun handleBTSameDeviceConnected() {
         val autoPlay = AppPreferencesManager.isBtAutoPlay(applicationContext)
-        d(
+        AppLogger.d(
                 "$CLASS_NAME BTSameDeviceConnected, do auto play:$autoPlay, " +
                         "state:${MediaItemHelper.playbackStateToString(mState)}, pause reason:$mPauseReason"
         )
@@ -717,10 +712,10 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun handlePlayRequestUiThread() {
-        d("$CLASS_NAME handle play request, state:${MediaItemHelper.playbackStateToString(mState)}")
+        AppLogger.d("$CLASS_NAME handle play request, state:${MediaItemHelper.playbackStateToString(mState)}")
         mCurrentStreamTitle = null
         if (!this::mSession.isInitialized) {
-            e("$CLASS_NAME handle play request with null media session")
+            AppLogger.e("$CLASS_NAME handle play request with null media session")
             return
         }
         val context = applicationContext
@@ -739,9 +734,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             if (mExoPlayerORImpl != null && !mExoPlayerORImpl!!.isPlaying) {
                 mExoPlayerORImpl!!.play()
             } else {
-                e("$CLASS_NAME handle play on UI thread with null/invalid player")
+                AppLogger.e("$CLASS_NAME handle play on UI thread with null/invalid player")
             }
-            d("$CLASS_NAME ConfigAndStartMediaPlayer set state playing")
+            AppLogger.d("$CLASS_NAME ConfigAndStartMediaPlayer set state playing")
             setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
         } else {
             // If we're stopped or playing a song,
@@ -760,27 +755,27 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun getCurrentPlayingRSAsyncCb(radioStation: RadioStation?) {
         if (radioStation == null) {
-            e("$CLASS_NAME ignore play next song, cannot find it, idx $mCurrentIndexOnQueue")
+            AppLogger.e("$CLASS_NAME ignore play next song, cannot find it, idx $mCurrentIndexOnQueue")
             return
         }
         if (mLastKnownRS != null && mLastKnownRS!! == radioStation) {
-            e("$CLASS_NAME ignore play next song, last known is the same as requested.")
+            AppLogger.e("$CLASS_NAME ignore play next song, last known is the same as requested.")
             updatePlaybackState()
             return
         }
         mLastKnownRS = radioStation
         val metadata = buildMetadata(radioStation)
         if (metadata == null) {
-            e("$CLASS_NAME ignore play next song, cannot find metadata, idx $mCurrentIndexOnQueue")
+            AppLogger.e("$CLASS_NAME ignore play next song, cannot find metadata, idx $mCurrentIndexOnQueue")
             return
         }
         val source = metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI)
-        d(
+        AppLogger.d(
                 "$CLASS_NAME play, idx:$mCurrentIndexOnQueue," +
                         " id:${metadata.getString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID)}, source:$source"
         )
         if (source.isEmpty()) {
-            e("$CLASS_NAME source is empty")
+            AppLogger.e("$CLASS_NAME source is empty")
             return
         }
         mCurrentMediaId = radioStation.id
@@ -807,7 +802,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun setPlayerVolume() {
         if (mExoPlayerORImpl == null) {
-            e("$CLASS_NAME can not set player volume, player null")
+            AppLogger.e("$CLASS_NAME can not set player volume, player null")
             return
         }
         val volume = AppPreferencesManager.getMasterVolume(applicationContext) / 100.0f
@@ -829,7 +824,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * @param reason Reason to pause.
      */
     private fun handlePauseRequestUiThread(reason: PauseReason) {
-        d("$CLASS_NAME HandlePauseRequest, state:${MediaItemHelper.playbackStateToString(mState)}")
+        AppLogger.d("$CLASS_NAME HandlePauseRequest, state:${MediaItemHelper.playbackStateToString(mState)}")
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
@@ -855,9 +850,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun updatePlaybackStateUiThread(error: PlaybackStateError = PlaybackStateError()) {
-        d("$CLASS_NAME set playback state to ${MediaItemHelper.playbackStateToString(mState)} error:$error")
+        AppLogger.d("$CLASS_NAME set playback state to ${MediaItemHelper.playbackStateToString(mState)} error:$error")
         if (!this::mSession.isInitialized) {
-            e("$CLASS_NAME playback state with null media session")
+            AppLogger.e("$CLASS_NAME playback state with null media session")
             return
         }
         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
@@ -866,7 +861,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         // If there is an error message, send it to the playback state:
         if (error.msg != null) {
-            e("$CLASS_NAME update playback state, error: $error")
+            AppLogger.e("$CLASS_NAME update playback state, error: $error")
             // Error states are really only supposed to be used for errors that cause playback to
             // stop unexpectedly and persist until the user takes action to fix it.
             stateBuilder.setErrorMessage(PlaybackStateCompat.ERROR_CODE_UNKNOWN_ERROR, error.msg)
@@ -876,8 +871,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 mLastPlayedUrl = null
             }
         }
-        stateBuilder.setBufferedPosition(mBufferedPosition)
-        stateBuilder.setState(mState, mPosition, 1.0f, SystemClock.elapsedRealtime())
+        stateBuilder.setState(mState, 0, 1.0f, SystemClock.elapsedRealtime())
 
         // Set the activeQueueItemId if the current index is valid.
         if (mRadioStationsStorage.isIndexPlayable(mCurrentIndexOnQueue)) {
@@ -901,7 +895,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             // IllegalStateException: beginBroadcast() called while already in a broadcast
             mSession.setPlaybackState(stateBuilder.build())
         } catch (e: IllegalStateException) {
-            AnalyticsUtils.logException(e)
+            AppLogger.e("$e")
         }
         if (mState == PlaybackStateCompat.STATE_BUFFERING
                 || mState == PlaybackStateCompat.STATE_PLAYING
@@ -944,7 +938,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         if (mState == PlaybackStateCompat.STATE_STOPPED) {
             return
         }
-        d("$CLASS_NAME handle stop request, state:${MediaItemHelper.playbackStateToString(mState)} error:$error")
+        AppLogger.d("$CLASS_NAME handle stop request, state:${MediaItemHelper.playbackStateToString(mState)} error:$error")
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         mPauseReason = PauseReason.DEFAULT
         mNoisyAudioStreamReceiver.unregister(applicationContext)
@@ -974,7 +968,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         if (!mCurrentMediaId.isNullOrEmpty() &&
                 !mRadioStationsStorage.isEmpty) {
             mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId)
-            d("$CLASS_NAME on result from command, index:$mCurrentIndexOnQueue, $mCurrentMediaId")
+            AppLogger.d("$CLASS_NAME on result from command, index:$mCurrentIndexOnQueue, $mCurrentMediaId")
         }
         restoreActiveRadioStation()
     }
@@ -1063,7 +1057,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onPlay() {
             super.onPlay()
-            i("$mClassName play [ors:${this@OpenRadioService.hashCode()}]")
+            AppLogger.i("$mClassName play [ors:${this@OpenRadioService.hashCode()}]")
             if (mRadioStationsStorage.isEmpty) {
                 // Start playing from the beginning of the queue.
                 mCurrentIndexOnQueue = 0
@@ -1073,7 +1067,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onSkipToQueueItem(id: Long) {
             super.onSkipToQueueItem(id)
-            i("$mClassName skip to queue item, id:$id [ors:${this@OpenRadioService.hashCode()}]")
+            AppLogger.i("$mClassName skip to queue item, id:$id [ors:${this@OpenRadioService.hashCode()}]")
             if (mState == PlaybackStateCompat.STATE_PAUSED) {
                 setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
             }
@@ -1094,7 +1088,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onPlayFromMediaId(mediaId: String, extras: Bundle?) {
             super.onPlayFromMediaId(mediaId, extras)
-            i(
+            AppLogger.i(
                     "$mClassName play from media id:$mediaId extras:${IntentUtils.bundleToString(extras)} " +
                             "[ors:${this@OpenRadioService.hashCode()}]"
             )
@@ -1103,19 +1097,19 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onPause() {
             super.onPause()
-            i("$mClassName pause [ors:${this@OpenRadioService.hashCode()}]")
+            AppLogger.i("$mClassName pause [ors:${this@OpenRadioService.hashCode()}]")
             handlePauseRequest()
         }
 
         override fun onStop() {
             super.onStop()
-            i("$mClassName stop [ors:${this@OpenRadioService.hashCode()}]")
+            AppLogger.i("$mClassName stop [ors:${this@OpenRadioService.hashCode()}]")
             handleStopRequest()
         }
 
         override fun onSkipToNext() {
             super.onSkipToNext()
-            i(
+            AppLogger.i(
                     "$mClassName $mCurrentIndexOnQueue skip to ${(mCurrentIndexOnQueue + 1)} " +
                             "[ors:${this@OpenRadioService.hashCode()}]"
             )
@@ -1133,7 +1127,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
                 handlePlayRequest()
             } else {
-                e("$mClassName cannot skip to next, next index:$mCurrentIndexOnQueue queue size::$size}")
+                AppLogger.e("$mClassName cannot skip to next, next index:$mCurrentIndexOnQueue queue size::$size}")
                 handleStopRequest(
                         PlaybackStateError(getString(R.string.can_not_skip), PlaybackStateError.Code.GENERAL)
                 )
@@ -1142,7 +1136,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onSkipToPrevious() {
             super.onSkipToPrevious()
-            i("$mClassName skip to previous [ors:${this@OpenRadioService.hashCode()}]")
+            AppLogger.i("$mClassName skip to previous [ors:${this@OpenRadioService.hashCode()}]")
             mCurrentIndexOnQueue--
             val size = mRadioStationsStorage.size()
             if (mCurrentIndexOnQueue < 0) {
@@ -1159,7 +1153,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 }
                 handlePlayRequest()
             } else {
-                e("$mClassName cannot skip to previous, previous index:$mCurrentIndexOnQueue, queue size:$size")
+                AppLogger.e("$mClassName cannot skip to previous, previous index:$mCurrentIndexOnQueue, queue size:$size")
                 handleStopRequest(
                         PlaybackStateError(getString(R.string.can_not_skip), PlaybackStateError.Code.GENERAL)
                 )
@@ -1168,7 +1162,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onCustomAction(action: String, extras: Bundle) {
             super.onCustomAction(action, extras)
-            i("$mClassName custom action:$action [ors:${this@OpenRadioService.hashCode()}]")
+            AppLogger.i("$mClassName custom action:$action [ors:${this@OpenRadioService.hashCode()}]")
             if (CUSTOM_ACTION_THUMBS_UP == action) {
                 checkCurrentRsAsync(
                         getRadioStationByMediaId(mCurrentMediaId),
@@ -1193,12 +1187,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         }
                 )
             } else {
-                e("$mClassName unsupported action:$action")
+                AppLogger.e("$mClassName unsupported action:$action")
             }
         }
 
         override fun onPlayFromSearch(query: String, extras: Bundle) {
-            i(
+            AppLogger.i(
                     "$mClassName play from search:$query extras:${IntentUtils.bundleToString(extras)} " +
                             "[ors:${this@OpenRadioService.hashCode()}]"
             )
@@ -1215,13 +1209,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 return true
             }
             mLastKeyEventTime = System.currentTimeMillis()
-            i(
+            AppLogger.i(
                     "$mClassName media btn evnt:$intent extra:${IntentUtils.intentBundleToString(intent)} " +
                             "[ors:${this@OpenRadioService.hashCode()}]"
             )
             val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
             val keyCode = event?.keyCode ?: Int.MIN_VALUE
-            d(mClassName + "KeyCode:" + keyCode)
+            AppLogger.d(mClassName + "KeyCode:" + keyCode)
             return when (keyCode) {
                 KeyEvent.KEYCODE_MEDIA_PLAY -> {
                     onPlay()
@@ -1255,7 +1249,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     true
                 }
                 else -> {
-                    w("$mClassName Unhandled key code:$keyCode")
+                    AppLogger.w("$mClassName Unhandled key code:$keyCode")
                     false
                 }
             }
@@ -1268,7 +1262,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun performSearch(query: String) {
-        i("$CLASS_NAME search for:$query")
+        AppLogger.i("$CLASS_NAME search for:$query")
         if (query.isEmpty()) {
             return
         }
@@ -1277,7 +1271,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 try {
                     executePerformSearch(query)
                 } catch (e: Exception) {
-                    e("$CLASS_NAME can not perform search for '$query', exception:$e")
+                    AppLogger.e("$CLASS_NAME can not perform search for '$query', exception:$e")
                 }
             }
         }
@@ -1295,7 +1289,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             return
         }
         mUiScope.launch {
-            i("$CLASS_NAME found ${list.size} items")
+            AppLogger.i("$CLASS_NAME found ${list.size} items")
             mRadioStationsStorage.clearAndCopy(list)
             // immediately start playing from the beginning of the search results
             mCurrentIndexOnQueue = 0
@@ -1310,7 +1304,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private fun dispatchCurrentIndexOnQueue(index: Int) {
         if (!mRadioStationsStorage.isIndexPlayable(mCurrentIndexOnQueue)) {
-            w("$CLASS_NAME can not dispatch curr index on queue")
+            AppLogger.w("$CLASS_NAME can not dispatch curr index on queue")
             return
         }
         val item = currentQueueItem
@@ -1331,7 +1325,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private fun handleMessageInternal(command: String, intent: Intent) {
         val context = applicationContext
-        d("$CLASS_NAME rsv cmd:$command")
+        AppLogger.d("$CLASS_NAME rsv cmd:$command")
         when (command) {
             VALUE_NAME_GET_RADIO_STATION_COMMAND -> {
                 if (this::mMediaNotification.isInitialized) {
@@ -1396,7 +1390,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND -> {
                 val rsToAdd = intent.getSerializableExtra(EXTRA_KEY_RS_TO_ADD) as RadioStationToAdd?
                 if (rsToAdd == null) {
-                    e("$CLASS_NAME Radio Station to add is null")
+                    AppLogger.e("$CLASS_NAME Radio Station to add is null")
                     return
                 }
                 if (rsToAdd.name.isEmpty()) {
@@ -1480,7 +1474,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND -> {
                 val mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID)
                 if (mediaId.isNullOrEmpty()) {
-                    w("$CLASS_NAME can not remove Station, Media Id is empty")
+                    AppLogger.w("$CLASS_NAME can not remove Station, Media Id is empty")
                     return
                 }
                 val radioStation = mRadioStationsStorage.remove(mediaId)
@@ -1497,7 +1491,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 if (mediaId.isNullOrEmpty()) {
                     return
                 }
-                d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
+                AppLogger.d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
                 SortUtils.updateSortIds(applicationContext, mRadioStationsComparator, mediaId, sortId, categoryMediaId)
                 notifyChildrenChanged(categoryMediaId)
                 mScope.launch(Dispatchers.Main) {
@@ -1523,7 +1517,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         handlePlayRequest()
                     }
                     else -> {
-                        w("$CLASS_NAME unhandled playback state:${MediaItemHelper.playbackStateToString(mState)}")
+                        AppLogger.w("$CLASS_NAME unhandled playback state:${MediaItemHelper.playbackStateToString(mState)}")
                     }
                 }
             }
@@ -1557,7 +1551,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 val time = intent.getLongExtra(EXTRA_KEY_SLEEP_TIMER_TIME, System.currentTimeMillis())
                 mTimer.handle(enabled, time)
             }
-            else -> w("$CLASS_NAME unknown command:$command")
+            else -> AppLogger.w("$CLASS_NAME unknown command:$command")
         }
     }
 
@@ -1565,12 +1559,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         while (!mStartIds.isEmpty()) {
             val id = mStartIds.poll() ?: continue
             val result = stopSelfResult(id)
-            i("$CLASS_NAME service " + (if (result) "stopped" else "not stopped") + " for $id")
+            AppLogger.i("$CLASS_NAME service " + (if (result) "stopped" else "not stopped") + " for $id")
         }
     }
 
     private fun setPlaybackState(state: Int) {
-        d("$CLASS_NAME set state:${MediaItemHelper.playbackStateToString(state)}")
+        AppLogger.d("$CLASS_NAME set state:${MediaItemHelper.playbackStateToString(state)}")
         mState = state
     }
 
@@ -1580,7 +1574,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private inner class ExoPlayerListener : ExoPlayerOpenRadioImpl.Listener {
 
         override fun onError(error: ExoPlaybackException) {
-            e("$CLASS_NAME ExoPlayer exception:$error")
+            AppLogger.e("$CLASS_NAME ExoPlayer exception:$error")
             handleStopRequest(
                     PlaybackStateError(
                             getString(R.string.media_stream_error), PlaybackStateError.Code.PLAYBACK_ERROR, error
@@ -1596,14 +1590,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             this@OpenRadioService.onPrepared()
         }
 
-        override fun onProgress(position: Long, bufferedPosition: Long, duration: Long) {
-            mPosition = position
-            mBufferedPosition = bufferedPosition
-            updatePlaybackState()
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
-            d("$CLASS_NAME OnPlayerStateChanged $playbackState")
+            AppLogger.d("$CLASS_NAME OnPlayerStateChanged $playbackState")
             when (playbackState) {
                 Player.STATE_BUFFERING -> {
                     setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
@@ -1905,7 +1893,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     init {
         CLASS_NAME = "ORS[" + hashCode() + "]"
-        i(CLASS_NAME)
+        AppLogger.i(CLASS_NAME)
         setPlaybackState(PlaybackStateCompat.STATE_NONE)
         mRadioStationsComparator = RadioStationsComparator()
         mStartIds = ConcurrentLinkedQueue()

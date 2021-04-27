@@ -94,7 +94,6 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
             val msg = "$CLASS_NAME can not locate device, ctx:$context, intent:$intent, " +
                     "data:${IntentUtils.intentBundleToString(intent)}, e:${Log.getStackTraceString(e)}"
             AnalyticsUtils.logMessage(msg)
-            AnalyticsUtils.logException(RuntimeException(msg))
         }
     }
 

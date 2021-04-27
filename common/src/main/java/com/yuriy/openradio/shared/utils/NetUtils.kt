@@ -19,8 +19,6 @@ import android.content.Context
 import androidx.core.util.Pair
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.net.DownloaderException
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
 import com.yuriy.openradio.shared.view.SafeToast
 import okhttp3.internal.Util
 import wseemann.media.jplaylistparser.parser.AutoDetectParser
@@ -48,8 +46,8 @@ object NetUtils {
         return try {
             getHttpURLConnection(context, URL(urlString), requestMethod, null)
         } catch (exception: MalformedURLException) {
-            logException(
-                    RuntimeException("Can not get http connection from $urlString", exception)
+            AppLogger.e(
+                "Can not get http connection from $urlString e:$exception"
             )
             null
         }
@@ -75,7 +73,7 @@ object NetUtils {
                 connection.useCaches = false
                 connection.defaultUseCaches = false
                 connection.requestMethod = requestMethod
-                val userAgent = getUserAgent(context)
+                val userAgent = AppUtils.getUserAgent(context)
                 try {
                     connection.setRequestProperty(USER_AGENT_PARAMETER_KEY, userAgent)
                 } catch (e: Exception) {
@@ -94,18 +92,16 @@ object NetUtils {
                             }
                         }
                     } catch (exception: IOException) {
-                        logException(
-                                DownloaderException(
-                                        DownloaderException.createExceptionMessage(url.toString(), parameters),
-                                        exception
-                                )
+                        AppLogger.e(
+                            " ${DownloaderException.createExceptionMessage(url.toString(), parameters)} e:$exception"
+
                         )
                     }
                 }
                 connection.connect()
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_MOVED_PERM
-                        || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+                    || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
                     if (maxAttempt-- <= 0) {
                         AppLogger.e("$CLASS_NAME redirect reached max attempts number")
                         break
@@ -117,7 +113,7 @@ object NetUtils {
                     isRedirect = true
                 }
             } catch (exception: Exception) {
-                logException(RuntimeException("Can not get http connection from $url", exception))
+                AppLogger.e("Can not get http connection from $url e:$exception")
             }
         } while (isRedirect)
 
@@ -198,7 +194,7 @@ object NetUtils {
             }
         } catch (e: Exception) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            logException(Exception(errorMessage, e))
+            AppLogger.e("$errorMessage e:$e")
         } finally {
             closeHttpURLConnection(connection)
             if (inputStream != null) {

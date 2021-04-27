@@ -31,10 +31,6 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.RequestCreator
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
 import java.io.File
 import java.math.BigInteger
 import java.security.SecureRandom
@@ -79,7 +75,7 @@ object AppUtils {
         }
         val packageManager = context.packageManager ?: return false
         val result = packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION)
-        i("Has Location:$result")
+        AppLogger.i("Has Location:$result")
         return result
     }
 
@@ -95,7 +91,7 @@ object AppUtils {
         return if (packageInfo != null) {
             packageInfo.versionName
         } else {
-            w("$CLASS_NAME Can't get application version")
+            AppLogger.w("$CLASS_NAME Can't get application version")
             "?"
         }
     }
@@ -107,7 +103,7 @@ object AppUtils {
     private fun getPackageInfo(context: Context): PackageInfo? {
         val packageManager = context.packageManager
         if (packageManager == null) {
-            w("$CLASS_NAME Package manager is NULL")
+            AppLogger.w("$CLASS_NAME Package manager is NULL")
             return null
         }
         val packageName: String
@@ -115,17 +111,17 @@ object AppUtils {
             packageName = context.packageName
             packageManager.getPackageInfo(packageName, 0)
         } catch (e: PackageManager.NameNotFoundException) {
-            logException(e)
+            AppLogger.e("Get pck info $e")
             null
         } catch (e: RuntimeException) {
             // To catch RuntimeException("Package manager has died") that can occur on some
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            logException(e)
+            AppLogger.e("Get pck info $e")
             null
         } catch (e: Throwable) {
-            e("$CLASS_NAME Package manager has Throwable : $e")
+            AppLogger.e("$CLASS_NAME Package manager has Throwable : $e")
             null
         }
     }
@@ -194,7 +190,7 @@ object AppUtils {
         return if (packageInfo != null) {
             packageInfo.versionName
         } else {
-            w("Can't get application version")
+            AppLogger.w("Can't get application version")
             "?"
         }
     }
@@ -205,7 +201,7 @@ object AppUtils {
         return if (packageInfo != null) {
             packageInfo.versionCode
         } else {
-            w("Can't get application code")
+            AppLogger.w("Can't get application code")
             0
         }
     }
@@ -233,7 +229,7 @@ object AppUtils {
                 }
             }
         } catch (e: Exception) {
-            logException(e)
+            AppLogger.e("GetUserCountry $e")
         }
         return null
     }
@@ -387,7 +383,7 @@ object AppUtils {
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                e("Can not start activity:$e")
+                AppLogger.e("Can not start activity:$e")
                 return false
             }
             return true
@@ -405,7 +401,7 @@ object AppUtils {
             try {
                 context.startActivityForResult(intent, resultCode)
             } catch (e: Exception) {
-                e("Can not start activity for result:$e")
+                AppLogger.e("Can not start activity for result:$e")
                 return false
             }
             return true

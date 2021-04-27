@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
-import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeCopyInstance
-import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
+import com.yuriy.openradio.shared.utils.AppLogger
 import java.io.Serializable
 
 /**
@@ -66,7 +64,7 @@ class RadioStation : Serializable {
      */
     private constructor(context: Context, id: String) {
         setId(context, id)
-        mMediaStream = makeDefaultInstance()
+        mMediaStream = MediaStream.makeDefaultInstance()
     }
 
     /**
@@ -81,7 +79,7 @@ class RadioStation : Serializable {
         setId(context, radioStation.mId)
         imageUrl = radioStation.imageUrl
         isLocal = radioStation.isLocal
-        mMediaStream = makeCopyInstance(radioStation.mMediaStream)
+        mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream)
         name = radioStation.name
         sortId = radioStation.sortId
         status = radioStation.status
@@ -105,7 +103,7 @@ class RadioStation : Serializable {
 
     private fun setId(context: Context, value: String?) {
         mId = if (value.isNullOrEmpty()) {
-            AnalyticsUtils.logException(IllegalArgumentException("Radio Station ID is invalid"))
+            AppLogger.e("Radio Station ID '$value' is invalid")
             LocalRadioStationsStorage.getId(context)
         } else {
             value

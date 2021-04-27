@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity() {
      */
     private val mMediaItemListener: MediaItemsAdapter.Listener
 
-    private var mBufferedTextView: TextView? = null
     private var mPlayBtn: View? = null
     private var mPauseBtn: View? = null
     private var mProgressBarCrs: ProgressBar? = null
@@ -131,7 +130,6 @@ class MainActivity : AppCompatActivity() {
 
         initUi(applicationContext)
         hideProgressBar()
-        updateBufferedTime(0)
 
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
@@ -235,7 +233,6 @@ class MainActivity : AppCompatActivity() {
         mProgressBar = findViewById(R.id.progress_bar_view)
         // Initialize No Data text view
         mNoDataView = findViewById(R.id.no_data_view)
-        mBufferedTextView = findViewById(R.id.crs_buffered_view)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navigationView = findViewById<NavigationView>(R.id.nav_view)
@@ -484,25 +481,6 @@ class MainActivity : AppCompatActivity() {
         }
         mProgressBarCrs!!.visibility = View.GONE
         hideProgressBar()
-        val bufferedDuration = (state.bufferedPosition - state.position) / 1000
-        updateBufferedTime(bufferedDuration)
-    }
-
-    /**
-     * Updates buffered value of the currently playing radio station.
-     *
-     * @param value Buffered time in seconds.
-     */
-    private fun updateBufferedTime(value: Long) {
-        var valueCpy = value
-        if (mBufferedTextView == null) {
-            return
-        }
-        if (valueCpy < 0) {
-            valueCpy = 0
-        }
-        mBufferedTextView!!.visibility = if (valueCpy > 0) View.VISIBLE else View.INVISIBLE
-        mBufferedTextView!!.text = String.format(Locale.getDefault(), "Buffered %d sec", valueCpy)
     }
 
     /**

@@ -19,9 +19,6 @@ package com.yuriy.openradio.shared.utils
 import android.content.Context
 import android.util.Log
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppUtils.generateRandomHexToken
-import com.yuriy.openradio.shared.utils.AppUtils.isWebUrl
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -98,11 +95,11 @@ object FileUtils {
             return filePath
         }
         val directory = getFilesDir(context)
-        val file = File(directory, generateRandomHexToken(16))
+        val file = File(directory, AppUtils.generateRandomHexToken(16))
         val out: OutputStream = try {
             FileOutputStream(file)
         } catch (e: FileNotFoundException) {
-            logException(e)
+            AppLogger.e("$e")
             return null
         }
         downloadUrlToStream(context, filePath, out)
@@ -131,7 +128,7 @@ object FileUtils {
         var out: BufferedOutputStream? = null
         var bufferedInputStream: BufferedInputStream? = null
         try {
-            if (isWebUrl(urlString)) {
+            if (AppUtils.isWebUrl(urlString)) {
                 if (ConnectivityReceiver.checkConnectivityAndNotify(context!!)) {
                     connection = NetUtils.getHttpURLConnection(context, urlString, "GET")
                     if (connection == null) {
@@ -152,9 +149,9 @@ object FileUtils {
             }
             return true
         } catch (e: SocketTimeoutException) {
-            logException(Exception("url:$urlString", e))
+            AppLogger.e("SocketTimeoutException url:$urlString e:$e")
         } catch (e: IOException) {
-            logException(Exception("url:$urlString", e))
+            AppLogger.e("IOException url:$urlString e:$e")
         } finally {
             NetUtils.closeHttpURLConnection(connection)
             try {
@@ -177,8 +174,8 @@ object FileUtils {
         try {
             file.createNewFile()
         } catch (e: IOException) {
-            logException(
-                    FileNotFoundException("File $path not created:${Log.getStackTraceString(e)}")
+            AppLogger.e(
+                    "File $path not created:${Log.getStackTraceString(e)}"
             )
         }
         return file

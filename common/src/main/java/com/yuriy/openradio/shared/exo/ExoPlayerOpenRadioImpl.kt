@@ -18,17 +18,13 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.google.android.exoplayer2.ExoPlaybackException
-import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.Timeline
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.metadata.MetadataOutput
@@ -42,10 +38,8 @@ import com.yuriy.openradio.shared.exo.ExoPlayerUtils.buildRenderersFactory
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.w
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -83,17 +77,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
          * Indicates that player is ready to play stream.
          */
         fun onPrepared()
-
-        /**
-         * Currently playing playback progress.
-         *
-         * @param position         playback position in the current window, in milliseconds.
-         * @param bufferedPosition Estimate of the position in the current window up to which data is buffered,
-         * in milliseconds.
-         * @param duration         Duration of the current window in milliseconds,
-         * or C.TIME_UNSET if the duration is not known.
-         */
-        fun onProgress(position: Long, bufferedPosition: Long, duration: Long)
 
         /**
          * @param playbackState
@@ -148,15 +131,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      */
     private val mNumOfExceptions = AtomicInteger(0)
 
-    /**
-     * Runnable implementation to handle playback progress.
-     */
-    private var mUpdateProgressAction: Runnable? = Runnable { updateProgress() }
-
-    /**
-     * Handler to handle playback progress runnable.
-     */
-    private var mUpdateProgressHandler: Handler? = Handler(Looper.getMainLooper())
     private val mMetadataListener: MetadataListener
 
     /**
@@ -256,12 +230,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         mEqualizer.deinit()
         mExoPlayer!!.removeListener(mComponentListener)
         mExoPlayer!!.removeMetadataOutput(mComponentListener)
-        mUpdateProgressHandler!!.removeCallbacks(mUpdateProgressAction!!)
         reset()
         mExoPlayer!!.release()
         mExoPlayer = null
-        mUpdateProgressHandler = null
-        mUpdateProgressAction = null
     }
 
     /**
@@ -273,6 +244,8 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
          * String tag to use in logs.
          */
         private val mLogTag = ComponentListener::class.java.simpleName
+        private var mRawMetadata = ""
+
         override fun onMetadata(metadata: Metadata) {
 
             // TODO: REFACTOR THIS QUICK CODE!!
@@ -288,6 +261,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                         return
                     }
                     title = title.trim { it <= ' ' }
+                    if (title == mRawMetadata) {
+                        return
+                    }
+                    mRawMetadata = title
                     mMetadataListener.onMetaData(title)
                 }
                 if (entry is IcyHeaders) {
@@ -297,12 +274,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             }
         }
 
-        // Event listener
-        override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-            d("$mLogTag onTimelineChanged $timeline, reason $reason")
-            updateProgress()
-        }
-
         override fun onPlaybackStateChanged(playbackState: Int) {
             d("$mLogTag onPlayerStateChanged to $playbackState")
             mListener.onPlaybackStateChanged(playbackState)
@@ -310,7 +281,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 Player.STATE_BUFFERING -> d("$mLogTag STATE_BUFFERING")
                 Player.STATE_ENDED -> {
                     d("$mLogTag STATE_ENDED, userState:$mUserState")
-                    mUpdateProgressHandler!!.removeCallbacks(mUpdateProgressAction!!)
                     if (mUserState != UserState.PAUSE && mUserState != UserState.RESET) {
                         prepare(mUri)
                     }
@@ -324,7 +294,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 else -> {
                 }
             }
-            updateProgress()
         }
 
         override fun onPlayerError(exception: ExoPlaybackException) {
@@ -345,60 +314,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 }
                 return
             }
-            AnalyticsUtils.logException(exception)
             mListener.onError(exception)
-        }
-
-        override fun onPositionDiscontinuity(@Player.DiscontinuityReason reason: Int) {
-            e("$mLogTag onPositionDiscontinuity:$reason")
-            updateProgress()
-        }
-    }
-
-    /**
-     * Handle playback update progress.
-     */
-    private fun updateProgress() {
-        val exoPlayer: ExoPlayer? = mExoPlayer
-        if (exoPlayer == null) {
-            // TODO: Investigate why this callback's loop still exists even after destroy()
-            w("$LOG_TAG update progress with null player")
-            return
-        }
-        if (exoPlayer.currentTimeline === Timeline.EMPTY) {
-            // TODO: Investigate why an empty timeline is here, probably because it is obsolete reference to player
-            w("$LOG_TAG update progress with empty timeline")
-            return
-        }
-        val position = exoPlayer.currentPosition
-        val bufferedPosition = exoPlayer.bufferedPosition
-        val duration = exoPlayer.duration
-        d(
-                "Pos:" + position
-                        + ", bufPos:" + bufferedPosition
-                        + ", bufDur:" + (bufferedPosition - position)
-        )
-        mListener.onProgress(position, bufferedPosition, duration)
-
-        // Cancel any pending updates and schedule a new one if necessary.
-        if (mUpdateProgressHandler == null) {
-            // TODO: Investigate why this callback's loop still exists even after destroy()
-            w("$LOG_TAG update progress with null handler")
-            return
-        }
-        mUpdateProgressHandler!!.removeCallbacks(mUpdateProgressAction!!)
-        val playbackState = exoPlayer.playbackState
-        if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
-            var delayMs: Long
-            if (exoPlayer.playWhenReady && playbackState == Player.STATE_READY) {
-                delayMs = 1000 - position % 1000
-                if (delayMs < 200) {
-                    delayMs += 1000
-                }
-            } else {
-                delayMs = 1000
-            }
-            mUpdateProgressHandler!!.postDelayed(mUpdateProgressAction!!, delayMs)
         }
     }
 

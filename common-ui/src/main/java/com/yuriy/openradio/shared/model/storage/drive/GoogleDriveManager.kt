@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAll
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocals
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocalsFromString
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage.Companion.merge
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
@@ -334,7 +334,7 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
             jsonObject.put(RADIO_STATION_CATEGORY_FAVORITES, favorites)
             jsonObject.put(RADIO_STATION_CATEGORY_LOCALS, locals)
         } catch (e: JSONException) {
-            logException(e)
+            AppLogger.e("MergeRadioStationCategories $e")
         }
         return jsonObject.toString()
     }
@@ -351,7 +351,7 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         try {
             jsonObject = JSONObject(data)
         } catch (e: JSONException) {
-            logException(e)
+            AppLogger.e("SplitRadioStationCategories $e")
         }
         if (jsonObject != null) {
             categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, "")

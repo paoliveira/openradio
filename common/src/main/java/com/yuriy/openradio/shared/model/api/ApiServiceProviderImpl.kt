@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,17 +28,13 @@ import com.yuriy.openradio.shared.model.storage.cache.api.InMemoryApiCache
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.AppUtils.capitalize
-import com.yuriy.openradio.shared.utils.NetUtils.getPostParametersQuery
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.NetUtils
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.Country
 import com.yuriy.openradio.shared.vo.MediaStream
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -90,7 +86,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     override fun getCategories(downloader: Downloader, uri: Uri, cacheType: CacheType): List<Category> {
         val allCategories: MutableList<Category> = ArrayList()
         if (mDataParser == null) {
-            w(CLASS_NAME + "Can not parse data, parser is null")
+            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null")
             return allCategories
         }
         val array = downloadJsonArray(downloader, uri, cacheType)
@@ -104,14 +100,14 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 // TODO: Use data parser to parse JSON to value object
                 if (item.has(JsonDataParserImpl.KEY_NAME)) {
                     category.id = item.getString(JsonDataParserImpl.KEY_NAME)
-                    category.title = capitalize(item.getString(JsonDataParserImpl.KEY_NAME))
+                    category.title = AppUtils.capitalize(item.getString(JsonDataParserImpl.KEY_NAME))
                     if (item.has(JsonDataParserImpl.KEY_STATIONS_COUNT)) {
                         category.stationsCount = item.getInt(JsonDataParserImpl.KEY_STATIONS_COUNT)
                     }
                 }
                 allCategories.add(category)
             } catch (e: Exception) {
-                logException(e)
+                AppLogger.e("$e")
             }
         }
         return allCategories
@@ -120,13 +116,13 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     override fun getCountries(downloader: Downloader, uri: Uri, cacheType: CacheType): List<Country> {
         val list: MutableList<Country> = ArrayList()
         if (mDataParser == null) {
-            w(CLASS_NAME + "Can not parse data, parser is null")
+            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null")
             return list
         }
         for (countryName in LocationService.COUNTRY_NAME_TO_CODE.keys) {
             val countryCode = LocationService.COUNTRY_NAME_TO_CODE[countryName]
             if (countryCode == null) {
-                e("Country code not found for $countryName")
+                AppLogger.e("Country code not found for $countryName")
                 continue
             }
             list.add(Country(countryName, countryCode))
@@ -145,7 +141,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                              cacheType: CacheType): List<RadioStation> {
         val radioStations: MutableList<RadioStation> = ArrayList()
         if (mDataParser == null) {
-            w(CLASS_NAME + "Can not parse data, parser is null")
+            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null")
             return radioStations
         }
         val array = downloadJsonArray(downloader, uri, parameters, cacheType)
@@ -160,7 +156,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 }
                 radioStations.add(radioStation)
             } catch (e: JSONException) {
-                e("$CLASS_NAME get stations exception:$e")
+                AppLogger.e("$CLASS_NAME get stations exception:$e")
             }
         }
         return radioStations
@@ -172,7 +168,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                             cacheType: CacheType): Boolean {
         // Post data to the server.
         val response = String(downloader.downloadDataFromUri(mContext, uri, parameters))
-        i("Add station response:$response")
+        AppLogger.i("Add station response:$response")
         if (response.isEmpty()) {
             return false
         }
@@ -188,7 +184,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
                 }
             }
         } catch (e: JSONException) {
-            logException(e)
+            AppLogger.e("$e")
         }
         return value
     }
@@ -196,23 +192,23 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     override fun getStation(downloader: Downloader, uri: Uri, cacheType: CacheType): RadioStation? {
         // Download response from the server.
         val response = String(downloader.downloadDataFromUri(mContext, uri))
-        i(CLASS_NAME + "Response:" + response)
+        AppLogger.i(CLASS_NAME + "Response:" + response)
 
         // Ignore empty response.
         if (response.isEmpty()) {
-            e(CLASS_NAME + "Can not parse data, response is empty")
+            AppLogger.e(CLASS_NAME + "Can not parse data, response is empty")
             return null
         }
         val jsonObject: JSONObject = try {
             JSONObject(response)
         } catch (e: JSONException) {
-            logException(e)
+            AppLogger.e("$e")
             return null
         }
         try {
             return getRadioStation(mContext, jsonObject)
         } catch (e: JSONException) {
-            logException(e)
+            AppLogger.e("$e")
         }
         return null
     }
@@ -251,9 +247,9 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         // Create key to associate response with.
         var responsesMapKey: String = uri.toString()
         try {
-            responsesMapKey += getPostParametersQuery(parameters)
+            responsesMapKey += NetUtils.getPostParametersQuery(parameters)
         } catch (e: UnsupportedEncodingException) {
-            logException(e)
+            AppLogger.e("$e")
             responsesMapKey = ""
         }
 
@@ -277,7 +273,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         // Ignore empty response finally.
         if (response.isEmpty()) {
             array = JSONArray()
-            w(CLASS_NAME + "Can not parse data, response is empty")
+            AppLogger.w(CLASS_NAME + "Can not parse data, response is empty")
             return array
         }
         var isSuccess = false
@@ -285,7 +281,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             array = JSONArray(response)
             isSuccess = true
         } catch (e: JSONException) {
-            logException(e)
+            AppLogger.e("$e")
         }
         if (isSuccess) {
             // Remove previous record.
@@ -307,7 +303,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
      */
     @Throws(JSONException::class)
     private fun getRadioStation(context: Context, jsonObject: JSONObject): RadioStation {
-        val radioStation = makeDefaultInstance(
+        val radioStation = RadioStation.makeDefaultInstance(
                 context, jsonObject.getString(JsonDataParserImpl.KEY_STATION_UUID)
         )
         if (jsonObject.has(JsonDataParserImpl.KEY_STATUS)) {
