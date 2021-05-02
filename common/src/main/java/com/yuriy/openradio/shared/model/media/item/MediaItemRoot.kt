@@ -28,10 +28,7 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
-import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
-import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
-import com.yuriy.openradio.shared.utils.MediaItemHelper.updateLastPlayedField
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
@@ -57,13 +54,6 @@ class MediaItemRoot : MediaItemCommand {
             latestRadioStation = LatestRadioStationStorage[dependencies.context]
             if (latestRadioStation != null) {
                 dependencies.radioStationsStorage.add(latestRadioStation)
-                // Add Radio Station to Menu
-                val mediaItem = MediaBrowserCompat.MediaItem(
-                        buildMediaDescriptionFromRadioStation(context, latestRadioStation),
-                        MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-                )
-                updateFavoriteField(mediaItem, FavoritesStorage.isFavorite(latestRadioStation, dependencies.context))
-                updateLastPlayedField(mediaItem, true)
             }
         }
 
@@ -90,77 +80,77 @@ class MediaItemRoot : MediaItemCommand {
 
             // Favorites list
             val builder = MediaDescriptionCompat.Builder()
-                    .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
-                    .setTitle(context.getString(R.string.favorites_list_title))
+                .setMediaId(MediaIdHelper.MEDIA_ID_FAVORITES_LIST)
+                .setTitle(context.getString(R.string.favorites_list_title))
             val bundle = Bundle()
-            setDrawableId(bundle, R.drawable.ic_stars_black_24dp)
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_stars_black_24dp)
             builder.setExtras(bundle)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+                MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
             )
         }
 
         // Recently added Radio Stations
         val builderRecent = MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
-                .setTitle(context.getString(R.string.new_stations_title))
+            .setMediaId(MediaIdHelper.MEDIA_ID_RECENT_ADDED_STATIONS)
+            .setTitle(context.getString(R.string.new_stations_title))
         val bundleRecent = Bundle()
-        setDrawableId(bundleRecent, R.drawable.ic_fiber_new_black_24dp)
+        MediaItemHelper.setDrawableId(bundleRecent, R.drawable.ic_fiber_new_black_24dp)
         builderRecent.setExtras(bundleRecent)
         dependencies.addMediaItem(
-                MediaBrowserCompat.MediaItem(builderRecent.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+            MediaBrowserCompat.MediaItem(builderRecent.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
         )
 
         // Popular Radio Stations
         val builderPop = MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
-                .setTitle(context.getString(R.string.popular_stations_title))
+            .setMediaId(MediaIdHelper.MEDIA_ID_POPULAR_STATIONS)
+            .setTitle(context.getString(R.string.popular_stations_title))
         val bundlePop = Bundle()
-        setDrawableId(bundlePop, R.drawable.ic_trending_up_black_24dp)
+        MediaItemHelper.setDrawableId(bundlePop, R.drawable.ic_trending_up_black_24dp)
         builderPop.setExtras(bundlePop)
         dependencies.addMediaItem(
-                MediaBrowserCompat.MediaItem(builderPop.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+            MediaBrowserCompat.MediaItem(builderPop.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
         )
 
         // Worldwide Stations
         val builder = MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
-                .setTitle(context.getString(R.string.all_categories_title))
+            .setMediaId(MediaIdHelper.MEDIA_ID_ALL_CATEGORIES)
+            .setTitle(context.getString(R.string.all_categories_title))
         val bundle = Bundle()
-        setDrawableId(bundle, R.drawable.ic_all_categories)
+        MediaItemHelper.setDrawableId(bundle, R.drawable.ic_all_categories)
         builder.setExtras(bundle)
         dependencies.addMediaItem(
-                MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+            MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
         )
 
         // All countries list
         val builderCounties = MediaDescriptionCompat.Builder()
-                .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
-                .setTitle(context.getString(R.string.countries_list_title))
+            .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRIES_LIST)
+            .setTitle(context.getString(R.string.countries_list_title))
         val bundleCounties = Bundle()
-        setDrawableId(bundleCounties, R.drawable.ic_public_black_24dp)
+        MediaItemHelper.setDrawableId(bundleCounties, R.drawable.ic_public_black_24dp)
         builderCounties.setExtras(bundleCounties)
         dependencies.addMediaItem(
-                MediaBrowserCompat.MediaItem(builderCounties.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+            MediaBrowserCompat.MediaItem(builderCounties.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
         )
 
         // If the Country code is known:
         val locationStr = context.getString(R.string.default_country_use_location)
         if (dependencies.countryCode.isNotEmpty() && dependencies.countryCode != locationStr) {
             val identifier = context.resources.getIdentifier(
-                    "flag_" + dependencies.countryCode.toLowerCase(Locale.ROOT),
-                    "drawable", context.packageName
+                "flag_" + dependencies.countryCode.toLowerCase(Locale.ROOT),
+                "drawable", context.packageName
             )
             val bundle1 = Bundle()
-            setDrawableId(bundle1, identifier)
+            MediaItemHelper.setDrawableId(bundle1, identifier)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            MediaDescriptionCompat.Builder()
-                                    .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
-                                    .setTitle(LocationService.COUNTRY_CODE_TO_NAME[dependencies.countryCode])
-                                    .setExtras(bundle1)
-                                    .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
+                MediaBrowserCompat.MediaItem(
+                    MediaDescriptionCompat.Builder()
+                        .setMediaId(MediaIdHelper.MEDIA_ID_COUNTRY_STATIONS)
+                        .setTitle(LocationService.COUNTRY_CODE_TO_NAME[dependencies.countryCode])
+                        .setExtras(bundle1)
+                        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                )
             )
         }
 
@@ -168,13 +158,13 @@ class MediaItemRoot : MediaItemCommand {
         if (!LocalRadioStationsStorage.isLocalsEmpty(context)) {
             // Locals list
             val builder1 = MediaDescriptionCompat.Builder()
-                    .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
-                    .setTitle(context.getString(R.string.local_radio_stations_list_title))
+                .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
+                .setTitle(context.getString(R.string.local_radio_stations_list_title))
             val bundle1 = Bundle()
-            setDrawableId(bundle1, R.drawable.ic_locals)
+            MediaItemHelper.setDrawableId(bundle1, R.drawable.ic_locals)
             builder1.setExtras(bundle1)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+                MediaBrowserCompat.MediaItem(builder1.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
             )
         }
         AppLogger.d("$LOG_TAG invocation completed")

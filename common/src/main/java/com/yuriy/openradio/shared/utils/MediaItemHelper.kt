@@ -55,7 +55,7 @@ object MediaItemHelper {
 
     fun getDrawableId(bundle: Bundle?): Int {
         return bundle?.getInt(KEY_DRAWABLE_ID, DRAWABLE_ID_UNDEFINED)
-                ?: DRAWABLE_ID_UNDEFINED
+            ?: DRAWABLE_ID_UNDEFINED
     }
 
     fun isDrawableIdValid(drawableId: Int): Boolean {
@@ -81,12 +81,7 @@ object MediaItemHelper {
      * @param mediaItem    [MediaBrowserCompat.MediaItem].
      * @param isLastPlayed Whether Media Item is known last played.
      */
-    fun updateLastPlayedField(mediaItem: MediaBrowserCompat.MediaItem?, isLastPlayed: Boolean) {
-        if (mediaItem == null) {
-            return
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras ?: return
+    private fun updateLastPlayedField(bundle: Bundle, isLastPlayed: Boolean) {
         bundle.putBoolean(KEY_IS_LAST_PLAYED, isLastPlayed)
     }
 
@@ -103,6 +98,10 @@ object MediaItemHelper {
         }
         val mediaDescription = mediaItem.description
         val bundle = mediaDescription.extras ?: return
+        updateFavoriteField(bundle, isFavorite)
+    }
+
+    private fun updateFavoriteField(bundle: Bundle, isFavorite: Boolean) {
         bundle.putBoolean(KEY_IS_FAVORITE, isFavorite)
     }
 
@@ -112,12 +111,7 @@ object MediaItemHelper {
      * @param mediaItem [MediaBrowserCompat.MediaItem].
      * @param isLocal   Whether Item is in Local Radio Stations.
      */
-    fun updateLocalRadioStationField(mediaItem: MediaBrowserCompat.MediaItem?, isLocal: Boolean) {
-        if (mediaItem == null) {
-            return
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras ?: return
+    private fun updateLocalRadioStationField(bundle: Bundle, isLocal: Boolean) {
         bundle.putBoolean(KEY_IS_LOCAL, isLocal)
     }
 
@@ -125,12 +119,7 @@ object MediaItemHelper {
      * @param mediaItem
      * @param sortId
      */
-    fun updateSortIdField(mediaItem: MediaBrowserCompat.MediaItem?, sortId: Int) {
-        if (mediaItem == null) {
-            return
-        }
-        val mediaDescription = mediaItem.description
-        val bundle = mediaDescription.extras ?: return
+    private fun updateSortIdField(bundle: Bundle, sortId: Int) {
         bundle.putInt(KEY_SORT_ID, sortId)
     }
 
@@ -175,7 +164,7 @@ object MediaItemHelper {
         }
         val bundle = mediaDescription.extras
         return bundle?.getInt(KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID)
-                ?: MediaSessionCompat.QueueItem.UNKNOWN_ID
+            ?: MediaSessionCompat.QueueItem.UNKNOWN_ID
     }
 
     /**
@@ -212,25 +201,25 @@ object MediaItemHelper {
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
         val mediaMetadataCompat = MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
-                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
-                // This is the way information display on Android Auto screen:
-                // DisplayTitle
-                // Artist
-                // Album
-                // METADATA_KEY_DISPLAY_TITLE is used to indicate whether METADATA_KEY_DISPLAY_DESCRIPTION
-                // needs to be parsed as description.
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, streamTitle)
-                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, streamTitle)
-                .build()
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
+            .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, iconUrl)
+            // This is the way information display on Android Auto screen:
+            // DisplayTitle
+            // Artist
+            // Album
+            // METADATA_KEY_DISPLAY_TITLE is used to indicate whether METADATA_KEY_DISPLAY_DESCRIPTION
+            // needs to be parsed as description.
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUrl)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, streamTitle)
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, streamTitle)
+            .build()
 
         // Info: There is no other way to set custom values in the description's bundle ...
         // Use reflection to do this.
@@ -297,8 +286,11 @@ object MediaItemHelper {
      * @param radioStation [RadioStation].
      * @return [MediaDescriptionCompat]
      */
-    fun buildMediaDescriptionFromRadioStation(context: Context?,
-                                              radioStation: RadioStation): MediaDescriptionCompat {
+    fun buildMediaDescriptionFromRadioStation(radioStation: RadioStation,
+                                              sortId: Int = MediaSessionCompat.QueueItem.UNKNOWN_ID,
+                                              isFavorite: Boolean = false,
+                                              isLocal: Boolean = false,
+                                              isUpdateLastPlayedField: Boolean = false): MediaDescriptionCompat {
         var iconUrl = ""
         if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
             iconUrl = radioStation.imageUrl
@@ -309,15 +301,19 @@ object MediaItemHelper {
         val id = radioStation.id
         val bundle = Bundle()
         updateBitrateField(bundle, radioStation.mediaStream.getVariant(0)!!.bitrate)
+        updateFavoriteField(bundle, isFavorite)
+        updateSortIdField(bundle, sortId)
+        updateLocalRadioStationField(bundle, isLocal)
+        updateLastPlayedField(bundle, isUpdateLastPlayedField)
         setDrawableId(bundle, R.drawable.ic_radio_station_empty)
         return MediaDescriptionCompat.Builder()
-                .setDescription(genre)
-                .setMediaId(id)
-                .setTitle(title)
-                .setSubtitle(country)
-                .setExtras(bundle)
-                .setIconUri(Uri.parse(iconUrl))
-                .build()
+            .setDescription(genre)
+            .setMediaId(id)
+            .setTitle(title)
+            .setSubtitle(country)
+            .setExtras(bundle)
+            .setIconUri(Uri.parse(iconUrl))
+            .build()
     }
 
     /**
@@ -338,13 +334,13 @@ object MediaItemHelper {
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
         return MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, parentId)
-                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title) // Workaround to include bundles into build()
-                .putLong(MediaMetadataCompat.METADATA_KEY_DOWNLOAD_STATUS, MediaDescriptionCompat.STATUS_NOT_DOWNLOADED)
-                .build()
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, parentId)
+            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
+            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+            .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
+            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title) // Workaround to include bundles into build()
+            .putLong(MediaMetadataCompat.METADATA_KEY_DOWNLOAD_STATUS, MediaDescriptionCompat.STATUS_NOT_DOWNLOADED)
+            .build()
     }
 
     /**
@@ -360,8 +356,8 @@ object MediaItemHelper {
      */
     fun isEndOfList(list: List<MediaBrowserCompat.MediaItem?>?): Boolean {
         return (list == null
-                || list.size == 1
-                && (list[0] == null || list[0] is MediaItemListEnded))
+            || list.size == 1
+            && (list[0] == null || list[0] is MediaItemListEnded))
     }
 
     fun playbackStateToString(state: PlaybackStateCompat?): String {

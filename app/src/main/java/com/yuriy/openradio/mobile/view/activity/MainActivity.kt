@@ -515,12 +515,10 @@ class MainActivity : AppCompatActivity() {
             favoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(this, R.drawable.src_favorite)
             favoriteCheckView.isChecked = false
             val mediaItem = MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(
+                        radioStation, isFavorite = FavoritesStorage.isFavorite(radioStation, context)
+                    ),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-            )
-            MediaItemHelper.updateFavoriteField(
-                    mediaItem,
-                    FavoritesStorage.isFavorite(radioStation, context)
             )
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, context)
         }
