@@ -46,9 +46,9 @@ object UrlBuilder {
 
     @JvmField
     val RESERVED_URLS = arrayOf(
-            "https://de1.api.radio-browser.info",
-            "https://fr1.api.radio-browser.info",
-            "https://nl1.api.radio-browser.info"
+        "https://de1.api.radio-browser.info",
+        "https://fr1.api.radio-browser.info",
+        "https://nl1.api.radio-browser.info"
     )
     private const val RECENT_POPULAR_PER_PAGE = 200
 
@@ -96,9 +96,9 @@ object UrlBuilder {
                               pageNumber: Int,
                               numberPerPage: Int): Uri {
         return Uri.parse(
-                BASE_URL + "stations/bytag/" + encodeValue(categoryId) + "?hidebroken=true&order=clickcount"
-                        + "&offset=" + pageNumber
-                        + "&limit=" + numberPerPage
+            BASE_URL + "stations/bytag/" + encodeValue(categoryId) + "?hidebroken=true&order=clickcount"
+                + "&offset=" + pageNumber
+                + "&limit=" + numberPerPage
         )
     }
 
@@ -113,9 +113,9 @@ object UrlBuilder {
                              pageNumber: Int,
                              numberPerPage: Int): Uri {
         return Uri.parse(
-                BASE_URL + "stations/bycountrycodeexact/" + countryCode
-                        + "?offset=" + pageNumber
-                        + "&limit=" + numberPerPage
+            BASE_URL + "stations/bycountrycodeexact/" + countryCode
+                + "?offset=" + pageNumber
+                + "&limit=" + numberPerPage
         )
     }
 
@@ -124,7 +124,7 @@ object UrlBuilder {
      *
      * @return [Uri]
      */
-    fun getPopularStations(numOfStations: Int = RECENT_POPULAR_PER_PAGE): Uri{
+    fun getPopularStations(numOfStations: Int = RECENT_POPULAR_PER_PAGE): Uri {
         return Uri.parse(BASE_URL + "stations/topclick/" + numOfStations)
     }
 
@@ -155,9 +155,9 @@ object UrlBuilder {
     @JvmStatic
     fun getSearchUrl(query: String): Uri {
         return Uri.parse(
-                BASE_URL + "stations/search?name=" + encodeValue(query)
-                        + "&offset=" + 0
-                        + "&limit=" + ITEMS_PER_PAGE
+            BASE_URL + "stations/search?name=" + encodeValue(query)
+                + "&offset=" + 0
+                + "&limit=" + ITEMS_PER_PAGE
         )
     }
 

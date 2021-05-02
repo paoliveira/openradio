@@ -304,7 +304,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     @Throws(JSONException::class)
     private fun getRadioStation(context: Context, jsonObject: JSONObject): RadioStation {
         val radioStation = RadioStation.makeDefaultInstance(
-                context, jsonObject.getString(JsonDataParserImpl.KEY_STATION_UUID)
+            context, jsonObject.getString(JsonDataParserImpl.KEY_STATION_UUID)
         )
         if (jsonObject.has(JsonDataParserImpl.KEY_STATUS)) {
             radioStation.status = jsonObject.getInt(JsonDataParserImpl.KEY_STATUS)

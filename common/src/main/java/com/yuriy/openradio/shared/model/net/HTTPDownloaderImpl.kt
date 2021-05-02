@@ -55,10 +55,10 @@ class HTTPDownloaderImpl : Downloader {
         val url = getConnectionUrl(uri, parameters) ?: return response
         AppLogger.i("$CLASS_NAME Request URL:$url")
         val connection = NetUtils.getHttpURLConnection(
-                context,
-                url,
-                if (parameters.isEmpty()) "GET" else "POST",
-                parameters
+            context,
+            url,
+            if (parameters.isEmpty()) "GET" else "POST",
+            parameters
         ) ?: return response
         var responseCode = 0
         try {

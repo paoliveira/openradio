@@ -451,7 +451,7 @@ class MediaPresenter private constructor(context: Context) {
     /**
      * Register receiver for the application's local events.
      */
-    fun registerReceivers(context: Context?, callback: AppLocalReceiverCallback?) {
+    fun registerReceivers(context: Context, callback: AppLocalReceiverCallback) {
         mAppLocalBroadcastRcvr.registerListener(callback)
 
         // Create filter and add actions
@@ -462,7 +462,7 @@ class MediaPresenter private constructor(context: Context) {
         intentFilter.addAction(AppLocalBroadcast.getActionSortIdChanged())
         intentFilter.addAction(AppLocalBroadcast.getActionGoogleDriveDownloaded())
         // Register receiver
-        LocalBroadcastManager.getInstance(context!!).registerReceiver(
+        LocalBroadcastManager.getInstance(context).registerReceiver(
                 mAppLocalBroadcastRcvr,
                 intentFilter
         )
@@ -472,9 +472,9 @@ class MediaPresenter private constructor(context: Context) {
     /**
      * Unregister receiver for the application's local events.
      */
-    private fun unregisterReceivers(context: Context?) {
+    private fun unregisterReceivers(context: Context) {
         mAppLocalBroadcastRcvr.unregisterListener()
-        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(
                 mAppLocalBroadcastRcvr
         )
         mScreenBroadcastRcvr.unregister(context)
