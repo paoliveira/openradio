@@ -87,10 +87,10 @@ class MediaResourcesManager(context: Context, className: String) {
         // Initialize Media Browser
         val callback: MediaBrowserCompat.ConnectionCallback = MediaBrowserConnectionCallback()
         mMediaBrowser = MediaBrowserCompat(
-                context,
-                ComponentName(context, OpenRadioService::class.java),
-                callback,
-                null
+            context,
+            ComponentName(context, OpenRadioService::class.java),
+            callback,
+            null
         )
     }
 
@@ -170,20 +170,22 @@ class MediaResourcesManager(context: Context, className: String) {
      *
      * @param parentId The id of the parent media item whose list of children will be subscribed.
      * @param callback The callback to receive the list of children.
+     * @param options Options to pass to Media Browser when do subscribe.
      */
     fun subscribe(parentId: String,
-                  callback: MediaBrowserCompat.SubscriptionCallback?) {
-        AppLogger.i(mClassName + "Subscribe:" + parentId)
+                  callback: MediaBrowserCompat.SubscriptionCallback?,
+                  options: Bundle = Bundle()) {
+        AppLogger.i("$mClassName subscribe:$parentId")
         if (callback == null) {
             AppLogger.e("$mClassName subscribe listener is null")
             return
         }
         if (mSubscribed.contains(parentId)) {
-            AppLogger.w(mClassName + "already subscribed")
+            AppLogger.w("$mClassName already subscribed")
             return
         }
         mSubscribed.add(parentId)
-        mMediaBrowser.subscribe(parentId, callback)
+        mMediaBrowser.subscribe(parentId, options, callback)
     }
 
     /**
@@ -195,7 +197,7 @@ class MediaResourcesManager(context: Context, className: String) {
         if (!mSubscribed.contains(parentId)) {
             return
         }
-        AppLogger.i(mClassName + "Unsubscribe:" + parentId + ", " + mMediaBrowser)
+        AppLogger.i("$mClassName unsubscribe:$parentId, $mMediaBrowser")
         mSubscribed.remove(parentId)
         mMediaBrowser.unsubscribe(parentId)
     }
@@ -235,8 +237,8 @@ class MediaResourcesManager(context: Context, className: String) {
         // Initialize Media Controller
         mMediaController = try {
             MediaControllerCompat(
-                    mActivity,
-                    mMediaBrowser.sessionToken
+                mActivity,
+                mMediaBrowser.sessionToken
             )
         } catch (e: RemoteException) {
             AppLogger.e("$e")
@@ -260,7 +262,7 @@ class MediaResourcesManager(context: Context, className: String) {
     /**
      * Callback object for the Media Browser connection events.
      */
-    private inner class MediaBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback() {
+    private inner class MediaBrowserConnectionCallback : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
             AppLogger.i(mClassName + "Connected")
             handleMediaBrowserConnected()
@@ -301,8 +303,8 @@ class MediaResourcesManager(context: Context, className: String) {
                 return
             }
             AppLogger.d(
-                    mClassName + "psc:["
-                            + MediaItemHelper.playbackStateToString(state) + "]" + state
+                mClassName + "psc:["
+                    + MediaItemHelper.playbackStateToString(state) + "]" + state
             )
             mCurrentState = state
             if (mListener == null) {

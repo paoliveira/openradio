@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import android.os.Parcelable
 import android.widget.Button
 import android.widget.EditText
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
 /**
@@ -32,9 +33,9 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  */
 class SearchDialog : BaseDialogFragment() {
 
-    interface Listener: Parcelable {
+    interface Listener : Parcelable {
 
-        fun onSuccess(queryString: String?)
+        fun onSuccess(queryBundle: Bundle)
 
         override fun describeContents(): Int {
             return 0
@@ -45,19 +46,16 @@ class SearchDialog : BaseDialogFragment() {
         }
     }
 
-    private var mListener: Listener? = null
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
-                R.layout.dialog_search,
-                activity!!.findViewById(R.id.dialog_search_root)
+            R.layout.dialog_search,
+            activity!!.findViewById(R.id.dialog_search_root)
         )
         setWindowDimensions(view, 0.8f, 0.4f)
-        mListener = getListener(arguments, KEY_LISTENER)
         val searchEditView = view.findViewById<EditText>(R.id.search_dialog_edit_txt_view)
         val searchBtn = view.findViewById<Button>(R.id.search_dialog_btn_view)
         searchBtn.setOnClickListener {
-            mListener?.onSuccess(searchEditView.text.toString().trim { it <= ' ' })
+            getListener(arguments)?.onSuccess(AppUtils.makeSearchQueryBundle(searchEditView.text.toString().trim()))
             dialog!!.dismiss()
         }
         return createAlertDialog(view)
@@ -78,18 +76,18 @@ class SearchDialog : BaseDialogFragment() {
         private const val KEY_LISTENER = "KEY_LISTENER"
 
         @JvmStatic
-        fun makeBundle(listener: Listener): Bundle {
+        fun makeNewInstanceBundle(listener: Listener): Bundle {
             val bundle = Bundle()
             bundle.putParcelable(KEY_LISTENER, listener)
             return bundle
         }
 
-        private fun getListener(bundle: Bundle?, key: String): Listener? {
+        private fun getListener(bundle: Bundle?): Listener? {
             if (bundle == null) {
                 return null
             }
-            return if (bundle.containsKey(key)) {
-                bundle.get(key) as Listener
+            return if (bundle.containsKey(KEY_LISTENER)) {
+                bundle.get(KEY_LISTENER) as Listener
             } else null
         }
     }

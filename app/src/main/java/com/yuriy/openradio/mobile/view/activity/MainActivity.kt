@@ -179,11 +179,11 @@ class MainActivity : AppCompatActivity() {
         return when (id) {
             R.id.action_search -> {
 
-                val bundle = SearchDialog.makeBundle(
+                val bundle = SearchDialog.makeNewInstanceBundle(
                         object : SearchDialog.Listener {
 
-                            override fun onSuccess(queryString: String?) {
-                                onSearchDialogClick(queryString)
+                            override fun onSuccess(queryBundle: Bundle) {
+                                onSearchDialogClick(queryBundle)
                             }
                         }
                 )
@@ -324,11 +324,9 @@ class MainActivity : AppCompatActivity() {
      *
      * @param queryString String to query for.
      */
-    fun onSearchDialogClick(queryString: String?) {
+    fun onSearchDialogClick(queryBundle: Bundle) {
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
-        // Save search query string, retrieve it later in the service
-        AppUtils.searchQuery = queryString
-        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP, queryBundle)
     }
 
     /**
@@ -402,7 +400,7 @@ class MainActivity : AppCompatActivity() {
      * @param item Media item related to the Radio Station to be deleted.
      */
     private fun handleRemoveRadioStationMenu(item: MediaBrowserCompat.MediaItem) {
-        var name = ""
+        var name = AppUtils.EMPTY_STRING
         if (item.description.title != null) {
             name = item.description.title.toString()
         }
@@ -597,8 +595,12 @@ class MainActivity : AppCompatActivity() {
 
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
 
-        override fun onChildrenLoaded(parentId: String, children: List<MediaBrowserCompat.MediaItem>) {
-            AppLogger.i("$CLASS_NAME children loaded:$parentId, children:${children.size}")
+        override fun onChildrenLoaded(parentId: String, children: MutableList<MediaBrowserCompat.MediaItem>,
+                                      options: Bundle) {
+            AppLogger.i(
+                "$CLASS_NAME children loaded:$parentId, children:${children.size}," +
+                    " options:${IntentUtils.bundleToString(options)}"
+            )
             if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
                 return
@@ -636,9 +638,9 @@ class MainActivity : AppCompatActivity() {
             val transaction = supportFragmentManager.beginTransaction()
             UiUtils.clearDialogs(this@MainActivity, transaction)
             val bundle = Bundle()
-            var currentParentId = ""
-            currentParentId = mMediaPresenter.currentParentId
-            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId, mMediaPresenter.itemsCount())
+            RSSettingsDialog.provideMediaItem(
+                bundle, item, mMediaPresenter.currentParentId, mMediaPresenter.itemsCount()
+            )
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }

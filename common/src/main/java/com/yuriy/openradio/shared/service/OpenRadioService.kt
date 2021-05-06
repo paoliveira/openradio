@@ -371,8 +371,17 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         return BrowserRoot(MediaIdHelper.MEDIA_ID_ROOT, null)
     }
 
+    override fun onLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>, options: Bundle) {
+        handleOnLoadChildren(parentId, result, options)
+    }
+
     override fun onLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>) {
-        AppLogger.i("$CLASS_NAME OnLoadChildren $parentId")
+        handleOnLoadChildren(parentId, result, Bundle())
+    }
+
+    private fun handleOnLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>,
+                                     options: Bundle) {
+        AppLogger.i("$CLASS_NAME OnLoadChildren $parentId, options:${IntentUtils.bundleToString(options)}")
         var isSameCatalogue = false
         // Check whether category had changed.
         if (parentId == mCurrentParentId) {
@@ -389,24 +398,24 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val context = applicationContext
         val command = mMediaItemCommands[MediaIdHelper.getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
-                context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
-                countryCode, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
-                object : ResultListener {
-                    override fun onResult() {
-                        this@OpenRadioService.onResult()
-                    }
-                },
-                mRadioStationsComparator
+            context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
+            countryCode, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
+            object : ResultListener {
+                override fun onResult() {
+                    this@OpenRadioService.onResult()
+                }
+            },
+            options, mRadioStationsComparator
         )
         mIsRestoreState = false
         if (command != null) {
             command.execute(
-                    object : MediaItemCommand.IUpdatePlaybackState {
-                        override fun updatePlaybackState(error: String?) {
-                            updatePlaybackState()
-                        }
-                    },
-                    dependencies
+                object : MediaItemCommand.IUpdatePlaybackState {
+                    override fun updatePlaybackState(error: String?) {
+                        updatePlaybackState()
+                    }
+                },
+                dependencies
             )
         } else {
             AppLogger.w("$CLASS_NAME skipping unmatched parentId: $mCurrentParentId")

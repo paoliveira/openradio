@@ -74,7 +74,7 @@ class MediaItemRoot : MediaItemCommand {
                         }
                     }
                 }
-                Collections.sort(list, dependencies.mRadioStationsComparator)
+                Collections.sort(list, dependencies.radioStationsComparator)
                 dependencies.radioStationsStorage.addAll(list)
             }
 

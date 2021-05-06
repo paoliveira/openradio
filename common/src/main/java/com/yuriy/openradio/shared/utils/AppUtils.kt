@@ -23,6 +23,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
@@ -51,11 +52,14 @@ object AppUtils {
      */
     const val TIME_OUT = 2000
     const val UTF8 = "UTF-8"
+    const val EMPTY_STRING = ""
 
     private val ANDROID_AUTO_PACKAGE_NAMES = arrayOf(
             "com.google.android.projection.gearhead",
             "com.android.car"
     )
+
+    private const val KEY_SEARCH_QUERY = "KEY_SEARCH_QUERY"
 
     /**
      * Tag string to use in logging message.
@@ -324,22 +328,17 @@ object AppUtils {
         return false
     }
 
-    /**
-     * Holder for the Search query. Up to now I found it as quick solution to pass query
-     * from Activity to the Open Radio Service.
-     */
-    private val SEARCH_QUERY = StringBuilder()
-
-    /**
-     * @return Gets the Search query string.
-     */
     @JvmStatic
-    var searchQuery: String?
-        get() = SEARCH_QUERY.toString()
-        set(searchQuery) {
-            SEARCH_QUERY.setLength(0)
-            SEARCH_QUERY.append(searchQuery)
-        }
+    fun makeSearchQueryBundle(queryString: String): Bundle {
+        val bundle = Bundle()
+        bundle.putString(KEY_SEARCH_QUERY, queryString)
+        return bundle
+    }
+
+    @JvmStatic
+    fun getSearchQueryFromBundle(queryBundle: Bundle): String {
+        return queryBundle.getString(KEY_SEARCH_QUERY, EMPTY_STRING)
+    }
 
     /**
      * Checks whether or not application runs on Automotive environment.
