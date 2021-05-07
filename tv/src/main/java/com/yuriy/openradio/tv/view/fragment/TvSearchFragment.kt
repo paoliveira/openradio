@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,16 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.View
 import androidx.leanback.app.SearchSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
 import androidx.leanback.widget.ListRowPresenter
 import androidx.leanback.widget.ObjectAdapter
-import com.yuriy.openradio.shared.permission.PermissionChecker.isRecordAudioGranted
-import com.yuriy.openradio.shared.permission.PermissionChecker.requestRecordAudioPermission
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
+import com.yuriy.openradio.shared.permission.PermissionChecker
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.view.activity.TvSearchActivity
 
@@ -37,7 +37,7 @@ import com.yuriy.openradio.tv.view.activity.TvSearchActivity
  */
 class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchResultProvider {
 
-    private val mHandler = Handler()
+    private val mHandler = Handler(Looper.getMainLooper())
 
     private var mRowsAdapter: ArrayObjectAdapter? = null
 
@@ -51,21 +51,21 @@ class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchRe
         super.onResume()
         val context = context
         if (context == null) {
-            e("Can't do resume pause on null context")
+            AppLogger.e("Can't do resume pause on null context")
             return
         }
         val view = view
         if (view == null) {
-            e("Can't do resume pause on null view")
+            AppLogger.e("Can't do resume pause on null view")
             return
         }
         val frame = view.findViewById<View>(R.id.lb_search_frame)
         if (frame == null) {
-            e("Can't do resume pause on null frame")
+            AppLogger.e("Can't do resume pause on null frame")
             return
         }
-        if (!isRecordAudioGranted(context)) {
-            requestRecordAudioPermission(activity!!, frame, 1234)
+        if (!PermissionChecker.isRecordAudioGranted(context)) {
+            PermissionChecker.requestRecordAudioPermission(requireActivity(), frame, 1234)
         }
     }
 
@@ -74,16 +74,20 @@ class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchRe
         try {
             super.onPause()
         } catch (e: Exception) {
-            e("Can't do normal pause of TV activity:" + Log.getStackTraceString(e))
+            AppLogger.e("Can't do normal pause of TV activity:" + Log.getStackTraceString(e))
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        i("$CLASS_NAME On activity result:$resultCode")
+        AppLogger.i("$CLASS_NAME On activity result:$resultCode")
         when (requestCode) {
             REQUEST_SPEECH -> when (resultCode) {
-                Activity.RESULT_OK -> setSearchQuery(data, true)
-                else -> {
+                Activity.RESULT_OK -> {
+                    var searchQuery = AppUtils.EMPTY_STRING
+                    if (data != null && data.extras != null) {
+                        searchQuery = AppUtils.getSearchQueryFromBundle(data.extras!!)
+                    }
+                    setSearchQuery(searchQuery, true)
                 }
             }
         }
@@ -98,7 +102,7 @@ class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchRe
     }
 
     override fun onQueryTextSubmit(query: String): Boolean {
-        i(CLASS_NAME + String.format(" Search text submitted: %s", query))
+        AppLogger.i(CLASS_NAME + String.format(" Search text submitted: %s", query))
         if (activity is TvSearchActivity) {
             val activity = activity as TvSearchActivity?
             activity?.onSearchDialogClick(query)
@@ -107,7 +111,7 @@ class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchRe
     }
 
     fun focusOnSearch() {
-        view!!.findViewById<View>(R.id.lb_search_bar).requestFocus()
+        requireView().findViewById<View>(R.id.lb_search_bar).requestFocus()
     }
 
     companion object {

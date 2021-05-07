@@ -1732,7 +1732,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
     private inner class ExoPlayerListener : ExoPlayerOpenRadioImpl.Listener {
 
         override fun onError(error: ExoPlaybackException) {
-            AppLogger.e("$CLASS_NAME ExoPlayer exception:$error")
             handleStopRequest(
                 PlaybackStateError(
                     getString(R.string.media_stream_error), PlaybackStateError.Code.PLAYBACK_ERROR, error
@@ -1749,7 +1748,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            AppLogger.d("$CLASS_NAME OnPlayerStateChanged $playbackState")
             when (playbackState) {
                 Player.STATE_BUFFERING -> {
                     setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
@@ -1758,6 +1756,27 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
                 Player.STATE_READY -> {
                     setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
                     updatePlaybackState()
+                }
+            }
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            AppLogger.d(
+                "$CLASS_NAME PlayWhenReadyChanged, is playing:${mExoPlayerORImpl?.isPlaying}. state:$mState"
+            )
+            when(reason) {
+                Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS,
+                Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY,
+                Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM -> {
+                    if (mState == PlaybackStateCompat.STATE_PLAYING) {
+                        handlePauseRequest()
+                    }
+                }
+                Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> {
+                    if (mExoPlayerORImpl != null && !mExoPlayerORImpl!!.isPlaying) {
+                        handlePlayRequest()
+                    }
                 }
             }
         }

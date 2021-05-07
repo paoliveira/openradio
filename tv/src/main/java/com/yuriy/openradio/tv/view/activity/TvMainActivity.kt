@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2019-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ class TvMainActivity : FragmentActivity() {
         val logsDialog = LogsDialog.findDialog(supportFragmentManager)
         logsDialog?.onActivityResult(requestCode, resultCode, data)
         if (requestCode == TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE) {
-            onSearchDialogClick()
+            onSearchDialogClick(data)
         }
         val addEditStationDialog = BaseAddEditStationDialog.findDialog(supportFragmentManager)
         addEditStationDialog?.onActivityResult(requestCode, resultCode, data)
@@ -141,9 +141,13 @@ class TvMainActivity : FragmentActivity() {
     /**
      * Process call back from the Search Dialog.
      */
-    private fun onSearchDialogClick() {
+    private fun onSearchDialogClick(data: Intent?) {
+        var bundle = Bundle()
+        if (data != null && data.extras != null) {
+            bundle = Bundle(data.extras)
+        }
         mMediaPresenter.unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
-        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP, bundle)
     }
 
     /**

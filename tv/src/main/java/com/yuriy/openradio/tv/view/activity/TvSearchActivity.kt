@@ -54,7 +54,7 @@ class TvSearchActivity : FragmentActivity() {
     fun onSearchDialogClick(queryString: String) {
         val intent = Intent()
         intent.putExtras(AppUtils.makeSearchQueryBundle(queryString))
-        setResult(RESULT_OK, Intent())
+        setResult(RESULT_OK, intent)
         finish()
     }
 

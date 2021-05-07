@@ -17,6 +17,7 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import com.google.android.exoplayer2.DefaultRenderersFactory
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
@@ -33,7 +34,7 @@ import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import java.io.File
-import java.util.concurrent.*
+import java.util.concurrent.Executors
 
 object ExoPlayerUtils {
 
@@ -73,19 +74,30 @@ object ExoPlayerUtils {
 
     @Synchronized
     fun getHttpDataSourceFactory(
-            context: Context, userAgent: String): HttpDataSource.Factory? {
+        context: Context, userAgent: String): HttpDataSource.Factory? {
         if (sHttpDataSourceFactory == null) {
             logMessage("ExoPlayer UserAgent '$userAgent'")
             val cronetEngineWrapper = CronetEngineWrapper(context, userAgent, false)
             sHttpDataSourceFactory = CronetDataSource.Factory(
-                    cronetEngineWrapper, Executors.newSingleThreadExecutor()
+                cronetEngineWrapper, Executors.newSingleThreadExecutor()
             ).setUserAgent(userAgent)
         }
         return sHttpDataSourceFactory
     }
 
+    fun playWhenReadyChangedToStr(value: Int): String {
+        return when (value) {
+            Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST -> "USER_REQUEST"
+            Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS -> "AUDIO_FOCUS_LOSS"
+            Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY -> "AUDIO_BECOMING_NOISY"
+            Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> "REMOTE"
+            Player.PLAY_WHEN_READY_CHANGE_REASON_END_OF_MEDIA_ITEM -> "END_OF_MEDIA_ITEM"
+            else -> "UNKNOWN"
+        }
+    }
+
     private fun buildReadOnlyCacheDataSource(
-            upstreamFactory: DataSource.Factory, cache: Cache): CacheDataSource.Factory {
+        upstreamFactory: DataSource.Factory, cache: Cache): CacheDataSource.Factory {
         return CacheDataSource.Factory()
                 .setCache(cache)
                 .setUpstreamDataSourceFactory(upstreamFactory)
@@ -98,7 +110,7 @@ object ExoPlayerUtils {
         if (sDownloadCache == null) {
             val downloadContentDirectory = File(getDownloadDirectory(context), DOWNLOAD_CONTENT_DIRECTORY)
             sDownloadCache = SimpleCache(
-                    downloadContentDirectory, NoOpCacheEvictor(), getDatabaseProvider(context)!!)
+                downloadContentDirectory, NoOpCacheEvictor(), getDatabaseProvider(context)!!)
         }
         return sDownloadCache
     }

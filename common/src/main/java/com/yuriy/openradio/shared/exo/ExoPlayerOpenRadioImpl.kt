@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl
@@ -36,14 +37,17 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.buildRenderersFactory
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
+import com.yuriy.openradio.shared.exo.ExoPlayerUtils.playWhenReadyChangedToStr
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by Chernyshov Yurii
@@ -53,13 +57,13 @@ import java.util.concurrent.atomic.*
  *
  * Wrapper of the ExoPlayer.
  *
- * @param mContext         Application context.
- * @param listener         Listener for the wrapper's events.
- * @param metadataListener Listener for the stream events.
+ * @param mContext          Application context.
+ * @param mListener         Listener for the wrapper's events.
+ * @param mMetadataListener Listener for the stream events.
  */
 class ExoPlayerOpenRadioImpl(private val mContext: Context,
-                             listener: Listener,
-                             metadataListener: MetadataListener) {
+                             private val mListener: Listener,
+                             private val mMetadataListener: MetadataListener) {
     /**
      * Listener for the main public events.
      */
@@ -82,12 +86,16 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
          * @param playbackState
          */
         fun onPlaybackStateChanged(playbackState: Int)
+
+        fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int)
     }
 
     /**
      * Instance of the ExoPlayer.
      */
-    private var mExoPlayer: SimpleExoPlayer?
+    private var mExoPlayer: SimpleExoPlayer
+
+    private val mIsReleased = AtomicBoolean(true)
 
     /**
      * Equalizer interface.
@@ -102,17 +110,12 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     /**
      * Listener of the ExoPlayer components events.
      */
-    private val mComponentListener: ComponentListener
-
-    /**
-     * Instance of the ExoPlayer wrapper events.
-     */
-    private val mListener: Listener
+    private val mComponentListener = ComponentListener()
 
     /**
      * Current play URI.
      */
-    private var mUri: Uri? = null
+    private var mUri = Uri.EMPTY
 
     /**
      * Enumeration of the state of the last user's action.
@@ -131,7 +134,37 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      */
     private val mNumOfExceptions = AtomicInteger(0)
 
-    private val mMetadataListener: MetadataListener
+    init {
+        val trackSelector = DefaultTrackSelector(mContext)
+        trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(mContext).build()
+        val builder = SimpleExoPlayer.Builder(
+            mContext, buildRenderersFactory(mContext)
+        )
+        builder.setTrackSelector(trackSelector)
+        builder.setMediaSourceFactory(DefaultMediaSourceFactory(getDataSourceFactory(mContext)!!))
+        builder.setLoadControl(
+            DefaultLoadControl.Builder()
+                .setBufferDurationsMs(
+                    AppPreferencesManager.getMinBuffer(mContext),
+                    AppPreferencesManager.getMaxBuffer(mContext),
+                    AppPreferencesManager.getPlayBuffer(mContext),
+                    AppPreferencesManager.getPlayBufferRebuffer(mContext)
+                )
+                .build()
+        )
+        builder.setWakeMode(C.WAKE_MODE_NETWORK)
+        builder.setHandleAudioBecomingNoisy(true)
+        val audioAttributes = AudioAttributes.Builder()
+            .setContentType(C.CONTENT_TYPE_MUSIC)
+            .setFlags(0)
+            .setUsage(C.USAGE_MEDIA)
+            .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL)
+            .build()
+        builder.setAudioAttributes(audioAttributes, true)
+        mExoPlayer = builder.build()
+        mIsReleased.set(false)
+        mEqualizer.init(mExoPlayer.audioSessionId)
+    }
 
     /**
      * Prepare player to play URI.
@@ -144,12 +177,12 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         }
         mUserState = UserState.PREPARE
         mUri = uri
-        if (mExoPlayer != null) {
-            mExoPlayer!!.addListener(mComponentListener)
-            mExoPlayer!!.addMetadataOutput(mComponentListener)
-            mExoPlayer!!.playWhenReady = true
-            mExoPlayer!!.setMediaItem(MediaItem.Builder().setUri(uri).build())
-            mExoPlayer!!.prepare()
+        if (!mIsReleased.get()) {
+            mExoPlayer.addListener(mComponentListener)
+            mExoPlayer.addMetadataOutput(mComponentListener)
+            mExoPlayer.playWhenReady = true
+            mExoPlayer.setMediaItem(MediaItem.Builder().setUri(uri).build())
+            mExoPlayer.prepare()
         }
     }
 
@@ -159,15 +192,17 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      * @param value Value of the volume.
      */
     fun setVolume(value: Float) {
-        d("$LOG_TAG volume to $value")
-        mExoPlayer!!.volume = value
+        AppLogger.d("$LOG_TAG volume to $value")
+        if (!mIsReleased.get()) {
+            mExoPlayer.volume = value
+        }
     }
 
     /**
      * Play current stream based on the URI passed to [.prepare] method.
      */
     fun play() {
-        d("$LOG_TAG play")
+        AppLogger.d("$LOG_TAG play")
         mUserState = UserState.PLAY
         prepare(mUri)
     }
@@ -176,11 +211,11 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      * Pause current stream based on the URI passed to [.prepare] )} method.
      */
     fun pause() {
-        d("$LOG_TAG pause")
+        AppLogger.d("$LOG_TAG pause")
         mUserState = UserState.PAUSE
-        if (mExoPlayer != null) {
-            mExoPlayer!!.stop()
-            mExoPlayer!!.playWhenReady = false
+        if (!mIsReleased.get()) {
+            mExoPlayer.stop()
+            mExoPlayer.playWhenReady = false
         }
     }
 
@@ -191,8 +226,8 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      */
     val isPlaying: Boolean
         get() {
-            val isPlaying = mExoPlayer != null && mExoPlayer!!.playWhenReady
-            d("$LOG_TAG is playing:$isPlaying")
+            val isPlaying = !mIsReleased.get() && mExoPlayer.playWhenReady
+            AppLogger.d("$LOG_TAG is playing:$isPlaying")
             return isPlaying
         }
 
@@ -200,10 +235,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      * Resets the player to its uninitialized state.
      */
     fun reset() {
-        d("$LOG_TAG reset")
+        AppLogger.d("$LOG_TAG reset")
         mUserState = UserState.RESET
-        if (mExoPlayer != null) {
-            mExoPlayer!!.stop()
+        if (!mIsReleased.get()) {
+            mExoPlayer.stop()
         }
     }
 
@@ -211,8 +246,8 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
      * Release the player and associated resources.
      */
     fun release() {
-        if (mExoPlayer == null) {
-            d("$LOG_TAG ExoPlayer impl already released")
+        if (mIsReleased.get()) {
+            AppLogger.d("$LOG_TAG ExoPlayer impl already released")
             return
         }
         mUiScope.launch { releaseIntrnl() }
@@ -223,16 +258,16 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     }
 
     private fun releaseIntrnl() {
-        if (mExoPlayer == null) {
-            d("$LOG_TAG ExoPlayer impl already released")
+        if (mIsReleased.get()) {
+            AppLogger.d("$LOG_TAG ExoPlayer impl already released")
             return
         }
         mEqualizer.deinit()
-        mExoPlayer!!.removeListener(mComponentListener)
-        mExoPlayer!!.removeMetadataOutput(mComponentListener)
+        mExoPlayer.removeListener(mComponentListener)
+        mExoPlayer.removeMetadataOutput(mComponentListener)
         reset()
-        mExoPlayer!!.release()
-        mExoPlayer = null
+        mExoPlayer.release()
+        mIsReleased.set(true)
     }
 
     /**
@@ -243,8 +278,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         /**
          * String tag to use in logs.
          */
-        private val mLogTag = ComponentListener::class.java.simpleName
-        private var mRawMetadata = ""
+        private val mLogTag = "ComponentListener"
+
+        private var mRawMetadata = AppUtils.EMPTY_STRING
 
         override fun onMetadata(metadata: Metadata) {
 
@@ -252,10 +288,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             var entry: Metadata.Entry
             for (i in 0 until metadata.length()) {
                 entry = metadata[i]
-                d("$mLogTag Metadata entry:$entry")
+                AppLogger.d("$mLogTag Metadata entry:$entry")
                 if (entry is IcyInfo) {
                     val info = metadata[i] as IcyInfo
-                    d("$mLogTag IcyInfo title:$info")
+                    AppLogger.d("$mLogTag IcyInfo title:$info")
                     var title = info.title
                     if (title.isNullOrEmpty()) {
                         return
@@ -269,39 +305,57 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 }
                 if (entry is IcyHeaders) {
                     val headers = metadata[i] as IcyHeaders
-                    d("$mLogTag IcyHeaders name:$headers")
+                    AppLogger.d("$mLogTag IcyHeaders name:$headers")
                 }
             }
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
-            d("$mLogTag onPlayerStateChanged to $playbackState")
+            AppLogger.d(
+                "$mLogTag OnPlayerStateChanged to ${MediaItemHelper.playbackStateToString(playbackState)}," +
+                    " userState:$mUserState"
+            )
             mListener.onPlaybackStateChanged(playbackState)
             when (playbackState) {
-                Player.STATE_BUFFERING -> d("$mLogTag STATE_BUFFERING")
                 Player.STATE_ENDED -> {
-                    d("$mLogTag STATE_ENDED, userState:$mUserState")
                     if (mUserState != UserState.PAUSE && mUserState != UserState.RESET) {
                         prepare(mUri)
                     }
                 }
-                Player.STATE_IDLE -> d("$mLogTag STATE_IDLE")
                 Player.STATE_READY -> {
-                    d("$mLogTag STATE_READY")
                     mListener.onPrepared()
                     mNumOfExceptions.set(0)
                 }
                 else -> {
+                    // Other cases here
                 }
             }
         }
 
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            AppLogger.d("$mLogTag OnIsPlayingChanged to $isPlaying")
+        }
+
+        override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            AppLogger.d(
+                "$mLogTag OnPlayerStateChanged to $playWhenReady," +
+                    " state:${MediaItemHelper.playbackStateToString(playbackState)}"
+            )
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            AppLogger.d(
+                "$mLogTag OnPlayWhenReadyChanged to $playWhenReady, reason:${playWhenReadyChangedToStr(reason)}"
+            )
+            mListener.onPlayWhenReadyChanged(playWhenReady, reason)
+        }
+
         override fun onPlayerError(exception: ExoPlaybackException) {
-            e("$mLogTag suspected url: $mUri")
-            e("$mLogTag onPlayerError: ${Log.getStackTraceString(exception)}")
-            e(mLogTag + " num of exceptions " + mNumOfExceptions.get())
+            AppLogger.e("$mLogTag suspected url: $mUri")
+            AppLogger.e("$mLogTag onPlayerError: ${Log.getStackTraceString(exception)}")
+            AppLogger.e(mLogTag + " num of exceptions " + mNumOfExceptions.get())
             val cause = exception.cause
-            e("$mLogTag cause: $cause")
+            AppLogger.e("$mLogTag cause: $cause")
             if (cause is HttpDataSource.InvalidResponseCodeException) {
                 mListener.onError(exception)
                 return
@@ -328,33 +382,5 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
          *
          */
         private const val MAX_EXCEPTIONS_COUNT = 5
-    }
-
-    init {
-        mComponentListener = ComponentListener()
-        mListener = listener
-        mMetadataListener = metadataListener
-        val trackSelector = DefaultTrackSelector(mContext)
-        trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(mContext).build()
-        val builder = SimpleExoPlayer.Builder(
-                mContext, buildRenderersFactory(mContext)
-        )
-        builder.setTrackSelector(trackSelector)
-        builder.setMediaSourceFactory(DefaultMediaSourceFactory(getDataSourceFactory(mContext)!!))
-        builder.setLoadControl(
-                DefaultLoadControl.Builder()
-                        .setBufferDurationsMs(
-                                AppPreferencesManager.getMinBuffer(mContext),
-                                AppPreferencesManager.getMaxBuffer(mContext),
-                                AppPreferencesManager.getPlayBuffer(mContext),
-                                AppPreferencesManager.getPlayBufferRebuffer(mContext)
-                        )
-                        .build()
-        )
-        builder.setWakeMode(C.WAKE_MODE_NETWORK)
-        builder.setHandleAudioBecomingNoisy(true)
-        builder.setAudioAttributes(AudioAttributes.DEFAULT, true)
-        mExoPlayer = builder.build()
-        mEqualizer.init(mExoPlayer!!.audioSessionId)
     }
 }
