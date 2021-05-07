@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
-import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl

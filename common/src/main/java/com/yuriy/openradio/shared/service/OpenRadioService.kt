@@ -23,7 +23,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
-import android.media.AudioManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -117,7 +116,7 @@ import java.util.concurrent.atomic.*
  * On 12/13/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeListener {
+class OpenRadioService : MediaBrowserServiceCompat() {
 
     /**
      * ExoPlayer's implementation to play Radio stream.
@@ -161,21 +160,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
      * Flag that indicates whether application runs over normal Android or Auto version.
      */
     private var mIsAndroidAuto = false
-
-    /**
-     * Indicates if we should start playing immediately after we gain focus.
-     */
-    private var mPlayOnFocusGain = false
-
-    /**
-     * Type of audio focus we have
-     */
-    private var mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK
-
-    /**
-     * Audio manager object.
-     */
-    private var mAudioManager: AudioManager? = null
 
     /**
      * Flag that indicates whether application runs over normal Android or Android TV.
@@ -234,26 +218,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         fun onResult()
     }
 
-    /**
-     * Enumeration for the Audio Focus states.
-     */
-    private enum class AudioFocus {
-        /**
-         * There is no audio focus, and no possible to "duck"
-         */
-        NO_FOCUS_NO_DUCK,
-
-        /**
-         * There is no focus, but can play at a low volume ("ducking")
-         */
-        NO_FOCUS_CAN_DUCK,
-
-        /**
-         * There is full audio focus
-         */
-        FOCUSED
-    }
-
     @SuppressLint("HandlerLeak")
     private inner class DelayedStopHandler : Handler(Looper.getMainLooper()) {
 
@@ -261,10 +225,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
             if (mExoPlayerORImpl != null && mExoPlayerORImpl!!.isPlaying) {
                 AppLogger.d("$CLASS_NAME ignoring delayed stop since ExoPlayerORImpl in use.")
                 return
-            }
-            if (mPlayOnFocusGain) {
-                AppLogger.d("$CLASS_NAME ignoring delayed stop since PlayOnFocusGain.")
-                return;
             }
             AppLogger.d("$CLASS_NAME stopping service with delay handler.")
             stopSelfResultInt()
@@ -292,8 +252,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         } else {
             AppLogger.d("$CLASS_NAME running on a non-TV Device")
         }
-
-        mAudioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't
@@ -369,7 +327,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         AppLogger.d("$CLASS_NAME On Destroy:${hashCode()}")
         super.onDestroy()
         val context = applicationContext
-        mPlayOnFocusGain = false
         mUiScope.cancel("Cancel on destroy")
         mScope.cancel("Cancel on destroy")
         ServiceLifecyclePreferencesManager.isServiceActive(context, false)
@@ -423,33 +380,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         handleOnLoadChildren(parentId, result, Bundle())
     }
 
-    override fun onAudioFocusChange(focusChange: Int) {
-        AppLogger.d("$CLASS_NAME audio focus change to $focusChange")
-        if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
-            // We have gained focus:
-            mAudioFocus = AudioFocus.FOCUSED
-        } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS
-            || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
-            || focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
-            // We have lost focus. If we can duck (low playback volume), we can keep playing.
-            // Otherwise, we need to pause the playback.
-            val canDuck = focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK
-            mAudioFocus = if (canDuck) AudioFocus.NO_FOCUS_CAN_DUCK else AudioFocus.NO_FOCUS_NO_DUCK
-
-            // If we are playing, we need to reset media player by calling configMediaPlayerState
-            // with mAudioFocus properly set.
-            if (mState == PlaybackStateCompat.STATE_PLAYING && !canDuck) {
-                // If we don't have audio focus and can't duck, we addToLocals the information that
-                // we were playing, so that we can resume playback once we get the focus back.
-                mPlayOnFocusGain = true
-            }
-        } else {
-            AppLogger.e("$CLASS_NAME audio focus change, ignoring unsupported focusChange: $focusChange")
-        }
-
-        configMediaPlayerState()
-    }
-
     /**
      * Reconfigures ExoPlayer according to audio focus settings and
      * starts/restarts it. This method starts/restarts the ExoPlayer
@@ -461,62 +391,13 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
      * you are sure this is the case.
      */
     private fun configMediaPlayerState() {
-        AppLogger.d("$CLASS_NAME configMediaPlayerState. mAudioFocus=$mAudioFocus")
-        if (mAudioFocus == AudioFocus.NO_FOCUS_NO_DUCK) {
-            // If we don't have audio focus and can't duck, we have to pause,
-            if (mState == PlaybackStateCompat.STATE_PLAYING) {
-                handlePauseRequest()
-            }
+        if (mExoPlayerORImpl != null && !mExoPlayerORImpl!!.isPlaying) {
+            mExoPlayerORImpl!!.play()
         } else {
-            if (mExoPlayerORImpl == null) {
-                return
-            }
-            // we have audio focus:
-            setPlayerVolume()
-            // If we were playing when we lost focus, we need to resume playing.
-            if (mPlayOnFocusGain) {
-                if (!mExoPlayerORImpl!!.isPlaying) {
-                    AppLogger.d("$CLASS_NAME ConfigAndStartMediaPlayer startMediaPlayer")
-                    mExoPlayerORImpl!!.play()
-                }
-                mPlayOnFocusGain = false
-                AppLogger.d("$CLASS_NAME configMediaPlayerState set state playing")
-                setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
-            }
+            AppLogger.e("$CLASS_NAME handle play on UI thread with null/invalid player")
         }
-        updatePlaybackState()
-    }
-
-    /**
-     * Try to get the system audio focus.
-     */
-    private fun tryToGetAudioFocus() {
-        AppLogger.d("$CLASS_NAME Try To Get Audio Focus, current focus:$mAudioFocus")
-        if (mAudioFocus == AudioFocus.FOCUSED) {
-            return
-        }
-        val result = mAudioManager?.requestAudioFocus(
-            this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN
-        )
-        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return
-        }
-        AppLogger.i("$CLASS_NAME Audio Focus focused")
-        mAudioFocus = AudioFocus.FOCUSED
-    }
-
-    /**
-     * Give up the audio focus.
-     */
-    private fun giveUpAudioFocus() {
-        AppLogger.d("$CLASS_NAME Give Up Audio Focus $mAudioFocus")
-        if (mAudioFocus !== AudioFocus.FOCUSED) {
-            return
-        }
-        if (mAudioManager?.abandonAudioFocus(this) != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-            return
-        }
-        mAudioFocus = AudioFocus.NO_FOCUS_NO_DUCK
+        AppLogger.d("$CLASS_NAME ConfigAndStartMediaPlayer set state playing")
+        setPlaybackState(PlaybackStateCompat.STATE_PLAYING)
     }
 
     private fun handleOnLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>,
@@ -641,7 +522,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         if (radioStation != null) {
             LatestRadioStationStorage.add(radioStation, applicationContext)
         }
-        configMediaPlayerState()
         updateMetadata(radioStation, mCurrentStreamTitle)
     }
 
@@ -875,9 +755,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
         }
         mDelayedStopHandler.removeCallbacksAndMessages(null)
 
-        mPlayOnFocusGain = true
-        tryToGetAudioFocus()
-
         if (!mSession.isActive) {
             mSession.isActive = true
         }
@@ -956,10 +833,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
             AppLogger.e("$CLASS_NAME can not set player volume, player null")
             return
         }
-        var volume = AppPreferencesManager.getMasterVolume(applicationContext) / 100.0f
-        if (mAudioFocus == AudioFocus.NO_FOCUS_CAN_DUCK) {
-            volume = (volume * 0.2F);
-        }
+        val volume = AppPreferencesManager.getMasterVolume(applicationContext) / 100.0f
         mExoPlayerORImpl!!.setVolume(volume)
     }
 
@@ -988,7 +862,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
             }
             // while paused, retain the ExoPlayer but give up audio focus
             relaxResources(false)
-            giveUpAudioFocus()
         }
         updatePlaybackState()
     }
@@ -1100,7 +973,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
 
         // let go of all resources...
         relaxResources(true)
-        giveUpAudioFocus()
 
         if (this::mMediaNotification.isInitialized) {
             mMediaNotification.stopNotification()
@@ -1698,7 +1570,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
                     mMediaNotification.notifyService("Stop application")
                 }
                 mUiScope.launch {
-                    mPlayOnFocusGain = false
                     initInternals()
                     handleStopRequest()
                     stopSelfResultInt()
@@ -1762,7 +1633,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             AppLogger.d(
-                "$CLASS_NAME PlayWhenReadyChanged, is playing:${mExoPlayerORImpl?.isPlaying}. state:$mState"
+                "$CLASS_NAME OnPlayWhenReadyChanged, is playing:${mExoPlayerORImpl?.isPlaying}, " +
+                    "state:${MediaItemHelper.playbackStateToString(mState)}"
             )
             when(reason) {
                 Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS,
@@ -1775,7 +1647,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusC
                 Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
                 Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> {
                     if (mExoPlayerORImpl != null && !mExoPlayerORImpl!!.isPlaying) {
-                        handlePlayRequest()
+                        //handlePlayRequest()
                     }
                 }
             }
