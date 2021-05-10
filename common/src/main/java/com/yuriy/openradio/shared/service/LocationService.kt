@@ -67,7 +67,10 @@ class LocationService : JobIntentService() {
         @JvmField
         val COUNTRY_NAME_TO_CODE: MutableMap<String, String> = TreeMap()
         const val GB_WRONG = "United Kingdom of Great Britain and Northern Irela"
+        const val TW_WRONG_A = "Taiwan, Province of China"
+        const val TW_WRONG_B = "Taiwan Province of China"
         const val GB_CORRECT = "United Kingdom of Great Britain and Northern Ireland"
+        const val TW_CORRECT = "Taiwan"
         private const val JOB_ID = 1000
 
         fun doCancelWork(context: Context) {
@@ -310,7 +313,7 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["TR"] = "Turkey"
             COUNTRY_CODE_TO_NAME["TT"] = "Trinidad and Tobago"
             COUNTRY_CODE_TO_NAME["TV"] = "Tuvalu"
-            COUNTRY_CODE_TO_NAME["TW"] = "Taiwan, Province of China"
+            COUNTRY_CODE_TO_NAME["TW"] = "Taiwan"
             COUNTRY_CODE_TO_NAME["TZ"] = "Tanzania, United Republic of"
             COUNTRY_CODE_TO_NAME["UA"] = "Ukraine"
             COUNTRY_CODE_TO_NAME["UG"] = "Uganda"
@@ -478,18 +481,13 @@ class LocationService : JobIntentService() {
                 return
             }
             var countryCode = Country.COUNTRY_CODE_DEFAULT
-            val location = result.lastLocation
-            if (location == null) {
-                mListener.onCountryCodeLocated(countryCode)
-                clear()
-                return
-            }
             if (mCountryBoundaries == null) {
                 mListener.onCountryCodeLocated(countryCode)
                 clear()
                 return
             }
             countryCode = try {
+                val location = result.lastLocation
                 extractCountryCode(
                         mCountryBoundaries?.getIds(
                                 location.longitude, location.latitude

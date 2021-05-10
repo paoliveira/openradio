@@ -21,6 +21,7 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import java.io.Serializable
+import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -113,10 +114,17 @@ class RadioStation : Serializable {
     var country: String
         get() = mCountry
         set(value) {
-            mCountry = if (LocationService.GB_WRONG == value) {
-                LocationService.GB_CORRECT
-            } else {
-                value
+            mCountry = when (value.toLowerCase(Locale.ROOT)) {
+                LocationService.GB_WRONG.toLowerCase(Locale.ROOT) -> {
+                    LocationService.GB_CORRECT
+                }
+                LocationService.TW_WRONG_A.toLowerCase(Locale.ROOT) -> {
+                    LocationService.TW_CORRECT
+                }
+                LocationService.TW_WRONG_B.toLowerCase(Locale.ROOT) -> {
+                    LocationService.TW_CORRECT
+                }
+                else -> value
             }
         }
 
