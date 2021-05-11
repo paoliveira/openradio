@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.tv.view.activity
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -39,11 +38,7 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
-import com.yuriy.openradio.shared.view.dialog.AddStationDialog
-import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
-import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
-import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
-import com.yuriy.openradio.shared.view.dialog.LogsDialog
+import com.yuriy.openradio.shared.view.dialog.*
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog
@@ -300,7 +295,8 @@ class TvMainActivity : FragmentActivity() {
     }
 
     private fun handleChildrenLoaded(parentId: String,
-                                     children: List<MediaBrowserCompat.MediaItem>) {
+                                     children: List<MediaBrowserCompat.MediaItem>,
+                                     options: Bundle) {
         if (mMediaPresenter.getOnSaveInstancePassed()) {
             AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
             return
@@ -319,13 +315,18 @@ class TvMainActivity : FragmentActivity() {
     }
 
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
-        @SuppressLint("RestrictedApi")
+
+        override fun onChildrenLoaded(
+            parentId: String,
+            children: MutableList<MediaBrowserCompat.MediaItem>,
+            options: Bundle
+        ) {
+            handleChildrenLoaded(parentId, children, options)
+        }
+
         override fun onChildrenLoaded(parentId: String,
                                       children: List<MediaBrowserCompat.MediaItem>) {
-            AppLogger.i(
-                    CLASS_NAME + " Children loaded:" + parentId + ", children:" + children.size
-            )
-            handleChildrenLoaded(parentId, children)
+            handleChildrenLoaded(parentId, children, Bundle())
         }
 
         override fun onError(id: String) {
