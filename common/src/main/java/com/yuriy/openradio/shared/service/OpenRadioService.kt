@@ -1634,7 +1634,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             AppLogger.d(
                 "$CLASS_NAME OnPlayWhenReadyChanged, is playing:${mExoPlayerORImpl?.isPlaying}, " +
-                    "state:${MediaItemHelper.playbackStateToString(mState)}"
+                    "state:${MediaItemHelper.playbackStateToString(mState)}, reason:$reason"
             )
             when(reason) {
                 Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS,

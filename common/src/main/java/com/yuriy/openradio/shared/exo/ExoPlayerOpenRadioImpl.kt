@@ -311,7 +311,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             AppLogger.d(
-                "$mLogTag OnPlayerStateChanged to ${MediaItemHelper.playbackStateToString(playbackState)}," +
+                "$mLogTag OnPlaybackStateChanged to ${MediaItemHelper.playbackStateToString(playbackState)}," +
                     " userState:$mUserState"
             )
             mListener.onPlaybackStateChanged(playbackState)
