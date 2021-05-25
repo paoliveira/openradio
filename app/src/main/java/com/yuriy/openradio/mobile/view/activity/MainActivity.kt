@@ -63,6 +63,7 @@ import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
+import com.yuriy.openradio.shared.view.dialog.NetworkDialog
 import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
@@ -279,6 +280,11 @@ class MainActivity : AppCompatActivity() {
                     // Show About Dialog
                     val dialog = BaseDialogFragment.newInstance(AboutDialog::class.java.name)
                     dialog!!.show(transaction, AboutDialog.DIALOG_TAG)
+                }
+                R.id.nav_network -> {
+                    // Show Network Dialog
+                    val dialog = BaseDialogFragment.newInstance(NetworkDialog::class.java.name)
+                    dialog!!.show(transaction, NetworkDialog.DIALOG_TAG)
                 }
                 else -> {
                     // No dialog found.

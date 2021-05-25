@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class AboutDialog : BaseDialogFragment() {
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
                 R.layout.dialog_about,

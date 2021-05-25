@@ -81,6 +81,7 @@ import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.LocationStorage
+import com.yuriy.openradio.shared.model.storage.NetworkSettingsStorage
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
@@ -821,6 +822,14 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
             return
         }
         val context = applicationContext
+        if (NetworkMonitor.isMobile(mNetworkMonitor.getType())
+            && !NetworkSettingsStorage.getUseMobile(applicationContext)) {
+            SafeToast.showAnyThread(
+                applicationContext,
+                applicationContext.getString(R.string.mobile_network_disabled)
+            )
+            return
+        }
         if (!mNetworkMonitor.checkConnectivityAndNotify(context)) {
             return
         }
@@ -1150,8 +1159,12 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
             if (!isConnected) {
                 return
             }
-            if (NetworkMonitor.isMobile(type)) {
-//                handlePauseRequest()
+            if (NetworkMonitor.isMobile(type) && !NetworkSettingsStorage.getUseMobile(applicationContext)) {
+                SafeToast.showAnyThread(
+                    applicationContext,
+                    applicationContext.getString(R.string.mobile_network_disabled)
+                )
+                handlePauseRequest()
                 return
             }
             handlePlayRequest()
@@ -1581,6 +1594,17 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
                     AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to local device")
                 )
             }
+            VALUE_NAME_NETWORK_SETTINGS_CHANGED -> {
+                if (NetworkMonitor.isMobile(mNetworkMonitor.getType())
+                    && !NetworkSettingsStorage.getUseMobile(applicationContext)) {
+                    SafeToast.showAnyThread(
+                        applicationContext,
+                        applicationContext.getString(R.string.mobile_network_disabled)
+                    )
+                    handlePauseRequest()
+                    return
+                }
+            }
             VALUE_NAME_REMOVE_CUSTOM_RADIO_STATION_COMMAND -> {
                 val mediaId = intent.getStringExtra(EXTRA_KEY_MEDIA_ID)
                 if (mediaId.isNullOrEmpty()) {
@@ -1786,6 +1810,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         private const val VALUE_NAME_STOP_LAST_PLAYED_ITEM = "VALUE_NAME_STOP_LAST_PLAYED_ITEM"
         private const val VALUE_NAME_UPDATE_EQUALIZER = "VALUE_NAME_UPDATE_EQUALIZER"
         private const val VALUE_NAME_SLEEP_TIMER = "VALUE_NAME_SLEEP_TIMER"
+        private const val VALUE_NAME_NETWORK_SETTINGS_CHANGED = "VALUE_NAME_NETWORK_SETTINGS_CHANGED"
         private const val EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION"
         private const val EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE"
         private const val EXTRA_KEY_STATION_NAME = "EXTRA_KEY_STATION_NAME"
@@ -1875,6 +1900,12 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
             val intent = Intent(context, OpenRadioService::class.java)
             intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_ADD_CUSTOM_RADIO_STATION_COMMAND)
             intent.putExtra(EXTRA_KEY_RS_TO_ADD, value)
+            return intent
+        }
+
+        fun makeNetworkSettingsChangedIntent(context: Context?): Intent {
+            val intent = Intent(context, OpenRadioService::class.java)
+            intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_NETWORK_SETTINGS_CHANGED)
             return intent
         }
 

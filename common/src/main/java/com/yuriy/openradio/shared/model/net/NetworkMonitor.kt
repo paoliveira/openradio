@@ -36,9 +36,13 @@ class NetworkMonitor(private val mConnectivityManager: ConnectivityManager) {
 
     private var mListener: NetworkMonitorListener? = null
 
+    private var mType = TYPE_NONE
+
     companion object {
 
         private const val CLASS_NAME = "NetworkMonitor"
+
+        const val TYPE_NONE = -1
 
         fun isMobile(value: Int): Boolean {
             when (value) {
@@ -65,11 +69,16 @@ class NetworkMonitor(private val mConnectivityManager: ConnectivityManager) {
                     }
                     dumpQuality(networkInfo)
                     AppLogger.i("$CLASS_NAME network changed to $networkInfo")
+                    mType = networkInfo.type
 
-                    mListener?.onConnectivityChange(networkInfo.type, networkInfo.isConnectedOrConnecting)
+                    mListener?.onConnectivityChange(mType, networkInfo.isConnectedOrConnecting)
                 }
             }
         )
+    }
+
+    fun getType(): Int {
+        return mType
     }
 
     fun start(context: Context) {
