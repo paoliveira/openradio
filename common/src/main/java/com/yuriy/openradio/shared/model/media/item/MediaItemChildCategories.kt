@@ -20,6 +20,7 @@ import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlayb
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.net.UrlBuilder.getStationsInCategory
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +52,7 @@ class MediaItemChildCategories : IndexableMediaItemCommand() {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val childMenuId = dependencies.parentId
-                        .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, "")
+                        .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, AppUtils.EMPTY_STRING)
                 val list: List<RadioStation> = ArrayList(
                         dependencies.serviceProvider.getStations(
                                 dependencies.downloader,

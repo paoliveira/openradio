@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.utils
 import android.content.Context
 import android.util.Log
 import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -90,7 +91,7 @@ object FileUtils {
      * @return
      */
     @JvmStatic
-    fun copyExtFileToIntDir(context: Context, filePath: String): String? {
+    fun copyExtFileToIntDir(context: Context, filePath: String, networkMonitor: NetworkMonitor): String? {
         if (filePath.isEmpty()) {
             return filePath
         }
@@ -102,7 +103,7 @@ object FileUtils {
             AppLogger.e("$e")
             return null
         }
-        downloadUrlToStream(context, filePath, out)
+        downloadUrlToStream(context, filePath, out, networkMonitor)
         try {
             out.close()
         } catch (e: IOException) {
@@ -121,15 +122,16 @@ object FileUtils {
      * @param outputStream
      * @return true if successful, false otherwise
      */
-    private fun downloadUrlToStream(context: Context?,
+    private fun downloadUrlToStream(context: Context,
                                     urlString: String,
-                                    outputStream: OutputStream?): Boolean {
+                                    outputStream: OutputStream?,
+                                    networkMonitor: NetworkMonitor): Boolean {
         var connection: HttpURLConnection? = null
         var out: BufferedOutputStream? = null
         var bufferedInputStream: BufferedInputStream? = null
         try {
             if (AppUtils.isWebUrl(urlString)) {
-                if (ConnectivityReceiver.checkConnectivityAndNotify(context!!)) {
+                if (networkMonitor.checkConnectivityAndNotify(context)) {
                     connection = NetUtils.getHttpURLConnection(context, urlString, "GET")
                     if (connection == null) {
                         return false

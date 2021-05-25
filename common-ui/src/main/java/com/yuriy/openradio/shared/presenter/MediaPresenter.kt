@@ -38,10 +38,12 @@ import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiver
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
-import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.broadcast.ScreenReceiver
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
@@ -58,7 +60,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.*
 
-class MediaPresenter private constructor(context: Context) {
+class MediaPresenter private constructor(context: Context) : NetworkMonitorDependency {
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
@@ -105,11 +107,20 @@ class MediaPresenter private constructor(context: Context) {
     private val mScreenBroadcastRcvr = ScreenReceiver()
     private var mCurrentRadioStationView: View? = null
     private var mCurrentMediaId = AppUtils.EMPTY_STRING
+    private lateinit var mNetworkMonitor: NetworkMonitor
 
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private val mIsOnSaveInstancePassed = AtomicBoolean(false)
+
+    init {
+        DependencyRegistry.injectNetworkMonitor(this)
+    }
+
+    override fun configureWith(networkMonitor: NetworkMonitor) {
+        mNetworkMonitor = networkMonitor
+    }
 
     fun init(activity: Activity, bundle: Bundle?, listView: RecyclerView,
              currentRadioStationView: View,
@@ -325,7 +336,7 @@ class MediaPresenter private constructor(context: Context) {
         if (mActivity == null) {
             return
         }
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(mActivity!!)) {
+        if (!mNetworkMonitor.checkConnectivityAndNotify(mActivity!!)) {
             return
         }
 

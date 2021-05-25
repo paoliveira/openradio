@@ -18,8 +18,8 @@ package com.yuriy.openradio.shared.model.api
 import android.content.Context
 import android.net.Uri
 import androidx.core.util.Pair
-import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.model.net.Downloader
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.parser.DataParser
 import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
@@ -51,21 +51,15 @@ import java.util.*
  * [ApiServiceProviderImpl] is the implementation of the
  * [ApiServiceProvider] interface.
  *
- * @param context    Context of a callee.
- * @param dataParser Implementation of the [DataParser]
+ * @param mContext    Context of a callee.
+ * @param mDataParser Implementation of the [DataParser]
  */
-class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServiceProvider {
-    /**
-     * Implementation of the [DataParser] which allows to
-     * parse raw response of the data into different formats.
-     */
-    private val mDataParser: DataParser?
-
-    /**
-     *
-     */
-    private val mContext: Context
-
+class ApiServiceProviderImpl(
+    private val mContext: Context,
+    private val mDataParser: DataParser,
+    private val mNetworkMonitor: NetworkMonitor
+) :
+    ApiServiceProvider {
     /**
      *
      */
@@ -85,10 +79,6 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
 
     override fun getCategories(downloader: Downloader, uri: Uri, cacheType: CacheType): List<Category> {
         val allCategories: MutableList<Category> = ArrayList()
-        if (mDataParser == null) {
-            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null")
-            return allCategories
-        }
         val array = downloadJsonArray(downloader, uri, cacheType)
         var item: JSONObject
         var category: Category
@@ -115,10 +105,6 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
 
     override fun getCountries(downloader: Downloader, uri: Uri, cacheType: CacheType): List<Country> {
         val list: MutableList<Country> = ArrayList()
-        if (mDataParser == null) {
-            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null")
-            return list
-        }
         for (countryName in LocationService.COUNTRY_NAME_TO_CODE.keys) {
             val countryCode = LocationService.COUNTRY_NAME_TO_CODE[countryName]
             if (countryCode == null) {
@@ -135,15 +121,13 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         return getStations(downloader, uri, ArrayList(), cacheType)
     }
 
-    override fun getStations(downloader: Downloader,
-                             uri: Uri,
-                             parameters: List<Pair<String, String>>,
-                             cacheType: CacheType): List<RadioStation> {
+    override fun getStations(
+        downloader: Downloader,
+        uri: Uri,
+        parameters: List<Pair<String, String>>,
+        cacheType: CacheType
+    ): List<RadioStation> {
         val radioStations: MutableList<RadioStation> = ArrayList()
-        if (mDataParser == null) {
-            AppLogger.w(CLASS_NAME + "Can not parse data, parser is null")
-            return radioStations
-        }
         val array = downloadJsonArray(downloader, uri, parameters, cacheType)
         var jsonObject: JSONObject
         for (i in 0 until array.length()) {
@@ -162,10 +146,12 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
         return radioStations
     }
 
-    override fun addStation(downloader: Downloader,
-                            uri: Uri,
-                            parameters: List<Pair<String, String>>,
-                            cacheType: CacheType): Boolean {
+    override fun addStation(
+        downloader: Downloader,
+        uri: Uri,
+        parameters: List<Pair<String, String>>,
+        cacheType: CacheType
+    ): Boolean {
         // Post data to the server.
         val response = String(downloader.downloadDataFromUri(mContext, uri, parameters))
         AppLogger.i("Add station response:$response")
@@ -220,9 +206,11 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
      * @param uri        Uri to download from.
      * @return [JSONArray]
      */
-    private fun downloadJsonArray(downloader: Downloader,
-                                  uri: Uri,
-                                  cacheType: CacheType): JSONArray {
+    private fun downloadJsonArray(
+        downloader: Downloader,
+        uri: Uri,
+        cacheType: CacheType
+    ): JSONArray {
         return downloadJsonArray(downloader, uri, ArrayList(), cacheType)
     }
 
@@ -235,12 +223,14 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
      * @return [JSONArray]
      */
     // TODO: Refactor this method to download raw response. Then Use parser to get data.
-    private fun downloadJsonArray(downloader: Downloader,
-                                  uri: Uri,
-                                  parameters: List<Pair<String, String>>,
-                                  cacheType: CacheType?): JSONArray {
+    private fun downloadJsonArray(
+        downloader: Downloader,
+        uri: Uri,
+        parameters: List<Pair<String, String>>,
+        cacheType: CacheType?
+    ): JSONArray {
         var array = JSONArray()
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(mContext)) {
+        if (!mNetworkMonitor.checkConnectivityAndNotify(mContext)) {
             return array
         }
 
@@ -250,7 +240,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
             responsesMapKey += NetUtils.getPostParametersQuery(parameters)
         } catch (e: UnsupportedEncodingException) {
             AppLogger.e("$e")
-            responsesMapKey = ""
+            responsesMapKey = AppUtils.EMPTY_STRING
         }
 
         // Fetch RAM memory first.
@@ -354,9 +344,7 @@ class ApiServiceProviderImpl(context: Context, dataParser: DataParser) : ApiServ
     }
 
     init {
-        mApiCachePersistent = PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME)
+        mApiCachePersistent = PersistentApiCache(mContext, PersistentAPIDbHelper.DATABASE_NAME)
         mApiCacheInMemory = InMemoryApiCache()
-        mContext = context
-        mDataParser = dataParser
     }
 }

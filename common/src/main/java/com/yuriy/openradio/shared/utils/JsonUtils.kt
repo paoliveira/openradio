@@ -80,7 +80,7 @@ object JsonUtils {
 
     @Throws(JSONException::class)
     fun getStringValue(jsonObject: JSONObject?, key: String): String {
-        return getStringValue(jsonObject, key, "")
+        return getStringValue(jsonObject, key, AppUtils.EMPTY_STRING)
     }
 
     @Throws(JSONException::class)

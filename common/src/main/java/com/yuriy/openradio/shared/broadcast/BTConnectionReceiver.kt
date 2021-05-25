@@ -26,6 +26,7 @@ import android.content.IntentFilter
 import android.util.Log
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.IntentUtils
 
 /**
@@ -44,9 +45,9 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
         fun onDisconnected()
     }
 
-    private val mBluetoothAdapter: BluetoothAdapter?
-    private val mProfileListener: BluetoothProfileServiceListenerImpl?
-    private var mConnectedDevice: String? = null
+    private val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    private val mProfileListener = BluetoothProfileServiceListenerImpl()
+    private var mConnectedDevice = AppUtils.EMPTY_STRING
 
     override fun onReceive(context: Context, intent: Intent) {
         AppLogger.i("$CLASS_NAME receive:$intent")
@@ -58,7 +59,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
             }
             BluetoothAdapter.STATE_DISCONNECTED -> {
                 AppLogger.i("$CLASS_NAME disconnected:$mConnectedDevice")
-                if (!mConnectedDevice.isNullOrEmpty()) {
+                if (mConnectedDevice.isNotEmpty()) {
                     mListener.onDisconnected()
                 }
             }
@@ -66,7 +67,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
     }
 
     override fun unregister(context: Context) {
-        mProfileListener?.clear()
+        mProfileListener.clear()
         super.unregister(context)
     }
 
@@ -128,7 +129,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
                 AppLogger.i("$CLASS_NAME connected to same BT device.")
                 mListener.onSameDeviceConnected()
             }
-            mConnectedDevice = connectedDevice
+            mConnectedDevice = connectedDevice ?: AppUtils.EMPTY_STRING
         }
 
         override fun onServiceDisconnected(profile: Int) {
@@ -148,10 +149,5 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
 
     companion object {
         private val CLASS_NAME = BTConnectionReceiver::class.java.simpleName
-    }
-
-    init {
-        mProfileListener = BluetoothProfileServiceListenerImpl()
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
     }
 }

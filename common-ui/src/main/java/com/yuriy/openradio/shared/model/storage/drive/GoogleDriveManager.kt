@@ -40,6 +40,7 @@ import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAll
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage.Companion.merge
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -346,7 +347,7 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
      * @return Array of string each of which represent Radio Stations in category.
      */
     private fun splitRadioStationCategories(data: String): Array<String> {
-        val categories = arrayOf("", "")
+        val categories = arrayOf(AppUtils.EMPTY_STRING, AppUtils.EMPTY_STRING)
         var jsonObject: JSONObject? = null
         try {
             jsonObject = JSONObject(data)
@@ -354,8 +355,8 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
             AppLogger.e("SplitRadioStationCategories $e")
         }
         if (jsonObject != null) {
-            categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, "")
-            categories[1] = jsonObject.optString(RADIO_STATION_CATEGORY_LOCALS, "")
+            categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, AppUtils.EMPTY_STRING)
+            categories[1] = jsonObject.optString(RADIO_STATION_CATEGORY_LOCALS, AppUtils.EMPTY_STRING)
         }
         return categories
     }

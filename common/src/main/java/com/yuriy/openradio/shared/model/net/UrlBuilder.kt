@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.net
 import android.net.Uri
 import androidx.core.util.Pair
 import com.yuriy.openradio.shared.service.LocationService
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
 import java.util.*
 
@@ -196,7 +197,7 @@ object UrlBuilder {
     @JvmStatic
     fun preProcessIconUrl(url: String?): String {
         if (url.isNullOrEmpty()) {
-            return ""
+            return AppUtils.EMPTY_STRING
         }
         return if (url.contains(OLD_IMG_BASE_URL)) {
             url.replace(OLD_IMG_BASE_URL, NEW_IMG_BASE_URL)

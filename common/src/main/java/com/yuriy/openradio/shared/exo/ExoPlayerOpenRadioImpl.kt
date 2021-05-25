@@ -27,7 +27,6 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.Metadata
-import com.google.android.exoplayer2.metadata.MetadataOutput
 import com.google.android.exoplayer2.metadata.icy.IcyHeaders
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
@@ -178,7 +177,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         mUri = uri
         if (!mIsReleased.get()) {
             mExoPlayer.addListener(mComponentListener)
-            mExoPlayer.addMetadataOutput(mComponentListener)
             mExoPlayer.playWhenReady = true
             mExoPlayer.setMediaItem(MediaItem.Builder().setUri(uri).build())
             mExoPlayer.prepare()
@@ -263,7 +261,6 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         }
         mEqualizer.deinit()
         mExoPlayer.removeListener(mComponentListener)
-        mExoPlayer.removeMetadataOutput(mComponentListener)
         reset()
         mExoPlayer.release()
         mIsReleased.set(true)
@@ -272,7 +269,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
     /**
      * Listener class for the players components events.
      */
-    private inner class ComponentListener : MetadataOutput, Player.EventListener {
+    private inner class ComponentListener : Player.Listener {
 
         /**
          * String tag to use in logs.

@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.broadcast
 
 import android.content.Intent
+import com.yuriy.openradio.shared.utils.AppUtils
 
 object AppLocalBroadcast {
 
@@ -63,7 +64,7 @@ object AppLocalBroadcast {
     }
 
     fun getSortMediaId(intent: Intent): String {
-        return intent.getStringExtra(KEY_SORT_MEDIA_ID) ?: ""
+        return intent.getStringExtra(KEY_SORT_MEDIA_ID) ?: AppUtils.EMPTY_STRING
     }
 
     fun getCurrentIndexOnQueue(intent: Intent): Int {
@@ -76,20 +77,20 @@ object AppLocalBroadcast {
 
     fun getActionValidateOfRSFailedReason(intent: Intent?): String {
         if (intent == null) {
-            return ""
+            return AppUtils.EMPTY_STRING
         }
         return if (!intent.hasExtra(KEY_VALIDATED_RS_FAIL_REASON)) {
-            ""
-        } else intent.getStringExtra(KEY_VALIDATED_RS_FAIL_REASON) ?: ""
+            AppUtils.EMPTY_STRING
+        } else intent.getStringExtra(KEY_VALIDATED_RS_FAIL_REASON) ?: AppUtils.EMPTY_STRING
     }
 
     fun getActionValidateOfRSSuccessMessage(intent: Intent?): String {
         if (intent == null) {
-            return ""
+            return AppUtils.EMPTY_STRING
         }
         return if (!intent.hasExtra(KEY_VALIDATED_RS_SUCCESS_MESSAGE)) {
-            ""
-        } else intent.getStringExtra(KEY_VALIDATED_RS_SUCCESS_MESSAGE) ?: ""
+            AppUtils.EMPTY_STRING
+        } else intent.getStringExtra(KEY_VALIDATED_RS_SUCCESS_MESSAGE) ?: AppUtils.EMPTY_STRING
     }
 
     /**

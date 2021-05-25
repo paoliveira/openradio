@@ -23,6 +23,9 @@ import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import com.google.android.exoplayer2.DefaultLoadControl
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.areLogsEnabled
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMaxBuffer
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager.getMinBuffer
@@ -55,7 +58,9 @@ import kotlinx.coroutines.launch
  * Date: 12/21/13
  * Time: 6:29 PM
  */
-class MainApp : MultiDexApplication() {
+class MainApp : MultiDexApplication(), NetworkMonitorDependency {
+
+    private lateinit var mNetworkMonitor: NetworkMonitor
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
@@ -64,10 +69,12 @@ class MainApp : MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        AnalyticsUtils.init()
         AppLogger.d(CLASS_NAME + "OnCreate")
+        AnalyticsUtils.init()
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         val context = applicationContext
+        DependencyRegistry.init(context)
+        DependencyRegistry.injectNetworkMonitor(this)
         GlobalScope.launch(Dispatchers.IO) {
             val isLoggingEnabled = areLogsEnabled(
                     context
@@ -76,8 +83,12 @@ class MainApp : MultiDexApplication() {
             setLoggingEnabled(isLoggingEnabled)
             printFirstLogMessage(context)
             correctBufferSettings(context)
-            migrateImagesToIntStorage(context)
+            migrateImagesToIntStorage(context, mNetworkMonitor)
         }
+    }
+
+    override fun configureWith(networkMonitor: NetworkMonitor) {
+        mNetworkMonitor = networkMonitor
     }
 
     companion object {
@@ -149,7 +160,7 @@ class MainApp : MultiDexApplication() {
         /**
          * @param context Context of a callee.
          */
-        private fun migrateImagesToIntStorage(context: Context) {
+        private fun migrateImagesToIntStorage(context: Context, networkMonitor: NetworkMonitor) {
             AppLogger.d(CLASS_NAME + "Migrate image to int. storage started")
             val list: List<RadioStation> = getAllLocals(context)
             var imageUrl: String
@@ -163,7 +174,7 @@ class MainApp : MultiDexApplication() {
                 if (imageUrl.contains(filesDir)) {
                     continue
                 }
-                imageUrlLocal = copyExtFileToIntDir(context, imageUrl)
+                imageUrlLocal = copyExtFileToIntDir(context, imageUrl, networkMonitor)
                 if (imageUrlLocal == null) {
                     imageUrlLocal = imageUrl
                 }

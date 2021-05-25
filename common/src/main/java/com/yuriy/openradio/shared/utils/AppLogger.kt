@@ -36,7 +36,7 @@ object AppLogger {
     private const val MAX_BACKUP_INDEX = 3
     private const val MAX_FILE_SIZE = "750KB"
     private val logger = Logger.getLogger(AppLogger::class.java)
-    private var sInitLogsDirectory: String = ""
+    private var sInitLogsDirectory = AppUtils.EMPTY_STRING
     private var sLoggingEnabled = false
 
     @JvmStatic

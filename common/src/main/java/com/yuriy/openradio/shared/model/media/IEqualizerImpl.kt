@@ -22,6 +22,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.model.storage.EqualizerStorage
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.EqualizerState
 
 class IEqualizerImpl private constructor(private val mContext: Context): IEqualizer {
@@ -38,7 +39,7 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
         } catch (e: Exception) {
             AppLogger.e("$CLASS_NAME exception while init:$e")
             mEqualizer = null
-            EqualizerStorage.saveEqualizerState(mContext, "")
+            EqualizerStorage.saveEqualizerState(mContext, AppUtils.EMPTY_STRING)
             return
         }
         //TODO: Do state operations in separate thread.

@@ -20,6 +20,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import java.io.Serializable
 import java.util.*
 
@@ -37,20 +38,20 @@ class RadioStation : Serializable {
 
     // TODO: Convert to enum
     var status = 0
-    var name = ""
-    var homePage = ""
-    var lastCheckOkTime = ""
+    var name = AppUtils.EMPTY_STRING
+    var homePage = AppUtils.EMPTY_STRING
+    var lastCheckOkTime = AppUtils.EMPTY_STRING
     var lastCheckOk = 0
 
     // TODO: Convert to enum
-    private var mCountry = ""
+    private var mCountry = AppUtils.EMPTY_STRING
 
     // TODO: Convert to enum
-    var countryCode = ""
-    var genre = ""
-    var imageUrl = ""
-    var thumbUrl = ""
-    var urlResolved = ""
+    var countryCode = AppUtils.EMPTY_STRING
+    var genre = AppUtils.EMPTY_STRING
+    var imageUrl = AppUtils.EMPTY_STRING
+    var thumbUrl = AppUtils.EMPTY_STRING
+    var urlResolved = AppUtils.EMPTY_STRING
     private val mMediaStream: MediaStream
 
     /**

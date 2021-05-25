@@ -181,7 +181,7 @@ object MediaItemHelper {
         if (radioStation == null) {
             return null
         }
-        var iconUrl = ""
+        var iconUrl = AppUtils.EMPTY_STRING
         if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
             iconUrl = radioStation.imageUrl
         }
@@ -291,7 +291,7 @@ object MediaItemHelper {
                                               isFavorite: Boolean = false,
                                               isLocal: Boolean = false,
                                               isUpdateLastPlayedField: Boolean = false): MediaDescriptionCompat {
-        var iconUrl = ""
+        var iconUrl = AppUtils.EMPTY_STRING
         if (radioStation.imageUrl.isNotEmpty() && !radioStation.imageUrl.equals("null", ignoreCase = true)) {
             iconUrl = radioStation.imageUrl
         }
@@ -325,9 +325,9 @@ object MediaItemHelper {
     fun buildMediaMetadataForEmptyCategory(context: Context,
                                            parentId: String?): MediaMetadataCompat {
         val title = context.getString(R.string.category_empty)
-        val artist = ""
-        val genre = ""
-        val source = ""
+        val artist = AppUtils.EMPTY_STRING
+        val genre = AppUtils.EMPTY_STRING
+        val source = AppUtils.EMPTY_STRING
 
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because

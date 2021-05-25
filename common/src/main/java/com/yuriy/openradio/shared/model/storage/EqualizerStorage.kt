@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
+import com.yuriy.openradio.shared.utils.AppUtils
 
 /**
  * Created by Yuriy Chernyshov
@@ -33,7 +34,7 @@ object EqualizerStorage : AbstractStorage() {
     @JvmStatic
     fun isEmpty(context: Context): Boolean {
         val preferences = getSharedPreferences(context, FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, "") == ""
+        return preferences.getString(EQUALIZER_STATE, AppUtils.EMPTY_STRING) == AppUtils.EMPTY_STRING
     }
 
     @JvmStatic
@@ -46,6 +47,6 @@ object EqualizerStorage : AbstractStorage() {
     @JvmStatic
     fun loadEqualizerState(context: Context): String {
         val preferences = getSharedPreferences(context, FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, "") ?: ""
+        return preferences.getString(EQUALIZER_STATE, AppUtils.EMPTY_STRING) ?: AppUtils.EMPTY_STRING
     }
 }

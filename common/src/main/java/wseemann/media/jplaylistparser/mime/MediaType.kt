@@ -16,6 +16,7 @@
 
 package wseemann.media.jplaylistparser.mime
 
+import com.yuriy.openradio.shared.utils.AppUtils
 import java.util.*
 import java.util.regex.*
 
@@ -27,7 +28,7 @@ class MediaType : Comparable<MediaType> {
     /**
      * Canonical string representation of this media type.
      */
-    private var mString: String = ""
+    private var mString = AppUtils.EMPTY_STRING
 
     private constructor(type: String?, subtype: String?, parameters: Map<String, String>) {
         if (type.isNullOrEmpty()) {
@@ -192,13 +193,13 @@ class MediaType : Comparable<MediaType> {
             val parameters: MutableMap<String, String> = HashMap()
             while (stringCpy!!.isNotEmpty()) {
                 var key = stringCpy
-                var value = ""
+                var value = AppUtils.EMPTY_STRING
                 val semicolon = stringCpy.indexOf(';')
                 if (semicolon != -1) {
                     key = stringCpy.substring(0, semicolon)
                     stringCpy = stringCpy.substring(semicolon + 1)
                 } else {
-                    stringCpy = ""
+                    stringCpy = AppUtils.EMPTY_STRING
                 }
                 val equals = key.indexOf('=')
                 if (equals != -1) {

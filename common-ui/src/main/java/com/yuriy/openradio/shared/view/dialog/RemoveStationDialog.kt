@@ -23,6 +23,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
 /**
@@ -112,11 +113,11 @@ class RemoveStationDialog : BaseDialogFragment() {
          */
         private fun getArgument(bundle: Bundle?, key: String): String? {
             if (bundle == null) {
-                return ""
+                return AppUtils.EMPTY_STRING
             }
             return if (bundle.containsKey(key)) {
                 bundle.getString(key)
-            } else ""
+            } else AppUtils.EMPTY_STRING
         }
 
         private fun getListener(bundle: Bundle?, key: String): Listener? {
