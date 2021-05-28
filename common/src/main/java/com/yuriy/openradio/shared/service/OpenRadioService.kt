@@ -188,7 +188,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
     private val mClearCacheReceiver: ClearCacheReceiver
 
     private val mNoisyAudioStreamReceiver: AbstractReceiver
-    private val mBTConnectionReceiver: BTConnectionReceiver
+    private val mBTConnectionReceiver: AbstractReceiver
 
     /**
      * Track last selected Radio Station. This filed used when AA uses buffering/duration and the "Last Played"
@@ -322,7 +322,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         // Get the HandlerThread's Looper and use it for our Handler.
         mServiceHandler = ServiceHandler(looper)
         mBTConnectionReceiver.register(context)
-        mBTConnectionReceiver.locateDevice(context, null)
 
         // Add Media Items implementations to the map
         mMediaItemCommands[MediaIdHelper.MEDIA_ID_ROOT] = MediaItemRoot()
