@@ -18,6 +18,7 @@ package wseemann.media.jplaylistparser.parser
 
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.HttpUrl
@@ -46,7 +47,7 @@ class AutoDetectParser(private val mTimeout: Int) {
     fun parse(url: String, mimeType: String?, stream: InputStream, playlist: Playlist) {
         var mimeTypeCpy = mimeType
         if (mimeTypeCpy == null) {
-            mimeTypeCpy = ""
+            mimeTypeCpy = AppUtils.EMPTY_STRING
         }
         if (mimeTypeCpy.split(";".toRegex()).toTypedArray().isNotEmpty()) {
             mimeTypeCpy = mimeTypeCpy.split(";".toRegex()).toTypedArray()[0]
@@ -159,7 +160,7 @@ class AutoDetectParser(private val mTimeout: Int) {
     }
 
     fun getFileExtension(uri: String): String {
-        var fileExtension = ""
+        var fileExtension = AppUtils.EMPTY_STRING
         var beginIndex = uri.lastIndexOf(".")
         if (beginIndex != -1) {
             var endIndex = uri.length
@@ -195,7 +196,7 @@ class AutoDetectParser(private val mTimeout: Int) {
         if (withAnalytics) {
             AnalyticsUtils.logMessage("UnsupportedPlaylist:$url")
         }
-        var result = ""
+        var result = AppUtils.EMPTY_STRING
         val httpUrl = HttpUrl.parse(url)
         if (httpUrl == null) {
             if (withAnalytics) {
@@ -225,7 +226,7 @@ class AutoDetectParser(private val mTimeout: Int) {
 
                     override fun onResponse(call: Call, response: Response) {
                         AppLogger.d("StreamExtension:response:${response.headers()}")
-                        val content = response.header("content-disposition", "")
+                        val content = response.header("content-disposition", AppUtils.EMPTY_STRING)
                         result = getFileExtension(getFileExtFromHeaderParam(content))
 //                        if (result.isEmpty()) {
 //                            content = response.header("Content-Type", "")
@@ -250,13 +251,13 @@ class AutoDetectParser(private val mTimeout: Int) {
 
         fun getFileExtFromHeaderParam(headerParam: String?): String {
             if (headerParam.isNullOrEmpty()) {
-                return ""
+                return AppUtils.EMPTY_STRING
             }
             val data = headerParam.split("filename=")
             if (data.size == 2) {
                 return data[1]
             }
-            return ""
+            return AppUtils.EMPTY_STRING
         }
     }
 }

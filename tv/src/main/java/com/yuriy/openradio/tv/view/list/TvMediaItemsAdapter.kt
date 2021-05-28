@@ -48,7 +48,7 @@ class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter()
         }
         val description = mediaItem.description
         val isPlayable = mediaItem.isPlayable
-        holder.mRoot.setOnClickListener { v: View? ->
+        holder.mRoot.setOnClickListener {
             if (listener == null) {
                 return@setOnClickListener
             }

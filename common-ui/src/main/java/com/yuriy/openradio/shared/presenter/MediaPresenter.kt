@@ -38,20 +38,19 @@ import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiver
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
-import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.broadcast.ScreenReceiver
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.MediaIdHelper.isMediaIdRefreshable
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.isEndOfList
-import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.PlaybackStateError
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +60,7 @@ import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.atomic.*
 
-class MediaPresenter private constructor(context: Context) {
+class MediaPresenter private constructor(context: Context) : NetworkMonitorDependency {
     /**
      * Manager object that acts as interface between Media Resources and current Activity.
      */
@@ -83,7 +82,7 @@ class MediaPresenter private constructor(context: Context) {
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
-    var currentParentId = ""
+    var currentParentId = AppUtils.EMPTY_STRING
     private var mCallback: MediaBrowserCompat.SubscriptionCallback? = null
     private var mActivity: Activity? = null
     private var mListener: MediaPresenterListener? = null
@@ -107,19 +106,28 @@ class MediaPresenter private constructor(context: Context) {
      */
     private val mScreenBroadcastRcvr = ScreenReceiver()
     private var mCurrentRadioStationView: View? = null
-    private var mCurrentMediaId: String = ""
+    private var mCurrentMediaId = AppUtils.EMPTY_STRING
+    private lateinit var mNetworkMonitor: NetworkMonitor
 
     /**
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private val mIsOnSaveInstancePassed = AtomicBoolean(false)
 
+    init {
+        DependencyRegistry.injectNetworkMonitor(this)
+    }
+
+    override fun configureWith(networkMonitor: NetworkMonitor) {
+        mNetworkMonitor = networkMonitor
+    }
+
     fun init(activity: Activity, bundle: Bundle?, listView: RecyclerView,
              currentRadioStationView: View,
              adapter: MediaItemsAdapter, itemAdapterListener: MediaItemsAdapter.Listener?,
              mediaSubscriptionCallback: MediaBrowserCompat.SubscriptionCallback,
              listener: MediaPresenterListener?) {
-        d("$CLASS_NAME init")
+        AppLogger.d("$CLASS_NAME init")
         mIsOnSaveInstancePassed.set(false)
         mCallback = mediaSubscriptionCallback
         mActivity = activity
@@ -141,7 +149,7 @@ class MediaPresenter private constructor(context: Context) {
         }
         if (mMediaItemsStack.isNotEmpty()) {
             val mediaId = mMediaItemsStack[mMediaItemsStack.size - 1]
-            d("$CLASS_NAME current media id:$mediaId")
+            AppLogger.d("$CLASS_NAME current media id:$mediaId")
             unsubscribeFromItem(mediaId)
             addMediaItemToStack(mediaId)
         }
@@ -155,7 +163,7 @@ class MediaPresenter private constructor(context: Context) {
     }
 
     private fun clean() {
-        d("$CLASS_NAME clean")
+        AppLogger.d("$CLASS_NAME clean")
         mMediaRsrMgr.clean()
         mCallback = null
         mActivity = null
@@ -184,7 +192,7 @@ class MediaPresenter private constructor(context: Context) {
     }
 
     private fun disconnect() {
-        d("$CLASS_NAME disconnect")
+        AppLogger.d("$CLASS_NAME disconnect")
         if (mListView != null) {
             mListView!!.removeOnScrollListener(mScrollListener)
         }
@@ -200,7 +208,7 @@ class MediaPresenter private constructor(context: Context) {
     }
 
     fun handleBackPressed(context: Context): Boolean {
-        d(CLASS_NAME + " back pressed start:" + mMediaItemsStack.size)
+        AppLogger.d(CLASS_NAME + " back pressed start:" + mMediaItemsStack.size)
 
         // If there is root category - close activity
         if (mMediaItemsStack.size == 1) {
@@ -210,7 +218,7 @@ class MediaPresenter private constructor(context: Context) {
             // Clear stack
             mMediaItemsStack.clear()
             context.startService(OpenRadioService.makeStopServiceIntent(context))
-            d("$CLASS_NAME back pressed return true, stop service")
+            AppLogger.d("$CLASS_NAME back pressed return true, stop service")
             return true
         }
         var index = mMediaItemsStack.size - 1
@@ -236,10 +244,10 @@ class MediaPresenter private constructor(context: Context) {
                 mMediaRsrMgr.subscribe(previousMediaId, mCallback)
             }
         } else {
-            d("$CLASS_NAME back pressed return true")
+            AppLogger.d("$CLASS_NAME back pressed return true")
             return true
         }
-        d(CLASS_NAME + " back pressed end:" + mMediaItemsStack.size)
+        AppLogger.d(CLASS_NAME + " back pressed end:" + mMediaItemsStack.size)
         return false
     }
 
@@ -258,13 +266,13 @@ class MediaPresenter private constructor(context: Context) {
         mMediaRsrMgr.unsubscribe(mediaId!!)
     }
 
-    fun addMediaItemToStack(mediaId: String?) {
+    fun addMediaItemToStack(mediaId: String, options: Bundle = Bundle()) {
         if (mCallback == null) {
-            e("$CLASS_NAME add media id to stack, callback null")
+            AppLogger.e("$CLASS_NAME add media id to stack, callback null")
             return
         }
-        if (mediaId.isNullOrEmpty()) {
-            e("$CLASS_NAME add empty media id to stack")
+        if (mediaId.isEmpty()) {
+            AppLogger.e("$CLASS_NAME add empty media id to stack")
             return
         }
         if (!mMediaItemsStack.contains(mediaId)) {
@@ -273,7 +281,7 @@ class MediaPresenter private constructor(context: Context) {
         if (mListener != null) {
             mListener!!.showProgressBar()
         }
-        mMediaRsrMgr.subscribe(mediaId, mCallback)
+        mMediaRsrMgr.subscribe(mediaId, mCallback, options)
     }
 
     fun updateDescription(context: Context, descriptionView: TextView?, description: MediaDescriptionCompat) {
@@ -328,14 +336,14 @@ class MediaPresenter private constructor(context: Context) {
         if (mActivity == null) {
             return
         }
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(mActivity!!)) {
+        if (!mNetworkMonitor.checkConnectivityAndNotify(mActivity!!)) {
             return
         }
 
         // Current selected media item
         if (item == null) {
             //TODO: Improve message
-            showAnyThread(mActivity, mActivity!!.getString(R.string.can_not_play_station))
+            SafeToast.showAnyThread(mActivity, mActivity!!.getString(R.string.can_not_play_station))
             return
         }
         if (item.isBrowsable) {
@@ -389,7 +397,7 @@ class MediaPresenter private constructor(context: Context) {
         currentParentId = parentId
 
         // No need to go on if indexed list ended with last item.
-        if (isEndOfList(children)) {
+        if (MediaItemHelper.isEndOfList(children)) {
             return
         }
         mAdapter!!.parentId = parentId
@@ -423,14 +431,6 @@ class MediaPresenter private constructor(context: Context) {
         if (mLastKnownMetadata != null) {
             outState.putParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA, mLastKnownMetadata)
         }
-//        outState.putInt(BUNDLE_ARG_LIST_1_VISIBLE_ID, mListFirstVisiblePosition);
-//        outState.putInt(BUNDLE_ARG_LIST_CLICKED_ID, mAdapter.getActiveItemId());
-//        updateListPositions(mAdapter.getActiveItemId());
-    }
-
-    private fun handleRestoreInstanceState(savedInstanceState: Bundle) {
-//        mListFirstVisiblePosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_1_VISIBLE_ID);
-//        mListSavedClickedPosition = savedInstanceState.getInt(BUNDLE_ARG_LIST_CLICKED_ID);
     }
 
     fun handleCurrentIndexOnQueueChanged(mediaId: String?) {
@@ -443,7 +443,6 @@ class MediaPresenter private constructor(context: Context) {
             return
         }
         currentParentId = OpenRadioService.getCurrentParentId(savedInstanceState)
-        handleRestoreInstanceState(savedInstanceState)
         restoreSelectedPosition()
         handleMetadataChanged(savedInstanceState.getParcelable(BUNDLE_ARG_LAST_KNOWN_METADATA))
     }
@@ -451,7 +450,7 @@ class MediaPresenter private constructor(context: Context) {
     /**
      * Register receiver for the application's local events.
      */
-    fun registerReceivers(context: Context?, callback: AppLocalReceiverCallback?) {
+    fun registerReceivers(context: Context, callback: AppLocalReceiverCallback) {
         mAppLocalBroadcastRcvr.registerListener(callback)
 
         // Create filter and add actions
@@ -462,7 +461,7 @@ class MediaPresenter private constructor(context: Context) {
         intentFilter.addAction(AppLocalBroadcast.getActionSortIdChanged())
         intentFilter.addAction(AppLocalBroadcast.getActionGoogleDriveDownloaded())
         // Register receiver
-        LocalBroadcastManager.getInstance(context!!).registerReceiver(
+        LocalBroadcastManager.getInstance(context).registerReceiver(
                 mAppLocalBroadcastRcvr,
                 intentFilter
         )
@@ -472,9 +471,9 @@ class MediaPresenter private constructor(context: Context) {
     /**
      * Unregister receiver for the application's local events.
      */
-    private fun unregisterReceivers(context: Context?) {
+    private fun unregisterReceivers(context: Context) {
         mAppLocalBroadcastRcvr.unregisterListener()
-        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(
                 mAppLocalBroadcastRcvr
         )
         mScreenBroadcastRcvr.unregister(context)
@@ -503,11 +502,11 @@ class MediaPresenter private constructor(context: Context) {
     }
 
     private fun onScrolledToEnd() {
-        if (isMediaIdRefreshable(currentParentId)) {
+        if (MediaIdHelper.isMediaIdRefreshable(currentParentId)) {
             unsubscribeFromItem(currentParentId)
             addMediaItemToStack(currentParentId)
         } else {
-            w(CLASS_NAME + "Category " + currentParentId + " is not refreshable")
+            AppLogger.w(CLASS_NAME + "Category " + currentParentId + " is not refreshable")
         }
     }
 
@@ -516,12 +515,12 @@ class MediaPresenter private constructor(context: Context) {
      */
     private inner class MediaResourceManagerListenerImpl : MediaResourceManagerListener {
         override fun onConnected() {
-            i("$CLASS_NAME Connected")
+            AppLogger.i("$CLASS_NAME Connected")
             handleMediaResourceManagerConnected()
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-            d("$CLASS_NAME psc:$state")
+            AppLogger.d("$CLASS_NAME psc:$state")
             mCurrentPlaybackState = state.state
             val activity = this@MediaPresenter
             if (activity.mListener != null) {
@@ -530,7 +529,7 @@ class MediaPresenter private constructor(context: Context) {
         }
 
         override fun onQueueChanged(queue: List<MediaSessionCompat.QueueItem>) {
-            d("$CLASS_NAME qc:$queue")
+            AppLogger.d("$CLASS_NAME qc:$queue")
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat,

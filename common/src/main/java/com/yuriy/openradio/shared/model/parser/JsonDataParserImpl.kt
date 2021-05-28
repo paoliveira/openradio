@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.model.parser
 
 import android.content.Context
 import android.util.Log
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.MediaStream
@@ -65,7 +64,7 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
         val jsonObject: JSONObject = try {
             JSONObject(data)
         } catch (e: JSONException) {
-            AnalyticsUtils.logException(e)
+            AppLogger.e("$CLASS_NAME getRadioStation $e")
             return null
         }
         return getRadioStation(jsonObject)
@@ -115,14 +114,15 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
                 category = Category.makeDefaultInstance()
                 if (item.has(KEY_NAME)) {
                     category.id = item.getString(KEY_NAME)
-                    category.title = item.getString(KEY_NAME).capitalize(Locale.ROOT)
+                    category.title = item.getString(KEY_NAME)
+                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
                     if (item.has(KEY_STATIONS_COUNT)) {
                         category.stationsCount = item.getInt(KEY_STATIONS_COUNT)
                     }
                 }
                 result.add(category)
             } catch (e: Exception) {
-                AnalyticsUtils.logException(e)
+                AppLogger.e("$CLASS_NAME getCategories $e")
             }
         }
         return result

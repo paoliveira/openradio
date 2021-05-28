@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy [chernyshov.yuriy@gmail.com]
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
@@ -36,7 +37,7 @@ object AppLogger {
     private const val MAX_BACKUP_INDEX = 3
     private const val MAX_FILE_SIZE = "750KB"
     private val logger = Logger.getLogger(AppLogger::class.java)
-    private var sInitLogsDirectory: String = ""
+    private var sInitLogsDirectory = AppUtils.EMPTY_STRING
     private var sLoggingEnabled = false
 
     @JvmStatic
@@ -117,11 +118,11 @@ object AppLogger {
             ("directory is not folder " + directory.absolutePath)
         }
         return directory.listFiles { dir: File, name: String ->
-            if (name != null && name.toLowerCase(Locale.ROOT).endsWith(".log")) {
+            if (name != null && name.lowercase(Locale.ROOT).endsWith(".log")) {
                 return@listFiles true
             }
             for (i in 1..MAX_BACKUP_INDEX) {
-                if (name != null && name.toLowerCase(Locale.ROOT).endsWith(".log.$i")) {
+                if (name != null && name.lowercase(Locale.ROOT).endsWith(".log.$i")) {
                     return@listFiles true
                 }
             }

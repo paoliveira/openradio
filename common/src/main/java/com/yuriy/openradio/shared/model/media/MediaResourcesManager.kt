@@ -27,16 +27,8 @@ import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentParentId
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getCurrentPlaybackState
-import com.yuriy.openradio.shared.service.OpenRadioService.Companion.getRestoreState
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
-import com.yuriy.openradio.shared.utils.MediaItemHelper.playbackStateToString
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import java.util.*
 import java.util.concurrent.atomic.*
 
@@ -95,10 +87,10 @@ class MediaResourcesManager(context: Context, className: String) {
         // Initialize Media Browser
         val callback: MediaBrowserCompat.ConnectionCallback = MediaBrowserConnectionCallback()
         mMediaBrowser = MediaBrowserCompat(
-                context,
-                ComponentName(context, OpenRadioService::class.java),
-                callback,
-                null
+            context,
+            ComponentName(context, OpenRadioService::class.java),
+            callback,
+            null
         )
     }
 
@@ -110,9 +102,9 @@ class MediaResourcesManager(context: Context, className: String) {
         mActivity = activity
         mListener = listener
         //TODO: Simple solution that needs to be revised.
-        OpenRadioService.mCurrentParentId = getCurrentParentId(bundle)
-        OpenRadioService.mIsRestoreState = getRestoreState(bundle)
-        val state = getCurrentPlaybackState(bundle)
+        OpenRadioService.mCurrentParentId = OpenRadioService.getCurrentParentId(bundle)
+        OpenRadioService.mIsRestoreState = OpenRadioService.getRestoreState(bundle)
+        val state = OpenRadioService.getCurrentPlaybackState(bundle)
         // Do not assign unknown state.
         if (state != PlaybackStateCompat.STATE_NONE) {
             OpenRadioService.mState = state
@@ -124,7 +116,7 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun connect() {
         if (mMediaBrowser.isConnected) {
-            w(mClassName + "Connect aborted, already connected")
+            AppLogger.w(mClassName + "Connect aborted, already connected")
             // Register callbacks
             mMediaController!!.registerCallback(mMediaSessionCallback)
             // Set actual media controller
@@ -139,9 +131,9 @@ class MediaResourcesManager(context: Context, className: String) {
         try {
             mMediaBrowser.connect()
             mIsConnectInvoked.set(true)
-            i(mClassName + "Connected")
+            AppLogger.i(mClassName + "Connected")
         } catch (e: IllegalStateException) {
-            e(mClassName + "Can not connect:" + e)
+            AppLogger.e(mClassName + "Can not connect:" + e)
         }
     }
 
@@ -150,7 +142,7 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun disconnect() {
         if (!mMediaBrowser.isConnected) {
-            w(mClassName + "Disconnect aborted, already disconnected")
+            AppLogger.w(mClassName + "Disconnect aborted, already disconnected")
             return
         }
         if (!mIsConnectInvoked.get()) {
@@ -158,7 +150,7 @@ class MediaResourcesManager(context: Context, className: String) {
         }
         mMediaBrowser.disconnect()
         mIsConnectInvoked.set(false)
-        i(mClassName + "Disconnected")
+        AppLogger.i(mClassName + "Disconnected")
     }
 
     fun clean() {
@@ -178,20 +170,22 @@ class MediaResourcesManager(context: Context, className: String) {
      *
      * @param parentId The id of the parent media item whose list of children will be subscribed.
      * @param callback The callback to receive the list of children.
+     * @param options Options to pass to Media Browser when do subscribe.
      */
     fun subscribe(parentId: String,
-                  callback: MediaBrowserCompat.SubscriptionCallback?) {
-        i(mClassName + "Subscribe:" + parentId)
+                  callback: MediaBrowserCompat.SubscriptionCallback?,
+                  options: Bundle = Bundle()) {
+        AppLogger.i("$mClassName subscribe:$parentId")
         if (callback == null) {
-            e("$mClassName subscribe listener is null")
+            AppLogger.e("$mClassName subscribe listener is null")
             return
         }
         if (mSubscribed.contains(parentId)) {
-            w(mClassName + "already subscribed")
+            AppLogger.w("$mClassName already subscribed")
             return
         }
         mSubscribed.add(parentId)
-        mMediaBrowser.subscribe(parentId, callback)
+        mMediaBrowser.subscribe(parentId, options, callback)
     }
 
     /**
@@ -203,7 +197,7 @@ class MediaResourcesManager(context: Context, className: String) {
         if (!mSubscribed.contains(parentId)) {
             return
         }
-        i(mClassName + "Unsubscribe:" + parentId + ", " + mMediaBrowser)
+        AppLogger.i("$mClassName unsubscribe:$parentId, $mMediaBrowser")
         mSubscribed.remove(parentId)
         mMediaBrowser.unsubscribe(parentId)
     }
@@ -233,9 +227,9 @@ class MediaResourcesManager(context: Context, className: String) {
     }
 
     private fun handleMediaBrowserConnected() {
-        d(mClassName + "Session token " + mMediaBrowser.sessionToken)
+        AppLogger.d(mClassName + "Session token " + mMediaBrowser.sessionToken)
         if (mActivity == null) {
-            e("$mClassName media browser connected when context is null, disconnect")
+            AppLogger.e("$mClassName media browser connected when context is null, disconnect")
             disconnect()
             return
         }
@@ -243,11 +237,11 @@ class MediaResourcesManager(context: Context, className: String) {
         // Initialize Media Controller
         mMediaController = try {
             MediaControllerCompat(
-                    mActivity,
-                    mMediaBrowser.sessionToken
+                mActivity,
+                mMediaBrowser.sessionToken
             )
         } catch (e: RemoteException) {
-            logException(e)
+            AppLogger.e("$e")
             return
         }
 
@@ -261,21 +255,21 @@ class MediaResourcesManager(context: Context, className: String) {
         if (mListener != null) {
             mListener!!.onConnected()
         } else {
-            e("$mClassName handle media browser connected, listener is null")
+            AppLogger.e("$mClassName handle media browser connected, listener is null")
         }
     }
 
     /**
      * Callback object for the Media Browser connection events.
      */
-    private inner class MediaBrowserConnectionCallback: MediaBrowserCompat.ConnectionCallback() {
+    private inner class MediaBrowserConnectionCallback : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
-            i(mClassName + "Connected")
+            AppLogger.i(mClassName + "Connected")
             handleMediaBrowserConnected()
         }
 
         override fun onConnectionSuspended() {
-            w(mClassName + "Connection Suspended")
+            AppLogger.w(mClassName + "Connection Suspended")
             val manager = this@MediaResourcesManager
             manager.mMediaController!!.unregisterCallback(manager.mMediaSessionCallback)
             manager.mTransportControls = null
@@ -286,7 +280,7 @@ class MediaResourcesManager(context: Context, className: String) {
         }
 
         override fun onConnectionFailed() {
-            e(mClassName + "Connection Failed")
+            AppLogger.e(mClassName + "Connection Failed")
         }
     }
 
@@ -300,47 +294,47 @@ class MediaResourcesManager(context: Context, className: String) {
         private var mCurrentState: PlaybackStateCompat? = null
 
         override fun onSessionDestroyed() {
-            i(mClassName + "Session destroyed. Need to fetch a new Media Session")
+            AppLogger.i(mClassName + "Session destroyed. Need to fetch a new Media Session")
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             if (state == null) {
-                e(mClassName + "PlaybackStateChanged to null state")
+                AppLogger.e(mClassName + "PlaybackStateChanged to null state")
                 return
             }
-            d(
-                    mClassName + "psc:["
-                            + playbackStateToString(state) + "]" + state
+            AppLogger.d(
+                mClassName + "psc:["
+                    + MediaItemHelper.playbackStateToString(state) + "]" + state
             )
             mCurrentState = state
             if (mListener == null) {
-                e(mClassName + "PlaybackStateChanged listener null")
+                AppLogger.e(mClassName + "PlaybackStateChanged listener null")
                 return
             }
             mListener!!.onPlaybackStateChanged(state)
         }
 
         override fun onQueueChanged(queue: List<MediaSessionCompat.QueueItem>) {
-            d(mClassName + "Queue changed:" + queue)
+            AppLogger.d(mClassName + "Queue changed:" + queue)
             if (mListener == null) {
-                e(mClassName + "Queue changed listener null")
+                AppLogger.e(mClassName + "Queue changed listener null")
                 return
             }
             mListener!!.onQueueChanged(queue)
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            d(mClassName + "Metadata changed:" + metadata)
+            AppLogger.d(mClassName + "Metadata changed:" + metadata)
             if (metadata == null) {
-                e(mClassName + "Metadata changed null")
+                AppLogger.e(mClassName + "Metadata changed null")
                 return
             }
             if (mListener == null) {
-                e(mClassName + "Metadata changed listener null")
+                AppLogger.e(mClassName + "Metadata changed listener null")
                 return
             }
             if (mMediaController == null) {
-                e(mClassName + "Metadata changed media controller null")
+                AppLogger.e(mClassName + "Metadata changed media controller null")
                 return
             }
             mListener!!.onMetadataChanged(metadata, mMediaController!!.queue)

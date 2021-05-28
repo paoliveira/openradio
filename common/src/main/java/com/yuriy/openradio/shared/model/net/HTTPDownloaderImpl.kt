@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,8 @@ package com.yuriy.openradio.shared.model.net
 import android.content.Context
 import android.net.Uri
 import androidx.core.util.Pair
-import com.yuriy.openradio.shared.model.net.DownloaderException.Companion.createExceptionMessage
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.NetUtils.closeHttpURLConnection
-import com.yuriy.openradio.shared.utils.NetUtils.getHttpURLConnection
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.NetUtils
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -57,32 +53,25 @@ class HTTPDownloaderImpl : Downloader {
                                      parameters: List<Pair<String, String>>): ByteArray {
         var response = ByteArray(0)
         val url = getConnectionUrl(uri, parameters) ?: return response
-        i("$CLASS_NAME Request URL:$url")
-        val connection = getHttpURLConnection(
-                context,
-                url,
-                if (parameters.isEmpty()) "GET" else "POST",
-                parameters
+        AppLogger.i("$CLASS_NAME Request URL:$url")
+        val connection = NetUtils.getHttpURLConnection(
+            context,
+            url,
+            if (parameters.isEmpty()) "GET" else "POST",
+            parameters
         ) ?: return response
         var responseCode = 0
         try {
             responseCode = connection.responseCode
         } catch (exception: IOException) {
-            logException(
-                    DownloaderException(
-                            createExceptionMessage(uri, parameters),
-                            exception
-                    )
-            )
+            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
         }
-        d("Response code:$responseCode")
+        AppLogger.d("Response code:$responseCode")
         if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
-            closeHttpURLConnection(connection)
-            logException(
-                    DownloaderException(
-                            createExceptionMessage(uri, parameters),
-                            Exception("Response code is $responseCode")
-                    )
+            NetUtils.closeHttpURLConnection(connection)
+            AppLogger.e(
+                "${DownloaderException.createExceptionMessage(uri, parameters)}, " +
+                    "e:${Exception("Response code is $responseCode")}"
             )
             return response
         }
@@ -90,14 +79,9 @@ class HTTPDownloaderImpl : Downloader {
             val inputStream: InputStream = BufferedInputStream(connection.inputStream)
             response = toByteArray(inputStream)
         } catch (exception: IOException) {
-            logException(
-                    DownloaderException(
-                            createExceptionMessage(uri, parameters),
-                            exception
-                    )
-            )
+            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
         } finally {
-            closeHttpURLConnection(connection)
+            NetUtils.closeHttpURLConnection(connection)
         }
         return response
     }
@@ -134,13 +118,11 @@ class HTTPDownloaderImpl : Downloader {
                 var i = 0
                 for (item in list) {
                     mUrlsSet!![i++] = "https://" + item.canonicalHostName
-                    i(CLASS_NAME + " look up host:" + mUrlsSet!![i - 1])
+                    AppLogger.i(CLASS_NAME + " look up host:" + mUrlsSet!![i - 1])
                 }
             }
         } catch (exception: UnknownHostException) {
-            logException(
-                    DownloaderException(createExceptionMessage(uri, parameters), exception)
-            )
+            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
         }
 
         // Do random selection from available addresses.
@@ -172,9 +154,7 @@ class HTTPDownloaderImpl : Downloader {
         return try {
             URL(uri)
         } catch (exception: MalformedURLException) {
-            logException(
-                    DownloaderException(createExceptionMessage(uri, parameters), exception)
-            )
+            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
             null
         }
     }

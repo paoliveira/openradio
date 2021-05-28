@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.utils
 
 import android.os.Bundle
-import android.util.Log
 import com.google.firebase.analytics.ktx.analytics
 import com.google.firebase.crashlytics.ktx.crashlytics
 import com.google.firebase.ktx.Firebase
@@ -40,17 +39,6 @@ object AnalyticsUtils {
     @JvmStatic
     fun init() {
         Firebase.crashlytics.setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
-    }
-
-    /**
-     * All logged exceptions will appear as “non-fatal” issues in the crash report dashboard.
-     *
-     * @param exception Exception.
-     */
-    @JvmStatic
-    fun logException(exception: Exception) {
-        AppLogger.e(Log.getStackTraceString(exception))
-        Firebase.crashlytics.recordException(exception)
     }
 
     @JvmStatic

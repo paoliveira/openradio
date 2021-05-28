@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.utils
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import com.yuriy.openradio.shared.utils.AppLogger.e
 
 /**
  * Created by Yuriy Chernyshov
@@ -63,6 +62,9 @@ object IntentUtils {
         if (bundle == null) {
             return "Bundle[null]"
         }
+        if (bundle.size() == 0) {
+            return "Bundle[]"
+        }
         val builder = StringBuilder("Bundle[")
         try {
             for (key in bundle.keySet()) {
@@ -71,7 +73,7 @@ object IntentUtils {
             }
             builder.delete(builder.length - 1, builder.length)
         } catch (e: Exception) {
-            e("Intent's bundle to string exception:$e")
+            AppLogger.e("Intent's bundle to string exception:$e")
         }
         builder.append("]")
         return builder.toString()

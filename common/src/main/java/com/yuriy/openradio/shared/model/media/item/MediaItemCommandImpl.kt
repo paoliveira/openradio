@@ -23,11 +23,7 @@ import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaDescriptionFromRadioStation
-import com.yuriy.openradio.shared.utils.MediaItemHelper.buildMediaMetadataForEmptyCategory
-import com.yuriy.openradio.shared.utils.MediaItemHelper.createListEndedResult
-import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
-import com.yuriy.openradio.shared.utils.MediaItemHelper.updateFavoriteField
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.vo.RadioStation
 
 /**
@@ -54,20 +50,20 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
         AppLogger.d(CLASS_NAME + " loaded " + list.size + " items")
         if (list.isEmpty()) {
             if (doLoadNoDataReceived()) {
-                val track = buildMediaMetadataForEmptyCategory(
-                        dependencies.context,
-                        MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES
+                val track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
+                    dependencies.context,
+                    MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES
                 )
                 val mediaDescription = track.description
                 val mediaItem = MediaBrowserCompat.MediaItem(
-                        mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
-                setDrawableId(mediaItem.description.extras, R.drawable.ic_radio_station_empty)
+                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+                MediaItemHelper.setDrawableId(mediaItem.description.extras, R.drawable.ic_radio_station_empty)
                 dependencies.addMediaItem(mediaItem)
                 dependencies.result.sendResult(dependencies.mediaItems)
                 dependencies.resultListener.onResult()
                 playbackStateListener?.updatePlaybackState(dependencies.context.getString(R.string.no_data_message))
             } else {
-                dependencies.result.sendResult(createListEndedResult())
+                dependencies.result.sendResult(MediaItemHelper.createListEndedResult())
                 dependencies.resultListener.onResult()
             }
             return
@@ -79,14 +75,12 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
     fun deliverResult(dependencies: MediaItemCommandDependencies) {
         val radioStations = dependencies.radioStationsStorage.all
         for (radioStation in radioStations) {
-            val mediaDescription = buildMediaDescriptionFromRadioStation(
-                    dependencies.context, radioStation
+            val mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
+                radioStation,
+                isFavorite = FavoritesStorage.isFavorite(radioStation, dependencies.context)
             )
             val mediaItem = MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
-            if (FavoritesStorage.isFavorite(radioStation, dependencies.context)) {
-                updateFavoriteField(mediaItem, true)
-            }
+                mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
             dependencies.addMediaItem(mediaItem)
         }
         AppLogger.d(CLASS_NAME + " deliver " + dependencies.mediaItems.size + " items")

@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.model.net
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.yuriy.openradio.shared.model.net.UrlBuilder.preProcessIconUri
 import com.yuriy.openradio.shared.model.net.UrlBuilder.preProcessIconUrl
+import com.yuriy.openradio.shared.utils.AppUtils
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
 import org.junit.Test
@@ -41,8 +42,8 @@ class UrlBuilderTest {
 
     @Test
     fun preProcessIconUrlEmptyInput() {
-        val newUrl = preProcessIconUrl("")
-        MatcherAssert.assertThat(newUrl, Matchers.`is`(""))
+        val newUrl = preProcessIconUrl(AppUtils.EMPTY_STRING)
+        MatcherAssert.assertThat(newUrl, Matchers.`is`(AppUtils.EMPTY_STRING))
     }
 
     @Test

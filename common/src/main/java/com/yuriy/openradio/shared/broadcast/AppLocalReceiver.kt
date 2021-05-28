@@ -39,7 +39,7 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
      *
      * @param callback Implementation of the [AppLocalReceiverCallback]
      */
-    fun registerListener(callback: AppLocalReceiverCallback?) {
+    fun registerListener(callback: AppLocalReceiverCallback) {
         mCallback = callback
     }
 
@@ -69,7 +69,7 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
         if (action == AppLocalBroadcast.getActionSortIdChanged()) {
             if (mCallback != null) {
                 mCallback!!.onSortIdChanged(
-                        AppLocalBroadcast.getSortMediaId(intent), AppLocalBroadcast.getSortId(intent)
+                    AppLocalBroadcast.getSortMediaId(intent), AppLocalBroadcast.getSortId(intent)
                 )
             }
         }
@@ -81,8 +81,8 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
         if (action == AppLocalBroadcast.getActionCurrentIndexOnQueueChanged()) {
             if (mCallback != null) {
                 mCallback!!.onCurrentIndexOnQueueChanged(
-                        AppLocalBroadcast.getCurrentIndexOnQueue(intent),
-                        AppLocalBroadcast.getCurrentMediaIdOnQueue(intent)
+                    AppLocalBroadcast.getCurrentIndexOnQueue(intent),
+                    AppLocalBroadcast.getCurrentMediaIdOnQueue(intent)
                 )
             }
         }

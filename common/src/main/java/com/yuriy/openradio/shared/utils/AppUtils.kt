@@ -23,6 +23,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
@@ -31,10 +32,6 @@ import com.squareup.picasso.Picasso
 import com.squareup.picasso.RequestCreator
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
-import com.yuriy.openradio.shared.utils.AppLogger.w
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.*
@@ -54,11 +51,14 @@ object AppUtils {
      */
     const val TIME_OUT = 2000
     const val UTF8 = "UTF-8"
+    const val EMPTY_STRING = ""
 
     private val ANDROID_AUTO_PACKAGE_NAMES = arrayOf(
             "com.google.android.projection.gearhead",
             "com.android.car"
     )
+
+    private const val KEY_SEARCH_QUERY = "KEY_SEARCH_QUERY"
 
     /**
      * Tag string to use in logging message.
@@ -78,7 +78,7 @@ object AppUtils {
         }
         val packageManager = context.packageManager ?: return false
         val result = packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION)
-        i("Has Location:$result")
+        AppLogger.i("Has Location:$result")
         return result
     }
 
@@ -94,7 +94,7 @@ object AppUtils {
         return if (packageInfo != null) {
             packageInfo.versionName
         } else {
-            w("$CLASS_NAME Can't get application version")
+            AppLogger.w("$CLASS_NAME Can't get application version")
             "?"
         }
     }
@@ -106,7 +106,7 @@ object AppUtils {
     private fun getPackageInfo(context: Context): PackageInfo? {
         val packageManager = context.packageManager
         if (packageManager == null) {
-            w("$CLASS_NAME Package manager is NULL")
+            AppLogger.w("$CLASS_NAME Package manager is NULL")
             return null
         }
         val packageName: String
@@ -114,17 +114,17 @@ object AppUtils {
             packageName = context.packageName
             packageManager.getPackageInfo(packageName, 0)
         } catch (e: PackageManager.NameNotFoundException) {
-            logException(e)
+            AppLogger.e("Get pck info $e")
             null
         } catch (e: RuntimeException) {
             // To catch RuntimeException("Package manager has died") that can occur on some
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            logException(e)
+            AppLogger.e("Get pck info $e")
             null
         } catch (e: Throwable) {
-            e("$CLASS_NAME Package manager has Throwable : $e")
+            AppLogger.e("$CLASS_NAME Package manager has Throwable : $e")
             null
         }
     }
@@ -193,7 +193,7 @@ object AppUtils {
         return if (packageInfo != null) {
             packageInfo.versionName
         } else {
-            w("Can't get application version")
+            AppLogger.w("Can't get application version")
             "?"
         }
     }
@@ -204,7 +204,7 @@ object AppUtils {
         return if (packageInfo != null) {
             packageInfo.versionCode
         } else {
-            w("Can't get application code")
+            AppLogger.w("Can't get application code")
             0
         }
     }
@@ -222,17 +222,17 @@ object AppUtils {
             val simCountry = tm.simCountryIso
             if (simCountry != null && simCountry.length == 2) {
                 // SIM country code is available
-                return simCountry.toLowerCase(Locale.US)
+                return simCountry.lowercase(Locale.US)
             } else if (tm.phoneType != TelephonyManager.PHONE_TYPE_CDMA) {
                 // device is not 3G (would be unreliable)
                 val networkCountry = tm.networkCountryIso
                 if (networkCountry != null && networkCountry.length == 2) {
                     // network country code is available
-                    return networkCountry.toLowerCase(Locale.US)
+                    return networkCountry.lowercase(Locale.US)
                 }
             }
         } catch (e: Exception) {
-            logException(e)
+            AppLogger.e("GetUserCountry $e")
         }
         return null
     }
@@ -241,8 +241,8 @@ object AppUtils {
     fun isWebUrl(url: String): Boolean {
         return if (url.isEmpty()) {
             false
-        } else url.toLowerCase(Locale.ROOT).startsWith("www")
-                || url.toLowerCase(Locale.ROOT).startsWith("http")
+        } else url.lowercase(Locale.ROOT).startsWith("www")
+                || url.lowercase(Locale.ROOT).startsWith("http")
     }
 
     @JvmStatic
@@ -283,22 +283,17 @@ object AppUtils {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
     }
 
-    /**
-     * Holder for the Search query. Up to now I found it as quick solution to pass query
-     * from Activity to the Open Radio Service.
-     */
-    private val SEARCH_QUERY = StringBuilder()
-
-    /**
-     * @return Gets the Search query string.
-     */
     @JvmStatic
-    var searchQuery: String?
-        get() = SEARCH_QUERY.toString()
-        set(searchQuery) {
-            SEARCH_QUERY.setLength(0)
-            SEARCH_QUERY.append(searchQuery)
-        }
+    fun makeSearchQueryBundle(queryString: String): Bundle {
+        val bundle = Bundle()
+        bundle.putString(KEY_SEARCH_QUERY, queryString)
+        return bundle
+    }
+
+    @JvmStatic
+    fun getSearchQueryFromBundle(queryBundle: Bundle): String {
+        return queryBundle.getString(KEY_SEARCH_QUERY, EMPTY_STRING)
+    }
 
     /**
      * Checks whether or not application runs on Automotive environment.
@@ -342,7 +337,7 @@ object AppUtils {
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                e("Can not start activity:$e")
+                AppLogger.e("Can not start activity:$e")
                 return false
             }
             return true
@@ -360,7 +355,7 @@ object AppUtils {
             try {
                 context.startActivityForResult(intent, resultCode)
             } catch (e: Exception) {
-                e("Can not start activity for result:$e")
+                AppLogger.e("Can not start activity for result:$e")
                 return false
             }
             return true

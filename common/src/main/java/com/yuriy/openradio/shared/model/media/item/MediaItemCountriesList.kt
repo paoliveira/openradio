@@ -26,7 +26,7 @@ import com.yuriy.openradio.shared.model.net.UrlBuilder.allCountriesUrl
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -91,11 +91,11 @@ class MediaItemCountriesList : MediaItemCommand {
                     .setTitle(country.name)
                     .setSubtitle(country.code)
             identifier = dependencies.context.resources.getIdentifier(
-                    "flag_" + country.code.toLowerCase(Locale.ROOT),
+                    "flag_" + country.code.lowercase(Locale.ROOT),
                     "drawable", dependencies.context.packageName
             )
             val bundle1 = Bundle()
-            setDrawableId(bundle1, identifier)
+            MediaItemHelper.setDrawableId(bundle1, identifier)
             builder.setExtras(bundle1)
             dependencies.addMediaItem(
                     MediaBrowserCompat.MediaItem(

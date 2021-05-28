@@ -105,7 +105,7 @@ class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
                     try {
                         var href = children[i].getAttributeValue(HREF_ATTRIBUTE)
                         if (href == null) {
-                            href = children[i].getAttributeValue(HREF_ATTRIBUTE.toUpperCase(Locale.ROOT))
+                            href = children[i].getAttributeValue(HREF_ATTRIBUTE.uppercase(Locale.ROOT))
                         }
                         if (href == null) {
                             href = children[i].value
@@ -165,7 +165,7 @@ class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
             } else if (attributeName.equals(REF_ELEMENT, ignoreCase = true)) {
                 var href = children[i].getAttributeValue(HREF_ATTRIBUTE)
                 if (href == null) {
-                    href = children[i].getAttributeValue(HREF_ATTRIBUTE.toUpperCase(Locale.ROOT))
+                    href = children[i].getAttributeValue(HREF_ATTRIBUTE.uppercase(Locale.ROOT))
                 }
                 if (href == null) {
                     href = children[i].value

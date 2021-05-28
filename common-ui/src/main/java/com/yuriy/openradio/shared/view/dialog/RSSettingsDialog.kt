@@ -40,8 +40,8 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  */
 class RSSettingsDialog : BaseDialogFragment() {
 
-    private var mParentCategoryId = ""
-    private var mSortMediaId = ""
+    private var mParentCategoryId = AppUtils.EMPTY_STRING
+    private var mSortMediaId = AppUtils.EMPTY_STRING
     private var mSortNewPosition = 0
     private var mSortOriginalPosition = 0
 
@@ -138,11 +138,11 @@ class RSSettingsDialog : BaseDialogFragment() {
 
         private fun extractParentId(bundle: Bundle?): String {
             if (bundle == null) {
-                return ""
+                return AppUtils.EMPTY_STRING
             }
             return if (!bundle.containsKey(KEY_PARENT_ID)) {
-                ""
-            } else bundle.getString(KEY_PARENT_ID, "")
+                AppUtils.EMPTY_STRING
+            } else bundle.getString(KEY_PARENT_ID, AppUtils.EMPTY_STRING)
         }
 
         private fun extractMaxId(bundle: Bundle?): Int {

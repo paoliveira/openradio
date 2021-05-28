@@ -60,7 +60,7 @@ object ImageFilePath {
                 // using paths is deprecated for a long time, it was finally disabled in android 10
                 // so this workaround doesnt work t all ut it does prevent crash
                 val id = DocumentsContract.getDocumentId(uri)
-                var contentUri = Uri.parse("")
+                var contentUri = Uri.parse(AppUtils.EMPTY_STRING)
                 try {
                     contentUri = ContentUris.withAppendedId(
                             Uri.parse("content://downloads/public_downloads"), id.toLong())
@@ -125,7 +125,7 @@ object ImageFilePath {
                     }
         } catch (e: Exception) {
             val msg = "Can not get data column for " + (originalUri?.toString() ?: "null.")
-            AnalyticsUtils.logException(Exception(msg, e))
+            AppLogger.e("$msg, e:$e")
         }
         return null
     }

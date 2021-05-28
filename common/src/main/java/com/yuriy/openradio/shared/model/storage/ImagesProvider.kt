@@ -21,15 +21,22 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.FileUtils
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.*
 
-class ImagesProvider : ContentProvider() {
+class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
 
+    private lateinit var mNetworkMonitor: NetworkMonitor
     private lateinit var mExecutor: ExecutorService
+
+    override fun configureWith(networkMonitor: NetworkMonitor) {
+        mNetworkMonitor = networkMonitor
+    }
 
     override fun onCreate(): Boolean {
         mExecutor = Executors.newCachedThreadPool()
@@ -75,7 +82,7 @@ class ImagesProvider : ContentProvider() {
                 var outputStream: FileOutputStream? = null
                 try {
                     outputStream = FileOutputStream(file)
-                    FileUtils.downloadUrlToStream(context!!, imageUrl, outputStream)
+                    FileUtils.downloadUrlToStream(context!!, imageUrl, outputStream, mNetworkMonitor)
                     outputStream.flush()
                     AppLogger.d("$TAG file $file downloaded ${file.exists()}")
                 } catch (e: IOException) {

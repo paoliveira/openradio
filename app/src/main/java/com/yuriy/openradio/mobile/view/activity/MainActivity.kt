@@ -63,6 +63,7 @@ import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
+import com.yuriy.openradio.shared.view.dialog.NetworkDialog
 import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
@@ -111,7 +112,6 @@ class MainActivity : AppCompatActivity() {
      */
     private val mMediaItemListener: MediaItemsAdapter.Listener
 
-    private var mBufferedTextView: TextView? = null
     private var mPlayBtn: View? = null
     private var mPauseBtn: View? = null
     private var mProgressBarCrs: ProgressBar? = null
@@ -131,7 +131,6 @@ class MainActivity : AppCompatActivity() {
 
         initUi(applicationContext)
         hideProgressBar()
-        updateBufferedTime(0)
 
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
@@ -181,11 +180,11 @@ class MainActivity : AppCompatActivity() {
         return when (id) {
             R.id.action_search -> {
 
-                val bundle = SearchDialog.makeBundle(
+                val bundle = SearchDialog.makeNewInstanceBundle(
                         object : SearchDialog.Listener {
 
-                            override fun onSuccess(queryString: String?) {
-                                onSearchDialogClick(queryString)
+                            override fun onSuccess(queryBundle: Bundle) {
+                                onSearchDialogClick(queryBundle)
                             }
                         }
                 )
@@ -235,7 +234,6 @@ class MainActivity : AppCompatActivity() {
         mProgressBar = findViewById(R.id.progress_bar_view)
         // Initialize No Data text view
         mNoDataView = findViewById(R.id.no_data_view)
-        mBufferedTextView = findViewById(R.id.crs_buffered_view)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navigationView = findViewById<NavigationView>(R.id.nav_view)
@@ -283,6 +281,11 @@ class MainActivity : AppCompatActivity() {
                     val dialog = BaseDialogFragment.newInstance(AboutDialog::class.java.name)
                     dialog!!.show(transaction, AboutDialog.DIALOG_TAG)
                 }
+                R.id.nav_network -> {
+                    // Show Network Dialog
+                    val dialog = BaseDialogFragment.newInstance(NetworkDialog::class.java.name)
+                    dialog!!.show(transaction, NetworkDialog.DIALOG_TAG)
+                }
                 else -> {
                     // No dialog found.
                 }
@@ -327,11 +330,9 @@ class MainActivity : AppCompatActivity() {
      *
      * @param queryString String to query for.
      */
-    fun onSearchDialogClick(queryString: String?) {
+    fun onSearchDialogClick(queryBundle: Bundle) {
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
-        // Save search query string, retrieve it later in the service
-        AppUtils.searchQuery = queryString
-        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
+        mMediaPresenter.addMediaItemToStack(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP, queryBundle)
     }
 
     /**
@@ -405,7 +406,7 @@ class MainActivity : AppCompatActivity() {
      * @param item Media item related to the Radio Station to be deleted.
      */
     private fun handleRemoveRadioStationMenu(item: MediaBrowserCompat.MediaItem) {
-        var name = ""
+        var name = AppUtils.EMPTY_STRING
         if (item.description.title != null) {
             name = item.description.title.toString()
         }
@@ -484,25 +485,6 @@ class MainActivity : AppCompatActivity() {
         }
         mProgressBarCrs!!.visibility = View.GONE
         hideProgressBar()
-        val bufferedDuration = (state.bufferedPosition - state.position) / 1000
-        updateBufferedTime(bufferedDuration)
-    }
-
-    /**
-     * Updates buffered value of the currently playing radio station.
-     *
-     * @param value Buffered time in seconds.
-     */
-    private fun updateBufferedTime(value: Long) {
-        var valueCpy = value
-        if (mBufferedTextView == null) {
-            return
-        }
-        if (valueCpy < 0) {
-            valueCpy = 0
-        }
-        mBufferedTextView!!.visibility = if (valueCpy > 0) View.VISIBLE else View.INVISIBLE
-        mBufferedTextView!!.text = String.format(Locale.getDefault(), "Buffered %d sec", valueCpy)
     }
 
     /**
@@ -537,12 +519,10 @@ class MainActivity : AppCompatActivity() {
             favoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(this, R.drawable.src_favorite)
             favoriteCheckView.isChecked = false
             val mediaItem = MediaBrowserCompat.MediaItem(
-                    MediaItemHelper.buildMediaDescriptionFromRadioStation(context, radioStation),
+                    MediaItemHelper.buildMediaDescriptionFromRadioStation(
+                        radioStation, isFavorite = FavoritesStorage.isFavorite(radioStation, context)
+                    ),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
-            )
-            MediaItemHelper.updateFavoriteField(
-                    mediaItem,
-                    FavoritesStorage.isFavorite(radioStation, context)
             )
             MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, context)
         }
@@ -621,8 +601,12 @@ class MainActivity : AppCompatActivity() {
 
     private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
 
-        override fun onChildrenLoaded(parentId: String, children: List<MediaBrowserCompat.MediaItem>) {
-            AppLogger.i("$CLASS_NAME children loaded:$parentId, children:${children.size}")
+        override fun onChildrenLoaded(parentId: String, children: MutableList<MediaBrowserCompat.MediaItem>,
+                                      options: Bundle) {
+            AppLogger.i(
+                "$CLASS_NAME children loaded:$parentId, children:${children.size}," +
+                    " options:${IntentUtils.bundleToString(options)}"
+            )
             if (mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
                 return
@@ -660,9 +644,9 @@ class MainActivity : AppCompatActivity() {
             val transaction = supportFragmentManager.beginTransaction()
             UiUtils.clearDialogs(this@MainActivity, transaction)
             val bundle = Bundle()
-            var currentParentId = ""
-            currentParentId = mMediaPresenter.currentParentId
-            RSSettingsDialog.provideMediaItem(bundle, item, currentParentId, mMediaPresenter.itemsCount())
+            RSSettingsDialog.provideMediaItem(
+                bundle, item, mMediaPresenter.currentParentId, mMediaPresenter.itemsCount()
+            )
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
             fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }

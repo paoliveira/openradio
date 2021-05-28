@@ -19,16 +19,16 @@ package com.yuriy.openradio.shared.model.api
 import android.content.Context
 import android.net.Uri
 import androidx.core.util.Pair
-import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
 import com.yuriy.openradio.shared.model.net.Downloader
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.parser.DataParser
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.model.storage.cache.api.InMemoryApiCache
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.NetUtils
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.Country
@@ -49,7 +49,9 @@ import java.util.*
  *
  * @param context Context of a callee.
  */
-class ApiServiceProviderImpl(context: Context, private val mDataParser: DataParser) : ApiServiceProvider {
+class ApiServiceProviderImpl(context: Context,
+                             private val mDataParser: DataParser,
+                             private val mNetworkMonitor: NetworkMonitor) : ApiServiceProvider {
 
     private val mContext = context
     private val mApiCachePersistent = PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME)
@@ -115,7 +117,7 @@ class ApiServiceProviderImpl(context: Context, private val mDataParser: DataPars
                 }
             }
         } catch (e: JSONException) {
-            AnalyticsUtils.logException(e)
+            AppLogger.e("$e")
         }
         return value
     }
@@ -156,7 +158,7 @@ class ApiServiceProviderImpl(context: Context, private val mDataParser: DataPars
                              parameters: List<Pair<String, String>>,
                              cacheType: CacheType?): String {
         var response = ""
-        if (!ConnectivityReceiver.checkConnectivityAndNotify(mContext)) {
+        if (!mNetworkMonitor.checkConnectivityAndNotify(mContext)) {
             return response
         }
 
@@ -165,8 +167,8 @@ class ApiServiceProviderImpl(context: Context, private val mDataParser: DataPars
         try {
             responsesMapKey += NetUtils.getPostParametersQuery(parameters)
         } catch (e: UnsupportedEncodingException) {
-            AnalyticsUtils.logException(e)
-            responsesMapKey = ""
+            AppLogger.e("$e")
+            responsesMapKey = AppUtils.EMPTY_STRING
         }
 
         // Fetch RAM memory first.

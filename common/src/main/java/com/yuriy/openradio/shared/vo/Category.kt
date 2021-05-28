@@ -17,6 +17,7 @@ package com.yuriy.openradio.shared.vo
 
 import android.content.Context
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.utils.AppUtils
 
 /**
  * Created by Yuriy Chernyshov
@@ -35,7 +36,7 @@ private constructor() {
 
     var id: String? = null
     var stationsCount = 0
-    var title = ""
+    var title = AppUtils.EMPTY_STRING
 
     fun getDescription(context: Context): String {
         var desc = stationsCount.toString()

@@ -43,10 +43,10 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
         }
         // Those values are used in store and are related to radio stations but not radio stations themselves.
         // It is legal but need better design.
-        if (value.toLowerCase(Locale.ROOT) == "true") {
+        if (value.lowercase(Locale.ROOT) == "true") {
             return null
         }
-        if (value.toLowerCase(Locale.ROOT) == "false") {
+        if (value.lowercase(Locale.ROOT) == "false") {
             return null
         }
         try {

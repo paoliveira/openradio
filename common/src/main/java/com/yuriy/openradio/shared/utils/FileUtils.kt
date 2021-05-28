@@ -18,10 +18,7 @@ package com.yuriy.openradio.shared.utils
 
 import android.content.Context
 import android.util.Log
-import com.yuriy.openradio.shared.broadcast.ConnectivityReceiver
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppUtils.generateRandomHexToken
-import com.yuriy.openradio.shared.utils.AppUtils.isWebUrl
+import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -93,19 +90,19 @@ object FileUtils {
      * @return
      */
     @JvmStatic
-    fun copyExtFileToIntDir(context: Context, filePath: String): String? {
+    fun copyExtFileToIntDir(context: Context, filePath: String, networkMonitor: NetworkMonitor): String? {
         if (filePath.isEmpty()) {
             return filePath
         }
         val directory = getFilesDir(context)
-        val file = File(directory, generateRandomHexToken(16))
-        val out = try {
+        val file = File(directory, AppUtils.generateRandomHexToken(16))
+        val out: OutputStream = try {
             FileOutputStream(file)
         } catch (e: FileNotFoundException) {
-            logException(e)
+            AppLogger.e("$e")
             return null
         }
-        downloadUrlToStream(context, filePath, out)
+        downloadUrlToStream(context, filePath, out, networkMonitor)
         try {
             out.close()
         } catch (e: IOException) {
@@ -124,15 +121,18 @@ object FileUtils {
      * @param outputStream
      * @return true if successful, false otherwise
      */
-    fun downloadUrlToStream(context: Context,
-                            urlString: String,
-                            outputStream: OutputStream): Boolean {
+    public fun downloadUrlToStream(
+        context: Context,
+        urlString: String,
+        outputStream: OutputStream?,
+        networkMonitor: NetworkMonitor
+    ): Boolean {
         var connection: HttpURLConnection? = null
         var out: BufferedOutputStream? = null
         var bufferedInputStream: BufferedInputStream? = null
         try {
-            if (isWebUrl(urlString)) {
-                if (ConnectivityReceiver.checkConnectivityAndNotify(context)) {
+            if (AppUtils.isWebUrl(urlString)) {
+                if (networkMonitor.checkConnectivityAndNotify(context)) {
                     connection = NetUtils.getHttpURLConnection(context, urlString, "GET")
                     if (connection == null) {
                         return false
@@ -152,9 +152,9 @@ object FileUtils {
             }
             return true
         } catch (e: SocketTimeoutException) {
-            logException(Exception("url:$urlString", e))
+            AppLogger.e("SocketTimeoutException url:$urlString e:$e")
         } catch (e: IOException) {
-            logException(Exception("url:$urlString", e))
+            AppLogger.e("IOException url:$urlString e:$e")
         } finally {
             NetUtils.closeHttpURLConnection(connection)
             try {
@@ -177,8 +177,8 @@ object FileUtils {
         try {
             file.createNewFile()
         } catch (e: IOException) {
-            logException(
-                    FileNotFoundException("File $path not created:${Log.getStackTraceString(e)}")
+            AppLogger.e(
+                "File $path not created:${Log.getStackTraceString(e)}"
             )
         }
         return file

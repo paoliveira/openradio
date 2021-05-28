@@ -23,6 +23,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
 /**
@@ -65,7 +66,7 @@ class RemoveStationDialog : BaseDialogFragment() {
             dialog!!.dismiss()
         }
         val cancelBtn = view.findViewById<Button>(R.id.remove_station_dialog_cancel_btn_view)
-        cancelBtn.setOnClickListener { viewBtn: View? -> dialog!!.dismiss() }
+        cancelBtn.setOnClickListener { dialog!!.dismiss() }
         return createAlertDialog(view)
     }
 
@@ -112,11 +113,11 @@ class RemoveStationDialog : BaseDialogFragment() {
          */
         private fun getArgument(bundle: Bundle?, key: String): String? {
             if (bundle == null) {
-                return ""
+                return AppUtils.EMPTY_STRING
             }
             return if (bundle.containsKey(key)) {
                 bundle.getString(key)
-            } else ""
+            } else AppUtils.EMPTY_STRING
         }
 
         private fun getListener(bundle: Bundle?, key: String): Listener? {

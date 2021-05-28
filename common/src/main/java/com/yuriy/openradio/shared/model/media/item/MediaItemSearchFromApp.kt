@@ -16,9 +16,9 @@
 package com.yuriy.openradio.shared.model.media.item
 
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
-import com.yuriy.openradio.shared.model.net.UrlBuilder.getSearchUrl
+import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils.searchQuery
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -36,6 +36,7 @@ import java.util.*
  * designed to prepare data to display radio stations from the search collection.
  */
 class MediaItemSearchFromApp : IndexableMediaItemCommand() {
+
     override fun execute(playbackStateListener: IUpdatePlaybackState?,
                          dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)
@@ -49,11 +50,11 @@ class MediaItemSearchFromApp : IndexableMediaItemCommand() {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val list: List<RadioStation> = ArrayList(
-                        dependencies.serviceProvider.getStations(
-                                dependencies.downloader,
-                                getSearchUrl(searchQuery!!),
-                                getCacheType(dependencies)
-                        )
+                    dependencies.serviceProvider.getStations(
+                        dependencies.downloader,
+                        UrlBuilder.getSearchUrl(AppUtils.getSearchQueryFromBundle(dependencies.options)),
+                        getCacheType(dependencies)
+                    )
                 )
                 handleDataLoaded(playbackStateListener, dependencies, list)
             } ?: dependencies.result.sendResult(null)

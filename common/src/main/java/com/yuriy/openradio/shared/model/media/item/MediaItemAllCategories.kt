@@ -24,7 +24,7 @@ import com.yuriy.openradio.shared.model.media.item.MediaItemCommandImpl.Companio
 import com.yuriy.openradio.shared.model.net.UrlBuilder.allCategoriesUrl
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper.setDrawableId
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -86,7 +86,7 @@ class MediaItemAllCategories : MediaItemCommand {
                 break
             }
             val bundle = Bundle()
-            setDrawableId(bundle, R.drawable.ic_child_categories)
+            MediaItemHelper.setDrawableId(bundle, R.drawable.ic_child_categories)
             dependencies.addMediaItem(
                     MediaBrowserCompat.MediaItem(
                             MediaDescriptionCompat.Builder()

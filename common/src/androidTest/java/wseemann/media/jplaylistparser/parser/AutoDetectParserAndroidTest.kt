@@ -62,7 +62,7 @@ class AutoDetectParserAndroidTest {
     @Test
     fun testUnrecognizedPlsStream() {
         val url = "https://streaming.galaxywebsolutions.com/tunein/9068/stream/pls"
-        var ext = ""
+        var ext = AppUtils.EMPTY_STRING
         val latch = CountDownLatch(1)
         GlobalScope.launch(Dispatchers.IO) {
             kotlin.run {
@@ -96,6 +96,6 @@ class AutoDetectParserAndroidTest {
 
     private fun readFileWithNewLineFromResources(fileName: String): String {
         return getInputStreamFromResource(fileName)?.bufferedReader()
-                .use { bufferReader -> bufferReader?.readText() } ?: ""
+                .use { bufferReader -> bufferReader?.readText() } ?: AppUtils.EMPTY_STRING
     }
 }

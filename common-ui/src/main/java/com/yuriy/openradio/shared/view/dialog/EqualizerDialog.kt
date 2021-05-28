@@ -80,7 +80,6 @@ class EqualizerDialog : BaseDialogFragment() {
     }
 
     private fun handleEqualizer(context: Context, view: View) {
-        AppLogger.d("")
         val state = IEqualizerImpl.loadState(context)
         updateEqualizer(context, state)
         val presets = state.presets

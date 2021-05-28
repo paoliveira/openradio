@@ -39,12 +39,9 @@ import com.squareup.picasso.Target
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logException
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.AppUtils.hasVersionLollipop
-import com.yuriy.openradio.shared.utils.MediaItemHelper.metadataFromRadioStation
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 import java.util.concurrent.atomic.*
@@ -81,7 +78,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                 val applicationInfo = mService.packageManager.getApplicationInfo(packageName, 0)
                 packageContext.setTheme(applicationInfo.theme)
                 val theme = packageContext.theme
-                if (hasVersionLollipop()) {
+                if (AppUtils.hasVersionLollipop()) {
                     val ta = theme.obtainStyledAttributes(intArrayOf(R.attr.colorPrimary))
                     notificationColor = ta.getColor(0, Color.DKGRAY)
                     ta.recycle()
@@ -89,7 +86,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                     notificationColor = -0xbbbbbc
                 }
             } catch (e: Exception) {
-                logException(e)
+                AppLogger.e("$e")
             }
             return notificationColor
         }
@@ -130,7 +127,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         filter.addAction(ACTION_PREV)
         mService.registerReceiver(this, filter)
         val metadata = mController!!.metadata
-        mMetadata = metadata ?: metadataFromRadioStation(context, radioStation)
+        mMetadata = metadata ?: MediaItemHelper.metadataFromRadioStation(context, radioStation)
         mStarted.set(true)
         // The notification must be updated after setting started to true
         handleNotification(mController!!.playbackState)
@@ -141,20 +138,20 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      * was destroyed this has no effect.
      */
     fun stopNotification() {
-        d(CLASS_NAME + " stop, ORS[" + mService.hashCode() + "]")
+        AppLogger.d(CLASS_NAME + " stop, ORS[" + mService.hashCode() + "]")
         mStarted.set(false)
         mController!!.unregisterCallback(mCb)
         mNotificationManager.cancelAll()
         try {
             mService.unregisterReceiver(this)
         } catch (ex: IllegalArgumentException) {
-            e("$CLASS_NAME error while unregister:$ex")
+            AppLogger.e("$CLASS_NAME error while unregister:$ex")
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action
-        d("$CLASS_NAME Received intent with action $action")
+        AppLogger.d("$CLASS_NAME Received intent with action $action")
         if (action.isNullOrEmpty()) {
             return
         }
@@ -181,7 +178,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             mController = try {
                 MediaControllerCompat(mService, mSessionToken!!)
             } catch (e: RemoteException) {
-                logException(e)
+                AppLogger.e("$e")
                 return
             }
             mTransportControls = mController!!.transportControls
@@ -196,7 +193,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         private var mPlaybackState: PlaybackStateCompat? = null
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
-            d("$CLASS_NAME Received new playback state:$state")
+            AppLogger.d("$CLASS_NAME Received new playback state:$state")
             val doNotify: Boolean = if (mPlaybackState == null) {
                 true
             } else {
@@ -209,13 +206,13 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat) {
-            d("$CLASS_NAME Received new metadata:$metadata")
+            AppLogger.d("$CLASS_NAME Received new metadata:$metadata")
             mMetadata = metadata
             handleNotification(mPlaybackState)
         }
 
         override fun onSessionDestroyed() {
-            d("$CLASS_NAME Session was destroyed, resetting to the new session token")
+            AppLogger.d("$CLASS_NAME Session was destroyed, resetting to the new session token")
             updateSessionToken()
         }
 
@@ -258,13 +255,13 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                     .into(
                             object : Target {
                                 override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
-                                    e("Can't load large art:$e")
+                                    AppLogger.e("Can't load large art:$e")
                                 }
 
                                 override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
 
                                 override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                                    d("Large art loaded")
+                                    AppLogger.d("Large art loaded")
                                     art = bitmap
                                 }
                             }
@@ -273,7 +270,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             // use a placeholder art while the remote art is being downloaded
             art = BitmapFactory.decodeResource(mService.resources, R.drawable.ic_radio_station)
         } else {
-            d("Art bitmap:$art")
+            AppLogger.d("Art bitmap:$art")
         }
 
         // If skip to next action is enabled
@@ -286,7 +283,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             )
             enableNext = true
         }
-        val smallIcon = if (hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
+        val smallIcon = if (AppUtils.hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
         // Build the style.
         val actionsToShowInCompact = getActionIndicesForCompactView(
                 getActions(enableNext, enablePrevious, playbackState), playbackState
@@ -307,13 +304,13 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setContentTitle(description.title)
                 .setContentText(description.subtitle)
-        d(
+        AppLogger.d(
                 CLASS_NAME + " Update Notification " +
                         "state:" + playbackState +
                         "title:" + description.title +
                         "subtitle:" + description.subtitle
         )
-        d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]")
+        AppLogger.d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]")
         mService.startForeground(NOTIFICATION_ID, builder.build())
     }
 
@@ -328,7 +325,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(
                 mService, ServiceStartedNotificationData.CHANNEL_ID
         )
-        val smallIcon = if (hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
+        val smallIcon = if (AppUtils.hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
         builder
                 .setContentIntent(makePendingIntent())
                 .setStyle(mediaStyle)
@@ -338,7 +335,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
                 .setContentText(message)
                 .setSmallIcon(smallIcon)
                 .setLargeIcon(art)
-        d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]")
+        AppLogger.d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]")
         mService.startForeground(NOTIFICATION_ID, builder.build())
     }
 

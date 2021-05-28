@@ -16,6 +16,7 @@
 
 package wseemann.media.jplaylistparser.parser.m3u
 
+import com.yuriy.openradio.shared.utils.AppUtils
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException
 import wseemann.media.jplaylistparser.mime.MediaType
 import wseemann.media.jplaylistparser.mime.MediaType.Companion.audio
@@ -46,10 +47,10 @@ class M3UPlaylistParser(timeout: Int) : AbstractParser(timeout) {
     private fun parsePlaylist(stream: InputStream, playlist: Playlist) {
         var playlistEntry = PlaylistEntry()
         stream.bufferedReader().forEachLine { it ->
-            if (!(it.equals(EXTENDED_INFO_TAG, ignoreCase = true) || it.trim { it <= ' ' } == "")) {
+            if (!(it.equals(EXTENDED_INFO_TAG, ignoreCase = true) || it.trim { it <= ' ' } == AppUtils.EMPTY_STRING)) {
                 if (it.matches(RECORD_TAG)) {
                     playlistEntry = PlaylistEntry()
-                    playlistEntry[PlaylistEntry.PLAYLIST_METADATA] = it.replace("^(.*?),".toRegex(), "")
+                    playlistEntry[PlaylistEntry.PLAYLIST_METADATA] = it.replace("^(.*?),".toRegex(), AppUtils.EMPTY_STRING)
                     processingEntry = true
                 } else {
                     if (!processingEntry) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,25 @@ import com.yuriy.openradio.shared.utils.AppUtils
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
- * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-object EqualizerStorage : AbstractStorage() {
+object NetworkSettingsStorage : AbstractStorage() {
 
     /**
      * Name of the Preferences.
      */
-    private const val FILE_NAME = "EqualizerStorage"
-    private const val EQUALIZER_STATE = "EQUALIZER_STATE"
+    private const val FILE_NAME = "NetworkSettingsStorage"
+    private const val IS_USE_MOBILE = "IS_USE_MOBILE"
 
     @JvmStatic
-    fun isEmpty(context: Context): Boolean {
-        val preferences = getSharedPreferences(context, FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, AppUtils.EMPTY_STRING) == AppUtils.EMPTY_STRING
-    }
-
-    @JvmStatic
-    fun saveEqualizerState(context: Context, state: String?) {
+    fun setUseMobile(context: Context, value: Boolean) {
         val editor = getEditor(context, FILE_NAME)
-        editor.putString(EQUALIZER_STATE, state)
+        editor.putBoolean(IS_USE_MOBILE, value)
         editor.apply()
     }
 
     @JvmStatic
-    fun loadEqualizerState(context: Context): String {
-        val preferences = getSharedPreferences(context, FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, AppUtils.EMPTY_STRING) ?: AppUtils.EMPTY_STRING
+    fun getUseMobile(context: Context): Boolean {
+        return getSharedPreferences(context, FILE_NAME).getBoolean(IS_USE_MOBILE, true)
     }
 }

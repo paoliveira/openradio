@@ -51,16 +51,18 @@ class TvSearchActivity : FragmentActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    fun onSearchDialogClick(queryString: String?) {
-        // Save search query string, retrieve it later in the service
-        AppUtils.searchQuery = queryString
-        setResult(RESULT_OK, Intent())
+    fun onSearchDialogClick(queryString: String) {
+        val intent = Intent()
+        intent.putExtras(AppUtils.makeSearchQueryBundle(queryString))
+        setResult(RESULT_OK, intent)
         finish()
     }
 
     companion object {
+
         const val SEARCH_TV_ACTIVITY_REQUEST_CODE = 5839
-        fun makeStartIntent(context: Context?): Intent {
+
+        fun makeStartIntent(context: Context): Intent {
             return Intent(context, TvSearchActivity::class.java)
         }
     }

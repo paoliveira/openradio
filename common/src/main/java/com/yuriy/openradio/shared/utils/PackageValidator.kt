@@ -268,7 +268,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         val name = parser.getAttributeValue(null, "name")
         val packageName = parser.getAttributeValue(null, "package")
         val isRelease = parser.getAttributeBooleanValue(null, "release", false)
-        val certificate = parser.nextText().replace(WHITESPACE_REGEX, "")
+        val certificate = parser.nextText().replace(WHITESPACE_REGEX, AppUtils.EMPTY_STRING)
         val signature = getSignatureSha256(certificate)
 
         val callerSignature = KnownSignature(signature, isRelease)
@@ -286,7 +286,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         var eventType = parser.next()
         while (eventType != XmlResourceParser.END_TAG) {
             val isRelease = parser.getAttributeBooleanValue(null, "release", false)
-            val signature = parser.nextText().replace(WHITESPACE_REGEX, "").toLowerCase(Locale.ROOT)
+            val signature = parser.nextText().replace(WHITESPACE_REGEX, AppUtils.EMPTY_STRING).lowercase(Locale.ROOT)
             callerSignatures += KnownSignature(signature, isRelease)
 
             eventType = parser.next()

@@ -67,7 +67,10 @@ class LocationService : JobIntentService() {
         @JvmField
         val COUNTRY_NAME_TO_CODE: MutableMap<String, String> = TreeMap()
         const val GB_WRONG = "United Kingdom of Great Britain and Northern Irela"
+        const val TW_WRONG_A = "Taiwan, Province of China"
+        const val TW_WRONG_B = "Taiwan Province of China"
         const val GB_CORRECT = "United Kingdom of Great Britain and Northern Ireland"
+        const val TW_CORRECT = "Taiwan"
         private const val JOB_ID = 1000
 
         fun doCancelWork(context: Context) {
@@ -153,7 +156,7 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["BI"] = "Burundi"
             COUNTRY_CODE_TO_NAME["BJ"] = "Benin"
             COUNTRY_CODE_TO_NAME["BN"] = "Brunei Darussalam"
-            COUNTRY_CODE_TO_NAME["BO"] = "Bolivia, Plurinational State of"
+            COUNTRY_CODE_TO_NAME["BO"] = "Bolivia"
             COUNTRY_CODE_TO_NAME["BR"] = "Brazil"
             COUNTRY_CODE_TO_NAME["BS"] = "Bahamas"
             COUNTRY_CODE_TO_NAME["BT"] = "Bhutan"
@@ -161,7 +164,7 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["BY"] = "Belarus"
             COUNTRY_CODE_TO_NAME["BZ"] = "Belize"
             COUNTRY_CODE_TO_NAME["CA"] = "Canada"
-            COUNTRY_CODE_TO_NAME["CD"] = "Congo, the Democratic Republic of the"
+            COUNTRY_CODE_TO_NAME["CD"] = "Congo"
             COUNTRY_CODE_TO_NAME["CF"] = "Central African Republic"
             COUNTRY_CODE_TO_NAME["CG"] = "Congo"
             COUNTRY_CODE_TO_NAME["CH"] = "Switzerland"
@@ -189,7 +192,7 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["ET"] = "Ethiopia"
             COUNTRY_CODE_TO_NAME["FI"] = "Finland"
             COUNTRY_CODE_TO_NAME["FJ"] = "Fiji"
-            COUNTRY_CODE_TO_NAME["FM"] = "Micronesia, Federated States of"
+            COUNTRY_CODE_TO_NAME["FM"] = "Micronesia"
             COUNTRY_CODE_TO_NAME["FO"] = "Faroe Islands"
             COUNTRY_CODE_TO_NAME["FR"] = "France"
             COUNTRY_CODE_TO_NAME["GA"] = "Gabon"
@@ -214,7 +217,7 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["IL"] = "Israel"
             COUNTRY_CODE_TO_NAME["IN"] = "India"
             COUNTRY_CODE_TO_NAME["IQ"] = "Iraq"
-            COUNTRY_CODE_TO_NAME["IR"] = "Iran, Islamic Republic of"
+            COUNTRY_CODE_TO_NAME["IR"] = "Iran"
             COUNTRY_CODE_TO_NAME["IS"] = "Iceland"
             COUNTRY_CODE_TO_NAME["IT"] = "Italy"
             COUNTRY_CODE_TO_NAME["JM"] = "Jamaica"
@@ -243,11 +246,11 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["LY"] = "Libya"
             COUNTRY_CODE_TO_NAME["MA"] = "Morocco"
             COUNTRY_CODE_TO_NAME["MC"] = "Monaco"
-            COUNTRY_CODE_TO_NAME["MD"] = "Moldova, Republic of"
+            COUNTRY_CODE_TO_NAME["MD"] = "Moldova"
             COUNTRY_CODE_TO_NAME["ME"] = "Montenegro"
             COUNTRY_CODE_TO_NAME["MG"] = "Madagascar"
             COUNTRY_CODE_TO_NAME["MH"] = "Marshall Islands"
-            COUNTRY_CODE_TO_NAME["MK"] = "Macedonia, the former Yugoslav Republic of"
+            COUNTRY_CODE_TO_NAME["MK"] = "Macedonia"
             COUNTRY_CODE_TO_NAME["ML"] = "Mali"
             COUNTRY_CODE_TO_NAME["MM"] = "Myanmar"
             COUNTRY_CODE_TO_NAME["MN"] = "Mongolia"
@@ -310,8 +313,8 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["TR"] = "Turkey"
             COUNTRY_CODE_TO_NAME["TT"] = "Trinidad and Tobago"
             COUNTRY_CODE_TO_NAME["TV"] = "Tuvalu"
-            COUNTRY_CODE_TO_NAME["TW"] = "Taiwan, Province of China"
-            COUNTRY_CODE_TO_NAME["TZ"] = "Tanzania, United Republic of"
+            COUNTRY_CODE_TO_NAME["TW"] = "Taiwan"
+            COUNTRY_CODE_TO_NAME["TZ"] = "Tanzania"
             COUNTRY_CODE_TO_NAME["UA"] = "Ukraine"
             COUNTRY_CODE_TO_NAME["UG"] = "Uganda"
             COUNTRY_CODE_TO_NAME["US"] = "United States of America"
@@ -319,7 +322,7 @@ class LocationService : JobIntentService() {
             COUNTRY_CODE_TO_NAME["UZ"] = "Uzbekistan"
             COUNTRY_CODE_TO_NAME["VA"] = "Holy See"
             COUNTRY_CODE_TO_NAME["VC"] = "Saint Vincent and the Grenadines"
-            COUNTRY_CODE_TO_NAME["VE"] = "Venezuela, Bolivarian Republic of"
+            COUNTRY_CODE_TO_NAME["VE"] = "Venezuela"
             COUNTRY_CODE_TO_NAME["VN"] = "Viet Nam"
             COUNTRY_CODE_TO_NAME["VU"] = "Vanuatu"
             COUNTRY_CODE_TO_NAME["WS"] = "Samoa"
@@ -478,18 +481,13 @@ class LocationService : JobIntentService() {
                 return
             }
             var countryCode = Country.COUNTRY_CODE_DEFAULT
-            val location = result.lastLocation
-            if (location == null) {
-                mListener.onCountryCodeLocated(countryCode)
-                clear()
-                return
-            }
             if (mCountryBoundaries == null) {
                 mListener.onCountryCodeLocated(countryCode)
                 clear()
                 return
             }
             countryCode = try {
+                val location = result.lastLocation
                 extractCountryCode(
                         mCountryBoundaries?.getIds(
                                 location.longitude, location.latitude

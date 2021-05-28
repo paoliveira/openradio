@@ -75,7 +75,7 @@ class StreamBufferingDialog : BaseDialogFragment() {
         mPlayBufferRebuffer = view.findViewById(R.id.play_buffer_after_rebuffer_edit_view)
         mPlayBufferRebuffer?.setText(AppPreferencesManager.getPlayBufferRebuffer(context!!).toString())
         val restoreBtn = view.findViewById<Button>(R.id.buffering_restore_btn)
-        restoreBtn.setOnClickListener { v: View? ->
+        restoreBtn.setOnClickListener {
             mMinBuffer?.setText(DefaultLoadControl.DEFAULT_MIN_BUFFER_MS.toString())
             mMaxBuffer?.setText(DefaultLoadControl.DEFAULT_MAX_BUFFER_MS.toString())
             mPlayBuffer?.setText(DefaultLoadControl.DEFAULT_BUFFER_FOR_PLAYBACK_MS.toString())

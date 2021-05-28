@@ -101,7 +101,7 @@ object MediaIdHelper {
         }
         val result = value.substring(value.length - 2)
         return if (value.isNotEmpty() && result.length == 2) {
-            result.toUpperCase(Locale.ROOT)
+            result.uppercase(Locale.ROOT)
         } else null
     }
 

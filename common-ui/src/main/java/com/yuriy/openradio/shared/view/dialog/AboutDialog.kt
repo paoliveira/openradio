@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class AboutDialog : BaseDialogFragment() {
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
                 R.layout.dialog_about,
@@ -43,12 +44,12 @@ class AboutDialog : BaseDialogFragment() {
         val title = view.findViewById<TextView>(R.id.dialog_about_title_view)
         title.text = titleText
         val authorLink = view.findViewById<TextView>(R.id.about_author_link_view)
-        authorLink.setOnClickListener { v: View? ->
+        authorLink.setOnClickListener {
             val intent = IntentUtils.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL)
             AppUtils.startActivitySafe(context, intent)
         }
         val projectHomeLink = view.findViewById<TextView>(R.id.about_project_link_view)
-        projectHomeLink.setOnClickListener { v: View? ->
+        projectHomeLink.setOnClickListener {
             val intent = IntentUtils.makeUrlBrowsableIntent(PROJECT_HOME_URL)
             AppUtils.startActivitySafe(context, intent)
         }

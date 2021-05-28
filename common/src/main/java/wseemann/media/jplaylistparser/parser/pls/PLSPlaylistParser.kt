@@ -15,6 +15,7 @@
  */
 package wseemann.media.jplaylistparser.parser.pls
 
+import com.yuriy.openradio.shared.utils.AppUtils
 import wseemann.media.jplaylistparser.mime.MediaType
 import wseemann.media.jplaylistparser.mime.MediaType.Companion.audio
 import wseemann.media.jplaylistparser.parser.AbstractParser
@@ -45,7 +46,7 @@ class PLSPlaylistParser(timeout: Int) : AbstractParser(timeout) {
         var playlistEntry = PlaylistEntry()
         processingEntry = false
         stream.bufferedReader().forEachLine { it ->
-            if (it.trim { it <= ' ' } == "") {
+            if (it.trim { it <= ' ' } == AppUtils.EMPTY_STRING) {
                 if (processingEntry) {
                     savePlaylistFile(playlistEntry, playlist)
                 }
