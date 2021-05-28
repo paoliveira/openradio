@@ -41,6 +41,6 @@ object NetworkSettingsStorage : AbstractStorage() {
 
     @JvmStatic
     fun getUseMobile(context: Context): Boolean {
-        return getSharedPreferences(context, FILE_NAME).getBoolean(IS_USE_MOBILE, false)
+        return getSharedPreferences(context, FILE_NAME).getBoolean(IS_USE_MOBILE, true)
     }
 }
