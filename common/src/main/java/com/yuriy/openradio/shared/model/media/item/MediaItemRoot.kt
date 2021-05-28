@@ -43,7 +43,7 @@ import java.util.*
  */
 class MediaItemRoot : MediaItemCommand {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         AppLogger.d("$LOG_TAG invoked")
         val context = dependencies.context
         dependencies.radioStationsStorage.clear()

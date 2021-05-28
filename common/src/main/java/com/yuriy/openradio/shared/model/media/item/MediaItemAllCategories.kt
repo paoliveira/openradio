@@ -41,7 +41,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  */
 class MediaItemAllCategories : MediaItemCommand {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.result.detach()
@@ -64,16 +64,18 @@ class MediaItemAllCategories : MediaItemCommand {
      * @param dependencies Instance of the [MediaItemCommandDependencies] which holds various references needed to
      * execute command.
      */
-    private fun loadAllCategories(playbackStateListener: IUpdatePlaybackState?,
-                                  dependencies: MediaItemCommandDependencies) {
+    private fun loadAllCategories(
+        playbackStateListener: IUpdatePlaybackState,
+        dependencies: MediaItemCommandDependencies
+    ) {
         val list = dependencies.serviceProvider.getCategories(
-                dependencies.downloader,
-                allCategoriesUrl,
-                getCacheType(dependencies)
+            dependencies.downloader,
+            allCategoriesUrl,
+            getCacheType(dependencies)
         )
-        if (list.isEmpty() && playbackStateListener != null) {
+        if (list.isEmpty()) {
             playbackStateListener.updatePlaybackState(
-                    dependencies.context.getString(R.string.no_data_message)
+                dependencies.context.getString(R.string.no_data_message)
             )
             return
         }
@@ -88,14 +90,14 @@ class MediaItemAllCategories : MediaItemCommand {
             val bundle = Bundle()
             MediaItemHelper.setDrawableId(bundle, R.drawable.ic_child_categories)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            MediaDescriptionCompat.Builder()
-                                    .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.id)
-                                    .setTitle(category.title)
-                                    .setExtras(bundle)
-                                    .setSubtitle(category.getDescription(dependencies.context))
-                                    .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
+                MediaBrowserCompat.MediaItem(
+                    MediaDescriptionCompat.Builder()
+                        .setMediaId(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES + category.id)
+                        .setTitle(category.title)
+                        .setExtras(bundle)
+                        .setSubtitle(category.getDescription(dependencies.context))
+                        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                )
             )
         }
         dependencies.result.sendResult(dependencies.mediaItems)

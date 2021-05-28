@@ -147,14 +147,14 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
      * Index of the current playing song.
      */
     private var mCurrentIndexOnQueue = MediaSessionCompat.QueueItem.UNKNOWN_ID
-    private var mCurrentStreamTitle: String? = null
+    private var mCurrentStreamTitle = AppUtils.EMPTY_STRING
     private var mPauseReason = PauseReason.DEFAULT
 
     /**
      * Collection of the Radio Stations.
      */
     private val mRadioStationsStorage: RadioStationsStorage
-    private var mCurrentMediaId: String? = null
+    private var mCurrentMediaId = AppUtils.EMPTY_STRING
 
     /**
      * Notification object.
@@ -183,7 +183,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
     /**
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
-    private val mMediaItemCommands: MutableMap<String?, MediaItemCommand> = HashMap()
+    private val mMediaItemCommands: MutableMap<String, MediaItemCommand> = HashMap()
     private var mLastPlayedUrl: String? = null
     private val mMasterVolumeBroadcastReceiver: MasterVolumeReceiver
     private val mClearCacheReceiver: ClearCacheReceiver
@@ -484,7 +484,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         val command = mMediaItemCommands[MediaIdHelper.getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
             context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
-            countryCode, mCurrentParentId!!, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
+            countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
             object : ResultListener {
                 override fun onResult() {
                     this@OpenRadioService.onResult()
@@ -496,7 +496,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         if (command != null) {
             command.execute(
                 object : MediaItemCommand.IUpdatePlaybackState {
-                    override fun updatePlaybackState(error: String?) {
+
+                    override fun updatePlaybackState(error: String) {
                         updatePlaybackState()
                     }
                 },
@@ -616,7 +617,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
      * Clear Exo Player and associated resources.
      */
     private fun releaseExoPlayer() {
-        mCurrentStreamTitle = null
+        mCurrentStreamTitle = AppUtils.EMPTY_STRING
         if (mExoPlayerORImpl == null) {
             return
         }
@@ -695,7 +696,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
      * Updates Metadata for the currently playing Radio Station. This method terminates without
      * throwing exception if one of the stream parameters is invalid.
      */
-    private fun updateMetadata(radioStation: RadioStation?, streamTitle: String?) {
+    private fun updateMetadata(radioStation: RadioStation?, streamTitle: String) {
         if (!this::mSession.isInitialized) {
             AppLogger.e("$CLASS_NAME update metadata with null media session")
             return
@@ -816,14 +817,15 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
 
     private fun handlePlayRequestUiThread() {
         AppLogger.d("$CLASS_NAME handle play request, state:${MediaItemHelper.playbackStateToString(mState)}")
-        mCurrentStreamTitle = null
+        mCurrentStreamTitle = AppUtils.EMPTY_STRING
         if (!this::mSession.isInitialized) {
             AppLogger.e("$CLASS_NAME handle play request with null media session")
             return
         }
         val context = applicationContext
         if (NetworkMonitor.isMobile(mNetworkMonitor.getType())
-            && !NetworkSettingsStorage.getUseMobile(applicationContext)) {
+            && !NetworkSettingsStorage.getUseMobile(applicationContext)
+        ) {
             SafeToast.showAnyThread(
                 applicationContext,
                 applicationContext.getString(R.string.mobile_network_disabled)
@@ -1075,7 +1077,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
     }
 
     private fun onResultUiThread() {
-        if (!mCurrentMediaId.isNullOrEmpty() &&
+        if (mCurrentMediaId.isNotEmpty() &&
             !mRadioStationsStorage.isEmpty
         ) {
             mCurrentIndexOnQueue = mRadioStationsStorage.getIndex(mCurrentMediaId)
@@ -1150,7 +1152,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         )
     }
 
-    private inner class NetworkMonitorListenerImpl: NetworkMonitorListener {
+    private inner class NetworkMonitorListenerImpl : NetworkMonitorListener {
 
         override fun onConnectivityChange(type: Int, isConnected: Boolean) {
             if (mState != PlaybackStateCompat.STATE_PLAYING) {
@@ -1576,7 +1578,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
                     imageUrlLocal = rsToAdd.imageLocalUrl
                 }
                 val radioStation = RadioStation.makeDefaultInstance(
-                        LocalRadioStationsStorage.getId(context)
+                    LocalRadioStationsStorage.getId(context)
                 )
                 radioStation.name = rsToAdd.name
                 radioStation.mediaStream.setVariant(0, url)
@@ -1595,7 +1597,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
             }
             VALUE_NAME_NETWORK_SETTINGS_CHANGED -> {
                 if (NetworkMonitor.isMobile(mNetworkMonitor.getType())
-                    && !NetworkSettingsStorage.getUseMobile(applicationContext)) {
+                    && !NetworkSettingsStorage.getUseMobile(applicationContext)
+                ) {
                     SafeToast.showAnyThread(
                         applicationContext,
                         applicationContext.getString(R.string.mobile_network_disabled)
@@ -1848,7 +1851,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         @Volatile
         var mState = 0
 
-        var mCurrentParentId: String? = null
+        var mCurrentParentId = AppUtils.EMPTY_STRING
 
         var mIsRestoreState = false
 

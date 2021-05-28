@@ -37,8 +37,10 @@ import java.util.*
  */
 class MediaItemSearchFromApp : IndexableMediaItemCommand() {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
+    override fun execute(
+        playbackStateListener: IUpdatePlaybackState,
+        dependencies: MediaItemCommandDependencies
+    ) {
         super.execute(playbackStateListener, dependencies)
         AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:

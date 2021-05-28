@@ -34,7 +34,7 @@ import com.yuriy.openradio.shared.vo.RadioStation
  */
 abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         AppLogger.d("$CLASS_NAME invoked")
         if (!dependencies.isSameCatalogue) {
             AppLogger.d("$CLASS_NAME not the same catalogue, clear list")
@@ -44,9 +44,11 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
 
     abstract fun doLoadNoDataReceived(): Boolean
 
-    fun handleDataLoaded(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies,
-                         list: List<RadioStation>) {
+    fun handleDataLoaded(
+        playbackStateListener: IUpdatePlaybackState,
+        dependencies: MediaItemCommandDependencies,
+        list: List<RadioStation>
+    ) {
         AppLogger.d(CLASS_NAME + " loaded " + list.size + " items")
         if (list.isEmpty()) {
             if (doLoadNoDataReceived()) {
@@ -56,12 +58,13 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
                 )
                 val mediaDescription = track.description
                 val mediaItem = MediaBrowserCompat.MediaItem(
-                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
+                    mediaDescription, MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                )
                 MediaItemHelper.setDrawableId(mediaItem.description.extras, R.drawable.ic_radio_station_empty)
                 dependencies.addMediaItem(mediaItem)
                 dependencies.result.sendResult(dependencies.mediaItems)
                 dependencies.resultListener.onResult()
-                playbackStateListener?.updatePlaybackState(dependencies.context.getString(R.string.no_data_message))
+                playbackStateListener.updatePlaybackState(dependencies.context.getString(R.string.no_data_message))
             } else {
                 dependencies.result.sendResult(MediaItemHelper.createListEndedResult())
                 dependencies.resultListener.onResult()
@@ -80,7 +83,8 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
                 isFavorite = FavoritesStorage.isFavorite(radioStation, dependencies.context)
             )
             val mediaItem = MediaBrowserCompat.MediaItem(
-                mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+                mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
+            )
             dependencies.addMediaItem(mediaItem)
         }
         AppLogger.d(CLASS_NAME + " deliver " + dependencies.mediaItems.size + " items")

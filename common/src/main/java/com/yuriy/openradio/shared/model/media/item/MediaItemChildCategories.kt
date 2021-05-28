@@ -40,7 +40,7 @@ import java.util.*
  */
 class MediaItemChildCategories : IndexableMediaItemCommand() {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)
         AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
@@ -52,17 +52,17 @@ class MediaItemChildCategories : IndexableMediaItemCommand() {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val childMenuId = dependencies.parentId
-                        .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, AppUtils.EMPTY_STRING)
+                    .replace(MediaIdHelper.MEDIA_ID_CHILD_CATEGORIES, AppUtils.EMPTY_STRING)
                 val list: List<RadioStation> = ArrayList(
-                        dependencies.serviceProvider.getStations(
-                                dependencies.downloader,
-                                getStationsInCategory(
-                                        childMenuId,
-                                        pageNumber * (UrlBuilder.ITEMS_PER_PAGE + 1),
-                                        UrlBuilder.ITEMS_PER_PAGE
-                                ),
-                                getCacheType(dependencies)
-                        )
+                    dependencies.serviceProvider.getStations(
+                        dependencies.downloader,
+                        getStationsInCategory(
+                            childMenuId,
+                            pageNumber * (UrlBuilder.ITEMS_PER_PAGE + 1),
+                            UrlBuilder.ITEMS_PER_PAGE
+                        ),
+                        getCacheType(dependencies)
+                    )
                 )
                 handleDataLoaded(playbackStateListener, dependencies, list)
             } ?: dependencies.result.sendResult(null)

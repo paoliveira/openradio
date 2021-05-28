@@ -37,8 +37,10 @@ import kotlinx.coroutines.withTimeoutOrNull
  */
 class MediaItemFavoritesList : MediaItemCommand {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?,
-                         dependencies: MediaItemCommandDependencies) {
+    override fun execute(
+        playbackStateListener: IUpdatePlaybackState,
+        dependencies: MediaItemCommandDependencies
+    ) {
         AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.result.detach()

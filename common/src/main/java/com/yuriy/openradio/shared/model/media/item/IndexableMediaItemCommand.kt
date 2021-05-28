@@ -19,7 +19,7 @@ package com.yuriy.openradio.shared.model.media.item
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.utils.AppLogger
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by Chernyshov Yurii
@@ -34,7 +34,7 @@ abstract class IndexableMediaItemCommand internal constructor() : MediaItemComma
      */
     private val mPageIndex: AtomicInteger = AtomicInteger(UrlBuilder.FIRST_PAGE_INDEX)
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)
         AppLogger.d("$CLASS_NAME invoked")
         if (!dependencies.isSameCatalogue) {

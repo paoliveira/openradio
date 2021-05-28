@@ -36,7 +36,7 @@ import java.util.*
  */
 class MediaItemRecentlyAddedStations : MediaItemCommandImpl() {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)
         AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
@@ -49,11 +49,11 @@ class MediaItemRecentlyAddedStations : MediaItemCommandImpl() {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 // Load all categories into menu
                 val list: List<RadioStation> = ArrayList(
-                        dependencies.serviceProvider.getStations(
-                                dependencies.downloader,
-                                UrlBuilder.getRecentlyAddedStations(),
-                                getCacheType(dependencies)
-                        )
+                    dependencies.serviceProvider.getStations(
+                        dependencies.downloader,
+                        UrlBuilder.getRecentlyAddedStations(),
+                        getCacheType(dependencies)
+                    )
                 )
                 handleDataLoaded(playbackStateListener, dependencies, list)
             } ?: dependencies.result.sendResult(null)

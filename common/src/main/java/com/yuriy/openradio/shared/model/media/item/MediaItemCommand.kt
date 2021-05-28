@@ -38,7 +38,7 @@ interface MediaItemCommand {
          *
          * @param error Description of an error.
          */
-        fun updatePlaybackState(error: String?)
+        fun updatePlaybackState(error: String)
     }
 
     /**
@@ -48,5 +48,5 @@ interface MediaItemCommand {
      * @param dependencies Instance of the [MediaItemCommandDependencies] which holds various references needed to
      * execute command.
      */
-    fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies)
+    fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies)
 }

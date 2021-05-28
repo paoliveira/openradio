@@ -44,7 +44,7 @@ import java.util.*
  */
 class MediaItemCountriesList : MediaItemCommand {
 
-    override fun execute(playbackStateListener: IUpdatePlaybackState?, dependencies: MediaItemCommandDependencies) {
+    override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         AppLogger.d("$LOG_TAG invoked")
         // Use result.detach to allow calling result.sendResult from another thread:
         dependencies.result.detach()
@@ -63,16 +63,18 @@ class MediaItemCountriesList : MediaItemCommand {
      * @param dependencies           Instance of the [MediaItemCommandDependencies] which holds various
      * references needed to execute command.
      */
-    private fun loadAllCountries(playbackStateListener: IUpdatePlaybackState?,
-                                 dependencies: MediaItemCommandDependencies) {
+    private fun loadAllCountries(
+        playbackStateListener: IUpdatePlaybackState,
+        dependencies: MediaItemCommandDependencies
+    ) {
         val list = dependencies.serviceProvider.getCountries(
-                dependencies.downloader,
-                allCountriesUrl,
-                getCacheType(dependencies)
+            dependencies.downloader,
+            allCountriesUrl,
+            getCacheType(dependencies)
         )
-        if (list.isEmpty() && playbackStateListener != null) {
+        if (list.isEmpty()) {
             playbackStateListener.updatePlaybackState(
-                    dependencies.context.getString(R.string.no_data_message)
+                dependencies.context.getString(R.string.no_data_message)
             )
             return
         }
@@ -85,23 +87,23 @@ class MediaItemCountriesList : MediaItemCommand {
                 continue
             }
             builder = MediaDescriptionCompat.Builder()
-                    .setMediaId(
-                            MediaIdHelper.MEDIA_ID_COUNTRIES_LIST + country.code
-                    )
-                    .setTitle(country.name)
-                    .setSubtitle(country.code)
+                .setMediaId(
+                    MediaIdHelper.MEDIA_ID_COUNTRIES_LIST + country.code
+                )
+                .setTitle(country.name)
+                .setSubtitle(country.code)
             identifier = dependencies.context.resources.getIdentifier(
-                    "flag_" + country.code.lowercase(Locale.ROOT),
-                    "drawable", dependencies.context.packageName
+                "flag_" + country.code.lowercase(Locale.ROOT),
+                "drawable", dependencies.context.packageName
             )
             val bundle1 = Bundle()
             MediaItemHelper.setDrawableId(bundle1, identifier)
             builder.setExtras(bundle1)
             dependencies.addMediaItem(
-                    MediaBrowserCompat.MediaItem(
-                            builder.build(),
-                            MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                    )
+                MediaBrowserCompat.MediaItem(
+                    builder.build(),
+                    MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
+                )
             )
         }
         dependencies.result.sendResult(dependencies.mediaItems)
