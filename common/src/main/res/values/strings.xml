@@ -158,4 +158,11 @@
     <string name="can_not_set_time">Can not set Time</string>
     <string name="can_not_set_date">Can not set Date</string>
     <string name="mobile_network_disabled">Mobile network is disabled</string>
+    <string name="notif_close_app_label">Close Open Radio</string>
+    <string name="notif_stop_app_label">Stopping Open Radio</string>
+    <string name="notif_just_started_label">Open Radio just started</string>
+    <string name="notif_update_favorite_label">Update Favorite Radio Station</string>
+    <string name="notif_toggle_last_rs_label">Toggle last Radio Station</string>
+    <string name="notif_stop_last_rs_label">Stop last Radio Station</string>
+    <string name="notif_play_last_rs_label">Play last Radio Station</string>
 </resources>

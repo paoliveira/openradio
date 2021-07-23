@@ -44,8 +44,7 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
-import java.util.concurrent.atomic.*
-
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Keeps track of a notification and updates it automatically for a given
@@ -65,6 +64,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     private val mPlayIntent: PendingIntent
     private val mPreviousIntent: PendingIntent
     private val mNextIntent: PendingIntent
+    private val mCloseAppIntent: PendingIntent
     private val mNotificationColor: Int
     private val mStarted = AtomicBoolean(false)
     private val mNotificationChannelFactory: NotificationChannelFactory
@@ -100,14 +100,26 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         mNotificationColor = notificationColor
         mNotificationManager = NotificationManagerCompat.from(mService)
         val pkg = mService.packageName
-        mPauseIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
-        mPlayIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
-        mPreviousIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
-        mNextIntent = PendingIntent.getBroadcast(mService, 100,
-                Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT)
+        mPauseIntent = PendingIntent.getBroadcast(
+            mService, 100,
+            Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        mPlayIntent = PendingIntent.getBroadcast(
+            mService, 100,
+            Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        mPreviousIntent = PendingIntent.getBroadcast(
+            mService, 100,
+            Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        mNextIntent = PendingIntent.getBroadcast(
+            mService, 100,
+            Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+        )
+        mCloseAppIntent = PendingIntent.getBroadcast(
+            mService, 100,
+            Intent(ACTION_CLOSE_APP).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+        )
     }
 
     /**
@@ -115,7 +127,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      * updated. The notification will automatically be removed if the session is
      * destroyed before [.stopNotification] is called.
      */
-    fun startNotification(context: Context?, radioStation: RadioStation?) {
+    fun startNotification(context: Context, radioStation: RadioStation?) {
         if (mStarted.get()) {
             return
         }
@@ -125,6 +137,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         filter.addAction(ACTION_PAUSE)
         filter.addAction(ACTION_PLAY)
         filter.addAction(ACTION_PREV)
+        filter.addAction(ACTION_CLOSE_APP)
         mService.registerReceiver(this, filter)
         val metadata = mController!!.metadata
         mMetadata = metadata ?: MediaItemHelper.metadataFromRadioStation(context, radioStation)
@@ -150,16 +163,16 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action
-        AppLogger.d("$CLASS_NAME Received intent with action $action")
-        if (action.isNullOrEmpty()) {
-            return
-        }
-        when (action) {
+        AppLogger.d("$CLASS_NAME received intent $intent")
+        when (intent.action) {
             ACTION_PAUSE -> mTransportControls!!.pause()
             ACTION_PLAY -> mTransportControls!!.play()
             ACTION_NEXT -> mTransportControls!!.skipToNext()
             ACTION_PREV -> mTransportControls!!.skipToPrevious()
+            ACTION_CLOSE_APP -> {
+                AppLogger.i("$CLASS_NAME close App from Notification")
+                mService.closeService()
+            }
         }
     }
 
@@ -229,7 +242,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             return
         }
         val builder = NotificationCompat.Builder(
-                mService, MediaNotificationData.CHANNEL_ID
+            mService, MediaNotificationData.CHANNEL_ID
         )
 
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
@@ -238,9 +251,9 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         var enablePrevious = false
         if (playbackState.actions and PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS != 0L) {
             builder.addAction(
-                    R.drawable.ic_skip_prev,
-                    mService.getString(R.string.label_previous),
-                    mPreviousIntent
+                R.drawable.ic_skip_prev,
+                mService.getString(R.string.label_previous),
+                mPreviousIntent
             )
             enablePrevious = true
         }
@@ -250,22 +263,22 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         if (art == null && description.iconUri != null) {
             val artUrl = UrlBuilder.preProcessIconUrl(description.iconUri.toString())
             AppUtils.getPicassoCreator(Uri.parse(artUrl))
-                    .resize(NOTIFICATION_LARGE_ICON_SIZE_PX, NOTIFICATION_LARGE_ICON_SIZE_PX)
-                    .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
-                    .into(
-                            object : Target {
-                                override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
-                                    AppLogger.e("Can't load large art:$e")
-                                }
+                .resize(NOTIFICATION_LARGE_ICON_SIZE_PX, NOTIFICATION_LARGE_ICON_SIZE_PX)
+                .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
+                .into(
+                    object : Target {
+                        override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
+                            AppLogger.e("Can't load large art:$e")
+                        }
 
-                                override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
+                        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
 
-                                override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                                    AppLogger.d("Large art loaded")
-                                    art = bitmap
-                                }
-                            }
-                    )
+                        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
+                            AppLogger.d("Large art loaded")
+                            art = bitmap
+                        }
+                    }
+                )
         } else if (art == null) {
             // use a placeholder art while the remote art is being downloaded
             art = BitmapFactory.decodeResource(mService.resources, R.drawable.ic_radio_station)
@@ -273,69 +286,80 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             AppLogger.d("Art bitmap:$art")
         }
 
+        builder.addAction(getPlayPauseAction(playbackState))
+
         // If skip to next action is enabled
         var enableNext = false
         if (playbackState.actions and PlaybackStateCompat.ACTION_SKIP_TO_NEXT != 0L) {
             builder.addAction(
-                    R.drawable.ic_skip_next,
-                    mService.getString(R.string.label_next),
-                    mNextIntent
+                R.drawable.ic_skip_next,
+                mService.getString(R.string.label_next),
+                mNextIntent
             )
             enableNext = true
         }
-        val smallIcon = if (AppUtils.hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
+        val smallIcon =
+            if (AppUtils.hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
         // Build the style.
         val actionsToShowInCompact = getActionIndicesForCompactView(
-                getActions(enableNext, enablePrevious, playbackState), playbackState
+            getActions(enableNext, enablePrevious, playbackState), playbackState
         )
         val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(*actionsToShowInCompact)
-                .setMediaSession(mSessionToken)
+            .setShowActionsInCompactView(*actionsToShowInCompact)
+            .setMediaSession(mSessionToken)
         builder
-                .setContentIntent(makePendingIntent())
-                .addAction(getPlayPauseAction(playbackState))
-                .setStyle(mediaStyle)
-                .setColor(mNotificationColor)
-                .setLargeIcon(art)
-                .setSmallIcon(smallIcon)
-                .setOngoing(true)
-                .setDefaults(0)
-                .setSound(null)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentTitle(description.title)
-                .setContentText(description.subtitle)
+            .setContentIntent(makePendingIntent())
+            .setStyle(mediaStyle)
+            .setColor(mNotificationColor)
+            .setLargeIcon(art)
+            .setSmallIcon(smallIcon)
+            .setOngoing(true)
+            .setDefaults(0)
+            .setSound(null)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentTitle(description.title)
+            .setContentText(description.subtitle)
         AppLogger.d(
-                CLASS_NAME + " Update Notification " +
-                        "state:" + playbackState +
-                        "title:" + description.title +
-                        "subtitle:" + description.subtitle
+            CLASS_NAME + " Update Notification " +
+                "state:" + playbackState +
+                "title:" + description.title +
+                "subtitle:" + description.subtitle
         )
+
+        builder.addAction(getCloseAppAction())
+
         AppLogger.d(CLASS_NAME + " update, ORS[" + mService.hashCode() + "]")
         mService.startForeground(NOTIFICATION_ID, builder.build())
     }
 
-    fun notifyService(message: String?) {
+    fun notifyService(message: String) {
         val art = BitmapFactory.decodeResource(
-                mService.resources, R.drawable.ic_radio_station
+            mService.resources, R.drawable.ic_radio_station
         )
         // Build the style.
-        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle().setMediaSession(mSessionToken)
+        val mediaStyle = androidx.media.app.NotificationCompat.MediaStyle()
+            .setShowActionsInCompactView(0)
+            .setMediaSession(mSessionToken)
         // Create/Retrieve Notification Channel for O and beyond devices (26+).
         mNotificationChannelFactory.createChannel(ServiceStartedNotificationData(mService))
         val builder = NotificationCompat.Builder(
-                mService, ServiceStartedNotificationData.CHANNEL_ID
+            mService, ServiceStartedNotificationData.CHANNEL_ID
         )
-        val smallIcon = if (AppUtils.hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
+        val smallIcon =
+            if (AppUtils.hasVersionLollipop()) R.drawable.ic_notification else R.drawable.ic_notification_drawable
         builder
-                .setContentIntent(makePendingIntent())
-                .setStyle(mediaStyle)
-                .setColor(mNotificationColor)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .setContentTitle(mService.getString(R.string.app_name))
-                .setContentText(message)
-                .setSmallIcon(smallIcon)
-                .setLargeIcon(art)
-        AppLogger.d(CLASS_NAME + " show Just Started notification ORS[" + mService.hashCode() + "]")
+            .setContentIntent(makePendingIntent())
+            .setStyle(mediaStyle)
+            .setColor(mNotificationColor)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentTitle(mService.getString(R.string.app_name))
+            .setContentText(message)
+            .setSmallIcon(smallIcon)
+            .setLargeIcon(art)
+
+        builder.addAction(getCloseAppAction())
+
+        AppLogger.d("$CLASS_NAME show notification '$message', ORS[" + mService.hashCode() + "]")
         mService.startForeground(NOTIFICATION_ID, builder.build())
     }
 
@@ -344,16 +368,19 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      *
      * The playback and custom actions are combined and placed in the following order if not omitted:
      *
-     * +------------------------------------------------------------------------+
+     * +---------------------------------------------------------------------------------+
+     *
      * | prev | &lt;&lt; | play/pause | &gt;&gt; | next | custom actions | stop |
-     * +------------------------------------------------------------------------+
+     *
+     * +---------------------------------------------------------------------------------+
      *
      * The names must be of the playback actions
      * [ACTION_PAUSE], [ACTION_PLAY], [ACTION_NEXT] or [ACTION_PREV].
      * Otherwise the action name is ignored.
      */
-    private fun getActions(enableNext: Boolean, enablePrevious: Boolean,
-                           playbackState: PlaybackStateCompat): List<String> {
+    private fun getActions(
+        enableNext: Boolean, enablePrevious: Boolean, playbackState: PlaybackStateCompat
+    ): List<String> {
         val stringActions: MutableList<String> = ArrayList()
         if (enablePrevious) {
             stringActions.add(ACTION_PREV)
@@ -366,7 +393,16 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         if (enableNext) {
             stringActions.add(ACTION_NEXT)
         }
+        stringActions.add(ACTION_CLOSE_APP)
         return stringActions
+    }
+
+    private fun getCloseAppAction(): NotificationCompat.Action {
+        return NotificationCompat.Action(
+            R.drawable.ic_close_app,
+            mService.getString(R.string.notif_close_app_label),
+            mCloseAppIntent
+        )
     }
 
     /**
@@ -375,19 +411,22 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      * The indices must refer to the list of actions passed as the first parameter.
      *
      * @param actionNames The names of the actions included in the notification.
-     * @param playbackState
+     * @param playbackState State of the current playback.
      */
-    private fun getActionIndicesForCompactView(actionNames: List<String>, playbackState: PlaybackStateCompat): IntArray {
+    private fun getActionIndicesForCompactView(
+        actionNames: List<String>,
+        playbackState: PlaybackStateCompat
+    ): IntArray {
         val pauseActionIndex = actionNames.indexOf(ACTION_PAUSE)
         val playActionIndex = actionNames.indexOf(ACTION_PLAY)
         val skipPreviousActionIndex = if (mUseNavigationActionsInCompactView) actionNames.indexOf(ACTION_PREV) else -1
         val skipNextActionIndex = if (mUseNavigationActionsInCompactView) actionNames.indexOf(ACTION_NEXT) else -1
-        val actionIndices = IntArray(3)
+        val actionIndices = IntArray(4)
         var actionCounter = 0
         if (skipPreviousActionIndex != -1) {
             actionIndices[actionCounter++] = skipPreviousActionIndex
         }
-        val shouldShowPauseButton: Boolean = shouldShowPauseButton(playbackState)
+        val shouldShowPauseButton = shouldShowPauseButton(playbackState)
         if (pauseActionIndex != -1 && shouldShowPauseButton) {
             actionIndices[actionCounter++] = pauseActionIndex
         } else if (playActionIndex != -1 && !shouldShowPauseButton) {
@@ -396,6 +435,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         if (skipNextActionIndex != -1) {
             actionIndices[actionCounter++] = skipNextActionIndex
         }
+        actionIndices[actionCounter++] = actionNames.indexOf(ACTION_CLOSE_APP)
         return actionIndices.copyOf(actionCounter)
     }
 
@@ -407,7 +447,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
 
         // TODO: FIX ME
         val className = if (mService.isTv) "com.yuriy.openradio.tv.view.activity.TvMainActivity"
-            else "com.yuriy.openradio.mobile.view.activity.MainActivity"
+        else "com.yuriy.openradio.mobile.view.activity.MainActivity"
 
         val componentName = ComponentName(mService, className)
         val intent = Intent()
@@ -439,5 +479,6 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         private const val ACTION_PLAY = "com.yuriy.openradio.play"
         private const val ACTION_PREV = "com.yuriy.openradio.prev"
         private const val ACTION_NEXT = "com.yuriy.openradio.next"
+        const val ACTION_CLOSE_APP = "com.yuriy.openradio.close_app"
     }
 }
