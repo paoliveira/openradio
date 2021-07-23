@@ -387,8 +387,7 @@ class TvMainActivity : FragmentActivity() {
 
         override fun onSleepTimer() {
             hideProgressBar()
-            mMediaPresenter.clearMediaItems()
-            finish()
+            mMediaPresenter.exitFromUi()
         }
 
         override fun onSortIdChanged(mediaId: String, sortId: Int) {

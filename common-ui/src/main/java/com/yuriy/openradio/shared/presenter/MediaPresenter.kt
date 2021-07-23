@@ -19,7 +19,9 @@ package com.yuriy.openradio.shared.presenter
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -44,6 +46,7 @@ import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.media.MediaResourceManagerListener
 import com.yuriy.openradio.shared.model.media.MediaResourcesManager
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
+import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
@@ -113,6 +116,8 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private val mIsOnSaveInstancePassed = AtomicBoolean(false)
+
+    private val mBroadcastListener = BroadcastReceiverListener()
 
     init {
         DependencyRegistry.injectNetworkMonitor(this)
@@ -200,11 +205,12 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         mMediaRsrMgr.disconnect()
     }
 
-    fun clearMediaItems() {
+    fun exitFromUi() {
         for (item in mMediaItemsStack) {
             mMediaRsrMgr.unsubscribe(item)
         }
         mMediaItemsStack.clear()
+        mActivity?.finish()
     }
 
     fun handleBackPressed(context: Context): Boolean {
@@ -466,6 +472,10 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
                 intentFilter
         )
         mScreenBroadcastRcvr.register(context)
+
+        val filter = IntentFilter()
+        filter.addAction(MediaNotification.ACTION_CLOSE_APP)
+        context.registerReceiver(mBroadcastListener, filter)
     }
 
     /**
@@ -477,6 +487,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
                 mAppLocalBroadcastRcvr
         )
         mScreenBroadcastRcvr.unregister(context)
+        context.unregisterReceiver(mBroadcastListener)
     }
 
     private fun handleMediaResourceManagerConnected() {
@@ -548,6 +559,20 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
             updateListPositions(mAdapter!!.activeItemId)
             if (mListLastVisiblePosition == mAdapter!!.itemCount - 1) {
                 onScrolledToEnd()
+            }
+        }
+    }
+
+    private inner class BroadcastReceiverListener: BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            AppLogger.d("$CLASS_NAME received intent $intent")
+            when (intent.action) {
+                MediaNotification.ACTION_CLOSE_APP -> {
+                    AppLogger.i("$CLASS_NAME close App from Notification")
+                    exitFromUi()
+                    disconnect()
+                }
             }
         }
     }

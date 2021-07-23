@@ -363,7 +363,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         )
         mMediaNotification = MediaNotification(this)
         AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate")
-        mMediaNotification.notifyService("Application just started")
+        mMediaNotification.notifyService(getString(R.string.notif_just_started_label))
         mMasterVolumeBroadcastReceiver.register(context)
         mClearCacheReceiver.register(context)
         ServiceLifecyclePreferencesManager.isServiceActive(context, true)
@@ -1063,6 +1063,15 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         }
     }
 
+    fun closeService() {
+        if (this::mMediaNotification.isInitialized) {
+            mMediaNotification.notifyService(getString(R.string.notif_stop_app_label))
+        }
+        initInternals()
+        handleStopRequest()
+        stopSelfResultInt()
+    }
+
     /**
      * Handle a request to stop music.
      *
@@ -1454,7 +1463,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         when (command) {
             VALUE_NAME_GET_RADIO_STATION_COMMAND -> {
                 if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService("Update Favorite Radio Station")
+                    mMediaNotification.notifyService(getString(R.string.notif_update_favorite_label))
                 }
                 val description = extractMediaDescription(intent) ?: return
                 var rs = getRadioStationByMediaId(description.mediaId)
@@ -1640,7 +1649,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
             }
             VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
                 if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService("Toggle last Radio Station")
+                    mMediaNotification.notifyService(getString(R.string.notif_toggle_last_rs_label))
                 }
                 when (mState) {
                     PlaybackStateCompat.STATE_PLAYING -> {
@@ -1660,13 +1669,13 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
             }
             VALUE_NAME_STOP_LAST_PLAYED_ITEM -> {
                 if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService("Stop play last Radio Station")
+                    mMediaNotification.notifyService(getString(R.string.notif_stop_last_rs_label))
                 }
                 handlePauseRequest()
             }
             VALUE_NAME_PLAY_LAST_PLAYED_ITEM -> {
                 if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService("Play last Radio Station")
+                    mMediaNotification.notifyService(getString(R.string.notif_play_last_rs_label))
                 }
                 handlePlayRequest()
             }
@@ -1674,13 +1683,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
                 mExoPlayerORImpl!!.loadEqualizerState()
             }
             VALUE_NAME_STOP_SERVICE -> {
-                if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService("Stop application")
-                }
                 mUiScope.launch {
-                    initInternals()
-                    handleStopRequest()
-                    stopSelfResultInt()
+                    closeService()
                 }
             }
             VALUE_NAME_SLEEP_TIMER -> {

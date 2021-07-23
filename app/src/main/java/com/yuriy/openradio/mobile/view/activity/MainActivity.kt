@@ -328,7 +328,7 @@ class MainActivity : AppCompatActivity() {
     /**
      * Process call back from the Search Dialog.
      *
-     * @param queryString String to query for.
+     * @param queryBundle Bundle with information to query for.
      */
     fun onSearchDialogClick(queryBundle: Bundle) {
         unsubscribeFromItem(MediaIdHelper.MEDIA_ID_SEARCH_FROM_APP)
@@ -580,8 +580,7 @@ class MainActivity : AppCompatActivity() {
         override fun onSleepTimer() {
             hideNoDataMessage()
             hideProgressBar()
-            mMediaPresenter.clearMediaItems()
-            finish()
+            mMediaPresenter.exitFromUi()
         }
 
         override fun onSortIdChanged(mediaId: String, sortId: Int) {
