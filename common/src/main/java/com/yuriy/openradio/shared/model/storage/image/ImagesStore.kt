@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage
+package com.yuriy.openradio.shared.model.storage.image
 
 import android.content.ContentResolver
 import android.content.ContentValues
-import android.content.Context
 import android.net.Uri
-import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
-import java.io.File
 
 class ImagesStore {
 

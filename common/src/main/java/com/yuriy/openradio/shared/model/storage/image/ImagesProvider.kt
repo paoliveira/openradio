@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage
+package com.yuriy.openradio.shared.model.storage.image
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -22,7 +22,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
 import android.os.ParcelFileDescriptor
-import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.utils.AppLogger
@@ -32,13 +31,12 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.io.InputStream
 import java.net.URL
 
 class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
 
     private lateinit var mNetworkMonitor: NetworkMonitor
-    private lateinit var mImagesDatabase: RsImagesDatabase
+    private lateinit var mImagesDatabase: ImagesDatabase
 
     override fun configureWith(networkMonitor: NetworkMonitor) {
         mNetworkMonitor = networkMonitor
@@ -46,7 +44,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
 
     override fun onCreate(): Boolean {
         AppLogger.d("$TAG created")
-        mImagesDatabase = RsImagesDatabase.getInstance(context!!)
+        mImagesDatabase = ImagesDatabase.getInstance(context!!)
         return true
     }
 
@@ -81,7 +79,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
 
         GlobalScope.launch(Dispatchers.IO) {
             val bytes = getImageBytes(imageUrl)
-            mImagesDatabase.rsImageDao().insertImage(RsImage(rsId, bytes))
+            mImagesDatabase.rsImageDao().insertImage(Image(rsId, bytes))
             AppLogger.d(
                 "$TAG image $imageUrl inserted, num of images:${mImagesDatabase.rsImageDao().getCount()}"
             )

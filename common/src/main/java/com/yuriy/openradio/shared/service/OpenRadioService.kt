@@ -78,7 +78,7 @@ import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
-import com.yuriy.openradio.shared.model.storage.ImagesStore
+import com.yuriy.openradio.shared.model.storage.image.ImagesStore
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.LocationStorage

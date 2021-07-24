@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.shared.model.storage
+package com.yuriy.openradio.shared.model.storage.image
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "rsimages")
-data class RsImage(@PrimaryKey
+data class Image(@PrimaryKey
                    @ColumnInfo(name = "rsId")
                    val mRsId: String,
-                   @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+                 @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
                    var mData: ByteArray? = null) {
 
     override fun toString() = mRsId
@@ -32,7 +32,7 @@ data class RsImage(@PrimaryKey
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as RsImage
+        other as Image
 
         if (mRsId != other.mRsId) return false
         if (mData != null) {

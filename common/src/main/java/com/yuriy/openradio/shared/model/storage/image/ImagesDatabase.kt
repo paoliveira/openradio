@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage
+package com.yuriy.openradio.shared.model.storage.image
 
 import android.content.Context
 import androidx.room.Database
@@ -24,10 +24,10 @@ import androidx.room.RoomDatabase
 /**
  * The Room database for images.
  */
-@Database(entities = [RsImage::class], version = 1, exportSchema = false)
-abstract class RsImagesDatabase : RoomDatabase() {
+@Database(entities = [Image::class], version = 1, exportSchema = false)
+abstract class ImagesDatabase : RoomDatabase() {
 
-    abstract fun rsImageDao(): RsImageDao
+    abstract fun rsImageDao(): ImageDao
 
     companion object {
 
@@ -35,17 +35,17 @@ abstract class RsImagesDatabase : RoomDatabase() {
 
         // For Singleton instantiation
         @Volatile
-        private var instance: RsImagesDatabase? = null
+        private var instance: ImagesDatabase? = null
 
-        fun getInstance(context: Context): RsImagesDatabase {
+        fun getInstance(context: Context): ImagesDatabase {
             return instance ?: synchronized(this) {
                 instance ?: buildDatabase(context).also { instance = it }
             }
         }
 
         // Create the database.
-        private fun buildDatabase(context: Context): RsImagesDatabase {
-            return Room.databaseBuilder(context, RsImagesDatabase::class.java, DATABASE_NAME)
+        private fun buildDatabase(context: Context): ImagesDatabase {
+            return Room.databaseBuilder(context, ImagesDatabase::class.java, DATABASE_NAME)
                 .build()
         }
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage
+package com.yuriy.openradio.shared.model.storage.image
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -22,13 +22,13 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
-interface RsImageDao {
+interface ImageDao {
 
     @Query("SELECT * FROM rsimages WHERE rsId = :rsId")
-    fun getImage(rsId: String): RsImage?
+    fun getImage(rsId: String): Image?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertImage(rsImage: RsImage)
+    suspend fun insertImage(rsImage: Image)
 
     @Query("SELECT COUNT(DISTINCT rsId) FROM rsimages")
     fun getCount(): Int
