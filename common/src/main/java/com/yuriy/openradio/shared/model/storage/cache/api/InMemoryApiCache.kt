@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.model.storage.cache.api
 
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import java.util.concurrent.*
 
 /**
@@ -31,9 +32,9 @@ class InMemoryApiCache : ApiCache {
         if (key.isNotEmpty() && RESPONSES_MAP.containsKey(key)) {
             val data = RESPONSES_MAP[key]
             AppLogger.d(CLASS_NAME + "Cached response from RAM for " + key + " is " + data)
-            return data ?: ""
+            return data ?: AppUtils.EMPTY_STRING
         }
-        return ""
+        return AppUtils.EMPTY_STRING
     }
 
     override fun put(key: String, data: String) {

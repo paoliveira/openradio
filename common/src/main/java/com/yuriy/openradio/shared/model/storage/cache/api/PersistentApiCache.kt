@@ -20,6 +20,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.provider.BaseColumns
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 
 /**
  * Created by Chernyshov Yurii
@@ -43,7 +44,7 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
                 null,  // don't filter by row groups
                 null // The sort order
         )
-        var data = ""
+        var data = AppUtils.EMPTY_STRING
         while (cursor.moveToNext()) {
             val cId = cursor.getLong(
                     cursor.getColumnIndexOrThrow(BaseColumns._ID)

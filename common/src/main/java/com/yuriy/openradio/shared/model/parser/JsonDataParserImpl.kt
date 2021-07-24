@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.model.parser
 import android.content.Context
 import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.MediaStream
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -156,7 +157,7 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
             mediaStream.setVariant(bitrate, jsonObject.getString(KEY_URL))
             radioStation.mediaStream = mediaStream
         }
-        var imgUrl = ""
+        var imgUrl = AppUtils.EMPTY_STRING
         if (jsonObject.has(KEY_FAV_ICON)) {
             imgUrl = jsonObject.getString(KEY_FAV_ICON)
         }

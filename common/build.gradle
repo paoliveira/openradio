@@ -45,6 +45,10 @@ dependencies {
     api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
     api "androidx.media:media:$androidxMediaVersion"
 
+    kapt "androidx.room:room-compiler:$roomVersion"
+    implementation "androidx.room:room-runtime:$roomVersion"
+    implementation "androidx.room:room-ktx:$roomVersion"
+
     implementation "com.android.support:multidex:$multidexVersion"
     implementation "com.google.android.material:material:$materialVersion"
     implementation "androidx.core:core-ktx:$kotlinCoreKtx"

@@ -20,27 +20,33 @@ import android.content.ContentProvider
 import android.content.ContentValues
 import android.database.Cursor
 import android.net.Uri
+import android.os.Environment
 import android.os.ParcelFileDescriptor
+import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.FileUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.util.concurrent.*
+import java.io.InputStream
+import java.net.URL
 
 class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
 
     private lateinit var mNetworkMonitor: NetworkMonitor
-    private lateinit var mExecutor: ExecutorService
+    private lateinit var mImagesDatabase: RsImagesDatabase
 
     override fun configureWith(networkMonitor: NetworkMonitor) {
         mNetworkMonitor = networkMonitor
     }
 
     override fun onCreate(): Boolean {
-        mExecutor = Executors.newCachedThreadPool()
         AppLogger.d("$TAG created")
+        mImagesDatabase = RsImagesDatabase.getInstance(context!!)
         return true
     }
 
@@ -57,9 +63,6 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
 
     override fun insert(uri: Uri, values: ContentValues?): Uri {
         //Uri.parse("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
-        if (context == null) {
-            return Uri.EMPTY
-        }
         if (uri.authority != ImagesStore.AUTHORITY) {
             return Uri.EMPTY
         }
@@ -75,27 +78,15 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
             return Uri.EMPTY
         }
         AppLogger.d("$TAG insert $rsId $imageUrl")
-        val file = ImagesStore.getImage(context!!, rsId)
-        AppLogger.d("$TAG file (${file.exists()}) $file")
-        if (!file.exists()) {
-            mExecutor.submit {
-                var outputStream: FileOutputStream? = null
-                try {
-                    outputStream = FileOutputStream(file)
-                    FileUtils.downloadUrlToStream(context!!, imageUrl, outputStream, mNetworkMonitor)
-                    outputStream.flush()
-                    AppLogger.d("$TAG file $file downloaded ${file.exists()}")
-                } catch (e: IOException) {
-                    AppLogger.e("$TAG can't download RS art:$e")
-                } finally {
-                    try {
-                        outputStream!!.close()
-                    } catch (e: IOException) {
-                        AppLogger.e("$TAG can't close stream:$e")
-                    }
-                }
-            }
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val bytes = getImageBytes(imageUrl)
+            mImagesDatabase.rsImageDao().insertImage(RsImage(rsId, bytes))
+            AppLogger.d(
+                "$TAG image $imageUrl inserted, num of images:${mImagesDatabase.rsImageDao().getCount()}"
+            )
         }
+
         return Uri.EMPTY
     }
 
@@ -104,14 +95,23 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
         val context = this.context ?: return null
         val id = uri.lastPathSegment
         if (id.isNullOrEmpty()) {
+            AppLogger.w("$TAG open file for $uri has no valid id")
             return null
         }
-        val file = ImagesStore.getImage(context, id)
+        val image = mImagesDatabase.rsImageDao().getImage(id) ?: return null
+        val bytes = image.mData ?: return null
+        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        val file = File.createTempFile(TMP_FILE_NAME, TMP_FILE_EXT, path)
+        val os = FileOutputStream(file)
+        os.write(bytes)
+        os.close()
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
-    override fun query(uri: Uri, projection: Array<String>?, selection: String?,
-                       selectionArgs: Array<String>?, sortOrder: String?): Cursor? {
+    override fun query(
+        uri: Uri, projection: Array<String>?, selection: String?,
+        selectionArgs: Array<String>?, sortOrder: String?
+    ): Cursor? {
         return null
     }
 
@@ -119,8 +119,30 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
         return 0
     }
 
+    private fun getImageBytes(imageUrl: String): ByteArray? {
+        val output = ByteArrayOutputStream()
+        try {
+            URL(imageUrl).openStream().use { stream ->
+                val buffer = ByteArray(TMP_FILE_BUFFER)
+                while (true) {
+                    val bytesRead = stream.read(buffer)
+                    if (bytesRead < 0) {
+                        break
+                    }
+                    output.write(buffer, 0, bytesRead)
+                }
+            }
+        } catch (e: Exception) {
+            return ByteArray(0)
+        }
+        return output.toByteArray()
+    }
+
     companion object {
 
         private val TAG = ImagesProvider::class.java.simpleName
+        private const val TMP_FILE_NAME = "rs_img_tmp"
+        private const val TMP_FILE_EXT = ".jpg"
+        private const val TMP_FILE_BUFFER = 1024
     }
 }

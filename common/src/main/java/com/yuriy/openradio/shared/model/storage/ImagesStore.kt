@@ -21,11 +21,14 @@ import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import java.io.File
 
 class ImagesStore {
 
     companion object {
+
+        private val TAG = ImagesStore::class.simpleName
 
         /**
          * The authority for the this provider.
@@ -35,7 +38,7 @@ class ImagesStore {
         /**
          * Uri to the authority for the this provider.
          */
-        val AUTHORITY_URI: Uri = Uri.parse("content://$AUTHORITY")
+        private val AUTHORITY_URI: Uri = Uri.parse("content://$AUTHORITY")
 
         /**
          * Base value for MIME type of the content provided.
@@ -74,14 +77,14 @@ class ImagesStore {
 
         fun getImageUrl(contentValues: ContentValues): String {
             if (!contentValues.containsKey(IMG_URL_KEY)) {
-                return ""
+                return AppUtils.EMPTY_STRING
             }
             return contentValues.getAsString(IMG_URL_KEY)
         }
 
         fun getRsId(contentValues: ContentValues): String {
             if (!contentValues.containsKey(RS_ID_KEY)) {
-                return ""
+                return AppUtils.EMPTY_STRING
             }
             return contentValues.getAsString(RS_ID_KEY)
         }
@@ -92,19 +95,6 @@ class ImagesStore {
                     .authority(AUTHORITY)
                     .appendPath(rsId)
                     .build()
-        }
-
-        fun getImage(context: Context, id: String): File {
-            val directory: File = context.cacheDir
-            var file =  try {
-                File(directory, "$id.jpeg")
-            } catch (e: Exception) {
-                null
-            }
-            if (file == null || !file.exists()) {
-                file = File("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
-            }
-            return file
         }
     }
 }

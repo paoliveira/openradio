@@ -1625,7 +1625,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
                 val radioStation = mRadioStationsStorage.remove(mediaId)
                 if (radioStation != null) {
                     FileUtils.deleteFile(radioStation.getImgUri().toString())
-                    contentResolver.delete(ImagesStore.getDeleteUri(), "", emptyArray())
+                    contentResolver.delete(ImagesStore.getDeleteUri(), AppUtils.EMPTY_STRING, emptyArray())
                     LocalRadioStationsStorage.remove(radioStation, context)
                 }
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)

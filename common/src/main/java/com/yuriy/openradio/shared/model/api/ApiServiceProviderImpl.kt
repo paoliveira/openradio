@@ -157,7 +157,7 @@ class ApiServiceProviderImpl(context: Context,
     private fun downloadData(downloader: Downloader, uri: Uri,
                              parameters: List<Pair<String, String>>,
                              cacheType: CacheType?): String {
-        var response = ""
+        var response = AppUtils.EMPTY_STRING
         if (!mNetworkMonitor.checkConnectivityAndNotify(mContext)) {
             return response
         }
@@ -190,7 +190,7 @@ class ApiServiceProviderImpl(context: Context,
         response = String(downloader.downloadDataFromUri(mContext, uri, parameters))
         // Ignore empty response finally.
         if (response.isEmpty()) {
-            response = ""
+            response = AppUtils.EMPTY_STRING
             AppLogger.w(CLASS_NAME + "Can not parse data, response is empty")
             return response
         }
