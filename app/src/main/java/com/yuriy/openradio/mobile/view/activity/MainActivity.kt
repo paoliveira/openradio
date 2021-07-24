@@ -134,8 +134,8 @@ class MainActivity : AppCompatActivity() {
 
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
-        val medSubscriptionCb: MediaBrowserCompat.SubscriptionCallback = MediaBrowserSubscriptionCallback()
-        val mediaPresenterLstnr: MediaPresenterListener = MediaPresenterListenerImpl()
+        val medSubscriptionCb = MediaBrowserSubscriptionCallback()
+        val mediaPresenterLstnr = MediaPresenterListenerImpl()
         mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.list_view),
                 findViewById(R.id.current_radio_station_view), MobileMediaItemsAdapter(this),

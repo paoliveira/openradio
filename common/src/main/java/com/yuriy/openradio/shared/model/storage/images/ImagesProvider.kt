@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage.image
+package com.yuriy.openradio.shared.model.storage.images
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -22,8 +22,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Environment
 import android.os.ParcelFileDescriptor
-import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
-import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.utils.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -33,14 +31,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 
-class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
+class ImagesProvider : ContentProvider() {
 
-    private lateinit var mNetworkMonitor: NetworkMonitor
     private lateinit var mImagesDatabase: ImagesDatabase
-
-    override fun configureWith(networkMonitor: NetworkMonitor) {
-        mNetworkMonitor = networkMonitor
-    }
 
     override fun onCreate(): Boolean {
         AppLogger.d("$TAG created")
@@ -60,7 +53,6 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri {
-        //Uri.parse("android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty")
         if (uri.authority != ImagesStore.AUTHORITY) {
             return Uri.EMPTY
         }
@@ -76,32 +68,22 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
             return Uri.EMPTY
         }
         AppLogger.d("$TAG insert $rsId $imageUrl")
-
-        GlobalScope.launch(Dispatchers.IO) {
-            val bytes = getImageBytes(imageUrl)
-            mImagesDatabase.rsImageDao().insertImage(Image(rsId, bytes))
-            AppLogger.d(
-                "$TAG image $imageUrl inserted, num of images:${mImagesDatabase.rsImageDao().getCount()}"
-            )
-        }
-
+        downloadImage(rsId, imageUrl)
         return Uri.EMPTY
     }
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         AppLogger.d("$TAG open file :$uri")
         val context = this.context ?: return null
-        val id = uri.lastPathSegment
-        if (id.isNullOrEmpty()) {
+        val rsId = uri.lastPathSegment
+        if (rsId.isNullOrEmpty()) {
             AppLogger.w("$TAG open file for $uri has no valid id")
             return null
         }
-        val image = mImagesDatabase.rsImageDao().getImage(id) ?: return null
-        val bytes = image.mData ?: return null
         val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         val file = File.createTempFile(TMP_FILE_NAME, TMP_FILE_EXT, path)
         val os = FileOutputStream(file)
-        os.write(bytes)
+        os.write(getFileBytes(rsId))
         os.close()
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
@@ -117,7 +99,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
         return 0
     }
 
-    private fun getImageBytes(imageUrl: String): ByteArray? {
+    private fun getImageBytes(imageUrl: String): ByteArray {
         val output = ByteArrayOutputStream()
         try {
             URL(imageUrl).openStream().use { stream ->
@@ -131,9 +113,31 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency {
                 }
             }
         } catch (e: Exception) {
-            return ByteArray(0)
+            output.reset()
         }
         return output.toByteArray()
+    }
+
+    private fun getFileBytes(rsId: String): ByteArray {
+        val image = mImagesDatabase.rsImageDao().getImage(rsId) ?: return ByteArray(0)
+        return image.mData ?: return ByteArray(0)
+    }
+
+    private fun downloadImage(rsId: String, imageUrl: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val existedBytes = getFileBytes(rsId)
+            if (existedBytes.isNotEmpty()) {
+                return@launch
+            }
+            val bytes = getImageBytes(imageUrl)
+            if (bytes.isEmpty()) {
+                return@launch
+            }
+            mImagesDatabase.rsImageDao().insertImage(Image(rsId, bytes))
+            AppLogger.d(
+                "$TAG image $imageUrl inserted, num of images:${mImagesDatabase.rsImageDao().getCount()}"
+            )
+        }
     }
 
     companion object {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage.image
+package com.yuriy.openradio.shared.model.storage.images
 
 import android.content.Context
 import androidx.room.Database

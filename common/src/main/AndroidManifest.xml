@@ -39,7 +39,7 @@
         android:usesCleartextTraffic="true">
 
         <provider
-            android:name=".shared.model.storage.image.ImagesProvider"
+            android:name=".shared.model.storage.images.ImagesProvider"
             android:authorities="openradio.images"
             android:enabled="true"
             android:exported="true" />

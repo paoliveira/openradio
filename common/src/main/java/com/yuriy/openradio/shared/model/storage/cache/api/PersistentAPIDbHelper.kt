@@ -25,8 +25,9 @@ import android.database.sqlite.SQLiteOpenHelper
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class PersistentAPIDbHelper internal constructor(context: Context?, dbName: String?) :
-        SQLiteOpenHelper(context, dbName, null, DATABASE_VERSION) {
+class PersistentAPIDbHelper internal constructor(context: Context, dbName: String) :
+    SQLiteOpenHelper(context, dbName, null, DATABASE_VERSION) {
+
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREATE_ENTRIES)
     }
@@ -39,7 +40,8 @@ class PersistentAPIDbHelper internal constructor(context: Context?, dbName: Stri
     companion object {
         private const val DATABASE_VERSION = 2
         const val DATABASE_NAME = "APICache.db"
-        private const val SQL_CREATE_ENTRIES = "CREATE TABLE IF NOT EXISTS " + PersistentAPIContract.APIEntry.TABLE_NAME + " (" +
+        private const val SQL_CREATE_ENTRIES =
+            "CREATE TABLE IF NOT EXISTS " + PersistentAPIContract.APIEntry.TABLE_NAME + " (" +
                 PersistentAPIContract.APIEntry.ID + " INTEGER PRIMARY KEY," +
                 PersistentAPIContract.APIEntry.COLUMN_NAME_KEY + " TEXT," +
                 PersistentAPIContract.APIEntry.COLUMN_NAME_DATA + " TEXT, " +

@@ -28,35 +28,35 @@ import com.yuriy.openradio.shared.utils.AppUtils
  * On 02/04/19
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
+class PersistentApiCache(context: Context, dbName: String) : ApiCache {
 
-    private val mDbHelper: PersistentAPIDbHelper = PersistentAPIDbHelper(context, dbName)
+    private val mDbHelper = PersistentAPIDbHelper(context, dbName)
 
     override fun get(key: String): String {
         val db = mDbHelper.readableDatabase
         val selectionArgs = arrayOf(key)
         val cursor = db.query(
-                PersistentAPIContract.APIEntry.TABLE_NAME,  // The table to query
-                PROJECTION,  // The array of columns to return (pass null to get all)
-                SELECTION,  // The columns for the WHERE clause
-                selectionArgs,  // The values for the WHERE clause
-                null,  // don't group the rows
-                null,  // don't filter by row groups
-                null // The sort order
+            PersistentAPIContract.APIEntry.TABLE_NAME,  // The table to query
+            PROJECTION,  // The array of columns to return (pass null to get all)
+            SELECTION,  // The columns for the WHERE clause
+            selectionArgs,  // The values for the WHERE clause
+            null,  // don't group the rows
+            null,  // don't filter by row groups
+            null // The sort order
         )
         var data = AppUtils.EMPTY_STRING
         while (cursor.moveToNext()) {
             val cId = cursor.getLong(
-                    cursor.getColumnIndexOrThrow(BaseColumns._ID)
+                cursor.getColumnIndexOrThrow(BaseColumns._ID)
             )
             val cKey = cursor.getString(
-                    cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_KEY)
+                cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_KEY)
             )
             val cData = cursor.getString(
-                    cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_DATA)
+                cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_DATA)
             )
             val cTime = cursor.getInt(
-                    cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP)
+                cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP)
             )
             AppLogger.d(CLASS_NAME + "Get id:" + cId + ", key:" + cKey + ", data:" + cData + ", time:" + cTime)
             if (time - cTime > SEC_IN_DAY) {
@@ -106,13 +106,13 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
         val db = mDbHelper.readableDatabase
         val selectionArgs = arrayOf(key)
         val cursor = db.query(
-                PersistentAPIContract.APIEntry.TABLE_NAME,  // The table to query
-                PROJECTION,  // The array of columns to return (pass null to get all)
-                SELECTION,  // The columns for the WHERE clause
-                selectionArgs,  // The values for the WHERE clause
-                null,  // don't group the rows
-                null,  // don't filter by row groups
-                null // The sort order
+            PersistentAPIContract.APIEntry.TABLE_NAME,  // The table to query
+            PROJECTION,  // The array of columns to return (pass null to get all)
+            SELECTION,  // The columns for the WHERE clause
+            selectionArgs,  // The values for the WHERE clause
+            null,  // don't group the rows
+            null,  // don't filter by row groups
+            null // The sort order
         )
         val count = cursor.count
         cursor.close()
@@ -122,10 +122,10 @@ class PersistentApiCache(context: Context?, dbName: String?) : ApiCache {
     companion object {
         private val CLASS_NAME = PersistentApiCache::class.java.simpleName + " "
         private val PROJECTION = arrayOf(
-                BaseColumns._ID,
-                PersistentAPIContract.APIEntry.COLUMN_NAME_KEY,
-                PersistentAPIContract.APIEntry.COLUMN_NAME_DATA,
-                PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP
+            BaseColumns._ID,
+            PersistentAPIContract.APIEntry.COLUMN_NAME_KEY,
+            PersistentAPIContract.APIEntry.COLUMN_NAME_DATA,
+            PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP
         )
         private const val SELECTION = PersistentAPIContract.APIEntry.COLUMN_NAME_KEY + " = ?"
         private const val SEC_IN_DAY = 86400

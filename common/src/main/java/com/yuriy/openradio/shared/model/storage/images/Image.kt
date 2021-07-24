@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.shared.model.storage.image
+package com.yuriy.openradio.shared.model.storage.images
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

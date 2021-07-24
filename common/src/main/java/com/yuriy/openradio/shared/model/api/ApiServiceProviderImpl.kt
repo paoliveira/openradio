@@ -49,13 +49,16 @@ import java.util.*
  *
  * @param context Context of a callee.
  */
-class ApiServiceProviderImpl(context: Context,
-                             private val mDataParser: DataParser,
-                             private val mNetworkMonitor: NetworkMonitor) : ApiServiceProvider {
+class ApiServiceProviderImpl(
+    context: Context,
+    private val mDataParser: DataParser,
+    private val mNetworkMonitor: NetworkMonitor
+) : ApiServiceProvider {
 
     private val mContext = context
     private val mApiCachePersistent = PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME)
     private val mApiCacheInMemory = InMemoryApiCache()
+
     override fun close() {
         mApiCachePersistent.close()
         (mApiCacheInMemory as? InMemoryApiCache)?.clear()
@@ -89,16 +92,20 @@ class ApiServiceProviderImpl(context: Context,
         return getStations(downloader, uri, ArrayList(), cacheType)
     }
 
-    override fun getStations(downloader: Downloader, uri: Uri,
-                             parameters: List<Pair<String, String>>,
-                             cacheType: CacheType): List<RadioStation> {
+    override fun getStations(
+        downloader: Downloader, uri: Uri,
+        parameters: List<Pair<String, String>>,
+        cacheType: CacheType
+    ): List<RadioStation> {
         val data = downloadData(downloader, uri, parameters, cacheType)
         return mDataParser.getRadioStations(data)
     }
 
-    override fun addStation(downloader: Downloader, uri: Uri,
-                            parameters: List<Pair<String, String>>,
-                            cacheType: CacheType): Boolean {
+    override fun addStation(
+        downloader: Downloader, uri: Uri,
+        parameters: List<Pair<String, String>>,
+        cacheType: CacheType
+    ): Boolean {
         // Post data to the server.
         val response = String(downloader.downloadDataFromUri(mContext, uri, parameters))
         AppLogger.i("Add station response:$response")
@@ -154,9 +161,11 @@ class ApiServiceProviderImpl(context: Context,
      * @param parameters List of parameters to attach to connection.
      * @return [String]
      */
-    private fun downloadData(downloader: Downloader, uri: Uri,
-                             parameters: List<Pair<String, String>>,
-                             cacheType: CacheType?): String {
+    private fun downloadData(
+        downloader: Downloader, uri: Uri,
+        parameters: List<Pair<String, String>>,
+        cacheType: CacheType?
+    ): String {
         var response = AppUtils.EMPTY_STRING
         if (!mNetworkMonitor.checkConnectivityAndNotify(mContext)) {
             return response

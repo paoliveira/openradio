@@ -19,7 +19,7 @@ package com.yuriy.openradio.shared.vo
 import android.content.Context
 import android.net.Uri
 import android.support.v4.media.session.MediaSessionCompat
-import com.yuriy.openradio.shared.model.storage.image.ImagesStore
+import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppUtils
 import java.io.Serializable
