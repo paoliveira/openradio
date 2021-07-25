@@ -907,9 +907,11 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
     }
 
     private fun handleClearCache() {
-        mApiServiceProvider.clear()
-        ImagesDatabase.getInstance(applicationContext).rsImageDao().deleteAll()
-        SafeToast.showAnyThread(this, getString(R.string.clear_completed))
+        mScope.launch {
+            mApiServiceProvider.clear()
+            ImagesDatabase.getInstance(applicationContext).rsImageDao().deleteAll()
+            SafeToast.showAnyThread(applicationContext, getString(R.string.clear_completed))
+        }
     }
 
     private fun setPlayerVolume() {

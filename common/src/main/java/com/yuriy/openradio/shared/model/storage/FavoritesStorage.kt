@@ -56,8 +56,8 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     @Synchronized
-    fun add(radioStation: RadioStation?, context: Context) {
-        val key = createKeyForRadioStation(radioStation!!)
+    fun add(radioStation: RadioStation, context: Context) {
+        val key = createKeyForRadioStation(radioStation)
         sSet[key] = true
         if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
             radioStation.sortId = sSet.size
@@ -74,8 +74,8 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     @Synchronized
-    fun remove(radioStation: RadioStation?, context: Context) {
-        val key = createKeyForRadioStation(radioStation!!)
+    fun remove(radioStation: RadioStation, context: Context) {
+        val key = createKeyForRadioStation(radioStation)
         sSet.remove(key)
         remove(radioStation, context, FILE_NAME)
     }

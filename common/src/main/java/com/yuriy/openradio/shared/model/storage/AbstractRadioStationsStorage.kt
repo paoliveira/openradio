@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,7 @@ import com.yuriy.openradio.shared.model.translation.RadioStationDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonSerializer
 import com.yuriy.openradio.shared.model.translation.RadioStationSerializer
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.AppLogger.i
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
 
@@ -90,7 +88,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             val editor = getEditor(context, name)
             editor.remove(createKeyForRadioStation(radioStation))
             editor.apply()
-            i("Radio Station $radioStation removed")
+            AppLogger.i("Radio Station $radioStation removed")
         }
 
         @JvmStatic
@@ -99,7 +97,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             val editor = getEditor(context, name)
             editor.clear()
             editor.apply()
-            i("Radio Stations cleared")
+            AppLogger.i("Radio Stations cleared")
         }
 
         /**
@@ -126,7 +124,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 builder.delete(builder.length - KEY_VALUE_PAIR_DELIMITER.length, builder.length)
             }
             val result = builder.toString()
-            d("$name, getAllAsString:$result")
+            AppLogger.d("$name, getAllAsString:$result")
             return result
         }
 
@@ -157,7 +155,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 }
                 radioStation = deserializer.deserialize(context, radioStationKeyValue[1])
                 if (radioStation == null) {
-                    e("Can not deserialize (getAllFromString) from '" + radioStationKeyValue[1] + "'")
+                    AppLogger.e("Can not deserialize (getAllFromString) from '" + radioStationKeyValue[1] + "'")
                     continue
                 }
                 list.add(radioStation)
@@ -191,7 +189,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 value = map[key].toString()
                 radioStation = deserializer.deserialize(context, value)
                 if (radioStation == null) {
-                    e("Can not deserialize (getAll) from '$value'")
+                    AppLogger.e("Can not deserialize (getAll) from '$value'")
                     continue
                 }
 
@@ -226,7 +224,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 editor.putString(createKeyForRadioStation(radioStation), serializer.serialize(radioStation))
             }
             editor.apply()
-            i("${list.size} Radio Stations added")
+            AppLogger.i("${list.size} Radio Stations added")
         }
 
         /**
@@ -264,7 +262,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             val editor = getEditor(context, name)
             editor.putString(key, serializer.serialize(radioStation))
             editor.apply()
-            i("Radio Station added $radioStation")
+            AppLogger.i("Radio Station added $radioStation")
         }
 
         /**
