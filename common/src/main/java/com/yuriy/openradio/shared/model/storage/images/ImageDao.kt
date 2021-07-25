@@ -32,4 +32,7 @@ interface ImageDao {
 
     @Query("SELECT COUNT(DISTINCT rsId) FROM rsimages")
     fun getCount(): Int
+
+    @Query("DELETE FROM rsimages")
+    fun deleteAll()
 }

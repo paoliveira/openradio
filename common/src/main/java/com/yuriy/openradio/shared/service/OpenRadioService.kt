@@ -87,6 +87,7 @@ import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
+import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
@@ -907,6 +908,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
 
     private fun handleClearCache() {
         mApiServiceProvider.clear()
+        ImagesDatabase.getInstance(applicationContext).rsImageDao().deleteAll()
         SafeToast.showAnyThread(this, getString(R.string.clear_completed))
     }
 

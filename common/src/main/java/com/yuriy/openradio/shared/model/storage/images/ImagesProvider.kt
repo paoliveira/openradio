@@ -110,9 +110,18 @@ class ImagesProvider : ContentProvider() {
                         break
                     }
                     output.write(buffer, 0, bytesRead)
+                    AppLogger.d("$TAG downloaded ${output.size()} bytes")
+                    if (output.size() > 1000000) {
+                        output.flush()
+                        output.reset()
+                        AppLogger.d("$TAG download interrupted for $imageUrl")
+                        break
+                    }
                 }
+                AppLogger.d("$TAG Read completed:$imageUrl")
             }
         } catch (e: Exception) {
+            output.flush()
             output.reset()
         }
         return output.toByteArray()
