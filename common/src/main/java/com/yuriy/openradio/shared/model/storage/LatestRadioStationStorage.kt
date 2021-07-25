@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeCopyInstance
 
 /**
  * Created by Yuriy Chernyshov
@@ -26,6 +25,7 @@ import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeCopyInstance
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 object LatestRadioStationStorage : AbstractRadioStationsStorage() {
+
     /**
      * Name of the file for the Favorite Preferences.
      */
@@ -50,7 +50,7 @@ object LatestRadioStationStorage : AbstractRadioStationsStorage() {
     @JvmStatic
     @Synchronized
     fun add(radioStation: RadioStation?, context: Context) {
-        sRadioStation = makeCopyInstance(radioStation!!)
+        sRadioStation = RadioStation.makeCopyInstance(radioStation!!)
         add(KEY, radioStation, context, FILE_NAME)
     }
 
@@ -69,7 +69,7 @@ object LatestRadioStationStorage : AbstractRadioStationsStorage() {
         val list = getAll(context, FILE_NAME)
         // There is only one Radio Station in collection.
         if (list.isNotEmpty()) {
-            sRadioStation = makeCopyInstance(list[0])
+            sRadioStation = RadioStation.makeCopyInstance(list[0])
             return sRadioStation
         }
         return null

@@ -43,14 +43,18 @@ import java.util.*
  * resource over HTTP protocol.
  */
 class HTTPDownloaderImpl : Downloader {
+
     private var mUrlsSet: Array<String?>? = null
-    private val mRandom: Random = Random()
+    private val mRandom = Random()
+
     override fun downloadDataFromUri(context: Context, uri: Uri): ByteArray {
         return downloadDataFromUri(context, uri, ArrayList())
     }
 
-    override fun downloadDataFromUri(context: Context, uri: Uri,
-                                     parameters: List<Pair<String, String>>): ByteArray {
+    override fun downloadDataFromUri(
+        context: Context, uri: Uri,
+        parameters: List<Pair<String, String>>
+    ): ByteArray {
         var response = ByteArray(0)
         val url = getConnectionUrl(uri, parameters) ?: return response
         AppLogger.i("$CLASS_NAME Request URL:$url")
@@ -64,22 +68,36 @@ class HTTPDownloaderImpl : Downloader {
         try {
             responseCode = connection.responseCode
         } catch (exception: IOException) {
-            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
+            AppLogger.e(
+                "$CLASS_NAME getResponse ${
+                    DownloaderException.createExceptionMessage(
+                        url.toString(),
+                        parameters
+                    )
+                }, e:$exception"
+            )
         }
-        AppLogger.d("Response code:$responseCode")
+        AppLogger.d("$CLASS_NAME response code:$responseCode")
         if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
             NetUtils.closeHttpURLConnection(connection)
             AppLogger.e(
-                "${DownloaderException.createExceptionMessage(uri, parameters)}, " +
+                "$CLASS_NAME ${DownloaderException.createExceptionMessage(url.toString(), parameters)}, " +
                     "e:${Exception("Response code is $responseCode")}"
             )
             return response
         }
         try {
-            val inputStream: InputStream = BufferedInputStream(connection.inputStream)
+            val inputStream = BufferedInputStream(connection.inputStream)
             response = toByteArray(inputStream)
         } catch (exception: IOException) {
-            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
+            AppLogger.e(
+                "$CLASS_NAME getStream ${
+                    DownloaderException.createExceptionMessage(
+                        url.toString(),
+                        parameters
+                    )
+                }, e:$exception"
+            )
         } finally {
             NetUtils.closeHttpURLConnection(connection)
         }
@@ -94,8 +112,10 @@ class HTTPDownloaderImpl : Downloader {
      * @param parameters Parameters associated with request.
      * @return URL object to do connection with.
      */
-    private fun getConnectionUrl(uri: Uri,
-                                 parameters: List<Pair<String, String>>): URL? {
+    private fun getConnectionUrl(
+        uri: Uri,
+        parameters: List<Pair<String, String>>
+    ): URL? {
         // If there is no predefined prefix - return original URL.
         val uriStr = uri.toString()
         if (!uriStr.startsWith(UrlBuilder.BASE_URL_PREFIX)) {
@@ -118,11 +138,13 @@ class HTTPDownloaderImpl : Downloader {
                 var i = 0
                 for (item in list) {
                     mUrlsSet!![i++] = "https://" + item.canonicalHostName
-                    AppLogger.i(CLASS_NAME + " look up host:" + mUrlsSet!![i - 1])
+                    AppLogger.i("$CLASS_NAME look up host:" + mUrlsSet!![i - 1])
                 }
             }
         } catch (exception: UnknownHostException) {
-            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
+            AppLogger.e(
+                "$CLASS_NAME do lookup ${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception"
+            )
         }
 
         // Do random selection from available addresses.
@@ -144,8 +166,10 @@ class HTTPDownloaderImpl : Downloader {
         return getUrlModified(uriStr, UrlBuilder.RESERVED_URLS[i], parameters)
     }
 
-    private fun getUrlModified(uriOrigin: String,
-                               uri: String?, parameters: List<Pair<String, String>>): URL? {
+    private fun getUrlModified(
+        uriOrigin: String,
+        uri: String?, parameters: List<Pair<String, String>>
+    ): URL? {
         val uriModified = uriOrigin.replaceFirst(UrlBuilder.BASE_URL_PREFIX.toRegex(), uri!!)
         return getUrl(uriModified, parameters)
     }
@@ -154,7 +178,14 @@ class HTTPDownloaderImpl : Downloader {
         return try {
             URL(uri)
         } catch (exception: MalformedURLException) {
-            AppLogger.e("${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception")
+            AppLogger.e(
+                "$CLASS_NAME getUrl ${
+                    DownloaderException.createExceptionMessage(
+                        uri,
+                        parameters
+                    )
+                }, e:$exception"
+            )
             null
         }
     }
@@ -266,8 +297,10 @@ class HTTPDownloaderImpl : Downloader {
          * @since 2.5
          */
         @Throws(IOException::class)
-        fun copy(input: InputStream, output: OutputStream,
-                 bufferSize: Int): Long {
+        fun copy(
+            input: InputStream, output: OutputStream,
+            bufferSize: Int
+        ): Long {
             return copyLarge(input, output, ByteArray(bufferSize))
         }
 
@@ -290,8 +323,10 @@ class HTTPDownloaderImpl : Downloader {
          * @since 2.2
          */
         @Throws(IOException::class)
-        private fun copyLarge(input: InputStream, output: OutputStream,
-                              buffer: ByteArray): Long {
+        private fun copyLarge(
+            input: InputStream, output: OutputStream,
+            buffer: ByteArray
+        ): Long {
             var count: Long = 0
             var n: Int
             while (EOF != input.read(buffer).also { n = it }) {

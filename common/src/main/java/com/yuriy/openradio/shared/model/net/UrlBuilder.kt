@@ -145,7 +145,7 @@ object UrlBuilder {
      * @return [Uri]
      */
     fun getStation(stationId: String): Uri {
-        return Uri.parse(BASE_URL + "station/" + encodeValue(stationId))
+        return Uri.parse(BASE_URL + "stations/byuuid?uuids=" + encodeValue(stationId))
     }
 
     /**

@@ -18,7 +18,17 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
+import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
+import com.yuriy.openradio.shared.model.net.UrlBuilder
+import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
+import com.yuriy.openradio.shared.model.storage.cache.CacheType
+import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.vo.RadioStation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Created by Yuriy Chernyshov
@@ -88,6 +98,10 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      */
     @JvmStatic
     fun getAll(context: Context): MutableList<RadioStation> {
+        val data = getAll(context, FILE_NAME)
+        for (radioStation in data) {
+            checkImageUrl(context, radioStation.id)
+        }
         return getAll(context, FILE_NAME)
     }
 
@@ -147,5 +161,21 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
 
     fun setNewSortFeatureInited(context: Context, value: Boolean) {
         getEditor(context, FILE_NAME).putBoolean(KEY_IS_NEW_SORT_FEATURE, value).apply()
+    }
+
+    private fun checkImageUrl(context: Context, id: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val db = ImagesDatabase.getInstance(context)
+            val image = db.rsImageDao().getImage(id)
+            if (image != null) {
+                return@launch
+            }
+            val downloader = HTTPDownloaderImpl()
+            val provider =
+                ApiServiceProviderImpl(context, JsonDataParserImpl(context), DependencyRegistry.getNetMonitor())
+            provider.getStation(
+                downloader, UrlBuilder.getStation(id), CacheType.NONE
+            )
+        }
     }
 }

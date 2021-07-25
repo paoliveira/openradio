@@ -17,11 +17,9 @@
 package com.yuriy.openradio.shared.model.storage
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage.Companion.merge
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
@@ -39,12 +37,11 @@ class RadioStationsStorageTest {
 
     @Test
     fun merge() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val listA: MutableList<RadioStation> = ArrayList()
         val listB: MutableList<RadioStation> = ArrayList()
         val radioStations = arrayOfNulls<RadioStation>(10)
         for (i in radioStations.indices) {
-            val radioStation = makeDefaultInstance(context, i.toString())
+            val radioStation = RadioStation.makeDefaultInstance(i.toString())
             val stream = makeDefaultInstance()
             stream.setVariant(125, "Url" + 1)
             radioStation.mediaStream = stream

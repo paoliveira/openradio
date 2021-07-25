@@ -17,10 +17,8 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
-import com.yuriy.openradio.shared.model.translation.RadioStationDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonSerializer
-import com.yuriy.openradio.shared.model.translation.RadioStationSerializer
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
@@ -108,13 +106,12 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          * @return Stored data as String.
          */
         @JvmStatic
-        fun getAllAsString(context: Context?, name: String): String {
-            val sharedPreferences = getSharedPreferences(context!!, name)
+        fun getAllAsString(context: Context, name: String): String {
+            val sharedPreferences = getSharedPreferences(context, name)
             val map = sharedPreferences.all
-            var value: String
             val builder = StringBuilder()
             for (key in map.keys) {
-                value = map[key].toString()
+                val value = map[key].toString()
                 if (value.isEmpty()) {
                     continue
                 }
@@ -141,21 +138,19 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             if (marshalledRadioStations.isEmpty()) {
                 return list
             }
-            val deserializer: RadioStationDeserializer = RadioStationJsonDeserializer()
+            val deserializer = RadioStationJsonDeserializer()
             val radioStationsPairs = marshalledRadioStations.split(KEY_VALUE_PAIR_DELIMITER.toRegex()).toTypedArray()
-            var radioStationKeyValue: Array<String>
-            var radioStation: RadioStation?
             for (radioStationString in radioStationsPairs) {
-                radioStationKeyValue = radioStationString.split(KEY_VALUE_DELIMITER.toRegex()).toTypedArray()
-                if (radioStationKeyValue.size != 2) {
+                val keyValue = radioStationString.split(KEY_VALUE_DELIMITER.toRegex()).toTypedArray()
+                if (keyValue.size != 2) {
                     continue
                 }
-                if (radioStationKeyValue[1].isEmpty()) {
+                if (keyValue[1].isEmpty()) {
                     continue
                 }
-                radioStation = deserializer.deserialize(context, radioStationKeyValue[1])
+                val radioStation = deserializer.deserialize(context, keyValue[1])
                 if (radioStation == null) {
-                    AppLogger.e("Can not deserialize (getAllFromString) from '" + radioStationKeyValue[1] + "'")
+                    AppLogger.e("Can not deserialize (getAllFromString) from '" + keyValue[1] + "'")
                     continue
                 }
                 list.add(radioStation)
@@ -176,9 +171,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             val radioStations: MutableList<RadioStation> = ArrayList()
             val sharedPreferences = getSharedPreferences(context, name)
             val map = sharedPreferences.all
-            val deserializer: RadioStationDeserializer = RadioStationJsonDeserializer()
-            var radioStation: RadioStation?
-            var value: String
+            val deserializer = RadioStationJsonDeserializer()
             var counter = 0
             var isListSorted: Boolean? = null
             for (key in map.keys) {
@@ -186,8 +179,8 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 if (LocalRadioStationsStorage.isKeyId(key)) {
                     continue
                 }
-                value = map[key].toString()
-                radioStation = deserializer.deserialize(context, value)
+                val value = map[key].toString()
+                val radioStation = deserializer.deserialize(context, value)
                 if (radioStation == null) {
                     AppLogger.e("Can not deserialize (getAll) from '$value'")
                     continue
@@ -199,6 +192,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
                 if (radioStation.isMediaStreamEmpty()) {
                     continue
                 }
+
                 radioStations.add(radioStation)
 
                 // This is solution for the new functionality - drag and drop in order to sort
@@ -218,7 +212,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
 
         @JvmStatic
         fun addAll(context: Context, name: String, list: List<RadioStation>) {
-            val serializer: RadioStationSerializer = RadioStationJsonSerializer()
+            val serializer = RadioStationJsonSerializer()
             val editor = getEditor(context, name)
             for (radioStation in list) {
                 editor.putString(createKeyForRadioStation(radioStation), serializer.serialize(radioStation))
@@ -258,7 +252,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
          */
         @Synchronized
         private fun addInternal(key: String, radioStation: RadioStation, context: Context, name: String) {
-            val serializer: RadioStationSerializer = RadioStationJsonSerializer()
+            val serializer = RadioStationJsonSerializer()
             val editor = getEditor(context, name)
             editor.putString(key, serializer.serialize(radioStation))
             editor.apply()

@@ -52,7 +52,6 @@ class RadioStation : Serializable {
     // TODO: Convert to enum
     var countryCode = AppUtils.EMPTY_STRING
     var genre = AppUtils.EMPTY_STRING
-    var imageUrl = AppUtils.EMPTY_STRING
     var urlResolved = AppUtils.EMPTY_STRING
     private val mMediaStream: MediaStream
 
@@ -190,6 +189,7 @@ class RadioStation : Serializable {
          * Factory method to create copy-instance of the [RadioStation].
          *
          * @param radioStation Object to be copied.
+         *
          * @return Copied instance of [RadioStation].
          */
         @JvmStatic

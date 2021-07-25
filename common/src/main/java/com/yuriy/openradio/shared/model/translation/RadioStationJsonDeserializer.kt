@@ -25,7 +25,6 @@ import com.yuriy.openradio.shared.utils.JsonUtils.getBooleanValue
 import com.yuriy.openradio.shared.utils.JsonUtils.getIntValue
 import com.yuriy.openradio.shared.utils.JsonUtils.getStringValue
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.RadioStation.Companion.makeDefaultInstance
 import org.json.JSONObject
 import java.util.*
 
@@ -51,7 +50,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
         }
         try {
             val jsonObject = JSONObject(value)
-            val radioStation = makeDefaultInstance(
+            val radioStation = RadioStation.makeDefaultInstance(
                     getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
             )
             radioStation.name = getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)

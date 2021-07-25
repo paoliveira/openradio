@@ -30,14 +30,8 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage.getAll
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage.getAllFavoritesAsString
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage.getAllFavoritesFromString
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocalAsString
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocals
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage.getAllLocalsFromString
-import com.yuriy.openradio.shared.model.storage.RadioStationsStorage.Companion.merge
+import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -50,7 +44,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import java.lang.ref.WeakReference
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Created by Chernyshov Yurii
@@ -173,8 +167,8 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
      * Get data of all Radio Stations which are intended to upload and upload it.
      */
     private fun getRadioStationsAndUpload() {
-            val favorites = getAllFavoritesAsString(mContext)
-            val locals = getAllLocalAsString(mContext)
+            val favorites = FavoritesStorage.getAllFavoritesAsString(mContext)
+            val locals = LocalRadioStationsStorage.getAllLocalAsString(mContext)
             val data = mergeRadioStationCategories(favorites, locals)
             val listener: GoogleDriveRequest.Listener = GoogleDriveRequestListenerImpl(this, Command.UPLOAD)
             GlobalScope.launch(Dispatchers.IO) {
@@ -307,15 +301,15 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         if (FILE_NAME_RADIO_STATIONS == fileName) {
             val favoritesRx = splitRadioStationCategories(data)[0]
             val localsRx = splitRadioStationCategories(data)[1]
-            val favoritesList: MutableList<RadioStation> = getAll(mContext)
-            val favoritesRxList: List<RadioStation> = getAllFavoritesFromString(mContext, favoritesRx)
-            merge(favoritesList, favoritesRxList)
+            val favoritesList: MutableList<RadioStation> = FavoritesStorage.getAll(mContext)
+            val favoritesRxList: List<RadioStation> = FavoritesStorage.getAllFavoritesFromString(mContext, favoritesRx)
+            RadioStationsStorage.merge(favoritesList, favoritesRxList)
             for (radioStation in favoritesList) {
                 FavoritesStorage.add(radioStation, mContext)
             }
-            val localsList: MutableList<RadioStation> = getAllLocals(mContext)
-            val localsRxList: List<RadioStation> = getAllLocalsFromString(mContext, localsRx)
-            merge(localsList, localsRxList)
+            val localsList: MutableList<RadioStation> = LocalRadioStationsStorage.getAllLocals(mContext)
+            val localsRxList: List<RadioStation> = LocalRadioStationsStorage.getAllLocalsFromString(mContext, localsRx)
+            RadioStationsStorage.merge(localsList, localsRxList)
             for (radioStation in localsList) {
                 LocalRadioStationsStorage.add(radioStation, mContext)
             }

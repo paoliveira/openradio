@@ -30,6 +30,10 @@ object DependencyRegistry {
     }
 
     fun injectNetworkMonitor(networkMonitorDependency: NetworkMonitorDependency) {
-        networkMonitorDependency.configureWith(mNetMonitor)
+        networkMonitorDependency.configureWith(getNetMonitor())
+    }
+
+    fun getNetMonitor(): NetworkMonitor {
+        return mNetMonitor
     }
 }
