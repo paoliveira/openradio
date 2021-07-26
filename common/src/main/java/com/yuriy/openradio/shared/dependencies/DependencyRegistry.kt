@@ -18,22 +18,46 @@ package com.yuriy.openradio.shared.dependencies
 
 import android.content.Context
 import android.net.ConnectivityManager
+import com.yuriy.openradio.shared.model.net.Downloader
+import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
+import com.yuriy.openradio.shared.model.parser.DataParser
+import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 
 object DependencyRegistry {
 
     private lateinit var mNetMonitor: NetworkMonitor
+    private lateinit var mDownloader: Downloader
+    private lateinit var mParser: DataParser
 
     fun init(context: Context) {
         mNetMonitor = NetworkMonitor(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
         mNetMonitor.init()
+        mDownloader = HTTPDownloaderImpl()
+        mParser = JsonDataParserImpl(context)
     }
 
     fun injectNetworkMonitor(networkMonitorDependency: NetworkMonitorDependency) {
         networkMonitorDependency.configureWith(getNetMonitor())
     }
 
+    fun injectDownloader(downloaderDependency: DownloaderDependency) {
+        downloaderDependency.configureWith(getDownloader())
+    }
+
+    fun injectParser(parserDependency: ParserDependency) {
+        parserDependency.configureWith(getParser())
+    }
+
     fun getNetMonitor(): NetworkMonitor {
         return mNetMonitor
+    }
+
+    fun getDownloader(): Downloader {
+        return mDownloader
+    }
+
+    fun getParser(): DataParser {
+        return mParser
     }
 }

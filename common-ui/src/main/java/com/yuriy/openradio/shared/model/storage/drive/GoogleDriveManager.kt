@@ -33,9 +33,7 @@ import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -297,18 +295,18 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
      * @param fileName Name of the file
      */
     private fun handleDownloadCompleted(data: String, fileName: String) {
-        d("OnDownloadCompleted file:$fileName data:$data")
+        AppLogger.d("OnDownloadCompleted file:$fileName data:$data")
         if (FILE_NAME_RADIO_STATIONS == fileName) {
             val favoritesRx = splitRadioStationCategories(data)[0]
             val localsRx = splitRadioStationCategories(data)[1]
-            val favoritesList: MutableList<RadioStation> = FavoritesStorage.getAll(mContext)
-            val favoritesRxList: List<RadioStation> = FavoritesStorage.getAllFavoritesFromString(mContext, favoritesRx)
+            val favoritesList = FavoritesStorage.getAll(mContext)
+            val favoritesRxList = FavoritesStorage.getAllFavoritesFromString(mContext, favoritesRx)
             RadioStationsStorage.merge(favoritesList, favoritesRxList)
             for (radioStation in favoritesList) {
                 FavoritesStorage.add(radioStation, mContext)
             }
-            val localsList: MutableList<RadioStation> = LocalRadioStationsStorage.getAllLocals(mContext)
-            val localsRxList: List<RadioStation> = LocalRadioStationsStorage.getAllLocalsFromString(mContext, localsRx)
+            val localsList = LocalRadioStationsStorage.getAllLocals(mContext)
+            val localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(mContext, localsRx)
             RadioStationsStorage.merge(localsList, localsRxList)
             for (radioStation in localsList) {
                 LocalRadioStationsStorage.add(radioStation, mContext)
@@ -360,13 +358,13 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         private val mReference: WeakReference<GoogleDriveManager> = WeakReference(reference)
         private val mCommand: Command = command
         override fun onStart() {
-            d("On Google Drive started")
+            AppLogger.d("On Google Drive started")
             val manager = mReference.get() ?: return
             manager.mListener.onStart(mCommand)
         }
 
         override fun onUploadComplete() {
-            d("On Google Drive upload completed")
+            AppLogger.d("On Google Drive upload completed")
             val manager = mReference.get() ?: return
             manager.handleNextCommand()
             manager.mListener.onSuccess(mCommand)
@@ -374,13 +372,13 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
 
         override fun onDownloadComplete(data: String, fileName: String) {
             val manager = mReference.get()
-            d("On Google Drive download completed, manager:$manager")
+            AppLogger.d("On Google Drive download completed, manager:$manager")
             if (manager == null) {
                 return
             }
             manager.handleNextCommand()
             manager.handleDownloadCompleted(data, fileName)
-            d("On Google Drive download completed, listener:" + manager.mListener)
+            AppLogger.d("On Google Drive download completed, listener:" + manager.mListener)
             manager.mListener.onSuccess(mCommand)
         }
 

@@ -53,10 +53,11 @@ import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiver
 import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiverListener
 import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.DownloaderDependency
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
+import com.yuriy.openradio.shared.dependencies.ParserDependency
 import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl
 import com.yuriy.openradio.shared.exo.MetadataListener
-import com.yuriy.openradio.shared.model.api.ApiServiceProvider
 import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
 import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories
 import com.yuriy.openradio.shared.model.media.item.MediaItemChildCategories
@@ -71,11 +72,10 @@ import com.yuriy.openradio.shared.model.media.item.MediaItemRecentlyAddedStation
 import com.yuriy.openradio.shared.model.media.item.MediaItemRoot
 import com.yuriy.openradio.shared.model.media.item.MediaItemSearchFromApp
 import com.yuriy.openradio.shared.model.net.Downloader
-import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.net.UrlBuilder
-import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
+import com.yuriy.openradio.shared.model.parser.DataParser
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
@@ -122,7 +122,7 @@ import java.util.concurrent.atomic.*
  * On 12/13/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
+class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, DownloaderDependency, ParserDependency {
 
     /**
      * ExoPlayer's implementation to play Radio stream.
@@ -198,8 +198,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
      */
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
-    private val mApiServiceProvider: ApiServiceProvider by lazy {
-        ApiServiceProviderImpl(applicationContext, JsonDataParserImpl(applicationContext), mNetworkMonitor)
+    private val mApiServiceProvider by lazy {
+        ApiServiceProviderImpl(applicationContext, mParser, mNetworkMonitor)
     }
     private lateinit var mUiScope: CoroutineScope
     private lateinit var mScope: CoroutineScope
@@ -210,13 +210,16 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
     @Volatile
     private lateinit var mServiceHandler: ServiceHandler
 
-    private val mDownloader: Downloader
+    private lateinit var mDownloader: Downloader
+
+    private lateinit var mNetworkMonitor: NetworkMonitor
+
+    private lateinit var mParser: DataParser
+
     private val mRadioStationsComparator: Comparator<RadioStation>
     private val mStartIds: ConcurrentLinkedQueue<Int>
     private val mTimerListener = SleepTimerListenerImpl()
     private val mTimer = com.yuriy.openradio.shared.model.timer.SleepTimerImpl.makeInstance(mTimerListener)
-
-    private lateinit var mNetworkMonitor: NetworkMonitor
 
     private val mNetMonitorListener = NetworkMonitorListenerImpl()
 
@@ -227,6 +230,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
         CLASS_NAME = "ORS[" + hashCode() + "]"
         AppLogger.i(CLASS_NAME)
         DependencyRegistry.injectNetworkMonitor(this)
+        DependencyRegistry.injectDownloader(this)
+        DependencyRegistry.injectParser(this)
         setPlaybackState(PlaybackStateCompat.STATE_NONE)
         mRadioStationsComparator = RadioStationsComparator()
         mStartIds = ConcurrentLinkedQueue()
@@ -265,7 +270,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
                 }
             }
         )
-        mDownloader = HTTPDownloaderImpl()
     }
 
     interface ResultListener {
@@ -287,6 +291,14 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency {
 
     override fun configureWith(networkMonitor: NetworkMonitor) {
         mNetworkMonitor = networkMonitor
+    }
+
+    override fun configureWith(downloader: Downloader) {
+        mDownloader = downloader
+    }
+
+    override fun configureWith(parser: DataParser) {
+        mParser = parser
     }
 
     override fun onCreate() {

@@ -36,7 +36,6 @@ class ImagesProvider : ContentProvider() {
     private lateinit var mImagesDatabase: ImagesDatabase
 
     override fun onCreate(): Boolean {
-        AppLogger.d("$TAG created")
         mImagesDatabase = ImagesDatabase.getInstance(context!!)
         return true
     }
@@ -67,13 +66,11 @@ class ImagesProvider : ContentProvider() {
         if (imageUrl.isEmpty()) {
             return Uri.EMPTY
         }
-        AppLogger.d("$TAG insert $rsId $imageUrl")
         downloadImage(rsId, imageUrl)
         return Uri.EMPTY
     }
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
-        AppLogger.d("$TAG open file :$uri")
         val context = this.context ?: return null
         val rsId = uri.lastPathSegment
         if (rsId.isNullOrEmpty()) {
@@ -110,15 +107,13 @@ class ImagesProvider : ContentProvider() {
                         break
                     }
                     output.write(buffer, 0, bytesRead)
-                    AppLogger.d("$TAG downloaded ${output.size()} bytes")
-                    if (output.size() > 1000000) {
+                    if (output.size() > IMG_FILE_MAX_SIZE) {
                         output.flush()
                         output.reset()
                         AppLogger.d("$TAG download interrupted for $imageUrl")
                         break
                     }
                 }
-                AppLogger.d("$TAG Read completed:$imageUrl")
             }
         } catch (e: Exception) {
             output.flush()
@@ -143,9 +138,6 @@ class ImagesProvider : ContentProvider() {
                 return@launch
             }
             mImagesDatabase.rsImageDao().insertImage(Image(rsId, bytes))
-            AppLogger.d(
-                "$TAG image $imageUrl inserted, num of images:${mImagesDatabase.rsImageDao().getCount()}"
-            )
         }
     }
 
@@ -155,5 +147,7 @@ class ImagesProvider : ContentProvider() {
         private const val TMP_FILE_NAME = "rs_img_tmp"
         private const val TMP_FILE_EXT = ".jpg"
         private const val TMP_FILE_BUFFER = 1024
+        // Im bytes.
+        private const val IMG_FILE_MAX_SIZE = 1000000
     }
 }

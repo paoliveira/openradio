@@ -20,9 +20,7 @@ import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
-import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.UrlBuilder
-import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -170,11 +168,10 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
             if (image != null) {
                 return@launch
             }
-            val downloader = HTTPDownloaderImpl()
             val provider =
-                ApiServiceProviderImpl(context, JsonDataParserImpl(context), DependencyRegistry.getNetMonitor())
+                ApiServiceProviderImpl(context, DependencyRegistry.getParser(), DependencyRegistry.getNetMonitor())
             provider.getStation(
-                downloader, UrlBuilder.getStation(id), CacheType.NONE
+                DependencyRegistry.getDownloader(), UrlBuilder.getStation(id), CacheType.NONE
             )
         }
     }

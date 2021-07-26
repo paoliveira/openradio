@@ -62,13 +62,8 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
     }
 
     override fun getRadioStation(data: String): RadioStation? {
-        val jsonObject: JSONObject = try {
-            JSONObject(data)
-        } catch (e: JSONException) {
-            AppLogger.e("$CLASS_NAME getRadioStation $e")
-            return null
-        }
-        return getRadioStation(jsonObject)
+        val list = getRadioStations(data)
+        return if (list.isNotEmpty()) list[0] else null
     }
 
     override fun getRadioStations(data: String): List<RadioStation> {
@@ -81,10 +76,9 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
             return emptyList()
         }
         val result = mutableListOf<RadioStation>()
-        var jsonObject: JSONObject
         for (i in 0 until array.length()) {
             try {
-                jsonObject = array[i] as JSONObject
+                val jsonObject = array[i] as JSONObject
                 val radioStation = getRadioStation(jsonObject) ?: continue
                 if (radioStation.isMediaStreamEmpty()) {
                     continue
@@ -107,12 +101,10 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
             return emptyList()
         }
         val result = mutableListOf<Category>()
-        var item: JSONObject
-        var category: Category
         for (i in 0 until array.length()) {
             try {
-                item = array[i] as JSONObject
-                category = Category.makeDefaultInstance()
+                val item = array[i] as JSONObject
+                val category = Category.makeDefaultInstance()
                 if (item.has(KEY_NAME)) {
                     category.id = item.getString(KEY_NAME)
                     category.title = item.getString(KEY_NAME)
