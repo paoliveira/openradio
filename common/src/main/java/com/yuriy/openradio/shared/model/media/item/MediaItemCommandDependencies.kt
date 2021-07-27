@@ -22,11 +22,15 @@ import android.support.v4.media.MediaBrowserCompat
 import androidx.media.MediaBrowserServiceCompat
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider
 import com.yuriy.openradio.shared.model.net.Downloader
+import com.yuriy.openradio.shared.model.storage.FavoritesStorage
+import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
+import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.service.OpenRadioService.ResultListener
 import com.yuriy.openradio.shared.utils.MediaItemsComparator
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by Yuriy Chernyshov
@@ -54,10 +58,14 @@ class MediaItemCommandDependencies(
     val isSavedInstance: Boolean,
     val resultListener: ResultListener,
     val options: Bundle,
-    val radioStationsComparator: Comparator<RadioStation>) {
+    val radioStationsComparator: Comparator<RadioStation>,
+    val favoritesStorage: FavoritesStorage,
+    val mLocalRadioStationsStorage: LocalRadioStationsStorage,
+    val mLatestRadioStationStorage: LatestRadioStationStorage
+) {
 
-    private val mMediaItems: MutableList<MediaBrowserCompat.MediaItem>
-    private val mMediaItemsComparator: Comparator<MediaBrowserCompat.MediaItem>
+    private val mMediaItems = ArrayList<MediaBrowserCompat.MediaItem>()
+    private val mMediaItemsComparator = MediaItemsComparator()
 
     fun addMediaItem(item: MediaBrowserCompat.MediaItem) {
         mMediaItems.add(item)
@@ -73,12 +81,4 @@ class MediaItemCommandDependencies(
             radioStationsStorage.sort(radioStationsComparator)
             return mMediaItems
         }
-
-    /**
-     * Main constructor.
-     */
-    init {
-        mMediaItemsComparator = MediaItemsComparator()
-        mMediaItems = ArrayList()
-    }
 }

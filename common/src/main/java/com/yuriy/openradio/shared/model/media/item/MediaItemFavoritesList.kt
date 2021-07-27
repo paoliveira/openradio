@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.model.media.item
 
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import kotlinx.coroutines.Dispatchers
@@ -48,15 +47,15 @@ class MediaItemFavoritesList : MediaItemCommand {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val context = dependencies.context
-                val list = FavoritesStorage.getAll(context)
+                val list = dependencies.favoritesStorage.getAll(context)
 
-                if (!FavoritesStorage.getNewSortFeatureInited(context)) {
+                if (!dependencies.favoritesStorage.getNewSortFeatureInited(context)) {
                     var counter = 0
                     for (radioStation in list) {
                         radioStation.sortId = counter++
-                        FavoritesStorage.add(radioStation, context)
+                        dependencies.favoritesStorage.add(radioStation, context)
                     }
-                    FavoritesStorage.setNewSortFeatureInited(context, true)
+                    dependencies.favoritesStorage.setNewSortFeatureInited(context, true)
                 }
 
                 dependencies.radioStationsStorage.clearAndCopy(list)

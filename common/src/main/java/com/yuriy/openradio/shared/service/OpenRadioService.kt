@@ -52,13 +52,17 @@ import com.yuriy.openradio.shared.broadcast.ClearCacheReceiverListener
 import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiver
 import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiverListener
 import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver
+import com.yuriy.openradio.shared.dependencies.ApiServiceProviderDependency
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.DownloaderDependency
+import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
+import com.yuriy.openradio.shared.dependencies.LatestRadioStationStorageDependency
+import com.yuriy.openradio.shared.dependencies.LocalRadioStationsStorageDependency
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.dependencies.ParserDependency
 import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl
 import com.yuriy.openradio.shared.exo.MetadataListener
-import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
+import com.yuriy.openradio.shared.model.api.ApiServiceProvider
 import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories
 import com.yuriy.openradio.shared.model.media.item.MediaItemChildCategories
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand
@@ -122,7 +126,9 @@ import java.util.concurrent.atomic.*
  * On 12/13/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, DownloaderDependency, ParserDependency {
+class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, DownloaderDependency, ParserDependency,
+    ApiServiceProviderDependency, FavoritesStorageDependency, LocalRadioStationsStorageDependency,
+    LatestRadioStationStorageDependency {
 
     /**
      * ExoPlayer's implementation to play Radio stream.
@@ -173,7 +179,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     var isTv = false
         private set
 
-    private val mPackageValidator: PackageValidator by lazy {
+    private val mPackageValidator by lazy {
         PackageValidator(applicationContext, R.xml.allowed_media_browser_callers)
     }
 
@@ -198,9 +204,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      */
     private var mLastKnownRS: RadioStation? = null
     private var mRestoredRS: RadioStation? = null
-    private val mApiServiceProvider by lazy {
-        ApiServiceProviderImpl(applicationContext, mParser, mNetworkMonitor)
-    }
     private lateinit var mUiScope: CoroutineScope
     private lateinit var mScope: CoroutineScope
 
@@ -209,18 +212,17 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      */
     @Volatile
     private lateinit var mServiceHandler: ServiceHandler
-
     private lateinit var mDownloader: Downloader
-
     private lateinit var mNetworkMonitor: NetworkMonitor
-
     private lateinit var mParser: DataParser
-
+    private lateinit var mProvider: ApiServiceProvider
+    private lateinit var mFavoritesStorage: FavoritesStorage
+    private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
+    private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
     private val mRadioStationsComparator: Comparator<RadioStation>
     private val mStartIds: ConcurrentLinkedQueue<Int>
     private val mTimerListener = SleepTimerListenerImpl()
     private val mTimer = com.yuriy.openradio.shared.model.timer.SleepTimerImpl.makeInstance(mTimerListener)
-
     private val mNetMonitorListener = NetworkMonitorListenerImpl()
 
     /**
@@ -232,6 +234,10 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         DependencyRegistry.injectNetworkMonitor(this)
         DependencyRegistry.injectDownloader(this)
         DependencyRegistry.injectParser(this)
+        DependencyRegistry.injectProvider(this)
+        DependencyRegistry.injectFavoritesStorage(this)
+        DependencyRegistry.injectLocalRadioStationsStorage(this)
+        DependencyRegistry.injectLatestRadioStationStorage(this)
         setPlaybackState(PlaybackStateCompat.STATE_NONE)
         mRadioStationsComparator = RadioStationsComparator()
         mStartIds = ConcurrentLinkedQueue()
@@ -299,6 +305,22 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
 
     override fun configureWith(parser: DataParser) {
         mParser = parser
+    }
+
+    override fun configureWith(provider: ApiServiceProvider) {
+        mProvider = provider
+    }
+
+    override fun configureWith(storage: FavoritesStorage) {
+        mFavoritesStorage = storage
+    }
+
+    override fun configureWith(storage: LocalRadioStationsStorage) {
+        mLocalRadioStationsStorage = storage
+    }
+
+    override fun configureWith(storage: LatestRadioStationStorage) {
+        mLatestRadioStationStorage = storage
     }
 
     override fun onCreate() {
@@ -413,7 +435,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         mNoisyAudioStreamReceiver.unregister(context)
         mMasterVolumeBroadcastReceiver.unregister(context)
         mClearCacheReceiver.unregister(context)
-        mApiServiceProvider.close()
+        mProvider.close()
         stopService()
     }
 
@@ -496,14 +518,15 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         val context = applicationContext
         val command = mMediaItemCommands[MediaIdHelper.getId(mCurrentParentId)]
         val dependencies = MediaItemCommandDependencies(
-            context, mDownloader, result, mRadioStationsStorage, mApiServiceProvider,
+            context, mDownloader, result, mRadioStationsStorage, mProvider,
             countryCode, mCurrentParentId, mIsAndroidAuto, isSameCatalogue, mIsRestoreState,
             object : ResultListener {
                 override fun onResult() {
                     this@OpenRadioService.onResult()
                 }
             },
-            options, mRadioStationsComparator
+            options, mRadioStationsComparator, mFavoritesStorage, mLocalRadioStationsStorage,
+            mLatestRadioStationStorage
         )
         mIsRestoreState = false
         if (command != null) {
@@ -606,7 +629,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         // Save latest selected Radio Station.
         // Use it in Android Auto mode to display in the side menu as Latest Radio Station.
         if (radioStation != null) {
-            LatestRadioStationStorage.add(radioStation, applicationContext)
+            mLatestRadioStationStorage.add(radioStation, applicationContext)
         }
         updateMetadata(radioStation, mCurrentStreamTitle)
     }
@@ -685,7 +708,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         mScope.launch(Dispatchers.IO) {
             withTimeout(API_CALL_TIMEOUT_MS) {
                 // Start download information about Radio Station
-                val radioStationUpdated = mApiServiceProvider
+                val radioStationUpdated = mProvider
                     .getStation(mDownloader, UrlBuilder.getStation(id), CacheType.NONE)
                 if (radioStationUpdated == null) {
                     mUiScope.launch { listener.onComplete(null) }
@@ -920,7 +943,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
 
     private fun handleClearCache() {
         mScope.launch {
-            mApiServiceProvider.clear()
+            mProvider.clear()
             ImagesDatabase.getInstance(applicationContext).rsImageDao().deleteAll()
             SafeToast.showAnyThread(applicationContext, getString(R.string.clear_completed))
         }
@@ -1115,7 +1138,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         val context = applicationContext
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
             if (mRestoredRS == null) {
-                mRestoredRS = LatestRadioStationStorage[context]
+                mRestoredRS = mLatestRadioStationStorage[context]
             }
             if (mRestoredRS != null) {
                 handlePlayFromMediaId(mRestoredRS!!.id)
@@ -1164,7 +1187,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                         return
                     }
                     var favoriteIcon = R.drawable.ic_favorite_off
-                    if (FavoritesStorage.isFavorite(radioStation, applicationContext)) {
+                    if (mFavoritesStorage.isFavorite(radioStation, applicationContext)) {
                         favoriteIcon = R.drawable.ic_favorite_on
                     }
                     stateBuilder.addCustomAction(
@@ -1320,13 +1343,13 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                         override fun onComplete(radioStation: RadioStation?) {
                             val context = this@OpenRadioService.applicationContext
                             if (radioStation != null) {
-                                val isFavorite = FavoritesStorage.isFavorite(
+                                val isFavorite = mFavoritesStorage.isFavorite(
                                     radioStation, context
                                 )
                                 if (isFavorite) {
-                                    FavoritesStorage.remove(radioStation, context)
+                                    mFavoritesStorage.remove(radioStation, context)
                                 } else {
-                                    FavoritesStorage.add(radioStation, context)
+                                    mFavoritesStorage.add(radioStation, context)
                                 }
                             }
 
@@ -1433,7 +1456,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      * @param query Search query.
      */
     private fun executePerformSearch(query: String) {
-        val list = mApiServiceProvider.getStations(mDownloader, UrlBuilder.getSearchUrl(query), CacheType.NONE)
+        val list = mProvider.getStations(mDownloader, UrlBuilder.getSearchUrl(query), CacheType.NONE)
         if (list.isEmpty()) {
             SafeToast.showAnyThread(applicationContext, applicationContext.getString(R.string.no_search_results))
             return
@@ -1498,9 +1521,9 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 // Update Favorites Radio station: whether add it or remove it from the storage
                 val isFavorite = getIsFavoriteFromIntent(intent)
                 if (isFavorite) {
-                    FavoritesStorage.add(rs, context)
+                    mFavoritesStorage.add(rs, context)
                 } else {
-                    FavoritesStorage.remove(rs, context)
+                    mFavoritesStorage.remove(rs, context)
                 }
             }
             VALUE_NAME_EDIT_CUSTOM_RADIO_STATION_COMMAND -> {
@@ -1519,7 +1542,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 } else {
                     FileUtils.deleteFile(imageUrl)
                 }
-                val result = LocalRadioStationsStorage.update(
+                val result = mLocalRadioStationsStorage.update(
                     mediaId, context, name, url, imageUrlLocal, genre, country, addToFav
                 )
                 if (result) {
@@ -1588,7 +1611,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                     val urlData = UrlBuilder.addStation(rsToAdd)
                     val uri = urlData.first ?: return
                     val pairs = urlData.second ?: return
-                    if (!mApiServiceProvider.addStation(mDownloader, uri, pairs, CacheType.NONE)) {
+                    if (!mProvider.addStation(mDownloader, uri, pairs, CacheType.NONE)) {
                         LocalBroadcastManager.getInstance(context).sendBroadcast(
                             AppLocalBroadcast.createIntentValidateOfRSFailed(
                                 "Radio Station can not be added to server"
@@ -1603,7 +1626,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                     imageUrlLocal = rsToAdd.imageLocalUrl
                 }
                 val radioStation = RadioStation.makeDefaultInstance(
-                    LocalRadioStationsStorage.getId(context)
+                    mLocalRadioStationsStorage.getId(context)
                 )
                 radioStation.name = rsToAdd.name
                 radioStation.mediaStream.setVariant(0, url)
@@ -1611,9 +1634,9 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 radioStation.genre = rsToAdd.genre
                 radioStation.country = rsToAdd.country
                 radioStation.setIsLocal(true)
-                LocalRadioStationsStorage.add(radioStation, context)
+                mLocalRadioStationsStorage.add(radioStation, context)
                 if (rsToAdd.isAddToFav) {
-                    FavoritesStorage.add(radioStation, context)
+                    mFavoritesStorage.add(radioStation, context)
                 }
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_ROOT)
                 LocalBroadcastManager.getInstance(context).sendBroadcast(
@@ -1642,7 +1665,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 if (radioStation != null) {
                     FileUtils.deleteFile(radioStation.getImgUri().toString())
                     contentResolver.delete(ImagesStore.getDeleteUri(), AppUtils.EMPTY_STRING, emptyArray())
-                    LocalRadioStationsStorage.remove(radioStation, context)
+                    mLocalRadioStationsStorage.remove(radioStation, context)
                 }
                 notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
             }
@@ -1654,7 +1677,10 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                     return
                 }
                 AppLogger.d("$CLASS_NAME sort set $mediaId to $sortId position [$categoryMediaId]")
-                SortUtils.updateSortIds(applicationContext, mRadioStationsComparator, mediaId, sortId, categoryMediaId)
+                SortUtils.updateSortIds(
+                    applicationContext, mRadioStationsComparator, mediaId, sortId, categoryMediaId,
+                    mFavoritesStorage, mLocalRadioStationsStorage
+                )
                 notifyChildrenChanged(categoryMediaId)
                 mScope.launch(Dispatchers.Main) {
                     delay(100)

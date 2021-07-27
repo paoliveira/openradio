@@ -18,46 +18,63 @@ package com.yuriy.openradio.shared.dependencies
 
 import android.content.Context
 import android.net.ConnectivityManager
+import com.yuriy.openradio.shared.model.api.ApiServiceProvider
+import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
 import com.yuriy.openradio.shared.model.net.Downloader
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.parser.DataParser
 import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
+import com.yuriy.openradio.shared.model.storage.FavoritesStorage
+import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
+import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 
 object DependencyRegistry {
 
     private lateinit var mNetMonitor: NetworkMonitor
     private lateinit var mDownloader: Downloader
     private lateinit var mParser: DataParser
+    private lateinit var mProvider: ApiServiceProvider
+    private lateinit var mFavoritesStorage: FavoritesStorage
+    private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
+    private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
 
     fun init(context: Context) {
         mNetMonitor = NetworkMonitor(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
         mNetMonitor.init()
         mDownloader = HTTPDownloaderImpl()
         mParser = JsonDataParserImpl(context)
+        mProvider = ApiServiceProviderImpl(context, mParser, mNetMonitor)
+        mFavoritesStorage = FavoritesStorage(mProvider, mDownloader)
+        mLatestRadioStationStorage = LatestRadioStationStorage()
+        mLocalRadioStationsStorage = LocalRadioStationsStorage(mFavoritesStorage, mLatestRadioStationStorage)
     }
 
-    fun injectNetworkMonitor(networkMonitorDependency: NetworkMonitorDependency) {
-        networkMonitorDependency.configureWith(getNetMonitor())
+    fun injectNetworkMonitor(dependency: NetworkMonitorDependency) {
+        dependency.configureWith(mNetMonitor)
     }
 
-    fun injectDownloader(downloaderDependency: DownloaderDependency) {
-        downloaderDependency.configureWith(getDownloader())
+    fun injectDownloader(dependency: DownloaderDependency) {
+        dependency.configureWith(mDownloader)
     }
 
-    fun injectParser(parserDependency: ParserDependency) {
-        parserDependency.configureWith(getParser())
+    fun injectParser(dependency: ParserDependency) {
+        dependency.configureWith(mParser)
     }
 
-    fun getNetMonitor(): NetworkMonitor {
-        return mNetMonitor
+    fun injectProvider(dependency: ApiServiceProviderDependency) {
+        dependency.configureWith(mProvider)
     }
 
-    fun getDownloader(): Downloader {
-        return mDownloader
+    fun injectFavoritesStorage(dependency: FavoritesStorageDependency) {
+        dependency.configureWith(mFavoritesStorage)
     }
 
-    fun getParser(): DataParser {
-        return mParser
+    fun injectLocalRadioStationsStorage(dependency: LocalRadioStationsStorageDependency) {
+        dependency.configureWith(mLocalRadioStationsStorage)
+    }
+
+    fun injectLatestRadioStationStorage(dependency: LatestRadioStationStorageDependency) {
+        dependency.configureWith(mLatestRadioStationStorage)
     }
 }

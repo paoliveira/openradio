@@ -29,6 +29,9 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
+import com.yuriy.openradio.shared.dependencies.LocalRadioStationsStorageDependency
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
@@ -41,7 +44,6 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONException
 import org.json.JSONObject
 import java.lang.ref.WeakReference
-import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
@@ -51,9 +53,11 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * E-Mail: chernyshov.yuriy@gmail.com
  *
  * @param mContext  Context of the application.
- * @param listener Listener for the Google Drive client events.
-*/
-class GoogleDriveManager(private val mContext: Context, listener: Listener) {
+ * @param mListener Listener for the Google Drive client events.
+ */
+class GoogleDriveManager(private val mContext: Context, private val mListener: Listener) : FavoritesStorageDependency,
+    LocalRadioStationsStorageDependency {
+
     /**
      * Listener for the Google Drive client events.
      */
@@ -96,14 +100,28 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
     /**
      *
      */
-    private val mCommands: Queue<Command>
-    private val mListener: Listener
+    private val mCommands = ConcurrentLinkedQueue<Command>()
+    private lateinit var mFavoritesStorage: FavoritesStorage
+    private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
 
     /**
      * Command to perform.
      */
     enum class Command {
         UPLOAD, DOWNLOAD
+    }
+
+    init {
+        DependencyRegistry.injectFavoritesStorage(this)
+        DependencyRegistry.injectLocalRadioStationsStorage(this)
+    }
+
+    override fun configureWith(storage: FavoritesStorage) {
+        mFavoritesStorage = storage
+    }
+
+    override fun configureWith(storage: LocalRadioStationsStorage) {
+        mLocalRadioStationsStorage = storage
     }
 
     fun connect(account: Account?) {
@@ -155,9 +173,9 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
 
     private fun buildGoogleSignInClient(): GoogleSignInClient {
         val options = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .requestScopes(Scope(DriveScopes.DRIVE_FILE))
-                .build()
+            .requestEmail()
+            .requestScopes(Scope(DriveScopes.DRIVE_FILE))
+            .build()
         return GoogleSignIn.getClient(mContext, options)
     }
 
@@ -165,22 +183,22 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
      * Get data of all Radio Stations which are intended to upload and upload it.
      */
     private fun getRadioStationsAndUpload() {
-            val favorites = FavoritesStorage.getAllFavoritesAsString(mContext)
-            val locals = LocalRadioStationsStorage.getAllLocalAsString(mContext)
-            val data = mergeRadioStationCategories(favorites, locals)
-            val listener: GoogleDriveRequest.Listener = GoogleDriveRequestListenerImpl(this, Command.UPLOAD)
-            GlobalScope.launch(Dispatchers.IO) {
-                withTimeoutOrNull(GoogleDriveHelper.CMD_TIMEOUT_MS) {
-                    uploadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, data, listener)
-                } ?: listener.onError(GoogleDriveError("Upload radio stations time out"))
-            }
+        val favorites = mFavoritesStorage.getAllFavoritesAsString(mContext)
+        val locals = mLocalRadioStationsStorage.getAllLocalAsString(mContext)
+        val data = mergeRadioStationCategories(favorites, locals)
+        val listener = GoogleDriveRequestListenerImpl(this, Command.UPLOAD)
+        GlobalScope.launch(Dispatchers.IO) {
+            withTimeoutOrNull(GoogleDriveHelper.CMD_TIMEOUT_MS) {
+                uploadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, data, listener)
+            } ?: listener.onError(GoogleDriveError("Upload radio stations time out"))
         }
+    }
 
     /**
      * Initiate download and provide a listener.
      */
     private fun downloadRadioStationsAndApply() {
-        val listener: GoogleDriveRequest.Listener = GoogleDriveRequestListenerImpl(this, Command.DOWNLOAD)
+        val listener = GoogleDriveRequestListenerImpl(this, Command.DOWNLOAD)
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(GoogleDriveHelper.CMD_TIMEOUT_MS) {
                 downloadInternal(FOLDER_NAME, FILE_NAME_RADIO_STATIONS, listener)
@@ -196,17 +214,19 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
      * @param data       Marshalled Radio Stations.
      * @param listener   Listener.
      */
-    private fun uploadInternal(folderName: String, fileName: String, data: String,
-                               listener: GoogleDriveRequest.Listener) {
+    private fun uploadInternal(
+        folderName: String, fileName: String, data: String,
+        listener: GoogleDriveRequest.Listener
+    ) {
         val request = GoogleDriveRequest(
-                mGoogleDriveApiHelper!!, folderName, fileName, data, listener
+            mGoogleDriveApiHelper!!, folderName, fileName, data, listener
         )
         val result = GoogleDriveResult()
-        val queryFolder: GoogleDriveAPIChain = GoogleDriveQueryFolder()
-        val createFolder: GoogleDriveAPIChain = GoogleDriveCreateFolder()
-        val queryFile: GoogleDriveAPIChain = GoogleDriveQueryFile()
-        val deleteFile: GoogleDriveAPIChain = GoogleDriveDeleteFile()
-        val saveFile: GoogleDriveAPIChain = GoogleDriveSaveFile(true)
+        val queryFolder = GoogleDriveQueryFolder()
+        val createFolder = GoogleDriveCreateFolder()
+        val queryFile = GoogleDriveQueryFile()
+        val deleteFile = GoogleDriveDeleteFile()
+        val saveFile = GoogleDriveSaveFile(true)
         queryFolder.setNext(createFolder)
         createFolder.setNext(queryFile)
         queryFile.setNext(deleteFile)
@@ -221,15 +241,17 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
      * @param fileName   File name associated with Radio Stations data.
      * @param listener   Listener of the download related events.
      */
-    private fun downloadInternal(folderName: String, fileName: String,
-                                 listener: GoogleDriveRequest.Listener) {
+    private fun downloadInternal(
+        folderName: String, fileName: String,
+        listener: GoogleDriveRequest.Listener
+    ) {
         val request = GoogleDriveRequest(
-                mGoogleDriveApiHelper!!, folderName, fileName, null, listener
+            mGoogleDriveApiHelper!!, folderName, fileName, null, listener
         )
         val result = GoogleDriveResult()
-        val queryFolder: GoogleDriveAPIChain = GoogleDriveQueryFolder()
-        val queryFile: GoogleDriveAPIChain = GoogleDriveQueryFile()
-        val readFile: GoogleDriveAPIChain = GoogleDriveReadFile(true)
+        val queryFolder = GoogleDriveQueryFolder()
+        val queryFile = GoogleDriveQueryFile()
+        val readFile = GoogleDriveReadFile(true)
         queryFolder.setNext(queryFile)
         queryFile.setNext(readFile)
         queryFolder.handleRequest(request, result)
@@ -264,11 +286,12 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
     private fun getGoogleApiClient(account: Account): GoogleDriveHelper {
         // Use the authenticated account to sign in to the Drive service.
         val credential = GoogleAccountCredential.usingOAuth2(
-                mContext, setOf(DriveScopes.DRIVE_FILE))
+            mContext, setOf(DriveScopes.DRIVE_FILE)
+        )
         credential.selectedAccount = account
         val drive = Drive.Builder(AndroidHttp.newCompatibleTransport(), GsonFactory(), credential)
-                .setApplicationName(mContext.getString(R.string.app_name))
-                .build()
+            .setApplicationName(mContext.getString(R.string.app_name))
+            .build()
 
         // The DriveServiceHelper encapsulates all REST API and SAF functionality.
         // Its instantiation is required before handling any onClick actions.
@@ -299,17 +322,17 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         if (FILE_NAME_RADIO_STATIONS == fileName) {
             val favoritesRx = splitRadioStationCategories(data)[0]
             val localsRx = splitRadioStationCategories(data)[1]
-            val favoritesList = FavoritesStorage.getAll(mContext)
-            val favoritesRxList = FavoritesStorage.getAllFavoritesFromString(mContext, favoritesRx)
+            val favoritesList = mFavoritesStorage.getAll(mContext)
+            val favoritesRxList = mFavoritesStorage.getAllFavoritesFromString(mContext, favoritesRx)
             RadioStationsStorage.merge(favoritesList, favoritesRxList)
             for (radioStation in favoritesList) {
-                FavoritesStorage.add(radioStation, mContext)
+                mFavoritesStorage.add(radioStation, mContext)
             }
-            val localsList = LocalRadioStationsStorage.getAllLocals(mContext)
-            val localsRxList = LocalRadioStationsStorage.getAllLocalsFromString(mContext, localsRx)
+            val localsList = mLocalRadioStationsStorage.getAllLocals(mContext)
+            val localsRxList = mLocalRadioStationsStorage.getAllLocalsFromString(mContext, localsRx)
             RadioStationsStorage.merge(localsList, localsRxList)
             for (radioStation in localsList) {
-                LocalRadioStationsStorage.add(radioStation, mContext)
+                mLocalRadioStationsStorage.add(radioStation, mContext)
             }
         }
     }
@@ -353,10 +376,13 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         return categories
     }
 
-    private class GoogleDriveRequestListenerImpl(reference: GoogleDriveManager,
-                                                 command: Command) : GoogleDriveRequest.Listener {
-        private val mReference: WeakReference<GoogleDriveManager> = WeakReference(reference)
-        private val mCommand: Command = command
+    private class GoogleDriveRequestListenerImpl(
+        reference: GoogleDriveManager,
+        private val mCommand: Command
+    ) : GoogleDriveRequest.Listener {
+
+        private val mReference = WeakReference(reference)
+
         override fun onStart() {
             AppLogger.d("On Google Drive started")
             val manager = mReference.get() ?: return
@@ -395,10 +421,5 @@ class GoogleDriveManager(private val mContext: Context, listener: Listener) {
         private const val RADIO_STATION_CATEGORY_LOCALS = "locals"
         private const val FOLDER_NAME = "OPEN_RADIO"
         private const val FILE_NAME_RADIO_STATIONS = "RadioStations.txt"
-    }
-
-    init {
-        mCommands = ConcurrentLinkedQueue()
-        mListener = listener
     }
 }

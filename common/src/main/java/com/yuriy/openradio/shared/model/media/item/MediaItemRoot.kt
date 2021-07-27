@@ -22,9 +22,6 @@ import android.support.v4.media.MediaDescriptionCompat
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage
-import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
@@ -51,19 +48,19 @@ class MediaItemRoot : MediaItemCommand {
 
         var latestRadioStation: RadioStation? = null
         if (AppPreferencesManager.lastKnownRadioStationEnabled(context)) {
-            latestRadioStation = LatestRadioStationStorage[dependencies.context]
+            latestRadioStation = dependencies.mLatestRadioStationStorage[dependencies.context]
             if (latestRadioStation != null) {
                 dependencies.radioStationsStorage.add(latestRadioStation)
             }
         }
 
         // Show Favorites if they are exists.
-        if (!FavoritesStorage.isFavoritesEmpty(context)) {
+        if (!dependencies.favoritesStorage.isFavoritesEmpty(context)) {
 
             // In case of Android Auto, fill storage with Favorites. It will allow to browse stations from steering
             // wheel while UI is in Home and root items will contain only directories.
             if (dependencies.isAndroidAuto) {
-                val list = FavoritesStorage.getAll(context)
+                val list = dependencies.favoritesStorage.getAll(context)
                 if (latestRadioStation != null) {
                     for (item in list) {
                         // If latest known station is in favorites list, remove it (it is in the list already).
@@ -155,7 +152,7 @@ class MediaItemRoot : MediaItemCommand {
         }
 
         // Show Local Radio Stations if they are exists
-        if (!LocalRadioStationsStorage.isLocalsEmpty(context)) {
+        if (!dependencies.mLocalRadioStationsStorage.isLocalsEmpty(context)) {
             // Locals list
             val builder1 = MediaDescriptionCompat.Builder()
                 .setMediaId(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)

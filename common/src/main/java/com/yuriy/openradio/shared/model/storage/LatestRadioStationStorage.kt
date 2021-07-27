@@ -24,22 +24,12 @@ import com.yuriy.openradio.shared.vo.RadioStation
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-object LatestRadioStationStorage : AbstractRadioStationsStorage() {
-
-    /**
-     * Name of the file for the Favorite Preferences.
-     */
-    private const val FILE_NAME = "LatestRadioStationPreferences"
-
-    /**
-     * Key to associate latest Radio Station with.
-     */
-    private const val KEY = "LatestRadioStationKey"
+class LatestRadioStationStorage : AbstractRadioStationsStorage() {
 
     /**
      * Cache object in order to prevent use of storage.
      */
-    private var sRadioStation: RadioStation? = null
+    private var mRadioStation: RadioStation? = null
 
     /**
      * Save provided [RadioStation] to the Latest Radio Station preferences.
@@ -47,10 +37,9 @@ object LatestRadioStationStorage : AbstractRadioStationsStorage() {
      * @param radioStation [RadioStation] to add as Latest Radio Station.
      * @param context      Context of the callee.
      */
-    @JvmStatic
     @Synchronized
     fun add(radioStation: RadioStation?, context: Context) {
-        sRadioStation = RadioStation.makeCopyInstance(radioStation!!)
+        mRadioStation = RadioStation.makeCopyInstance(radioStation!!)
         add(KEY, radioStation, context, FILE_NAME)
     }
 
@@ -60,18 +49,29 @@ object LatestRadioStationStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      * @return Collection of the Local Radio Stations.
      */
-    @JvmStatic
     @Synchronized
     operator fun get(context: Context): RadioStation? {
-        if (sRadioStation != null) {
-            return sRadioStation
+        if (mRadioStation != null) {
+            return mRadioStation
         }
         val list = getAll(context, FILE_NAME)
         // There is only one Radio Station in collection.
         if (list.isNotEmpty()) {
-            sRadioStation = RadioStation.makeCopyInstance(list[0])
-            return sRadioStation
+            mRadioStation = RadioStation.makeCopyInstance(list[0])
+            return mRadioStation
         }
         return null
+    }
+
+    companion object {
+        /**
+         * Name of the file for the Favorite Preferences.
+         */
+        private const val FILE_NAME = "LatestRadioStationPreferences"
+
+        /**
+         * Key to associate latest Radio Station with.
+         */
+        private const val KEY = "LatestRadioStationKey"
     }
 }

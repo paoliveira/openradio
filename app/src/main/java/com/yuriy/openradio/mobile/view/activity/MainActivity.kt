@@ -42,6 +42,9 @@ import com.google.android.material.navigation.NavigationView
 import com.yuriy.openradio.mobile.R
 import com.yuriy.openradio.mobile.view.list.MobileMediaItemsAdapter
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
+import com.yuriy.openradio.shared.dependencies.LatestRadioStationStorageDependency
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
@@ -83,13 +86,13 @@ import java.util.concurrent.atomic.*
  *
  * Main Activity class with represents the list of the categories: All, By Genre, Favorites, etc ...
  */
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadioStationStorageDependency {
 
     companion object {
         /**
          * Tag string to use in logging message.
          */
-        private val CLASS_NAME: String = MainActivity::class.java.simpleName + " "
+        private val CLASS_NAME = MainActivity::class.java.simpleName + " "
     }
 
     /**
@@ -117,16 +120,28 @@ class MainActivity : AppCompatActivity() {
     private var mProgressBarCrs: ProgressBar? = null
 
     private lateinit var mMediaPresenter: MediaPresenter
+    private lateinit var mFavoritesStorage: FavoritesStorage
+    private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
 
     init {
         mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
         mMediaItemListener = MediaItemListenerImpl()
     }
 
+    override fun configureWith(storage: FavoritesStorage) {
+        mFavoritesStorage = storage
+    }
+
+    override fun configureWith(storage: LatestRadioStationStorage) {
+        mLatestRadioStationStorage = storage
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppLogger.d("$CLASS_NAME OnCreate:$savedInstanceState")
 
+        DependencyRegistry.injectFavoritesStorage(this)
+        DependencyRegistry.injectLatestRadioStationStorage(this)
         mMediaPresenter = MediaPresenter.getInstance(applicationContext)
 
         initUi(applicationContext)
@@ -495,7 +510,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun handleMetadataChanged(metadata: MediaMetadataCompat) {
         val context: Context = this
-        val radioStation = LatestRadioStationStorage[context] ?: return
+        val radioStation = mLatestRadioStationStorage[context] ?: return
         val description = metadata.description
         val nameView = findViewById<TextView>(R.id.crs_name_view)
         if (nameView != null) {
@@ -520,7 +535,7 @@ class MainActivity : AppCompatActivity() {
             favoriteCheckView.isChecked = false
             val mediaItem = MediaBrowserCompat.MediaItem(
                     MediaItemHelper.buildMediaDescriptionFromRadioStation(
-                        radioStation, isFavorite = FavoritesStorage.isFavorite(radioStation, context)
+                        radioStation, isFavorite = mFavoritesStorage.isFavorite(radioStation, context)
                     ),
                     MediaBrowserCompat.MediaItem.FLAG_PLAYABLE
             )

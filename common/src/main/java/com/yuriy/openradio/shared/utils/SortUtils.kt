@@ -31,24 +31,29 @@ object SortUtils {
      * @param sortId  Sort Id to update to.
      * @param categoryMediaId Category.
      */
-    fun updateSortIds(context: Context, comparator: Comparator<RadioStation>,
-                      mediaId: String, sortId: Int, categoryMediaId: String) {
+    fun updateSortIds(
+        context: Context, comparator: Comparator<RadioStation>,
+        mediaId: String, sortId: Int, categoryMediaId: String,
+        favoritesStorage: FavoritesStorage, localRadioStationsStorage: LocalRadioStationsStorage
+    ) {
         when (categoryMediaId) {
             MediaIdHelper.MEDIA_ID_FAVORITES_LIST -> {
-                val all = FavoritesStorage.getAll(context)
+                val all = favoritesStorage.getAll(context)
                 resortIds(comparator, all, sortId, mediaId)
-                FavoritesStorage.addAll(context, all)
+                favoritesStorage.addAll(context, all)
             }
             MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST -> {
-                val all = LocalRadioStationsStorage.getAllLocals(context)
+                val all = localRadioStationsStorage.getAllLocals(context)
                 resortIds(comparator, all, sortId, mediaId)
-                LocalRadioStationsStorage.addAll(context, all)
+                localRadioStationsStorage.addAll(context, all)
             }
         }
     }
 
-    private fun resortIds(comparator: Comparator<RadioStation>,
-                          all: MutableList<RadioStation>, sortId: Int, mediaId: String) {
+    private fun resortIds(
+        comparator: Comparator<RadioStation>,
+        all: MutableList<RadioStation>, sortId: Int, mediaId: String
+    ) {
         Collections.sort(all, comparator)
         var counter = 0
         var value: Int

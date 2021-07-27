@@ -50,13 +50,15 @@ class MainApp : MultiDexApplication(), NetworkMonitorDependency {
     }
 
     override fun onCreate() {
-        super.onCreate()
         AppLogger.d(CLASS_NAME + "OnCreate")
         AnalyticsUtils.init()
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         val context = applicationContext
         DependencyRegistry.init(context)
         DependencyRegistry.injectNetworkMonitor(this)
+
+        super.onCreate()
+
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         GlobalScope.launch(Dispatchers.IO) {
             val isLoggingEnabled = AppPreferencesManager.areLogsEnabled(
                     context

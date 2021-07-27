@@ -25,6 +25,9 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.CheckBox
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
+import com.yuriy.openradio.shared.dependencies.LocalRadioStationsStorageDependency
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
@@ -40,7 +43,7 @@ import com.yuriy.openradio.shared.vo.RadioStationToAdd
  *
  * Dialog to provide components to Edit Radio Station.
  */
-class EditStationDialog : BaseAddEditStationDialog() {
+class EditStationDialog : BaseAddEditStationDialog(), FavoritesStorageDependency, LocalRadioStationsStorageDependency {
 
     interface Listener: Parcelable {
 
@@ -62,6 +65,23 @@ class EditStationDialog : BaseAddEditStationDialog() {
 
     private var mListener: Listener? = null
 
+    private lateinit var mFavoritesStorage: FavoritesStorage
+    private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        DependencyRegistry.injectFavoritesStorage(this)
+        DependencyRegistry.injectLocalRadioStationsStorage(this)
+    }
+
+    override fun configureWith(storage: FavoritesStorage) {
+        mFavoritesStorage = storage
+    }
+
+    override fun configureWith(storage: LocalRadioStationsStorage) {
+        mLocalRadioStationsStorage = storage
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
@@ -73,7 +93,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
         mMediaId = getMediaId(arguments)
         mListener = getListener(arguments, KEY_LISTENER)
         if (mMediaId != null) {
-            val radioStation = LocalRadioStationsStorage[mMediaId, context!!]
+            val radioStation = mLocalRadioStationsStorage[mMediaId, context!!]
             if (radioStation != null) {
                 handleUI(context!!, radioStation)
             } else {
@@ -115,7 +135,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
         mImageLocalUrlEdit!!.setText(radioStation.getImgUri().toString())
         mCountriesSpinner!!.setSelection(getCountryPosition(radioStation.country))
         mGenresSpinner!!.setSelection(getGenrePosition(radioStation.genre))
-        mAddToFavCheckView!!.isChecked = FavoritesStorage.isFavorite(radioStation, context)
+        mAddToFavCheckView!!.isChecked = mFavoritesStorage.isFavorite(radioStation, context)
     }
 
     companion object {
@@ -168,6 +188,5 @@ class EditStationDialog : BaseAddEditStationDialog() {
                 bundle.get(key) as Listener
             } else null
         }
-
     }
 }

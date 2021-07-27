@@ -17,8 +17,6 @@ package com.yuriy.openradio.shared.model.media.item
 
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import kotlinx.coroutines.Dispatchers
@@ -44,12 +42,12 @@ class MediaItemLocalsList : MediaItemCommand {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val context = dependencies.context
-                val list = LocalRadioStationsStorage.getAllLocals(context)
+                val list = dependencies.mLocalRadioStationsStorage.getAllLocals(context)
                 dependencies.radioStationsStorage.clearAndCopy(list)
                 for (radioStation in list) {
                     val mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                         radioStation, sortId = radioStation.sortId,
-                        isFavorite = FavoritesStorage.isFavorite(radioStation, context), isLocal = true
+                        isFavorite = dependencies.favoritesStorage.isFavorite(radioStation, context), isLocal = true
                     )
                     val mediaItem = MediaBrowserCompat.MediaItem(
                         mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE

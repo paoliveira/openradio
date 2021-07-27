@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.model.media.item
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
@@ -80,7 +79,7 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
         for (radioStation in radioStations) {
             val mediaDescription = MediaItemHelper.buildMediaDescriptionFromRadioStation(
                 radioStation,
-                isFavorite = FavoritesStorage.isFavorite(radioStation, dependencies.context)
+                isFavorite = dependencies.favoritesStorage.isFavorite(radioStation, dependencies.context)
             )
             val mediaItem = MediaBrowserCompat.MediaItem(
                 mediaDescription, MediaBrowserCompat.MediaItem.FLAG_PLAYABLE

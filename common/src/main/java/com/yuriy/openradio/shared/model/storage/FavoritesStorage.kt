@@ -18,8 +18,8 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
-import com.yuriy.openradio.shared.dependencies.DependencyRegistry
-import com.yuriy.openradio.shared.model.api.ApiServiceProviderImpl
+import com.yuriy.openradio.shared.model.api.ApiServiceProvider
+import com.yuriy.openradio.shared.model.net.Downloader
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
@@ -34,24 +34,17 @@ import kotlinx.coroutines.launch
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-object FavoritesStorage : AbstractRadioStationsStorage() {
-
-    /**
-     * Name of the file for the Favorite Preferences.
-     */
-    private const val FILE_NAME = "FavoritesPreferences"
-
-    private const val KEY_IS_NEW_SORT_FEATURE = "KEY_IS_NEW_SORT_FEATURE"
+class FavoritesStorage(private val mProvider: ApiServiceProvider, private val mDownloader: Downloader) :
+    AbstractRadioStationsStorage() {
 
     /**
      * Cache key of the Favorite Radio Station in order to ease load from preferences.
      */
-    private val sSet = mutableMapOf<String, Boolean>()
+    private val mSet = mutableMapOf<String, Boolean>()
 
     /**
      * {@inheritDoc}
      */
-    @JvmStatic
     fun getAllFavoritesFromString(context: Context, marshalledRadioStations: String): List<RadioStation> {
         return getAllFromString(context, marshalledRadioStations)
     }
@@ -62,13 +55,12 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @param radioStation [RadioStation] to add to Favorites.
      * @param context      Context of the callee.
      */
-    @JvmStatic
     @Synchronized
     fun add(radioStation: RadioStation, context: Context) {
         val key = createKeyForRadioStation(radioStation)
-        sSet[key] = true
+        mSet[key] = true
         if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-            radioStation.sortId = sSet.size
+            radioStation.sortId = mSet.size
         }
         add(radioStation, context, FILE_NAME)
     }
@@ -80,11 +72,10 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @param radioStation [RadioStation] to remove from Favorites.
      * @param context Context of the callee.
      */
-    @JvmStatic
     @Synchronized
     fun remove(radioStation: RadioStation, context: Context) {
         val key = createKeyForRadioStation(radioStation)
-        sSet.remove(key)
+        mSet.remove(key)
         remove(radioStation, context, FILE_NAME)
     }
 
@@ -94,7 +85,6 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      * @return Collection of the Favorites Radio stations.
      */
-    @JvmStatic
     fun getAll(context: Context): MutableList<RadioStation> {
         val data = getAll(context, FILE_NAME)
         for (radioStation in data) {
@@ -103,7 +93,6 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
         return getAll(context, FILE_NAME)
     }
 
-    @JvmStatic
     fun addAll(context: Context, list: List<RadioStation>) {
         return addAll(context, FILE_NAME, list)
     }
@@ -114,7 +103,6 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      * @return Favorite Radio Stations in a String representation.
      */
-    @JvmStatic
     fun getAllFavoritesAsString(context: Context): String {
         return getAllAsString(context, FILE_NAME)
     }
@@ -136,20 +124,19 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
      * @param context      Context of the callee.
      * @return True in case of success, False - otherwise.
      */
-    @JvmStatic
     fun isFavorite(radioStation: RadioStation, context: Context): Boolean {
         val key = createKeyForRadioStation(radioStation)
-        if (sSet[key] != null) {
-            return sSet[key] ?: false
+        if (mSet[key] != null) {
+            return mSet[key] ?: false
         }
         val list = getAll(context)
         for (station in list) {
             if (station.id == radioStation.id) {
-                sSet[key] = true
+                mSet[key] = true
                 return true
             }
         }
-        sSet[key] = false
+        mSet[key] = false
         return false
     }
 
@@ -168,11 +155,18 @@ object FavoritesStorage : AbstractRadioStationsStorage() {
             if (image != null) {
                 return@launch
             }
-            val provider =
-                ApiServiceProviderImpl(context, DependencyRegistry.getParser(), DependencyRegistry.getNetMonitor())
-            provider.getStation(
-                DependencyRegistry.getDownloader(), UrlBuilder.getStation(id), CacheType.NONE
+            mProvider.getStation(
+                mDownloader, UrlBuilder.getStation(id), CacheType.NONE
             )
         }
+    }
+
+    companion object {
+        /**
+         * Name of the file for the Favorite Preferences.
+         */
+        private const val FILE_NAME = "FavoritesPreferences"
+
+        private const val KEY_IS_NEW_SORT_FEATURE = "KEY_IS_NEW_SORT_FEATURE"
     }
 }

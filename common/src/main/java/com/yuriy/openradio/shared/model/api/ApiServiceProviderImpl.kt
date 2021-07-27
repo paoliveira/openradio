@@ -75,7 +75,7 @@ class ApiServiceProviderImpl(
     }
 
     override fun getCountries(downloader: Downloader, uri: Uri, cacheType: CacheType): List<Country> {
-        val list: MutableList<Country> = ArrayList()
+        val list = ArrayList<Country>()
         for (countryName in LocationService.COUNTRY_NAME_TO_CODE.keys) {
             val countryCode = LocationService.COUNTRY_NAME_TO_CODE[countryName]
             if (countryCode == null) {
@@ -172,7 +172,7 @@ class ApiServiceProviderImpl(
         }
 
         // Create key to associate response with.
-        var responsesMapKey: String = uri.toString()
+        var responsesMapKey = uri.toString()
         try {
             responsesMapKey += NetUtils.getPostParametersQuery(parameters)
         } catch (e: UnsupportedEncodingException) {

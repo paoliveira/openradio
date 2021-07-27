@@ -26,21 +26,10 @@ import com.yuriy.openradio.shared.vo.RadioStation
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
-    /**
-     * Name of the file for the Favorite Preferences.
-     */
-    private const val FILE_NAME = "LocalRadioStationsPreferences"
-
-    /**
-     * Key for Radio Station Id.
-     */
-    private const val KEY_ID = "KEY_ID"
-
-    /**
-     * Init value of the custom Radio Station Id.
-     */
-    private const val ID_INIT_VALUE = Int.MAX_VALUE - 1000000
+class LocalRadioStationsStorage(
+    private val mFavoritesStorage: FavoritesStorage,
+    private val mLatestRadioStationStorage: LatestRadioStationStorage
+) : AbstractRadioStationsStorage() {
 
     /**
      * Set value of the Radio Station Id.
@@ -75,28 +64,17 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
     }
 
     /**
-     * Check whether provided value is equal to [.KEY_ID].
-     *
-     * @param value Value ot compare of.
-     * @return `true` in case of value is [.KEY_ID], `false` otherwise.
-     */
-    fun isKeyId(value: String?): Boolean {
-        return KEY_ID == value
-    }
-
-    /**
      * Add provided [RadioStation] to the Local Radio Stations preferences.
      *
      * @param radioStation [RadioStation] to add to the Local Radio Stations.
      * @param context      Context of the callee.
      */
-    @JvmStatic
     @Synchronized
     fun add(radioStation: RadioStation?, context: Context) {
         add(radioStation!!, context, FILE_NAME)
     }
 
-    @JvmStatic
+    @Synchronized
     fun addAll(context: Context, list: List<RadioStation>) {
         return addAll(context, FILE_NAME, list)
     }
@@ -127,15 +105,17 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @return `true` in case of success or `false` if Radio Station was not found.
      */
     @Synchronized
-    fun update(mediaId: String?, context: Context,
-               name: String?, url: String?, imageUrl: String?,
-               genre: String?, country: String?, addToFav: Boolean): Boolean {
+    fun update(
+        mediaId: String?, context: Context,
+        name: String?, url: String?, imageUrl: String?,
+        genre: String?, country: String?, addToFav: Boolean
+    ): Boolean {
         var result = false
         val list = getAll(context, FILE_NAME)
         for (radioStation in list) {
             if (radioStation.id.endsWith(mediaId!!)) {
                 remove(radioStation, context)
-                FavoritesStorage.remove(radioStation, context)
+                mFavoritesStorage.remove(radioStation, context)
                 radioStation.name = name!!
                 val mediaStream = makeDefaultInstance()
                 mediaStream.setVariant(128, url!!)
@@ -144,12 +124,12 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
                 radioStation.genre = genre!!
                 radioStation.country = country!!
                 if (addToFav) {
-                    FavoritesStorage.add(radioStation, context)
+                    mFavoritesStorage.add(radioStation, context)
                 }
                 add(radioStation, context)
-                val current = LatestRadioStationStorage[context]
+                val current = mLatestRadioStationStorage[context]
                 if (current != null && current.id.endsWith(mediaId)) {
-                    LatestRadioStationStorage.add(radioStation, context)
+                    mLatestRadioStationStorage.add(radioStation, context)
                 }
                 d("Radio station updated to:$radioStation")
                 result = true
@@ -183,7 +163,6 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      * @return Local added Radio Stations in a String representation.
      */
-    @JvmStatic
     fun getAllLocalAsString(context: Context): String {
         return getAllAsString(context, FILE_NAME)
     }
@@ -191,9 +170,10 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
     /**
      * {@inheritDoc}
      */
-    @JvmStatic
-    fun getAllLocalsFromString(context: Context,
-                               marshalledRadioStations: String): List<RadioStation> {
+    fun getAllLocalsFromString(
+        context: Context,
+        marshalledRadioStations: String
+    ): List<RadioStation> {
         return getAllFromString(context, marshalledRadioStations)
     }
 
@@ -203,7 +183,6 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
      * @param context Context of the callee.
      * @return Collection of the Local Radio Stations.
      */
-    @JvmStatic
     fun getAllLocals(context: Context): MutableList<RadioStation> {
         val list = getAll(context, FILE_NAME)
         // Loop for the key that holds KEY for the next Local Radio Station
@@ -235,5 +214,33 @@ object LocalRadioStationsStorage : AbstractRadioStationsStorage() {
             }
         }
         return list.isEmpty()
+    }
+
+    companion object {
+
+        /**
+         * Name of the file for the Favorite Preferences.
+         */
+        private const val FILE_NAME = "LocalRadioStationsPreferences"
+
+        /**
+         * Key for Radio Station Id.
+         */
+        private const val KEY_ID = "KEY_ID"
+
+        /**
+         * Init value of the custom Radio Station Id.
+         */
+        private const val ID_INIT_VALUE = Int.MAX_VALUE - 1000000
+
+        /**
+         * Check whether provided value is equal to [.KEY_ID].
+         *
+         * @param value Value ot compare of.
+         * @return `true` in case of value is [.KEY_ID], `false` otherwise.
+         */
+        fun isKeyId(value: String?): Boolean {
+            return KEY_ID == value
+        }
     }
 }

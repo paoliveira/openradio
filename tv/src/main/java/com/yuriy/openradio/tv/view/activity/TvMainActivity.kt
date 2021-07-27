@@ -29,6 +29,8 @@ import android.widget.TextView
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
+import com.yuriy.openradio.shared.dependencies.LatestRadioStationStorageDependency
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
@@ -49,7 +51,7 @@ import java.util.concurrent.atomic.*
 /*
  * Main TV Activity class that loads main TV fragment.
  */
-class TvMainActivity : FragmentActivity() {
+class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     /**
      * Progress Bar view to indicate that data is loading.
      */
@@ -64,8 +66,17 @@ class TvMainActivity : FragmentActivity() {
      * Member field to keep reference to the Local broadcast receiver.
      */
     private val mLocalBroadcastReceiverCb: LocalBroadcastReceiverCallback
+    private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
+
+    override fun configureWith(storage: LatestRadioStationStorage) {
+        mLatestRadioStationStorage = storage
+    }
+
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DependencyRegistry.injectLatestRadioStationStorage(this)
+
         setContentView(R.layout.tv_main)
         setUpAddBtn()
         setUpSearchBtn()
@@ -253,7 +264,7 @@ class TvMainActivity : FragmentActivity() {
      */
     private fun handleMetadataChanged(metadata: MediaMetadataCompat) {
         val context: Context = this
-        val radioStation = LatestRadioStationStorage[context]
+        val radioStation = mLatestRadioStationStorage[context]
         if (radioStation == null) {
             AppLogger.e("Handle metadata changed, rs is null")
             return
