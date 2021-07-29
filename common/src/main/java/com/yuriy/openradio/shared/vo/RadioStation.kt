@@ -36,10 +36,8 @@ import java.util.*
  */
 class RadioStation : Serializable {
 
-    private var mId: String = AppUtils.EMPTY_STRING
+    private var mId = AppUtils.EMPTY_STRING
 
-    // TODO: Convert to enum
-    var status = 0
     var name = AppUtils.EMPTY_STRING
     var homePage = AppUtils.EMPTY_STRING
     var lastCheckOkTime = AppUtils.EMPTY_STRING
@@ -60,6 +58,12 @@ class RadioStation : Serializable {
      */
     var isLocal = false
     var sortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
+
+    /**
+     * Image Url. Use to restore associated bytes and save them in DB when app cache cleared, or radio station saved
+     * without image bytes persisted.
+     */
+    var imageUrl = AppUtils.EMPTY_STRING
 
     /**
      * Private constructor.
@@ -95,8 +99,9 @@ class RadioStation : Serializable {
     }
 
     fun setImgUrl(context: Context, url: String?) {
+        imageUrl = url ?: AppUtils.EMPTY_STRING
         context.contentResolver.insert(
-                ImagesStore.getInsertUri(), ImagesStore.getContentValues(mId, url)
+                ImagesStore.getInsertUri(), ImagesStore.getContentValues(mId, imageUrl)
         )
     }
 

@@ -74,7 +74,6 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jdom/jdom2
     implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
     implementation "log4j:log4j:$log4jVersion"
-    implementation "com.squareup.picasso:picasso:$picassoVersion"
     implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
 
     androidTestImplementation(

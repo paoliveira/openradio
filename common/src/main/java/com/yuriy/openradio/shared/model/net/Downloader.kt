@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.net
 
 import android.content.Context
 import android.net.Uri
 import androidx.core.util.Pair
+import com.yuriy.openradio.shared.utils.AppUtils
+import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -31,20 +34,20 @@ import androidx.core.util.Pair
  * different protocols: HTTP, FTP, etc ...
  */
 interface Downloader {
-    /**
-     * Method to download data from provided [Uri].
-     *
-     * @param uri Provided [Uri].
-     * @return Downloaded data.
-     */
-    fun downloadDataFromUri(context: Context, uri: Uri): ByteArray
 
     /**
      * Method to download data from provided [Uri].
      *
+     * @param context Context of the callee.
      * @param uri        Provided [Uri].
      * @param parameters List of parameters to attach to connection.
+     * @param contentTypeFilter Content type to download. An empty string - for any type.
      * @return Downloaded data.
      */
-    fun downloadDataFromUri(context: Context, uri: Uri, parameters: List<Pair<String, String>>): ByteArray
+    fun downloadDataFromUri(
+        context: Context,
+        uri: Uri,
+        parameters: List<Pair<String, String>> = ArrayList(),
+        contentTypeFilter: String = AppUtils.EMPTY_STRING
+    ): ByteArray
 }

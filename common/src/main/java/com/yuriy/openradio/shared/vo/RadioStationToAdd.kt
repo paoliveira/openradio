@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.vo
 
 import java.io.Serializable
@@ -33,6 +34,7 @@ import java.io.Serializable
 class RadioStationToAdd(val name: String, val url: String, val imageLocalUrl: String,
                         val imageWebUrl: String, val homePage: String, val genre: String,
                         val country: String, val isAddToFav: Boolean, val isAddToServer: Boolean) : Serializable {
+
     override fun toString(): String {
         return "RadioStationToAdd{" +
                 "name='" + name + '\'' +

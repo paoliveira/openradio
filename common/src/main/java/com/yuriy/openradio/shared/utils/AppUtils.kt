@@ -21,19 +21,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.telephony.TelephonyManager
 import android.util.DisplayMetrics
 import androidx.fragment.app.FragmentActivity
 import com.google.android.exoplayer2.util.Util
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.RequestCreator
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import java.math.BigInteger
-import java.security.SecureRandom
 import java.util.*
 
 /**
@@ -156,14 +151,6 @@ object AppUtils {
         return predefinedCategories
     }
 
-    @JvmStatic
-    fun generateRandomHexToken(byteLength: Int): String {
-        val secureRandom = SecureRandom()
-        val token = ByteArray(byteLength)
-        secureRandom.nextBytes(token)
-        return BigInteger(1, token).toString(16)
-    }
-
     /**
      * @return Persistent value of the User Agent.
      *
@@ -235,27 +222,6 @@ object AppUtils {
             AppLogger.e("GetUserCountry $e")
         }
         return null
-    }
-
-    @JvmStatic
-    fun isWebUrl(url: String): Boolean {
-        return if (url.isEmpty()) {
-            false
-        } else url.lowercase(Locale.ROOT).startsWith("www")
-                || url.lowercase(Locale.ROOT).startsWith("http")
-    }
-
-    @JvmStatic
-    fun getPicassoCreator(uri: Uri): RequestCreator {
-        return if (isWebUrl(uri.toString())) {
-            Picasso.get().load(uri)
-        } else {
-            var link = Uri.decode(uri.toString())
-            if (link.isNullOrEmpty()) {
-                link = "android.resource://com.yuriy.openradio/drawable/ic_radio_station_empty"
-            }
-            Picasso.get().load(link)
-        }
     }
 
     @JvmStatic

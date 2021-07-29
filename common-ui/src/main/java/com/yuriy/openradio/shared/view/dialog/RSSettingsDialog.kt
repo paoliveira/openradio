@@ -25,6 +25,7 @@ import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.TextView
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -86,14 +87,16 @@ class RSSettingsDialog : BaseDialogFragment() {
         val name = view.findViewById<TextView>(R.id.dialog_rs_settings_rs_name)
         name.text = item.description.title
 
-        item.description.iconUri?.let {
-            val iv: ImageView = view.findViewById(R.id.dialog_rs_settings_logo_view)
-            AppUtils.getPicassoCreator(it)
-                    .resize(500, 500)
-                    .onlyScaleDown()
-                    .noPlaceholder()
-                    .centerInside()
-                    .into(iv)
+        val iv: ImageView = view.findViewById(R.id.dialog_rs_settings_logo_view)
+        val imageUri = UrlBuilder.preProcessIconUri(item.description.iconUri)
+        if (imageUri != null) {
+            context?.contentResolver?.openInputStream(imageUri)?.use {
+                val bytes = it.readBytes()
+                if (bytes.isEmpty()) {
+                    return
+                }
+                iv.setImageURI(imageUri)
+            }
         }
 
         if (isSortable) {

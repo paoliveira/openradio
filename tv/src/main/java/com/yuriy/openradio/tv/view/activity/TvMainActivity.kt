@@ -281,7 +281,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         val imgView = findViewById<ImageView>(R.id.tv_crs_img_view)
         // Show placeholder before load an image.
         imgView.setImageResource(R.drawable.ic_radio_station)
-        MediaItemsAdapter.updateImage(description, imgView)
+        MediaItemsAdapter.updateImage(applicationContext, description, imgView)
         MediaItemsAdapter.updateBitrateView(
                 radioStation.mediaStream.getVariant(0)!!.bitrate,
                 findViewById(R.id.tv_crs_bitrate_view),

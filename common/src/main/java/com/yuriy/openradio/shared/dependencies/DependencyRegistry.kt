@@ -28,6 +28,7 @@ import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
+import java.util.concurrent.atomic.AtomicBoolean
 
 object DependencyRegistry {
 
@@ -39,7 +40,13 @@ object DependencyRegistry {
     private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
     private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
 
+    @Volatile
+    private var mInit = AtomicBoolean(false)
+
     fun init(context: Context) {
+        if (mInit.get()) {
+            return
+        }
         mNetMonitor = NetworkMonitor(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
         mNetMonitor.init()
         mDownloader = HTTPDownloaderImpl()
@@ -48,6 +55,8 @@ object DependencyRegistry {
         mFavoritesStorage = FavoritesStorage(mProvider, mDownloader)
         mLatestRadioStationStorage = LatestRadioStationStorage()
         mLocalRadioStationsStorage = LocalRadioStationsStorage(mFavoritesStorage, mLatestRadioStationStorage)
+
+        mInit.set(true)
     }
 
     fun injectNetworkMonitor(dependency: NetworkMonitorDependency) {

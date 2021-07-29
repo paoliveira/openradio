@@ -232,7 +232,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
      *
      * @param radioStationToAdd Data to add as radio station.
      */
-    protected abstract fun processInput(radioStationToAdd: RadioStationToAdd?)
+    protected abstract fun processInput(radioStationToAdd: RadioStationToAdd)
 
     /**
      * Return position of country in drop down list.

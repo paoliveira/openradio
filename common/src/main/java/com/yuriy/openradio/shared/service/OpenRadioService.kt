@@ -97,7 +97,6 @@ import com.yuriy.openradio.shared.notification.MediaNotification
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.FileUtils
 import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
@@ -118,7 +117,6 @@ import kotlinx.coroutines.withTimeout
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
-
 
 /**
  * Created by Yuriy Chernyshov
@@ -1536,14 +1534,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 val addToFav = intent.getBooleanExtra(
                     EXTRA_KEY_STATION_ADD_TO_FAV, false
                 )
-                var imageUrlLocal = FileUtils.copyExtFileToIntDir(context, imageUrl!!, mNetworkMonitor)
-                if (imageUrlLocal == null) {
-                    imageUrlLocal = imageUrl
-                } else {
-                    FileUtils.deleteFile(imageUrl)
-                }
                 val result = mLocalRadioStationsStorage.update(
-                    mediaId, context, name, url, imageUrlLocal, genre, country, addToFav
+                    mediaId, context, name, url, imageUrl, genre, country, addToFav
                 )
                 if (result) {
                     notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
@@ -1566,6 +1558,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                     AppLogger.e("$CLASS_NAME Radio Station to add is null")
                     return
                 }
+                AppLogger.d("$CLASS_NAME try to add $rsToAdd")
                 if (rsToAdd.name.isEmpty()) {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                         AppLocalBroadcast.createIntentValidateOfRSFailed(
@@ -1621,16 +1614,12 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                         AppLocalBroadcast.createIntentValidateOfRSSuccess("Radio Station added to server")
                     }
                 }
-                var imageUrlLocal = FileUtils.copyExtFileToIntDir(context, rsToAdd.imageLocalUrl, mNetworkMonitor)
-                if (imageUrlLocal == null) {
-                    imageUrlLocal = rsToAdd.imageLocalUrl
-                }
                 val radioStation = RadioStation.makeDefaultInstance(
                     mLocalRadioStationsStorage.getId(context)
                 )
                 radioStation.name = rsToAdd.name
                 radioStation.mediaStream.setVariant(0, url)
-                radioStation.setImgUrl(context, imageUrlLocal)
+                radioStation.setImgUrl(context, rsToAdd.imageLocalUrl)
                 radioStation.genre = rsToAdd.genre
                 radioStation.country = rsToAdd.country
                 radioStation.setIsLocal(true)
@@ -1663,7 +1652,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 }
                 val radioStation = mRadioStationsStorage.remove(mediaId)
                 if (radioStation != null) {
-                    FileUtils.deleteFile(radioStation.getImgUri().toString())
                     contentResolver.delete(ImagesStore.getDeleteUri(), AppUtils.EMPTY_STRING, emptyArray())
                     mLocalRadioStationsStorage.remove(radioStation, context)
                 }

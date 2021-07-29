@@ -19,6 +19,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.core.util.Pair
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.NetUtils
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
@@ -31,6 +32,8 @@ import java.net.MalformedURLException
 import java.net.URL
 import java.net.UnknownHostException
 import java.util.*
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 
 /**
  * Created by Yuriy Chernyshov
@@ -46,147 +49,168 @@ class HTTPDownloaderImpl : Downloader {
 
     private var mUrlsSet: Array<String?>? = null
     private val mRandom = Random()
-
-    override fun downloadDataFromUri(context: Context, uri: Uri): ByteArray {
-        return downloadDataFromUri(context, uri, ArrayList())
-    }
+    private val mExecutor = Executors.newFixedThreadPool(8)
 
     override fun downloadDataFromUri(
         context: Context, uri: Uri,
-        parameters: List<Pair<String, String>>
+        parameters: List<Pair<String, String>>,
+        contentTypeFilter: String
     ): ByteArray {
-        var response = ByteArray(0)
-        val url = getConnectionUrl(uri, parameters) ?: return response
-        AppLogger.i("$CLASS_NAME Request URL:$url")
-        val connection = NetUtils.getHttpURLConnection(
-            context,
-            url,
-            if (parameters.isEmpty()) "GET" else "POST",
-            parameters
-        ) ?: return response
-        var responseCode = 0
-        try {
-            responseCode = connection.responseCode
-        } catch (exception: IOException) {
-            AppLogger.e(
-                "$CLASS_NAME getResponse ${
-                    DownloaderException.createExceptionMessage(
-                        url.toString(),
-                        parameters
-                    )
-                }, e:$exception"
-            )
-        }
-        AppLogger.d("$CLASS_NAME response code:$responseCode")
-        if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
-            NetUtils.closeHttpURLConnection(connection)
-            AppLogger.e(
-                "$CLASS_NAME ${DownloaderException.createExceptionMessage(url.toString(), parameters)}, " +
-                    "e:${Exception("Response code is $responseCode")}"
-            )
+        val task = BytesDownloader(mUrlsSet, mRandom, context, uri, parameters, contentTypeFilter)
+        return mExecutor.submit(task).get()
+    }
+
+    class BytesDownloader(
+        private var mUrlsSet: Array<String?>?,
+        private val mRandom: Random,
+        private val context: Context, private val uri: Uri,
+        private val parameters: List<Pair<String, String>>,
+        private val contentTypeFilter: String
+    ) : Callable<ByteArray> {
+
+        override fun call(): ByteArray {
+            var response = ByteArray(0)
+            val url = getConnectionUrl(uri, parameters) ?: return response
+            AppLogger.i("$CLASS_NAME Request URL:$url")
+            val connection = NetUtils.getHttpURLConnection(
+                context,
+                url,
+                if (parameters.isEmpty()) "GET" else "POST",
+                parameters
+            ) ?: return response
+            var responseCode = 0
+            try {
+                responseCode = connection.responseCode
+            } catch (exception: IOException) {
+                AppLogger.e(
+                    "$CLASS_NAME getResponse ${
+                        DownloaderException.createExceptionMessage(
+                            url.toString(),
+                            parameters
+                        )
+                    }, e:$exception"
+                )
+            }
+            AppLogger.d("$CLASS_NAME response code:$responseCode")
+            if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
+                NetUtils.closeHttpURLConnection(connection)
+                AppLogger.e(
+                    "$CLASS_NAME ${DownloaderException.createExceptionMessage(url.toString(), parameters)}, " +
+                        "e:${Exception("Response code is $responseCode")}"
+                )
+                return response
+            }
+
+            val contentType = connection.getHeaderField("Content-Type")
+            AppLogger.d("$CLASS_NAME content type:$contentType")
+
+            if (contentTypeFilter != AppUtils.EMPTY_STRING && !contentType.startsWith(contentTypeFilter)) {
+                NetUtils.closeHttpURLConnection(connection)
+                return response
+            }
+
+            try {
+                val inputStream = BufferedInputStream(connection.inputStream)
+                response = toByteArray(inputStream)
+            } catch (exception: IOException) {
+                AppLogger.e(
+                    "$CLASS_NAME getStream ${
+                        DownloaderException.createExceptionMessage(
+                            url.toString(),
+                            parameters
+                        )
+                    }, e:$exception"
+                )
+            } finally {
+                NetUtils.closeHttpURLConnection(connection)
+            }
             return response
         }
-        try {
-            val inputStream = BufferedInputStream(connection.inputStream)
-            response = toByteArray(inputStream)
-        } catch (exception: IOException) {
-            AppLogger.e(
-                "$CLASS_NAME getStream ${
-                    DownloaderException.createExceptionMessage(
-                        url.toString(),
-                        parameters
-                    )
-                }, e:$exception"
-            )
-        } finally {
-            NetUtils.closeHttpURLConnection(connection)
-        }
-        return response
-    }
 
-    /**
-     * Do DNS look up in order to get available url for service connection.
-     * Addresses, if found, are cached and next time is used from the cache.
-     *
-     * @param uri        Initial (with dummy and predefined prefix) url to perform look up on.
-     * @param parameters Parameters associated with request.
-     * @return URL object to do connection with.
-     */
-    private fun getConnectionUrl(
-        uri: Uri,
-        parameters: List<Pair<String, String>>
-    ): URL? {
-        // If there is no predefined prefix - return original URL.
-        val uriStr = uri.toString()
-        if (!uriStr.startsWith(UrlBuilder.BASE_URL_PREFIX)) {
-            return getUrl(uriStr, parameters)
-        }
-
-        // Return cached URL if available.
-        synchronized(mRandom) {
-            if (mUrlsSet != null && mUrlsSet!!.isNotEmpty()) {
-                val i = mRandom.nextInt(mUrlsSet!!.size)
-                return getUrlModified(uriStr, mUrlsSet!![i], parameters)
+        /**
+         * Do DNS look up in order to get available url for service connection.
+         * Addresses, if found, are cached and next time is used from the cache.
+         *
+         * @param uri        Initial (with dummy and predefined prefix) url to perform look up on.
+         * @param parameters Parameters associated with request.
+         * @return URL object to do connection with.
+         */
+        private fun getConnectionUrl(
+            uri: Uri,
+            parameters: List<Pair<String, String>>
+        ): URL? {
+            // If there is no predefined prefix - return original URL.
+            val uriStr = uri.toString()
+            if (!uriStr.startsWith(UrlBuilder.BASE_URL_PREFIX)) {
+                return getUrl(uriStr, parameters)
             }
-        }
 
-        // Perform look up and cache results.
-        try {
-            val list = InetAddress.getAllByName(UrlBuilder.LOOK_UP_DNS)
+            // Return cached URL if available.
             synchronized(mRandom) {
-                mUrlsSet = arrayOfNulls(list.size)
-                var i = 0
-                for (item in list) {
-                    mUrlsSet!![i++] = "https://" + item.canonicalHostName
-                    AppLogger.i("$CLASS_NAME look up host:" + mUrlsSet!![i - 1])
+                if (mUrlsSet != null && mUrlsSet!!.isNotEmpty()) {
+                    val i = mRandom.nextInt(mUrlsSet!!.size)
+                    return getUrlModified(uriStr, mUrlsSet!![i], parameters)
                 }
             }
-        } catch (exception: UnknownHostException) {
-            AppLogger.e(
-                "$CLASS_NAME do lookup ${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception"
-            )
-        }
 
-        // Do random selection from available addresses.
-        var url: URL? = null
-        synchronized(mRandom) {
-            if (mUrlsSet != null && mUrlsSet!!.isNotEmpty()) {
-                val i = mRandom.nextInt(mUrlsSet!!.size)
-                url = getUrlModified(uriStr, mUrlsSet!![i], parameters)
+            // Perform look up and cache results.
+            try {
+                val list = InetAddress.getAllByName(UrlBuilder.LOOK_UP_DNS)
+                synchronized(mRandom) {
+                    mUrlsSet = arrayOfNulls(list.size)
+                    var i = 0
+                    for (item in list) {
+                        mUrlsSet!![i++] = "https://" + item.canonicalHostName
+                        AppLogger.i("$CLASS_NAME look up host:" + mUrlsSet!![i - 1])
+                    }
+                }
+            } catch (exception: UnknownHostException) {
+                AppLogger.e(
+                    "$CLASS_NAME do lookup ${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception"
+                )
             }
+
+            // Do random selection from available addresses.
+            var url: URL? = null
+            synchronized(mRandom) {
+                if (mUrlsSet != null && mUrlsSet!!.isNotEmpty()) {
+                    val i = mRandom.nextInt(mUrlsSet!!.size)
+                    url = getUrlModified(uriStr, mUrlsSet!![i], parameters)
+                }
+            }
+
+            // Uri to URL parse might fail.
+            if (url != null) {
+                return url
+            }
+
+            // Use predefined addresses, these are needs to be verified time after time in order to be up to date.
+            val i = mRandom.nextInt(UrlBuilder.RESERVED_URLS.size)
+            return getUrlModified(uriStr, UrlBuilder.RESERVED_URLS[i], parameters)
         }
 
-        // Uri to URL parse might fail.
-        if (url != null) {
-            return url
+        private fun getUrlModified(
+            uriOrigin: String,
+            uri: String?, parameters: List<Pair<String, String>>
+        ): URL? {
+            val uriModified = uriOrigin.replaceFirst(UrlBuilder.BASE_URL_PREFIX.toRegex(), uri!!)
+            return getUrl(uriModified, parameters)
         }
 
-        // Use predefined addresses, these are needs to be verified time after time in order to be up to date.
-        val i = mRandom.nextInt(UrlBuilder.RESERVED_URLS.size)
-        return getUrlModified(uriStr, UrlBuilder.RESERVED_URLS[i], parameters)
-    }
-
-    private fun getUrlModified(
-        uriOrigin: String,
-        uri: String?, parameters: List<Pair<String, String>>
-    ): URL? {
-        val uriModified = uriOrigin.replaceFirst(UrlBuilder.BASE_URL_PREFIX.toRegex(), uri!!)
-        return getUrl(uriModified, parameters)
-    }
-
-    private fun getUrl(uri: String, parameters: List<Pair<String, String>>): URL? {
-        return try {
-            URL(uri)
-        } catch (exception: MalformedURLException) {
-            AppLogger.e(
-                "$CLASS_NAME getUrl ${
-                    DownloaderException.createExceptionMessage(
-                        uri,
-                        parameters
-                    )
-                }, e:$exception"
-            )
-            null
+        private fun getUrl(uri: String, parameters: List<Pair<String, String>>): URL? {
+            return try {
+                URL(uri)
+            } catch (exception: MalformedURLException) {
+                AppLogger.e(
+                    "$CLASS_NAME getUrl ${
+                        DownloaderException.createExceptionMessage(
+                            uri,
+                            parameters
+                        )
+                    }, e:$exception"
+                )
+                null
+            }
         }
     }
 
@@ -206,6 +230,8 @@ class HTTPDownloaderImpl : Downloader {
          * Represents the end-of-file (or stream).
          */
         private const val EOF = -1
+
+        const val CONTENT_TYPE_IMG = "image/"
 
         /**
          * Gets the contents of an `InputStream` as a `byte[]`.
@@ -336,5 +362,4 @@ class HTTPDownloaderImpl : Downloader {
             return count
         }
     }
-
 }

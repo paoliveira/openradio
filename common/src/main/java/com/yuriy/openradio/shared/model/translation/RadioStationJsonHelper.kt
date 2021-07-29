@@ -23,6 +23,7 @@ package com.yuriy.openradio.shared.model.translation
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 internal object RadioStationJsonHelper {
+
     /**
      * JSON's keys
      */
@@ -36,4 +37,5 @@ internal object RadioStationJsonHelper {
     const val KEY_GENRE = "Genre"
     const val KEY_IS_LOCAL = "IsLocal"
     const val KEY_SORT_ID = "SortId"
+    const val KEY_IMAGE_URL = "ImageUrl"
 }

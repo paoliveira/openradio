@@ -20,10 +20,9 @@ import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import android.text.TextUtils
 import android.util.Log
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.utils.JsonUtils.getBooleanValue
-import com.yuriy.openradio.shared.utils.JsonUtils.getIntValue
-import com.yuriy.openradio.shared.utils.JsonUtils.getStringValue
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import org.json.JSONObject
 import java.util.*
@@ -51,28 +50,34 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
         try {
             val jsonObject = JSONObject(value)
             val radioStation = RadioStation.makeDefaultInstance(
-                    getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
+                JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
             )
-            radioStation.name = getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)
-            var bitrateStr = getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0")
+            radioStation.name = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)
+            var bitrateStr = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0")
             if (!TextUtils.isDigitsOnly(bitrateStr) || bitrateStr.isEmpty()) {
                 bitrateStr = "0"
             }
-            radioStation.mediaStream.setVariant(bitrateStr.toInt(),
-                    getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
+            radioStation.mediaStream.setVariant(
+                bitrateStr.toInt(),
+                JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
             )
-            radioStation.country = getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY)
-            radioStation.countryCode = getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE)
-            radioStation.genre = getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
-            radioStation.homePage = getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
-            radioStation.setIsLocal(getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
-            radioStation.sortId = getIntValue(
-                    jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID
+            radioStation.country = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY)
+            radioStation.countryCode = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE)
+            radioStation.genre = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
+            radioStation.homePage = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
+            radioStation.setIsLocal(JsonUtils.getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
+            radioStation.sortId = JsonUtils.getIntValue(
+                jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID
+            )
+            radioStation.setImgUrl(
+                context, JsonUtils.getStringValue(
+                    jsonObject, RadioStationJsonHelper.KEY_IMAGE_URL, AppUtils.EMPTY_STRING
+                )
             )
             return radioStation
         } catch (e: Throwable) {
             /* Ignore this exception */
-            e("Error while de-marshall $value, exception:${Log.getStackTraceString(e)}")
+            AppLogger.e("Error while de-marshall $value, exception:${Log.getStackTraceString(e)}")
         }
         return null
     }

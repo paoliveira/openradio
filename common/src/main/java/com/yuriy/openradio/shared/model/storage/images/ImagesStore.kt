@@ -25,8 +25,6 @@ class ImagesStore {
 
     companion object {
 
-        private val TAG = ImagesStore::class.simpleName
-
         /**
          * The authority for the this provider.
          */

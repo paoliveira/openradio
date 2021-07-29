@@ -108,7 +108,7 @@ class EditStationDialog : BaseAddEditStationDialog(), FavoritesStorageDependency
     /**
      * Validate provided input in order to pass data farther to generate [RadioStation].
      */
-    override fun processInput(radioStationToAdd: RadioStationToAdd?) {
+    override fun processInput(radioStationToAdd: RadioStationToAdd) {
         mListener?.onSuccess(mMediaId, radioStationToAdd)
     }
 
@@ -132,7 +132,6 @@ class EditStationDialog : BaseAddEditStationDialog(), FavoritesStorageDependency
     private fun handleUI(context: Context, radioStation: RadioStation) {
         mNameEdit!!.setText(radioStation.name)
         mUrlEdit!!.setText(radioStation.mediaStream.getVariant(0)!!.url)
-        mImageLocalUrlEdit!!.setText(radioStation.getImgUri().toString())
         mCountriesSpinner!!.setSelection(getCountryPosition(radioStation.country))
         mGenresSpinner!!.setSelection(getGenrePosition(radioStation.genre))
         mAddToFavCheckView!!.isChecked = mFavoritesStorage.isFavorite(radioStation, context)

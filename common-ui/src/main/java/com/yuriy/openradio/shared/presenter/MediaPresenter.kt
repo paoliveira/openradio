@@ -56,8 +56,7 @@ import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.PlaybackStateError
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
@@ -73,13 +72,13 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
      * Stack of the media items.
      * It is used when navigating back and forth via list.
      */
-    private val mMediaItemsStack: MutableList<String> = LinkedList()
+    private val mMediaItemsStack = LinkedList<String>()
 
     /**
      * Map of the selected and clicked positions for lists of the media items.
      * Contract is - array of integer has 2 elements {selected position, clicked position}.
      */
-    private val mPositions: MutableMap<String?, IntArray?> = Hashtable()
+    private val mPositions = Hashtable<String?, IntArray?>()
     private var mListLastVisiblePosition = 0
 
     /**
@@ -422,7 +421,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         setActiveItem(clickedPosition)
         // This will do scroll to the position.
         mListView!!.scrollToPosition(selectedPosition.coerceAtLeast(0))
-        GlobalScope.launch(Dispatchers.Main) {
+        MainScope().launch {
             delay(50)
             mListView!!.smoothScrollToPosition(selectedPosition.coerceAtLeast(0))
         }

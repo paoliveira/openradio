@@ -16,9 +16,13 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
+import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Created by Yuriy Chernyshov
@@ -192,6 +196,7 @@ class LocalRadioStationsStorage(
                 list.remove(radioStation)
                 break
             }
+            checkImageUrl(context, radioStation.id)
         }
         return list
     }
@@ -214,6 +219,19 @@ class LocalRadioStationsStorage(
             }
         }
         return list.isEmpty()
+    }
+
+    private fun checkImageUrl(context: Context, id: String) {
+        GlobalScope.launch(Dispatchers.IO) {
+            val db = ImagesDatabase.getInstance(context)
+            val image = db.rsImageDao().getImage(id)
+            if (image != null) {
+                return@launch
+            }
+//            mProvider.getStation(
+//                mDownloader, UrlBuilder.getStation(id), CacheType.NONE
+//            )
+        }
     }
 
     companion object {

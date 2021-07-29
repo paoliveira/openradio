@@ -33,32 +33,29 @@ import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
  * On 12/18/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class MobileMediaItemsAdapter(private var mContext: Context?) : MediaItemsAdapter() {
+class MobileMediaItemsAdapter(private var mContext: Context) : MediaItemsAdapter() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaItemViewHolder {
         return MediaItemViewHolder(
-                LayoutInflater.from(parent.context).inflate(R.layout.item_both_side_swipe, parent, false),
-                R.id.item_root, R.id.name_view, R.id.description_view, R.id.img_view, R.id.favorite_btn_view,
-                R.id.bitrate_view, R.id.settings_btn_view, R.id.foreground_view
+            LayoutInflater.from(parent.context).inflate(R.layout.item_both_side_swipe, parent, false),
+            R.id.item_root, R.id.name_view, R.id.description_view, R.id.img_view, R.id.favorite_btn_view,
+            R.id.bitrate_view, R.id.settings_btn_view, R.id.foreground_view
         )
     }
 
     override fun onBindViewHolder(holder: MediaItemViewHolder, position: Int) {
         val mediaItem = getItem(position) ?: return
-        if (mContext == null) {
-            return
-        }
         val description = mediaItem.description
         val isPlayable = mediaItem.isPlayable
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, parentId)
-        updateImage(description, holder.mImageView)
+        updateImage(mContext, description, holder.mImageView)
         updateBitrateView(
-                getBitrateField(mediaItem), holder.mBitrateView, isPlayable
+            getBitrateField(mediaItem), holder.mBitrateView, isPlayable
         )
-        holder.mFavoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(mContext!!, R.drawable.src_favorite)
+        holder.mFavoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(mContext, R.drawable.src_favorite)
         if (isPlayable) {
             handleFavoriteAction(
-                    holder.mFavoriteCheckView, description, mediaItem, mContext!!
+                holder.mFavoriteCheckView, description, mediaItem, mContext
             )
         } else {
             holder.mFavoriteCheckView.visibility = View.GONE
@@ -70,12 +67,7 @@ class MobileMediaItemsAdapter(private var mContext: Context?) : MediaItemsAdapte
         if (position == activeItemId) {
             color = R.color.or_color_primary_dark
         }
-        holder.mForegroundView?.setBackgroundColor(mContext!!.resources.getColor(color))
-    }
-
-    override fun clear() {
-        super.clear()
-        mContext = null
+        holder.mForegroundView?.setBackgroundColor(mContext.resources.getColor(color))
     }
 
     override fun onViewRecycled(holder: MediaItemViewHolder) {
@@ -84,23 +76,22 @@ class MobileMediaItemsAdapter(private var mContext: Context?) : MediaItemsAdapte
     }
 
     private inner class OnSettingsListener(item: MediaBrowserCompat.MediaItem, private val mPosition: Int) :
-            View.OnClickListener {
+        View.OnClickListener {
 
-        private val mItem: MediaBrowserCompat.MediaItem = MediaBrowserCompat.MediaItem(item.description, item.flags)
+        private val mItem = MediaBrowserCompat.MediaItem(item.description, item.flags)
 
         override fun onClick(view: View) {
             if (listener == null) {
                 return
             }
             listener!!.onItemSettings(
-                    MediaBrowserCompat.MediaItem(mItem.description, mItem.flags), mPosition
+                MediaBrowserCompat.MediaItem(mItem.description, mItem.flags), mPosition
             )
         }
-
     }
 
     private inner class OnItemTapListener(private val mItem: MediaBrowserCompat.MediaItem, private val mPosition: Int) :
-            View.OnClickListener {
+        View.OnClickListener {
 
         override fun onClick(view: View) {
             if (listener == null) {

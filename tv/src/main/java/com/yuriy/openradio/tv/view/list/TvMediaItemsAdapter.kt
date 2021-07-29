@@ -20,7 +20,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
-import com.yuriy.openradio.shared.utils.MediaItemHelper.getBitrateField
+import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.view.list.MediaItemViewHolder
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.tv.R
@@ -55,9 +55,9 @@ class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter()
             listener!!.onItemSelected(mediaItem, position)
         }
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, parentId)
-        updateImage(description, holder.mImageView)
+        updateImage(mContext!!, description, holder.mImageView)
         updateBitrateView(
-                getBitrateField(mediaItem), holder.mBitrateView, isPlayable
+            MediaItemHelper.getBitrateField(mediaItem), holder.mBitrateView, isPlayable
         )
         holder.mFavoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(mContext!!, R.drawable.src_favorite)
         if (isPlayable) {

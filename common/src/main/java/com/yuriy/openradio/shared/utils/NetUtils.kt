@@ -33,6 +33,7 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import java.net.URLEncoder
+import java.util.*
 
 object NetUtils {
 
@@ -41,8 +42,18 @@ object NetUtils {
     private const val HEADER_FIELD_LOCATION = "Location"
 
     @JvmStatic
-    fun getHttpURLConnection(context: Context,
-                             urlString: String, requestMethod: String?): HttpURLConnection? {
+    fun isWebUrl(url: String): Boolean {
+        return if (url.isEmpty()) {
+            false
+        } else url.lowercase(Locale.ROOT).startsWith("www")
+            || url.lowercase(Locale.ROOT).startsWith("http")
+    }
+
+    @JvmStatic
+    fun getHttpURLConnection(
+        context: Context,
+        urlString: String, requestMethod: String?
+    ): HttpURLConnection? {
         return try {
             getHttpURLConnection(context, URL(urlString), requestMethod, null)
         } catch (exception: MalformedURLException) {
@@ -54,10 +65,12 @@ object NetUtils {
     }
 
     @JvmStatic
-    fun getHttpURLConnection(context: Context,
-                             url: URL,
-                             requestMethod: String?,
-                             parameters: List<Pair<String, String>>?): HttpURLConnection? {
+    fun getHttpURLConnection(
+        context: Context,
+        url: URL,
+        requestMethod: String?,
+        parameters: List<Pair<String, String>>?
+    ): HttpURLConnection? {
         var connection: HttpURLConnection? = null
         var isRedirect = false
         var connectUrl = url
@@ -101,7 +114,8 @@ object NetUtils {
                 connection.connect()
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_MOVED_PERM
-                    || responseCode == HttpURLConnection.HTTP_MOVED_TEMP) {
+                    || responseCode == HttpURLConnection.HTTP_MOVED_TEMP
+                ) {
                     if (maxAttempt-- <= 0) {
                         AppLogger.e("$CLASS_NAME redirect reached max attempts number")
                         break

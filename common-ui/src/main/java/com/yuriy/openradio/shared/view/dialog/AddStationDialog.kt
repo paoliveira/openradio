@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.view.dialog
 
 import android.os.Bundle
@@ -47,7 +48,7 @@ class AddStationDialog : BaseAddEditStationDialog() {
      *
      * @param radioStationToAdd
      */
-    override fun processInput(radioStationToAdd: RadioStationToAdd?) {
+    override fun processInput(radioStationToAdd: RadioStationToAdd) {
         val activity = activity ?: return
         activity.startService(
                 OpenRadioService.makeAddRadioStationIntent(activity, radioStationToAdd)
@@ -64,6 +65,6 @@ class AddStationDialog : BaseAddEditStationDialog() {
          * Tag string to use in dialog transactions.
          */
         @JvmField
-        val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
+        val DIALOG_TAG = "${CLASS_NAME}_DIALOG_TAG"
     }
 }

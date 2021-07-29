@@ -22,11 +22,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.os.RemoteException
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
@@ -34,10 +31,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import com.squareup.picasso.Picasso
-import com.squareup.picasso.Target
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -261,24 +255,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         val description = mMetadata!!.description
         var art = description.iconBitmap
         if (art == null && description.iconUri != null) {
-            val artUrl = UrlBuilder.preProcessIconUrl(description.iconUri.toString())
-            AppUtils.getPicassoCreator(Uri.parse(artUrl))
-                .resize(NOTIFICATION_LARGE_ICON_SIZE_PX, NOTIFICATION_LARGE_ICON_SIZE_PX)
-                .onlyScaleDown() // the image will only be resized if it's bigger than provided pixels.
-                .into(
-                    object : Target {
-                        override fun onBitmapFailed(e: java.lang.Exception?, errorDrawable: Drawable?) {
-                            AppLogger.e("Can't load large art:$e")
-                        }
-
-                        override fun onPrepareLoad(placeHolderDrawable: Drawable?) {}
-
-                        override fun onBitmapLoaded(bitmap: Bitmap?, from: Picasso.LoadedFrom?) {
-                            AppLogger.d("Large art loaded")
-                            art = bitmap
-                        }
-                    }
-                )
+            //art = description.iconUri
         } else if (art == null) {
             // use a placeholder art while the remote art is being downloaded
             art = BitmapFactory.decodeResource(mService.resources, R.drawable.ic_radio_station)

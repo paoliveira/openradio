@@ -28,7 +28,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 
@@ -45,9 +44,10 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
         fun onItemSelected(item: MediaBrowserCompat.MediaItem, position: Int)
     }
 
-    private val mAdapterData: ListAdapterData<MediaBrowserCompat.MediaItem> = ListAdapterData()
-    var parentId: String = MediaIdHelper.MEDIA_ID_ROOT
+    private val mAdapterData = ListAdapterData<MediaBrowserCompat.MediaItem>()
+    var parentId = MediaIdHelper.MEDIA_ID_ROOT
     var listener: Listener? = null
+
     /**
      * The currently selected / active Item Id.
      */
@@ -122,7 +122,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
     }
 
     companion object {
-        @JvmStatic
+
         fun updateBitrateView(bitrate: Int,
                               view: TextView?,
                               isPlayable: Boolean) {
@@ -153,7 +153,6 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          * @param description
          * @param parentId
          */
-        @JvmStatic
         fun handleNameAndDescriptionView(nameView: TextView,
                                          descriptionView: TextView,
                                          description: MediaDescriptionCompat,
@@ -177,23 +176,22 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          * @param description Media Description of the Media Item.
          * @param view        Image View to apply image to.
          */
-        @JvmStatic
-        fun updateImage(description: MediaDescriptionCompat, view: ImageView) {
+        fun updateImage(context: Context, description: MediaDescriptionCompat, view: ImageView) {
             view.visibility = View.VISIBLE
             if (description.iconBitmap != null) {
                 view.setImageBitmap(description.iconBitmap)
             } else {
-                val iconUri = UrlBuilder.preProcessIconUri(description.iconUri)
                 val iconId = MediaItemHelper.getDrawableId(description.extras)
                 if (MediaItemHelper.isDrawableIdValid(iconId)) {
                     view.setImageResource(iconId)
                 }
-                if (iconUri != null) {
-                    AppUtils.getPicassoCreator(iconUri)
-                            .resize(2048, 1600)
-                            .onlyScaleDown() // the image will only be resized if it's bigger than 2048 x 1600 pixels.
-                            .noPlaceholder()
-                            .into(view)
+                val imageUri = UrlBuilder.preProcessIconUri(description.iconUri) ?: return
+                context.contentResolver.openInputStream(imageUri)?.use {
+                    val bytes = it.readBytes()
+                    if (bytes.isEmpty()) {
+                        return
+                    }
+                    view.setImageURI(imageUri)
                 }
             }
         }
@@ -206,7 +204,6 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          * @param mediaItem   Media Item.
          * @param context     Current context.
          */
-        @JvmStatic
         fun handleFavoriteAction(checkBox: CheckBox, description: MediaDescriptionCompat?,
                                  mediaItem: MediaBrowserCompat.MediaItem?, context: Context) {
             checkBox.isChecked = MediaItemHelper.isFavoriteField(mediaItem)
@@ -227,5 +224,4 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
             }
         }
     }
-
 }

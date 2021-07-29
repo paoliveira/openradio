@@ -199,7 +199,7 @@ object MediaItemHelper {
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
         // sample for convenience only.
-        val mediaMetadataCompat = MediaMetadataCompat.Builder()
+        val metadata = MediaMetadataCompat.Builder()
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
             .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
@@ -222,7 +222,7 @@ object MediaItemHelper {
 
         // Info: There is no other way to set custom values in the description's bundle ...
         // Use reflection to do this.
-        val description = mediaMetadataCompat.description
+        val description = metadata.description
         var extras = description.extras
         if (extras == null) {
             extras = Bundle()
@@ -230,7 +230,7 @@ object MediaItemHelper {
         }
         setDrawableId(extras, R.drawable.ic_radio_station_empty)
         extras.putInt(KEY_SORT_ID, radioStation.sortId)
-        return mediaMetadataCompat
+        return metadata
     }
 
     /**
