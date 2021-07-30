@@ -26,7 +26,6 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.os.ParcelFileDescriptor
-import com.yuriy.openradio.shared.coroutines.launch
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.DownloaderDependency
 import com.yuriy.openradio.shared.dependencies.ImagesDatabaseDependency
@@ -71,55 +70,53 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
     }
 
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?): Int {
+        if (!ImagesStore.isAuthorised(uri)) {
+            AppLogger.e("$TAG delete '$uri' with invalid auth")
+            return 0
+        }
+        AppLogger.d("$TAG delete with '$uri'")
+        val id = ImagesStore.getId(uri)
+        if (id.isNotEmpty()) {
+            mImagesDatabase.rsImageDao().delete(id)
+            return 1
+        }
         return 0
     }
 
     override fun getType(uri: Uri): String {
-        if (uri.authority != ImagesStore.AUTHORITY) {
+        if (!ImagesStore.isAuthorised(uri)) {
             return ImagesStore.CONTENT_TYPE_UNKNOWN
         }
         return ImagesStore.CONTENT_TYPE_IMAGE
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri {
-        if (uri.authority != ImagesStore.AUTHORITY) {
-            AppLogger.w("$TAG insert '$uri' with invalid auth")
-            return Uri.EMPTY
-        }
-        if (values == null) {
-            AppLogger.w("$TAG insert with no values")
-            return Uri.EMPTY
-        }
-        val rsId = ImagesStore.getRsId(values)
-        if (rsId.isEmpty()) {
-            AppLogger.w("$TAG insert with empty id")
-            return Uri.EMPTY
-        }
-        val imageUrl = ImagesStore.getImageUrl(values)
-        if (imageUrl.isEmpty()) {
-            AppLogger.w("$TAG insert with empty image url for $rsId")
-            return Uri.EMPTY
-        }
-        val task = ImageDownloader(rsId, imageUrl)
-        mExecutor.submit(task)
+        AppLogger.d("$TAG insert with $uri and $values")
         return Uri.EMPTY
     }
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         AppLogger.d("$TAG open file for $uri")
         val context = this.context ?: return null
-        val rsId = uri.lastPathSegment
-        if (rsId.isNullOrEmpty()) {
-            AppLogger.w("$TAG open file for $uri has no valid id")
+        val id = ImagesStore.getId(uri)
+        if (id.isEmpty()) {
+            AppLogger.e("$TAG open file for $uri has no valid id")
+            return null
+        }
+        val url = ImagesStore.getImageUrl(uri)
+        if (url.isEmpty()) {
+            AppLogger.e("$TAG open file for $uri has no valid url")
             return null
         }
 
         var bytes: ByteArray
         runBlocking(Dispatchers.IO) {
-            bytes = getFileBytes(rsId)
+            bytes = getFileBytes(id)
         }
         if (bytes.isEmpty()) {
             AppLogger.w("$TAG no bytes available for $uri")
+            val task = ImageDownloader(id, url, ImagesStore.buildImageLoadedUri(id))
+            mExecutor.submit(task)
             return null
         }
 
@@ -147,21 +144,22 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         return image.mData ?: return ByteArray(0)
     }
 
-    inner class ImageDownloader(private val mRsId: String, private val mImageUrl: String) : Runnable {
+    inner class ImageDownloader(private val mId: String, private val mImageUrl: String, private val mUri: Uri) :
+        Runnable {
 
         init {
-            AppLogger.d("$TAG new task created for $mRsId $mImageUrl")
+            AppLogger.d("$TAG new task created for $mId $mImageUrl")
         }
 
         override fun run() {
-            val existedBytes = getFileBytes(mRsId)
+            val existedBytes = getFileBytes(mId)
             if (existedBytes.isNotEmpty()) {
-                AppLogger.d("$TAG bytes for $mRsId already exists")
+                AppLogger.d("$TAG bytes for $mId already exists")
                 return
             }
-            AppLogger.d("$TAG execute task for $mRsId $mImageUrl")
+            AppLogger.d("$TAG execute task for $mId $mImageUrl")
             var orientation = ExifInterface.ORIENTATION_NORMAL
-            val bytes = if (NetUtils.isWebUrl(mImageUrl)) {
+            var bytes = if (NetUtils.isWebUrl(mImageUrl)) {
                 mDownloader.downloadDataFromUri(
                     context!!, Uri.parse(mImageUrl), contentTypeFilter = HTTPDownloaderImpl.CONTENT_TYPE_IMG
                 )
@@ -172,8 +170,15 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
                 file.readBytes()
             }
             AppLogger.d("$TAG downloaded ${bytes.size} bytes")
-            mImagesDatabase.rsImageDao().insertImage(Image(mRsId, scaleBytes(bytes, orientation)))
+            if (bytes.isNotEmpty()) {
+                val startTime = System.currentTimeMillis()
+                bytes = scaleBytes(bytes, orientation)
+                AppLogger.d("$TAG scaled to ${bytes.size} bytes in ${System.currentTimeMillis() - startTime} ms")
+            }
+            mImagesDatabase.rsImageDao().insertImage(Image(mId, bytes))
             AppLogger.d("$TAG db contains ${mImagesDatabase.rsImageDao().getCount()} images")
+
+            context?.contentResolver?.notifyChange(mUri, null)
         }
 
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
@@ -206,7 +211,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
                 ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270F)
             }
             bmp = Bitmap.createScaledBitmap(bmp, width, height, true)
-            bmp = Bitmap.createBitmap(bmp, 0,0 , width, height, matrix, true)
+            bmp = Bitmap.createBitmap(bmp, 0, 0, width, height, matrix, true)
             val stream = ByteArrayOutputStream()
             bmp.compress(Bitmap.CompressFormat.PNG, 0, stream)
             bmp.recycle()

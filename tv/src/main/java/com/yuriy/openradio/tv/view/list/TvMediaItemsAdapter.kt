@@ -31,7 +31,7 @@ import com.yuriy.openradio.tv.R
  * On 12/18/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter() {
+class TvMediaItemsAdapter (private var mContext: Context) : MediaItemsAdapter() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MediaItemViewHolder {
         return MediaItemViewHolder(
@@ -43,9 +43,6 @@ class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter()
 
     override fun onBindViewHolder(holder: MediaItemViewHolder, position: Int) {
         val mediaItem = getItem(position) ?: return
-        if (mContext == null) {
-            return
-        }
         val description = mediaItem.description
         val isPlayable = mediaItem.isPlayable
         holder.mRoot.setOnClickListener {
@@ -55,14 +52,14 @@ class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter()
             listener!!.onItemSelected(mediaItem, position)
         }
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, parentId)
-        updateImage(mContext!!, description, holder.mImageView)
+        updateImage(mContext, description, holder.mImageView)
         updateBitrateView(
             MediaItemHelper.getBitrateField(mediaItem), holder.mBitrateView, isPlayable
         )
-        holder.mFavoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(mContext!!, R.drawable.src_favorite)
+        holder.mFavoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(mContext, R.drawable.src_favorite)
         if (isPlayable) {
             handleFavoriteAction(
-                    holder.mFavoriteCheckView, description, mediaItem, mContext!!
+                    holder.mFavoriteCheckView, description, mediaItem, mContext
             )
         } else {
             holder.mFavoriteCheckView.visibility = View.GONE
@@ -73,10 +70,5 @@ class TvMediaItemsAdapter (private var mContext: Context?) : MediaItemsAdapter()
             holder.mRoot.requestFocus()
         }
         holder.mRoot.isSelected = selected
-    }
-
-    override fun clear() {
-        super.clear()
-        mContext = null
     }
 }

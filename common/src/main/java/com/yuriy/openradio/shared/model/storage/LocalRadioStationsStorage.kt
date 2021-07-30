@@ -17,6 +17,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import com.yuriy.openradio.shared.utils.AppLogger.d
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
 
@@ -120,7 +121,7 @@ class LocalRadioStationsStorage(
                 val mediaStream = makeDefaultInstance()
                 mediaStream.setVariant(128, url!!)
                 radioStation.mediaStream = mediaStream
-                radioStation.setImgUrl(context, imageUrl)
+                radioStation.imageUrl = imageUrl ?: AppUtils.EMPTY_STRING
                 radioStation.genre = genre!!
                 radioStation.country = country!!
                 if (addToFav) {

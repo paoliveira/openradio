@@ -96,7 +96,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
     /**
      * Adapter for the representing media items in the list.
      */
-    private var mAdapter: MediaItemsAdapter? = null
+    private lateinit var mAdapter: MediaItemsAdapter
 
     /**
      * Receiver for the local application;s events
@@ -147,7 +147,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         // Set adapter
         mListView!!.adapter = mAdapter
         mListView!!.addOnScrollListener(mScrollListener)
-        mAdapter!!.listener = itemAdapterListener
+        mAdapter.listener = itemAdapterListener
         mCurrentRadioStationView!!.setOnClickListener {
             activity.startService(OpenRadioService.makeToggleLastPlayedItemIntent(activity))
         }
@@ -160,10 +160,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
     }
 
     fun itemsCount(): Int {
-        if (mAdapter == null) {
-            return 0
-        }
-        return mAdapter!!.itemCount
+        return mAdapter.itemCount
     }
 
     private fun clean() {
@@ -172,8 +169,8 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         mCallback = null
         mActivity = null
         mListener = null
-        mAdapter!!.clear()
-        mAdapter!!.removeListener()
+        mAdapter.clear()
+        mAdapter.removeListener()
     }
 
     fun getOnSaveInstancePassed(): Boolean {
@@ -312,8 +309,8 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         if (mListView == null) {
             return
         }
-        mAdapter!!.activeItemId = position
-        mAdapter!!.notifyDataSetChanged()
+        mAdapter.activeItemId = position
+        mAdapter.notifyDataSetChanged()
     }
 
     fun getCurrentMediaId(): String {
@@ -405,10 +402,10 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         if (MediaItemHelper.isEndOfList(children)) {
             return
         }
-        mAdapter!!.parentId = parentId
-        mAdapter!!.clearData()
-        mAdapter!!.addAll(children)
-        mAdapter!!.notifyDataSetChanged()
+        mAdapter.parentId = parentId
+        mAdapter.clearData()
+        mAdapter.addAll(children)
+        mAdapter.notifyDataSetChanged()
         restoreSelectedPosition()
     }
 
@@ -439,7 +436,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
     }
 
     fun handleCurrentIndexOnQueueChanged(mediaId: String?) {
-        setActiveItem(mAdapter!!.getIndexForMediaId(mediaId))
+        setActiveItem(mAdapter.getIndexForMediaId(mediaId))
     }
 
     fun restoreState(savedInstanceState: Bundle?) {
@@ -555,8 +552,8 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
             if (newState != RecyclerView.SCROLL_STATE_IDLE) {
                 return
             }
-            updateListPositions(mAdapter!!.activeItemId)
-            if (mListLastVisiblePosition == mAdapter!!.itemCount - 1) {
+            updateListPositions(mAdapter.activeItemId)
+            if (mListLastVisiblePosition == mAdapter.itemCount - 1) {
                 onScrolledToEnd()
             }
         }

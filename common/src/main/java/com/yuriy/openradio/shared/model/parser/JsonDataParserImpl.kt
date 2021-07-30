@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.model.parser
 
-import android.content.Context
 import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -36,7 +35,7 @@ import java.util.*
  *
  * This is implementation of [DataParser] that designed to works with JSON as input format.
  */
-class JsonDataParserImpl(private val mContext: Context) : DataParser {
+class JsonDataParserImpl : DataParser {
 
     companion object {
         private val CLASS_NAME = JsonDataParserImpl::class.java.simpleName
@@ -153,7 +152,7 @@ class JsonDataParserImpl(private val mContext: Context) : DataParser {
         if (jsonObject.has(KEY_FAV_ICON)) {
             imgUrl = jsonObject.getString(KEY_FAV_ICON)
         }
-        radioStation.setImgUrl(mContext, imgUrl)
+        radioStation.imageUrl = imgUrl
         if (jsonObject.has(KEY_LAST_CHECK_OK)) {
             radioStation.lastCheckOk = jsonObject.getInt(KEY_LAST_CHECK_OK)
         }

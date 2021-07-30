@@ -65,14 +65,12 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             radioStation.countryCode = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE)
             radioStation.genre = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
             radioStation.homePage = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
-            radioStation.setIsLocal(JsonUtils.getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL))
+            radioStation.isLocal = JsonUtils.getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL)
             radioStation.sortId = JsonUtils.getIntValue(
                 jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID
             )
-            radioStation.setImgUrl(
-                context, JsonUtils.getStringValue(
-                    jsonObject, RadioStationJsonHelper.KEY_IMG_URL, AppUtils.EMPTY_STRING
-                )
+            radioStation.imageUrl = JsonUtils.getStringValue(
+                jsonObject, RadioStationJsonHelper.KEY_IMG_URL, AppUtils.EMPTY_STRING
             )
             return radioStation
         } catch (e: Throwable) {

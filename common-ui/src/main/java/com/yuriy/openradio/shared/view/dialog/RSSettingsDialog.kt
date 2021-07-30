@@ -87,16 +87,8 @@ class RSSettingsDialog : BaseDialogFragment() {
         name.text = item.description.title
 
         val imageView = view.findViewById<ImageView>(R.id.dialog_rs_settings_logo_view)
-        val imageUri = item.description.iconUri
-        if (imageUri != null) {
-            context?.contentResolver?.openInputStream(imageUri)?.use {
-                val bytes = it.readBytes()
-                if (bytes.isEmpty()) {
-                    return
-                }
-                imageView.setImageURI(imageUri)
-            }
-        }
+        // At this point Image should be fetched from the internet or local file system.
+        imageView.setImageURI(item.description.iconUri)
 
         if (isSortable) {
             handleSortUi(view, item, args)

@@ -91,7 +91,7 @@ class HTTPDownloaderImpl : Downloader {
                     }, e:$exception"
                 )
             }
-            AppLogger.d("$CLASS_NAME response code:$responseCode")
+            AppLogger.d("$CLASS_NAME response code:$responseCode for $url")
             if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
                 NetUtils.closeHttpURLConnection(connection)
                 AppLogger.e(
@@ -102,10 +102,11 @@ class HTTPDownloaderImpl : Downloader {
             }
 
             val contentType = connection.getHeaderField("Content-Type")
-            AppLogger.d("$CLASS_NAME content type:$contentType")
+            AppLogger.d("$CLASS_NAME content type:$contentType for $url")
 
             if (contentTypeFilter != AppUtils.EMPTY_STRING && !contentType.startsWith(contentTypeFilter)) {
                 NetUtils.closeHttpURLConnection(connection)
+                AppLogger.w("$CLASS_NAME filtered out $contentType for $url")
                 return response
             }
 
@@ -124,6 +125,7 @@ class HTTPDownloaderImpl : Downloader {
             } finally {
                 NetUtils.closeHttpURLConnection(connection)
             }
+            AppLogger.d("$CLASS_NAME return ${response.size} bytes for $url")
             return response
         }
 

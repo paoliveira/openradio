@@ -16,23 +16,20 @@
 
 package com.yuriy.openradio.shared.vo
 
-import android.content.Context
-
 class RadioStationTest {
 
     companion object {
 
         /**
          *
-         * @param context
          * @param id
          * @param testIdx Should be unique index for a set of generated radio stations (if client need more then one
          * radio station in a single test).
          */
-        fun makeTestInstance(context: Context, id: String, testIdx: Int): RadioStation {
+        fun makeTestInstance(id: String, testIdx: Int): RadioStation {
             val radioStation = RadioStation.makeDefaultInstance(id)
             radioStation.mediaStream.setVariant(128, "http://www.stream-$testIdx.net")
-            radioStation.setImgUrl(context, "http://www.image-$testIdx.net")
+            radioStation.imageUrl = "http://www.image-$testIdx.net"
             radioStation.countryCode = Country.COUNTRY_CODE_DEFAULT
             radioStation.genre = "Jazz"
             radioStation.name = "Radio Station - $testIdx"

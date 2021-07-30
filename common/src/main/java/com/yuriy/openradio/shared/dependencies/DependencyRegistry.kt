@@ -53,7 +53,7 @@ object DependencyRegistry {
         mNetMonitor = NetworkMonitor(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
         mNetMonitor.init()
         mDownloader = HTTPDownloaderImpl()
-        mParser = JsonDataParserImpl(context)
+        mParser = JsonDataParserImpl()
         mProvider = ApiServiceProviderImpl(context, mParser, mNetMonitor)
         mFavoritesStorage = FavoritesStorage()
         mLatestRadioStationStorage = LatestRadioStationStorage()

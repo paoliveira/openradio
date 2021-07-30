@@ -17,79 +17,89 @@
 package com.yuriy.openradio.shared.model.storage.images
 
 import android.content.ContentResolver
-import android.content.ContentValues
 import android.net.Uri
 import com.yuriy.openradio.shared.utils.AppUtils
 
-class ImagesStore {
+object ImagesStore {
 
-    companion object {
+    /**
+     * Base value for MIME type of the content provided.
+     */
+    private const val MIME_TYPE_BASE = "com.yuriy.provider"
 
-        /**
-         * The authority for the this provider.
-         */
-        const val AUTHORITY = "openradio.images"
+    /**
+     * The MIME type for images.
+     */
+    const val CONTENT_TYPE_IMAGE = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$MIME_TYPE_BASE.image"
 
-        /**
-         * Uri to the authority for the this provider.
-         */
-        private val AUTHORITY_URI: Uri = Uri.parse("content://$AUTHORITY")
+    /**
+     * The unknown MIME type.
+     */
+    const val CONTENT_TYPE_UNKNOWN = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$MIME_TYPE_BASE.unknown"
 
-        /**
-         * Base value for MIME type of the content provided.
-         */
-        private const val MIME_TYPE_BASE = "com.yuriy.provider"
+    /**
+     * The authority for the this provider.
+     */
+    private const val AUTHORITY = "openradio.images"
 
-        private const val IMG_URL_KEY = "IMG_URL_KEY"
+    /**
+     * Uri to the authority for the this provider.
+     */
+    private val AUTHORITY_URI: Uri = Uri.parse("content://$AUTHORITY")
 
-        private const val RS_ID_KEY = "RS_ID_KEY"
+    private const val PATH_DELETE = "delete"
 
-        /**
-         * The MIME type for this table.
-         */
-        const val CONTENT_TYPE_IMAGE = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$MIME_TYPE_BASE.image"
+    private const val PATH_LOADED = "loaded"
 
-        const val CONTENT_TYPE_UNKNOWN = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$MIME_TYPE_BASE.unknown"
+    private const val QUERY_PARAM_ID = "id"
 
-        fun getInsertUri(): Uri {
-            return AUTHORITY_URI.buildUpon()
-                    .appendPath("insert")
-                    .build()
+    private const val QUERY_PARAM_URL = "url"
+
+    fun getDeleteUri(id: String): Uri {
+        return AUTHORITY_URI.buildUpon()
+            .appendPath(PATH_DELETE)
+            .appendQueryParameter(QUERY_PARAM_ID, id)
+            .build()
+    }
+
+    fun buildImageUri(id: String, url: String): Uri {
+        return Uri.Builder()
+            .scheme(ContentResolver.SCHEME_CONTENT)
+            .authority(AUTHORITY)
+            .appendQueryParameter(QUERY_PARAM_ID, id)
+            .appendQueryParameter(QUERY_PARAM_URL, Uri.encode(url))
+            .build()
+    }
+
+    fun buildImageLoadedBaseUri(): Uri {
+        return Uri.Builder()
+            .scheme(ContentResolver.SCHEME_CONTENT)
+            .authority(AUTHORITY)
+            .appendPath(PATH_LOADED)
+            .build()
+    }
+
+    fun buildImageLoadedUri(id: String): Uri {
+        return Uri.Builder()
+            .scheme(ContentResolver.SCHEME_CONTENT)
+            .authority(AUTHORITY)
+            .appendPath(PATH_LOADED)
+            .appendQueryParameter(QUERY_PARAM_ID, id)
+            .build()
+    }
+
+    fun getId(uri: Uri): String {
+        return uri.getQueryParameter(QUERY_PARAM_ID) ?: AppUtils.EMPTY_STRING
+    }
+
+    fun getImageUrl(uri: Uri?): String {
+        if (uri == null) {
+            return AppUtils.EMPTY_STRING
         }
+        return Uri.decode(uri.getQueryParameter(QUERY_PARAM_URL)) ?: AppUtils.EMPTY_STRING
+    }
 
-        fun getDeleteUri(): Uri {
-            return AUTHORITY_URI.buildUpon()
-                    .appendPath("delete")
-                    .build()
-        }
-
-        fun getContentValues(rsId: String, imageUrl: String?): ContentValues {
-            val values = ContentValues()
-            values.put(RS_ID_KEY, rsId)
-            values.put(IMG_URL_KEY, imageUrl)
-            return values
-        }
-
-        fun getImageUrl(contentValues: ContentValues): String {
-            if (!contentValues.containsKey(IMG_URL_KEY)) {
-                return AppUtils.EMPTY_STRING
-            }
-            return contentValues.getAsString(IMG_URL_KEY)
-        }
-
-        fun getRsId(contentValues: ContentValues): String {
-            if (!contentValues.containsKey(RS_ID_KEY)) {
-                return AppUtils.EMPTY_STRING
-            }
-            return contentValues.getAsString(RS_ID_KEY)
-        }
-
-        fun buildImageUri(rsId: String): Uri {
-            return Uri.Builder()
-                    .scheme(ContentResolver.SCHEME_CONTENT)
-                    .authority(AUTHORITY)
-                    .appendPath(rsId)
-                    .build()
-        }
+    fun isAuthorised(uri: Uri): Boolean {
+        return uri.authority == AUTHORITY
     }
 }

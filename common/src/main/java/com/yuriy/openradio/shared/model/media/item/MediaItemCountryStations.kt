@@ -20,7 +20,6 @@ import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlayb
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.net.UrlBuilder.getStationsInCountry
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.vo.RadioStation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -50,7 +49,7 @@ class MediaItemCountryStations : IndexableMediaItemCommand() {
         GlobalScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 // Load all categories into menu
-                val list: List<RadioStation> = ArrayList(
+                val list = ArrayList(
                     dependencies.serviceProvider.getStations(
                         dependencies.downloader,
                         getStationsInCountry(

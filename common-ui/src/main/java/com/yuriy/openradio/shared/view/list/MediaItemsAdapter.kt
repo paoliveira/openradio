@@ -26,6 +26,7 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
@@ -122,9 +123,11 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
 
     companion object {
 
-        fun updateBitrateView(bitrate: Int,
-                              view: TextView?,
-                              isPlayable: Boolean) {
+        fun updateBitrateView(
+            bitrate: Int,
+            view: TextView?,
+            isPlayable: Boolean
+        ) {
             if (view == null) {
                 return
             }
@@ -150,10 +153,12 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          * @param description
          * @param parentId
          */
-        fun handleNameAndDescriptionView(nameView: TextView,
-                                         descriptionView: TextView,
-                                         description: MediaDescriptionCompat,
-                                         parentId: String) {
+        fun handleNameAndDescriptionView(
+            nameView: TextView,
+            descriptionView: TextView,
+            description: MediaDescriptionCompat,
+            parentId: String
+        ) {
             nameView.text = description.title
             descriptionView.text = description.subtitle
             val layoutParams = nameView.layoutParams as RelativeLayout.LayoutParams
@@ -182,10 +187,15 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
                 if (MediaItemHelper.isDrawableIdValid(iconId)) {
                     view.setImageResource(iconId)
                 }
+                val imageUrl = ImagesStore.getImageUrl(description.iconUri)
+                if (imageUrl.isEmpty()) {
+                    return
+                }
                 val imageUri = description.iconUri ?: return
+                // Validate we have a valid bytes in database, because even with valid url there can be a problem of
+                // download the image.
                 context.contentResolver.openInputStream(imageUri)?.use {
-                    val bytes = it.readBytes()
-                    if (bytes.isEmpty()) {
+                    if (it.readBytes().isEmpty()) {
                         return
                     }
                     view.setImageURI(imageUri)
@@ -201,8 +211,10 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          * @param mediaItem   Media Item.
          * @param context     Current context.
          */
-        fun handleFavoriteAction(checkBox: CheckBox, description: MediaDescriptionCompat?,
-                                 mediaItem: MediaBrowserCompat.MediaItem?, context: Context) {
+        fun handleFavoriteAction(
+            checkBox: CheckBox, description: MediaDescriptionCompat?,
+            mediaItem: MediaBrowserCompat.MediaItem?, context: Context
+        ) {
             checkBox.isChecked = MediaItemHelper.isFavoriteField(mediaItem)
             checkBox.visibility = View.VISIBLE
             checkBox.setOnClickListener { view: View ->
@@ -212,9 +224,9 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
                 // Make Intent to update Favorite RadioStation object associated with
                 // the Media Description
                 val intent = OpenRadioService.makeUpdateIsFavoriteIntent(
-                        context,
-                        description,
-                        isChecked
+                    context,
+                    description,
+                    isChecked
                 )
                 // Send Intent to the OpenRadioService.
                 context.startService(intent)

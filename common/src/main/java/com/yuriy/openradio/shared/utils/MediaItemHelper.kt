@@ -146,7 +146,6 @@ object MediaItemHelper {
      * Sort Id from.
      * @return Extracted Sort Id or -1.
      */
-    @JvmStatic
     fun getSortIdField(mediaItem: MediaBrowserCompat.MediaItem?): Int {
         return if (mediaItem == null) {
             MediaSessionCompat.QueueItem.UNKNOWN_ID
@@ -175,15 +174,11 @@ object MediaItemHelper {
      * @param radioStation [RadioStation].
      * @return [android.media.MediaMetadata]
      */
-    @JvmOverloads
     fun metadataFromRadioStation(
         context: Context,
-        radioStation: RadioStation?,
+        radioStation: RadioStation,
         streamTitle: String? = null
-    ): MediaMetadataCompat? {
-        if (radioStation == null) {
-            return null
-        }
+    ): MediaMetadataCompat {
         val title = radioStation.name
         var artist = streamTitle
         val genre = radioStation.genre
@@ -195,6 +190,8 @@ object MediaItemHelper {
             artist = context.getString(R.string.media_description_default)
         }
 
+        val imageUri = radioStation.imageUri.toString()
+
         // Adding the music source to the MediaMetadata (and consequently using it in the
         // mediaSession.setMetadata) is not a good idea for a real world music app, because
         // the session metadata can be accessed by notification listeners. This is done in this
@@ -203,8 +200,8 @@ object MediaItemHelper {
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, id)
             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, source)
             .putString(MediaMetadataCompat.METADATA_KEY_GENRE, genre)
-            .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, radioStation.getImgUri().toString())
-            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, radioStation.getImgUri().toString())
+            .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, imageUri)
+            .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, imageUri)
             // This is the way information display on Android Auto screen:
             // DisplayTitle
             // Artist
@@ -214,7 +211,7 @@ object MediaItemHelper {
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
             .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
             .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, radioStation.getImgUri().toString())
+            .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, imageUri)
             .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
             .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, streamTitle)
             .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, streamTitle)
@@ -311,7 +308,8 @@ object MediaItemHelper {
             .setTitle(title)
             .setSubtitle(country)
             .setExtras(bundle)
-            .setIconUri(radioStation.getImgUri())
+            // Used in Automotive to display art.
+            .setIconUri(radioStation.imageUri)
             .build()
     }
 

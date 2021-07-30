@@ -16,14 +16,12 @@
 
 package com.yuriy.openradio.shared.vo
 
-import android.content.Context
-import android.net.Uri
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppUtils
 import java.io.Serializable
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Yuriy Chernyshov
@@ -60,17 +58,21 @@ class RadioStation : Serializable {
     var sortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
 
     /**
-     * Image Url. Use to restore associated bytes and save them in DB when app cache cleared, or radio station saved
-     * without image bytes persisted.
+     * Image Url. Used for internal logic only, for example fetch image from or determine image is not specified.
      */
     var imageUrl = AppUtils.EMPTY_STRING
+
+    /**
+     * Used to actually fetch bytes from Images Provider.
+     */
+    val imageUri get() = ImagesStore.buildImageUri(mId, imageUrl)
 
     /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
-    private constructor(id: String) {
-        setId(id)
+    private constructor(rsId: String) {
+        id = rsId
         mMediaStream = MediaStream.makeDefaultInstance()
     }
 
@@ -80,7 +82,7 @@ class RadioStation : Serializable {
      * @param radioStation Object to be copied.
      */
     private constructor(radioStation: RadioStation) {
-        setId(radioStation.mId)
+        id = radioStation.mId
         mCountry = radioStation.mCountry
         countryCode = radioStation.countryCode
         genre = radioStation.genre
@@ -92,31 +94,17 @@ class RadioStation : Serializable {
         urlResolved = radioStation.urlResolved
         lastCheckOk = radioStation.lastCheckOk
         lastCheckOkTime = radioStation.lastCheckOkTime
+        imageUrl = radioStation.imageUrl
     }
 
-    fun getImgUri(): Uri {
-        return ImagesStore.buildImageUri(mId)
-    }
-
-    fun setImgUrl(context: Context, url: String?) {
-        context.contentResolver.insert(
-                ImagesStore.getInsertUri(), ImagesStore.getContentValues(mId, url)
-        )
-    }
-
-    val id: String
+    var id: String
         get() = mId
+        set(value) {
+            mId = value
+        }
 
     fun isMediaStreamEmpty(): Boolean {
         return mMediaStream.isEmpty
-    }
-
-    fun setIsLocal(value: Boolean) {
-        isLocal = value
-    }
-
-    private fun setId(value: String) {
-        mId = value
     }
 
     var country: String

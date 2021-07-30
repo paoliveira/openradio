@@ -48,8 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
 
     private val mService: OpenRadioService
-    private var mSessionToken: MediaSessionCompat.Token? = null
-    private var mController: MediaControllerCompat? = null
+    private lateinit var mSessionToken: MediaSessionCompat.Token
+    private lateinit var mController: MediaControllerCompat
     private var mTransportControls: MediaControllerCompat.TransportControls? = null
     private var mMetadata: MediaMetadataCompat? = null
     private val mCb: MediaControllerCompatCallback
@@ -121,11 +121,11 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      * updated. The notification will automatically be removed if the session is
      * destroyed before [.stopNotification] is called.
      */
-    fun startNotification(context: Context, radioStation: RadioStation?) {
+    fun startNotification(context: Context, radioStation: RadioStation) {
         if (mStarted.get()) {
             return
         }
-        mController!!.registerCallback(mCb)
+        mController.registerCallback(mCb)
         val filter = IntentFilter()
         filter.addAction(ACTION_NEXT)
         filter.addAction(ACTION_PAUSE)
@@ -133,11 +133,12 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
         filter.addAction(ACTION_PREV)
         filter.addAction(ACTION_CLOSE_APP)
         mService.registerReceiver(this, filter)
-        val metadata = mController!!.metadata
+        val metadata = mController.metadata
+        AppLogger.w("$CLASS_NAME controller has no metadata")
         mMetadata = metadata ?: MediaItemHelper.metadataFromRadioStation(context, radioStation)
         mStarted.set(true)
         // The notification must be updated after setting started to true
-        handleNotification(mController!!.playbackState)
+        handleNotification(mController.playbackState)
     }
 
     /**
@@ -147,7 +148,7 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
     fun stopNotification() {
         AppLogger.d(CLASS_NAME + " stop, ORS[" + mService.hashCode() + "]")
         mStarted.set(false)
-        mController!!.unregisterCallback(mCb)
+        mController.unregisterCallback(mCb)
         mNotificationManager.cancelAll()
         try {
             mService.unregisterReceiver(this)
@@ -177,20 +178,23 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
      */
     private fun updateSessionToken() {
         val freshToken = mService.sessionToken
-        if (mSessionToken == null || mSessionToken != freshToken) {
-            if (mController != null) {
-                mController!!.unregisterCallback(mCb)
+        AppLogger.d("$CLASS_NAME fresh token:$freshToken")
+        if (!this::mSessionToken.isInitialized || mSessionToken != freshToken) {
+            if (this::mController.isInitialized) {
+                mController.unregisterCallback(mCb)
             }
-            mSessionToken = freshToken
+            if (freshToken != null) {
+                mSessionToken = freshToken
+            }
             mController = try {
-                MediaControllerCompat(mService, mSessionToken!!)
+                MediaControllerCompat(mService, mSessionToken)
             } catch (e: RemoteException) {
                 AppLogger.e("$e")
                 return
             }
-            mTransportControls = mController!!.transportControls
+            mTransportControls = mController.transportControls
             if (mStarted.get()) {
-                mController!!.registerCallback(mCb)
+                mController.registerCallback(mCb)
             }
         }
     }
@@ -297,10 +301,10 @@ class MediaNotification(service: OpenRadioService) : BroadcastReceiver() {
             .setContentTitle(description.title)
             .setContentText(description.subtitle)
         AppLogger.d(
-            CLASS_NAME + " Update Notification " +
+            CLASS_NAME + " Update Notification for ${description.mediaId} " +
                 "state:" + playbackState +
-                "title:" + description.title +
-                "subtitle:" + description.subtitle
+                " title:" + description.title +
+                " subtitle:" + description.subtitle
         )
 
         builder.addAction(getCloseAppAction())

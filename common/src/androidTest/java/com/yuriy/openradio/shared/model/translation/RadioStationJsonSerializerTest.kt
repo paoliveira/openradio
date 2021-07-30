@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.model.translation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.shared.vo.RadioStationTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
@@ -29,9 +28,8 @@ class RadioStationJsonSerializerTest {
 
     @Test
     fun serialization() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val serializer: RadioStationSerializer = RadioStationJsonSerializer()
-        val radioStation = RadioStationTest.makeTestInstance(context, "id-1", 0)
+        val serializer = RadioStationJsonSerializer()
+        val radioStation = RadioStationTest.makeTestInstance("id-1", 0)
         val js = serializer.serialize(radioStation)
 
         MatcherAssert.assertThat(js, CoreMatchers.notNullValue())
