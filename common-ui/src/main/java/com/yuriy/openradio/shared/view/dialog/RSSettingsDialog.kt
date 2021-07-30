@@ -25,7 +25,6 @@ import android.widget.ImageView
 import android.widget.NumberPicker
 import android.widget.TextView
 import com.yuriy.openradio.shared.R
-import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -63,13 +62,13 @@ class RSSettingsDialog : BaseDialogFragment() {
     }
 
     override fun onPause() {
-        super.onPause()
-        if (mSortNewPosition == mSortOriginalPosition) {
-            return
+        if (mSortNewPosition != mSortOriginalPosition) {
+            val ctx = requireContext()
+            ctx.startService(
+                OpenRadioService.makeUpdateSortIdsIntent(ctx, mSortMediaId, mSortNewPosition, mParentCategoryId)
+            )
         }
-        context?.startService(
-                OpenRadioService.makeUpdateSortIdsIntent(context!!, mSortMediaId, mSortNewPosition, mParentCategoryId)
-        )
+        super.onPause()
     }
 
     private fun handleUi(view: View, item: MediaBrowserCompat.MediaItem, args: Bundle?) {
@@ -87,15 +86,15 @@ class RSSettingsDialog : BaseDialogFragment() {
         val name = view.findViewById<TextView>(R.id.dialog_rs_settings_rs_name)
         name.text = item.description.title
 
-        val iv: ImageView = view.findViewById(R.id.dialog_rs_settings_logo_view)
-        val imageUri = UrlBuilder.preProcessIconUri(item.description.iconUri)
+        val imageView = view.findViewById<ImageView>(R.id.dialog_rs_settings_logo_view)
+        val imageUri = item.description.iconUri
         if (imageUri != null) {
             context?.contentResolver?.openInputStream(imageUri)?.use {
                 val bytes = it.readBytes()
                 if (bytes.isEmpty()) {
                     return
                 }
-                iv.setImageURI(imageUri)
+                imageView.setImageURI(imageUri)
             }
         }
 
@@ -106,7 +105,7 @@ class RSSettingsDialog : BaseDialogFragment() {
 
     private fun handleSortUi(view: View, item: MediaBrowserCompat.MediaItem, args: Bundle?) {
         val maxId = extractMaxId(args)
-        val numPicker: NumberPicker = view.findViewById(R.id.sort_id_picker)
+        val numPicker = view.findViewById<NumberPicker>(R.id.sort_id_picker)
         numPicker.minValue = 0
         numPicker.maxValue = maxId
         numPicker.value = MediaItemHelper.getSortIdField(item)

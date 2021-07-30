@@ -56,6 +56,7 @@ import com.yuriy.openradio.shared.dependencies.ApiServiceProviderDependency
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.DownloaderDependency
 import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
+import com.yuriy.openradio.shared.dependencies.ImagesDatabaseDependency
 import com.yuriy.openradio.shared.dependencies.LatestRadioStationStorageDependency
 import com.yuriy.openradio.shared.dependencies.LocalRadioStationsStorageDependency
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
@@ -113,6 +114,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.util.*
 import java.util.concurrent.*
@@ -126,7 +128,7 @@ import java.util.concurrent.atomic.*
  */
 class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, DownloaderDependency, ParserDependency,
     ApiServiceProviderDependency, FavoritesStorageDependency, LocalRadioStationsStorageDependency,
-    LatestRadioStationStorageDependency {
+    ImagesDatabaseDependency, LatestRadioStationStorageDependency {
 
     /**
      * ExoPlayer's implementation to play Radio stream.
@@ -177,7 +179,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     var isTv = false
         private set
 
-    private val mPackageValidator by lazy {
+    private
+    val mPackageValidator by lazy {
         PackageValidator(applicationContext, R.xml.allowed_media_browser_callers)
     }
 
@@ -217,6 +220,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     private lateinit var mFavoritesStorage: FavoritesStorage
     private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
     private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
+    private lateinit var mImagesDatabase: ImagesDatabase
     private val mRadioStationsComparator: Comparator<RadioStation>
     private val mStartIds: ConcurrentLinkedQueue<Int>
     private val mTimerListener = SleepTimerListenerImpl()
@@ -236,6 +240,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         DependencyRegistry.injectFavoritesStorage(this)
         DependencyRegistry.injectLocalRadioStationsStorage(this)
         DependencyRegistry.injectLatestRadioStationStorage(this)
+        DependencyRegistry.injectImagesDatabase(this)
         setPlaybackState(PlaybackStateCompat.STATE_NONE)
         mRadioStationsComparator = RadioStationsComparator()
         mStartIds = ConcurrentLinkedQueue()
@@ -319,6 +324,10 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
 
     override fun configureWith(storage: LatestRadioStationStorage) {
         mLatestRadioStationStorage = storage
+    }
+
+    override fun configureWith(database: ImagesDatabase) {
+        mImagesDatabase = database
     }
 
     override fun onCreate() {
@@ -682,7 +691,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     /**
-     * Checks currently selected Radio Station asynchronously.<br></br>
+     * Checks currently selected Radio Station asynchronously.
      * If the URl is not yet obtained via API the it will be retrieved as well,
      * appropriate event will be dispatched via listener.
      *
@@ -942,7 +951,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     private fun handleClearCache() {
         mScope.launch {
             mProvider.clear()
-            ImagesDatabase.getInstance(applicationContext).rsImageDao().deleteAll()
+            mImagesDatabase.rsImageDao().deleteAll()
             SafeToast.showAnyThread(applicationContext, getString(R.string.clear_completed))
         }
     }
@@ -1534,11 +1543,19 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 val addToFav = intent.getBooleanExtra(
                     EXTRA_KEY_STATION_ADD_TO_FAV, false
                 )
+
+                runBlocking(Dispatchers.IO) {
+                    mImagesDatabase.rsImageDao().delete(mediaId.toString())
+                }
+
                 val result = mLocalRadioStationsStorage.update(
                     mediaId, context, name, url, imageUrl, genre, country, addToFav
                 )
                 if (result) {
-                    notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
+                    // TODO: Fix this hack!
+                    Handler(mainLooper).postDelayed({
+                        notifyChildrenChanged(MediaIdHelper.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST)
+                    }, 2000)
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
                         AppLocalBroadcast.createIntentValidateOfRSSuccess(
                             "Radio Station updated successfully"

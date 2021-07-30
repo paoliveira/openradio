@@ -26,7 +26,6 @@ import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.yuriy.openradio.shared.R
-import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
@@ -144,8 +143,6 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
 
         /**
          * Handle view of list item responsible to display Title and Description.
-         *
-         *
          * Different categories requires different handle approaches.
          *
          * @param nameView
@@ -185,7 +182,7 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
                 if (MediaItemHelper.isDrawableIdValid(iconId)) {
                     view.setImageResource(iconId)
                 }
-                val imageUri = UrlBuilder.preProcessIconUri(description.iconUri) ?: return
+                val imageUri = description.iconUri ?: return
                 context.contentResolver.openInputStream(imageUri)?.use {
                     val bytes = it.readBytes()
                     if (bytes.isEmpty()) {

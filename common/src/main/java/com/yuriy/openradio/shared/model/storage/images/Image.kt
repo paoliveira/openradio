@@ -20,11 +20,13 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "rsimages")
-data class Image(@PrimaryKey
-                   @ColumnInfo(name = "rsId")
-                   val mRsId: String,
-                 @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
-                   var mData: ByteArray? = null) {
+data class Image(
+    @PrimaryKey
+    @ColumnInfo(name = "rsId")
+    val mRsId: String,
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    var mData: ByteArray? = null
+) {
 
     override fun toString() = mRsId
 

@@ -30,6 +30,9 @@ interface ImageDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertImage(rsImage: Image)
 
+    @Query("DELETE FROM rsimages WHERE rsId = :rsId")
+    fun delete(rsId: String)
+
     @Query("SELECT COUNT(DISTINCT rsId) FROM rsimages")
     fun getCount(): Int
 

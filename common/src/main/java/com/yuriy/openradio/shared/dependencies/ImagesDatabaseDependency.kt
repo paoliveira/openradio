@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.coroutines
+package com.yuriy.openradio.shared.dependencies
 
-import kotlin.coroutines.*
+import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 
-fun launch(context: CoroutineContext = EmptyCoroutineContext, block: suspend () -> Unit) =
-    block.startCoroutine(Continuation(context) { result ->
-        result.onFailure { exception ->
-            val currentThread = Thread.currentThread()
-            currentThread.uncaughtExceptionHandler?.uncaughtException(currentThread, exception)
-        }
-    })
+interface ImagesDatabaseDependency {
+
+    fun configureWith(database: ImagesDatabase)
+}

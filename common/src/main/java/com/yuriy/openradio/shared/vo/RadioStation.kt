@@ -99,9 +99,8 @@ class RadioStation : Serializable {
     }
 
     fun setImgUrl(context: Context, url: String?) {
-        imageUrl = url ?: AppUtils.EMPTY_STRING
         context.contentResolver.insert(
-                ImagesStore.getInsertUri(), ImagesStore.getContentValues(mId, imageUrl)
+                ImagesStore.getInsertUri(), ImagesStore.getContentValues(mId, url)
         )
     }
 

@@ -71,7 +71,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             )
             radioStation.setImgUrl(
                 context, JsonUtils.getStringValue(
-                    jsonObject, RadioStationJsonHelper.KEY_IMAGE_URL, AppUtils.EMPTY_STRING
+                    jsonObject, RadioStationJsonHelper.KEY_IMG_URL, AppUtils.EMPTY_STRING
                 )
             )
             return radioStation

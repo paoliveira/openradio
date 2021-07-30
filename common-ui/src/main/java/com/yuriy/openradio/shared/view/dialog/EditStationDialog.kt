@@ -53,9 +53,7 @@ class EditStationDialog : BaseAddEditStationDialog(), FavoritesStorageDependency
             return 0
         }
 
-        override fun writeToParcel(dest: Parcel?, flags: Int) {
-
-        }
+        override fun writeToParcel(dest: Parcel?, flags: Int) {}
     }
 
     /**
@@ -130,11 +128,11 @@ class EditStationDialog : BaseAddEditStationDialog(), FavoritesStorageDependency
      * @param context      Context of a callee.
      */
     private fun handleUI(context: Context, radioStation: RadioStation) {
-        mNameEdit!!.setText(radioStation.name)
-        mUrlEdit!!.setText(radioStation.mediaStream.getVariant(0)!!.url)
-        mCountriesSpinner!!.setSelection(getCountryPosition(radioStation.country))
-        mGenresSpinner!!.setSelection(getGenrePosition(radioStation.genre))
-        mAddToFavCheckView!!.isChecked = mFavoritesStorage.isFavorite(radioStation, context)
+        mNameEdit.setText(radioStation.name)
+        mUrlEdit.setText(radioStation.mediaStream.getVariant(0)!!.url)
+        mCountriesSpinner.setSelection(getCountryPosition(radioStation.country))
+        mGenresSpinner.setSelection(getGenrePosition(radioStation.genre))
+        mAddToFavCheckView.isChecked = mFavoritesStorage.isFavorite(radioStation, context)
     }
 
     companion object {

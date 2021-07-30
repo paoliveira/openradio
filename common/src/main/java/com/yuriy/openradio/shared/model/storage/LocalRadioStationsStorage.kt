@@ -16,13 +16,9 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
-import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 /**
  * Created by Yuriy Chernyshov
@@ -32,7 +28,7 @@ import kotlinx.coroutines.launch
  */
 class LocalRadioStationsStorage(
     private val mFavoritesStorage: FavoritesStorage,
-    private val mLatestRadioStationStorage: LatestRadioStationStorage
+    private val mLatestRadioStationStorage: LatestRadioStationStorage,
 ) : AbstractRadioStationsStorage() {
 
     /**
@@ -188,17 +184,7 @@ class LocalRadioStationsStorage(
      * @return Collection of the Local Radio Stations.
      */
     fun getAllLocals(context: Context): MutableList<RadioStation> {
-        val list = getAll(context, FILE_NAME)
-        // Loop for the key that holds KEY for the next Local Radio Station
-        // and remove it from collection.
-        for (radioStation in list) {
-            if (radioStation.id.isEmpty()) {
-                list.remove(radioStation)
-                break
-            }
-            checkImageUrl(context, radioStation.id)
-        }
-        return list
+        return getAll(context, FILE_NAME)
     }
 
     /**
@@ -219,19 +205,6 @@ class LocalRadioStationsStorage(
             }
         }
         return list.isEmpty()
-    }
-
-    private fun checkImageUrl(context: Context, id: String) {
-        GlobalScope.launch(Dispatchers.IO) {
-            val db = ImagesDatabase.getInstance(context)
-            val image = db.rsImageDao().getImage(id)
-            if (image != null) {
-                return@launch
-            }
-//            mProvider.getStation(
-//                mDownloader, UrlBuilder.getStation(id), CacheType.NONE
-//            )
-        }
     }
 
     companion object {

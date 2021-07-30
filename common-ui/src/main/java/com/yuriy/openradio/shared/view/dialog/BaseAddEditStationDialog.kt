@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.view.dialog
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.support.v4.media.session.MediaSessionCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -57,88 +56,78 @@ import com.yuriy.openradio.shared.vo.RadioStationToAdd
  * Base dialog to use by Edit and Add dialogs.
  */
 abstract class BaseAddEditStationDialog : BaseDialogFragment() {
+
+    protected lateinit var mNameEdit: EditText
+    protected lateinit var mUrlEdit: EditText
+    protected lateinit var mCountriesSpinner: Spinner
+    protected lateinit var mGenresSpinner: Spinner
+    protected lateinit var mAddToFavCheckView: CheckBox
+
     /**
      * Text view for Image Url.
      */
-    @JvmField
-    var mImageLocalUrlEdit: EditText? = null
-    private var mImageWebUrlEdit: EditText? = null
+    private lateinit var mImageLocalUrlEdit: EditText
+    private lateinit var mProgressView: ProgressBar
+    private lateinit var mGenresAdapter: ArrayAdapter<CharSequence>
+    private lateinit var mCountriesAdapter: ArrayAdapter<String>
+    private lateinit var mRsAddValidatedReceiver: LocalAbstractReceiver
 
-    @JvmField
-    var mNameEdit: EditText? = null
-    private var mHomePageEdit: EditText? = null
-
-    @JvmField
-    var mUrlEdit: EditText? = null
-
-    @JvmField
-    var mCountriesSpinner: Spinner? = null
-
-    @JvmField
-    var mGenresSpinner: Spinner? = null
-
-    @JvmField
-    var mAddToFavCheckView: CheckBox? = null
-    var mProgressView: ProgressBar? = null
-    private var mAddToSrvrCheckView: CheckBox? = null
-    private var mGenresAdapter: ArrayAdapter<CharSequence>? = null
-    private var mCountriesAdapter: ArrayAdapter<String>? = null
-    private var mRsAddValidatedReceiver: LocalAbstractReceiver? = null
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.dialog_add_edit_station, container, false)
         val layoutParams = FrameLayout.LayoutParams(
-                (AppUtils.getShortestScreenSize(activity!!) * 0.8).toInt(),
-                ViewGroup.LayoutParams.WRAP_CONTENT
+            (AppUtils.getShortestScreenSize(activity!!) * 0.8).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
         )
         mRsAddValidatedReceiver = RSAddValidatedReceiver(
-                object : RSAddValidatedReceiverListener {
-                    override fun onSuccess(message: String) {
-                        mProgressView!!.visibility = View.INVISIBLE
-                        showAnyThread(context, message)
-                        dialog!!.dismiss()
-                    }
-
-                    override fun onFailure(reason: String) {
-                        mProgressView!!.visibility = View.INVISIBLE
-                        showAnyThread(context, reason)
-                    }
+            object : RSAddValidatedReceiverListener {
+                override fun onSuccess(message: String) {
+                    mProgressView.visibility = View.INVISIBLE
+                    showAnyThread(context, message)
+                    dialog!!.dismiss()
                 }
+
+                override fun onFailure(reason: String) {
+                    mProgressView.visibility = View.INVISIBLE
+                    showAnyThread(context, reason)
+                }
+            }
         )
-        mRsAddValidatedReceiver!!.register(context)
+        mRsAddValidatedReceiver.register(context)
         val root = view.findViewById<LinearLayout>(R.id.add_edit_station_dialog_root)
         root.layoutParams = layoutParams
-        mHomePageEdit = view.findViewById(R.id.add_edit_station_home_page_edit)
+        val homePageEdit = view.findViewById<EditText>(R.id.add_edit_station_home_page_edit)
         mNameEdit = view.findViewById(R.id.add_edit_station_name_edit)
         mUrlEdit = view.findViewById(R.id.add_edit_station_stream_url_edit)
         mImageLocalUrlEdit = view.findViewById(R.id.add_edit_station_image_url_edit)
-        mImageWebUrlEdit = view.findViewById(R.id.add_edit_station_web_image_url_edit)
+        val imageWebUrlEdit = view.findViewById<EditText>(R.id.add_edit_station_web_image_url_edit)
         mProgressView = view.findViewById(R.id.add_edit_station_dialog_progress_bar_view)
-        val countries: MutableList<String> = ArrayList(LocationService.COUNTRY_CODE_TO_NAME.values)
+        val countries = ArrayList(LocationService.COUNTRY_CODE_TO_NAME.values)
         countries.sort()
         mCountriesSpinner = view.findViewById(R.id.add_edit_station_country_spin)
         // Create an ArrayAdapter using the string array and a default spinner layout
         mCountriesAdapter = ArrayAdapter(
-                activity!!,
-                android.R.layout.simple_spinner_item,
-                countries
+            activity!!,
+            android.R.layout.simple_spinner_item,
+            countries
         )
         // Specify the layout to use when the list of choices appears
-        mCountriesAdapter!!.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        mCountriesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // Apply the mCountriesAdapter to the spinner
-        mCountriesSpinner?.adapter = mCountriesAdapter
+        mCountriesSpinner.adapter = mCountriesAdapter
         mGenresSpinner = view.findViewById(R.id.add_station_genre_spin)
         // Create an ArrayAdapter using the string array and a default spinner layout
         mGenresAdapter = ArrayAdapter(
-                activity!!,
-                android.R.layout.simple_spinner_item,
-                ArrayList<CharSequence>(AppUtils.predefinedCategories())
+            activity!!,
+            android.R.layout.simple_spinner_item,
+            ArrayList<CharSequence>(AppUtils.predefinedCategories())
         )
         // Specify the layout to use when the list of choices appears
-        mGenresAdapter!!.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        mGenresAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // Apply the mCountriesAdapter to the spinner
-        mGenresSpinner?.adapter = mGenresAdapter
+        mGenresSpinner.adapter = mGenresAdapter
         val imageUrlBtn = view.findViewById<Button>(R.id.add_edit_station_image_browse_btn)
         imageUrlBtn.setOnClickListener {
             val galleryIntent = Intent()
@@ -148,34 +137,34 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
             // Chooser of filesystem options.
             val chooserIntent = Intent.createChooser(galleryIntent, "Select Image")
             AppUtils.startActivityForResultSafe(
-                    activity,
-                    chooserIntent,
-                    IntentUtils.REQUEST_CODE_FILE_SELECTED
+                activity,
+                chooserIntent,
+                IntentUtils.REQUEST_CODE_FILE_SELECTED
             )
         }
         mAddToFavCheckView = view.findViewById(R.id.add_to_fav_check_view)
-        mAddToSrvrCheckView = view.findViewById(R.id.add_to_srvr_check_view)
-        mAddToSrvrCheckView?.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+        val addToSrvrCheckView = view.findViewById<CheckBox>(R.id.add_to_srvr_check_view)
+        addToSrvrCheckView.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             toggleWebImageView(view, isChecked)
         }
         val addOrEditBtn = view.findViewById<Button>(R.id.add_edit_station_dialog_add_btn_view)
         addOrEditBtn.setOnClickListener {
-            mProgressView?.visibility = View.VISIBLE
+            mProgressView.visibility = View.VISIBLE
             processInputInternal(
-                    mNameEdit?.text.toString(),
-                    mUrlEdit?.text.toString(),
-                    mImageLocalUrlEdit?.text.toString(),
-                    mImageWebUrlEdit?.text.toString(),
-                    mHomePageEdit?.text.toString(),
-                    mGenresSpinner?.selectedItem.toString(),
-                    mCountriesSpinner?.selectedItem.toString(),
-                    mAddToFavCheckView!!.isChecked,
-                    mAddToSrvrCheckView!!.isChecked
+                mNameEdit.text.toString(),
+                mUrlEdit.text.toString(),
+                mImageLocalUrlEdit.text.toString(),
+                imageWebUrlEdit.text.toString(),
+                homePageEdit.text.toString(),
+                mGenresSpinner.selectedItem.toString(),
+                mCountriesSpinner.selectedItem.toString(),
+                mAddToFavCheckView.isChecked,
+                addToSrvrCheckView.isChecked
             )
         }
         val cancelBtn = view.findViewById<Button>(R.id.add_edit_station_dialog_cancel_btn_view)
         cancelBtn.setOnClickListener { dialog!!.dismiss() }
-        mProgressView?.visibility = View.INVISIBLE
+        mProgressView.visibility = View.INVISIBLE
         return view
     }
 
@@ -184,15 +173,15 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         val context: Activity? = activity
         if (!PermissionChecker.isExternalStorageGranted(context!!)) {
             PermissionChecker.requestExternalStoragePermission(
-                    context, view!!.findViewById(R.id.dialog_add_edit_root_layout), 1234
+                context, view!!.findViewById(R.id.dialog_add_edit_root_layout), 1234
             )
         }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        mProgressView!!.visibility = View.INVISIBLE
-        mRsAddValidatedReceiver!!.unregister(context)
+        mProgressView.visibility = View.INVISIBLE
+        mRsAddValidatedReceiver.unregister(context)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -207,7 +196,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
             IntentUtils.REQUEST_CODE_FILE_SELECTED -> {
                 val selectedImageUri = data.data
                 if (selectedImageUri == null) {
-                    AppLogger.e("Can not process image path, imahe uri is null")
+                    AppLogger.e("Can not process image path, image uri is null")
                     return
                 }
                 val ctx = context
@@ -219,7 +208,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
                 val selectedImagePath = ImageFilePath.getPath(ctx, selectedImageUri)
                 AppLogger.d("Image Path:$selectedImagePath")
                 if (selectedImagePath != null) {
-                    mImageLocalUrlEdit!!.setText(selectedImagePath)
+                    mImageLocalUrlEdit.setText(selectedImagePath)
                 } else {
                     showAnyThread(ctx, ctx.getString(R.string.can_not_open_file))
                 }
@@ -241,9 +230,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
      * @return Position of country.
      */
     fun getCountryPosition(country: String?): Int {
-        return if (mCountriesAdapter == null) {
-            MediaSessionCompat.QueueItem.UNKNOWN_ID
-        } else mCountriesAdapter!!.getPosition(country)
+        return mCountriesAdapter.getPosition(country)
     }
 
     /**
@@ -253,9 +240,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
      * @return Position of Genre.
      */
     fun getGenrePosition(genre: String?): Int {
-        return if (mGenresAdapter == null) {
-            MediaSessionCompat.QueueItem.UNKNOWN_ID
-        } else mGenresAdapter!!.getPosition(genre)
+        return mGenresAdapter.getPosition(genre)
     }
 
     /**
@@ -271,11 +256,13 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
      * @param addToFav      Whether or not add radio station to favorites.
      * @param addToServer   Whether or not add radio station to the server.
      */
-    private fun processInputInternal(name: String, url: String, imageLocalUrl: String,
-                                     imageWebUrl: String, homePage: String, genre: String,
-                                     country: String, addToFav: Boolean, addToServer: Boolean) {
+    private fun processInputInternal(
+        name: String, url: String, imageLocalUrl: String,
+        imageWebUrl: String, homePage: String, genre: String,
+        country: String, addToFav: Boolean, addToServer: Boolean
+    ) {
         val rsToAdd = RadioStationToAdd(
-                name, url, imageLocalUrl, imageWebUrl, homePage, genre, country, addToFav, addToServer
+            name, url, imageLocalUrl, imageWebUrl, homePage, genre, country, addToFav, addToServer
         )
         processInput(rsToAdd)
     }

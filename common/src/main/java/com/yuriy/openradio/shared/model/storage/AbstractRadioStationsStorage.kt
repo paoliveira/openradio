@@ -156,7 +156,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
      */
     fun getAll(context: Context, name: String): MutableList<RadioStation> {
         // TODO: Return cache when possible
-        val radioStations: MutableList<RadioStation> = ArrayList()
+        val radioStations = ArrayList<RadioStation>()
         val sharedPreferences = getSharedPreferences(context, name)
         val map = sharedPreferences.all
         val deserializer = RadioStationJsonDeserializer()

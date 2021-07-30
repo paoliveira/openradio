@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.model.net
 import android.net.Uri
 import androidx.core.util.Pair
 import com.yuriy.openradio.shared.service.LocationService
-import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
 import java.util.*
 
@@ -33,6 +32,7 @@ import java.util.*
  * build URL of the different API calls.
  */
 object UrlBuilder {
+
     /**
      * Id of the first page of the Radio Stations List.
      */
@@ -45,7 +45,6 @@ object UrlBuilder {
     const val BASE_URL_PREFIX = "https://do-look-up-dns-first"
     const val LOOK_UP_DNS = "all.api.radio-browser.info"
 
-    @JvmField
     val RESERVED_URLS = arrayOf(
         "https://de1.api.radio-browser.info",
         "https://fr1.api.radio-browser.info",
@@ -59,21 +58,10 @@ object UrlBuilder {
     private const val BASE_URL = "$BASE_URL_PREFIX/json/"
 
     /**
-     * Base url for the icons used previously.
-     */
-    private const val OLD_IMG_BASE_URL = "cdn.devality.com"
-
-    /**
-     * Base url for the icons using currently.
-     */
-    private const val NEW_IMG_BASE_URL = "img.dirble.com"
-
-    /**
      * Get Uri for the All Categories list.
      *
      * @return [Uri]
      */
-    @JvmStatic
     val allCategoriesUrl: Uri
         get() = Uri.parse(BASE_URL + "tags?reverse=true&order=stationcount&hidebroken=true")
 
@@ -82,7 +70,6 @@ object UrlBuilder {
      *
      * @return [Uri]
      */
-    @JvmStatic
     val allCountriesUrl: Uri
         get() = Uri.parse(BASE_URL + "countries")
 
@@ -92,7 +79,6 @@ object UrlBuilder {
      * @param categoryId Id of the Category.
      * @return [Uri]
      */
-    @JvmStatic
     fun getStationsInCategory(categoryId: String,
                               pageNumber: Int,
                               numberPerPage: Int): Uri {
@@ -109,7 +95,6 @@ object UrlBuilder {
      * @param countryCode Country Code.
      * @return [Uri]
      */
-    @JvmStatic
     fun getStationsInCountry(countryCode: String,
                              pageNumber: Int,
                              numberPerPage: Int): Uri {
@@ -153,7 +138,6 @@ object UrlBuilder {
      *
      * @return [Uri].
      */
-    @JvmStatic
     fun getSearchUrl(query: String): Uri {
         return Uri.parse(
             BASE_URL + "stations/search?name=" + encodeValue(query)
@@ -171,37 +155,6 @@ object UrlBuilder {
         postParams.add(Pair("countrycode", LocationService.COUNTRY_NAME_TO_CODE[rsToAdd.country]))
         postParams.add(Pair("tags", rsToAdd.genre))
         return Pair(Uri.parse(BASE_URL + "add"), postParams)
-    }
-
-    /**
-     * Pre-process URI of the Radio Station icon. It checks whether URI contains old base part
-     * and replace it with new one.
-     *
-     * @param uri URI of the icon.
-     * @return Modified URI.
-     */
-    @JvmStatic
-    fun preProcessIconUri(uri: Uri?): Uri? {
-        return if (uri == null) {
-            null
-        } else Uri.parse(preProcessIconUrl(uri.toString()))
-    }
-
-    /**
-     * Pre-process URL of the Radio Station icon. It checks whether URL contains old base part
-     * and replace it with new one.
-     *
-     * @param url URL of the icon.
-     * @return Modified URL.
-     */
-    @JvmStatic
-    fun preProcessIconUrl(url: String?): String {
-        if (url.isNullOrEmpty()) {
-            return AppUtils.EMPTY_STRING
-        }
-        return if (url.contains(OLD_IMG_BASE_URL)) {
-            url.replace(OLD_IMG_BASE_URL, NEW_IMG_BASE_URL)
-        } else url
     }
 
     /**

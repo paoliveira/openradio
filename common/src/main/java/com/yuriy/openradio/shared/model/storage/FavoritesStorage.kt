@@ -18,15 +18,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
-import com.yuriy.openradio.shared.model.api.ApiServiceProvider
-import com.yuriy.openradio.shared.model.net.Downloader
-import com.yuriy.openradio.shared.model.net.UrlBuilder
-import com.yuriy.openradio.shared.model.storage.cache.CacheType
-import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.vo.RadioStation
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 
 /**
  * Created by Yuriy Chernyshov
@@ -34,8 +26,7 @@ import kotlinx.coroutines.launch
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class FavoritesStorage(private val mProvider: ApiServiceProvider, private val mDownloader: Downloader) :
-    AbstractRadioStationsStorage() {
+class FavoritesStorage : AbstractRadioStationsStorage() {
 
     /**
      * Cache key of the Favorite Radio Station in order to ease load from preferences.
@@ -86,10 +77,6 @@ class FavoritesStorage(private val mProvider: ApiServiceProvider, private val mD
      * @return Collection of the Favorites Radio stations.
      */
     fun getAll(context: Context): MutableList<RadioStation> {
-        val data = getAll(context, FILE_NAME)
-        for (radioStation in data) {
-            checkImageUrl(context, radioStation.id)
-        }
         return getAll(context, FILE_NAME)
     }
 
@@ -146,19 +133,6 @@ class FavoritesStorage(private val mProvider: ApiServiceProvider, private val mD
 
     fun setNewSortFeatureInited(context: Context, value: Boolean) {
         getEditor(context, FILE_NAME).putBoolean(KEY_IS_NEW_SORT_FEATURE, value).apply()
-    }
-
-    private fun checkImageUrl(context: Context, id: String) {
-        GlobalScope.launch(Dispatchers.IO) {
-            val db = ImagesDatabase.getInstance(context)
-            val image = db.rsImageDao().getImage(id)
-            if (image != null) {
-                return@launch
-            }
-            mProvider.getStation(
-                mDownloader, UrlBuilder.getStation(id), CacheType.NONE
-            )
-        }
     }
 
     companion object {

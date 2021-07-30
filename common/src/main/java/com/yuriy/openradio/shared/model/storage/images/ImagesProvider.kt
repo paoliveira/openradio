@@ -26,8 +26,10 @@ import android.media.ExifInterface
 import android.net.Uri
 import android.os.Environment
 import android.os.ParcelFileDescriptor
+import com.yuriy.openradio.shared.coroutines.launch
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.DownloaderDependency
+import com.yuriy.openradio.shared.dependencies.ImagesDatabaseDependency
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.net.Downloader
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
@@ -41,8 +43,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.Executors
 
-
-class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDependency {
+class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDependency, ImagesDatabaseDependency {
 
     private lateinit var mImagesDatabase: ImagesDatabase
     private lateinit var mNetworkMonitor: NetworkMonitor
@@ -57,11 +58,15 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         mDownloader = downloader
     }
 
+    override fun configureWith(database: ImagesDatabase) {
+        mImagesDatabase = database
+    }
+
     override fun onCreate(): Boolean {
         DependencyRegistry.init(context!!)
         DependencyRegistry.injectNetworkMonitor(this)
         DependencyRegistry.injectDownloader(this)
-        mImagesDatabase = ImagesDatabase.getInstance(context!!)
+        DependencyRegistry.injectImagesDatabase(this)
         return true
     }
 
@@ -167,9 +172,6 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
                 file.readBytes()
             }
             AppLogger.d("$TAG downloaded ${bytes.size} bytes")
-            if (bytes.isEmpty()) {
-                return
-            }
             mImagesDatabase.rsImageDao().insertImage(Image(mRsId, scaleBytes(bytes, orientation)))
             AppLogger.d("$TAG db contains ${mImagesDatabase.rsImageDao().getCount()} images")
         }

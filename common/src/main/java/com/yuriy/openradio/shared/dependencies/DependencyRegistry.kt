@@ -28,6 +28,7 @@ import com.yuriy.openradio.shared.model.parser.JsonDataParserImpl
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
 import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
+import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import java.util.concurrent.atomic.AtomicBoolean
 
 object DependencyRegistry {
@@ -39,6 +40,7 @@ object DependencyRegistry {
     private lateinit var mFavoritesStorage: FavoritesStorage
     private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
     private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
+    private lateinit var mImagesDatabase: ImagesDatabase
 
     @Volatile
     private var mInit = AtomicBoolean(false)
@@ -47,14 +49,17 @@ object DependencyRegistry {
         if (mInit.get()) {
             return
         }
+        mImagesDatabase = ImagesDatabase.getInstance(context)
         mNetMonitor = NetworkMonitor(context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager)
         mNetMonitor.init()
         mDownloader = HTTPDownloaderImpl()
         mParser = JsonDataParserImpl(context)
         mProvider = ApiServiceProviderImpl(context, mParser, mNetMonitor)
-        mFavoritesStorage = FavoritesStorage(mProvider, mDownloader)
+        mFavoritesStorage = FavoritesStorage()
         mLatestRadioStationStorage = LatestRadioStationStorage()
-        mLocalRadioStationsStorage = LocalRadioStationsStorage(mFavoritesStorage, mLatestRadioStationStorage)
+        mLocalRadioStationsStorage = LocalRadioStationsStorage(
+            mFavoritesStorage, mLatestRadioStationStorage
+        )
 
         mInit.set(true)
     }
@@ -85,5 +90,9 @@ object DependencyRegistry {
 
     fun injectLatestRadioStationStorage(dependency: LatestRadioStationStorageDependency) {
         dependency.configureWith(mLatestRadioStationStorage)
+    }
+
+    fun injectImagesDatabase(dependency: ImagesDatabaseDependency) {
+        dependency.configureWith(mImagesDatabase)
     }
 }
