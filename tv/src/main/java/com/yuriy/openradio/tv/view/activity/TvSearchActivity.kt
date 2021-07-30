@@ -30,23 +30,23 @@ import com.yuriy.openradio.tv.view.fragment.TvSearchFragment
  */
 class TvSearchActivity : FragmentActivity() {
 
-    private var mFragment: TvSearchFragment? = null
+    private lateinit var mFragment: TvSearchFragment
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.tv_search)
-        mFragment = supportFragmentManager.findFragmentById(R.id.search_fragment) as TvSearchFragment?
+        mFragment = supportFragmentManager.findFragmentById(R.id.search_fragment) as TvSearchFragment
     }
 
     override fun onSearchRequested(): Boolean {
-        mFragment!!.startRecognition()
+        mFragment.startRecognition()
         return true
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         // If there are no results found, press the left key to reselect the microphone
         if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
-            mFragment!!.focusOnSearch()
+            mFragment.focusOnSearch()
         }
         return super.onKeyDown(keyCode, event)
     }

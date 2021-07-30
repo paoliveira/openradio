@@ -38,6 +38,7 @@ import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
+import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.*
@@ -55,17 +56,17 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     /**
      * Progress Bar view to indicate that data is loading.
      */
-    private var mProgressBar: ProgressBar? = null
+    private lateinit var mProgressBar: ProgressBar
 
     private lateinit var mMediaPresenter: MediaPresenter
-    private val mListener: MediaItemsAdapter.Listener
-    private var mPlayBtn: View? = null
-    private var mPauseBtn: View? = null
+    private val mListener = TvMediaItemsAdapterListenerImpl()
+    private lateinit var mPlayBtn: View
+    private lateinit var mPauseBtn: View
 
     /**
      * Member field to keep reference to the Local broadcast receiver.
      */
-    private val mLocalBroadcastReceiverCb: LocalBroadcastReceiverCallback
+    private val mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
     private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
 
     override fun configureWith(storage: LatestRadioStationStorage) {
@@ -160,20 +161,14 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
      * Show progress bar.
      */
     private fun showProgressBar() {
-        if (mProgressBar == null) {
-            return
-        }
-        mProgressBar!!.visibility = View.VISIBLE
+        mProgressBar.visibility = View.VISIBLE
     }
 
     /**
      * Hide progress bar.
      */
     private fun hideProgressBar() {
-        if (mProgressBar == null) {
-            return
-        }
-        mProgressBar!!.visibility = View.GONE
+        mProgressBar.visibility = View.GONE
     }
 
     override fun onBackPressed() {
@@ -188,12 +183,12 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     private fun handlePlaybackStateChanged(state: PlaybackStateCompat) {
         when (state.state) {
             PlaybackStateCompat.STATE_PLAYING -> {
-                mPlayBtn!!.visibility = View.GONE
-                mPauseBtn!!.visibility = View.VISIBLE
+                mPlayBtn.visibility = View.GONE
+                mPauseBtn.visibility = View.VISIBLE
             }
             PlaybackStateCompat.STATE_STOPPED, PlaybackStateCompat.STATE_PAUSED -> {
-                mPlayBtn!!.visibility = View.VISIBLE
-                mPauseBtn!!.visibility = View.GONE
+                mPlayBtn.visibility = View.VISIBLE
+                mPauseBtn.visibility = View.GONE
             }
             PlaybackStateCompat.STATE_BUFFERING, PlaybackStateCompat.STATE_CONNECTING,
             PlaybackStateCompat.STATE_ERROR, PlaybackStateCompat.STATE_FAST_FORWARDING,
@@ -230,7 +225,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             val dialog = BaseDialogFragment.newInstance(
                     EqualizerDialog::class.java.name
             )
-            dialog!!.show(transaction, EqualizerDialog.DIALOG_TAG)
+            dialog.show(transaction, EqualizerDialog.DIALOG_TAG)
         }
     }
 
@@ -242,18 +237,18 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             val dialog = BaseDialogFragment.newInstance(
                     AddStationDialog::class.java.name
             )
-            dialog!!.show(transaction, AddStationDialog.DIALOG_TAG)
+            dialog.show(transaction, AddStationDialog.DIALOG_TAG)
         }
     }
 
     private fun showTvSettings() {
         val transaction = supportFragmentManager.beginTransaction()
-        com.yuriy.openradio.shared.utils.UiUtils.clearDialogs(this, transaction)
+        UiUtils.clearDialogs(this, transaction)
         // Show Settings Dialog
         val dialogFragment = BaseDialogFragment.newInstance(
                 TvSettingsDialog::class.java.name
         )
-        dialogFragment!!.show(transaction, TvSettingsDialog.DIALOG_TAG)
+        dialogFragment.show(transaction, TvSettingsDialog.DIALOG_TAG)
     }
 
     /**
@@ -418,10 +413,5 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
 
     companion object {
         private val CLASS_NAME = TvMainActivity::class.java.simpleName + " "
-    }
-
-    init {
-        mListener = TvMediaItemsAdapterListenerImpl()
-        mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
     }
 }

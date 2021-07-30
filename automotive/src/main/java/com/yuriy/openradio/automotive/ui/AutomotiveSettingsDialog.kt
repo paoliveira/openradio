@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yuriy.openradio.tv.view.dialog
+package com.yuriy.openradio.automotive.ui
 
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import android.widget.TextView
-import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.automotive.R
 import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.dialog.AboutDialog
@@ -33,7 +33,6 @@ import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.NetworkDialog
 import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
-import com.yuriy.openradio.tv.R
 import java.util.*
 import java.util.concurrent.atomic.*
 
@@ -43,22 +42,18 @@ import java.util.concurrent.atomic.*
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class TvSettingsDialog : BaseDialogFragment() {
+class AutomotiveSettingsDialog : BaseDialogFragment() {
 
     private val mIsInstanceSaved = AtomicBoolean(false)
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         mIsInstanceSaved.set(false)
         val view = inflater.inflate(
-            R.layout.dialog_tv_settings,
-            requireActivity().findViewById(R.id.dialog_tv_settings_root)
+            R.layout.dialog_automotive_settings,
+            requireActivity().findViewById(R.id.dialog_automotive_settings_root)
         )
         setWindowDimensions(view, 0.9f, 0.9f)
-        val context = context
-        val titleText = context!!.getString(R.string.app_settings_title)
-        val title = view.findViewById<TextView>(R.id.dialog_tv_settings_title_view)
-        title.text = titleText
-        val listView = view.findViewById<ListView>(R.id.settings_tv_list_view)
+        val listView = view.findViewById<ListView>(R.id.settings_automotive_list_view)
         // TODO: Refactor this and the same from activity_main_drawer to string resources
         val values = arrayOf(
             getString(R.string.main_menu_general),
@@ -72,19 +67,17 @@ class TvSettingsDialog : BaseDialogFragment() {
         val list = ArrayList<String>()
         Collections.addAll(list, *values)
         val adapter = ArrayAdapterExt(
-            getContext(),
-            android.R.layout.simple_list_item_1, list
+            context, android.R.layout.simple_list_item_1, list
         )
         listView.adapter = adapter
         listView.onItemClickListener =
             AdapterView.OnItemClickListener { _: AdapterView<*>?, _: View?, position: Int, _: Long ->
-                AppLogger.d("$CLASS_NAME click:${values[position]}")
                 if (mIsInstanceSaved.get()) {
                     return@OnItemClickListener
                 }
                 val ctx = activity ?: return@OnItemClickListener
                 val transaction = ctx.supportFragmentManager.beginTransaction()
-                UiUtils.clearDialogs(this@TvSettingsDialog.requireActivity(), transaction)
+                UiUtils.clearDialogs(this@AutomotiveSettingsDialog.requireActivity(), transaction)
                 when (position) {
                     0 -> {
                         // Show Search Dialog
@@ -134,6 +127,11 @@ class TvSettingsDialog : BaseDialogFragment() {
         mIsInstanceSaved.set(true)
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        activity?.finish()
+    }
+
     private class ArrayAdapterExt(
         context: Context?, textViewResourceId: Int,
         objects: List<String>
@@ -161,7 +159,7 @@ class TvSettingsDialog : BaseDialogFragment() {
         /**
          * Tag string to use in logging message.
          */
-        private val CLASS_NAME = TvSettingsDialog::class.java.simpleName
+        private val CLASS_NAME = AutomotiveSettingsDialog::class.java.simpleName
 
         /**
          * Tag string to use in dialog transactions.

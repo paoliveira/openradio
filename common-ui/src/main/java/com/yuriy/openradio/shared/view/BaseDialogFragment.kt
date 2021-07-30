@@ -22,7 +22,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import androidx.fragment.app.DialogFragment
-import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created with Android Studio.
@@ -74,16 +73,9 @@ abstract class BaseDialogFragment : DialogFragment() {
          * @param className Name of the class to have instance of.
          * @return Instance of the class.
          */
-        @JvmStatic
-        @JvmOverloads
-        fun newInstance(className: String, bundle: Bundle? = null): DialogFragment? {
-            var dialogFragment: DialogFragment? = null
-            try {
-                dialogFragment = Class.forName(className).getConstructor().newInstance() as BaseDialogFragment
-                dialogFragment.arguments = bundle
-            } catch (e: Exception) {
-                AppLogger.e("$e")
-            }
+        fun newInstance(className: String, bundle: Bundle? = null): DialogFragment {
+            val dialogFragment = Class.forName(className).getConstructor().newInstance() as BaseDialogFragment
+            dialogFragment.arguments = bundle
             return dialogFragment
         }
 

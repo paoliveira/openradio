@@ -205,14 +205,14 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
                 )
                 // Show Search Dialog
                 val dialog = BaseDialogFragment.newInstance(SearchDialog::class.java.name, bundle)
-                dialog?.show(transaction, SearchDialog.DIALOG_TAG)
+                dialog.show(transaction, SearchDialog.DIALOG_TAG)
                 true
             }
             R.id.action_eq -> {
 
                 // Show Equalizer Dialog
                 val dialog = BaseDialogFragment.newInstance(EqualizerDialog::class.java.name)
-                dialog?.show(transaction, EqualizerDialog.DIALOG_TAG)
+                dialog.show(transaction, EqualizerDialog.DIALOG_TAG)
                 true
             }
             else -> {
@@ -269,37 +269,37 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
                 R.id.nav_general -> {
                     // Show Search Dialog
                     val dialog = BaseDialogFragment.newInstance(GeneralSettingsDialog::class.java.name)
-                    dialog!!.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
+                    dialog.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
                 }
                 R.id.nav_buffering -> {
                     // Show Stream Buffering Dialog
                     val dialog = BaseDialogFragment.newInstance(StreamBufferingDialog::class.java.name)
-                    dialog!!.show(transaction, StreamBufferingDialog.DIALOG_TAG)
+                    dialog.show(transaction, StreamBufferingDialog.DIALOG_TAG)
                 }
                 R.id.nav_sleep_timer -> {
                     // Show Sleep Timer Dialog
                     val dialog = BaseDialogFragment.newInstance(SleepTimerDialog::class.java.name)
-                    dialog!!.show(transaction, SleepTimerDialog.DIALOG_TAG)
+                    dialog.show(transaction, SleepTimerDialog.DIALOG_TAG)
                 }
                 R.id.nav_google_drive -> {
                     // Show Google Drive Dialog
                     val dialog = BaseDialogFragment.newInstance(GoogleDriveDialog::class.java.name)
-                    dialog!!.show(transaction, GoogleDriveDialog.DIALOG_TAG)
+                    dialog.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                 }
                 R.id.nav_logs -> {
                     // Show Application Logs Dialog
                     val dialog = BaseDialogFragment.newInstance(LogsDialog::class.java.name)
-                    dialog!!.show(transaction, LogsDialog.DIALOG_TAG)
+                    dialog.show(transaction, LogsDialog.DIALOG_TAG)
                 }
                 R.id.nav_about -> {
                     // Show About Dialog
                     val dialog = BaseDialogFragment.newInstance(AboutDialog::class.java.name)
-                    dialog!!.show(transaction, AboutDialog.DIALOG_TAG)
+                    dialog.show(transaction, AboutDialog.DIALOG_TAG)
                 }
                 R.id.nav_network -> {
                     // Show Network Dialog
                     val dialog = BaseDialogFragment.newInstance(NetworkDialog::class.java.name)
-                    dialog!!.show(transaction, NetworkDialog.DIALOG_TAG)
+                    dialog.show(transaction, NetworkDialog.DIALOG_TAG)
                 }
                 else -> {
                     // No dialog found.
@@ -320,7 +320,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
             // Show Add Station Dialog
             val transaction = supportFragmentManager.beginTransaction()
             val dialog = BaseDialogFragment.newInstance(AddStationDialog::class.java.name)
-            dialog!!.show(transaction, AddStationDialog.DIALOG_TAG)
+            dialog.show(transaction, AddStationDialog.DIALOG_TAG)
         }
     }
 
@@ -444,7 +444,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
                 }
         )
         val dialog = BaseDialogFragment.newInstance(RemoveStationDialog::class.java.name, bundle)
-        dialog?.show(transaction, RemoveStationDialog.DIALOG_TAG)
+        dialog.show(transaction, RemoveStationDialog.DIALOG_TAG)
     }
 
     fun onEditRSClick(view: View) {
@@ -476,7 +476,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
         )
         // Show Edit Station Dialog
         val dialog = BaseDialogFragment.newInstance(EditStationDialog::class.java.name, bundle)
-        dialog!!.show(transaction, EditStationDialog.DIALOG_TAG)
+        dialog.show(transaction, EditStationDialog.DIALOG_TAG)
     }
 
     @MainThread
@@ -662,7 +662,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
                 bundle, item, mMediaPresenter.currentParentId, mMediaPresenter.itemsCount()
             )
             val fragment = BaseDialogFragment.newInstance(RSSettingsDialog::class.java.name, bundle)
-            fragment!!.show(transaction, RSSettingsDialog.DIALOG_TAG)
+            fragment.show(transaction, RSSettingsDialog.DIALOG_TAG)
         }
 
         override fun onItemSelected(item: MediaBrowserCompat.MediaItem, position: Int) {

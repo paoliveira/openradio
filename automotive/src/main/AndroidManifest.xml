@@ -1,19 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
--->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.yuriy.openradio.automotive">
@@ -21,33 +6,40 @@
     <uses-feature
         android:name="android.hardware.type.automotive"
         android:required="true" />
-
     <uses-feature
         android:name="android.hardware.wifi"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.screen.portrait"
         android:required="false" />
-
     <uses-feature
         android:name="android.hardware.screen.landscape"
         android:required="false" />
 
     <application
         android:allowBackup="true"
-        android:fullBackupContent="true"
         android:appCategory="audio"
+        android:fullBackupContent="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true">
 
+        <activity
+            android:name=".ui.AutomotiveSettingsActivity"
+            android:label="">
+            <intent-filter>
+                <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
+            </intent-filter>
+
+            <meta-data
+                android:name="distractionOptimized"
+                android:value="true" />
+        </activity>
+
         <meta-data
             android:name="com.android.automotive"
-            android:resource="@xml/automotive_app_desc" />
-
-        <!-- Used by Android Auto -->
+            android:resource="@xml/automotive_app_desc" /> <!-- Used by Android Auto -->
         <meta-data
             android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/ic_auto_icon" />
@@ -57,12 +49,10 @@
             android:enabled="true"
             android:exported="true"
             tools:ignore="ExportedService">
-
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
-
     </application>
 
 </manifest>
