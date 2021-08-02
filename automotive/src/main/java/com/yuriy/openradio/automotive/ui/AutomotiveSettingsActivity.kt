@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,284 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.automotive.ui
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.FragmentActivity
-import com.yuriy.openradio.shared.utils.UiUtils
-import com.yuriy.openradio.shared.view.BaseDialogFragment
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.SeekBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.yuriy.openradio.automotive.R
+import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
+import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
+import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveError
+import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.view.SafeToast
+import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 
-class AutomotiveSettingsActivity : FragmentActivity() {
+class AutomotiveSettingsActivity : AppCompatActivity() {
+
+    private lateinit var mMinBuffer: EditText
+    private lateinit var mMaxBuffer: EditText
+    private lateinit var mPlayBuffer: EditText
+    private lateinit var mPlayBufferRebuffer: EditText
+    private var mProgressBarUpload: ProgressBar? = null
+    private var mProgressBarDownload: ProgressBar? = null
+    private var mGoogleDriveManager: GoogleDriveManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        showSettings()
+        setContentView(R.layout.automotive_activity_settings)
+
+        val toolbar = findViewById<Toolbar>(R.id.automotive_settings_toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setHomeButtonEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        val lastKnownRsEnabled = AppPreferencesManager.lastKnownRadioStationEnabled(applicationContext)
+        val lastKnownRsEnableCheckView = findViewById<CheckBox>(
+            R.id.automotive_settings_enable_last_known_radio_station_check_view
+        )
+        lastKnownRsEnableCheckView.isChecked = lastKnownRsEnabled
+        lastKnownRsEnableCheckView.setOnClickListener { view1: View ->
+            val checked = (view1 as CheckBox).isChecked
+            AppPreferencesManager.lastKnownRadioStationEnabled(applicationContext, checked)
+        }
+
+        val clearCache = findViewById<Button>(R.id.automotive_settings_clear_cache_btn)
+        clearCache.setOnClickListener {
+            LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
+                AppLocalBroadcast.createIntentClearCache()
+            )
+        }
+
+        val masterVolumeSeekBar = findViewById<SeekBar>(R.id.automotive_master_vol_seek_bar)
+        masterVolumeSeekBar.progress = AppPreferencesManager.getMasterVolume(applicationContext)
+        masterVolumeSeekBar.setOnSeekBarChangeListener(
+            object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
+                override fun onStartTrackingTouch(seekBar: SeekBar) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar) {
+                    AppPreferencesManager.setMasterVolume(applicationContext, seekBar.progress)
+                    LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(
+                        AppLocalBroadcast.createIntentMasterVolumeChanged()
+                    )
+                }
+            }
+        )
+
+        val descView = findViewById<TextView>(R.id.automotive_stream_buffering_desc_view)
+        try {
+            descView.text = String.format(
+                resources.getString(R.string.stream_buffering_descr_automotive),
+                resources.getInteger(R.integer.min_buffer_val),
+                resources.getInteger(R.integer.max_buffer_val),
+                resources.getInteger(R.integer.min_buffer_sec),
+                resources.getInteger(R.integer.max_buffer_min)
+            )
+        } catch (e: Exception) {
+            /* Ignore */
+        }
+
+        mMinBuffer = findViewById(R.id.automotive_min_buffer_edit_view)
+        mMaxBuffer = findViewById(R.id.automotive_max_buffer_edit_view)
+        mPlayBuffer = findViewById(R.id.automotive_play_buffer_edit_view)
+        mPlayBufferRebuffer = findViewById(R.id.automotive_rebuffer_edit_view)
+        val restoreBtn = findViewById<Button>(R.id.automotive_buffering_restore_btn)
+        restoreBtn.setOnClickListener {
+            StreamBufferingDialog.handleRestoreButton(mMinBuffer, mMaxBuffer, mPlayBuffer, mPlayBufferRebuffer)
+        }
+
+        StreamBufferingDialog.handleOnCreate(
+            applicationContext,
+            mMinBuffer,
+            mMaxBuffer,
+            mPlayBuffer,
+            mPlayBufferRebuffer
+        )
+
+        // TODO: Refactor GDrive to handle in single place:
+
+        val uploadTo = findViewById<Button>(R.id.automotive_upload_to_google_drive_btn)
+        val downloadFrom = findViewById<Button>(R.id.automotive_download_from_google_drive_btn)
+        mProgressBarUpload = findViewById(R.id.automotive_upload_to_google_drive_progress)
+        mProgressBarDownload = findViewById(R.id.automotive_download_to_google_drive_progress)
+
+        uploadTo.setOnClickListener { uploadRadioStationsToGoogleDrive() }
+        downloadFrom.setOnClickListener { downloadRadioStationsFromGoogleDrive() }
+
+        val listener = GoogleDriveManagerListenerImpl()
+        mGoogleDriveManager = GoogleDriveManager(applicationContext, listener)
+
+        hideProgress(GoogleDriveManager.Command.UPLOAD)
+        hideProgress(GoogleDriveManager.Command.DOWNLOAD)
     }
 
-    private fun showSettings() {
-        val transaction = supportFragmentManager.beginTransaction()
-        UiUtils.clearDialogs(this, transaction)
-        // Show Settings Dialog
-        val fragment = BaseDialogFragment.newInstance(
-            AutomotiveSettingsDialog::class.java.name
+    override fun onDestroy() {
+        super.onDestroy()
+        hideProgress(GoogleDriveManager.Command.UPLOAD)
+        hideProgress(GoogleDriveManager.Command.DOWNLOAD)
+        mGoogleDriveManager!!.disconnect()
+        mGoogleDriveManager = null
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        StreamBufferingDialog.handleOnPause(
+            applicationContext,
+            mMinBuffer,
+            mMaxBuffer,
+            mPlayBuffer,
+            mPlayBufferRebuffer
         )
-        fragment.show(transaction, AutomotiveSettingsDialog.DIALOG_TAG)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        AppLogger.d("$CLASS_NAME OnActivityResult: request:$requestCode result:$resultCode")
+        if (requestCode != ACCOUNT_REQUEST_CODE) {
+            return
+        }
+        GoogleSignIn
+            .getSignedInAccountFromIntent(data)
+            .addOnSuccessListener { googleAccount: GoogleSignInAccount ->
+                if (mGoogleDriveManager == null) {
+                    showErrorToast(getString(R.string.google_drive_error_msg_2))
+                    return@addOnSuccessListener
+                }
+                AppLogger.d("Signed in as " + googleAccount.email)
+                mGoogleDriveManager!!.connect(googleAccount.account)
+            }
+            .addOnFailureListener { exception: Exception? ->
+                AppLogger.e("Can't do sign in:" + Log.getStackTraceString(exception))
+                SafeToast.showAnyThread(
+                    applicationContext, getString(R.string.can_not_get_account_name)
+                )
+            }
+    }
+
+    private fun uploadRadioStationsToGoogleDrive() {
+        if (mGoogleDriveManager == null) {
+            showErrorToast(getString(R.string.google_drive_error_msg_3))
+            return
+        }
+        mGoogleDriveManager!!.uploadRadioStations()
+    }
+
+    private fun downloadRadioStationsFromGoogleDrive() {
+        if (mGoogleDriveManager == null) {
+            showErrorToast(getString(R.string.google_drive_error_msg_4))
+            return
+        }
+        mGoogleDriveManager!!.downloadRadioStations()
+    }
+
+    private fun showErrorToast(message: String) {
+        SafeToast.showAnyThread(applicationContext, message)
+    }
+
+    private fun showProgress(command: GoogleDriveManager.Command) {
+        when (command) {
+            GoogleDriveManager.Command.UPLOAD -> if (mProgressBarUpload != null) {
+                runOnUiThread { mProgressBarUpload!!.visibility = View.VISIBLE }
+            }
+            GoogleDriveManager.Command.DOWNLOAD -> if (mProgressBarDownload != null) {
+                runOnUiThread { mProgressBarDownload!!.visibility = View.VISIBLE }
+            }
+        }
+    }
+
+    private fun hideProgress(command: GoogleDriveManager.Command) {
+        when (command) {
+            GoogleDriveManager.Command.UPLOAD -> if (mProgressBarUpload != null) {
+                runOnUiThread { mProgressBarUpload!!.visibility = View.GONE }
+            }
+            GoogleDriveManager.Command.DOWNLOAD -> if (mProgressBarDownload != null) {
+                runOnUiThread { mProgressBarDownload!!.visibility = View.GONE }
+            }
+        }
+    }
+
+    private inner class GoogleDriveManagerListenerImpl : GoogleDriveManager.Listener {
+
+        override fun onAccountRequested(client: GoogleSignInClient) {
+            if (mGoogleDriveManager == null) {
+                showErrorToast(getString(R.string.google_drive_error_msg_1))
+                return
+            }
+            if (!AppUtils.startActivityForResultSafe(
+                    this@AutomotiveSettingsActivity,
+                    client.signInIntent,
+                    ACCOUNT_REQUEST_CODE
+                )) {
+                mGoogleDriveManager!!.connect(null)
+            }
+        }
+
+        override fun onStart(command: GoogleDriveManager.Command) {
+            showProgress(command)
+        }
+
+        override fun onSuccess(command: GoogleDriveManager.Command) {
+            val context = this@AutomotiveSettingsActivity.applicationContext
+            if (context == null) {
+                AppLogger.e("Can not handle Google Drive success, context is null")
+                return
+            }
+            val message = when (command) {
+                GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_data_saved)
+                GoogleDriveManager.Command.DOWNLOAD -> {
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(
+                        AppLocalBroadcast.createIntentGoogleDriveDownloaded()
+                    )
+                    context.getString(R.string.google_drive_data_read)
+                }
+            }
+            SafeToast.showAnyThread(context, message)
+            hideProgress(command)
+        }
+
+        override fun onError(command: GoogleDriveManager.Command, error: GoogleDriveError?) {
+            val context = this@AutomotiveSettingsActivity.applicationContext
+            if (context == null) {
+                AppLogger.e("Can not handle Google Drive error, context is null, error:$error")
+                return
+            }
+            val message = when (command) {
+                GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_error_when_save)
+                GoogleDriveManager.Command.DOWNLOAD -> context.getString(R.string.google_drive_error_when_read)
+            }
+            SafeToast.showAnyThread(context, message)
+            hideProgress(command)
+        }
+    }
+
+    companion object {
+
+        /**
+         * Tag string to use in logging message.
+         */
+        private val CLASS_NAME = AutomotiveSettingsActivity::class.java.simpleName
+
+        private const val ACCOUNT_REQUEST_CODE = 401
     }
 }

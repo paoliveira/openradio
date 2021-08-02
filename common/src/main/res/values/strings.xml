@@ -36,9 +36,9 @@
     <string name="custom_user_agent_hint">Custom User Agent empty</string>
     <string name="user_agent_empty_warning">User Agent can not be empty</string>
     <string name="user_agent_can_not_apply">Can not apply User Agent</string>
-    <string name="settings_master_volume">Master sound volume:</string>
+    <string name="settings_master_volume">Master volume:</string>
     <string name="min_buff_description">Minimum duration of media that the player will attempt to ensure is buffered at all times, in milliseconds</string>
-    <string name="max_buffer_description">Maximum duration of media that the player will attempt to buffer, in milliseconds</string>
+    <string name="max_buff_description">Maximum duration of media that the player will attempt to buffer, in milliseconds</string>
     <string name="playback_buffer_description">Duration of media that must be buffered for playback to start or resume, in milliseconds</string>
     <string name="playback_buffer_after_rebuffer_description">Duration of media that must be buffered for playback to resume after a re-buffer, in milliseconds</string>
     <string name="restore_default">Restore Default</string>
@@ -134,7 +134,7 @@
     <string name="play_re_buffer_greater_min_buffer">Play Re-Buffer is greater than Min Buffer</string>
     <string name="radio_station">radio station</string>
     <string name="radio_stations">radio stations</string>
-    <string name="cache_desc_text">Browse requests to the service are cached for one day.\nTap to clear now:</string>
+    <string name="cache_desc_text">Browse requests to the service are cached for one day.</string>
     <string name="clear_cache_lbl">Clear cache</string>
     <string name="clear_completed">Cache is cleared</string>
     <string name="media_description_default">Live stream</string>

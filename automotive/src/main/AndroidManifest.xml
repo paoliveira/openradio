@@ -27,14 +27,12 @@
 
         <activity
             android:name=".ui.AutomotiveSettingsActivity"
-            android:label="">
+            android:exported="true"
+            android:theme="@style/Theme.Automotive"
+            android:label="Settings">
             <intent-filter>
                 <action android:name="android.intent.action.APPLICATION_PREFERENCES" />
             </intent-filter>
-
-            <meta-data
-                android:name="distractionOptimized"
-                android:value="true" />
         </activity>
 
         <meta-data
@@ -53,6 +51,7 @@
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
         </service>
+
     </application>
 
 </manifest>

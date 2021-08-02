@@ -47,13 +47,12 @@ class GoogleDriveDialog : BaseDialogFragment() {
 
     private var mProgressBarUpload: ProgressBar? = null
     private var mProgressBarDownload: ProgressBar? = null
-    private var mProgressBarTitle: ProgressBar? = null
     private var mGoogleDriveManager: GoogleDriveManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val context = context
-        val listener: GoogleDriveManager.Listener = GoogleDriveManagerListenerImpl()
+        val listener = GoogleDriveManagerListenerImpl()
         mGoogleDriveManager = GoogleDriveManager(context!!, listener)
     }
 
@@ -77,10 +76,8 @@ class GoogleDriveDialog : BaseDialogFragment() {
         downloadFrom.setOnClickListener { downloadRadioStationsFromGoogleDrive() }
         mProgressBarUpload = view.findViewById(R.id.upload_to_google_drive_progress)
         mProgressBarDownload = view.findViewById(R.id.download_to_google_drive_progress)
-        mProgressBarTitle = view.findViewById(R.id.google_drive_title_progress)
         hideProgress(GoogleDriveManager.Command.UPLOAD)
         hideProgress(GoogleDriveManager.Command.DOWNLOAD)
-        hideTitleProgress()
         return createAlertDialog(view)
     }
 
@@ -148,11 +145,6 @@ class GoogleDriveDialog : BaseDialogFragment() {
         }
     }
 
-    private fun hideTitleProgress() {
-        val activity = activity ?: return
-        activity.runOnUiThread { mProgressBarTitle!!.visibility = View.GONE }
-    }
-
     private fun showErrorToast(message: String) {
         showAnyThread(context, message)
     }
@@ -182,7 +174,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 AppLogger.e("Can not handle Google Drive success, context is null")
                 return
             }
-            val message: String = when (command) {
+            val message = when (command) {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_data_saved)
                 GoogleDriveManager.Command.DOWNLOAD -> {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
@@ -201,7 +193,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 AppLogger.e("Can not handle Google Drive error, context is null, error:$error")
                 return
             }
-            val message: String = when (command) {
+            val message = when (command) {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_error_when_save)
                 GoogleDriveManager.Command.DOWNLOAD -> context.getString(R.string.google_drive_error_when_read)
             }

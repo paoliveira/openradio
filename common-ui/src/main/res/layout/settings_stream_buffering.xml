@@ -15,26 +15,27 @@
     limitations under the License.
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/settings_stream_buffering_root"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:padding="15dp">
+    android:id="@+id/settings_stream_buffering_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="15dp">
 
     <TextView
         android:id="@+id/stream_buffering_label_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:text="@string/stream_buffering_label"
         android:textSize="20sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/stream_buffering_desc_view"
-        android:text="@string/stream_buffering_descr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"/>
+        android:gravity="center"
+        android:text="@string/stream_buffering_descr" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -51,27 +52,27 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="35dp"
                 android:text="@string/min_buff_description"
-                android:textSize="18sp"/>
+                android:textSize="18sp" />
 
             <EditText
                 android:id="@+id/min_buffer_edit_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
+                android:inputType="number" />
 
             <TextView
                 android:id="@+id/max_buffer_label_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="35dp"
-                android:text="@string/max_buffer_description"
-                android:textSize="18sp"/>
+                android:text="@string/max_buff_description"
+                android:textSize="18sp" />
 
             <EditText
                 android:id="@+id/max_buffer_edit_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
+                android:inputType="number" />
 
             <TextView
                 android:id="@+id/play_buffer_label_view"
@@ -79,13 +80,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="35dp"
                 android:text="@string/playback_buffer_description"
-                android:textSize="18sp"/>
+                android:textSize="18sp" />
 
             <EditText
                 android:id="@+id/play_buffer_edit_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
+                android:inputType="number" />
 
             <TextView
                 android:id="@+id/play_buffer_after_rebuffer_label_view"
@@ -93,21 +94,21 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="35dp"
                 android:text="@string/playback_buffer_after_rebuffer_description"
-                android:textSize="18sp"/>
+                android:textSize="18sp" />
 
             <EditText
                 android:id="@+id/play_buffer_after_rebuffer_edit_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="number"/>
+                android:inputType="number" />
 
             <Button
                 android:id="@+id/buffering_restore_btn"
-                android:text="@string/restore_default"
-                android:layout_marginTop="35dp"
-                android:layout_gravity="center_horizontal"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="35dp"
+                android:text="@string/restore_default" />
 
         </LinearLayout>
 
