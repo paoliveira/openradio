@@ -19,7 +19,6 @@ import android.app.Dialog
 import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
-import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import com.yuriy.openradio.shared.R

@@ -77,7 +77,7 @@ class PersistentApiCache(context: Context, dbName: String) : ApiCache {
         // Create a new map of values, where column names are the keys
         val values = ContentValues()
         values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_KEY, key)
-        values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_DATA, data.toString())
+        values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_DATA, data)
         values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP, time)
 
         // Insert the new row, returning the primary key value of the new row

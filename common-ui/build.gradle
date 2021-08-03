@@ -63,5 +63,5 @@ dependencies {
     implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
     implementation "log4j:log4j:$log4jVersion"
 
-    implementation 'com.sun.mail:android-mail:1.6.7'
+    implementation "com.sun.mail:android-mail:$androidMailVersion"
 }

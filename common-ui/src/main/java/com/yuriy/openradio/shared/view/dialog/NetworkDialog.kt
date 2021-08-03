@@ -18,16 +18,10 @@ package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
 import android.os.Bundle
-import android.view.View
 import android.widget.CheckBox
-import android.widget.CompoundButton
-import android.widget.TextView
-import com.google.android.exoplayer2.ExoPlayerLibraryInfo
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.model.storage.NetworkSettingsStorage
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
 /**

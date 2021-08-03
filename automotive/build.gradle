@@ -57,9 +57,9 @@ dependencies {
     implementation project(':common')
     implementation project(':common-ui')
 
-    implementation "androidx.constraintlayout:constraintlayout:2.1.0"
-    implementation "androidx.preference:preference-ktx:1.1.1"
-    implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
+    implementation "androidx.constraintlayout:constraintlayout:$constraintlayoutAndroidXVersion"
+    implementation "androidx.preference:preference-ktx:$preferenceKtxVersion"
+    implementation "androidx.appcompat:appcompat:$appcompatVersion"
+    implementation "androidx.localbroadcastmanager:localbroadcastmanager:$localbroadcastmanagerVersion"
     implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
 }

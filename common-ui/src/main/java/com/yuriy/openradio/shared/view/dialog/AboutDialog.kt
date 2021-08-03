@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
 import android.os.Bundle
-import android.view.View
 import android.widget.TextView
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo
 import com.yuriy.openradio.shared.R

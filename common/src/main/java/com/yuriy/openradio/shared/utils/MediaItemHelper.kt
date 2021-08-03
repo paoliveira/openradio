@@ -77,7 +77,7 @@ object MediaItemHelper {
     /**
      * Sets key that indicates Radio Station is in favorites.
      *
-     * @param mediaItem    [MediaBrowserCompat.MediaItem].
+     * @param bundle
      * @param isLastPlayed Whether Media Item is known last played.
      */
     private fun updateLastPlayedField(bundle: Bundle, isLastPlayed: Boolean) {
@@ -109,17 +109,13 @@ object MediaItemHelper {
     /**
      * Sets key that indicates Radio Station is in Local Radio Stations.
      *
-     * @param mediaItem [MediaBrowserCompat.MediaItem].
+     * @param bundle
      * @param isLocal   Whether Item is in Local Radio Stations.
      */
     private fun updateLocalRadioStationField(bundle: Bundle, isLocal: Boolean) {
         bundle.putBoolean(KEY_IS_LOCAL, isLocal)
     }
 
-    /**
-     * @param mediaItem
-     * @param sortId
-     */
     private fun updateSortIdField(bundle: Bundle, sortId: Int) {
         bundle.putInt(KEY_SORT_ID, sortId)
     }

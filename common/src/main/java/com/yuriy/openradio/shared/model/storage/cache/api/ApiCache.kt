@@ -16,8 +16,6 @@
 
 package com.yuriy.openradio.shared.model.storage.cache.api
 
-import org.json.JSONArray
-
 /**
  * Created by Chernyshov Yurii
  * At Android Studio
