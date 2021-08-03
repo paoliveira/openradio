@@ -25,8 +25,9 @@ import java.util.concurrent.*
  * Factory to build Notification Channels.
  */
 class NotificationChannelFactory(context: Context) {
-    private val mManager: NotificationManager?
-    private val mNotificationChannelMap: MutableMap<String, NotificationChannel>
+
+    private val mManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val mNotificationChannelMap = ConcurrentHashMap<String, NotificationChannel>()
 
     fun createChannel(data: NotificationData) {
         // NotificationChannels are required for Notifications on O (API 26) and above.
@@ -56,11 +57,6 @@ class NotificationChannelFactory(context: Context) {
         // channel with its original values performs no operation, so it's safe to perform the
         // below sequence.
         mNotificationChannelMap[id] = channel
-        mManager?.createNotificationChannel(channel)
-    }
-
-    init {
-        mNotificationChannelMap = ConcurrentHashMap()
-        mManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        mManager.createNotificationChannel(channel)
     }
 }

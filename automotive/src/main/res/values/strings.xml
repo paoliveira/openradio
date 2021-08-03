@@ -4,4 +4,5 @@
     <string name="max_buff_description_automotive">Maximum buffer, in milliseconds</string>
     <string name="min_buff_description_automotive">Minimum buffer, in milliseconds</string>
     <string name="stream_buffering_descr_automotive">Restart playback when values are changed. Range is %1$d - %2$d milliseconds (%3$d second - %4$d minutes)</string>
+    <string name="logs_label_enable_automotive">Enable</string>
 </resources>

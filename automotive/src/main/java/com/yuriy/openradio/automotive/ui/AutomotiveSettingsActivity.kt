@@ -40,6 +40,7 @@ import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.SafeToast
+import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 
 class AutomotiveSettingsActivity : AppCompatActivity() {
@@ -138,6 +139,45 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
 
         hideProgress(GoogleDriveManager.Command.UPLOAD)
         hideProgress(GoogleDriveManager.Command.DOWNLOAD)
+
+        val logsEnabled = AppPreferencesManager.areLogsEnabled(applicationContext)
+        val clearLogsBtn = findViewById<Button>(R.id.automotive_settings_clear_logs_btn_view)
+        val sendLogsBtn = findViewById<Button>(R.id.automotive_settings_send_logs_btn_view)
+        val logsEnableCheckView = findViewById<CheckBox>(R.id.automotive_settings_enable_logs_check_view)
+        logsEnableCheckView.isChecked = logsEnabled
+        LogsDialog.processEnableCheckView(applicationContext, sendLogsBtn, clearLogsBtn, logsEnabled)
+        logsEnableCheckView.setOnClickListener { view1: View ->
+            val checked = (view1 as CheckBox).isChecked
+            LogsDialog.processEnableCheckView(applicationContext, sendLogsBtn, clearLogsBtn, checked)
+        }
+        clearLogsBtn.setOnClickListener {
+            val result = AppLogger.deleteAllLogs()
+            val message = if (result) "All logs deleted" else "Can not delete logs"
+            SafeToast.showAnyThread(applicationContext, message)
+            AppLogger.initLogger(applicationContext)
+        }
+        val progressView = findViewById<ProgressBar>(R.id.automotive_settings_dialog_logs_progress)
+        progressView.visibility = View.INVISIBLE
+        sendLogsBtn.setOnClickListener {
+            progressView.visibility = View.VISIBLE
+            LogsDialog.sendLogMailTask(
+                applicationContext,
+                {
+                    SafeToast.showAnyThread(
+                        applicationContext,
+                        applicationContext.getString(com.yuriy.openradio.shared.R.string.logs_sent_msg)
+                    )
+                    progressView.visibility = View.INVISIBLE
+                },
+                {
+                    SafeToast.showAnyThread(
+                        applicationContext,
+                        applicationContext.getString(com.yuriy.openradio.shared.R.string.logs_can_not_send)
+                    )
+                    progressView.visibility = View.INVISIBLE
+                }
+            )
+        }
     }
 
     override fun onDestroy() {

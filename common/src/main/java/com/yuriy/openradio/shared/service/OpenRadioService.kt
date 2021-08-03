@@ -385,7 +385,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent =
             packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
-                PendingIntent.getActivity(this, 0, sessionIntent, 0)
+                PendingIntent.getActivity(applicationContext, 0, sessionIntent, 0)
             }
 
         // Need this component for API 20 and earlier.
@@ -406,7 +406,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
             MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
         )
-        mMediaNotification = MediaNotification(this)
+        mMediaNotification = MediaNotification(applicationContext, this)
         AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate")
         mMediaNotification.notifyService(getString(R.string.notif_just_started_label))
         mMasterVolumeBroadcastReceiver.register(context)
@@ -1107,7 +1107,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         relaxResources(true)
 
         if (this::mMediaNotification.isInitialized) {
-            mMediaNotification.stopNotification()
+            mMediaNotification.stopNotification(applicationContext)
             updatePlaybackState(error)
         }
     }

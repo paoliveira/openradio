@@ -13,8 +13,6 @@ android {
         targetSdkVersion project.ext.targetSdkVersion
         versionCode project.ext.versionCode
         versionName project.ext.versionName
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -65,13 +63,5 @@ dependencies {
     implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
     implementation "log4j:log4j:$log4jVersion"
 
-    androidTestImplementation(
-            "androidx.test.espresso:espresso-core:$espressoVersion",
-            {exclude group: "com.android.support", module: "support-annotations"}
-    )
-    androidTestImplementation "androidx.test.ext:junit:$junitAndroidXVersion"
-
-    // https://mvnrepository.com/artifact/junit/junit
-    testImplementation group: "junit", name: "junit", version: "$junitVersion"
-    testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
+    implementation 'com.sun.mail:android-mail:1.6.7'
 }

@@ -284,6 +284,68 @@
 
             </LinearLayout>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="15dp"
+                android:alpha="0.5"
+                android:background="@color/or_color_text" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/logs_label_app"
+                    android:textSize="24sp" />
+
+                <ProgressBar
+                    android:id="@+id/automotive_settings_dialog_logs_progress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="20dp"/>
+
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/automotive_settings_enable_logs_check_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                android:paddingHorizontal="20dp"
+                android:textSize="24sp"
+                android:text="@string/logs_label_enable_automotive" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/automotive_settings_send_logs_btn_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/logs_label_send"
+                    android:textSize="24sp"
+                    android:layout_weight="1"/>
+
+                <Button
+                    android:id="@+id/automotive_settings_clear_logs_btn_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/logs_label_clear"
+                    android:textSize="24sp"
+                    android:layout_weight="1"/>
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </ScrollView>
