@@ -22,6 +22,9 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import com.google.android.exoplayer2.DefaultLoadControl
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import com.google.android.gms.common.GooglePlayServicesRepairableException
+import com.google.android.gms.security.ProviderInstaller
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
@@ -33,6 +36,7 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import javax.net.ssl.SSLContext
 
 /**
  * Created with Android Studio.
@@ -57,6 +61,16 @@ class MainApp : MultiDexApplication(), NetworkMonitorDependency {
         DependencyRegistry.injectNetworkMonitor(this)
 
         super.onCreate()
+
+        // Address devices API 19 and lower.
+        try {
+            ProviderInstaller.installIfNeeded(applicationContext)
+            val sslContext = SSLContext.getInstance("TLSv1.2")
+            sslContext.init(null, null, null)
+            sslContext.createSSLEngine()
+        } catch (e: Throwable) {
+            AppLogger.e("$CLASS_NAME can't install the provider:$e")
+        }
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
         GlobalScope.launch(Dispatchers.IO) {

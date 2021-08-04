@@ -406,9 +406,10 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
             MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
                 or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
         )
-        mMediaNotification = MediaNotification(applicationContext, this)
-        AnalyticsUtils.logMessage("OpenRadioService[" + this.hashCode() + "]->onCreate")
-        mMediaNotification.notifyService(getString(R.string.notif_just_started_label))
+        if (AppUtils.hasVersionLollipop()) {
+            mMediaNotification = MediaNotification(applicationContext, this)
+            mMediaNotification.notifyService(getString(R.string.notif_just_started_label))
+        }
         mMasterVolumeBroadcastReceiver.register(context)
         mClearCacheReceiver.register(context)
         ServiceLifecyclePreferencesManager.isServiceActive(context, true)
@@ -1057,10 +1058,12 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         } catch (e: IllegalStateException) {
             AppLogger.e("$e")
         }
-        if (radioStation != null && (mState == PlaybackStateCompat.STATE_BUFFERING
-            || mState == PlaybackStateCompat.STATE_PLAYING
-            || mState == PlaybackStateCompat.STATE_PAUSED)) {
-            mMediaNotification.startNotification(applicationContext, radioStation)
+        if (AppUtils.hasVersionLollipop()) {
+            if (radioStation != null && (mState == PlaybackStateCompat.STATE_BUFFERING
+                    || mState == PlaybackStateCompat.STATE_PLAYING
+                    || mState == PlaybackStateCompat.STATE_PAUSED)) {
+                mMediaNotification.startNotification(applicationContext, radioStation)
+            }
         }
     }
 
@@ -1106,15 +1109,19 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         // let go of all resources...
         relaxResources(true)
 
-        if (this::mMediaNotification.isInitialized) {
-            mMediaNotification.stopNotification(applicationContext)
-            updatePlaybackState(error)
+        if (AppUtils.hasVersionLollipop()) {
+            if (this::mMediaNotification.isInitialized) {
+                mMediaNotification.stopNotification(applicationContext)
+                updatePlaybackState(error)
+            }
         }
     }
 
     fun closeService() {
-        if (this::mMediaNotification.isInitialized) {
-            mMediaNotification.notifyService(getString(R.string.notif_stop_app_label))
+        if (AppUtils.hasVersionLollipop()) {
+            if (this::mMediaNotification.isInitialized) {
+                mMediaNotification.notifyService(getString(R.string.notif_stop_app_label))
+            }
         }
         initInternals()
         handleStopRequest()
@@ -1532,8 +1539,10 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         AppLogger.d("$CLASS_NAME rsv cmd:$command")
         when (command) {
             VALUE_NAME_GET_RADIO_STATION_COMMAND -> {
-                if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService(getString(R.string.notif_update_favorite_label))
+                if (AppUtils.hasVersionLollipop()) {
+                    if (this::mMediaNotification.isInitialized) {
+                        mMediaNotification.notifyService(getString(R.string.notif_update_favorite_label))
+                    }
                 }
                 val description = extractMediaDescription(intent) ?: return
                 var rs = getRadioStationByMediaId(description.mediaId)
@@ -1719,8 +1728,10 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 }
             }
             VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
-                if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService(getString(R.string.notif_toggle_last_rs_label))
+                if (AppUtils.hasVersionLollipop()) {
+                    if (this::mMediaNotification.isInitialized) {
+                        mMediaNotification.notifyService(getString(R.string.notif_toggle_last_rs_label))
+                    }
                 }
                 when (mState) {
                     PlaybackStateCompat.STATE_PLAYING -> {
@@ -1739,14 +1750,18 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 }
             }
             VALUE_NAME_STOP_LAST_PLAYED_ITEM -> {
-                if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService(getString(R.string.notif_stop_last_rs_label))
+                if (AppUtils.hasVersionLollipop()) {
+                    if (this::mMediaNotification.isInitialized) {
+                        mMediaNotification.notifyService(getString(R.string.notif_stop_last_rs_label))
+                    }
                 }
                 handlePauseRequest()
             }
             VALUE_NAME_PLAY_LAST_PLAYED_ITEM -> {
-                if (this::mMediaNotification.isInitialized) {
-                    mMediaNotification.notifyService(getString(R.string.notif_play_last_rs_label))
+                if (AppUtils.hasVersionLollipop()) {
+                    if (this::mMediaNotification.isInitialized) {
+                        mMediaNotification.notifyService(getString(R.string.notif_play_last_rs_label))
+                    }
                 }
                 handlePlayRequest()
             }

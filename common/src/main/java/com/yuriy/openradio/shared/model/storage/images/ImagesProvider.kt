@@ -122,7 +122,15 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
 
         val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
         val file = File.createTempFile(TMP_FILE_NAME, TMP_FILE_EXT, path)
-        val os = FileOutputStream(file)
+        var os:FileOutputStream? = null
+        try {
+            os = FileOutputStream(file)
+        } catch (e: Exception) {
+            AppLogger.e("$TAG can't open file to read:$e")
+        }
+        if (os == null) {
+            return null
+        }
         os.write(bytes)
         os.close()
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
