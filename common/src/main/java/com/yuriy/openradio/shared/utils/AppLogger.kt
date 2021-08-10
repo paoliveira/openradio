@@ -45,7 +45,7 @@ object AppLogger {
         initLogsDirectories(context)
         val fileName = getCurrentLogsDirectory() + "/" + LOG_FILENAME
         logger.level = Level.DEBUG
-        val layout: Layout = PatternLayout("%d [%t] %-5p %m%n")
+        val layout = PatternLayout("%d [%t] %-5p %m%n")
         try {
             logger.removeAllAppenders()
         } catch (e: Exception) {
@@ -103,7 +103,7 @@ object AppLogger {
     }
 
     private fun getAllLogs(): Array<File> {
-        val logs: MutableList<File> = ArrayList()
+        val logs = ArrayList<File>()
         val logDirs = getLogsDirectories()
         for (dir in logDirs) {
             if (dir.exists()) {
@@ -185,7 +185,6 @@ object AppLogger {
         d("Log file :" + inputFile.canonicalPath + " is zipped to archive")
     }
 
-    @JvmStatic
     fun e(logMsg: String) {
         if (sLoggingEnabled) {
             logger.error(logMsg)
@@ -193,7 +192,13 @@ object AppLogger {
         Log.e(LOG_TAG, "[" + Thread.currentThread().name + "] " + logMsg)
     }
 
-    @JvmStatic
+    fun e(logMsg: String, t: Throwable) {
+        if (sLoggingEnabled) {
+            logger.error(logMsg)
+        }
+        Log.e(LOG_TAG, "[" + Thread.currentThread().name + "] " + logMsg + "\n${Log.getStackTraceString(t)}")
+    }
+
     fun w(logMsg: String) {
         if (sLoggingEnabled) {
             logger.warn(logMsg)
@@ -201,7 +206,6 @@ object AppLogger {
         Log.w(LOG_TAG, "[" + Thread.currentThread().name + "] " + logMsg)
     }
 
-    @JvmStatic
     fun i(logMsg: String) {
         if (sLoggingEnabled) {
             logger.info(logMsg)
@@ -209,7 +213,6 @@ object AppLogger {
         Log.i(LOG_TAG, "[" + Thread.currentThread().name + "] " + logMsg)
     }
 
-    @JvmStatic
     fun d(logMsg: String) {
         if (sLoggingEnabled) {
             logger.debug(logMsg)

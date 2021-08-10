@@ -24,7 +24,6 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
-import android.os.Environment
 import android.os.ParcelFileDescriptor
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.DownloaderDependency
@@ -35,19 +34,27 @@ import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.NetUtils
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileOutputStream
-import java.util.concurrent.Executors
+import java.io.FileNotFoundException
+import java.io.IOException
 
 class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDependency, ImagesDatabaseDependency {
 
     private lateinit var mImagesDatabase: ImagesDatabase
     private lateinit var mNetworkMonitor: NetworkMonitor
     private lateinit var mDownloader: Downloader
-    private val mExecutor = Executors.newFixedThreadPool(8)
+
+    /**
+     * Coroutine scope to handle non UI operations.
+     */
+    private val mIoScope = CoroutineScope(Job() + Dispatchers.IO)
 
     override fun configureWith(networkMonitor: NetworkMonitor) {
         mNetworkMonitor = networkMonitor
@@ -69,6 +76,14 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         return true
     }
 
+    /**
+     * Refer to https://kotlinlang.org/docs/reference/java-interop.html#finalize
+     */
+    protected fun finalize() {
+        AppLogger.w("$TAG finalized")
+        mIoScope.cancel()
+    }
+
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?): Int {
         if (!ImagesStore.isAuthorised(uri)) {
             AppLogger.e("$TAG delete '$uri' with invalid auth")
@@ -77,7 +92,9 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         AppLogger.d("$TAG delete with '$uri'")
         val id = ImagesStore.getId(uri)
         if (id.isNotEmpty()) {
-            mImagesDatabase.rsImageDao().delete(id)
+            mIoScope.launch(Dispatchers.IO) {
+                mImagesDatabase.rsImageDao().delete(id)
+            }
             return 1
         }
         return 0
@@ -97,7 +114,6 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         AppLogger.d("$TAG open file for $uri")
-        val context = this.context ?: return null
         val id = ImagesStore.getId(uri)
         if (id.isEmpty()) {
             AppLogger.e("$TAG open file for $uri has no valid id")
@@ -115,25 +131,35 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         }
         if (bytes.isEmpty()) {
             AppLogger.w("$TAG no bytes available for $uri")
-            val task = ImageDownloader(id, url, ImagesStore.buildImageLoadedUri(id))
-            mExecutor.submit(task)
+            mIoScope.launch(Dispatchers.IO) {
+                try {
+                    ImageDownloader(id, url, ImagesStore.buildImageLoadedUri(id)).run()
+                } catch (e: Exception) {
+                    AppLogger.e("$TAG can't handle image:$e")
+                }
+            }
             return null
         }
 
-        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-        val file = File.createTempFile(TMP_FILE_NAME, TMP_FILE_EXT, path)
-        var os:FileOutputStream? = null
-        try {
-            os = FileOutputStream(file)
-        } catch (e: Exception) {
-            AppLogger.e("$TAG can't open file to read:$e")
+        val pipe: Array<ParcelFileDescriptor>
+        return try {
+            pipe = ParcelFileDescriptor.createPipe()
+            mIoScope.launch(Dispatchers.IO) {
+                val output = ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])
+                try {
+                    // Write data to pipe:
+                    output.write(bytes)
+                } catch (e: IOException) {
+                    AppLogger.e("$TAG exception transferring file", e)
+                } finally {
+                    output.flush()
+                    output.close()
+                }
+            }
+            pipe[0]
+        } catch (e: IOException) {
+            throw FileNotFoundException("Could not open pipe")
         }
-        if (os == null) {
-            return null
-        }
-        os.write(bytes)
-        os.close()
-        return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     override fun query(
@@ -179,37 +205,39 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
             }
             AppLogger.d("$TAG downloaded ${bytes.size} bytes")
             if (bytes.isNotEmpty()) {
-                val startTime = System.currentTimeMillis()
                 bytes = scaleBytes(bytes, orientation)
-                AppLogger.d("$TAG scaled to ${bytes.size} bytes in ${System.currentTimeMillis() - startTime} ms")
+                AppLogger.d("$TAG scaled to ${bytes.size} bytes")
+            }
+            if (bytes.isEmpty()) {
+                return
             }
             mImagesDatabase.rsImageDao().insertImage(Image(mId, bytes))
             AppLogger.d("$TAG db contains ${mImagesDatabase.rsImageDao().getCount()} images")
-
             context?.contentResolver?.notifyChange(mUri, null)
         }
 
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
-            var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return ByteArray(0)
             var width = bmp.width
             var height = bmp.height
+            AppLogger.d("$TAG origin image [${width}x${height}]")
             when {
                 width > height -> {
                     // landscape
-                    val ratio = width / MAX_WIDTH
-                    width = MAX_WIDTH
-                    height /= ratio
+                    val ratio: Double = width / MAX_WIDTH
+                    width = MAX_WIDTH.toInt()
+                    height = (height / ratio).toInt()
                 }
                 height > width -> {
                     // portrait
-                    val ratio = height / MAX_HEIGHT
-                    height = MAX_HEIGHT
-                    width /= ratio
+                    val ratio: Double = height / MAX_HEIGHT
+                    height = MAX_HEIGHT.toInt()
+                    width = (width / ratio).toInt()
                 }
                 else -> {
                     // square
-                    height = MAX_HEIGHT
-                    width = MAX_WIDTH
+                    height = MAX_HEIGHT.toInt()
+                    width = MAX_WIDTH.toInt()
                 }
             }
             val matrix = Matrix()
@@ -231,9 +259,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
     companion object {
 
         private val TAG = ImagesProvider::class.java.simpleName
-        private const val TMP_FILE_NAME = "rs_img_tmp"
-        private const val TMP_FILE_EXT = ".jpg"
-        private const val MAX_WIDTH = 500
-        private const val MAX_HEIGHT = 500
+        private const val MAX_WIDTH: Double = 500.0
+        private const val MAX_HEIGHT: Double = 500.0
     }
 }

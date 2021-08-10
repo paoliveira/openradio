@@ -62,7 +62,15 @@ object IntentUtils {
         if (bundle == null) {
             return "Bundle[null]"
         }
-        if (bundle.size() == 0) {
+        val size = try {
+            bundle.size()
+        } catch (e: Exception) {
+            // Address:
+            // BadParcelableException: ClassNotFoundException when unmarshalling:
+            // com.google.android.apps.docs.common.drivecore.data.CelloEntrySpec
+            AppLogger.e("Can not process bundles", e)
+        }
+        if (size == 0) {
             return "Bundle[]"
         }
         val builder = StringBuilder("Bundle[")

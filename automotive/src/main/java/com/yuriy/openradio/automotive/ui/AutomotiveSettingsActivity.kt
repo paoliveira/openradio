@@ -42,6 +42,9 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class AutomotiveSettingsActivity : AppCompatActivity() {
 
@@ -52,6 +55,7 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
     private var mProgressBarUpload: ProgressBar? = null
     private var mProgressBarDownload: ProgressBar? = null
     private var mGoogleDriveManager: GoogleDriveManager? = null
+    private var mProgressBar: ProgressBar ?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -156,10 +160,10 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
             SafeToast.showAnyThread(applicationContext, message)
             AppLogger.initLogger(applicationContext)
         }
-        val progressView = findViewById<ProgressBar>(R.id.automotive_settings_dialog_logs_progress)
-        progressView.visibility = View.INVISIBLE
+        mProgressBar = findViewById(R.id.automotive_settings_dialog_logs_progress)
+        mProgressBar?.visibility = View.INVISIBLE
         sendLogsBtn.setOnClickListener {
-            progressView.visibility = View.VISIBLE
+            mProgressBar?.visibility = View.VISIBLE
             LogsDialog.sendLogMailTask(
                 applicationContext,
                 {
@@ -167,14 +171,14 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
                         applicationContext,
                         applicationContext.getString(com.yuriy.openradio.shared.R.string.logs_sent_msg)
                     )
-                    progressView.visibility = View.INVISIBLE
+                    hideLogsProgress()
                 },
                 {
                     SafeToast.showAnyThread(
                         applicationContext,
                         applicationContext.getString(com.yuriy.openradio.shared.R.string.logs_can_not_send)
                     )
-                    progressView.visibility = View.INVISIBLE
+                    hideLogsProgress()
                 }
             )
         }
@@ -226,6 +230,19 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
                     applicationContext, getString(R.string.can_not_get_account_name)
                 )
             }
+    }
+
+    private fun hideLogsProgress() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                mProgressBar?.visibility = View.INVISIBLE
+            } catch (e: Exception) {
+                // Ignore for now but must be fixed.
+                // Fatal Exception: java.lang.IllegalStateException
+                // The current thread must have a looper!
+                AppLogger.e("$CLASS_NAME can not hide progress bar", e)
+            }
+        }
     }
 
     private fun uploadRadioStationsToGoogleDrive() {

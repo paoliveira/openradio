@@ -31,6 +31,7 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -43,6 +44,8 @@ import java.io.IOException
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class LogsDialog : BaseDialogFragment() {
+
+    private var mProgressBar: ProgressBar ?= null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
@@ -68,23 +71,36 @@ class LogsDialog : BaseDialogFragment() {
             AppLogger.initLogger(context)
         }
 
-        val progressView = view.findViewById<ProgressBar>(R.id.settings_dialog_logs_progress)
-        progressView.visibility = View.INVISIBLE
+        mProgressBar = view.findViewById(R.id.settings_dialog_logs_progress)
+        mProgressBar?.visibility = View.INVISIBLE
         sendLogsBtn.setOnClickListener {
-            progressView.visibility = View.VISIBLE
+            mProgressBar?.visibility = View.VISIBLE
             sendLogMailTask(
                 context,
                 {
                     showAnyThread(context, context.getString(R.string.logs_sent_msg))
-                    progressView.visibility = View.INVISIBLE
+                    hideProgressBar()
                 },
                 {
                     showAnyThread(context, context.getString(R.string.logs_can_not_send))
-                    progressView.visibility = View.INVISIBLE
+                    hideProgressBar()
                 }
             )
         }
         return createAlertDialog(view)
+    }
+
+    private fun hideProgressBar() {
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                mProgressBar?.visibility = View.INVISIBLE
+            } catch (e: Exception) {
+                // Ignore for now but must be fixed.
+                // Fatal Exception: java.lang.IllegalStateException
+                // The current thread must have a looper!
+                AppLogger.e("$CLASS_NAME can not hide progress bar", e)
+            }
+        }
     }
 
     companion object {
