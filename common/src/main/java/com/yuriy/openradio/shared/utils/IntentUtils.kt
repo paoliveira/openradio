@@ -81,7 +81,7 @@ object IntentUtils {
             }
             builder.delete(builder.length - 1, builder.length)
         } catch (e: Exception) {
-            AppLogger.e("Intent's bundle to string exception:$e")
+            AppLogger.e("Intent's bundle to string", e)
         }
         builder.append("]")
         return builder.toString()

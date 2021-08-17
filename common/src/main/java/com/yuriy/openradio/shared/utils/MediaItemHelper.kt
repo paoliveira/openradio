@@ -22,12 +22,8 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.utils.AppLogger.e
-import com.yuriy.openradio.shared.vo.MediaItemListEnded
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -269,7 +265,7 @@ object MediaItemHelper {
             field.isAccessible = true
             field[description] = extras
         } catch (e: Exception) {
-            e("Can not set bundles to description:$e")
+            AppLogger.e("Can not set bundles to description", e)
         }
     }
 
@@ -336,46 +332,5 @@ object MediaItemHelper {
             .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title) // Workaround to include bundles into build()
             .putLong(MediaMetadataCompat.METADATA_KEY_DOWNLOAD_STATUS, MediaDescriptionCompat.STATUS_NOT_DOWNLOADED)
             .build()
-    }
-
-    /**
-     * @return
-     */
-    fun createListEndedResult(): List<MediaBrowserCompat.MediaItem> {
-        return ArrayList<MediaBrowserCompat.MediaItem>(listOf(MediaItemListEnded()))
-    }
-
-    /**
-     * @param list
-     * @return
-     */
-    fun isEndOfList(list: List<MediaBrowserCompat.MediaItem?>?): Boolean {
-        return (list == null
-            || list.size == 1
-            && (list[0] == null || list[0] is MediaItemListEnded))
-    }
-
-    fun playbackStateToString(state: PlaybackStateCompat?): String {
-        return if (state == null) {
-            "UNDEFINED"
-        } else playbackStateToString(state.state)
-    }
-
-    fun playbackStateToString(state: Int): String {
-        return when (state) {
-            PlaybackStateCompat.STATE_STOPPED -> "STOPPED"
-            PlaybackStateCompat.STATE_PAUSED -> "PAUSED"
-            PlaybackStateCompat.STATE_PLAYING -> "PLAYING"
-            PlaybackStateCompat.STATE_FAST_FORWARDING -> "FAST_FORWARDING"
-            PlaybackStateCompat.STATE_REWINDING -> "REWINDING"
-            PlaybackStateCompat.STATE_BUFFERING -> "BUFFERING"
-            PlaybackStateCompat.STATE_ERROR -> "ERROR"
-            PlaybackStateCompat.STATE_CONNECTING -> "CONNECTING"
-            PlaybackStateCompat.STATE_SKIPPING_TO_PREVIOUS -> "SKIPPING_TO_PREVIOUS"
-            PlaybackStateCompat.STATE_SKIPPING_TO_NEXT -> "SKIPPING_TO_NEXT"
-            PlaybackStateCompat.STATE_SKIPPING_TO_QUEUE_ITEM -> "SKIPPING_TO_QUEUE_ITEM"
-            PlaybackStateCompat.STATE_NONE -> "NONE"
-            else -> "UNDEFINED{$state}"
-        }
     }
 }

@@ -350,7 +350,7 @@ class GoogleDriveManager(private val mContext: Context, private val mListener: L
             jsonObject.put(RADIO_STATION_CATEGORY_FAVORITES, favorites)
             jsonObject.put(RADIO_STATION_CATEGORY_LOCALS, locals)
         } catch (e: JSONException) {
-            AppLogger.e("MergeRadioStationCategories $e")
+            AppLogger.e("MergeRadioStationCategories", e)
         }
         return jsonObject.toString()
     }
@@ -367,7 +367,7 @@ class GoogleDriveManager(private val mContext: Context, private val mListener: L
         try {
             jsonObject = JSONObject(data)
         } catch (e: JSONException) {
-            AppLogger.e("SplitRadioStationCategories $e")
+            AppLogger.e("SplitRadioStationCategories", e)
         }
         if (jsonObject != null) {
             categories[0] = jsonObject.optString(RADIO_STATION_CATEGORY_FAVORITES, AppUtils.EMPTY_STRING)

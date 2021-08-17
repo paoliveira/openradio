@@ -82,7 +82,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
                     notificationColor = -0xbbbbbc
                 }
             } catch (e: Exception) {
-                AppLogger.e("$e")
+                AppLogger.e("Get notification color", e)
             }
             return notificationColor
         }
@@ -153,7 +153,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
         try {
             context.unregisterReceiver(this)
         } catch (ex: IllegalArgumentException) {
-            AppLogger.e("$CLASS_NAME error while unregister:$ex")
+            AppLogger.e("$CLASS_NAME error while unregister", ex)
         }
     }
 
@@ -189,7 +189,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
             mController = try {
                 MediaControllerCompat(mContext, mSessionToken)
             } catch (e: RemoteException) {
-                AppLogger.e("$e")
+                AppLogger.e("UpdateSessionToken", e)
                 return
             }
             mTransportControls = mController.transportControls
@@ -205,7 +205,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat) {
             AppLogger.d("$CLASS_NAME Received new playback state:$state")
-            val doNotify: Boolean = if (mPlaybackState == null) {
+            val doNotify = if (mPlaybackState == null) {
                 true
             } else {
                 doHandleState(mPlaybackState!!.state, state.state)

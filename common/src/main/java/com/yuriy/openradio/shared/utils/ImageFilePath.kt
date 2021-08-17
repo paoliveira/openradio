@@ -125,7 +125,7 @@ object ImageFilePath {
                     }
         } catch (e: Exception) {
             val msg = "Can not get data column for " + (originalUri?.toString() ?: "null.")
-            AppLogger.e("$msg, e:$e")
+            AppLogger.e(msg, e)
         }
         return null
     }

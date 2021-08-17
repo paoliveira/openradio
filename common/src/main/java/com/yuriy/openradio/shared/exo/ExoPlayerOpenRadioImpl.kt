@@ -18,11 +18,10 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.DefaultLoadControl
-import com.google.android.exoplayer2.ExoPlaybackException
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
@@ -40,7 +39,7 @@ import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,9 +70,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
          *
          * @param error Exception associated with error.
          */
-        fun onError(error: ExoPlaybackException)
+        fun onError(error: PlaybackException)
 
-        fun onHandledError(error: ExoPlaybackException)
+        fun onHandledError(error: PlaybackException)
 
         /**
          * Indicates that player is ready to play stream.
@@ -307,8 +306,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
+            // playbackState is one of the {@link Player}.STATE_ constants.
             AppLogger.d(
-                "$mLogTag OnPlaybackStateChanged to ${MediaItemHelper.playbackStateToString(playbackState)}," +
+                "$mLogTag OnPlaybackStateChanged to ${PlayerUtils.playerStateToString(playbackState)}," +
                     " userState:$mUserState"
             )
             mListener.onPlaybackStateChanged(playbackState)
@@ -333,9 +333,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         }
 
         override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+            // playbackState is one of the {@link Player}.STATE_ constants.
             AppLogger.d(
                 "$mLogTag OnPlayerStateChanged to $playWhenReady," +
-                    " state:${MediaItemHelper.playbackStateToString(playbackState)}"
+                    " player state:${PlayerUtils.playerStateToString(playbackState)}"
             )
         }
 
@@ -346,10 +347,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
             mListener.onPlayWhenReadyChanged(playWhenReady, reason)
         }
 
-        override fun onPlayerError(exception: ExoPlaybackException) {
+        override fun onPlayerError(exception: PlaybackException) {
             AppLogger.e("$mLogTag suspected url: $mUri")
-            AppLogger.e("$mLogTag onPlayerError: ${Log.getStackTraceString(exception)}")
-            AppLogger.e(mLogTag + " num of exceptions " + mNumOfExceptions.get())
+            AppLogger.e("$mLogTag onPlayerError", exception)
+            AppLogger.e("$mLogTag num of exceptions ${mNumOfExceptions.get()}")
             val cause = exception.cause
             AppLogger.e("$mLogTag cause: $cause")
             if (cause is HttpDataSource.InvalidResponseCodeException) {

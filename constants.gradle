@@ -39,7 +39,7 @@ project.ext {
     espressoVersion = "3.1.0"
     // https://mvnrepository.com/artifact/org.json/json
     jsonTestVersion = "20180813"
-    exoPlayerVersion = "2.14.2"
+    exoPlayerVersion = "2.15.0"
     multidexVersion = "1.0.3"
     leanbackVersion = "1.0.0"
     firebaseInstallationsVersion = "16.3.5"

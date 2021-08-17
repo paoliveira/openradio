@@ -56,6 +56,7 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.dialog.AboutDialog
@@ -637,7 +638,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
             }
 
             // No need to go on if indexed list ended with last item.
-            if (MediaItemHelper.isEndOfList(children)) {
+            if (PlayerUtils.isEndOfList(children)) {
                 return
             }
             mMediaPresenter.handleChildrenLoaded(parentId, children)

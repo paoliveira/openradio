@@ -39,7 +39,8 @@ import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.URLDecoder
-import java.util.concurrent.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class AutoDetectParser(private val mTimeout: Int) {
 
@@ -144,9 +145,9 @@ class AutoDetectParser(private val mTimeout: Int) {
             inputStream = conn.inputStream
             parser.parse(urlRefetch.toString(), inputStream, playlist)
         } catch (e: SocketTimeoutException) {
-            AppLogger.e("Can not parse uri:$url e:$e")
+            AppLogger.e("Can not parse uri:$url", e)
         } catch (e: IOException) {
-            AppLogger.e("Can not parse uri:$url e:$e")
+            AppLogger.e("Can not parse uri:$url", e)
         } finally {
             conn?.disconnect()
             if (inputStream != null) {

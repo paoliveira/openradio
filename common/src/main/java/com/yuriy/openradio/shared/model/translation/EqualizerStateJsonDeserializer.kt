@@ -16,8 +16,7 @@
 package com.yuriy.openradio.shared.model.translation
 
 import android.content.Context
-import android.util.Log
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.JsonUtils.getBooleanValue
 import com.yuriy.openradio.shared.utils.JsonUtils.getIntArray
 import com.yuriy.openradio.shared.utils.JsonUtils.getIntValue
@@ -40,7 +39,7 @@ class EqualizerStateJsonDeserializer : EqualizerStateDeserializer {
             state.bandLevels = getShortArray(jsonObject, EqualizerJsonHelper.KEY_BAND_LEVELS)
             state.centerFrequencies = getIntArray(jsonObject, EqualizerJsonHelper.KEY_CENTER_FREQUENCIES)
         } catch (e: Throwable) {
-            e("Error while de-marshall $value, exception:${Log.getStackTraceString(e)}")
+            AppLogger.e("Error while de-marshall $value", e)
         }
         return state
     }

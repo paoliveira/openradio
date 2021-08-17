@@ -124,7 +124,7 @@ class ApiServiceProviderImpl(
                 }
             }
         } catch (e: JSONException) {
-            AppLogger.e("$e")
+            AppLogger.e("Add station", e)
         }
         return value
     }
@@ -132,11 +132,11 @@ class ApiServiceProviderImpl(
     override fun getStation(downloader: Downloader, uri: Uri, cacheType: CacheType): RadioStation? {
         // Download response from the server.
         val response = String(downloader.downloadDataFromUri(mContext, uri))
-        AppLogger.i(CLASS_NAME + "Response:" + response)
+        AppLogger.i("$CLASS_NAME response:$response")
 
         // Ignore empty response.
         if (response.isEmpty()) {
-            AppLogger.e(CLASS_NAME + "Can not parse data, response is empty")
+            AppLogger.e("$CLASS_NAME can not parse data, response is empty")
             return null
         }
         return mDataParser.getRadioStation(response)
@@ -176,7 +176,7 @@ class ApiServiceProviderImpl(
         try {
             responsesMapKey += NetUtils.getPostParametersQuery(parameters)
         } catch (e: UnsupportedEncodingException) {
-            AppLogger.e("$e")
+            AppLogger.e("Download data", e)
             responsesMapKey = AppUtils.EMPTY_STRING
         }
 

@@ -141,7 +141,7 @@ class LogsDialog : BaseDialogFragment() {
                     email.send()
                     success()
                 } catch (e: Throwable) {
-                    AppLogger.e("Email exception:$e")
+                    AppLogger.e("Email exception", e)
                     failure()
                 }
             }

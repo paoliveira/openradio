@@ -109,17 +109,17 @@ object AppUtils {
             packageName = context.packageName
             packageManager.getPackageInfo(packageName, 0)
         } catch (e: PackageManager.NameNotFoundException) {
-            AppLogger.e("Get pck info $e")
+            AppLogger.e("Get pck info", e)
             null
         } catch (e: RuntimeException) {
             // To catch RuntimeException("Package manager has died") that can occur on some
             // version of Android,
             // when the remote PackageManager is unavailable. I suspect this sometimes occurs
             // when the App is being reinstalled.
-            AppLogger.e("Get pck info $e")
+            AppLogger.e("Get pck info", e)
             null
         } catch (e: Throwable) {
-            AppLogger.e("$CLASS_NAME Package manager has Throwable : $e")
+            AppLogger.e("$CLASS_NAME Package manager", e)
             null
         }
     }
@@ -219,7 +219,7 @@ object AppUtils {
                 }
             }
         } catch (e: Exception) {
-            AppLogger.e("GetUserCountry $e")
+            AppLogger.e("GetUserCountry", e)
         }
         return null
     }
@@ -303,7 +303,7 @@ object AppUtils {
             try {
                 context.startActivity(intent)
             } catch (e: Exception) {
-                AppLogger.e("Can not start activity:$e")
+                AppLogger.e("Can not start activity", e)
                 return false
             }
             return true
@@ -321,7 +321,7 @@ object AppUtils {
             try {
                 context.startActivityForResult(intent, resultCode)
             } catch (e: Exception) {
-                AppLogger.e("Can not start activity for result:$e")
+                AppLogger.e("Can not start activity for result", e)
                 return false
             }
             return true

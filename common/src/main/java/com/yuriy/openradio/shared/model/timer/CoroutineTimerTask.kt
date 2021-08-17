@@ -21,7 +21,7 @@ class CoroutineTimerTask internal constructor(private val mName: String, action:
         try {
             action()
         } catch (e: Throwable) {
-            AppLogger.e("Can't do action on sleep timer:$e")
+            AppLogger.e("Can't do action on sleep timer", e)
         }
     }
 

@@ -16,7 +16,6 @@
 
 package wseemann.media.jplaylistparser.parser.xspf
 
-import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
 import org.jdom2.Document
 import org.jdom2.Element
@@ -71,11 +70,11 @@ class XSPFPlaylistParser(timeout: Int) : AbstractParser(timeout) {
                 }
             }
         } catch (e: JDOMException) {
-            AppLogger.e("XSPF parse exception:" + Log.getStackTraceString(e))
+            AppLogger.e("XSPF parse exception", e)
         } catch (e: IOException) {
-            AppLogger.e("XSPF parse exception:" + Log.getStackTraceString(e))
+            AppLogger.e("XSPF parse exception", e)
         } catch (e: Exception) {
-            AppLogger.e("XSPF parse exception:" + Log.getStackTraceString(e))
+            AppLogger.e("XSPF parse exception", e)
         }
     }
 

@@ -20,8 +20,7 @@ import android.util.Log
 import com.google.android.gms.tasks.Task
 import com.google.api.services.drive.model.File
 import com.google.api.services.drive.model.FileList
-import com.yuriy.openradio.shared.utils.AppLogger.d
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppLogger
 import java.util.concurrent.*
 
 /**
@@ -37,7 +36,7 @@ internal abstract class GoogleDriveQueryDrive(isTerminator: Boolean) : GoogleDri
     protected abstract fun setResult(result: GoogleDriveResult, driveFile: File?)
 
     override fun handleRequest(request: GoogleDriveRequest, result: GoogleDriveResult) {
-        d("Query resource '" + getName(request) + "'")
+        AppLogger.d("Query resource '" + getName(request) + "'")
         request.listener.onStart()
         val task = getQueryTask(request)
         val latch = CountDownLatch(1)
@@ -57,7 +56,7 @@ internal abstract class GoogleDriveQueryDrive(isTerminator: Boolean) : GoogleDri
         try {
             latch.await(10, TimeUnit.SECONDS)
         } catch (e: InterruptedException) {
-            e("Can not query google drive folder, await exception:$e")
+            AppLogger.e("Can not query google drive folder", e)
         }
         if (queryResult[0] == null) {
             request.listener.onError(
@@ -84,19 +83,19 @@ internal abstract class GoogleDriveQueryDrive(isTerminator: Boolean) : GoogleDri
         }
         val driveFile = getDriveFile(list, getName(request))
         if (driveFile == null) {
-            d("Resource '" + getName(request) + "' queried, does not exists, pass execution farther")
+            AppLogger.d("Resource '" + getName(request) + "' queried, does not exists, pass execution farther")
         } else {
-            d("Resource '" + getName(request) + "' queried, exists, getting DriveResource reference")
+            AppLogger.d("Resource '" + getName(request) + "' queried, exists, getting DriveResource reference")
             setResult(result, driveFile)
         }
         handleNext(request, result)
     }
 
     private fun getDriveFile(list: List<File>, name: String): File? {
-        d("Check resource '" + name + "', list of " + list.size)
+        AppLogger.d("Check resource '" + name + "', list of " + list.size)
         var result: File? = null
         for (file in list) {
-            d(" - file:$file")
+            AppLogger.d(" - file:$file")
             // All other fields are null, except name type and id.
             // Get the first record.
             if (name == file.name) {

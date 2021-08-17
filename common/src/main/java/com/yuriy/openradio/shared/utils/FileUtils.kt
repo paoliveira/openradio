@@ -74,7 +74,7 @@ object FileUtils {
             file.createNewFile()
         } catch (e: IOException) {
             AppLogger.e(
-                "File $path not created:${Log.getStackTraceString(e)}"
+                "File $path not created", e
             )
         }
         return file

@@ -42,7 +42,7 @@ import com.yuriy.openradio.shared.vo.Country
 import de.westnordost.countryboundaries.CountryBoundaries
 import java.io.IOException
 import java.util.*
-import java.util.concurrent.atomic.*
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Created by Yuriy Chernyshov
@@ -543,7 +543,7 @@ class LocationService : JobIntentService() {
                 mCountryBoundaries = CountryBoundaries.load(mContext!!.assets.open("boundaries.ser"))
             } catch (e: IOException) {
                 // Ignore up to now ...
-                AppLogger.e("$TAG can not load boundaries.ser:$e")
+                AppLogger.e("$TAG can not load boundaries.ser", e)
             }
         }
     }

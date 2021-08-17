@@ -28,7 +28,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import java.util.*
 import java.util.concurrent.atomic.*
 
@@ -131,9 +131,9 @@ class MediaResourcesManager(context: Context, className: String) {
         try {
             mMediaBrowser.connect()
             mIsConnectInvoked.set(true)
-            AppLogger.i(mClassName + "Connected")
+            AppLogger.i("$mClassName connected")
         } catch (e: IllegalStateException) {
-            AppLogger.e(mClassName + "Can not connect:" + e)
+            AppLogger.e("$mClassName can not connect", e)
         }
     }
 
@@ -241,7 +241,7 @@ class MediaResourcesManager(context: Context, className: String) {
                 mMediaBrowser.sessionToken
             )
         } catch (e: RemoteException) {
-            AppLogger.e("$e")
+            AppLogger.e("handleMediaBrowserConnected", e)
             return
         }
 
@@ -280,7 +280,7 @@ class MediaResourcesManager(context: Context, className: String) {
         }
 
         override fun onConnectionFailed() {
-            AppLogger.e(mClassName + "Connection Failed")
+            AppLogger.e("$mClassName connection failed")
         }
     }
 
@@ -294,47 +294,47 @@ class MediaResourcesManager(context: Context, className: String) {
         private var mCurrentState: PlaybackStateCompat? = null
 
         override fun onSessionDestroyed() {
-            AppLogger.i(mClassName + "Session destroyed. Need to fetch a new Media Session")
+            AppLogger.i("$mClassName session destroyed. Need to fetch a new Media Session")
         }
 
         override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {
             if (state == null) {
-                AppLogger.e(mClassName + "PlaybackStateChanged to null state")
+                AppLogger.e("$mClassName playbackStateChanged to null state")
                 return
             }
             AppLogger.d(
-                mClassName + "psc:["
-                    + MediaItemHelper.playbackStateToString(state) + "]" + state
+                "$mClassName psc:["
+                    + PlayerUtils.playbackStateToString(state) + "]" + state
             )
             mCurrentState = state
             if (mListener == null) {
-                AppLogger.e(mClassName + "PlaybackStateChanged listener null")
+                AppLogger.e("$mClassName playbackStateChanged listener null")
                 return
             }
             mListener!!.onPlaybackStateChanged(state)
         }
 
         override fun onQueueChanged(queue: List<MediaSessionCompat.QueueItem>) {
-            AppLogger.d(mClassName + "Queue changed:" + queue)
+            AppLogger.d("$mClassName queue changed:$queue")
             if (mListener == null) {
-                AppLogger.e(mClassName + "Queue changed listener null")
+                AppLogger.e("$mClassName queue changed listener null")
                 return
             }
             mListener!!.onQueueChanged(queue)
         }
 
         override fun onMetadataChanged(metadata: MediaMetadataCompat?) {
-            AppLogger.d(mClassName + "Metadata changed:" + metadata)
+            AppLogger.d("$mClassName metadata changed:$metadata")
             if (metadata == null) {
-                AppLogger.e(mClassName + "Metadata changed null")
+                AppLogger.e("$mClassName metadata changed null")
                 return
             }
             if (mListener == null) {
-                AppLogger.e(mClassName + "Metadata changed listener null")
+                AppLogger.e("$mClassName metadata changed listener null")
                 return
             }
             if (mMediaController == null) {
-                AppLogger.e(mClassName + "Metadata changed media controller null")
+                AppLogger.e("$mClassName metadata changed media controller null")
                 return
             }
             mListener!!.onMetadataChanged(metadata, mMediaController!!.queue)

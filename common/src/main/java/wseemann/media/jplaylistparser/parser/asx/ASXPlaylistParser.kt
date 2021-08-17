@@ -16,7 +16,6 @@
 
 package wseemann.media.jplaylistparser.parser.asx
 
-import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import org.jdom2.Document
@@ -120,11 +119,11 @@ class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
                         val parser = AutoDetectParser(AppUtils.TIME_OUT)
                         parser.parse(url.toString(), contentType, inputStream, playlist)
                     } catch (e: MalformedURLException) {
-                        AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e))
+                        AppLogger.e("ASX parse exception", e)
                     } catch (e: SocketTimeoutException) {
-                        AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e))
+                        AppLogger.e("ASX parse exception", e)
                     } catch (e: IOException) {
-                        AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e))
+                        AppLogger.e("ASX parse exception", e)
                     } finally {
                         conn?.disconnect()
                         if (inputStream != null) {
@@ -138,11 +137,11 @@ class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
                 }
             }
         } catch (e: JDOMException) {
-            AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e))
+            AppLogger.e("ASX parse exception", e)
         } catch (e: IOException) {
-            AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e))
+            AppLogger.e("ASX parse exception", e)
         } catch (e: Exception) {
-            AppLogger.e("ASX parse exception:" + Log.getStackTraceString(e))
+            AppLogger.e("ASX parse exception", e)
         }
     }
 

@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.model.translation
 
-import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
 import org.json.JSONObject
@@ -51,7 +50,7 @@ class RadioStationJsonSerializer : RadioStationSerializer {
             jsonObject.put(RadioStationJsonHelper.KEY_IMG_URL, radioStation.imageUrl)
         } catch (e: Exception) {
             /* Ignore this exception */
-            AppLogger.e("Error while marshall $radioStation, exception:${Log.getStackTraceString(e)}")
+            AppLogger.e("Error while marshall $radioStation", e)
         }
         return jsonObject.toString()
     }

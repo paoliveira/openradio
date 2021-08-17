@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.model.parser
 
-import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.Category
@@ -69,9 +68,7 @@ class JsonDataParserImpl : DataParser {
         val array = try {
             JSONArray(data)
         } catch (e: Exception) {
-            AppLogger.e(
-                    "$CLASS_NAME can't convert data to JSON Array, data:$data, e:${Log.getStackTraceString(e)}"
-            )
+            AppLogger.e("$CLASS_NAME can't convert data to JSON Array, data:$data", e)
             return emptyList()
         }
         val result = mutableListOf<RadioStation>()
@@ -84,7 +81,7 @@ class JsonDataParserImpl : DataParser {
                 }
                 result.add(radioStation)
             } catch (e: JSONException) {
-                AppLogger.e("$CLASS_NAME get stations exception:$e")
+                AppLogger.e("$CLASS_NAME get stations", e)
             }
         }
         return result
@@ -94,9 +91,7 @@ class JsonDataParserImpl : DataParser {
         val array = try {
             JSONArray(data)
         } catch (e: Exception) {
-            AppLogger.e(
-                    "$CLASS_NAME can't convert data to JSON Array, data:$data, e:${Log.getStackTraceString(e)}"
-            )
+            AppLogger.e("$CLASS_NAME can't convert data to JSON Array, data:$data", e)
             return emptyList()
         }
         val result = mutableListOf<Category>()
@@ -114,7 +109,7 @@ class JsonDataParserImpl : DataParser {
                 }
                 result.add(category)
             } catch (e: Exception) {
-                AppLogger.e("$CLASS_NAME getCategories $e")
+                AppLogger.e("$CLASS_NAME getCategories", e)
             }
         }
         return result

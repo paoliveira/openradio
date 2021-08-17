@@ -253,9 +253,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
                 eventType = parser.next()
             }
         } catch (xmlException: XmlPullParserException) {
-            AppLogger.e("Could not read allowed callers from XML:$xmlException")
+            AppLogger.e("Could not read allowed callers from XML", xmlException)
         } catch (ioException: IOException) {
-            AppLogger.e("Could not read allowed callers from XML:$ioException")
+            AppLogger.e("Could not read allowed callers from XML", ioException)
         }
 
         return certificateWhitelist
@@ -318,7 +318,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         try {
             md = MessageDigest.getInstance("SHA256")
         } catch (noSuchAlgorithmException: NoSuchAlgorithmException) {
-            AppLogger.e("No such algorithm: $noSuchAlgorithmException")
+            AppLogger.e("No such algorithm", noSuchAlgorithmException)
             throw RuntimeException("Could not find SHA256 hash algorithm", noSuchAlgorithmException)
         }
         md.update(certificate)

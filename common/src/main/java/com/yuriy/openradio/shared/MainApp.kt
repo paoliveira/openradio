@@ -69,7 +69,7 @@ class MainApp : MultiDexApplication(), NetworkMonitorDependency {
             sslContext.init(null, null, null)
             sslContext.createSSLEngine()
         } catch (e: Throwable) {
-            AppLogger.e("$CLASS_NAME can't install the provider:$e")
+            AppLogger.e("$CLASS_NAME can't install the provider", e)
         }
 
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)

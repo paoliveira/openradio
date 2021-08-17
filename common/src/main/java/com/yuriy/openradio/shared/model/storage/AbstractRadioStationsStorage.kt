@@ -139,7 +139,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
             }
             val radioStation = deserializer.deserialize(context, keyValue[1])
             if (radioStation == null) {
-                AppLogger.e("Can not deserialize (getAllFromString) from '" + keyValue[1] + "'")
+                AppLogger.e("Can not deserialize (getAllFromString) from '${keyValue[1]}'")
                 continue
             }
             list.add(radioStation)

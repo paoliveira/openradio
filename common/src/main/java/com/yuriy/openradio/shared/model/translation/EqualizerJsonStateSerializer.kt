@@ -15,8 +15,7 @@
  */
 package com.yuriy.openradio.shared.model.translation
 
-import android.util.Log
-import com.yuriy.openradio.shared.utils.AppLogger.e
+import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.EqualizerState
 import org.json.JSONObject
 
@@ -70,7 +69,7 @@ class EqualizerJsonStateSerializer : EqualizerStateSerializer {
             jsonObject.put(EqualizerJsonHelper.KEY_BAND_LEVELS, builder.toString())
         } catch (e: Exception) {
             /* Ignore this exception */
-            e("Error while marshall $state, exception:${Log.getStackTraceString(e)}")
+            AppLogger.e("Error while marshall $state", e)
         }
         return jsonObject.toString()
     }

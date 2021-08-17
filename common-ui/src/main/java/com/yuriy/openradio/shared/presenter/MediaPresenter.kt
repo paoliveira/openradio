@@ -53,6 +53,7 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.PlaybackStateError
@@ -399,7 +400,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         currentParentId = parentId
 
         // No need to go on if indexed list ended with last item.
-        if (MediaItemHelper.isEndOfList(children)) {
+        if (PlayerUtils.isEndOfList(children)) {
             return
         }
         mAdapter.parentId = parentId

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
+@com.google.android.exoplayer2.util.NonNullApi
 package com.google.android.exoplayer2.ext.cronet;
 
-import com.google.android.exoplayer2.util.NonNullApi;

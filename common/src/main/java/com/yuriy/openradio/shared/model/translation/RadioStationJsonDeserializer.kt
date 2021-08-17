@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.model.translation
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import android.text.TextUtils
-import android.util.Log
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.JsonUtils
@@ -75,7 +74,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             return radioStation
         } catch (e: Throwable) {
             /* Ignore this exception */
-            AppLogger.e("Error while de-marshall $value, exception:${Log.getStackTraceString(e)}")
+            AppLogger.e("Error while de-marshall $value", e)
         }
         return null
     }

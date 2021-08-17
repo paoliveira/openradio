@@ -23,6 +23,7 @@ import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 
 /**
@@ -65,7 +66,7 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
                 dependencies.resultListener.onResult()
                 playbackStateListener.updatePlaybackState(dependencies.context.getString(R.string.no_data_message))
             } else {
-                dependencies.result.sendResult(MediaItemHelper.createListEndedResult())
+                dependencies.result.sendResult(PlayerUtils.createListEndedResult())
                 dependencies.resultListener.onResult()
             }
             return

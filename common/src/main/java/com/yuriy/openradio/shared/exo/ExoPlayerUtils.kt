@@ -22,7 +22,7 @@ import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.ExoDatabaseProvider
 import com.google.android.exoplayer2.ext.cronet.CronetDataSource
-import com.google.android.exoplayer2.ext.cronet.CronetEngineWrapper
+import com.google.android.exoplayer2.ext.cronet.CronetUtil
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
 import com.google.android.exoplayer2.upstream.HttpDataSource
@@ -31,6 +31,7 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import java.io.File
@@ -44,7 +45,7 @@ object ExoPlayerUtils {
     private var sDownloadCache: @MonotonicNonNull Cache? = null
     private var sDownloadDirectory: @MonotonicNonNull File? = null
     private var sDatabaseProvider: @MonotonicNonNull DatabaseProvider? = null
-    private var sUserAgent: String? = null
+    private var sUserAgent = AppUtils.EMPTY_STRING
 
     @JvmStatic
     fun buildRenderersFactory(context: Context): RenderersFactory {
@@ -65,7 +66,7 @@ object ExoPlayerUtils {
         }
         sUserAgent = userAgent
         if (sDataSourceFactory == null) {
-            val factory = getHttpDataSourceFactory(context, sUserAgent!!)
+            val factory = getHttpDataSourceFactory(context, sUserAgent)
             val upstreamFactory = DefaultDataSourceFactory(context, factory!!)
             sDataSourceFactory = buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache(context)!!)
         }
@@ -77,9 +78,9 @@ object ExoPlayerUtils {
         context: Context, userAgent: String): HttpDataSource.Factory? {
         if (sHttpDataSourceFactory == null) {
             logMessage("ExoPlayer UserAgent '$userAgent'")
-            val cronetEngineWrapper = CronetEngineWrapper(context, userAgent, false)
+            val engine = CronetUtil.buildCronetEngine(context, userAgent, false)
             sHttpDataSourceFactory = CronetDataSource.Factory(
-                cronetEngineWrapper, Executors.newSingleThreadExecutor()
+                engine!!, Executors.newSingleThreadExecutor()
             ).setUserAgent(userAgent)
         }
         return sHttpDataSourceFactory

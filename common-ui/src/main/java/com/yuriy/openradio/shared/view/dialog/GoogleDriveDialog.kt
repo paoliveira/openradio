@@ -98,7 +98,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                     mGoogleDriveManager!!.connect(googleAccount.account)
                 }
                 .addOnFailureListener { exception: Exception? ->
-                    AppLogger.e("Can't do sign in:" + Log.getStackTraceString(exception))
+                    AppLogger.e("Can't do sign in", exception)
                     showAnyThread(
                             context, getString(R.string.can_not_get_account_name)
                     )

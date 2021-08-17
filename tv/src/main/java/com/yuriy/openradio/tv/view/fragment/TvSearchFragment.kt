@@ -20,7 +20,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import androidx.leanback.app.SearchSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
@@ -74,7 +73,7 @@ class TvSearchFragment : SearchSupportFragment(), SearchSupportFragment.SearchRe
         try {
             super.onPause()
         } catch (e: Exception) {
-            AppLogger.e("Can't do normal pause of TV activity:" + Log.getStackTraceString(e))
+            AppLogger.e("Can't do normal pause of TV activity", e)
         }
     }
 

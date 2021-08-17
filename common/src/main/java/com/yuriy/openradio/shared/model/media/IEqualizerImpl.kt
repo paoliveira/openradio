@@ -37,7 +37,7 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
         try {
             mEqualizer = Equalizer(10, audioSessionId)
         } catch (e: Exception) {
-            AppLogger.e("$CLASS_NAME exception while init:$e")
+            AppLogger.e("$CLASS_NAME exception while init", e)
             mEqualizer = null
             EqualizerStorage.saveEqualizerState(mContext, AppUtils.EMPTY_STRING)
             return
@@ -68,14 +68,14 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
         try {
             state = EqualizerState.createState(mEqualizer!!)
         } catch (e: IllegalArgumentException) {
-            AppLogger.e("Can not create state from $mEqualizer, $e")
+            AppLogger.e("Can not create state from $mEqualizer", e)
         } catch (e: IllegalStateException) {
-            AppLogger.e("Can not create state from $mEqualizer, $e")
+            AppLogger.e("Can not create state from $mEqualizer", e)
         } catch (e: UnsupportedOperationException) {
-            AppLogger.e("Can not create state from $mEqualizer, $e")
+            AppLogger.e("Can not create state from $mEqualizer", e)
         } catch (e: RuntimeException) {
             // Some times this happen with "AudioEffect: set/get parameter error"
-            AppLogger.e("$CLASS_NAME can not create state from $mEqualizer, $e")
+            AppLogger.e("$CLASS_NAME can not create state from $mEqualizer", e)
         }
         if (state != null) {
             saveState(mContext, state)
@@ -101,7 +101,7 @@ class IEqualizerImpl private constructor(private val mContext: Context): IEquali
                     AppLocalBroadcast.createIntentEqualizerApplied()
             )
         } catch (e: Exception) {
-            AppLogger.e("$CLASS_NAME apply state exception:$e")
+            AppLogger.e("$CLASS_NAME apply state", e)
         }
         state.printState()
     }

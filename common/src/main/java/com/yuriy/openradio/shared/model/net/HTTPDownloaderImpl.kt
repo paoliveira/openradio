@@ -88,15 +88,15 @@ class HTTPDownloaderImpl : Downloader {
                             url.toString(),
                             parameters
                         )
-                    }, e:$exception"
+                    }", exception
                 )
             }
             AppLogger.d("$CLASS_NAME response code:$responseCode for $url")
             if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
                 NetUtils.closeHttpURLConnection(connection)
                 AppLogger.e(
-                    "$CLASS_NAME ${DownloaderException.createExceptionMessage(url.toString(), parameters)}, " +
-                        "e:${Exception("Response code is $responseCode")}"
+                    "$CLASS_NAME ${DownloaderException.createExceptionMessage(url.toString(), parameters)}",
+                    Exception("Response code is $responseCode")
                 )
                 return response
             }
@@ -120,7 +120,7 @@ class HTTPDownloaderImpl : Downloader {
                             url.toString(),
                             parameters
                         )
-                    }, e:$exception"
+                    }", exception
                 )
             } finally {
                 NetUtils.closeHttpURLConnection(connection)
@@ -168,7 +168,8 @@ class HTTPDownloaderImpl : Downloader {
                 }
             } catch (exception: UnknownHostException) {
                 AppLogger.e(
-                    "$CLASS_NAME do lookup ${DownloaderException.createExceptionMessage(uri, parameters)}, e:$exception"
+                    "$CLASS_NAME do lookup ${DownloaderException.createExceptionMessage(uri, parameters)}",
+                    exception
                 )
             }
 
@@ -209,7 +210,7 @@ class HTTPDownloaderImpl : Downloader {
                             uri,
                             parameters
                         )
-                    }, e:$exception"
+                    }", exception
                 )
                 null
             }

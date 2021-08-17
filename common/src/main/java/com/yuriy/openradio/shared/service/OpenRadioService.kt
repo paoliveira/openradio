@@ -40,7 +40,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.KeyEvent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media.MediaBrowserServiceCompat
-import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.yuriy.openradio.R
@@ -104,6 +104,7 @@ import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.NetUtils
 import com.yuriy.openradio.shared.utils.PackageValidator
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import com.yuriy.openradio.shared.utils.RadioStationsComparator
 import com.yuriy.openradio.shared.utils.SortUtils
 import com.yuriy.openradio.shared.view.SafeToast
@@ -578,8 +579,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     /**
      * @param exception
      */
-    private fun onHandledError(exception: ExoPlaybackException) {
-        AppLogger.e("$CLASS_NAME ExoPlayer handled exception:$exception")
+    private fun onHandledError(exception: PlaybackException) {
+        AppLogger.e("$CLASS_NAME ExoPlayer handled exception", exception)
         val throwable = exception.cause
         if (throwable is UnrecognizedInputFormatException) {
             handleUnrecognizedInputFormatException()
@@ -782,7 +783,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         try {
             mSession.setMetadata(metadata)
         } catch (e: IllegalStateException) {
-            AppLogger.e("$CLASS_NAME can not set metadata:$e")
+            AppLogger.e("$CLASS_NAME can not set metadata", e)
         }
     }
 
@@ -844,7 +845,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         val autoPlay = AppPreferencesManager.isBtAutoPlay(applicationContext)
         AppLogger.d(
             "$CLASS_NAME BTSameDeviceConnected, do auto play:$autoPlay, " +
-                "state:${MediaItemHelper.playbackStateToString(mState)}, pause reason:$mPauseReason"
+                "state:${PlayerUtils.playbackStateToString(mState)}, pause reason:$mPauseReason"
         )
         if (!autoPlay) {
             return
@@ -865,7 +866,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     private fun handlePlayRequestUiThread() {
-        AppLogger.d("$CLASS_NAME handle play request, state:${MediaItemHelper.playbackStateToString(mState)}")
+        AppLogger.d("$CLASS_NAME handle play request, state:${PlayerUtils.playbackStateToString(mState)}")
         mCurrentStreamTitle = AppUtils.EMPTY_STRING
         if (!this::mSession.isInitialized) {
             AppLogger.e("$CLASS_NAME handle play request with null media session")
@@ -985,7 +986,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      * @param reason Reason to pause.
      */
     private fun handlePauseRequestUiThread(reason: PauseReason) {
-        AppLogger.d("$CLASS_NAME HandlePauseRequest, state:${MediaItemHelper.playbackStateToString(mState)}")
+        AppLogger.d("$CLASS_NAME HandlePauseRequest, state:${PlayerUtils.playbackStateToString(mState)}")
         if (mState == PlaybackStateCompat.STATE_PLAYING) {
             // Pause media player and cancel the 'foreground service' state.
             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
@@ -1011,7 +1012,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     private fun updatePlaybackStateUiThread(error: PlaybackStateError = PlaybackStateError()) {
-        AppLogger.d("$CLASS_NAME set playback state to ${MediaItemHelper.playbackStateToString(mState)} error:$error")
+        AppLogger.d("$CLASS_NAME set playback state to ${PlayerUtils.playbackStateToString(mState)} error:$error")
         if (!this::mSession.isInitialized) {
             AppLogger.e("$CLASS_NAME playback state with null media session")
             return
@@ -1056,7 +1057,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
             // IllegalStateException: beginBroadcast() called while already in a broadcast
             mSession.setPlaybackState(stateBuilder.build())
         } catch (e: IllegalStateException) {
-            AppLogger.e("$e")
+            AppLogger.e("$CLASS_NAME set playback state", e)
         }
         if (AppUtils.hasVersionLollipop()) {
             if (radioStation != null && (mState == PlaybackStateCompat.STATE_BUFFERING
@@ -1101,7 +1102,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         if (mState == PlaybackStateCompat.STATE_STOPPED) {
             return
         }
-        AppLogger.d("$CLASS_NAME handle stop request, state:${MediaItemHelper.playbackStateToString(mState)} error:$error")
+        AppLogger.d("$CLASS_NAME handle stop request, state:${PlayerUtils.playbackStateToString(mState)} error:$error")
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         mPauseReason = PauseReason.DEFAULT
         mNoisyAudioStreamReceiver.unregister(applicationContext)
@@ -1482,7 +1483,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 try {
                     executePerformSearch(query)
                 } catch (e: Exception) {
-                    AppLogger.e("$CLASS_NAME can not perform search for '$query', exception:$e")
+                    AppLogger.e("$CLASS_NAME can not perform search for '$query'", e)
                 }
             }
         }
@@ -1745,7 +1746,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                         handlePlayRequest()
                     }
                     else -> {
-                        AppLogger.w("$CLASS_NAME unhandled playback state:${MediaItemHelper.playbackStateToString(mState)}")
+                        AppLogger.w("$CLASS_NAME unhandled playback state:${PlayerUtils.playbackStateToString(mState)}")
                     }
                 }
             }
@@ -1791,7 +1792,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     private fun setPlaybackState(state: Int) {
-        AppLogger.d("$CLASS_NAME set state:${MediaItemHelper.playbackStateToString(state)}")
+        AppLogger.d("$CLASS_NAME set state:${PlayerUtils.playbackStateToString(state)}")
         mState = state
     }
 
@@ -1800,7 +1801,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      */
     private inner class ExoPlayerListener : ExoPlayerOpenRadioImpl.Listener {
 
-        override fun onError(error: ExoPlaybackException) {
+        override fun onError(error: PlaybackException) {
             handleStopRequest(
                 PlaybackStateError(
                     getString(R.string.media_stream_error), PlaybackStateError.Code.PLAYBACK_ERROR, error
@@ -1808,7 +1809,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
             )
         }
 
-        override fun onHandledError(error: ExoPlaybackException) {
+        override fun onHandledError(error: PlaybackException) {
             this@OpenRadioService.onHandledError(error)
         }
 
@@ -1832,7 +1833,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             AppLogger.d(
                 "$CLASS_NAME OnPlayWhenReadyChanged, is playing:${mExoPlayerORImpl?.isPlaying}, " +
-                    "state:${MediaItemHelper.playbackStateToString(mState)}, reason:$reason"
+                    "state:${PlayerUtils.playbackStateToString(mState)}, reason:$reason"
             )
             when (reason) {
                 Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS,

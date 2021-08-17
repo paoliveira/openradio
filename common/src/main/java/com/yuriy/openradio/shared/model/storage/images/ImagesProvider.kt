@@ -135,7 +135,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
                 try {
                     ImageDownloader(id, url, ImagesStore.buildImageLoadedUri(id)).run()
                 } catch (e: Exception) {
-                    AppLogger.e("$TAG can't handle image:$e")
+                    AppLogger.e("$TAG can't handle image", e)
                 }
             }
             return null

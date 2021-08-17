@@ -57,9 +57,7 @@ object NetUtils {
         return try {
             getHttpURLConnection(context, URL(urlString), requestMethod, null)
         } catch (exception: MalformedURLException) {
-            AppLogger.e(
-                "Can not get http connection from $urlString e:$exception"
-            )
+            AppLogger.e("Can not get http connection from $urlString", exception)
             null
         }
     }
@@ -106,7 +104,7 @@ object NetUtils {
                         }
                     } catch (exception: IOException) {
                         AppLogger.e(
-                            " ${DownloaderException.createExceptionMessage(url.toString(), parameters)} e:$exception"
+                            " ${DownloaderException.createExceptionMessage(url.toString(), parameters)}", exception
 
                         )
                     }
@@ -127,7 +125,7 @@ object NetUtils {
                     isRedirect = true
                 }
             } catch (exception: Exception) {
-                AppLogger.e("Can not get http connection from $url e:$exception")
+                AppLogger.e("Can not get http connection from $url", exception)
             }
         } while (isRedirect)
 
@@ -208,7 +206,7 @@ object NetUtils {
             }
         } catch (e: Exception) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
-            AppLogger.e("$errorMessage e:$e")
+            AppLogger.e(errorMessage, e)
         } finally {
             closeHttpURLConnection(connection)
             if (inputStream != null) {

@@ -18,7 +18,6 @@ package com.yuriy.openradio.shared.utils
 
 import android.content.Context
 import android.util.Log
-import org.apache.log4j.Layout
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
 import org.apache.log4j.PatternLayout
@@ -49,7 +48,7 @@ object AppLogger {
         try {
             logger.removeAllAppenders()
         } catch (e: Exception) {
-            e("Can't remove all logs:$e")
+            e("Can't remove all logs", e)
         }
         try {
             val appender = RollingFileAppender(layout, fileName)
@@ -57,7 +56,7 @@ object AppLogger {
             appender.maxBackupIndex = MAX_BACKUP_INDEX
             logger.addAppender(appender)
         } catch (e: IOException) {
-            e("Can't append log:$e")
+            e("Can't append log", e)
         }
         d("Current log stored to $fileName")
     }
@@ -148,7 +147,7 @@ object AppLogger {
         try {
             Runtime.getRuntime().exec("logcat -f " + logcatFile.path)
         } catch (e: Exception) {
-            e("Can't zip file:$e")
+            e("Can't zip file", e)
         }
         val logs = getAllLogs()
         val fileOutputStream = FileOutputStream(getLogsZipFile())
@@ -192,7 +191,7 @@ object AppLogger {
         Log.e(LOG_TAG, "[" + Thread.currentThread().name + "] " + logMsg)
     }
 
-    fun e(logMsg: String, t: Throwable) {
+    fun e(logMsg: String, t: Throwable?) {
         if (sLoggingEnabled) {
             logger.error(logMsg)
         }
