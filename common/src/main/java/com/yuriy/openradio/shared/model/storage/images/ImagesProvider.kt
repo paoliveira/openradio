@@ -204,10 +204,14 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
                 file.readBytes()
             }
             AppLogger.d("$TAG downloaded ${bytes.size} bytes")
-            if (bytes.isNotEmpty()) {
-                bytes = scaleBytes(bytes, orientation)
-                AppLogger.d("$TAG scaled to ${bytes.size} bytes")
+            if (bytes.isEmpty()) {
+                return
             }
+            if (bytes.size >= MAX_IMG_SIZE) {
+                return
+            }
+            bytes = scaleBytes(bytes, orientation)
+            AppLogger.d("$TAG scaled to ${bytes.size} bytes")
             if (bytes.isEmpty()) {
                 return
             }
@@ -261,5 +265,10 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         private val TAG = ImagesProvider::class.java.simpleName
         private const val MAX_WIDTH: Double = 500.0
         private const val MAX_HEIGHT: Double = 500.0
+
+        /**
+         * Maximum bytes for an image.
+         */
+        private const val MAX_IMG_SIZE = 1000000
     }
 }

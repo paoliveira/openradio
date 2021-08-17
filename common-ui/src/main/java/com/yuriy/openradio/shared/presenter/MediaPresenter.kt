@@ -116,6 +116,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
      * Guardian field to prevent UI operation after addToLocals instance passed.
      */
     private val mIsOnSaveInstancePassed = AtomicBoolean(false)
+    private val mIsReceiversRegistered = AtomicBoolean(false)
 
     private val mBroadcastListener = BroadcastReceiverListener()
 
@@ -454,6 +455,10 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
      * Register receiver for the application's local events.
      */
     fun registerReceivers(context: Context, callback: AppLocalReceiverCallback) {
+        if (mIsReceiversRegistered.get()) {
+            AppLogger.w("$CLASS_NAME receivers are registered")
+            return
+        }
         mAppLocalBroadcastRcvr.registerListener(callback)
 
         // Create filter and add actions
@@ -473,18 +478,24 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         val filter = IntentFilter()
         filter.addAction(MediaNotification.ACTION_CLOSE_APP)
         context.registerReceiver(mBroadcastListener, filter)
+        mIsReceiversRegistered.set(true)
     }
 
     /**
      * Unregister receiver for the application's local events.
      */
     private fun unregisterReceivers(context: Context) {
+        if (!mIsReceiversRegistered.get()) {
+            AppLogger.w("$CLASS_NAME receivers are unregistered")
+            return
+        }
         mAppLocalBroadcastRcvr.unregisterListener()
         LocalBroadcastManager.getInstance(context).unregisterReceiver(
                 mAppLocalBroadcastRcvr
         )
         mScreenBroadcastRcvr.unregister(context)
         context.unregisterReceiver(mBroadcastListener)
+        mIsReceiversRegistered.set(false)
     }
 
     private fun handleMediaResourceManagerConnected() {

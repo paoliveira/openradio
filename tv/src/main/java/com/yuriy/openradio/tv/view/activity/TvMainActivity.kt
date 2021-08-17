@@ -93,7 +93,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
         val subscriptionCb: MediaBrowserCompat.SubscriptionCallback = MediaBrowserSubscriptionCallback()
-        val listener: MediaPresenterListener = MediaPresenterListenerImpl()
+        val listener = MediaPresenterListenerImpl()
         mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.tv_list_view),
                 findViewById(R.id.tv_current_radio_station_view), TvMediaItemsAdapter(applicationContext), mListener,
