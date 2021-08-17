@@ -26,8 +26,8 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.metadata.Metadata
-import com.google.android.exoplayer2.metadata.icy.IcyHeaders
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
+import com.google.android.exoplayer2.metadata.id3.TextInformationFrame
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
@@ -37,6 +37,7 @@ import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
 import com.yuriy.openradio.shared.exo.ExoPlayerUtils.playWhenReadyChangedToStr
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.PlayerUtils
@@ -279,29 +280,33 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
 
         override fun onMetadata(metadata: Metadata) {
 
-            // TODO: REFACTOR THIS QUICK CODE!!
-            var entry: Metadata.Entry
             for (i in 0 until metadata.length()) {
-                entry = metadata[i]
-                AppLogger.d("$mLogTag Metadata entry:$entry")
+                val entry = metadata[i]
+                var title = AppUtils.EMPTY_STRING
+                // See https://en.wikipedia.org/wiki/ID3#ID3v2_frame_specification
+                val msg = "Metadata entry:$entry"
+                AppLogger.d(msg)
+                AnalyticsUtils.logMessage(msg)
                 if (entry is IcyInfo) {
-                    val info = metadata[i] as IcyInfo
-                    AppLogger.d("$mLogTag IcyInfo title:$info")
-                    var title = info.title
-                    if (title.isNullOrEmpty()) {
-                        return
+                    title = entry.title ?: AppUtils.EMPTY_STRING
+                } else if (entry is TextInformationFrame) {
+                    when (entry.id) {
+                        ExoPlayerUtils.METADATA_ID_TT2,
+                        ExoPlayerUtils.METADATA_ID_TIT2 -> {
+                            title = entry.value
+                        }
                     }
-                    title = title.trim { it <= ' ' }
-                    if (title == mRawMetadata) {
-                        return
-                    }
-                    mRawMetadata = title
-                    mMetadataListener.onMetaData(title)
                 }
-                if (entry is IcyHeaders) {
-                    val headers = metadata[i] as IcyHeaders
-                    AppLogger.d("$mLogTag IcyHeaders name:$headers")
+                if (title.isEmpty()) {
+                    continue
                 }
+                title = title.trim { it <= ' ' }
+                if (title == mRawMetadata) {
+                    continue
+                }
+                mRawMetadata = title
+                AppLogger.d("Metadata final title:$title")
+                mMetadataListener.onMetaData(title)
             }
         }
 

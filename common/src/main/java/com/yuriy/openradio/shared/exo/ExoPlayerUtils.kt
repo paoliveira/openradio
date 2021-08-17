@@ -39,6 +39,9 @@ import java.util.concurrent.Executors
 
 object ExoPlayerUtils {
 
+    const val METADATA_ID_TT2 = "TT2"
+    const val METADATA_ID_TIT2 = "TIT2"
+
     private const val DOWNLOAD_CONTENT_DIRECTORY = "downloads"
     private var sDataSourceFactory: @MonotonicNonNull DataSource.Factory? = null
     private var sHttpDataSourceFactory: @MonotonicNonNull HttpDataSource.Factory? = null

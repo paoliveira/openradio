@@ -690,7 +690,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 applicationContext, mListener,
                 object : MetadataListener {
                     override fun onMetaData(title: String) {
-                        AppLogger.d("$CLASS_NAME Metadata title:$title")
                         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
                         updateMetadata(radioStation, title)
                     }
@@ -1062,7 +1061,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         if (AppUtils.hasVersionLollipop()) {
             if (radioStation != null && (mState == PlaybackStateCompat.STATE_BUFFERING
                     || mState == PlaybackStateCompat.STATE_PLAYING
-                    || mState == PlaybackStateCompat.STATE_PAUSED)) {
+                    || mState == PlaybackStateCompat.STATE_PAUSED)
+            ) {
                 mMediaNotification.startNotification(applicationContext, radioStation)
             }
         }
