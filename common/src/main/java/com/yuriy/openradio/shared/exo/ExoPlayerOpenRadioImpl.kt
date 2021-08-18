@@ -32,9 +32,6 @@ import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.HttpDataSource
-import com.yuriy.openradio.shared.exo.ExoPlayerUtils.buildRenderersFactory
-import com.yuriy.openradio.shared.exo.ExoPlayerUtils.getDataSourceFactory
-import com.yuriy.openradio.shared.exo.ExoPlayerUtils.playWhenReadyChangedToStr
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
@@ -59,9 +56,11 @@ import java.util.concurrent.atomic.AtomicInteger
  * @param mListener         Listener for the wrapper's events.
  * @param mMetadataListener Listener for the stream events.
  */
-class ExoPlayerOpenRadioImpl(private val mContext: Context,
-                             private val mListener: Listener,
-                             private val mMetadataListener: MetadataListener) {
+class ExoPlayerOpenRadioImpl(
+    private val mContext: Context,
+    private val mListener: Listener,
+    private val mMetadataListener: MetadataListener
+) {
     /**
      * Listener for the main public events.
      */
@@ -136,10 +135,10 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
         val trackSelector = DefaultTrackSelector(mContext)
         trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(mContext).build()
         val builder = SimpleExoPlayer.Builder(
-            mContext, buildRenderersFactory(mContext)
+            mContext, ExoPlayerUtils.buildRenderersFactory(mContext)
         )
         builder.setTrackSelector(trackSelector)
-        builder.setMediaSourceFactory(DefaultMediaSourceFactory(getDataSourceFactory(mContext)!!))
+        builder.setMediaSourceFactory(DefaultMediaSourceFactory(ExoPlayerUtils.getDataSourceFactory(mContext)!!))
         builder.setLoadControl(
             DefaultLoadControl.Builder()
                 .setBufferDurationsMs(
@@ -286,7 +285,7 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
                 // See https://en.wikipedia.org/wiki/ID3#ID3v2_frame_specification
                 val msg = "Metadata entry:$entry"
                 AppLogger.d(msg)
-                AnalyticsUtils.logMessage(msg)
+                AnalyticsUtils.logMetadata(msg)
                 if (entry is IcyInfo) {
                     title = entry.title ?: AppUtils.EMPTY_STRING
                 } else if (entry is TextInformationFrame) {
@@ -347,7 +346,9 @@ class ExoPlayerOpenRadioImpl(private val mContext: Context,
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             AppLogger.d(
-                "$mLogTag OnPlayWhenReadyChanged to $playWhenReady, reason:${playWhenReadyChangedToStr(reason)}"
+                "$mLogTag OnPlayWhenReadyChanged to $playWhenReady, reason:${
+                    ExoPlayerUtils.playWhenReadyChangedToStr(reason)
+                }"
             )
             mListener.onPlayWhenReadyChanged(playWhenReady, reason)
         }

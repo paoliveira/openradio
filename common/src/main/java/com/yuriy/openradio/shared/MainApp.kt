@@ -22,8 +22,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDex
 import androidx.multidex.MultiDexApplication
 import com.google.android.exoplayer2.DefaultLoadControl
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException
-import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.security.ProviderInstaller
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry

@@ -33,6 +33,8 @@ import com.yuriy.openradio.BuildConfig
 object AnalyticsUtils {
 
     private const val EVENT_UNSUPPORTED_PLAYLIST_V2 = "EVENT_UNSUPPORTED_PLAYLIST_V2"
+    private const val EVENT_METADATA = "EVENT_METADATA"
+    private const val KEY_METADATA = "KEY_METADATA"
     private const val KEY_URL = "KEY_URL"
     private const val KEY_URL_INVALID = "KEY_URL_INVALID"
 
@@ -48,16 +50,23 @@ object AnalyticsUtils {
     }
 
     @JvmStatic
-    fun logUnsupportedPlaylist(playlistUrl: String) {
+    fun logUnsupportedPlaylist(value: String) {
         val bundle = Bundle()
-        bundle.putString(KEY_URL, playlistUrl)
+        bundle.putString(KEY_URL, value)
         Firebase.analytics.logEvent(EVENT_UNSUPPORTED_PLAYLIST_V2, bundle)
     }
 
     @JvmStatic
-    fun logUnsupportedInvalidPlaylist(playlistUrl: String) {
+    fun logUnsupportedInvalidPlaylist(value: String) {
         val bundle = Bundle()
-        bundle.putString(KEY_URL_INVALID, playlistUrl)
+        bundle.putString(KEY_URL_INVALID, value)
         Firebase.analytics.logEvent(EVENT_UNSUPPORTED_PLAYLIST_V2, bundle)
+    }
+
+    @JvmStatic
+    fun logMetadata(value: String) {
+        val bundle = Bundle()
+        bundle.putString(KEY_METADATA, value)
+        Firebase.analytics.logEvent(EVENT_METADATA, bundle)
     }
 }

@@ -25,16 +25,20 @@ import com.google.android.exoplayer2.ext.cronet.CronetDataSource
 import com.google.android.exoplayer2.ext.cronet.CronetUtil
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.yuriy.openradio.shared.utils.AnalyticsUtils.logMessage
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import java.io.File
+import java.net.CookieHandler
+import java.net.CookieManager
+import java.net.CookiePolicy
 import java.util.concurrent.Executors
 
 object ExoPlayerUtils {
@@ -53,7 +57,7 @@ object ExoPlayerUtils {
     @JvmStatic
     fun buildRenderersFactory(context: Context): RenderersFactory {
         return DefaultRenderersFactory(context.applicationContext)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
     }
 
     /**
@@ -77,14 +81,20 @@ object ExoPlayerUtils {
     }
 
     @Synchronized
-    fun getHttpDataSourceFactory(
-        context: Context, userAgent: String): HttpDataSource.Factory? {
+    fun getHttpDataSourceFactory(context: Context, userAgent: String): HttpDataSource.Factory? {
         if (sHttpDataSourceFactory == null) {
-            logMessage("ExoPlayer UserAgent '$userAgent'")
+            AnalyticsUtils.logMessage("ExoPlayer UserAgent '$userAgent'")
             val engine = CronetUtil.buildCronetEngine(context, userAgent, false)
-            sHttpDataSourceFactory = CronetDataSource.Factory(
-                engine!!, Executors.newSingleThreadExecutor()
-            ).setUserAgent(userAgent)
+            sHttpDataSourceFactory = if (engine != null) {
+                CronetDataSource.Factory(
+                    engine, Executors.newSingleThreadExecutor()
+                ).setUserAgent(userAgent)
+            } else {
+                val cookieManager = CookieManager()
+                cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER)
+                CookieHandler.setDefault(cookieManager)
+                DefaultHttpDataSource.Factory().setUserAgent(userAgent)
+            }
         }
         return sHttpDataSourceFactory
     }
@@ -101,12 +111,14 @@ object ExoPlayerUtils {
     }
 
     private fun buildReadOnlyCacheDataSource(
-        upstreamFactory: DataSource.Factory, cache: Cache): CacheDataSource.Factory {
+        upstreamFactory: DataSource.Factory,
+        cache: Cache
+    ): CacheDataSource.Factory {
         return CacheDataSource.Factory()
-                .setCache(cache)
-                .setUpstreamDataSourceFactory(upstreamFactory)
-                .setCacheWriteDataSinkFactory(null)
-                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+            .setCache(cache)
+            .setUpstreamDataSourceFactory(upstreamFactory)
+            .setCacheWriteDataSinkFactory(null)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
     }
 
     @Synchronized
@@ -114,7 +126,8 @@ object ExoPlayerUtils {
         if (sDownloadCache == null) {
             val downloadContentDirectory = File(getDownloadDirectory(context), DOWNLOAD_CONTENT_DIRECTORY)
             sDownloadCache = SimpleCache(
-                downloadContentDirectory, NoOpCacheEvictor(), getDatabaseProvider(context)!!)
+                downloadContentDirectory, NoOpCacheEvictor(), getDatabaseProvider(context)!!
+            )
         }
         return sDownloadCache
     }
