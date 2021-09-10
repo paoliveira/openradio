@@ -32,14 +32,10 @@ import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
 import com.yuriy.openradio.shared.model.net.Downloader
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.NetUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileNotFoundException
@@ -221,7 +217,13 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         }
 
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
-            var bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return ByteArray(0)
+            var bmp = try {
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return ByteArray(0)
+            } catch (e: Exception) {
+                AppLogger.e("$TAG can't decode ${bytes.size} bytes for $mImageUrl", e)
+                AnalyticsUtils.logBitmapDecode(mImageUrl)
+                return ByteArray(0)
+            }
             var width = bmp.width
             var height = bmp.height
             AppLogger.d("$TAG origin image [${width}x${height}]")

@@ -37,6 +37,8 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.gms.cast.framework.CastButtonFactory
+import com.google.android.gms.cast.framework.CastContext
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.yuriy.openradio.mobile.R
@@ -76,8 +78,6 @@ import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
-import java.util.*
-import java.util.concurrent.atomic.*
 
 /**
  * Created with Android Studio.
@@ -123,6 +123,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
     private lateinit var mMediaPresenter: MediaPresenter
     private lateinit var mFavoritesStorage: FavoritesStorage
     private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
+    private lateinit var mCastContext: CastContext
 
     init {
         mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
@@ -147,6 +148,10 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
 
         initUi(applicationContext)
         hideProgressBar()
+
+        // Initialize the Cast context. This is required so that the media route button can be
+        // created in the AppBar
+        mCastContext = CastContext.getSharedInstance(this)
 
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
@@ -178,6 +183,8 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+        // Set up a MediaRouteButton to allow the user to control the current media playback route.
+        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.action_cast)
         return true
     }
 

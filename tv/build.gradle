@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId project.ext.applicationId
-        minSdkVersion 21
+        minSdk 21
         targetSdkVersion project.ext.targetSdkVersion
         versionCode project.ext.versionCode
         versionName project.ext.versionName
@@ -45,11 +45,10 @@ android {
     kotlinOptions {
         jvmTarget = project.ext.kotlinJvmTarget
     }
-
     packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/NOTICE.md'
-        exclude 'META-INF/LICENSE.md'
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/NOTICE.md', 'META-INF/LICENSE.md']
+        }
     }
 }
 
@@ -57,8 +56,6 @@ dependencies {
     implementation project(':common')
     implementation project(':common-ui')
 
-    implementation "androidx.fragment:fragment-ktx:$fragmentKtxVersion"
     implementation "androidx.leanback:leanback:$leanbackVersion"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "com.google.android.material:material:$materialVersion"
 }

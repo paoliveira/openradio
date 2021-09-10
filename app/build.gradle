@@ -45,44 +45,34 @@ android {
         }
     }
 
-    lintOptions {
-        abortOnError false
-    }
-
     testOptions {
         unitTests.returnDefaultValues = true
     }
-
-    aaptOptions {
-        cruncherEnabled = true
+    packagingOptions {
+        resources {
+            excludes += [
+                    'META-INF/DEPENDENCIES.txt',
+                    'META-INF/LICENSE.md',
+                    'META-INF/LICENSE.txt',
+                    'META-INF/NOTICE.md',
+                    'META-INF/NOTICE.txt',
+                    'META-INF/NOTICE',
+                    'META-INF/LICENSE',
+                    'META-INF/DEPENDENCIES',
+                    'META-INF/notice.txt',
+                    'META-INF/license.txt',
+                    'META-INF/dependencies.txt',
+                    'META-INF/LGPL2.1'
+            ]
+        }
     }
 
-    packagingOptions {
-        exclude 'META-INF/DEPENDENCIES.txt'
-        exclude 'META-INF/LICENSE.md'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.md'
-        exclude 'META-INF/NOTICE.txt'
-        exclude 'META-INF/NOTICE'
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/notice.txt'
-        exclude 'META-INF/license.txt'
-        exclude 'META-INF/dependencies.txt'
-        exclude 'META-INF/LGPL2.1'
+    lint {
+        abortOnError false
     }
 }
 
 dependencies {
     implementation project(':common')
     implementation project(':common-ui')
-
-    implementation "androidx.fragment:fragment-ktx:$fragmentKtxVersion"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
-    implementation "com.android.support:multidex:$multidexVersion"
-    implementation "com.android.support.constraint:constraint-layout:$constraintLayoutVersion"
-    implementation "com.google.android.material:material:$materialVersion"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
-    implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
 }

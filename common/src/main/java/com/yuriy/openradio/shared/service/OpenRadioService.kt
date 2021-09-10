@@ -25,13 +25,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.database.ContentObserver
 import android.net.Uri
-import android.os.Bundle
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
-import android.os.Message
-import android.os.Process
-import android.os.SystemClock
+import android.os.*
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -44,83 +38,30 @@ import com.google.android.exoplayer2.PlaybackException
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.broadcast.AbstractReceiver
-import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
-import com.yuriy.openradio.shared.broadcast.BTConnectionReceiver
-import com.yuriy.openradio.shared.broadcast.BecomingNoisyReceiver
-import com.yuriy.openradio.shared.broadcast.ClearCacheReceiver
-import com.yuriy.openradio.shared.broadcast.ClearCacheReceiverListener
-import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiver
-import com.yuriy.openradio.shared.broadcast.MasterVolumeReceiverListener
-import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver
-import com.yuriy.openradio.shared.dependencies.ApiServiceProviderDependency
-import com.yuriy.openradio.shared.dependencies.DependencyRegistry
-import com.yuriy.openradio.shared.dependencies.DownloaderDependency
-import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
-import com.yuriy.openradio.shared.dependencies.ImagesDatabaseDependency
-import com.yuriy.openradio.shared.dependencies.LatestRadioStationStorageDependency
-import com.yuriy.openradio.shared.dependencies.LocalRadioStationsStorageDependency
-import com.yuriy.openradio.shared.dependencies.NetworkMonitorDependency
-import com.yuriy.openradio.shared.dependencies.ParserDependency
-import com.yuriy.openradio.shared.exo.ExoPlayerOpenRadioImpl
+import com.yuriy.openradio.shared.broadcast.*
+import com.yuriy.openradio.shared.dependencies.*
 import com.yuriy.openradio.shared.exo.MetadataListener
+import com.yuriy.openradio.shared.exo.OpenRadioPlayer
 import com.yuriy.openradio.shared.model.api.ApiServiceProvider
-import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories
-import com.yuriy.openradio.shared.model.media.item.MediaItemChildCategories
-import com.yuriy.openradio.shared.model.media.item.MediaItemCommand
-import com.yuriy.openradio.shared.model.media.item.MediaItemCommandDependencies
-import com.yuriy.openradio.shared.model.media.item.MediaItemCountriesList
-import com.yuriy.openradio.shared.model.media.item.MediaItemCountryStations
-import com.yuriy.openradio.shared.model.media.item.MediaItemFavoritesList
-import com.yuriy.openradio.shared.model.media.item.MediaItemLocalsList
-import com.yuriy.openradio.shared.model.media.item.MediaItemPopularStations
-import com.yuriy.openradio.shared.model.media.item.MediaItemRecentlyAddedStations
-import com.yuriy.openradio.shared.model.media.item.MediaItemRoot
-import com.yuriy.openradio.shared.model.media.item.MediaItemSearchFromApp
+import com.yuriy.openradio.shared.model.media.item.*
 import com.yuriy.openradio.shared.model.net.Downloader
 import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.parser.DataParser
-import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import com.yuriy.openradio.shared.model.storage.FavoritesStorage
-import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
-import com.yuriy.openradio.shared.model.storage.LocalRadioStationsStorage
-import com.yuriy.openradio.shared.model.storage.LocationStorage
-import com.yuriy.openradio.shared.model.storage.NetworkSettingsStorage
-import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
-import com.yuriy.openradio.shared.model.storage.ServiceLifecyclePreferencesManager
-import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
+import com.yuriy.openradio.shared.model.storage.*
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.notification.MediaNotification
-import com.yuriy.openradio.shared.utils.AnalyticsUtils
-import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.utils.IntentUtils
-import com.yuriy.openradio.shared.utils.MediaIdHelper
-import com.yuriy.openradio.shared.utils.MediaItemHelper
-import com.yuriy.openradio.shared.utils.NetUtils
-import com.yuriy.openradio.shared.utils.PackageValidator
-import com.yuriy.openradio.shared.utils.PlayerUtils
-import com.yuriy.openradio.shared.utils.RadioStationsComparator
-import com.yuriy.openradio.shared.utils.SortUtils
+import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.PlaybackStateError
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
-import java.util.*
-import java.util.concurrent.*
-import java.util.concurrent.atomic.*
+import kotlinx.coroutines.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * Created by Yuriy Chernyshov
@@ -133,14 +74,14 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     ImagesDatabaseDependency, LatestRadioStationStorageDependency {
 
     /**
-     * ExoPlayer's implementation to play Radio stream.
+     * Player to play Radio stream.
      */
-    private var mExoPlayerORImpl: ExoPlayerOpenRadioImpl? = null
+    private var mPlayer: OpenRadioPlayer? = null
 
     /**
-     * Listener of the ExoPlayer's event.
+     * Listener of the Player's event.
      */
-    private val mListener: ExoPlayerOpenRadioImpl.Listener
+    private val mListener: OpenRadioPlayer.Listener
 
     /**
      * Media Session.
@@ -248,7 +189,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         setPlaybackState(PlaybackStateCompat.STATE_NONE)
         mRadioStationsComparator = RadioStationsComparator()
         mStartIds = ConcurrentLinkedQueue()
-        mListener = ExoPlayerListener()
+        mListener = PlayerListener()
         mRadioStationsStorage = RadioStationsStorage()
         mDelayedStopHandler = DelayedStopHandler()
         mBTConnectionReceiver = BTConnectionReceiver(
@@ -293,8 +234,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     private inner class DelayedStopHandler : Handler(Looper.getMainLooper()) {
 
         override fun handleMessage(msg: Message) {
-            if (mExoPlayerORImpl != null && mExoPlayerORImpl!!.isPlaying) {
-                AppLogger.d("$CLASS_NAME ignoring delayed stop since ExoPlayerORImpl in use.")
+            if (mPlayer?.isPlaying == true) {
+                AppLogger.d("$CLASS_NAME ignoring delayed stop since Player in use.")
                 return
             }
             AppLogger.d("$CLASS_NAME stopping service with delay handler.")
@@ -386,7 +327,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent =
             packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
-                PendingIntent.getActivity(applicationContext, 0, sessionIntent, 0)
+                PendingIntent.getActivity(applicationContext, 0, sessionIntent, PendingIntent.FLAG_ONE_SHOT)
             }
 
         // Need this component for API 20 and earlier.
@@ -496,18 +437,18 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     /**
-     * Reconfigures ExoPlayer according to audio focus settings and
-     * starts/restarts it. This method starts/restarts the ExoPlayer
+     * Reconfigures Player according to audio focus settings and
+     * starts/restarts it. This method starts/restarts the Player
      * respecting the current audio focus state. So if we have focus, it will
      * play normally; if we don't have focus, it will either leave the
-     * ExoPlayer paused or set it to a low volume, depending on what is
+     * Player paused or set it to a low volume, depending on what is
      * allowed by the current focus settings. This method assumes mPlayer !=
      * null, so if you are calling it, you have to do so from a context where
      * you are sure this is the case.
      */
     private fun configMediaPlayerState() {
-        if (mExoPlayerORImpl != null && !mExoPlayerORImpl!!.isPlaying) {
-            mExoPlayerORImpl!!.play()
+        if (mPlayer != null && !mPlayer!!.isPlaying) {
+            mPlayer!!.play()
         } else {
             AppLogger.e("$CLASS_NAME handle play on UI thread with null/invalid player")
         }
@@ -580,7 +521,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      * @param exception
      */
     private fun onHandledError(exception: PlaybackException) {
-        AppLogger.e("$CLASS_NAME ExoPlayer handled exception", exception)
+        AppLogger.e("$CLASS_NAME player handled exception", exception)
         val throwable = exception.cause
         if (throwable is UnrecognizedInputFormatException) {
             handleUnrecognizedInputFormatException()
@@ -640,7 +581,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     private fun onPrepared() {
-        AppLogger.i("$CLASS_NAME ExoPlayer prepared")
+        AppLogger.i("$CLASS_NAME player prepared")
         // The media player is done preparing. That means we can start playing if we
         // have audio focus.
         val radioStation = getRadioStationByMediaId(mCurrentMediaId)
@@ -656,7 +597,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         AppLogger.d("$CLASS_NAME stop Service")
         // Service is being killed, so make sure we release our resources
         handleStopRequest()
-        releaseExoPlayer()
+        releasePlayer()
         mDelayedStopHandler.removeCallbacksAndMessages(null)
         if (this::mSession.isInitialized) {
             AppLogger.d("$CLASS_NAME clear media session")
@@ -670,13 +611,9 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     /**
      * Clear Exo Player and associated resources.
      */
-    private fun releaseExoPlayer() {
+    private fun releasePlayer() {
         mCurrentStreamTitle = AppUtils.EMPTY_STRING
-        if (mExoPlayerORImpl == null) {
-            return
-        }
-        mExoPlayerORImpl!!.release()
-        mExoPlayerORImpl = null
+        mPlayer?.release()
     }
 
     /**
@@ -684,9 +621,9 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      * the media player if needed, or reset the existing media player if one
      * already exists.
      */
-    private fun createMediaPlayerIfNeeded() {
-        if (mExoPlayerORImpl == null) {
-            mExoPlayerORImpl = ExoPlayerOpenRadioImpl(
+    private fun createPlayerIfNeeded() {
+        if (mPlayer == null) {
+            mPlayer = OpenRadioPlayer(
                 applicationContext, mListener,
                 object : MetadataListener {
                     override fun onMetaData(title: String) {
@@ -696,7 +633,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 }
             )
         } else {
-            mExoPlayerORImpl!!.reset()
+            mPlayer?.reset()
         }
     }
 
@@ -817,24 +754,16 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
 
     /**
      * Releases resources used by the service for playback. This includes the
-     * "foreground service" status, the wake locks and possibly the ExoPlayer.
-     *
-     * @param releaseMediaPlayer Indicates whether the Media Player should also
-     * be released or not
+     * "foreground service" status.
      */
-    private fun relaxResources(releaseMediaPlayer: Boolean) {
-        AppLogger.d("$CLASS_NAME relax resources, release:$releaseMediaPlayer")
+    private fun relaxResources() {
+        AppLogger.d("$CLASS_NAME relax resources.")
 
         // stop being a foreground service
         stopForeground(true)
         // reset the delayed stop handler.
         mDelayedStopHandler.removeCallbacksAndMessages(null)
         mDelayedStopHandler.sendEmptyMessageDelayed(0, STOP_DELAY.toLong())
-
-        // stop and release the Media Player, if it's available
-        if (releaseMediaPlayer) {
-            releaseExoPlayer()
-        }
     }
 
     /**
@@ -944,11 +873,11 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         setPlaybackState(PlaybackStateCompat.STATE_STOPPED)
         mPauseReason = PauseReason.DEFAULT
 
-        // Release everything except ExoPlayer
-        relaxResources(false)
-        createMediaPlayerIfNeeded()
+        // Release everything.
+        relaxResources()
+        createPlayerIfNeeded()
         setPlaybackState(PlaybackStateCompat.STATE_BUFFERING)
-        mExoPlayerORImpl!!.prepare(Uri.parse(url))
+        mPlayer?.prepare(Uri.parse(url))
 
         updatePlaybackState()
     }
@@ -962,12 +891,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     }
 
     private fun setPlayerVolume() {
-        if (mExoPlayerORImpl == null) {
-            AppLogger.e("$CLASS_NAME can not set player volume, player null")
-            return
-        }
-        val volume = AppPreferencesManager.getMasterVolume(applicationContext) / 100.0f
-        mExoPlayerORImpl!!.setVolume(volume)
+        mPlayer?.setVolume(AppPreferencesManager.getMasterVolume(applicationContext) / 100.0f)
     }
 
     /**
@@ -990,11 +914,11 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
             // Pause media player and cancel the 'foreground service' state.
             setPlaybackState(PlaybackStateCompat.STATE_PAUSED)
             mPauseReason = reason
-            if (mExoPlayerORImpl != null && mExoPlayerORImpl!!.isPlaying) {
-                mExoPlayerORImpl!!.pause()
+            if (mPlayer?.isPlaying == true) {
+                mPlayer?.pause()
             }
-            // while paused, retain the ExoPlayer but give up audio focus
-            relaxResources(false)
+            // While paused, give up audio focus.
+            relaxResources()
         }
         updatePlaybackState()
     }
@@ -1107,8 +1031,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         mPauseReason = PauseReason.DEFAULT
         mNoisyAudioStreamReceiver.unregister(applicationContext)
 
-        // let go of all resources...
-        relaxResources(true)
+        // Let go of all resources...
+        relaxResources()
 
         if (AppUtils.hasVersionLollipop()) {
             if (this::mMediaNotification.isInitialized) {
@@ -1434,10 +1358,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                     true
                 }
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                    if (mExoPlayerORImpl == null) {
-                        return false
-                    }
-                    if (mExoPlayerORImpl!!.isPlaying) {
+                    if (mPlayer?.isPlaying == true) {
                         onPause()
                     } else {
                         onPlay()
@@ -1766,8 +1687,8 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                 }
                 handlePlayRequest()
             }
-            VALUE_NAME_UPDATE_EQUALIZER -> if (mExoPlayerORImpl != null) {
-                mExoPlayerORImpl!!.loadEqualizerState()
+            VALUE_NAME_UPDATE_EQUALIZER -> {
+                mPlayer?.loadEqualizerState()
             }
             VALUE_NAME_STOP_SERVICE -> {
                 mUiScope.launch {
@@ -1799,7 +1720,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     /**
      * Listener for Exo Player events.
      */
-    private inner class ExoPlayerListener : ExoPlayerOpenRadioImpl.Listener {
+    private inner class PlayerListener : OpenRadioPlayer.Listener {
 
         override fun onError(error: PlaybackException) {
             handleStopRequest(
@@ -1832,7 +1753,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
 
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
             AppLogger.d(
-                "$CLASS_NAME OnPlayWhenReadyChanged, is playing:${mExoPlayerORImpl?.isPlaying}, " +
+                "$CLASS_NAME OnPlayWhenReadyChanged, is playing:${mPlayer?.isPlaying}, " +
                     "state:${PlayerUtils.playbackStateToString(mState)}, reason:$reason"
             )
             when (reason) {
@@ -1843,12 +1764,12 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
                         handlePauseRequest()
                     }
                 }
-                Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
-                Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> {
-                    if (mExoPlayerORImpl != null && !mExoPlayerORImpl!!.isPlaying) {
+                //Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST,
+                //Player.PLAY_WHEN_READY_CHANGE_REASON_REMOTE -> {
+                    //if (mPlayer != null && !mPlayer!!.isPlaying) {
                         //handlePlayRequest()
-                    }
-                }
+                    //}
+                //}
             }
         }
     }

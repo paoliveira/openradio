@@ -12,8 +12,6 @@ android {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
         multiDexEnabled true
-        versionCode project.ext.versionCode
-        versionName project.ext.versionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,10 +33,6 @@ android {
     kotlinOptions {
         jvmTarget = project.ext.kotlinJvmTarget
     }
-
-    aaptOptions {
-        cruncherEnabled = true
-    }
 }
 
 dependencies {
@@ -50,31 +44,30 @@ dependencies {
     implementation "androidx.room:room-runtime:$roomVersion"
     implementation "androidx.room:room-ktx:$roomVersion"
 
-    implementation "com.android.support:multidex:$multidexVersion"
-    implementation "com.google.android.material:material:$materialVersion"
-    implementation "androidx.core:core-ktx:$kotlinCoreKtx"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    api "com.android.support:multidex:$multidexVersion"
+    api "com.google.android.material:material:$materialVersion"
+    api "androidx.core:core-ktx:$kotlinCoreKtx"
     // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
-    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation "com.google.firebase:firebase-analytics-ktx"
-    implementation "com.google.firebase:firebase-crashlytics-ktx"
-    implementation "org.checkerframework:checker-qual:$checkerQualVersion"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
-    implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
+    api platform("com.google.firebase:firebase-bom:$firebaseBom")
+    api "com.google.firebase:firebase-analytics-ktx"
+    api "com.google.firebase:firebase-crashlytics-ktx"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
+    api "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
     implementation "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
     implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
+    api "com.google.android.exoplayer:extension-cast:$exoPlayerVersion"
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
-    implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
-    implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
+    api "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
+    api("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
         exclude group: "org.apache.httpcomponents"
     }
-    implementation("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
+    api("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
         exclude group: "org.apache.httpcomponents"
     }
     // https://mvnrepository.com/artifact/org.jdom/jdom2
-    implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
-    implementation "log4j:log4j:$log4jVersion"
+    api group: "org.jdom", name: "jdom2", version: "$jdom2Version"
+    api "log4j:log4j:$log4jVersion"
     implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
 
     androidTestImplementation(

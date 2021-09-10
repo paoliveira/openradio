@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId project.ext.applicationId
-        minSdkVersion 28
+        minSdk 28
         targetSdkVersion project.ext.targetSdkVersion
         versionCode project.ext.versionCode
         versionName project.ext.versionName
@@ -45,11 +45,10 @@ android {
     kotlinOptions {
         jvmTarget = project.ext.kotlinJvmTarget
     }
-
     packagingOptions {
-        exclude 'META-INF/DEPENDENCIES'
-        exclude 'META-INF/LICENSE.md'
-        exclude 'META-INF/NOTICE.md'
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE.md', 'META-INF/NOTICE.md']
+        }
     }
 }
 
@@ -57,9 +56,6 @@ dependencies {
     implementation project(':common')
     implementation project(':common-ui')
 
-    implementation "androidx.constraintlayout:constraintlayout:$constraintlayoutAndroidXVersion"
     implementation "androidx.preference:preference-ktx:$preferenceKtxVersion"
-    implementation "androidx.appcompat:appcompat:$appcompatVersion"
     implementation "androidx.localbroadcastmanager:localbroadcastmanager:$localbroadcastmanagerVersion"
-    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
 }

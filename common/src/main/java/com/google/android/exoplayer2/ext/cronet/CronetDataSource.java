@@ -15,6 +15,10 @@
  */
 package com.google.android.exoplayer2.ext.cronet;
 
+import static com.google.android.exoplayer2.upstream.HttpUtil.buildRangeRequestHeader;
+import static com.google.android.exoplayer2.util.Util.castNonNull;
+import static org.chromium.net.UrlRequest.Builder.REQUEST_PRIORITY_MEDIUM;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.PlaybackException;
 import com.google.android.exoplayer2.upstream.DataSource;
@@ -32,10 +36,6 @@ import org.chromium.net.UrlResponseInfo;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Executor;
-
-import static com.google.android.exoplayer2.upstream.HttpUtil.buildRangeRequestHeader;
-import static com.google.android.exoplayer2.util.Util.castNonNull;
-import static org.chromium.net.UrlRequest.Builder.REQUEST_PRIORITY_MEDIUM;
 
 /**
  * DataSource without intermediate buffer based on Cronet API set using UrlRequest.

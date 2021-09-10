@@ -18,13 +18,10 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.DefaultLoadControl
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.PlaybackException
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.ext.cast.CastPlayer
+import com.google.android.exoplayer2.ext.cast.SessionAvailabilityListener
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.metadata.icy.IcyInfo
 import com.google.android.exoplayer2.metadata.id3.TextInformationFrame
@@ -32,6 +29,7 @@ import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.HttpDataSource
+import com.google.android.gms.cast.framework.CastContext
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
@@ -41,7 +39,6 @@ import com.yuriy.openradio.shared.utils.PlayerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -56,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * @param mListener         Listener for the wrapper's events.
  * @param mMetadataListener Listener for the stream events.
  */
-class ExoPlayerOpenRadioImpl(
+class OpenRadioPlayer(
     private val mContext: Context,
     private val mListener: Listener,
     private val mMetadataListener: MetadataListener
@@ -88,11 +85,10 @@ class ExoPlayerOpenRadioImpl(
     }
 
     /**
-     * Instance of the ExoPlayer.
+     * The current player will either be an ExoPlayer (for local playback)
+     * or a CastPlayer (for remote playback through a Cast device).
      */
-    private var mExoPlayer: SimpleExoPlayer
-
-    private val mIsReleased = AtomicBoolean(true)
+    private lateinit var mCurrentPlayer: Player
 
     /**
      * Equalizer interface.
@@ -131,7 +127,30 @@ class ExoPlayerOpenRadioImpl(
      */
     private val mNumOfExceptions = AtomicInteger(0)
 
-    init {
+    /**
+     * If Cast is available, create a CastPlayer to handle communication with a Cast session.
+     */
+    private val mCastPlayer: CastPlayer? by lazy {
+        AppLogger.i("$LOG_TAG init CastPlayer")
+        try {
+            val castContext = CastContext.getSharedInstance(mContext)
+            CastPlayer(castContext).apply {
+                setSessionAvailabilityListener(OpenRadioCastSessionAvailabilityListener())
+                addListener(mComponentListener)
+            }
+        } catch (e : Exception) {
+            // We wouldn't normally catch the generic `Exception` however
+            // calling `CastContext.getSharedInstance` can throw various exceptions, all of which
+            // indicate that Cast is unavailable.
+            // Related internal bug b/68009560.
+            AppLogger.e("Cast is not available on this device. " +
+                    "Exception thrown when attempting to obtain CastContext", e)
+            null
+        }
+    }
+
+    private val mExoPlayer: SimpleExoPlayer by lazy {
+        AppLogger.i("$LOG_TAG init ExoPlayer")
         val trackSelector = DefaultTrackSelector(mContext)
         trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(mContext).build()
         val builder = SimpleExoPlayer.Builder(
@@ -158,8 +177,17 @@ class ExoPlayerOpenRadioImpl(
             .setAllowedCapturePolicy(C.ALLOW_CAPTURE_BY_ALL)
             .build()
         builder.setAudioAttributes(audioAttributes, true)
-        mExoPlayer = builder.build()
-        mIsReleased.set(false)
+        val exoPlayer = builder.build()
+        exoPlayer.addListener(mComponentListener)
+        exoPlayer.playWhenReady = true
+        exoPlayer
+    }
+
+    init {
+        switchToPlayer(
+            previousPlayer = null,
+            newPlayer = if (mCastPlayer?.isCastSessionAvailable == true) mCastPlayer!! else mExoPlayer
+        )
         mEqualizer.init(mExoPlayer.audioSessionId)
     }
 
@@ -169,16 +197,18 @@ class ExoPlayerOpenRadioImpl(
      * @param uri URI to play.
      */
     fun prepare(uri: Uri?) {
+        AppLogger.d("$LOG_TAG prepare $uri, cast[${mCastPlayer?.isCastSessionAvailable}]")
         if (uri == null) {
             return
         }
+        mComponentListener.clearMetadata()
         mUserState = UserState.PREPARE
         mUri = uri
-        if (!mIsReleased.get()) {
-            mExoPlayer.addListener(mComponentListener)
-            mExoPlayer.playWhenReady = true
-            mExoPlayer.setMediaItem(MediaItem.Builder().setUri(uri).build())
-            mExoPlayer.prepare()
+        if (mCurrentPlayer == mExoPlayer) {
+            mCurrentPlayer.setMediaItem(MediaItem.Builder().setUri(mUri).build())
+            mCurrentPlayer.prepare()
+        } else {
+            mCastPlayer!!.setMediaItem(MediaItem.Builder().setUri(mUri).build())
         }
     }
 
@@ -189,13 +219,11 @@ class ExoPlayerOpenRadioImpl(
      */
     fun setVolume(value: Float) {
         AppLogger.d("$LOG_TAG volume to $value")
-        if (!mIsReleased.get()) {
-            mExoPlayer.volume = value
-        }
+        mCurrentPlayer.volume = value
     }
 
     /**
-     * Play current stream based on the URI passed to [.prepare] method.
+     * Play current stream based on the URI passed to [prepare] method.
      */
     fun play() {
         AppLogger.d("$LOG_TAG play")
@@ -204,15 +232,13 @@ class ExoPlayerOpenRadioImpl(
     }
 
     /**
-     * Pause current stream based on the URI passed to [.prepare] )} method.
+     * Pause current stream based on the URI passed to [prepare] method.
      */
     fun pause() {
         AppLogger.d("$LOG_TAG pause")
         mUserState = UserState.PAUSE
-        if (!mIsReleased.get()) {
-            mExoPlayer.stop()
-            mExoPlayer.playWhenReady = false
-        }
+        mCurrentPlayer.stop()
+        mCurrentPlayer.playWhenReady = false
     }
 
     /**
@@ -222,7 +248,7 @@ class ExoPlayerOpenRadioImpl(
      */
     val isPlaying: Boolean
         get() {
-            val isPlaying = !mIsReleased.get() && mExoPlayer.playWhenReady
+            val isPlaying = mCurrentPlayer.playWhenReady
             AppLogger.d("$LOG_TAG is playing:$isPlaying")
             return isPlaying
         }
@@ -231,21 +257,14 @@ class ExoPlayerOpenRadioImpl(
      * Resets the player to its uninitialized state.
      */
     fun reset() {
-        AppLogger.d("$LOG_TAG reset")
         mUserState = UserState.RESET
-        if (!mIsReleased.get()) {
-            mExoPlayer.stop()
-        }
+        stop()
     }
 
     /**
      * Release the player and associated resources.
      */
     fun release() {
-        if (mIsReleased.get()) {
-            AppLogger.d("$LOG_TAG ExoPlayer impl already released")
-            return
-        }
         mUiScope.launch { releaseIntrnl() }
     }
 
@@ -253,16 +272,36 @@ class ExoPlayerOpenRadioImpl(
         mEqualizer.loadState()
     }
 
-    private fun releaseIntrnl() {
-        if (mIsReleased.get()) {
-            AppLogger.d("$LOG_TAG ExoPlayer impl already released")
+    private fun stop() {
+        mCurrentPlayer.clearMediaItems()
+        mCurrentPlayer.stop()
+    }
+
+    private fun switchToPlayer(previousPlayer: Player?, newPlayer: Player) {
+        AppLogger.i("$LOG_TAG prev player: $previousPlayer")
+        AppLogger.i("$LOG_TAG new  player: $newPlayer")
+        if (previousPlayer == newPlayer) {
             return
         }
+        mCurrentPlayer = newPlayer
+        AppLogger.i("$LOG_TAG curr player: $mCurrentPlayer")
+        if (previousPlayer != null) {
+            // We are joining a playback session. Loading the session from the new player is
+            // not supported, so we stop playback.
+            val volume = previousPlayer.volume
+            val playWhenReady = previousPlayer.playWhenReady
+            stop()
+            mCurrentPlayer.playWhenReady = playWhenReady
+            prepare(mUri)
+            setVolume(volume)
+        }
+        previousPlayer?.stop()
+    }
+
+    private fun releaseIntrnl() {
         mEqualizer.deinit()
-        mExoPlayer.removeListener(mComponentListener)
         reset()
-        mExoPlayer.release()
-        mIsReleased.set(true)
+        mCurrentPlayer.release()
     }
 
     /**
@@ -277,6 +316,10 @@ class ExoPlayerOpenRadioImpl(
 
         private var mRawMetadata = AppUtils.EMPTY_STRING
 
+        fun clearMetadata() {
+            mRawMetadata = AppUtils.EMPTY_STRING
+        }
+
         override fun onMetadata(metadata: Metadata) {
 
             for (i in 0 until metadata.length()) {
@@ -285,15 +328,20 @@ class ExoPlayerOpenRadioImpl(
                 // See https://en.wikipedia.org/wiki/ID3#ID3v2_frame_specification
                 val msg = "Metadata entry:$entry"
                 AppLogger.d(msg)
-                AnalyticsUtils.logMetadata(msg)
-                if (entry is IcyInfo) {
-                    title = entry.title ?: AppUtils.EMPTY_STRING
-                } else if (entry is TextInformationFrame) {
-                    when (entry.id) {
-                        ExoPlayerUtils.METADATA_ID_TT2,
-                        ExoPlayerUtils.METADATA_ID_TIT2 -> {
-                            title = entry.value
+                when (entry) {
+                    is IcyInfo -> {
+                        title = entry.title ?: AppUtils.EMPTY_STRING
+                    }
+                    is TextInformationFrame -> {
+                        when (entry.id) {
+                            ExoPlayerUtils.METADATA_ID_TT2,
+                            ExoPlayerUtils.METADATA_ID_TIT2 -> {
+                                title = entry.value
+                            }
                         }
+                    }
+                    else -> {
+                        AnalyticsUtils.logMetadata(msg)
                     }
                 }
                 if (title.isEmpty()) {
@@ -372,6 +420,24 @@ class ExoPlayerOpenRadioImpl(
                 return
             }
             mListener.onError(exception)
+        }
+    }
+
+    private inner class OpenRadioCastSessionAvailabilityListener : SessionAvailabilityListener {
+
+        /**
+         * Called when a Cast session has started and the user wishes to control playback on a
+         * remote Cast receiver rather than play audio locally.
+         */
+        override fun onCastSessionAvailable() {
+            switchToPlayer(mCurrentPlayer, mCastPlayer!!)
+        }
+
+        /**
+         * Called when a Cast session has ended and the user wishes to control playback locally.
+         */
+        override fun onCastSessionUnavailable() {
+            switchToPlayer(mCurrentPlayer, mExoPlayer)
         }
     }
 

@@ -15,6 +15,7 @@
     limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.yuriy.openradio">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -47,6 +48,10 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
+        <!-- Declare that Open Radio supports Cast. -->
+        <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="com.yuriy.openradio.shared.cast.OpenRadioCastOptionsProvider"/>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
@@ -57,7 +62,8 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <receiver android:name=".shared.broadcast.RemoteControlReceiver">
+        <receiver android:name=".shared.broadcast.RemoteControlReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
@@ -71,7 +77,9 @@
 
         <service
             android:name=".shared.service.OpenRadioService"
-            android:exported="true">
+            android:exported="true"
+            android:enabled="true"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>

@@ -48,7 +48,7 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
         if (!intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
             return
         }
-        val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) as BluetoothDevice
+        val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
         when (intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR)) {
             BluetoothAdapter.STATE_CONNECTED -> {
                 AppLogger.i("$CLASS_NAME connected to ${device.address}")

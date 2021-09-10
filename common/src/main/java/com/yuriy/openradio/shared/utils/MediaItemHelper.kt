@@ -244,9 +244,7 @@ object MediaItemHelper {
         if (value.extras != null) {
             result = value.extras!!.getString(MediaMetadataCompat.METADATA_KEY_ARTIST, defaultValue)
         }
-        return if (result.isNotEmpty()) {
-            result
-        } else defaultValue
+        return result.ifEmpty { defaultValue }
     }
 
     /**

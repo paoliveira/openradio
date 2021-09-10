@@ -9,13 +9,13 @@ project.ext {
     compileSdkVersion = 30
     minSdkVersion = 17
     targetSdkVersion = 30
-    buildToolsVersion = "30.0.3"
+    buildToolsVersion = "31.0.0"
     toolsBuildGradle = "4.1.1"
 
     /**
      * Kotlin versions
      */
-    kotlinVersion = "1.5.21"
+    kotlinVersion = "1.5.30"
     kotlinCoreKtx = "1.6.0"
     kotlinxCoroutinesCore = "1.3.8"
     kotlinxCoroutinesAndroid = "1.5.0"
@@ -24,7 +24,7 @@ project.ext {
     /**
      * Libraries versions
      */
-    checkerQualVersion = "3.3.0"
+    gradleVersion = "7.1.0-alpha10"
     appcompatVersion = "1.3.1"
     materialVersion = "1.4.0"
     googlePlayServicesDriveVersion = "17.0.0"

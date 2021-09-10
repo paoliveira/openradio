@@ -135,7 +135,6 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
         filter.addAction(ACTION_CLOSE_APP)
         context.registerReceiver(this, filter)
         val metadata = mController.metadata
-        AppLogger.w("$CLASS_NAME controller has no metadata")
         mMetadata = metadata ?: MediaItemHelper.metadataFromRadioStation(context, radioStation)
         mStarted.set(true)
         // The notification must be updated after setting started to true
@@ -147,7 +146,9 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
      * was destroyed this has no effect.
      */
     fun stopNotification(context: Context) {
-        mStarted.set(false)
+        if (!mStarted.get()) {
+            return
+        }
         mController.unregisterCallback(mCb)
         mNotificationManager.cancelAll()
         try {
@@ -155,6 +156,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
         } catch (ex: IllegalArgumentException) {
             AppLogger.e("$CLASS_NAME error while unregister", ex)
         }
+        mStarted.set(false)
     }
 
     override fun onReceive(context: Context, intent: Intent) {

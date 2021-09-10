@@ -54,9 +54,9 @@
 
         <activity
             android:name=".view.activity.TvMainActivity"
-            android:label="@string/app_name"
             android:launchMode="singleInstance"
-            android:theme="@style/open_radio_tv">
+            android:theme="@style/open_radio_tv"
+            android:exported="true">
             <!-- This filter identifies app as being enabled for TV, and lets Google Play identify it as a TV app. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

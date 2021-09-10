@@ -7,16 +7,13 @@ apply from: "../constants.gradle"
 android {
     compileSdkVersion project.ext.compileSdkVersion
     buildToolsVersion project.ext.buildToolsVersion
-
     defaultConfig {
         minSdkVersion project.ext.minSdkVersion
         targetSdkVersion project.ext.targetSdkVersion
-        versionCode project.ext.versionCode
-        versionName project.ext.versionName
     }
 
     buildTypes {
-        debuig {
+        debug {
 
         }
 
@@ -38,30 +35,10 @@ android {
 dependencies {
     implementation project(':common')
 
-    api "com.google.android.gms:play-services-cronet:$googlePlayServicesCronet"
-    api "androidx.media:media:$androidxMediaVersion"
-
-    implementation "com.google.android.material:material:$materialVersion"
-    implementation "androidx.core:core-ktx:$kotlinCoreKtx"
-    // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
-    implementation platform("com.google.firebase:firebase-bom:$firebaseBom")
-    implementation "com.google.firebase:firebase-analytics-ktx"
-    implementation "com.google.firebase:firebase-crashlytics-ktx"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
-    implementation "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
-    implementation "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
+    api "androidx.constraintlayout:constraintlayout:$constraintlayoutAndroidXVersion"
+    api "androidx.fragment:fragment-ktx:$fragmentKtxVersion"
+    api "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
-    implementation "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
-    implementation("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
-        exclude group: "org.apache.httpcomponents"
-    }
-    implementation("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
-        exclude group: "org.apache.httpcomponents"
-    }
-    // https://mvnrepository.com/artifact/org.jdom/jdom2
-    implementation group: "org.jdom", name: "jdom2", version: "$jdom2Version"
-    implementation "log4j:log4j:$log4jVersion"
 
     implementation "com.sun.mail:android-mail:$androidMailVersion"
 }

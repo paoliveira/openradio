@@ -19,6 +19,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
 
+    <item
+        android:id="@+id/action_cast"
+        android:title="@string/media_route_menu_title"
+        app:actionProviderClass="androidx.mediarouter.app.MediaRouteActionProvider"
+        app:showAsAction="always" />
+
     <item android:id="@+id/action_eq"
         android:title="@string/eq_label"
         android:icon="@drawable/ic_equalizer"
@@ -27,6 +33,6 @@
     <item android:id="@+id/action_search"
         android:title="@string/search_label"
         android:icon="@drawable/ic_search"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
 </menu>

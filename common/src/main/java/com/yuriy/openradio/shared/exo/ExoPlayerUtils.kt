@@ -34,7 +34,6 @@ import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull
 import java.io.File
 import java.net.CookieHandler
 import java.net.CookieManager
@@ -47,11 +46,11 @@ object ExoPlayerUtils {
     const val METADATA_ID_TIT2 = "TIT2"
 
     private const val DOWNLOAD_CONTENT_DIRECTORY = "downloads"
-    private var sDataSourceFactory: @MonotonicNonNull DataSource.Factory? = null
-    private var sHttpDataSourceFactory: @MonotonicNonNull HttpDataSource.Factory? = null
-    private var sDownloadCache: @MonotonicNonNull Cache? = null
-    private var sDownloadDirectory: @MonotonicNonNull File? = null
-    private var sDatabaseProvider: @MonotonicNonNull DatabaseProvider? = null
+    private var sDataSourceFactory: DataSource.Factory? = null
+    private var sHttpDataSourceFactory: HttpDataSource.Factory? = null
+    private var sDownloadCache: Cache? = null
+    private var sDownloadDirectory: File? = null
+    private var sDatabaseProvider: DatabaseProvider? = null
     private var sUserAgent = AppUtils.EMPTY_STRING
 
     @JvmStatic
