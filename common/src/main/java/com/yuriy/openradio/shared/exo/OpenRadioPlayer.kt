@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.exo
 
 import android.content.Context
 import android.net.Uri
+import android.webkit.MimeTypeMap
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.cast.CastPlayer
@@ -29,6 +30,7 @@ import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.source.UnrecognizedInputFormatException
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.upstream.HttpDataSource
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.gms.cast.framework.CastContext
 import com.yuriy.openradio.shared.model.media.IEqualizerImpl
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
@@ -39,6 +41,7 @@ import com.yuriy.openradio.shared.utils.PlayerUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -127,6 +130,8 @@ class OpenRadioPlayer(
      */
     private val mNumOfExceptions = AtomicInteger(0)
 
+    private val mMimeTypeMap = MimeTypeMap.getSingleton()
+
     /**
      * If Cast is available, create a CastPlayer to handle communication with a Cast session.
      */
@@ -204,11 +209,13 @@ class OpenRadioPlayer(
         mComponentListener.clearMetadata()
         mUserState = UserState.PREPARE
         mUri = uri
+        val item = MediaItem.Builder()
+            .setUri(mUri)
+            .setMimeType(getMimeTypeFromUri(mUri))
+            .build()
+        mCurrentPlayer.setMediaItem(item)
         if (mCurrentPlayer == mExoPlayer) {
-            mCurrentPlayer.setMediaItem(MediaItem.Builder().setUri(mUri).build())
             mCurrentPlayer.prepare()
-        } else {
-            mCastPlayer!!.setMediaItem(MediaItem.Builder().setUri(mUri).build())
         }
     }
 
@@ -451,5 +458,28 @@ class OpenRadioPlayer(
          *
          */
         private const val MAX_EXCEPTIONS_COUNT = 5
+
+        /**
+         * Utility method to extract stream mime type from the stream extension (if exists).
+         */
+        fun getMimeTypeFromUri(uri: Uri): String {
+            val mime: String = when (MimeTypeMap.getFileExtensionFromUrl(uri.toString()).lowercase(Locale.getDefault())) {
+                "aac" -> MimeTypes.AUDIO_AAC
+                "ac3" -> MimeTypes.AUDIO_AC3
+                "ac4" -> MimeTypes.AUDIO_AC4
+                "flac" -> MimeTypes.AUDIO_FLAC
+                "mp3" -> MimeTypes.AUDIO_MPEG
+                "oga" -> MimeTypes.AUDIO_OGG
+                "opus" -> MimeTypes.AUDIO_OPUS
+                "wav" -> MimeTypes.AUDIO_WAV
+                "weba" -> MimeTypes.AUDIO_WEBM
+                else -> MimeTypes.AUDIO_UNKNOWN
+            }
+            if (mime == MimeTypes.AUDIO_UNKNOWN) {
+                AnalyticsUtils.logUnknownMime(uri.toString())
+            }
+            AppLogger.d("$LOG_TAG mime type:$mime")
+            return mime
+        }
     }
 }
