@@ -143,13 +143,15 @@ class OpenRadioPlayer(
                 setSessionAvailabilityListener(OpenRadioCastSessionAvailabilityListener())
                 addListener(mComponentListener)
             }
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             // We wouldn't normally catch the generic `Exception` however
             // calling `CastContext.getSharedInstance` can throw various exceptions, all of which
             // indicate that Cast is unavailable.
             // Related internal bug b/68009560.
-            AppLogger.e("Cast is not available on this device. " +
-                    "Exception thrown when attempting to obtain CastContext", e)
+            AppLogger.e(
+                "Cast is not available on this device. " +
+                        "Exception thrown when attempting to obtain CastContext", e
+            )
             null
         }
     }
@@ -368,7 +370,7 @@ class OpenRadioPlayer(
             // playbackState is one of the {@link Player}.STATE_ constants.
             AppLogger.d(
                 "$mLogTag OnPlaybackStateChanged to ${PlayerUtils.playerStateToString(playbackState)}," +
-                    " userState:$mUserState"
+                        " userState:$mUserState"
             )
             mListener.onPlaybackStateChanged(playbackState)
             when (playbackState) {
@@ -395,7 +397,7 @@ class OpenRadioPlayer(
             // playbackState is one of the {@link Player}.STATE_ constants.
             AppLogger.d(
                 "$mLogTag OnPlayerStateChanged to $playWhenReady," +
-                    " player state:${PlayerUtils.playerStateToString(playbackState)}"
+                        " player state:${PlayerUtils.playerStateToString(playbackState)}"
             )
         }
 
@@ -463,18 +465,19 @@ class OpenRadioPlayer(
          * Utility method to extract stream mime type from the stream extension (if exists).
          */
         fun getMimeTypeFromUri(uri: Uri): String {
-            val mime: String = when (MimeTypeMap.getFileExtensionFromUrl(uri.toString()).lowercase(Locale.getDefault())) {
-                "aac" -> MimeTypes.AUDIO_AAC
-                "ac3" -> MimeTypes.AUDIO_AC3
-                "ac4" -> MimeTypes.AUDIO_AC4
-                "flac" -> MimeTypes.AUDIO_FLAC
-                "mp3" -> MimeTypes.AUDIO_MPEG
-                "oga" -> MimeTypes.AUDIO_OGG
-                "opus" -> MimeTypes.AUDIO_OPUS
-                "wav" -> MimeTypes.AUDIO_WAV
-                "weba" -> MimeTypes.AUDIO_WEBM
-                else -> MimeTypes.AUDIO_UNKNOWN
-            }
+            val mime: String =
+                when (MimeTypeMap.getFileExtensionFromUrl(uri.toString()).lowercase(Locale.getDefault())) {
+                    "aac" -> MimeTypes.AUDIO_AAC
+                    "ac3" -> MimeTypes.AUDIO_AC3
+                    "ac4" -> MimeTypes.AUDIO_AC4
+                    "flac" -> MimeTypes.AUDIO_FLAC
+                    "mp3" -> MimeTypes.AUDIO_MPEG
+                    "oga" -> MimeTypes.AUDIO_OGG
+                    "opus" -> MimeTypes.AUDIO_OPUS
+                    "wav" -> MimeTypes.AUDIO_WAV
+                    "weba" -> MimeTypes.AUDIO_WEBM
+                    else -> MimeTypes.AUDIO_UNKNOWN
+                }
             if (mime == MimeTypes.AUDIO_UNKNOWN) {
                 AnalyticsUtils.logUnknownMime(uri.toString())
             }
