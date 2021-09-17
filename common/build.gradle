@@ -18,7 +18,7 @@ android {
 
     buildTypes {
         debug {
-
+            ext.enableCrashlytics = false
         }
 
         release {
@@ -54,8 +54,8 @@ dependencies {
     api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
     api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
     api "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
-    implementation "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
-    implementation "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
     api "com.google.android.exoplayer:extension-cast:$exoPlayerVersion"
     implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
     api "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"

@@ -30,6 +30,7 @@ android {
 
     buildTypes {
         debug {
+            ext.enableCrashlytics = false
             signingConfig signingConfigs.config
         }
         release {

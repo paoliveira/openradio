@@ -467,15 +467,18 @@ class OpenRadioPlayer(
         fun getMimeTypeFromUri(uri: Uri): String {
             val mime: String =
                 when (MimeTypeMap.getFileExtensionFromUrl(uri.toString()).lowercase(Locale.getDefault())) {
-                    "aac" -> MimeTypes.AUDIO_AAC
+                    "aacp", "aac" -> MimeTypes.AUDIO_AAC
                     "ac3" -> MimeTypes.AUDIO_AC3
                     "ac4" -> MimeTypes.AUDIO_AC4
                     "flac" -> MimeTypes.AUDIO_FLAC
                     "mp3" -> MimeTypes.AUDIO_MPEG
-                    "oga" -> MimeTypes.AUDIO_OGG
+                    "ogg", "oga" -> MimeTypes.AUDIO_OGG
                     "opus" -> MimeTypes.AUDIO_OPUS
                     "wav" -> MimeTypes.AUDIO_WAV
                     "weba" -> MimeTypes.AUDIO_WEBM
+                    "m4a" -> "audio/m4a"
+                    "m3u", "m3u8" -> MimeTypes.APPLICATION_M3U8
+                    "ts" -> MimeTypes.VIDEO_MP2T
                     else -> MimeTypes.AUDIO_UNKNOWN
                 }
             if (mime == MimeTypes.AUDIO_UNKNOWN) {

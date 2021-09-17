@@ -49,7 +49,7 @@ project.ext {
     googleApiClientAndroidVersion = "1.26.0"
     googleApiServicesDrive = "v3-rev197-1.25.0"
     countryboundariesVersion = "1.5"
-    androidxMediaVersion = "1.4.1"
+    androidxMediaVersion = "1.4.2"
     fragmentKtxVersion = "1.3.6"
     roomVersion = "2.3.0"
     exifinterfaceVersion = "1.3.3"
