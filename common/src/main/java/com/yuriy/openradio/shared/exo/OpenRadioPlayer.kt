@@ -130,8 +130,6 @@ class OpenRadioPlayer(
      */
     private val mNumOfExceptions = AtomicInteger(0)
 
-    private val mMimeTypeMap = MimeTypeMap.getSingleton()
-
     /**
      * If Cast is available, create a CastPlayer to handle communication with a Cast session.
      */
@@ -211,6 +209,7 @@ class OpenRadioPlayer(
         mComponentListener.clearMetadata()
         mUserState = UserState.PREPARE
         mUri = uri
+        mCurrentPlayer.playWhenReady = true
         val item = MediaItem.Builder()
             .setUri(mUri)
             .setMimeType(getMimeTypeFromUri(mUri))
