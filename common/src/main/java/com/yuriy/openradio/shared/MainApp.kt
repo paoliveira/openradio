@@ -48,21 +48,21 @@ class MainApp : MultiDexApplication(), NetworkMonitorDependency {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
-        MultiDex.install(applicationContext)
+        MultiDex.install(base)
+        DependencyRegistry.init(base)
+        DependencyRegistry.injectNetworkMonitor(this)
     }
 
     override fun onCreate() {
         AppLogger.d(CLASS_NAME + "OnCreate")
         AnalyticsUtils.init()
         val context = applicationContext
-        DependencyRegistry.init(context)
-        DependencyRegistry.injectNetworkMonitor(this)
 
         super.onCreate()
 
         // Address devices API 19 and lower.
         try {
-            ProviderInstaller.installIfNeeded(applicationContext)
+            ProviderInstaller.installIfNeeded(context)
             val sslContext = SSLContext.getInstance("TLSv1.2")
             sslContext.init(null, null, null)
             sslContext.createSSLEngine()

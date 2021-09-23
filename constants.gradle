@@ -24,7 +24,7 @@ project.ext {
     /**
      * Libraries versions
      */
-    gradleVersion = "7.1.0-alpha10"
+    gradleVersion = "7.1.0-alpha12"
     appcompatVersion = "1.3.1"
     materialVersion = "1.4.0"
     googlePlayServicesDriveVersion = "17.0.0"

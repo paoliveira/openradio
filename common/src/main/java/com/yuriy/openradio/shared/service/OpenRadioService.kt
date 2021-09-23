@@ -2082,6 +2082,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
             )
             initInternals()
             handleStopRequest()
+            stopService()
             stopSelfResultInt()
         }
     }
