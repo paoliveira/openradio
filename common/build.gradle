@@ -47,6 +47,7 @@ dependencies {
     api "com.android.support:multidex:$multidexVersion"
     api "com.google.android.material:material:$materialVersion"
     api "androidx.core:core-ktx:$kotlinCoreKtx"
+    api "androidx.activity:activity-ktx:$kotlinActivityKtx"
     // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
     api platform("com.google.firebase:firebase-bom:$firebaseBom")
     api "com.google.firebase:firebase-analytics-ktx"

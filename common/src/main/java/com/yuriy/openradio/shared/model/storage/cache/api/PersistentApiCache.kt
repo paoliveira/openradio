@@ -16,9 +16,7 @@
 
 package com.yuriy.openradio.shared.model.storage.cache.api
 
-import android.content.ContentValues
 import android.content.Context
-import android.provider.BaseColumns
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 
@@ -30,104 +28,48 @@ import com.yuriy.openradio.shared.utils.AppUtils
  */
 class PersistentApiCache(context: Context, dbName: String) : ApiCache {
 
-    private val mDbHelper = PersistentAPIDbHelper(context, dbName)
+    private val mDb = PersistentApiDb.getInstance(context, dbName)
 
     override fun get(key: String): String {
-        val db = mDbHelper.readableDatabase
-        val selectionArgs = arrayOf(key)
-        val cursor = db.query(
-            PersistentAPIContract.APIEntry.TABLE_NAME,  // The table to query
-            PROJECTION,  // The array of columns to return (pass null to get all)
-            SELECTION,  // The columns for the WHERE clause
-            selectionArgs,  // The values for the WHERE clause
-            null,  // don't group the rows
-            null,  // don't filter by row groups
-            null // The sort order
-        )
         var data = AppUtils.EMPTY_STRING
-        while (cursor.moveToNext()) {
-            val cId = cursor.getLong(
-                cursor.getColumnIndexOrThrow(BaseColumns._ID)
-            )
-            val cKey = cursor.getString(
-                cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_KEY)
-            )
-            val cData = cursor.getString(
-                cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_DATA)
-            )
-            val cTime = cursor.getInt(
-                cursor.getColumnIndexOrThrow(PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP)
-            )
-            AppLogger.d(CLASS_NAME + "Get id:" + cId + ", key:" + cKey + ", data:" + cData + ", time:" + cTime)
-            if (time - cTime > SEC_IN_DAY) {
-                // Do not return data, return null if time is expired.
-                break
-            }
-            data = cData
+        val record = mDb.persistentApiCacheDao().getRecord(key)
+        if (record == null) {
+            AppLogger.d("$CLASS_NAME cache is empty for $key")
+            return data
         }
-        cursor.close()
-        AppLogger.d(CLASS_NAME + "Cached response from DB for " + key + " is " + data)
+        if (time - record.timestamp <= SEC_IN_DAY) {
+            data = record.data
+        }
+        AppLogger.d("$CLASS_NAME cached response for $key is $data")
         return data
     }
 
     override fun put(key: String, data: String) {
-        // Gets the data repository in write mode
-        val db = mDbHelper.writableDatabase
-
-        // Create a new map of values, where column names are the keys
-        val values = ContentValues()
-        values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_KEY, key)
-        values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_DATA, data)
-        values.put(PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP, time)
-
-        // Insert the new row, returning the primary key value of the new row
-        val newRowId = db.replace(PersistentAPIContract.APIEntry.TABLE_NAME, null, values)
-        AppLogger.d(CLASS_NAME + "New row:" + newRowId)
+        val recordId = mDb.persistentApiCacheDao().insert(
+            PersistentApiEntry(name = key, data = data, timestamp = System.currentTimeMillis())
+        )
+        val count = mDb.persistentApiCacheDao().getCount()
+        AppLogger.d("$CLASS_NAME put record id:$recordId, count is $count")
     }
 
     override fun clear() {
-        val db = mDbHelper.writableDatabase
-        val deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, null, null)
-        AppLogger.d(CLASS_NAME + "Clear rows:" + deletedRows)
+        mDb.persistentApiCacheDao().clear()
+        val count = mDb.persistentApiCacheDao().getCount()
+        AppLogger.d("$CLASS_NAME clear, count is $count")
     }
 
     override fun remove(key: String) {
-        val db = mDbHelper.writableDatabase
-        val selectionArgs = arrayOf(key)
-        val deletedRows = db.delete(PersistentAPIContract.APIEntry.TABLE_NAME, SELECTION, selectionArgs)
-        AppLogger.d(CLASS_NAME + "Remove row:" + deletedRows + ", key:" + key)
+        mDb.persistentApiCacheDao().delete(key)
+        val count = mDb.persistentApiCacheDao().getCount()
+        AppLogger.d("$CLASS_NAME delete record, count is $count")
     }
 
     fun close() {
-        mDbHelper.close()
-    }
-
-    fun getCount(key: String): Int {
-        val db = mDbHelper.readableDatabase
-        val selectionArgs = arrayOf(key)
-        val cursor = db.query(
-            PersistentAPIContract.APIEntry.TABLE_NAME,  // The table to query
-            PROJECTION,  // The array of columns to return (pass null to get all)
-            SELECTION,  // The columns for the WHERE clause
-            selectionArgs,  // The values for the WHERE clause
-            null,  // don't group the rows
-            null,  // don't filter by row groups
-            null // The sort order
-        )
-        val count = cursor.count
-        cursor.close()
-        return count
+        // Do nothing ...
     }
 
     companion object {
-        private val CLASS_NAME = PersistentApiCache::class.java.simpleName + " "
-        private val PROJECTION = arrayOf(
-            BaseColumns._ID,
-            PersistentAPIContract.APIEntry.COLUMN_NAME_KEY,
-            PersistentAPIContract.APIEntry.COLUMN_NAME_DATA,
-            PersistentAPIContract.APIEntry.COLUMN_NAME_TIMESTAMP
-        )
-        private const val SELECTION = PersistentAPIContract.APIEntry.COLUMN_NAME_KEY + " = ?"
+        private val CLASS_NAME = PersistentApiCache::class.java.simpleName
         private const val SEC_IN_DAY = 86400
         private val time: Int
             get() = (System.currentTimeMillis() / 1000).toInt()

@@ -219,7 +219,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
             var bmp = try {
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return ByteArray(0)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 AppLogger.e("$TAG can't decode ${bytes.size} bytes for $mImageUrl", e)
                 AnalyticsUtils.logBitmapDecode(mImageUrl)
                 return ByteArray(0)

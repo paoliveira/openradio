@@ -19,12 +19,7 @@ package com.yuriy.openradio.automotive.ui
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.SeekBar
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -37,7 +32,7 @@ import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveError
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.LogsDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
@@ -54,7 +49,7 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
     private var mProgressBarUpload: ProgressBar? = null
     private var mProgressBarDownload: ProgressBar? = null
     private var mGoogleDriveManager: GoogleDriveManager? = null
-    private var mProgressBar: ProgressBar ?= null
+    private var mProgressBar: ProgressBar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -207,12 +202,7 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
         )
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        AppLogger.d("$CLASS_NAME OnActivityResult: request:$requestCode result:$resultCode")
-        if (requestCode != ACCOUNT_REQUEST_CODE) {
-            return
-        }
+    private fun onActivityResultCallback(data: Intent?) {
         GoogleSignIn
             .getSignedInAccountFromIntent(data)
             .addOnSuccessListener { googleAccount: GoogleSignInAccount ->
@@ -293,11 +283,12 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
                 showErrorToast(getString(R.string.google_drive_error_msg_1))
                 return
             }
-            if (!AppUtils.startActivityForResultSafe(
+            if (!IntentUtils.startActivityForResultSafe(
                     this@AutomotiveSettingsActivity,
                     client.signInIntent,
-                    ACCOUNT_REQUEST_CODE
-                )) {
+                    this@AutomotiveSettingsActivity::onActivityResultCallback
+                )
+            ) {
                 mGoogleDriveManager!!.connect(null)
             }
         }
@@ -346,7 +337,5 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
          * Tag string to use in logging message.
          */
         private val CLASS_NAME = AutomotiveSettingsActivity::class.java.simpleName
-
-        private const val ACCOUNT_REQUEST_CODE = 401
     }
 }

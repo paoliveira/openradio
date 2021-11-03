@@ -16,9 +16,7 @@
 
 package com.yuriy.openradio.shared.utils
 
-import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
@@ -49,8 +47,8 @@ object AppUtils {
     const val EMPTY_STRING = ""
 
     private val ANDROID_AUTO_PACKAGE_NAMES = arrayOf(
-            "com.google.android.projection.gearhead",
-            "com.android.car"
+        "com.google.android.projection.gearhead",
+        "com.android.car"
     )
 
     private const val KEY_SEARCH_QUERY = "KEY_SEARCH_QUERY"
@@ -66,7 +64,6 @@ object AppUtils {
      * @param context Context of the callee.
      * @return
      */
-    @JvmStatic
     fun hasLocation(context: Context?): Boolean {
         if (context == null) {
             return false
@@ -83,7 +80,6 @@ object AppUtils {
      * @param context Application context.
      * @return Application Version name.
      */
-    @JvmStatic
     fun getApplicationVersion(context: Context): String {
         val packageInfo = getPackageInfo(context)
         return if (packageInfo != null) {
@@ -156,10 +152,12 @@ object AppUtils {
      *
      * //TODO: Find a better way to handle this. This value is not changing often, need to cache it.
      */
-    @JvmStatic
     fun getUserAgent(context: Context): String {
         val defaultValue = Util.getUserAgent(context, context.getString(R.string.app_name_user_agent))
-        return if (AppPreferencesManager.isCustomUserAgent(context)) AppPreferencesManager.getCustomUserAgent(context, defaultValue) else defaultValue
+        return if (AppPreferencesManager.isCustomUserAgent(context)) AppPreferencesManager.getCustomUserAgent(
+            context,
+            defaultValue
+        ) else defaultValue
     }
 
     /**
@@ -174,7 +172,6 @@ object AppUtils {
         return height.coerceAtMost(width)
     }
 
-    @JvmStatic
     fun getApplicationVersionName(context: Context): String {
         val packageInfo = getPackageInfo(context)
         return if (packageInfo != null) {
@@ -185,7 +182,6 @@ object AppUtils {
         }
     }
 
-    @JvmStatic
     fun getApplicationVersionCode(context: Context): Int {
         val packageInfo = getPackageInfo(context)
         return if (packageInfo != null) {
@@ -202,7 +198,6 @@ object AppUtils {
      * @param context Context reference to get the TelephonyManager instance from.
      * @return country code or null
      */
-    @JvmStatic
     fun getUserCountry(context: Context): String? {
         try {
             val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
@@ -224,39 +219,32 @@ object AppUtils {
         return null
     }
 
-    @JvmStatic
     fun hasVersionM(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
     }
 
-    @JvmStatic
     fun hasVersionN(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
     }
 
-    @JvmStatic
     fun hasVersionO(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
     }
 
-    @JvmStatic
     fun hasVersionKitKat(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
     }
 
-    @JvmStatic
     fun hasVersionLollipop(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
     }
 
-    @JvmStatic
     fun makeSearchQueryBundle(queryString: String): Bundle {
         val bundle = Bundle()
         bundle.putString(KEY_SEARCH_QUERY, queryString)
         return bundle
     }
 
-    @JvmStatic
     fun getSearchQueryFromBundle(queryBundle: Bundle): String {
         return queryBundle.getString(KEY_SEARCH_QUERY, EMPTY_STRING)
     }
@@ -268,7 +256,6 @@ object AppUtils {
      * requesting access.
      * @return `true` in case of success, `false` otherwise.
      */
-    @JvmStatic
     fun isAutomotive(clientPackageName: String): Boolean {
         for (pkg in ANDROID_AUTO_PACKAGE_NAMES) {
             if (clientPackageName.contains(pkg)) {
@@ -278,7 +265,6 @@ object AppUtils {
         return false
     }
 
-    @JvmStatic
     fun getDensity(context: Context): Array<String> {
         val densityDpi = context.resources.displayMetrics.densityDpi
         val value: String = when (densityDpi) {
@@ -292,40 +278,5 @@ object AppUtils {
             else -> "UNKNOWN"
         }
         return arrayOf(densityDpi.toString(), value)
-    }
-
-    fun startActivitySafe(context: Context?, intent: Intent): Boolean {
-        if (context == null) {
-            return false
-        }
-        // Verify that the intent will resolve to an activity
-        if (intent.resolveActivity(context.packageManager) != null) {
-            try {
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                AppLogger.e("Can not start activity", e)
-                return false
-            }
-            return true
-        }
-        return false
-    }
-
-    @JvmStatic
-    fun startActivityForResultSafe(context: Activity?, intent: Intent, resultCode: Int): Boolean {
-        if (context == null) {
-            return false
-        }
-        // Verify that the intent will resolve to an activity
-        if (intent.resolveActivity(context.packageManager) != null) {
-            try {
-                context.startActivityForResult(intent, resultCode)
-            } catch (e: Exception) {
-                AppLogger.e("Can not start activity for result", e)
-                return false
-            }
-            return true
-        }
-        return false
     }
 }

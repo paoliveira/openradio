@@ -20,7 +20,6 @@ import android.os.Bundle
 import android.widget.TextView
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo
 import com.yuriy.openradio.shared.R
-import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
@@ -45,12 +44,12 @@ class AboutDialog : BaseDialogFragment() {
         val authorLink = view.findViewById<TextView>(R.id.about_author_link_view)
         authorLink.setOnClickListener {
             val intent = IntentUtils.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL)
-            AppUtils.startActivitySafe(context, intent)
+            IntentUtils.startActivitySafe(context, intent)
         }
         val projectHomeLink = view.findViewById<TextView>(R.id.about_project_link_view)
         projectHomeLink.setOnClickListener {
             val intent = IntentUtils.makeUrlBrowsableIntent(PROJECT_HOME_URL)
-            AppUtils.startActivitySafe(context, intent)
+            IntentUtils.startActivitySafe(context, intent)
         }
         val exoPlayerVersion = view.findViewById<TextView>(R.id.exo_player_version_view)
         val exoPlayerVersionText = getString(R.string.about_exo_text) + " " + ExoPlayerLibraryInfo.VERSION

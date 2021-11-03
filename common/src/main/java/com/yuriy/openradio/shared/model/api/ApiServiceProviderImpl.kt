@@ -24,8 +24,8 @@ import com.yuriy.openradio.shared.model.net.NetworkMonitor
 import com.yuriy.openradio.shared.model.parser.DataParser
 import com.yuriy.openradio.shared.model.storage.cache.CacheType
 import com.yuriy.openradio.shared.model.storage.cache.api.InMemoryApiCache
-import com.yuriy.openradio.shared.model.storage.cache.api.PersistentAPIDbHelper
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
+import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiDb
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -36,7 +36,6 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.UnsupportedEncodingException
-import java.util.*
 
 /**
  * Created by Yuriy Chernyshov
@@ -56,7 +55,7 @@ class ApiServiceProviderImpl(
 ) : ApiServiceProvider {
 
     private val mContext = context
-    private val mApiCachePersistent = PersistentApiCache(context, PersistentAPIDbHelper.DATABASE_NAME)
+    private val mApiCachePersistent = PersistentApiCache(context, PersistentApiDb.DATABASE_DEFAULT_FILE_NAME)
     private val mApiCacheInMemory = InMemoryApiCache()
 
     override fun close() {

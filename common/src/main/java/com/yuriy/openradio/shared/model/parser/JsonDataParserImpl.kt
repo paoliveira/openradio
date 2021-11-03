@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.parser
 
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.MediaStream
 import com.yuriy.openradio.shared.vo.RadioStation
@@ -37,12 +38,10 @@ import java.util.*
 class JsonDataParserImpl : DataParser {
 
     companion object {
-        private val CLASS_NAME = JsonDataParserImpl::class.java.simpleName
-
+        private const val CLASS_NAME = "JsonDataParserImpl"
         private const val KEY_STATION_UUID = "stationuuid"
         private const val KEY_NAME = "name"
         private const val KEY_COUNTRY = "country"
-
         /**
          * 2 letters, uppercase.
          */
@@ -53,10 +52,9 @@ class JsonDataParserImpl : DataParser {
         private const val KEY_FAV_ICON = "favicon"
         private const val KEY_STATIONS_COUNT = "stationcount"
         private const val KEY_HOME_PAGE = "homepage"
-
         private const val KEY_LAST_CHECK_OK_TIME = "lastcheckoktime"
-
         private const val KEY_LAST_CHECK_OK = "lastcheckok"
+        private const val KEY_CODEC = "codec"
     }
 
     override fun getRadioStation(data: String): RadioStation? {
@@ -73,16 +71,17 @@ class JsonDataParserImpl : DataParser {
         }
         val result = mutableListOf<RadioStation>()
         for (i in 0 until array.length()) {
-            try {
-                val jsonObject = array[i] as JSONObject
-                val radioStation = getRadioStation(jsonObject) ?: continue
-                if (radioStation.isMediaStreamEmpty()) {
-                    continue
-                }
-                result.add(radioStation)
+            val jsonObject: JSONObject = try {
+                array[i] as JSONObject
             } catch (e: JSONException) {
                 AppLogger.e("$CLASS_NAME get stations", e)
+                continue
             }
+            val radioStation = getRadioStation(jsonObject) ?: continue
+            if (radioStation.isMediaStreamEmpty()) {
+                continue
+            }
+            result.add(radioStation)
         }
         return result
     }
@@ -90,50 +89,48 @@ class JsonDataParserImpl : DataParser {
     override fun getCategories(data: String): List<Category> {
         val array = try {
             JSONArray(data)
-        } catch (e: Exception) {
+        } catch (e: JSONException) {
             AppLogger.e("$CLASS_NAME can't convert data to JSON Array, data:$data", e)
             return emptyList()
         }
         val result = mutableListOf<Category>()
         for (i in 0 until array.length()) {
-            try {
-                val item = array[i] as JSONObject
-                val category = Category.makeDefaultInstance()
-                if (item.has(KEY_NAME)) {
-                    category.id = item.getString(KEY_NAME)
-                    category.title = item.getString(KEY_NAME)
-                        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
-                    if (item.has(KEY_STATIONS_COUNT)) {
-                        category.stationsCount = item.getInt(KEY_STATIONS_COUNT)
-                    }
-                }
-                result.add(category)
-            } catch (e: Exception) {
+            val jsonObject: JSONObject =  try {
+                array[i] as JSONObject
+            } catch (e: JSONException) {
                 AppLogger.e("$CLASS_NAME getCategories", e)
+                continue
             }
+            val category = Category.makeDefaultInstance()
+            if (jsonObject.has(KEY_NAME)) {
+                category.id = jsonObject.getString(KEY_NAME)
+                category.title = jsonObject.getString(KEY_NAME)
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+                if (jsonObject.has(KEY_STATIONS_COUNT)) {
+                    category.stationsCount = jsonObject.getInt(KEY_STATIONS_COUNT)
+                }
+            }
+            result.add(category)
         }
         return result
     }
 
     private fun getRadioStation(jsonObject: JSONObject): RadioStation? {
-        if (!jsonObject.has(KEY_STATION_UUID)) {
+        val uuid = JsonUtils.getStringValue(jsonObject, KEY_STATION_UUID)
+        if (uuid == AppUtils.EMPTY_STRING) {
             AppLogger.e("No UUID present in data:$jsonObject")
             return null
         }
-
-        val radioStation = RadioStation.makeDefaultInstance(jsonObject.getString(KEY_STATION_UUID))
-        if (jsonObject.has(KEY_NAME)) {
-            radioStation.name = jsonObject.getString(KEY_NAME)
-        }
-        if (jsonObject.has(KEY_HOME_PAGE)) {
-            radioStation.homePage = jsonObject.getString(KEY_HOME_PAGE)
-        }
-        if (jsonObject.has(KEY_COUNTRY)) {
-            radioStation.country = jsonObject.getString(KEY_COUNTRY)
-        }
-        if (jsonObject.has(KEY_COUNTRY_CODE)) {
-            radioStation.countryCode = jsonObject.getString(KEY_COUNTRY_CODE)
-        }
+        val radioStation = RadioStation.makeDefaultInstance(uuid)
+        radioStation.name = JsonUtils.getStringValue(jsonObject, KEY_NAME)
+        radioStation.homePage = JsonUtils.getStringValue(jsonObject, KEY_HOME_PAGE)
+        radioStation.country = JsonUtils.getStringValue(jsonObject, KEY_COUNTRY)
+        radioStation.countryCode = JsonUtils.getStringValue(jsonObject, KEY_COUNTRY_CODE)
+        radioStation.imageUrl = JsonUtils.getStringValue(jsonObject, KEY_FAV_ICON)
+        radioStation.lastCheckOkTime = JsonUtils.getStringValue(jsonObject, KEY_LAST_CHECK_OK_TIME)
+        radioStation.urlResolved = JsonUtils.getStringValue(jsonObject, KEY_URL_RESOLVED)
+        radioStation.codec = JsonUtils.getStringValue(jsonObject, KEY_CODEC)
+        radioStation.lastCheckOk = JsonUtils.getIntValue(jsonObject, KEY_LAST_CHECK_OK)
         if (jsonObject.has(KEY_URL)) {
             var bitrate = 0
             if (jsonObject.has(KEY_BIT_RATE)) {
@@ -142,20 +139,6 @@ class JsonDataParserImpl : DataParser {
             val mediaStream = MediaStream.makeDefaultInstance()
             mediaStream.setVariant(bitrate, jsonObject.getString(KEY_URL))
             radioStation.mediaStream = mediaStream
-        }
-        var imgUrl = AppUtils.EMPTY_STRING
-        if (jsonObject.has(KEY_FAV_ICON)) {
-            imgUrl = jsonObject.getString(KEY_FAV_ICON)
-        }
-        radioStation.imageUrl = imgUrl
-        if (jsonObject.has(KEY_LAST_CHECK_OK)) {
-            radioStation.lastCheckOk = jsonObject.getInt(KEY_LAST_CHECK_OK)
-        }
-        if (jsonObject.has(KEY_LAST_CHECK_OK_TIME)) {
-            radioStation.lastCheckOkTime = jsonObject.getString(KEY_LAST_CHECK_OK_TIME)
-        }
-        if (jsonObject.has(KEY_URL_RESOLVED)) {
-            radioStation.urlResolved = jsonObject.getString(KEY_URL_RESOLVED)
         }
         return radioStation
     }

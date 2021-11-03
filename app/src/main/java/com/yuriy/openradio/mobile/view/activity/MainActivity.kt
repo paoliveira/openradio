@@ -18,7 +18,6 @@ package com.yuriy.openradio.mobile.view.activity
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -136,14 +135,14 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
 
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
+        val mobileMediaItemsAdapter = MobileMediaItemsAdapter(this)
         val medSubscriptionCb = MediaBrowserSubscriptionCallback()
         val mediaPresenterLstnr = MediaPresenterListenerImpl()
         mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.list_view),
-                findViewById(R.id.current_radio_station_view), MobileMediaItemsAdapter(this),
+                findViewById(R.id.current_radio_station_view), mobileMediaItemsAdapter,
                 mMediaItemListener, medSubscriptionCb, mediaPresenterLstnr
         )
-        mMediaPresenter.restoreState(savedInstanceState)
         mMediaPresenter.connect()
     }
 
@@ -220,8 +219,10 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
         hideNoDataMessage()
         hideProgressBar()
         if (mMediaPresenter.handleBackPressed(applicationContext)) {
-            // perform android frameworks lifecycle
+            // Perform Android's framework lifecycle.
             super.onBackPressed()
+            // Indicate that the activity is finished.
+            finish()
         }
     }
 
@@ -541,22 +542,6 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
                         + ", results:" + grantResults.contentToString()
         )
         mMediaPresenter.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
-    }
-
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        AppLogger.d(
-                CLASS_NAME + "OnActivityResult: request:" + requestCode
-                        + " result:" + resultCode
-                        + " intent:" + data
-                        + " data:" + IntentUtils.intentBundleToString(data)
-        )
-        val gDriveDialog = GoogleDriveDialog.findDialog(supportFragmentManager)
-        gDriveDialog?.onActivityResult(requestCode, resultCode, data)
-        val logsDialog = LogsDialog.findDialog(supportFragmentManager)
-        logsDialog?.onActivityResult(requestCode, resultCode, data)
-        val addEditStationDialog = BaseAddEditStationDialog.findDialog(supportFragmentManager)
-        addEditStationDialog?.onActivityResult(requestCode, resultCode, data)
     }
 
     /**

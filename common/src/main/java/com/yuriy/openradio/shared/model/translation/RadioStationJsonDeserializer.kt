@@ -23,6 +23,7 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.vo.RadioStation
+import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 
@@ -46,36 +47,36 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
         if (value.lowercase(Locale.ROOT) == "false") {
             return null
         }
-        try {
-            val jsonObject = JSONObject(value)
-            val radioStation = RadioStation.makeDefaultInstance(
-                JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
-            )
-            radioStation.name = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)
-            var bitrateStr = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0")
-            if (!TextUtils.isDigitsOnly(bitrateStr) || bitrateStr.isEmpty()) {
-                bitrateStr = "0"
-            }
-            radioStation.mediaStream.setVariant(
-                bitrateStr.toInt(),
-                JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
-            )
-            radioStation.country = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY)
-            radioStation.countryCode = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE)
-            radioStation.genre = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
-            radioStation.homePage = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
-            radioStation.isLocal = JsonUtils.getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL)
-            radioStation.sortId = JsonUtils.getIntValue(
-                jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID
-            )
-            radioStation.imageUrl = JsonUtils.getStringValue(
-                jsonObject, RadioStationJsonHelper.KEY_IMG_URL, AppUtils.EMPTY_STRING
-            )
-            return radioStation
-        } catch (e: Throwable) {
-            /* Ignore this exception */
+        val jsonObject: JSONObject = try {
+            JSONObject(value)
+        } catch (e: JSONException) {
             AppLogger.e("Error while de-marshall $value", e)
+            return null
         }
-        return null
+        val radioStation = RadioStation.makeDefaultInstance(
+            JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
+        )
+        radioStation.name = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_NAME)
+        var bitrateStr = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_BITRATE, "0")
+        if (!TextUtils.isDigitsOnly(bitrateStr) || bitrateStr.isEmpty()) {
+            bitrateStr = "0"
+        }
+        radioStation.mediaStream.setVariant(
+            bitrateStr.toInt(),
+            JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
+        )
+        radioStation.country = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY)
+        radioStation.countryCode = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_COUNTRY_CODE)
+        radioStation.genre = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_GENRE)
+        radioStation.homePage = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_HOME_PAGE)
+        radioStation.codec = JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_CODEC)
+        radioStation.isLocal = JsonUtils.getBooleanValue(jsonObject, RadioStationJsonHelper.KEY_IS_LOCAL)
+        radioStation.sortId = JsonUtils.getIntValue(
+            jsonObject, RadioStationJsonHelper.KEY_SORT_ID, MediaSessionCompat.QueueItem.UNKNOWN_ID
+        )
+        radioStation.imageUrl = JsonUtils.getStringValue(
+            jsonObject, RadioStationJsonHelper.KEY_IMG_URL, AppUtils.EMPTY_STRING
+        )
+        return radioStation
     }
 }

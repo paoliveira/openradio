@@ -327,7 +327,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         // Build a PendingIntent that can be used to launch the UI.
         val sessionActivityPendingIntent =
             packageManager?.getLaunchIntentForPackage(packageName)?.let { sessionIntent ->
-                PendingIntent.getActivity(applicationContext, 0, sessionIntent, PendingIntent.FLAG_ONE_SHOT)
+                PendingIntent.getActivity(applicationContext, 0, sessionIntent, PendingIntent.FLAG_IMMUTABLE)
             }
 
         // Need this component for API 20 and earlier.

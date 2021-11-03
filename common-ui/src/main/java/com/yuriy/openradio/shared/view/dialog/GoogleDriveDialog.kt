@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.view.dialog
 import android.app.Dialog
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
@@ -33,7 +32,7 @@ import com.yuriy.openradio.shared.broadcast.AppLocalBroadcast
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveError
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 
@@ -66,8 +65,8 @@ class GoogleDriveDialog : BaseDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
-                R.layout.dialog_google_drive,
-                activity!!.findViewById(R.id.dialog_google_drive_root)
+            R.layout.dialog_google_drive,
+            requireActivity().findViewById(R.id.dialog_google_drive_root)
         )
         setWindowDimensions(view, 0.9f, 0.5f)
         val uploadTo = view.findViewById<Button>(R.id.upload_to_google_drive_btn)
@@ -81,28 +80,23 @@ class GoogleDriveDialog : BaseDialogFragment() {
         return createAlertDialog(view)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        AppLogger.d("$CLASS_NAME OnActivityResult: request:$requestCode result:$resultCode")
-        if (requestCode != ACCOUNT_REQUEST_CODE) {
-            return
-        }
+    private fun onActivityResultCallback(data: Intent?) {
         GoogleSignIn
-                .getSignedInAccountFromIntent(data)
-                .addOnSuccessListener { googleAccount: GoogleSignInAccount ->
-                    if (mGoogleDriveManager == null) {
-                        showErrorToast(getString(R.string.google_drive_error_msg_2))
-                        return@addOnSuccessListener
-                    }
-                    AppLogger.d("Signed in as " + googleAccount.email)
-                    mGoogleDriveManager!!.connect(googleAccount.account)
+            .getSignedInAccountFromIntent(data)
+            .addOnSuccessListener { googleAccount: GoogleSignInAccount ->
+                if (mGoogleDriveManager == null) {
+                    showErrorToast(getString(R.string.google_drive_error_msg_2))
+                    return@addOnSuccessListener
                 }
-                .addOnFailureListener { exception: Exception? ->
-                    AppLogger.e("Can't do sign in", exception)
-                    showAnyThread(
-                            context, getString(R.string.can_not_get_account_name)
-                    )
-                }
+                AppLogger.d("Signed in as " + googleAccount.email)
+                mGoogleDriveManager!!.connect(googleAccount.account)
+            }
+            .addOnFailureListener { exception: Exception? ->
+                AppLogger.e("Can't do sign in", exception)
+                showAnyThread(
+                    context, getString(R.string.can_not_get_account_name)
+                )
+            }
     }
 
     private fun uploadRadioStationsToGoogleDrive() {
@@ -156,10 +150,12 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 showErrorToast(getString(R.string.google_drive_error_msg_1))
                 return
             }
-            if (!AppUtils.startActivityForResultSafe(
-                            this@GoogleDriveDialog.activity,
-                            client.signInIntent,
-                            ACCOUNT_REQUEST_CODE)) {
+            if (!IntentUtils.startActivityForResultSafe(
+                    this@GoogleDriveDialog.activity,
+                    client.signInIntent,
+                    this@GoogleDriveDialog::onActivityResultCallback
+                )
+            ) {
                 mGoogleDriveManager!!.connect(null)
             }
         }
@@ -178,7 +174,7 @@ class GoogleDriveDialog : BaseDialogFragment() {
                 GoogleDriveManager.Command.UPLOAD -> context.getString(R.string.google_drive_data_saved)
                 GoogleDriveManager.Command.DOWNLOAD -> {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(
-                            AppLocalBroadcast.createIntentGoogleDriveDownloaded()
+                        AppLocalBroadcast.createIntentGoogleDriveDownloaded()
                     )
                     context.getString(R.string.google_drive_data_read)
                 }
@@ -212,7 +208,6 @@ class GoogleDriveDialog : BaseDialogFragment() {
          * Tag string to use in dialog transactions.
          */
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
-        private const val ACCOUNT_REQUEST_CODE = 400
 
         fun findDialog(fragmentManager: FragmentManager?): GoogleDriveDialog? {
             if (fragmentManager == null) {

@@ -159,6 +159,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
             unsubscribeFromItem(mediaId)
             addMediaItemToStack(mediaId)
         }
+        restoreState(bundle)
     }
 
     fun itemsCount(): Int {
@@ -441,7 +442,7 @@ class MediaPresenter private constructor(context: Context) : NetworkMonitorDepen
         setActiveItem(mAdapter.getIndexForMediaId(mediaId))
     }
 
-    fun restoreState(savedInstanceState: Bundle?) {
+    private fun restoreState(savedInstanceState: Bundle?) {
         if (savedInstanceState == null) {
             // Nothing to restore
             return

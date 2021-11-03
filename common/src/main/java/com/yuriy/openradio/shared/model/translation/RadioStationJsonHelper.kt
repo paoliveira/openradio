@@ -38,4 +38,5 @@ internal object RadioStationJsonHelper {
     const val KEY_IS_LOCAL = "IsLocal"
     const val KEY_SORT_ID = "SortId"
     const val KEY_IMG_URL = "ImgUrl"
+    const val KEY_CODEC = "Codec"
 }

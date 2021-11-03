@@ -13,34 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.model.translation
 
 import android.content.Context
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.JsonUtils.getBooleanValue
-import com.yuriy.openradio.shared.utils.JsonUtils.getIntArray
-import com.yuriy.openradio.shared.utils.JsonUtils.getIntValue
-import com.yuriy.openradio.shared.utils.JsonUtils.getListValue
-import com.yuriy.openradio.shared.utils.JsonUtils.getShortArray
+import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.vo.EqualizerState
+import org.json.JSONException
 import org.json.JSONObject
 
 class EqualizerStateJsonDeserializer : EqualizerStateDeserializer {
 
     override fun deserialize(context: Context, value: String): EqualizerState {
         val state = EqualizerState()
-        try {
-            val jsonObject = JSONObject(value)
-            state.isEnabled = getBooleanValue(jsonObject, EqualizerJsonHelper.KEY_ENABLED)
-            state.currentPreset = getIntValue(jsonObject, EqualizerJsonHelper.KEY_CURRENT_PRESET).toShort()
-            state.numOfBands = getIntValue(jsonObject, EqualizerJsonHelper.KEY_NUM_OF_BANDS).toShort()
-            state.presets = getListValue(jsonObject, EqualizerJsonHelper.KEY_PRESETS)
-            state.bandLevelRange = getShortArray(jsonObject, EqualizerJsonHelper.KEY_BAND_LEVEL_RANGE)
-            state.bandLevels = getShortArray(jsonObject, EqualizerJsonHelper.KEY_BAND_LEVELS)
-            state.centerFrequencies = getIntArray(jsonObject, EqualizerJsonHelper.KEY_CENTER_FREQUENCIES)
-        } catch (e: Throwable) {
+        val jsonObject: JSONObject = try {
+             JSONObject(value)
+        } catch (e: JSONException) {
             AppLogger.e("Error while de-marshall $value", e)
+            return state
         }
+        state.isEnabled = JsonUtils.getBooleanValue(jsonObject, EqualizerJsonHelper.KEY_ENABLED)
+        state.currentPreset = JsonUtils.getIntValue(jsonObject, EqualizerJsonHelper.KEY_CURRENT_PRESET).toShort()
+        state.numOfBands = JsonUtils.getIntValue(jsonObject, EqualizerJsonHelper.KEY_NUM_OF_BANDS).toShort()
+        state.presets = JsonUtils.getListValue(jsonObject, EqualizerJsonHelper.KEY_PRESETS)
+        state.bandLevelRange = JsonUtils.getShortArray(jsonObject, EqualizerJsonHelper.KEY_BAND_LEVEL_RANGE)
+        state.bandLevels = JsonUtils.getShortArray(jsonObject, EqualizerJsonHelper.KEY_BAND_LEVELS)
+        state.centerFrequencies = JsonUtils.getIntArray(jsonObject, EqualizerJsonHelper.KEY_CENTER_FREQUENCIES)
         return state
     }
 }

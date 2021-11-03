@@ -21,16 +21,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.FrameLayout
-import android.widget.LinearLayout
-import android.widget.ProgressBar
-import android.widget.Spinner
-import android.widget.TextView
+import android.widget.*
 import androidx.fragment.app.FragmentManager
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.broadcast.LocalAbstractReceiver
@@ -78,7 +69,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
     ): View? {
         val view = inflater.inflate(R.layout.dialog_add_edit_station, container, false)
         val layoutParams = FrameLayout.LayoutParams(
-            (AppUtils.getShortestScreenSize(activity!!) * 0.8).toInt(),
+            (AppUtils.getShortestScreenSize(requireActivity()) * 0.8).toInt(),
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
         mRsAddValidatedReceiver = RSAddValidatedReceiver(
@@ -109,7 +100,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         mCountriesSpinner = view.findViewById(R.id.add_edit_station_country_spin)
         // Create an ArrayAdapter using the string array and a default spinner layout
         mCountriesAdapter = ArrayAdapter(
-            activity!!,
+            requireActivity(),
             android.R.layout.simple_spinner_item,
             countries
         )
@@ -120,7 +111,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         mGenresSpinner = view.findViewById(R.id.add_station_genre_spin)
         // Create an ArrayAdapter using the string array and a default spinner layout
         mGenresAdapter = ArrayAdapter(
-            activity!!,
+            requireActivity(),
             android.R.layout.simple_spinner_item,
             ArrayList<CharSequence>(AppUtils.predefinedCategories())
         )
@@ -136,10 +127,8 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
 
             // Chooser of filesystem options.
             val chooserIntent = Intent.createChooser(galleryIntent, "Select Image")
-            AppUtils.startActivityForResultSafe(
-                activity,
-                chooserIntent,
-                IntentUtils.REQUEST_CODE_FILE_SELECTED
+            IntentUtils.startActivityForResultSafe(
+                activity, chooserIntent, ::onActivityResultCallback
             )
         }
         mAddToFavCheckView = view.findViewById(R.id.add_to_fav_check_view)
@@ -173,7 +162,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         val context: Activity? = activity
         if (!PermissionChecker.isExternalStorageGranted(context!!)) {
             PermissionChecker.requestExternalStoragePermission(
-                context, view!!.findViewById(R.id.dialog_add_edit_root_layout), 1234
+                context, requireView().findViewById(R.id.dialog_add_edit_root_layout), 1234
             )
         }
     }
@@ -184,35 +173,24 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         mRsAddValidatedReceiver.unregister(context)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != Activity.RESULT_OK) {
+    private fun onActivityResultCallback(data: Intent?) {
+        val selectedImageUri = data?.data
+        if (selectedImageUri == null) {
+            AppLogger.e("Can not process image path, image uri is null")
             return
         }
-        if (data == null) {
+        val ctx = context
+        if (ctx == null) {
+            AppLogger.e("Can not process image path, context is null")
             return
         }
-        when (requestCode) {
-            IntentUtils.REQUEST_CODE_FILE_SELECTED -> {
-                val selectedImageUri = data.data
-                if (selectedImageUri == null) {
-                    AppLogger.e("Can not process image path, image uri is null")
-                    return
-                }
-                val ctx = context
-                if (ctx == null) {
-                    AppLogger.e("Can not process image path, context is null")
-                    return
-                }
-                //MEDIA GALLERY
-                val selectedImagePath = ImageFilePath.getPath(ctx, selectedImageUri)
-                AppLogger.d("Image Path:$selectedImagePath")
-                if (selectedImagePath != null) {
-                    mImageLocalUrlEdit.setText(selectedImagePath)
-                } else {
-                    showAnyThread(ctx, ctx.getString(R.string.can_not_open_file))
-                }
-            }
+        //MEDIA GALLERY
+        val selectedImagePath = ImageFilePath.getPath(ctx, selectedImageUri)
+        AppLogger.d("Image Path:$selectedImagePath")
+        if (selectedImagePath != null) {
+            mImageLocalUrlEdit.setText(selectedImagePath)
+        } else {
+            showAnyThread(ctx, ctx.getString(R.string.can_not_open_file))
         }
     }
 

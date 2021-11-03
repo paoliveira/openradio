@@ -60,8 +60,6 @@ class TvSearchActivity : FragmentActivity() {
 
     companion object {
 
-        const val SEARCH_TV_ACTIVITY_REQUEST_CODE = 5839
-
         fun makeStartIntent(context: Context): Intent {
             return Intent(context, TvSearchActivity::class.java)
         }

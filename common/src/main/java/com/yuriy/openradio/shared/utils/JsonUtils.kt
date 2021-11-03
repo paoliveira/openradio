@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.utils
 
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
 
 object JsonUtils {
 
     @Throws(JSONException::class)
-    fun getShortArray(jsonObject: JSONObject?, key: String): ShortArray {
-        if (jsonObject == null) {
-            return shortArrayOf()
-        }
+    fun getShortArray(jsonObject: JSONObject, key: String): ShortArray {
         if (jsonObject.has(key)) {
             val obj = jsonObject.getString(key)
             val array = obj.split(",".toRegex()).toTypedArray()
@@ -42,10 +39,7 @@ object JsonUtils {
     }
 
     @Throws(JSONException::class)
-    fun getIntArray(jsonObject: JSONObject?, key: String): IntArray {
-        if (jsonObject == null) {
-            return intArrayOf()
-        }
+    fun getIntArray(jsonObject: JSONObject, key: String): IntArray {
         if (jsonObject.has(key)) {
             val obj = jsonObject.getString(key)
             val array = obj.split(",".toRegex()).toTypedArray()
@@ -62,10 +56,7 @@ object JsonUtils {
     }
 
     @Throws(JSONException::class)
-    fun <T> getListValue(jsonObject: JSONObject?, key: String): List<T> {
-        if (jsonObject == null) {
-            return ArrayList()
-        }
+    fun <T> getListValue(jsonObject: JSONObject, key: String): List<T> {
         if (jsonObject.has(key)) {
             val obj = jsonObject.getString(key)
             val list: MutableList<T> = ArrayList()
@@ -78,38 +69,27 @@ object JsonUtils {
         return ArrayList()
     }
 
-    @Throws(JSONException::class)
-    fun getStringValue(jsonObject: JSONObject?, key: String): String {
+    fun getStringValue(jsonObject: JSONObject, key: String): String {
         return getStringValue(jsonObject, key, AppUtils.EMPTY_STRING)
     }
 
-    @Throws(JSONException::class)
-    fun getStringValue(jsonObject: JSONObject?, key: String, defaultValue: String): String {
-        if (jsonObject == null) {
-            return defaultValue
-        }
+    fun getStringValue(jsonObject: JSONObject, key: String, defaultValue: String): String {
         return if (jsonObject.has(key)) {
             jsonObject.getString(key)
         } else defaultValue
     }
 
-    @Throws(JSONException::class)
-    fun getIntValue(jsonObject: JSONObject?, key: String?): Int {
+    fun getIntValue(jsonObject: JSONObject, key: String): Int {
         return getIntValue(jsonObject, key, 0)
     }
 
-    @Throws(JSONException::class)
-    fun getIntValue(jsonObject: JSONObject?, key: String?, defaultValue: Int): Int {
-        if (jsonObject == null) {
-            return defaultValue
-        }
+    fun getIntValue(jsonObject: JSONObject, key: String, defaultValue: Int): Int {
         return if (jsonObject.has(key)) {
             jsonObject.getInt(key)
         } else defaultValue
     }
 
-    @Throws(JSONException::class)
-    fun getBooleanValue(jsonObject: JSONObject?, key: String?): Boolean {
-        return jsonObject != null && jsonObject.has(key) && jsonObject.getBoolean(key)
+    fun getBooleanValue(jsonObject: JSONObject, key: String): Boolean {
+        return jsonObject.has(key) && jsonObject.getBoolean(key)
     }
 }

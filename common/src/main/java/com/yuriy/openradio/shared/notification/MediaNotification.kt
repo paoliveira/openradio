@@ -97,23 +97,23 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
         val pkg = mContext.packageName
         mPauseIntent = PendingIntent.getBroadcast(
             mContext, 100,
-            Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+            Intent(ACTION_PAUSE).setPackage(pkg), PendingIntent.FLAG_IMMUTABLE
         )
         mPlayIntent = PendingIntent.getBroadcast(
             mContext, 100,
-            Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+            Intent(ACTION_PLAY).setPackage(pkg), PendingIntent.FLAG_IMMUTABLE
         )
         mPreviousIntent = PendingIntent.getBroadcast(
             mContext, 100,
-            Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+            Intent(ACTION_PREV).setPackage(pkg), PendingIntent.FLAG_IMMUTABLE
         )
         mNextIntent = PendingIntent.getBroadcast(
             mContext, 100,
-            Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+            Intent(ACTION_NEXT).setPackage(pkg), PendingIntent.FLAG_IMMUTABLE
         )
         mCloseAppIntent = PendingIntent.getBroadcast(
             mContext, 100,
-            Intent(ACTION_CLOSE_APP).setPackage(pkg), PendingIntent.FLAG_CANCEL_CURRENT
+            Intent(ACTION_CLOSE_APP).setPackage(pkg), PendingIntent.FLAG_IMMUTABLE
         )
     }
 
@@ -434,7 +434,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
         val componentName = ComponentName(mContext, className)
         val intent = Intent()
         intent.component = componentName
-        return PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return PendingIntent.getActivity(mContext, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
     private fun getPlayPauseAction(playbackState: PlaybackStateCompat): NotificationCompat.Action {

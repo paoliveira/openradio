@@ -48,6 +48,7 @@ class RadioStationJsonSerializer : RadioStationSerializer {
             jsonObject.put(RadioStationJsonHelper.KEY_IS_LOCAL, radioStation.isLocal)
             jsonObject.put(RadioStationJsonHelper.KEY_SORT_ID, radioStation.sortId)
             jsonObject.put(RadioStationJsonHelper.KEY_IMG_URL, radioStation.imageUrl)
+            jsonObject.put(RadioStationJsonHelper.KEY_CODEC, radioStation.codec)
         } catch (e: Exception) {
             /* Ignore this exception */
             AppLogger.e("Error while marshall $radioStation", e)

@@ -36,18 +36,17 @@ import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.utils.MediaIdHelper
 import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
-import com.yuriy.openradio.shared.view.dialog.*
+import com.yuriy.openradio.shared.view.dialog.AddStationDialog
+import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.view.dialog.TvSettingsDialog
 import com.yuriy.openradio.tv.view.list.TvMediaItemsAdapter
-import java.util.*
-import java.util.concurrent.atomic.*
 
 /*
  * Main TV Activity class that loads main TV fragment.
@@ -92,14 +91,14 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
 
         // Register local receivers.
         mMediaPresenter.registerReceivers(applicationContext, mLocalBroadcastReceiverCb)
-        val subscriptionCb: MediaBrowserCompat.SubscriptionCallback = MediaBrowserSubscriptionCallback()
+        val tvMediaItemsAdapter = TvMediaItemsAdapter(applicationContext)
+        val subscriptionCb = MediaBrowserSubscriptionCallback()
         val listener = MediaPresenterListenerImpl()
         mMediaPresenter.init(
                 this, savedInstanceState, findViewById(R.id.tv_list_view),
-                findViewById(R.id.tv_current_radio_station_view), TvMediaItemsAdapter(applicationContext), mListener,
+                findViewById(R.id.tv_current_radio_station_view), tvMediaItemsAdapter, mListener,
                 subscriptionCb, listener
         )
-        mMediaPresenter.restoreState(savedInstanceState)
         mMediaPresenter.connect()
     }
 
@@ -131,24 +130,10 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         mMediaPresenter.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
     }
 
-    public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        AppLogger.d(CLASS_NAME + "on activity result, rqst:" + requestCode + " rslt:" + resultCode)
-        val gDriveDialog = GoogleDriveDialog.findDialog(supportFragmentManager)
-        gDriveDialog?.onActivityResult(requestCode, resultCode, data)
-        val logsDialog = LogsDialog.findDialog(supportFragmentManager)
-        logsDialog?.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE) {
-            onSearchDialogClick(data)
-        }
-        val addEditStationDialog = BaseAddEditStationDialog.findDialog(supportFragmentManager)
-        addEditStationDialog?.onActivityResult(requestCode, resultCode, data)
-    }
-
     /**
      * Process call back from the Search Dialog.
      */
-    private fun onSearchDialogClick(data: Intent?) {
+    private fun onActivityResultCallback(data: Intent?) {
         var bundle = Bundle()
         if (data != null && data.extras != null) {
             bundle = Bundle(data.extras)
@@ -174,8 +159,10 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     override fun onBackPressed() {
         hideProgressBar()
         if (mMediaPresenter.handleBackPressed(applicationContext)) {
-            // perform android frameworks lifecycle
+            // Perform Android's framework lifecycle.
             super.onBackPressed()
+            // Indicate that the activity is finished.
+            finish()
         }
     }
 
@@ -209,10 +196,10 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     private fun setUpSearchBtn() {
         val button = findViewById<ImageView>(R.id.tv_search_btn) ?: return
         button.setOnClickListener {
-            AppUtils.startActivityForResultSafe(
+            IntentUtils.startActivityForResultSafe(
                     this,
                     TvSearchActivity.makeStartIntent(this),
-                    TvSearchActivity.SEARCH_TV_ACTIVITY_REQUEST_CODE
+                    ::onActivityResultCallback
             )
         }
     }

@@ -42,7 +42,7 @@ class MediaResourcesManager(context: Context, className: String) {
     /**
      * Tag string to use in logging message.
      */
-    private val mClassName: String = "MdRsrcsMgr $className "
+    private val mClassName = "MdRsrcsMgr $className "
 
     /**
      * Browses media content offered by a [android.service.media.MediaBrowserService].
@@ -116,7 +116,7 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun connect() {
         if (mMediaBrowser.isConnected) {
-            AppLogger.w(mClassName + "Connect aborted, already connected")
+            AppLogger.w("$mClassName connect aborted, already connected")
             // Register callbacks
             mMediaController!!.registerCallback(mMediaSessionCallback)
             // Set actual media controller
@@ -142,7 +142,7 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     fun disconnect() {
         if (!mMediaBrowser.isConnected) {
-            AppLogger.w(mClassName + "Disconnect aborted, already disconnected")
+            AppLogger.w("$mClassName disconnect aborted, already disconnected")
             return
         }
         if (!mIsConnectInvoked.get()) {
@@ -150,7 +150,7 @@ class MediaResourcesManager(context: Context, className: String) {
         }
         mMediaBrowser.disconnect()
         mIsConnectInvoked.set(false)
-        AppLogger.i(mClassName + "Disconnected")
+        AppLogger.i("$mClassName disconnected")
     }
 
     fun clean() {
@@ -227,7 +227,7 @@ class MediaResourcesManager(context: Context, className: String) {
     }
 
     private fun handleMediaBrowserConnected() {
-        AppLogger.d(mClassName + "Session token " + mMediaBrowser.sessionToken)
+        AppLogger.d("$mClassName session token " + mMediaBrowser.sessionToken)
         if (mActivity == null) {
             AppLogger.e("$mClassName media browser connected when context is null, disconnect")
             disconnect()
@@ -264,12 +264,12 @@ class MediaResourcesManager(context: Context, className: String) {
      */
     private inner class MediaBrowserConnectionCallback : MediaBrowserCompat.ConnectionCallback() {
         override fun onConnected() {
-            AppLogger.i(mClassName + "Connected")
+            AppLogger.i("$mClassName connected")
             handleMediaBrowserConnected()
         }
 
         override fun onConnectionSuspended() {
-            AppLogger.w(mClassName + "Connection Suspended")
+            AppLogger.w("$mClassName connection Suspended")
             val manager = this@MediaResourcesManager
             manager.mMediaController!!.unregisterCallback(manager.mMediaSessionCallback)
             manager.mTransportControls = null

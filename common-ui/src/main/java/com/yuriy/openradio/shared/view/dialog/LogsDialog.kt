@@ -50,7 +50,7 @@ class LogsDialog : BaseDialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
                 R.layout.dialog_settings_logs,
-                activity!!.findViewById(R.id.dialog_settings_logs_root)
+                requireActivity().findViewById(R.id.dialog_settings_logs_root)
         )
         setWindowDimensions(view, 0.8f, 0.8f)
         val context: Context? = activity

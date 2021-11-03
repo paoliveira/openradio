@@ -68,6 +68,22 @@ class RadioStation : Serializable {
     val imageUri get() = ImagesStore.buildImageUri(mId, imageUrl)
 
     /**
+     * List of current codecs:
+     * AAC
+     * AAC,H.264
+     * AAC+
+     * AAC+,H.264
+     * FLAC
+     * FLV
+     * MP3
+     * MP3,H.264
+     * OGG
+     * UNKNOWN
+     * UNKNOWN,H.264
+     */
+    var codec = AppUtils.EMPTY_STRING
+
+    /**
      * Private constructor.
      * Disallow instantiation of this helper class.
      */
@@ -95,6 +111,7 @@ class RadioStation : Serializable {
         lastCheckOk = radioStation.lastCheckOk
         lastCheckOkTime = radioStation.lastCheckOkTime
         imageUrl = radioStation.imageUrl
+        codec = radioStation.codec
     }
 
     var id: String
@@ -160,6 +177,7 @@ class RadioStation : Serializable {
                 ", webSite='" + homePage + '\'' +
                 ", country='" + mCountry + '\'' +
                 ", genre='" + genre + '\'' +
+                ", codec='" + codec + '\'' +
                 ", isLocal=" + isLocal + '\'' +
                 ", sortId=" + sortId +
                 '}'

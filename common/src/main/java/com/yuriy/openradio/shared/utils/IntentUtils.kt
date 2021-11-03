@@ -15,9 +15,13 @@
  */
 package com.yuriy.openradio.shared.utils
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.result.ActivityResultCaller
+import androidx.activity.result.contract.ActivityResultContracts
 
 /**
  * Created by Yuriy Chernyshov
@@ -26,7 +30,6 @@ import android.os.Bundle
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 object IntentUtils {
-    const val REQUEST_CODE_FILE_SELECTED = 101
 
     /**
      * Make intent to navigate to provided url.
@@ -44,7 +47,6 @@ object IntentUtils {
      * @param intent [Intent] to process.
      * @return [String] representation of [Bundle].
      */
-    @JvmStatic
     fun intentBundleToString(intent: Intent?): String {
         return if (intent == null) {
             "Intent[null]"
@@ -57,7 +59,6 @@ object IntentUtils {
      * @param bundle [Bundle] to process.
      * @return [String] representation of [Bundle].
      */
-    @JvmStatic
     fun bundleToString(bundle: Bundle?): String {
         if (bundle == null) {
             return "Bundle[null]"
@@ -85,5 +86,43 @@ object IntentUtils {
         }
         builder.append("]")
         return builder.toString()
+    }
+
+    fun startActivitySafe(context: Context?, intent: Intent): Boolean {
+        if (context == null) {
+            return false
+        }
+        // Verify that the intent will resolve to an activity
+        if (intent.resolveActivity(context.packageManager) != null) {
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                AppLogger.e("Can not start activity", e)
+                return false
+            }
+            return true
+        }
+        return false
+    }
+
+    fun startActivityForResultSafe(
+        caller: ActivityResultCaller?,
+        intent: Intent,
+        callback: (data: Intent?) -> Unit
+    ): Boolean {
+        if (caller == null) {
+            return false
+        }
+
+        val startForResult =
+            caller.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode != Activity.RESULT_OK) {
+                    AppLogger.w("")
+                    return@registerForActivityResult
+                }
+                callback(result.data)
+            }
+        startForResult.launch(intent)
+        return true
     }
 }
