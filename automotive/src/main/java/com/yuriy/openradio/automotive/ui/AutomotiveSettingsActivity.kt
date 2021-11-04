@@ -20,6 +20,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -46,10 +47,11 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
     private lateinit var mMaxBuffer: EditText
     private lateinit var mPlayBuffer: EditText
     private lateinit var mPlayBufferRebuffer: EditText
-    private var mProgressBarUpload: ProgressBar? = null
-    private var mProgressBarDownload: ProgressBar? = null
-    private var mGoogleDriveManager: GoogleDriveManager? = null
-    private var mProgressBar: ProgressBar? = null
+    private lateinit var mProgressBarUpload: ProgressBar
+    private lateinit var mProgressBarDownload: ProgressBar
+    private lateinit var mGoogleDriveManager: GoogleDriveManager
+    private lateinit var mProgressBar: ProgressBar
+    private lateinit var mLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -155,9 +157,9 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
             AppLogger.initLogger(applicationContext)
         }
         mProgressBar = findViewById(R.id.automotive_settings_dialog_logs_progress)
-        mProgressBar?.visibility = View.INVISIBLE
+        mProgressBar.visibility = View.INVISIBLE
         sendLogsBtn.setOnClickListener {
-            mProgressBar?.visibility = View.VISIBLE
+            mProgressBar.visibility = View.VISIBLE
             LogsDialog.sendLogMailTask(
                 applicationContext,
                 {
@@ -176,14 +178,17 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
                 }
             )
         }
+
+        mLauncher = IntentUtils.registerForActivityResultIntrl(
+            this, ::onActivityResultCallback
+        )
     }
 
     override fun onDestroy() {
         super.onDestroy()
         hideProgress(GoogleDriveManager.Command.UPLOAD)
         hideProgress(GoogleDriveManager.Command.DOWNLOAD)
-        mGoogleDriveManager!!.disconnect()
-        mGoogleDriveManager = null
+        mGoogleDriveManager.disconnect()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -206,12 +211,8 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
         GoogleSignIn
             .getSignedInAccountFromIntent(data)
             .addOnSuccessListener { googleAccount: GoogleSignInAccount ->
-                if (mGoogleDriveManager == null) {
-                    showErrorToast(getString(R.string.google_drive_error_msg_2))
-                    return@addOnSuccessListener
-                }
                 AppLogger.d("Signed in as " + googleAccount.email)
-                mGoogleDriveManager!!.connect(googleAccount.account)
+                mGoogleDriveManager.connect(googleAccount.account)
             }
             .addOnFailureListener { exception: Exception? ->
                 AppLogger.e("Can't do sign in", exception)
@@ -224,7 +225,7 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
     private fun hideLogsProgress() {
         CoroutineScope(Dispatchers.Main).launch {
             try {
-                mProgressBar?.visibility = View.INVISIBLE
+                mProgressBar.visibility = View.INVISIBLE
             } catch (e: Exception) {
                 // Ignore for now but must be fixed.
                 // Fatal Exception: java.lang.IllegalStateException
@@ -235,43 +236,31 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
     }
 
     private fun uploadRadioStationsToGoogleDrive() {
-        if (mGoogleDriveManager == null) {
-            showErrorToast(getString(R.string.google_drive_error_msg_3))
-            return
-        }
-        mGoogleDriveManager!!.uploadRadioStations()
+        mGoogleDriveManager.uploadRadioStations()
     }
 
     private fun downloadRadioStationsFromGoogleDrive() {
-        if (mGoogleDriveManager == null) {
-            showErrorToast(getString(R.string.google_drive_error_msg_4))
-            return
-        }
-        mGoogleDriveManager!!.downloadRadioStations()
-    }
-
-    private fun showErrorToast(message: String) {
-        SafeToast.showAnyThread(applicationContext, message)
+        mGoogleDriveManager.downloadRadioStations()
     }
 
     private fun showProgress(command: GoogleDriveManager.Command) {
         when (command) {
-            GoogleDriveManager.Command.UPLOAD -> if (mProgressBarUpload != null) {
-                runOnUiThread { mProgressBarUpload!!.visibility = View.VISIBLE }
+            GoogleDriveManager.Command.UPLOAD -> runOnUiThread {
+                mProgressBarUpload.visibility = View.VISIBLE
             }
-            GoogleDriveManager.Command.DOWNLOAD -> if (mProgressBarDownload != null) {
-                runOnUiThread { mProgressBarDownload!!.visibility = View.VISIBLE }
+            GoogleDriveManager.Command.DOWNLOAD -> runOnUiThread {
+                mProgressBarDownload.visibility = View.VISIBLE
             }
         }
     }
 
     private fun hideProgress(command: GoogleDriveManager.Command) {
         when (command) {
-            GoogleDriveManager.Command.UPLOAD -> if (mProgressBarUpload != null) {
-                runOnUiThread { mProgressBarUpload!!.visibility = View.GONE }
+            GoogleDriveManager.Command.UPLOAD -> runOnUiThread {
+                mProgressBarUpload.visibility = View.GONE
             }
-            GoogleDriveManager.Command.DOWNLOAD -> if (mProgressBarDownload != null) {
-                runOnUiThread { mProgressBarDownload!!.visibility = View.GONE }
+            GoogleDriveManager.Command.DOWNLOAD -> runOnUiThread {
+                mProgressBarDownload.visibility = View.GONE
             }
         }
     }
@@ -279,18 +268,7 @@ class AutomotiveSettingsActivity : AppCompatActivity() {
     private inner class GoogleDriveManagerListenerImpl : GoogleDriveManager.Listener {
 
         override fun onAccountRequested(client: GoogleSignInClient) {
-            if (mGoogleDriveManager == null) {
-                showErrorToast(getString(R.string.google_drive_error_msg_1))
-                return
-            }
-            if (!IntentUtils.startActivityForResultSafe(
-                    this@AutomotiveSettingsActivity,
-                    client.signInIntent,
-                    this@AutomotiveSettingsActivity::onActivityResultCallback
-                )
-            ) {
-                mGoogleDriveManager!!.connect(null)
-            }
+            mLauncher.launch(client.signInIntent)
         }
 
         override fun onStart(command: GoogleDriveManager.Command) {

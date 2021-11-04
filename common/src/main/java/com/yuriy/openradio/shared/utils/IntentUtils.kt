@@ -21,6 +21,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.result.ActivityResultCaller
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 
 /**
@@ -105,24 +106,15 @@ object IntentUtils {
         return false
     }
 
-    fun startActivityForResultSafe(
-        caller: ActivityResultCaller?,
-        intent: Intent,
+    fun registerForActivityResultIntrl(
+        caller: ActivityResultCaller,
         callback: (data: Intent?) -> Unit
-    ): Boolean {
-        if (caller == null) {
-            return false
-        }
-
-        val startForResult =
-            caller.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    ): ActivityResultLauncher<Intent> {
+        return caller.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
                 if (result.resultCode != Activity.RESULT_OK) {
-                    AppLogger.w("")
                     return@registerForActivityResult
                 }
                 callback(result.data)
             }
-        startForResult.launch(intent)
-        return true
     }
 }

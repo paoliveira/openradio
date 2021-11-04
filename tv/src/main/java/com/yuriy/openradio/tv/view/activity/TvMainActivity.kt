@@ -26,6 +26,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.MainThread
 import androidx.fragment.app.FragmentActivity
 import com.yuriy.openradio.shared.broadcast.AppLocalReceiverCallback
@@ -67,6 +68,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
      */
     private val mLocalBroadcastReceiverCb = LocalBroadcastReceiverCallback()
     private lateinit var mLatestRadioStationStorage: LatestRadioStationStorage
+    private lateinit var mLauncher: ActivityResultLauncher<Intent>
 
     override fun configureWith(storage: LatestRadioStationStorage) {
         mLatestRadioStationStorage = storage
@@ -95,11 +97,15 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         val subscriptionCb = MediaBrowserSubscriptionCallback()
         val listener = MediaPresenterListenerImpl()
         mMediaPresenter.init(
-                this, savedInstanceState, findViewById(R.id.tv_list_view),
-                findViewById(R.id.tv_current_radio_station_view), tvMediaItemsAdapter, mListener,
-                subscriptionCb, listener
+            this, savedInstanceState, findViewById(R.id.tv_list_view),
+            findViewById(R.id.tv_current_radio_station_view), tvMediaItemsAdapter, mListener,
+            subscriptionCb, listener
         )
         mMediaPresenter.connect()
+
+        mLauncher = IntentUtils.registerForActivityResultIntrl(
+            this, ::onActivityResultCallback
+        )
     }
 
     override fun onResume() {
@@ -119,13 +125,15 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         super.onSaveInstanceState(outState)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int,
-                                            permissions: Array<String>,
-                                            grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         AppLogger.d(
-                CLASS_NAME + " permissions:" + permissions.contentToString()
-                        + ", results:" + grantResults.contentToString()
+            CLASS_NAME + " permissions:" + permissions.contentToString()
+                    + ", results:" + grantResults.contentToString()
         )
         mMediaPresenter.handlePermissionsResult(applicationContext, requestCode, permissions, grantResults)
     }
@@ -196,11 +204,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     private fun setUpSearchBtn() {
         val button = findViewById<ImageView>(R.id.tv_search_btn) ?: return
         button.setOnClickListener {
-            IntentUtils.startActivityForResultSafe(
-                    this,
-                    TvSearchActivity.makeStartIntent(this),
-                    ::onActivityResultCallback
-            )
+            mLauncher.launch(TvSearchActivity.makeStartIntent(this))
         }
     }
 
@@ -210,7 +214,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             // Show Equalizer Dialog
             val transaction = supportFragmentManager.beginTransaction()
             val dialog = BaseDialogFragment.newInstance(
-                    EqualizerDialog::class.java.name
+                EqualizerDialog::class.java.name
             )
             dialog.show(transaction, EqualizerDialog.DIALOG_TAG)
         }
@@ -222,7 +226,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             // Show Add Station Dialog
             val transaction = supportFragmentManager.beginTransaction()
             val dialog = BaseDialogFragment.newInstance(
-                    AddStationDialog::class.java.name
+                AddStationDialog::class.java.name
             )
             dialog.show(transaction, AddStationDialog.DIALOG_TAG)
         }
@@ -233,7 +237,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         UiUtils.clearDialogs(this, transaction)
         // Show Settings Dialog
         val dialogFragment = BaseDialogFragment.newInstance(
-                TvSettingsDialog::class.java.name
+            TvSettingsDialog::class.java.name
         )
         dialogFragment.show(transaction, TvSettingsDialog.DIALOG_TAG)
     }
@@ -257,7 +261,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             nameView.text = description.title
         }
         mMediaPresenter.updateDescription(
-                applicationContext, findViewById(R.id.tv_crs_description_view), description
+            applicationContext, findViewById(R.id.tv_crs_description_view), description
         )
         findViewById<ProgressBar>(R.id.tv_crs_img_progress_view)?.visibility = View.GONE
         val imgView = findViewById<ImageView>(R.id.tv_crs_img_view)
@@ -265,9 +269,9 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
         imgView.setImageResource(R.drawable.ic_radio_station)
         MediaItemsAdapter.updateImage(applicationContext, description, imgView)
         MediaItemsAdapter.updateBitrateView(
-                radioStation.mediaStream.getVariant(0)!!.bitrate,
-                findViewById(R.id.tv_crs_bitrate_view),
-                true
+            radioStation.mediaStream.getVariant(0)!!.bitrate,
+            findViewById(R.id.tv_crs_bitrate_view),
+            true
         )
 //        final CheckBox favoriteCheckView = findViewById(R.id.tv_crs_favorite_check_view);
 //        if (favoriteCheckView != null) {
@@ -287,9 +291,11 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
 //        }
     }
 
-    private fun handleChildrenLoaded(parentId: String,
-                                     children: List<MediaBrowserCompat.MediaItem>,
-                                     options: Bundle) {
+    private fun handleChildrenLoaded(
+        parentId: String,
+        children: List<MediaBrowserCompat.MediaItem>,
+        options: Bundle
+    ) {
         if (mMediaPresenter.getOnSaveInstancePassed()) {
             AppLogger.w(CLASS_NAME + "Can not perform on children loaded after OnSaveInstanceState")
             return
@@ -317,15 +323,17 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             handleChildrenLoaded(parentId, children, options)
         }
 
-        override fun onChildrenLoaded(parentId: String,
-                                      children: List<MediaBrowserCompat.MediaItem>) {
+        override fun onChildrenLoaded(
+            parentId: String,
+            children: List<MediaBrowserCompat.MediaItem>
+        ) {
             handleChildrenLoaded(parentId, children, Bundle())
         }
 
         override fun onError(id: String) {
             SafeToast.showAnyThread(
-                    applicationContext,
-                    getString(R.string.error_loading_media)
+                applicationContext,
+                getString(R.string.error_loading_media)
             )
         }
     }
@@ -368,7 +376,7 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
             }
             if (MediaIdHelper.MEDIA_ID_ROOT == mMediaPresenter.currentParentId) {
                 LocationService.checkCountry(
-                        this@TvMainActivity, this@TvMainActivity.findViewById(R.id.tv_main_layout)
+                    this@TvMainActivity, this@TvMainActivity.findViewById(R.id.tv_main_layout)
                 )
                 updateRootView()
             }

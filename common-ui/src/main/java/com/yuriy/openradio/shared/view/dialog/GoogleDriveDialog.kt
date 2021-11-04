@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
-import androidx.fragment.app.FragmentManager
+import androidx.activity.result.ActivityResultLauncher
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -44,23 +44,25 @@ import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
  */
 class GoogleDriveDialog : BaseDialogFragment() {
 
-    private var mProgressBarUpload: ProgressBar? = null
-    private var mProgressBarDownload: ProgressBar? = null
-    private var mGoogleDriveManager: GoogleDriveManager? = null
+    private lateinit var mProgressBarUpload: ProgressBar
+    private lateinit var mProgressBarDownload: ProgressBar
+    private lateinit var mGoogleDriveManager: GoogleDriveManager
+    private lateinit var mLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val context = context
         val listener = GoogleDriveManagerListenerImpl()
-        mGoogleDriveManager = GoogleDriveManager(context!!, listener)
+        mGoogleDriveManager = GoogleDriveManager(requireContext(), listener)
+        mLauncher = IntentUtils.registerForActivityResultIntrl(
+            this, ::onActivityResultCallback
+        )
     }
 
     override fun onDestroy() {
         super.onDestroy()
         hideProgress(GoogleDriveManager.Command.UPLOAD)
         hideProgress(GoogleDriveManager.Command.DOWNLOAD)
-        mGoogleDriveManager!!.disconnect()
-        mGoogleDriveManager = null
+        mGoogleDriveManager.disconnect()
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -84,12 +86,8 @@ class GoogleDriveDialog : BaseDialogFragment() {
         GoogleSignIn
             .getSignedInAccountFromIntent(data)
             .addOnSuccessListener { googleAccount: GoogleSignInAccount ->
-                if (mGoogleDriveManager == null) {
-                    showErrorToast(getString(R.string.google_drive_error_msg_2))
-                    return@addOnSuccessListener
-                }
                 AppLogger.d("Signed in as " + googleAccount.email)
-                mGoogleDriveManager!!.connect(googleAccount.account)
+                mGoogleDriveManager.connect(googleAccount.account)
             }
             .addOnFailureListener { exception: Exception? ->
                 AppLogger.e("Can't do sign in", exception)
@@ -100,29 +98,21 @@ class GoogleDriveDialog : BaseDialogFragment() {
     }
 
     private fun uploadRadioStationsToGoogleDrive() {
-        if (mGoogleDriveManager == null) {
-            showErrorToast(getString(R.string.google_drive_error_msg_3))
-            return
-        }
-        mGoogleDriveManager!!.uploadRadioStations()
+        mGoogleDriveManager.uploadRadioStations()
     }
 
     private fun downloadRadioStationsFromGoogleDrive() {
-        if (mGoogleDriveManager == null) {
-            showErrorToast(getString(R.string.google_drive_error_msg_4))
-            return
-        }
-        mGoogleDriveManager!!.downloadRadioStations()
+        mGoogleDriveManager.downloadRadioStations()
     }
 
     private fun showProgress(command: GoogleDriveManager.Command) {
         val activity = activity ?: return
         when (command) {
-            GoogleDriveManager.Command.UPLOAD -> if (mProgressBarUpload != null) {
-                activity.runOnUiThread { mProgressBarUpload!!.visibility = View.VISIBLE }
+            GoogleDriveManager.Command.UPLOAD -> activity.runOnUiThread {
+                mProgressBarUpload.visibility = View.VISIBLE
             }
-            GoogleDriveManager.Command.DOWNLOAD -> if (mProgressBarDownload != null) {
-                activity.runOnUiThread { mProgressBarDownload!!.visibility = View.VISIBLE }
+            GoogleDriveManager.Command.DOWNLOAD -> activity.runOnUiThread {
+                mProgressBarDownload.visibility = View.VISIBLE
             }
         }
     }
@@ -130,34 +120,19 @@ class GoogleDriveDialog : BaseDialogFragment() {
     private fun hideProgress(command: GoogleDriveManager.Command) {
         val activity = activity ?: return
         when (command) {
-            GoogleDriveManager.Command.UPLOAD -> if (mProgressBarUpload != null) {
-                activity.runOnUiThread { mProgressBarUpload!!.visibility = View.GONE }
+            GoogleDriveManager.Command.UPLOAD -> activity.runOnUiThread {
+                mProgressBarUpload.visibility = View.GONE
             }
-            GoogleDriveManager.Command.DOWNLOAD -> if (mProgressBarDownload != null) {
-                activity.runOnUiThread { mProgressBarDownload!!.visibility = View.GONE }
+            GoogleDriveManager.Command.DOWNLOAD -> activity.runOnUiThread {
+                mProgressBarDownload.visibility = View.GONE
             }
         }
-    }
-
-    private fun showErrorToast(message: String) {
-        showAnyThread(context, message)
     }
 
     private inner class GoogleDriveManagerListenerImpl : GoogleDriveManager.Listener {
 
         override fun onAccountRequested(client: GoogleSignInClient) {
-            if (mGoogleDriveManager == null) {
-                showErrorToast(getString(R.string.google_drive_error_msg_1))
-                return
-            }
-            if (!IntentUtils.startActivityForResultSafe(
-                    this@GoogleDriveDialog.activity,
-                    client.signInIntent,
-                    this@GoogleDriveDialog::onActivityResultCallback
-                )
-            ) {
-                mGoogleDriveManager!!.connect(null)
-            }
+            mLauncher.launch(client.signInIntent)
         }
 
         override fun onStart(command: GoogleDriveManager.Command) {
@@ -208,15 +183,5 @@ class GoogleDriveDialog : BaseDialogFragment() {
          * Tag string to use in dialog transactions.
          */
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
-
-        fun findDialog(fragmentManager: FragmentManager?): GoogleDriveDialog? {
-            if (fragmentManager == null) {
-                return null
-            }
-            val fragment = fragmentManager.findFragmentByTag(DIALOG_TAG)
-            return if (fragment is GoogleDriveDialog) {
-                fragment
-            } else null
-        }
     }
 }

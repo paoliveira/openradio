@@ -119,6 +119,10 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
         mGenresAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         // Apply the mCountriesAdapter to the spinner
         mGenresSpinner.adapter = mGenresAdapter
+
+        val launcher = IntentUtils.registerForActivityResultIntrl(
+            this, ::onActivityResultCallback
+        )
         val imageUrlBtn = view.findViewById<Button>(R.id.add_edit_station_image_browse_btn)
         imageUrlBtn.setOnClickListener {
             val galleryIntent = Intent()
@@ -127,9 +131,7 @@ abstract class BaseAddEditStationDialog : BaseDialogFragment() {
 
             // Chooser of filesystem options.
             val chooserIntent = Intent.createChooser(galleryIntent, "Select Image")
-            IntentUtils.startActivityForResultSafe(
-                activity, chooserIntent, ::onActivityResultCallback
-            )
+            launcher.launch(chooserIntent)
         }
         mAddToFavCheckView = view.findViewById(R.id.add_to_fav_check_view)
         val addToSrvrCheckView = view.findViewById<CheckBox>(R.id.add_to_srvr_check_view)
