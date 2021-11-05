@@ -154,11 +154,11 @@ class OpenRadioPlayer(
         }
     }
 
-    private val mExoPlayer: SimpleExoPlayer by lazy {
+    private val mExoPlayer: ExoPlayer by lazy {
         AppLogger.i("$LOG_TAG init ExoPlayer")
         val trackSelector = DefaultTrackSelector(mContext)
         trackSelector.parameters = DefaultTrackSelector.ParametersBuilder(mContext).build()
-        val builder = SimpleExoPlayer.Builder(
+        val builder = ExoPlayer.Builder(
             mContext, ExoPlayerUtils.buildRenderersFactory(mContext)
         )
         builder.setTrackSelector(trackSelector)

@@ -8,7 +8,7 @@ project.ext {
      */
     compileSdkVersion = 31
     minSdkVersion = 17
-    targetSdkVersion = 31
+    targetSdkVersion = 30
     buildToolsVersion = "31.0.0"
     toolsBuildGradle = "4.1.1"
 
@@ -40,7 +40,7 @@ project.ext {
     espressoVersion = "3.1.0"
     // https://mvnrepository.com/artifact/org.json/json
     jsonTestVersion = "20180813"
-    exoPlayerVersion = "2.15.1"
+    exoPlayerVersion = "2.16.0"
     multidexVersion = "1.0.3"
     leanbackVersion = "1.0.0"
     firebaseInstallationsVersion = "16.3.5"

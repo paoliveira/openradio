@@ -20,13 +20,10 @@ import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.database.DatabaseProvider
-import com.google.android.exoplayer2.database.ExoDatabaseProvider
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.ext.cronet.CronetDataSource
 import com.google.android.exoplayer2.ext.cronet.CronetUtil
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.HttpDataSource
+import com.google.android.exoplayer2.upstream.*
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
@@ -73,7 +70,7 @@ object ExoPlayerUtils {
         sUserAgent = userAgent
         if (sDataSourceFactory == null) {
             val factory = getHttpDataSourceFactory(context, sUserAgent)
-            val upstreamFactory = DefaultDataSourceFactory(context, factory!!)
+            val upstreamFactory = DefaultDataSource.Factory(context, factory!!)
             sDataSourceFactory = buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache(context)!!)
         }
         return sDataSourceFactory
@@ -145,7 +142,7 @@ object ExoPlayerUtils {
     @Synchronized
     private fun getDatabaseProvider(context: Context): DatabaseProvider? {
         if (sDatabaseProvider == null) {
-            sDatabaseProvider = ExoDatabaseProvider(context)
+            sDatabaseProvider = StandaloneDatabaseProvider(context)
         }
         return sDatabaseProvider
     }
