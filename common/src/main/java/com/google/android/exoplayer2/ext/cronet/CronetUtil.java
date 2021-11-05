@@ -15,12 +15,23 @@
  */
 package com.google.android.exoplayer2.ext.cronet;
 
+import static java.lang.Math.min;
+
+import android.content.Context;
+
+import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
+import com.google.android.exoplayer2.util.Log;
+import com.google.android.exoplayer2.util.Util;
 
 import org.chromium.net.CronetEngine;
 import org.chromium.net.CronetProvider;
 
-import static java.lang.Math.min;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Cronet utility methods.
@@ -30,9 +41,30 @@ public final class CronetUtil {
     private static final String TAG = "CronetUtil";
 
     /**
-     * Builds a {@link CronetEngine} suitable for use with ExoPlayer. When choosing a {@link
-     * CronetProvider Cronet provider} to build the {@link CronetEngine}, disabled providers are not
-     * considered. Neither are fallback providers, since it's more efficient to use {@link
+     * Builds a {@link CronetEngine} suitable for use with {@link CronetDataSource}. When choosing a
+     * {@link CronetProvider Cronet provider} to build the {@link CronetEngine}, disabled providers
+     * are not considered. Neither are fallback providers, since it's more efficient to use {@link
+     * DefaultHttpDataSource} than it is to use {@link CronetDataSource} with a fallback {@link
+     * CronetEngine}.
+     *
+     * <p>Note that it's recommended for applications to create only one instance of {@link
+     * CronetEngine}, so if your application already has an instance for performing other networking,
+     * then that instance should be used and calling this method is unnecessary. See the <a
+     * href="https://developer.android.com/guide/topics/connectivity/cronet/start">Android developer
+     * guide</a> to learn more about using Cronet for network operations.
+     *
+     * @param context A context.
+     * @return The {@link CronetEngine}, or {@code null} if no suitable engine could be built.
+     */
+    @Nullable
+    public static CronetEngine buildCronetEngine(Context context) {
+        return buildCronetEngine(context, /* userAgent= */ null, /* preferGooglePlayServices= */ false);
+    }
+
+    /**
+     * Builds a {@link CronetEngine} suitable for use with {@link CronetDataSource}. When choosing a
+     * {@link CronetProvider Cronet provider} to build the {@link CronetEngine}, disabled providers
+     * are not considered. Neither are fallback providers, since it's more efficient to use {@link
      * DefaultHttpDataSource} than it is to use {@link CronetDataSource} with a fallback {@link
      * CronetEngine}.
      *
@@ -49,51 +81,51 @@ public final class CronetUtil {
      *                                 over Cronet Embedded, if both are available.
      * @return The {@link CronetEngine}, or {@code null} if no suitable engine could be built.
      */
-    @androidx.annotation.Nullable
-    public static org.chromium.net.CronetEngine buildCronetEngine(
-            android.content.Context context, @androidx.annotation.Nullable String userAgent, boolean preferGooglePlayServices) {
-        java.util.List<org.chromium.net.CronetProvider> cronetProviders = new java.util.ArrayList<>(org.chromium.net.CronetProvider.getAllProviders(context));
+    @Nullable
+    public static CronetEngine buildCronetEngine(
+            Context context, @Nullable String userAgent, boolean preferGooglePlayServices) {
+        List<CronetProvider> cronetProviders = new ArrayList<>(CronetProvider.getAllProviders(context));
         // Remove disabled and fallback Cronet providers from list.
         for (int i = cronetProviders.size() - 1; i >= 0; i--) {
             if (!cronetProviders.get(i).isEnabled()
-                    || org.chromium.net.CronetProvider.PROVIDER_NAME_FALLBACK.equals(cronetProviders.get(i).getName())) {
+                    || CronetProvider.PROVIDER_NAME_FALLBACK.equals(cronetProviders.get(i).getName())) {
                 cronetProviders.remove(i);
             }
         }
         // Sort remaining providers by type and version.
-        com.google.android.exoplayer2.ext.cronet.CronetUtil.CronetProviderComparator providerComparator =
-                new com.google.android.exoplayer2.ext.cronet.CronetUtil.CronetProviderComparator(preferGooglePlayServices);
-        java.util.Collections.sort(cronetProviders, providerComparator);
+        CronetProviderComparator providerComparator =
+                new CronetProviderComparator(preferGooglePlayServices);
+        Collections.sort(cronetProviders, providerComparator);
         for (int i = 0; i < cronetProviders.size(); i++) {
             String providerName = cronetProviders.get(i).getName();
             try {
-                org.chromium.net.CronetEngine.Builder cronetEngineBuilder = cronetProviders.get(i).createBuilder();
+                CronetEngine.Builder cronetEngineBuilder = cronetProviders.get(i).createBuilder();
                 if (userAgent != null) {
                     cronetEngineBuilder.setUserAgent(userAgent);
                 }
-                org.chromium.net.CronetEngine cronetEngine = cronetEngineBuilder.build();
-                com.google.android.exoplayer2.util.Log.d(TAG, "CronetEngine built using " + providerName);
+                CronetEngine cronetEngine = cronetEngineBuilder.build();
+                Log.d(TAG, "CronetEngine built using " + providerName);
                 return cronetEngine;
             } catch (SecurityException e) {
-                com.google.android.exoplayer2.util.Log.w(
+                Log.w(
                         TAG,
                         "Failed to build CronetEngine. Please check that the process has "
                                 + "android.permission.ACCESS_NETWORK_STATE.");
             } catch (UnsatisfiedLinkError e) {
-                com.google.android.exoplayer2.util.Log.w(
+                Log.w(
                         TAG,
                         "Failed to link Cronet binaries. Please check that native Cronet binaries are"
                                 + "bundled into your app.");
             }
         }
-        com.google.android.exoplayer2.util.Log.w(TAG, "CronetEngine could not be built.");
+        Log.w(TAG, "CronetEngine could not be built.");
         return null;
     }
 
     private CronetUtil() {
     }
 
-    private static class CronetProviderComparator implements java.util.Comparator<org.chromium.net.CronetProvider> {
+    private static class CronetProviderComparator implements Comparator<CronetProvider> {
 
         /*
          * Copy of com.google.android.gms.net.CronetProviderInstaller.PROVIDER_NAME. We have our own
@@ -110,7 +142,7 @@ public final class CronetUtil {
         }
 
         @Override
-        public int compare(org.chromium.net.CronetProvider providerLeft, org.chromium.net.CronetProvider providerRight) {
+        public int compare(CronetProvider providerLeft, CronetProvider providerRight) {
             int providerComparison = getPriority(providerLeft) - getPriority(providerRight);
             if (providerComparison != 0) {
                 return providerComparison;
@@ -122,9 +154,9 @@ public final class CronetUtil {
          * Returns the priority score for a Cronet provider, where a smaller score indicates higher
          * priority.
          */
-        private int getPriority(org.chromium.net.CronetProvider provider) {
+        private int getPriority(CronetProvider provider) {
             String providerName = provider.getName();
-            if (org.chromium.net.CronetProvider.PROVIDER_NAME_APP_PACKAGED.equals(providerName)) {
+            if (CronetProvider.PROVIDER_NAME_APP_PACKAGED.equals(providerName)) {
                 return 1;
             } else if (GOOGLE_PLAY_SERVICES_PROVIDER_NAME.equals(providerName)) {
                 return preferGooglePlayServices ? 0 : 2;
@@ -137,12 +169,12 @@ public final class CronetUtil {
          * Compares version strings of format "12.123.35.23".
          */
         private static int compareVersionStrings(
-                @androidx.annotation.Nullable String versionLeft, @androidx.annotation.Nullable String versionRight) {
+                @Nullable String versionLeft, @Nullable String versionRight) {
             if (versionLeft == null || versionRight == null) {
                 return 0;
             }
-            String[] versionStringsLeft = com.google.android.exoplayer2.util.Util.split(versionLeft, "\\.");
-            String[] versionStringsRight = com.google.android.exoplayer2.util.Util.split(versionRight, "\\.");
+            String[] versionStringsLeft = Util.split(versionLeft, "\\.");
+            String[] versionStringsRight = Util.split(versionRight, "\\.");
             int minLength = min(versionStringsLeft.length, versionStringsRight.length);
             for (int i = 0; i < minLength; i++) {
                 if (!versionStringsLeft[i].equals(versionStringsRight[i])) {

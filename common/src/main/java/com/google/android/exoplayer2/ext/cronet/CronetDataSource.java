@@ -19,22 +19,49 @@ import static com.google.android.exoplayer2.upstream.HttpUtil.buildRangeRequestH
 import static com.google.android.exoplayer2.util.Util.castNonNull;
 import static org.chromium.net.UrlRequest.Builder.REQUEST_PRIORITY_MEDIUM;
 
+import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ExoPlayerLibraryInfo;
 import com.google.android.exoplayer2.PlaybackException;
+import com.google.android.exoplayer2.upstream.BaseDataSource;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSourceException;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
+import com.google.android.exoplayer2.upstream.HttpUtil;
 import com.google.android.exoplayer2.upstream.TransferListener;
+import com.google.android.exoplayer2.util.Assertions;
+import com.google.android.exoplayer2.util.Clock;
+import com.google.android.exoplayer2.util.ConditionVariable;
+import com.google.android.exoplayer2.util.Util;
+import com.google.common.base.Ascii;
 import com.google.common.base.Predicate;
+import com.google.common.net.HttpHeaders;
+import com.google.common.primitives.Longs;
 
 import org.chromium.net.CronetEngine;
+import org.chromium.net.CronetException;
+import org.chromium.net.NetworkException;
 import org.chromium.net.UrlRequest;
 import org.chromium.net.UrlRequest.Status;
 import org.chromium.net.UrlResponseInfo;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Executor;
 
 /**
@@ -44,34 +71,34 @@ import java.util.concurrent.Executor;
  * priority) the {@code dataSpec}, {@link #setRequestProperty} and the default parameters used to
  * construct the instance.
  */
-public class CronetDataSource extends com.google.android.exoplayer2.upstream.BaseDataSource implements com.google.android.exoplayer2.upstream.HttpDataSource {
+public class CronetDataSource extends BaseDataSource implements HttpDataSource {
 
     static {
-        com.google.android.exoplayer2.ExoPlayerLibraryInfo.registerModule("goog.exo.cronet");
+        ExoPlayerLibraryInfo.registerModule("goog.exo.cronet");
     }
 
     /**
      * {@link DataSource.Factory} for {@link CronetDataSource} instances.
      */
-    public static final class Factory implements com.google.android.exoplayer2.upstream.HttpDataSource.Factory {
+    public static final class Factory implements HttpDataSource.Factory {
 
         // TODO: Remove @Nullable annotation when CronetEngineWrapper is deleted.
-        @androidx.annotation.Nullable
-        private final org.chromium.net.CronetEngine cronetEngine;
-        private final java.util.concurrent.Executor executor;
-        private final com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties;
+        @Nullable
+        private final CronetEngine cronetEngine;
+        private final Executor executor;
+        private final RequestProperties defaultRequestProperties;
         // TODO: Remove when CronetEngineWrapper is deleted.
-        @androidx.annotation.Nullable
-        private final com.google.android.exoplayer2.upstream.DefaultHttpDataSource.Factory internalFallbackFactory;
+        @Nullable
+        private final DefaultHttpDataSource.Factory internalFallbackFactory;
 
         // TODO: Remove when CronetEngineWrapper is deleted.
-        @androidx.annotation.Nullable
-        private com.google.android.exoplayer2.upstream.HttpDataSource.Factory fallbackFactory;
-        @androidx.annotation.Nullable
-        private com.google.common.base.Predicate<String> contentTypePredicate;
-        @androidx.annotation.Nullable
-        private com.google.android.exoplayer2.upstream.TransferListener transferListener;
-        @androidx.annotation.Nullable
+        @Nullable
+        private HttpDataSource.Factory fallbackFactory;
+        @Nullable
+        private Predicate<String> contentTypePredicate;
+        @Nullable
+        private TransferListener transferListener;
+        @Nullable
         private String userAgent;
         private int requestPriority;
         private int connectTimeoutMs;
@@ -92,27 +119,18 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          *                     However, to avoid slowing down overall network performance, care must be taken to make
          *                     sure response handling is a fast operation when using a direct executor.
          */
-        public Factory(org.chromium.net.CronetEngine cronetEngine, java.util.concurrent.Executor executor) {
-            this.cronetEngine = com.google.android.exoplayer2.util.Assertions.checkNotNull(cronetEngine);
+        public Factory(CronetEngine cronetEngine, Executor executor) {
+            this.cronetEngine = Assertions.checkNotNull(cronetEngine);
             this.executor = executor;
-            defaultRequestProperties = new com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties();
+            defaultRequestProperties = new RequestProperties();
             internalFallbackFactory = null;
             requestPriority = REQUEST_PRIORITY_MEDIUM;
             connectTimeoutMs = DEFAULT_CONNECT_TIMEOUT_MILLIS;
             readTimeoutMs = DEFAULT_READ_TIMEOUT_MILLIS;
         }
 
-        /**
-         * @deprecated Use {@link #setDefaultRequestProperties(Map)} instead.
-         */
-        @Deprecated
         @Override
-        public final com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties getDefaultRequestProperties() {
-            return defaultRequestProperties;
-        }
-
-        @Override
-        public final com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setDefaultRequestProperties(java.util.Map<String, String> defaultRequestProperties) {
+        public final Factory setDefaultRequestProperties(Map<String, String> defaultRequestProperties) {
             this.defaultRequestProperties.clearAndSet(defaultRequestProperties);
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setDefaultRequestProperties(defaultRequestProperties);
@@ -130,7 +148,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          *                  agent of the underlying {@link CronetEngine}.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setUserAgent(@androidx.annotation.Nullable String userAgent) {
+        public Factory setUserAgent(@Nullable String userAgent) {
             this.userAgent = userAgent;
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setUserAgent(userAgent);
@@ -148,7 +166,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          *                        UrlRequest.Builder#REQUEST_PRIORITY_*} constants.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setRequestPriority(int requestPriority) {
+        public Factory setRequestPriority(int requestPriority) {
             this.requestPriority = requestPriority;
             return this;
         }
@@ -161,7 +179,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * @param connectTimeoutMs The connect timeout, in milliseconds, that will be used.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setConnectionTimeoutMs(int connectTimeoutMs) {
+        public Factory setConnectionTimeoutMs(int connectTimeoutMs) {
             this.connectTimeoutMs = connectTimeoutMs;
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setConnectTimeoutMs(connectTimeoutMs);
@@ -177,7 +195,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * @param resetTimeoutOnRedirects Whether the connect timeout is reset when a redirect occurs.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setResetTimeoutOnRedirects(boolean resetTimeoutOnRedirects) {
+        public Factory setResetTimeoutOnRedirects(boolean resetTimeoutOnRedirects) {
             this.resetTimeoutOnRedirects = resetTimeoutOnRedirects;
             return this;
         }
@@ -192,7 +210,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          *                                to the redirect url in the "Cookie" header.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setHandleSetCookieRequests(boolean handleSetCookieRequests) {
+        public Factory setHandleSetCookieRequests(boolean handleSetCookieRequests) {
             this.handleSetCookieRequests = handleSetCookieRequests;
             return this;
         }
@@ -205,7 +223,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * @param readTimeoutMs The connect timeout, in milliseconds, that will be used.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setReadTimeoutMs(int readTimeoutMs) {
+        public Factory setReadTimeoutMs(int readTimeoutMs) {
             this.readTimeoutMs = readTimeoutMs;
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setReadTimeoutMs(readTimeoutMs);
@@ -223,7 +241,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          *                             predicate that was previously set.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setContentTypePredicate(@androidx.annotation.Nullable com.google.common.base.Predicate<String> contentTypePredicate) {
+        public Factory setContentTypePredicate(@Nullable Predicate<String> contentTypePredicate) {
             this.contentTypePredicate = contentTypePredicate;
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setContentTypePredicate(contentTypePredicate);
@@ -235,7 +253,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * Sets whether we should keep the POST method and body when we have HTTP 302 redirects for a
          * POST request.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setKeepPostFor302Redirects(boolean keepPostFor302Redirects) {
+        public Factory setKeepPostFor302Redirects(boolean keepPostFor302Redirects) {
             this.keepPostFor302Redirects = keepPostFor302Redirects;
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setKeepPostFor302Redirects(keepPostFor302Redirects);
@@ -253,7 +271,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * @param transferListener The listener that will be used.
          * @return This factory.
          */
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setTransferListener(@androidx.annotation.Nullable com.google.android.exoplayer2.upstream.TransferListener transferListener) {
+        public Factory setTransferListener(@Nullable TransferListener transferListener) {
             this.transferListener = transferListener;
             if (internalFallbackFactory != null) {
                 internalFallbackFactory.setTransferListener(transferListener);
@@ -262,7 +280,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         }
 
         /**
-         * Sets the fallback {@link HttpDataSource.Factory} that is used as a fallback if the {
+         * Sets the fallback {@link HttpDataSource.Factory} that is used as a fallback if the {@link
          * CronetEngineWrapper} fails to provide a {@link CronetEngine}.
          *
          * <p>By default a {@link DefaultHttpDataSource} is used as fallback factory.
@@ -273,17 +291,17 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * {@link CronetEngine} is not available. Use the fallback factory directly in such cases.
          */
         @Deprecated
-        public com.google.android.exoplayer2.ext.cronet.CronetDataSource.Factory setFallbackFactory(@androidx.annotation.Nullable com.google.android.exoplayer2.upstream.HttpDataSource.Factory fallbackFactory) {
+        public Factory setFallbackFactory(@Nullable HttpDataSource.Factory fallbackFactory) {
             this.fallbackFactory = fallbackFactory;
             return this;
         }
 
         @Override
-        public com.google.android.exoplayer2.upstream.HttpDataSource createDataSource() {
+        public HttpDataSource createDataSource() {
             if (cronetEngine == null) {
                 return (fallbackFactory != null)
                         ? fallbackFactory.createDataSource()
-                        : com.google.android.exoplayer2.util.Assertions.checkNotNull(internalFallbackFactory).createDataSource();
+                        : Assertions.checkNotNull(internalFallbackFactory).createDataSource();
             }
             CronetDataSource dataSource =
                     new CronetDataSource(
@@ -308,7 +326,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     /**
      * Thrown when an error is encountered when trying to open a {@link CronetDataSource}.
      */
-    public static final class OpenException extends com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException {
+    public static final class OpenException extends HttpDataSourceException {
 
         /**
          * Returns the status of the connection establishment at the moment when the error occurred, as
@@ -320,15 +338,15 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * @deprecated Use {@link #OpenException(IOException, DataSpec, int, int)}.
          */
         @Deprecated
-        public OpenException(java.io.IOException cause, com.google.android.exoplayer2.upstream.DataSpec dataSpec, int cronetConnectionStatus) {
-            super(cause, dataSpec, com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_UNSPECIFIED, TYPE_OPEN);
+        public OpenException(IOException cause, DataSpec dataSpec, int cronetConnectionStatus) {
+            super(cause, dataSpec, PlaybackException.ERROR_CODE_IO_UNSPECIFIED, TYPE_OPEN);
             this.cronetConnectionStatus = cronetConnectionStatus;
         }
 
         public OpenException(
-                java.io.IOException cause,
-                com.google.android.exoplayer2.upstream.DataSpec dataSpec,
-                @com.google.android.exoplayer2.PlaybackException.ErrorCode int errorCode,
+                IOException cause,
+                DataSpec dataSpec,
+                @PlaybackException.ErrorCode int errorCode,
                 int cronetConnectionStatus) {
             super(cause, dataSpec, errorCode, TYPE_OPEN);
             this.cronetConnectionStatus = cronetConnectionStatus;
@@ -338,22 +356,22 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
          * @deprecated Use {@link #OpenException(String, DataSpec, int, int)}.
          */
         @Deprecated
-        public OpenException(String errorMessage, com.google.android.exoplayer2.upstream.DataSpec dataSpec, int cronetConnectionStatus) {
-            super(errorMessage, dataSpec, com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_UNSPECIFIED, TYPE_OPEN);
+        public OpenException(String errorMessage, DataSpec dataSpec, int cronetConnectionStatus) {
+            super(errorMessage, dataSpec, PlaybackException.ERROR_CODE_IO_UNSPECIFIED, TYPE_OPEN);
             this.cronetConnectionStatus = cronetConnectionStatus;
         }
 
         public OpenException(
                 String errorMessage,
-                com.google.android.exoplayer2.upstream.DataSpec dataSpec,
-                @com.google.android.exoplayer2.PlaybackException.ErrorCode int errorCode,
+                DataSpec dataSpec,
+                @PlaybackException.ErrorCode int errorCode,
                 int cronetConnectionStatus) {
             super(errorMessage, dataSpec, errorCode, TYPE_OPEN);
             this.cronetConnectionStatus = cronetConnectionStatus;
         }
 
         public OpenException(
-                com.google.android.exoplayer2.upstream.DataSpec dataSpec, @com.google.android.exoplayer2.PlaybackException.ErrorCode int errorCode, int cronetConnectionStatus) {
+                DataSpec dataSpec, @PlaybackException.ErrorCode int errorCode, int cronetConnectionStatus) {
             super(dataSpec, errorCode, TYPE_OPEN);
             this.cronetConnectionStatus = cronetConnectionStatus;
         }
@@ -368,28 +386,28 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      */
     public static final int DEFAULT_READ_TIMEOUT_MILLIS = 8 * 1000;
 
-    /* package */ final org.chromium.net.UrlRequest.Callback urlRequestCallback;
+    /* package */ final UrlRequest.Callback urlRequestCallback;
 
     // The size of read buffer passed to cronet UrlRequest.read().
     private static final int READ_BUFFER_SIZE_BYTES = 32 * 1024;
 
-    private final org.chromium.net.CronetEngine cronetEngine;
-    private final java.util.concurrent.Executor executor;
+    private final CronetEngine cronetEngine;
+    private final Executor executor;
     private final int requestPriority;
     private final int connectTimeoutMs;
     private final int readTimeoutMs;
     private final boolean resetTimeoutOnRedirects;
     private final boolean handleSetCookieRequests;
-    @androidx.annotation.Nullable
+    @Nullable
     private final String userAgent;
-    @androidx.annotation.Nullable
-    private final com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties;
-    private final com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties requestProperties;
-    private final com.google.android.exoplayer2.util.ConditionVariable operation;
-    private final com.google.android.exoplayer2.util.Clock clock;
+    @Nullable
+    private final RequestProperties defaultRequestProperties;
+    private final RequestProperties requestProperties;
+    private final ConditionVariable operation;
+    private final Clock clock;
 
-    @androidx.annotation.Nullable
-    private com.google.common.base.Predicate<String> contentTypePredicate;
+    @Nullable
+    private Predicate<String> contentTypePredicate;
     private final boolean keepPostFor302Redirects;
 
     // Accessed by the calling thread only.
@@ -398,23 +416,23 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
     // Written from the calling thread only. currentUrlRequest.start() calls ensure writes are visible
     // to reads made by the Cronet thread.
-    @androidx.annotation.Nullable
-    private org.chromium.net.UrlRequest currentUrlRequest;
-    @androidx.annotation.Nullable
-    private com.google.android.exoplayer2.upstream.DataSpec currentDataSpec;
+    @Nullable
+    private UrlRequest currentUrlRequest;
+    @Nullable
+    private DataSpec currentDataSpec;
 
     // Reference written and read by calling thread only. Passed to Cronet thread as a local variable.
     // operation.open() calls ensure writes into the buffer are visible to reads made by the calling
     // thread.
-    @androidx.annotation.Nullable
-    private java.nio.ByteBuffer readBuffer;
+    @Nullable
+    private ByteBuffer readBuffer;
 
     // Written from the Cronet thread only. operation.open() calls ensure writes are visible to reads
     // made by the calling thread.
-    @androidx.annotation.Nullable
-    private org.chromium.net.UrlResponseInfo responseInfo;
-    @androidx.annotation.Nullable
-    private java.io.IOException exception;
+    @Nullable
+    private UrlResponseInfo responseInfo;
+    @Nullable
+    private IOException exception;
     private boolean finished;
 
     private volatile long currentConnectTimeoutMs;
@@ -424,7 +442,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      */
     @SuppressWarnings("deprecation")
     @Deprecated
-    public CronetDataSource(org.chromium.net.CronetEngine cronetEngine, java.util.concurrent.Executor executor) {
+    public CronetDataSource(CronetEngine cronetEngine, Executor executor) {
         this(
                 cronetEngine,
                 executor,
@@ -439,12 +457,12 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      */
     @Deprecated
     public CronetDataSource(
-            org.chromium.net.CronetEngine cronetEngine,
-            java.util.concurrent.Executor executor,
+            CronetEngine cronetEngine,
+            Executor executor,
             int connectTimeoutMs,
             int readTimeoutMs,
             boolean resetTimeoutOnRedirects,
-            @androidx.annotation.Nullable com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties) {
+            @Nullable RequestProperties defaultRequestProperties) {
         this(
                 cronetEngine,
                 executor,
@@ -464,12 +482,12 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      */
     @Deprecated
     public CronetDataSource(
-            org.chromium.net.CronetEngine cronetEngine,
-            java.util.concurrent.Executor executor,
+            CronetEngine cronetEngine,
+            Executor executor,
             int connectTimeoutMs,
             int readTimeoutMs,
             boolean resetTimeoutOnRedirects,
-            @androidx.annotation.Nullable com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties,
+            @Nullable RequestProperties defaultRequestProperties,
             boolean handleSetCookieRequests) {
         this(
                 cronetEngine,
@@ -491,9 +509,9 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     @SuppressWarnings("deprecation")
     @Deprecated
     public CronetDataSource(
-            org.chromium.net.CronetEngine cronetEngine,
-            java.util.concurrent.Executor executor,
-            @androidx.annotation.Nullable com.google.common.base.Predicate<String> contentTypePredicate) {
+            CronetEngine cronetEngine,
+            Executor executor,
+            @Nullable Predicate<String> contentTypePredicate) {
         this(
                 cronetEngine,
                 executor,
@@ -510,13 +528,13 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     @SuppressWarnings("deprecation")
     @Deprecated
     public CronetDataSource(
-            org.chromium.net.CronetEngine cronetEngine,
-            java.util.concurrent.Executor executor,
-            @androidx.annotation.Nullable com.google.common.base.Predicate<String> contentTypePredicate,
+            CronetEngine cronetEngine,
+            Executor executor,
+            @Nullable Predicate<String> contentTypePredicate,
             int connectTimeoutMs,
             int readTimeoutMs,
             boolean resetTimeoutOnRedirects,
-            @androidx.annotation.Nullable com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties) {
+            @Nullable RequestProperties defaultRequestProperties) {
         this(
                 cronetEngine,
                 executor,
@@ -533,13 +551,13 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      */
     @Deprecated
     public CronetDataSource(
-            org.chromium.net.CronetEngine cronetEngine,
-            java.util.concurrent.Executor executor,
-            @androidx.annotation.Nullable com.google.common.base.Predicate<String> contentTypePredicate,
+            CronetEngine cronetEngine,
+            Executor executor,
+            @Nullable Predicate<String> contentTypePredicate,
             int connectTimeoutMs,
             int readTimeoutMs,
             boolean resetTimeoutOnRedirects,
-            @androidx.annotation.Nullable com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties,
+            @Nullable RequestProperties defaultRequestProperties,
             boolean handleSetCookieRequests) {
         this(
                 cronetEngine,
@@ -556,20 +574,20 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     }
 
     protected CronetDataSource(
-            org.chromium.net.CronetEngine cronetEngine,
-            java.util.concurrent.Executor executor,
+            CronetEngine cronetEngine,
+            Executor executor,
             int requestPriority,
             int connectTimeoutMs,
             int readTimeoutMs,
             boolean resetTimeoutOnRedirects,
             boolean handleSetCookieRequests,
-            @androidx.annotation.Nullable String userAgent,
-            @androidx.annotation.Nullable com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties defaultRequestProperties,
-            @androidx.annotation.Nullable com.google.common.base.Predicate<String> contentTypePredicate,
+            @Nullable String userAgent,
+            @Nullable RequestProperties defaultRequestProperties,
+            @Nullable Predicate<String> contentTypePredicate,
             boolean keepPostFor302Redirects) {
         super(/* isNetwork= */ true);
-        this.cronetEngine = com.google.android.exoplayer2.util.Assertions.checkNotNull(cronetEngine);
-        this.executor = com.google.android.exoplayer2.util.Assertions.checkNotNull(executor);
+        this.cronetEngine = Assertions.checkNotNull(cronetEngine);
+        this.executor = Assertions.checkNotNull(executor);
         this.requestPriority = requestPriority;
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
@@ -579,10 +597,10 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         this.defaultRequestProperties = defaultRequestProperties;
         this.contentTypePredicate = contentTypePredicate;
         this.keepPostFor302Redirects = keepPostFor302Redirects;
-        clock = com.google.android.exoplayer2.util.Clock.DEFAULT;
-        urlRequestCallback = new com.google.android.exoplayer2.ext.cronet.CronetDataSource.UrlRequestCallback();
-        requestProperties = new com.google.android.exoplayer2.upstream.HttpDataSource.RequestProperties();
-        operation = new com.google.android.exoplayer2.util.ConditionVariable();
+        clock = Clock.DEFAULT;
+        urlRequestCallback = new UrlRequestCallback();
+        requestProperties = new RequestProperties();
+        operation = new ConditionVariable();
     }
 
     /**
@@ -593,7 +611,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      *                             predicate that was previously set.
      */
     @Deprecated
-    public void setContentTypePredicate(@androidx.annotation.Nullable com.google.common.base.Predicate<String> contentTypePredicate) {
+    public void setContentTypePredicate(@Nullable Predicate<String> contentTypePredicate) {
         this.contentTypePredicate = contentTypePredicate;
     }
 
@@ -622,34 +640,34 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     }
 
     @Override
-    public java.util.Map<String, java.util.List<String>> getResponseHeaders() {
-        return responseInfo == null ? java.util.Collections.emptyMap() : responseInfo.getAllHeaders();
+    public Map<String, List<String>> getResponseHeaders() {
+        return responseInfo == null ? Collections.emptyMap() : responseInfo.getAllHeaders();
     }
 
     @Override
-    @androidx.annotation.Nullable
-    public android.net.Uri getUri() {
-        return responseInfo == null ? null : android.net.Uri.parse(responseInfo.getUrl());
+    @Nullable
+    public Uri getUri() {
+        return responseInfo == null ? null : Uri.parse(responseInfo.getUrl());
     }
 
     @Override
-    public long open(com.google.android.exoplayer2.upstream.DataSpec dataSpec) throws com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException {
-        com.google.android.exoplayer2.util.Assertions.checkNotNull(dataSpec);
-        com.google.android.exoplayer2.util.Assertions.checkState(!opened);
+    public long open(DataSpec dataSpec) throws HttpDataSourceException {
+        Assertions.checkNotNull(dataSpec);
+        Assertions.checkState(!opened);
 
         operation.close();
         resetConnectTimeout();
         currentDataSpec = dataSpec;
-        org.chromium.net.UrlRequest urlRequest;
+        UrlRequest urlRequest;
         try {
             urlRequest = buildRequestBuilder(dataSpec).build();
             currentUrlRequest = urlRequest;
-        } catch (java.io.IOException e) {
-            if (e instanceof com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException) {
-                throw (com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException) e;
+        } catch (IOException e) {
+            if (e instanceof HttpDataSourceException) {
+                throw (HttpDataSourceException) e;
             } else {
-                throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
-                        e, dataSpec, com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_UNSPECIFIED, org.chromium.net.UrlRequest.Status.IDLE);
+                throw new OpenException(
+                        e, dataSpec, PlaybackException.ERROR_CODE_IO_UNSPECIFIED, Status.IDLE);
             }
         }
         urlRequest.start();
@@ -657,23 +675,23 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         transferInitializing(dataSpec);
         try {
             boolean connectionOpened = blockUntilConnectTimeout();
-            @androidx.annotation.Nullable java.io.IOException connectionOpenException = exception;
+            @Nullable IOException connectionOpenException = exception;
             if (connectionOpenException != null) {
-                @androidx.annotation.Nullable String message = connectionOpenException.getMessage();
-                if (message != null && com.google.common.base.Ascii.toLowerCase(message).contains("err_cleartext_not_permitted")) {
-                    throw new com.google.android.exoplayer2.upstream.HttpDataSource.CleartextNotPermittedException(connectionOpenException, dataSpec);
+                @Nullable String message = connectionOpenException.getMessage();
+                if (message != null && Ascii.toLowerCase(message).contains("err_cleartext_not_permitted")) {
+                    throw new CleartextNotPermittedException(connectionOpenException, dataSpec);
                 }
-                throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
+                throw new OpenException(
                         connectionOpenException,
                         dataSpec,
-                        com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
                         getStatus(urlRequest));
             } else if (!connectionOpened) {
                 // The timeout was reached before the connection was opened.
-                throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
-                        new java.net.SocketTimeoutException(),
+                throw new OpenException(
+                        new SocketTimeoutException(),
                         dataSpec,
-                        com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+                        PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
                         getStatus(urlRequest));
             }
         } catch (InterruptedException e) {
@@ -681,41 +699,41 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
             // An interruption means the operation is being cancelled, in which case this exception should
             // not cause the player to fail. If it does, it likely means that the owner of the operation
             // is failing to swallow the interruption, which makes us enter an invalid state.
-            throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
-                    new java.io.InterruptedIOException(),
+            throw new OpenException(
+                    new InterruptedIOException(),
                     dataSpec,
-                    com.google.android.exoplayer2.PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK,
-                    org.chromium.net.UrlRequest.Status.INVALID);
+                    PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK,
+                    Status.INVALID);
         }
 
         // Check for a valid response code.
-        org.chromium.net.UrlResponseInfo responseInfo = com.google.android.exoplayer2.util.Assertions.checkNotNull(this.responseInfo);
+        UrlResponseInfo responseInfo = Assertions.checkNotNull(this.responseInfo);
         int responseCode = responseInfo.getHttpStatusCode();
-        java.util.Map<String, java.util.List<String>> responseHeaders = responseInfo.getAllHeaders();
+        Map<String, List<String>> responseHeaders = responseInfo.getAllHeaders();
         if (responseCode < 200 || responseCode > 299) {
             if (responseCode == 416) {
                 long documentSize =
-                        com.google.android.exoplayer2.upstream.HttpUtil.getDocumentSize(getFirstHeader(responseHeaders, com.google.common.net.HttpHeaders.CONTENT_RANGE));
+                        HttpUtil.getDocumentSize(getFirstHeader(responseHeaders, HttpHeaders.CONTENT_RANGE));
                 if (dataSpec.position == documentSize) {
                     opened = true;
                     transferStarted(dataSpec);
-                    return dataSpec.length != com.google.android.exoplayer2.C.LENGTH_UNSET ? dataSpec.length : 0;
+                    return dataSpec.length != C.LENGTH_UNSET ? dataSpec.length : 0;
                 }
             }
 
             byte[] responseBody;
             try {
                 responseBody = readResponseBody();
-            } catch (java.io.IOException e) {
-                responseBody = com.google.android.exoplayer2.util.Util.EMPTY_BYTE_ARRAY;
+            } catch (IOException e) {
+                responseBody = Util.EMPTY_BYTE_ARRAY;
             }
 
-            @androidx.annotation.Nullable
-            java.io.IOException cause =
+            @Nullable
+            IOException cause =
                     responseCode == 416
-                            ? new com.google.android.exoplayer2.upstream.DataSourceException(com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE)
+                            ? new DataSourceException(PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE)
                             : null;
-            throw new com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException(
+            throw new InvalidResponseCodeException(
                     responseCode,
                     responseInfo.getHttpStatusText(),
                     cause,
@@ -725,11 +743,11 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         }
 
         // Check for a valid content type.
-        com.google.common.base.Predicate<String> contentTypePredicate = this.contentTypePredicate;
+        Predicate<String> contentTypePredicate = this.contentTypePredicate;
         if (contentTypePredicate != null) {
-            @androidx.annotation.Nullable String contentType = getFirstHeader(responseHeaders, com.google.common.net.HttpHeaders.CONTENT_TYPE);
+            @Nullable String contentType = getFirstHeader(responseHeaders, HttpHeaders.CONTENT_TYPE);
             if (contentType != null && !contentTypePredicate.apply(contentType)) {
-                throw new com.google.android.exoplayer2.upstream.HttpDataSource.InvalidContentTypeException(contentType, dataSpec);
+                throw new InvalidContentTypeException(contentType, dataSpec);
             }
         }
 
@@ -740,15 +758,15 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
         // Calculate the content length.
         if (!isCompressed(responseInfo)) {
-            if (dataSpec.length != com.google.android.exoplayer2.C.LENGTH_UNSET) {
+            if (dataSpec.length != C.LENGTH_UNSET) {
                 bytesRemaining = dataSpec.length;
             } else {
                 long contentLength =
-                        com.google.android.exoplayer2.upstream.HttpUtil.getContentLength(
-                                getFirstHeader(responseHeaders, com.google.common.net.HttpHeaders.CONTENT_LENGTH),
-                                getFirstHeader(responseHeaders, com.google.common.net.HttpHeaders.CONTENT_RANGE));
+                        HttpUtil.getContentLength(
+                                getFirstHeader(responseHeaders, HttpHeaders.CONTENT_LENGTH),
+                                getFirstHeader(responseHeaders, HttpHeaders.CONTENT_RANGE));
                 bytesRemaining =
-                        contentLength != com.google.android.exoplayer2.C.LENGTH_UNSET ? (contentLength - bytesToSkip) : com.google.android.exoplayer2.C.LENGTH_UNSET;
+                        contentLength != C.LENGTH_UNSET ? (contentLength - bytesToSkip) : C.LENGTH_UNSET;
             }
         } else {
             // If the response is compressed then the content length will be that of the compressed data
@@ -764,16 +782,16 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     }
 
     @Override
-    public int read(byte[] buffer, int offset, int length) throws com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException {
-        com.google.android.exoplayer2.util.Assertions.checkState(opened);
+    public int read(byte[] buffer, int offset, int length) throws HttpDataSourceException {
+        Assertions.checkState(opened);
 
         if (length == 0) {
             return 0;
         } else if (bytesRemaining == 0) {
-            return com.google.android.exoplayer2.C.RESULT_END_OF_INPUT;
+            return C.RESULT_END_OF_INPUT;
         }
 
-        java.nio.ByteBuffer readBuffer = getOrCreateReadBuffer();
+        ByteBuffer readBuffer = getOrCreateReadBuffer();
         if (!readBuffer.hasRemaining()) {
             // Fill readBuffer with more data from Cronet.
             operation.close();
@@ -783,26 +801,26 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
             if (finished) {
                 bytesRemaining = 0;
-                return com.google.android.exoplayer2.C.RESULT_END_OF_INPUT;
+                return C.RESULT_END_OF_INPUT;
             }
 
             // The operation didn't time out, fail or finish, and therefore data must have been read.
             readBuffer.flip();
-            com.google.android.exoplayer2.util.Assertions.checkState(readBuffer.hasRemaining());
+            Assertions.checkState(readBuffer.hasRemaining());
         }
 
         // Ensure we read up to bytesRemaining, in case this was a Range request with finite end, but
         // the server does not support Range requests and transmitted the entire resource.
         int bytesRead =
                 (int)
-                        com.google.common.primitives.Longs.min(
-                                bytesRemaining != com.google.android.exoplayer2.C.LENGTH_UNSET ? bytesRemaining : Long.MAX_VALUE,
+                        Longs.min(
+                                bytesRemaining != C.LENGTH_UNSET ? bytesRemaining : Long.MAX_VALUE,
                                 readBuffer.remaining(),
                                 length);
 
         readBuffer.get(buffer, offset, bytesRead);
 
-        if (bytesRemaining != com.google.android.exoplayer2.C.LENGTH_UNSET) {
+        if (bytesRemaining != C.LENGTH_UNSET) {
             bytesRemaining -= bytesRead;
         }
         bytesTransferred(bytesRead);
@@ -834,8 +852,8 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      * @throws HttpDataSourceException  If an error occurs reading from the source.
      * @throws IllegalArgumentException If {@code buffer} is not a direct ByteBuffer.
      */
-    public int read(java.nio.ByteBuffer buffer) throws com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException {
-        com.google.android.exoplayer2.util.Assertions.checkState(opened);
+    public int read(ByteBuffer buffer) throws HttpDataSourceException {
+        Assertions.checkState(opened);
 
         if (!buffer.isDirect()) {
             throw new IllegalArgumentException("Passed buffer is not a direct ByteBuffer");
@@ -843,7 +861,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         if (!buffer.hasRemaining()) {
             return 0;
         } else if (bytesRemaining == 0) {
-            return com.google.android.exoplayer2.C.RESULT_END_OF_INPUT;
+            return C.RESULT_END_OF_INPUT;
         }
         int readLength = buffer.remaining();
 
@@ -851,7 +869,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
             // If there is existing data in the readBuffer, read as much as possible. Return if any read.
             int copyBytes = copyByteBuffer(/* src= */ readBuffer, /* dst= */ buffer);
             if (copyBytes != 0) {
-                if (bytesRemaining != com.google.android.exoplayer2.C.LENGTH_UNSET) {
+                if (bytesRemaining != C.LENGTH_UNSET) {
                     bytesRemaining -= copyBytes;
                 }
                 bytesTransferred(copyBytes);
@@ -865,13 +883,13 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
         if (finished) {
             bytesRemaining = 0;
-            return com.google.android.exoplayer2.C.RESULT_END_OF_INPUT;
+            return C.RESULT_END_OF_INPUT;
         }
 
         // The operation didn't time out, fail or finish, and therefore data must have been read.
-        com.google.android.exoplayer2.util.Assertions.checkState(readLength > buffer.remaining());
+        Assertions.checkState(readLength > buffer.remaining());
         int bytesRead = readLength - buffer.remaining();
-        if (bytesRemaining != com.google.android.exoplayer2.C.LENGTH_UNSET) {
+        if (bytesRemaining != C.LENGTH_UNSET) {
             bytesRemaining -= bytesRead;
         }
         bytesTransferred(bytesRead);
@@ -900,54 +918,54 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
     /**
      * Returns current {@link UrlRequest}. May be null if the data source is not opened.
      */
-    @androidx.annotation.Nullable
-    protected org.chromium.net.UrlRequest getCurrentUrlRequest() {
+    @Nullable
+    protected UrlRequest getCurrentUrlRequest() {
         return currentUrlRequest;
     }
 
     /**
      * Returns current {@link UrlResponseInfo}. May be null if the data source is not opened.
      */
-    @androidx.annotation.Nullable
-    protected org.chromium.net.UrlResponseInfo getCurrentUrlResponseInfo() {
+    @Nullable
+    protected UrlResponseInfo getCurrentUrlResponseInfo() {
         return responseInfo;
     }
 
-    protected org.chromium.net.UrlRequest.Builder buildRequestBuilder(com.google.android.exoplayer2.upstream.DataSpec dataSpec) throws java.io.IOException {
-        org.chromium.net.UrlRequest.Builder requestBuilder =
+    protected UrlRequest.Builder buildRequestBuilder(DataSpec dataSpec) throws IOException {
+        UrlRequest.Builder requestBuilder =
                 cronetEngine
                         .newUrlRequestBuilder(dataSpec.uri.toString(), urlRequestCallback, executor)
                         .setPriority(requestPriority)
                         .allowDirectExecutor();
 
         // Set the headers.
-        java.util.Map<String, String> requestHeaders = new java.util.HashMap<>();
+        Map<String, String> requestHeaders = new HashMap<>();
         if (defaultRequestProperties != null) {
             requestHeaders.putAll(defaultRequestProperties.getSnapshot());
         }
         requestHeaders.putAll(requestProperties.getSnapshot());
         requestHeaders.putAll(dataSpec.httpRequestHeaders);
 
-        for (java.util.Map.Entry<String, String> headerEntry : requestHeaders.entrySet()) {
+        for (Entry<String, String> headerEntry : requestHeaders.entrySet()) {
             String key = headerEntry.getKey();
             String value = headerEntry.getValue();
             requestBuilder.addHeader(key, value);
         }
 
-        if (dataSpec.httpBody != null && !requestHeaders.containsKey(com.google.common.net.HttpHeaders.CONTENT_TYPE)) {
-            throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
+        if (dataSpec.httpBody != null && !requestHeaders.containsKey(HttpHeaders.CONTENT_TYPE)) {
+            throw new OpenException(
                     "HTTP request with non-empty body must set Content-Type",
                     dataSpec,
-                    com.google.android.exoplayer2.PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK,
-                    org.chromium.net.UrlRequest.Status.IDLE);
+                    PlaybackException.ERROR_CODE_FAILED_RUNTIME_CHECK,
+                    Status.IDLE);
         }
 
-        @androidx.annotation.Nullable String rangeHeader = buildRangeRequestHeader(dataSpec.position, dataSpec.length);
+        @Nullable String rangeHeader = buildRangeRequestHeader(dataSpec.position, dataSpec.length);
         if (rangeHeader != null) {
-            requestBuilder.addHeader(com.google.common.net.HttpHeaders.RANGE, rangeHeader);
+            requestBuilder.addHeader(HttpHeaders.RANGE, rangeHeader);
         }
         if (userAgent != null) {
-            requestBuilder.addHeader(com.google.common.net.HttpHeaders.USER_AGENT, userAgent);
+            requestBuilder.addHeader(HttpHeaders.USER_AGENT, userAgent);
         }
         // TODO: Uncomment when https://bugs.chromium.org/p/chromium/issues/detail?id=711810 is fixed
         // (adjusting the code as necessary).
@@ -959,7 +977,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         requestBuilder.setHttpMethod(dataSpec.getHttpMethodString());
         if (dataSpec.httpBody != null) {
             requestBuilder.setUploadDataProvider(
-                    new com.google.android.exoplayer2.ext.cronet.ByteArrayUploadDataProvider(dataSpec.httpBody), executor);
+                    new ByteArrayUploadDataProvider(dataSpec.httpBody), executor);
         }
         return requestBuilder;
     }
@@ -993,11 +1011,11 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      *                                 occurs reading from the source; or when the data ended before the specified number of bytes
      *                                 were skipped.
      */
-    private void skipFully(long bytesToSkip, com.google.android.exoplayer2.upstream.DataSpec dataSpec) throws com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException {
+    private void skipFully(long bytesToSkip, DataSpec dataSpec) throws HttpDataSourceException {
         if (bytesToSkip == 0) {
             return;
         }
-        java.nio.ByteBuffer readBuffer = getOrCreateReadBuffer();
+        ByteBuffer readBuffer = getOrCreateReadBuffer();
 
         try {
             while (bytesToSkip > 0) {
@@ -1006,33 +1024,33 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
                 readBuffer.clear();
                 readInternal(readBuffer, dataSpec);
                 if (Thread.currentThread().isInterrupted()) {
-                    throw new java.io.InterruptedIOException();
+                    throw new InterruptedIOException();
                 }
                 if (finished) {
-                    throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
+                    throw new OpenException(
                             dataSpec,
-                            com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE,
-                            org.chromium.net.UrlRequest.Status.READING_RESPONSE);
+                            PlaybackException.ERROR_CODE_IO_READ_POSITION_OUT_OF_RANGE,
+                            Status.READING_RESPONSE);
                 } else {
                     // The operation didn't time out, fail or finish, and therefore data must have been read.
                     readBuffer.flip();
-                    com.google.android.exoplayer2.util.Assertions.checkState(readBuffer.hasRemaining());
+                    Assertions.checkState(readBuffer.hasRemaining());
                     int bytesSkipped = (int) Math.min(readBuffer.remaining(), bytesToSkip);
                     readBuffer.position(readBuffer.position() + bytesSkipped);
                     bytesToSkip -= bytesSkipped;
                 }
             }
-        } catch (java.io.IOException e) {
-            if (e instanceof com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException) {
-                throw (com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException) e;
+        } catch (IOException e) {
+            if (e instanceof HttpDataSourceException) {
+                throw (HttpDataSourceException) e;
             } else {
-                throw new com.google.android.exoplayer2.ext.cronet.CronetDataSource.OpenException(
+                throw new OpenException(
                         e,
                         dataSpec,
-                        e instanceof java.net.SocketTimeoutException
-                                ? com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
-                                : com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
-                        org.chromium.net.UrlRequest.Status.READING_RESPONSE);
+                        e instanceof SocketTimeoutException
+                                ? PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT
+                                : PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED,
+                        Status.READING_RESPONSE);
             }
         }
     }
@@ -1043,9 +1061,9 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      * @return The response body.
      * @throws IOException If an error occurs reading from the source.
      */
-    private byte[] readResponseBody() throws java.io.IOException {
-        byte[] responseBody = com.google.android.exoplayer2.util.Util.EMPTY_BYTE_ARRAY;
-        java.nio.ByteBuffer readBuffer = getOrCreateReadBuffer();
+    private byte[] readResponseBody() throws IOException {
+        byte[] responseBody = Util.EMPTY_BYTE_ARRAY;
+        ByteBuffer readBuffer = getOrCreateReadBuffer();
         while (!finished) {
             operation.close();
             readBuffer.clear();
@@ -1053,7 +1071,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
             readBuffer.flip();
             if (readBuffer.remaining() > 0) {
                 int existingResponseBodyEnd = responseBody.length;
-                responseBody = java.util.Arrays.copyOf(responseBody, responseBody.length + readBuffer.remaining());
+                responseBody = Arrays.copyOf(responseBody, responseBody.length + readBuffer.remaining());
                 readBuffer.get(responseBody, existingResponseBodyEnd, readBuffer.remaining());
             }
         }
@@ -1069,11 +1087,11 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
      * @throws HttpDataSourceException If an error occurs reading from the source.
      */
     @SuppressWarnings("ReferenceEquality")
-    private void readInternal(java.nio.ByteBuffer buffer, com.google.android.exoplayer2.upstream.DataSpec dataSpec) throws com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException {
+    private void readInternal(ByteBuffer buffer, DataSpec dataSpec) throws HttpDataSourceException {
         castNonNull(currentUrlRequest).read(buffer);
         try {
             if (!operation.block(readTimeoutMs)) {
-                throw new java.net.SocketTimeoutException();
+                throw new SocketTimeoutException();
             }
         } catch (InterruptedException e) {
             // The operation is ongoing so replace buffer to avoid it being written to by this
@@ -1082,41 +1100,41 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
                 readBuffer = null;
             }
             Thread.currentThread().interrupt();
-            exception = new java.io.InterruptedIOException();
-        } catch (java.net.SocketTimeoutException e) {
+            exception = new InterruptedIOException();
+        } catch (SocketTimeoutException e) {
             // The operation is ongoing so replace buffer to avoid it being written to by this
             // operation during a subsequent request.
             if (buffer == readBuffer) {
                 readBuffer = null;
             }
             exception =
-                    new com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException(
+                    new HttpDataSourceException(
                             e,
                             dataSpec,
-                            com.google.android.exoplayer2.PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
-                            com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException.TYPE_READ);
+                            PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_TIMEOUT,
+                            HttpDataSourceException.TYPE_READ);
         }
 
         if (exception != null) {
-            if (exception instanceof com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException) {
-                throw (com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException) exception;
+            if (exception instanceof HttpDataSourceException) {
+                throw (HttpDataSourceException) exception;
             } else {
-                throw com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException.createForIOException(
-                        exception, dataSpec, com.google.android.exoplayer2.upstream.HttpDataSource.HttpDataSourceException.TYPE_READ);
+                throw HttpDataSourceException.createForIOException(
+                        exception, dataSpec, HttpDataSourceException.TYPE_READ);
             }
         }
     }
 
-    private java.nio.ByteBuffer getOrCreateReadBuffer() {
+    private ByteBuffer getOrCreateReadBuffer() {
         if (readBuffer == null) {
-            readBuffer = java.nio.ByteBuffer.allocateDirect(READ_BUFFER_SIZE_BYTES);
+            readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE_BYTES);
             readBuffer.limit(0);
         }
         return readBuffer;
     }
 
-    private static boolean isCompressed(org.chromium.net.UrlResponseInfo info) {
-        for (java.util.Map.Entry<String, String> entry : info.getAllHeadersAsList()) {
+    private static boolean isCompressed(UrlResponseInfo info) {
+        for (Entry<String, String> entry : info.getAllHeadersAsList()) {
             if (entry.getKey().equalsIgnoreCase("Content-Encoding")) {
                 return !entry.getValue().equalsIgnoreCase("identity");
             }
@@ -1124,26 +1142,26 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         return false;
     }
 
-    @androidx.annotation.Nullable
-    private static String parseCookies(@androidx.annotation.Nullable java.util.List<String> setCookieHeaders) {
+    @Nullable
+    private static String parseCookies(@Nullable List<String> setCookieHeaders) {
         if (setCookieHeaders == null || setCookieHeaders.isEmpty()) {
             return null;
         }
-        return android.text.TextUtils.join(";", setCookieHeaders);
+        return TextUtils.join(";", setCookieHeaders);
     }
 
-    private static void attachCookies(org.chromium.net.UrlRequest.Builder requestBuilder, @androidx.annotation.Nullable String cookies) {
-        if (android.text.TextUtils.isEmpty(cookies)) {
+    private static void attachCookies(UrlRequest.Builder requestBuilder, @Nullable String cookies) {
+        if (TextUtils.isEmpty(cookies)) {
             return;
         }
-        requestBuilder.addHeader(com.google.common.net.HttpHeaders.COOKIE, cookies);
+        requestBuilder.addHeader(HttpHeaders.COOKIE, cookies);
     }
 
-    private static int getStatus(org.chromium.net.UrlRequest request) throws InterruptedException {
-        final com.google.android.exoplayer2.util.ConditionVariable conditionVariable = new com.google.android.exoplayer2.util.ConditionVariable();
+    private static int getStatus(UrlRequest request) throws InterruptedException {
+        final ConditionVariable conditionVariable = new ConditionVariable();
         final int[] statusHolder = new int[1];
         request.getStatus(
-                new org.chromium.net.UrlRequest.StatusListener() {
+                new UrlRequest.StatusListener() {
                     @Override
                     public void onStatus(int status) {
                         statusHolder[0] = status;
@@ -1154,15 +1172,15 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         return statusHolder[0];
     }
 
-    @androidx.annotation.Nullable
-    private static String getFirstHeader(java.util.Map<String, java.util.List<String>> allHeaders, String headerName) {
-        @androidx.annotation.Nullable java.util.List<String> headers = allHeaders.get(headerName);
+    @Nullable
+    private static String getFirstHeader(Map<String, List<String>> allHeaders, String headerName) {
+        @Nullable List<String> headers = allHeaders.get(headerName);
         return headers != null && !headers.isEmpty() ? headers.get(0) : null;
     }
 
     // Copy as much as possible from the src buffer into dst buffer.
     // Returns the number of bytes copied.
-    private static int copyByteBuffer(java.nio.ByteBuffer src, java.nio.ByteBuffer dst) {
+    private static int copyByteBuffer(ByteBuffer src, ByteBuffer dst) {
         int remaining = Math.min(src.remaining(), dst.remaining());
         int limit = src.limit();
         src.limit(src.position() + remaining);
@@ -1171,28 +1189,28 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         return remaining;
     }
 
-    private final class UrlRequestCallback extends org.chromium.net.UrlRequest.Callback {
+    private final class UrlRequestCallback extends UrlRequest.Callback {
 
         @Override
         public synchronized void onRedirectReceived(
-                org.chromium.net.UrlRequest request, org.chromium.net.UrlResponseInfo info, String newLocationUrl) {
+                UrlRequest request, UrlResponseInfo info, String newLocationUrl) {
             if (request != currentUrlRequest) {
                 return;
             }
-            org.chromium.net.UrlRequest urlRequest = com.google.android.exoplayer2.util.Assertions.checkNotNull(currentUrlRequest);
-            com.google.android.exoplayer2.upstream.DataSpec dataSpec = com.google.android.exoplayer2.util.Assertions.checkNotNull(currentDataSpec);
+            UrlRequest urlRequest = Assertions.checkNotNull(currentUrlRequest);
+            DataSpec dataSpec = Assertions.checkNotNull(currentDataSpec);
             int responseCode = info.getHttpStatusCode();
-            if (dataSpec.httpMethod == com.google.android.exoplayer2.upstream.DataSpec.HTTP_METHOD_POST) {
+            if (dataSpec.httpMethod == DataSpec.HTTP_METHOD_POST) {
                 // The industry standard is to disregard POST redirects when the status code is 307 or 308.
                 if (responseCode == 307 || responseCode == 308) {
                     exception =
-                            new com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException(
+                            new InvalidResponseCodeException(
                                     responseCode,
                                     info.getHttpStatusText(),
                                     /* cause= */ null,
                                     info.getAllHeaders(),
                                     dataSpec,
-                                    /* responseBody= */ com.google.android.exoplayer2.util.Util.EMPTY_BYTE_ARRAY);
+                                    /* responseBody= */ Util.EMPTY_BYTE_ARRAY);
                     operation.open();
                     return;
                 }
@@ -1203,7 +1221,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
             boolean shouldKeepPost =
                     keepPostFor302Redirects
-                            && dataSpec.httpMethod == com.google.android.exoplayer2.upstream.DataSpec.HTTP_METHOD_POST
+                            && dataSpec.httpMethod == DataSpec.HTTP_METHOD_POST
                             && responseCode == 302;
 
             // request.followRedirect() transforms a POST request into a GET request, so if we want to
@@ -1213,32 +1231,32 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
                 return;
             }
 
-            @androidx.annotation.Nullable
-            String cookieHeadersValue = parseCookies(info.getAllHeaders().get(com.google.common.net.HttpHeaders.SET_COOKIE));
-            if (!shouldKeepPost && android.text.TextUtils.isEmpty(cookieHeadersValue)) {
+            @Nullable
+            String cookieHeadersValue = parseCookies(info.getAllHeaders().get(HttpHeaders.SET_COOKIE));
+            if (!shouldKeepPost && TextUtils.isEmpty(cookieHeadersValue)) {
                 request.followRedirect();
                 return;
             }
 
             urlRequest.cancel();
-            com.google.android.exoplayer2.upstream.DataSpec redirectUrlDataSpec;
-            if (!shouldKeepPost && dataSpec.httpMethod == com.google.android.exoplayer2.upstream.DataSpec.HTTP_METHOD_POST) {
+            DataSpec redirectUrlDataSpec;
+            if (!shouldKeepPost && dataSpec.httpMethod == DataSpec.HTTP_METHOD_POST) {
                 // For POST redirects that aren't 307 or 308, the redirect is followed but request is
                 // transformed into a GET unless shouldKeepPost is true.
                 redirectUrlDataSpec =
                         dataSpec
                                 .buildUpon()
                                 .setUri(newLocationUrl)
-                                .setHttpMethod(com.google.android.exoplayer2.upstream.DataSpec.HTTP_METHOD_GET)
+                                .setHttpMethod(DataSpec.HTTP_METHOD_GET)
                                 .setHttpBody(null)
                                 .build();
             } else {
-                redirectUrlDataSpec = dataSpec.withUri(android.net.Uri.parse(newLocationUrl));
+                redirectUrlDataSpec = dataSpec.withUri(Uri.parse(newLocationUrl));
             }
-            org.chromium.net.UrlRequest.Builder requestBuilder;
+            UrlRequest.Builder requestBuilder;
             try {
                 requestBuilder = buildRequestBuilder(redirectUrlDataSpec);
-            } catch (java.io.IOException e) {
+            } catch (IOException e) {
                 exception = e;
                 return;
             }
@@ -1248,7 +1266,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         }
 
         @Override
-        public synchronized void onResponseStarted(org.chromium.net.UrlRequest request, org.chromium.net.UrlResponseInfo info) {
+        public synchronized void onResponseStarted(UrlRequest request, UrlResponseInfo info) {
             if (request != currentUrlRequest) {
                 return;
             }
@@ -1258,7 +1276,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
         @Override
         public synchronized void onReadCompleted(
-                org.chromium.net.UrlRequest request, org.chromium.net.UrlResponseInfo info, java.nio.ByteBuffer buffer) {
+                UrlRequest request, UrlResponseInfo info, ByteBuffer buffer) {
             if (request != currentUrlRequest) {
                 return;
             }
@@ -1266,7 +1284,7 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
         }
 
         @Override
-        public synchronized void onSucceeded(org.chromium.net.UrlRequest request, org.chromium.net.UrlResponseInfo info) {
+        public synchronized void onSucceeded(UrlRequest request, UrlResponseInfo info) {
             if (request != currentUrlRequest) {
                 return;
             }
@@ -1276,14 +1294,14 @@ public class CronetDataSource extends com.google.android.exoplayer2.upstream.Bas
 
         @Override
         public synchronized void onFailed(
-                org.chromium.net.UrlRequest request, org.chromium.net.UrlResponseInfo info, org.chromium.net.CronetException error) {
+                UrlRequest request, UrlResponseInfo info, CronetException error) {
             if (request != currentUrlRequest) {
                 return;
             }
-            if (error instanceof org.chromium.net.NetworkException
-                    && ((org.chromium.net.NetworkException) error).getErrorCode()
-                    == org.chromium.net.NetworkException.ERROR_HOSTNAME_NOT_RESOLVED) {
-                exception = new java.net.UnknownHostException();
+            if (error instanceof NetworkException
+                    && ((NetworkException) error).getErrorCode()
+                    == NetworkException.ERROR_HOSTNAME_NOT_RESOLVED) {
+                exception = new UnknownHostException();
             } else {
                 exception = error;
             }
