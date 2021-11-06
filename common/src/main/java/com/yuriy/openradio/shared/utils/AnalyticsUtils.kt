@@ -38,6 +38,7 @@ object AnalyticsUtils {
     private const val EVENT_UNKNOWN_MIME = "EVENT_UNKNOWN_MIME"
     private const val KEY_METADATA = "KEY_METADATA"
     private const val KEY_URL = "KEY_URL"
+    private const val KEY_BYTES_SIZE = "KEY_BYTES_SIZE"
     private const val KEY_URL_INVALID = "KEY_URL_INVALID"
 
     @JvmStatic
@@ -73,9 +74,10 @@ object AnalyticsUtils {
     }
 
     @JvmStatic
-    fun logBitmapDecode(value: String) {
+    fun logBitmapDecode(value: String, bytesSize: Int) {
         val bundle = Bundle()
         bundle.putString(KEY_URL, value)
+        bundle.putInt(KEY_BYTES_SIZE, bytesSize)
         Firebase.analytics.logEvent(EVENT_CANT_DECODE_BITES, bundle)
     }
 

@@ -217,11 +217,12 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         }
 
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
+            // Log this stage temporary to get to the root cause. This report will appear in the firebase console.
+            AnalyticsUtils.logBitmapDecode(mImageUrl, bytes.size)
             var bmp = try {
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return ByteArray(0)
             } catch (e: Throwable) {
                 AppLogger.e("$TAG can't decode ${bytes.size} bytes for $mImageUrl", e)
-                AnalyticsUtils.logBitmapDecode(mImageUrl)
                 return ByteArray(0)
             }
             var width = bmp.width
