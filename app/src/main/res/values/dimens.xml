@@ -21,5 +21,7 @@
     <dimen name="list_item_img_width">50dp</dimen>
     <dimen name="list_item_padding">10dp</dimen>
     <dimen name="list_item_bg_view_visible_width">70dp</dimen>
+    <dimen name="nav_header_height">196dp</dimen>
+    <dimen name="nav_header_img_dim">80dp</dimen>
 
 </resources>
