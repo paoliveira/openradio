@@ -34,7 +34,7 @@ object AnalyticsUtils {
 
     private const val EVENT_UNSUPPORTED_PLAYLIST_V2 = "EVENT_UNSUPPORTED_PLAYLIST_V2"
     private const val EVENT_METADATA = "EVENT_METADATA"
-    private const val EVENT_CANT_DECODE_BITES = "EVENT_CANT_DECODE_BITES"
+    private const val EVENT_CANT_DECODE_BITES = "EVENT_CANT_DECODE_BITES_V2"
     private const val EVENT_UNKNOWN_MIME = "EVENT_UNKNOWN_MIME"
     private const val KEY_METADATA = "KEY_METADATA"
     private const val KEY_URL = "KEY_URL"
