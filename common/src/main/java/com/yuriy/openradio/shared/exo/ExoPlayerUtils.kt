@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2020-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,10 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.RenderersFactory
 import com.google.android.exoplayer2.database.DatabaseProvider
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
-import com.google.android.exoplayer2.ext.cronet.CronetDataSource
-import com.google.android.exoplayer2.ext.cronet.CronetUtil
-import com.google.android.exoplayer2.upstream.*
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.HttpDataSource
 import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
@@ -35,7 +36,6 @@ import java.io.File
 import java.net.CookieHandler
 import java.net.CookieManager
 import java.net.CookiePolicy
-import java.util.concurrent.Executors
 
 object ExoPlayerUtils {
 
@@ -69,7 +69,7 @@ object ExoPlayerUtils {
         }
         sUserAgent = userAgent
         if (sDataSourceFactory == null) {
-            val factory = getHttpDataSourceFactory(context, sUserAgent)
+            val factory = getHttpDataSourceFactory(sUserAgent)
             val upstreamFactory = DefaultDataSource.Factory(context, factory!!)
             sDataSourceFactory = buildReadOnlyCacheDataSource(upstreamFactory, getDownloadCache(context)!!)
         }
@@ -77,20 +77,24 @@ object ExoPlayerUtils {
     }
 
     @Synchronized
-    fun getHttpDataSourceFactory(context: Context, userAgent: String): HttpDataSource.Factory? {
+    fun getHttpDataSourceFactory(userAgent: String): HttpDataSource.Factory? {
         if (sHttpDataSourceFactory == null) {
             AnalyticsUtils.logMessage("ExoPlayer UserAgent '$userAgent'")
-            val engine = CronetUtil.buildCronetEngine(context, userAgent, false)
-            sHttpDataSourceFactory = if (engine != null) {
-                CronetDataSource.Factory(
-                    engine, Executors.newSingleThreadExecutor()
-                ).setUserAgent(userAgent)
-            } else {
-                val cookieManager = CookieManager()
-                cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER)
-                CookieHandler.setDefault(cookieManager)
-                DefaultHttpDataSource.Factory().setUserAgent(userAgent)
-            }
+//            val engine = CronetUtil.buildCronetEngine(context, userAgent, false)
+//            sHttpDataSourceFactory = if (engine != null) {
+//                CronetDataSource.Factory(
+//                    engine, Executors.newSingleThreadExecutor()
+//                ).setUserAgent(userAgent)
+//            } else {
+//                val cookieManager = CookieManager()
+//                cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER)
+//                CookieHandler.setDefault(cookieManager)
+//                DefaultHttpDataSource.Factory().setUserAgent(userAgent)
+//            }
+            val cookieManager = CookieManager()
+            cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER)
+            CookieHandler.setDefault(cookieManager)
+            sHttpDataSourceFactory = DefaultHttpDataSource.Factory().setUserAgent(userAgent)
         }
         return sHttpDataSourceFactory
     }
