@@ -33,6 +33,15 @@ android {
     kotlinOptions {
         jvmTarget = project.ext.kotlinJvmTarget
     }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                    'META-INF/DEPENDENCIES.txt',
+                    'META-INF/DEPENDENCIES'
+            ]
+        }
+    }
 }
 
 dependencies {

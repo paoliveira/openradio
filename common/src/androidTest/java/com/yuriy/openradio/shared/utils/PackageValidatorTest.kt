@@ -4,7 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.R
 import org.hamcrest.CoreMatchers
-import org.junit.Assert
+import org.hamcrest.MatcherAssert
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -20,7 +20,7 @@ class PackageValidatorTest {
         val validator = PackageValidator(context, R.xml.allowed_media_browser_callers)
 
         for (pkg in pkgNames) {
-            Assert.assertThat(
+            MatcherAssert.assertThat(
                     "'$pkg' did not pass validation",
                     validator.isKnownCaller(pkg, id, false), CoreMatchers.`is`(false)
             )
