@@ -80,12 +80,6 @@ dependencies {
     api "log4j:log4j:$log4jVersion"
     implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
 
-    androidTestImplementation(
-            "androidx.test.espresso:espresso-core:$espressoVersion",
-            {exclude group: "com.android.support", module: "support-annotations"}
-    )
-    androidTestImplementation "androidx.test.ext:junit:$junitAndroidXVersion"
-
     // https://mvnrepository.com/artifact/junit/junit
     testImplementation group: "junit", name: "junit", version: "$junitVersion"
     testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
