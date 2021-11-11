@@ -89,7 +89,9 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
         val id = ImagesStore.getId(uri)
         if (id.isNotEmpty()) {
             mIoScope.launch(Dispatchers.IO) {
-                mImagesDatabase.rsImageDao().delete(id)
+                synchronized(mImagesDatabase) {
+                    mImagesDatabase.rsImageDao().delete(id)
+                }
             }
             return 1
         }
@@ -145,6 +147,7 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
                 try {
                     // Write data to pipe:
                     output.write(bytes)
+                    context?.contentResolver?.notifyChange(uri, null)
                 } catch (e: IOException) {
                     AppLogger.e("$TAG exception transferring file", e)
                 } finally {
@@ -170,8 +173,10 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
     }
 
     private fun getFileBytes(rsId: String): ByteArray {
-        val image = mImagesDatabase.rsImageDao().getImage(rsId) ?: return ByteArray(0)
-        return image.mData ?: return ByteArray(0)
+        synchronized(mImagesDatabase) {
+            val image = mImagesDatabase.rsImageDao().getImage(rsId) ?: return ByteArray(0)
+            return image.mData ?: return ByteArray(0)
+        }
     }
 
     inner class ImageDownloader(private val mId: String, private val mImageUrl: String, private val mUri: Uri) :
@@ -211,9 +216,11 @@ class ImagesProvider : ContentProvider(), NetworkMonitorDependency, DownloaderDe
             if (bytes.isEmpty()) {
                 return
             }
-            mImagesDatabase.rsImageDao().insertImage(Image(mId, bytes))
-            AppLogger.d("$TAG db contains ${mImagesDatabase.rsImageDao().getCount()} images")
-            context?.contentResolver?.notifyChange(mUri, null)
+            synchronized(mImagesDatabase) {
+                mImagesDatabase.rsImageDao().insertImage(Image(mId, bytes))
+                AppLogger.d("$TAG db contains ${mImagesDatabase.rsImageDao().getCount()} images")
+                context?.contentResolver?.notifyChange(mUri, null)
+            }
         }
 
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
