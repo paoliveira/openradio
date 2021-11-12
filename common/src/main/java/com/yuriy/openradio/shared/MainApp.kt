@@ -48,13 +48,14 @@ class MainApp : MultiDexApplication(), NetworkMonitorDependency {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
+        AppLogger.d("$CLASS_NAME attach base context")
         MultiDex.install(base)
         DependencyRegistry.init(base)
         DependencyRegistry.injectNetworkMonitor(this)
     }
 
     override fun onCreate() {
-        AppLogger.d(CLASS_NAME + "OnCreate")
+        AppLogger.d("$CLASS_NAME on create")
         AnalyticsUtils.init()
         val context = applicationContext
 
@@ -90,7 +91,7 @@ class MainApp : MultiDexApplication(), NetworkMonitorDependency {
         /**
          * Tag string to use in logging message.
          */
-        private val CLASS_NAME = MainApp::class.java.simpleName + " "
+        private val CLASS_NAME = MainApp::class.java.simpleName
 
         /**
          * Print first log message with summary information about device and application.

@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.shared.utils
 
-import android.Manifest.permission.BIND_NOTIFICATION_LISTENER_SERVICE
 import android.Manifest.permission.MEDIA_CONTENT_CONTROL
 import android.annotation.SuppressLint
 import android.content.Context
@@ -28,7 +27,9 @@ import android.os.Process
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Base64
 import androidx.annotation.XmlRes
+import androidx.core.app.NotificationManagerCompat
 import androidx.media.MediaBrowserServiceCompat
+import com.yuriy.openradio.BuildConfig
 import com.yuriy.openradio.R
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
@@ -53,7 +54,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     private val context: Context
     private val packageManager: PackageManager
 
-    private val certificateWhitelist: Map<String, KnownCallerInfo>
+    private val certificateAllowList: Map<String, KnownCallerInfo>
     private val platformSignature: String
 
     private val callerChecked = mutableMapOf<String, Pair<Int, Boolean>>()
@@ -63,7 +64,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         this.context = context.applicationContext
         this.packageManager = this.context.packageManager
 
-        certificateWhitelist = buildCertificateWhitelist(parser)
+        certificateAllowList = buildCertificateAllowList(parser)
         platformSignature = getSystemSignature()
     }
 
@@ -75,7 +76,7 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * @param callingUid The user id of the caller.
      * @return `true` if the caller is known, `false` otherwise.
      */
-    fun isKnownCaller(callingPackage: String, callingUid: Int, throwException: Boolean = true): Boolean {
+    fun isKnownCaller(callingPackage: String, callingUid: Int): Boolean {
         // If the caller has already been checked, return the previous result here.
         val (checkedUid, checkResult) = callerChecked[callingPackage] ?: Pair(0, false)
         if (checkedUid == callingUid) {
@@ -97,17 +98,15 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
         // Build the caller info for the rest of the checks here.
         val callerPackageInfo = buildCallerInfo(callingPackage)
-                ?: throw IllegalStateException("Caller wasn't found in the system?")
+            ?: throw IllegalStateException("Caller wasn't found in the system?")
 
         // Verify that things aren't ... broken. (This test should always pass.)
         if (callerPackageInfo.uid != callingUid) {
-            if (throwException) {
-                throw IllegalStateException("Caller's package UID doesn't match caller's actual UID?")
-            }
+            throw IllegalStateException("Caller's package UID doesn't match caller's actual UID?")
         }
 
         val callerSignature = callerPackageInfo.signature
-        val isPackageInWhitelist = certificateWhitelist[callingPackage]?.signatures?.first {
+        val isPackageInAllowList = certificateAllowList[callingPackage]?.signatures?.first {
             it.signature == callerSignature
         } != null
 
@@ -117,8 +116,8 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
             callingPackage == "com.android.bluetooth" -> false
             // If it's our own app making the call, allow it.
             callingUid == Process.myUid() -> true
-            // If it's one of the apps on the whitelist, allow it.
-            isPackageInWhitelist -> true
+            // If it's one of the apps on the allow list, allow it.
+            isPackageInAllowList -> true
             // If the system is making the call, allow it.
             callingUid == Process.SYSTEM_UID -> true
             // If the app was signed by the same certificate as the platform itself, also allow it.
@@ -131,14 +130,16 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
              */
             callerPackageInfo.permissions.contains(MEDIA_CONTENT_CONTROL) -> true
             /**
-             * This last permission can be specifically granted to apps, and, in addition to
-             * allowing them to retrieve notifications, it also allows them to connect to an
-             * active [MediaSessionCompat].
-             * As with the above, it's not required to allow apps holding this permission to
-             * connect to your [MediaBrowserServiceCompat], but it does allow easy comparability
+             * If the calling app has a notification listener it is able to retrieve notifications
+             * and can connect to an active [MediaSessionCompat].
+             *
+             * It's not required to allow apps with a notification listener to
+             * connect to your [MediaBrowserServiceCompat], but it does allow easy compatibility
              * with apps such as Wear OS.
              */
-            callerPackageInfo.permissions.contains(BIND_NOTIFICATION_LISTENER_SERVICE) -> true
+            NotificationManagerCompat.getEnabledListenerPackages(this.context)
+                .contains(callerPackageInfo.packageName) -> true
+
             // If none of the previous checks succeeded, then the caller is unrecognized.
             else -> false
         }
@@ -157,14 +158,14 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * when the app is debuggable.
      */
     private fun logUnknownCaller(callerPackageInfo: CallerPackageInfo) {
-        if (callerPackageInfo.signature != null) {
+        if (BuildConfig.DEBUG && callerPackageInfo.signature != null) {
             val formattedLog =
-                    context.getString(
-                            R.string.allowed_caller_log,
-                            callerPackageInfo.name,
-                            callerPackageInfo.packageName,
-                            callerPackageInfo.signature
-                    )
+                context.getString(
+                    R.string.allowed_caller_log,
+                    callerPackageInfo.name,
+                    callerPackageInfo.packageName,
+                    callerPackageInfo.signature
+                )
             AppLogger.i(formattedLog)
         }
     }
@@ -195,17 +196,18 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
     /**
      * Looks up the [PackageInfo] for a package name.
-     * This requests both the signatures (for checking if an app is on the whitelist) and
-     * the app's permissions, which allow for more flexibility in the whitelist.
+     * This requests both the signatures (for checking if an app is on the allow list) and
+     * the app's permissions, which allow for more flexibility in the allow list.
      *
      * @return [PackageInfo] for the package name or null if it's not found.
      */
+    @Suppress("deprecation")
     @SuppressLint("PackageManagerGetSignatures")
     private fun getPackageInfo(callingPackage: String): PackageInfo? =
-            packageManager.getPackageInfo(
-                    callingPackage,
-                    PackageManager.GET_SIGNATURES or PackageManager.GET_PERMISSIONS
-            )
+        packageManager.getPackageInfo(
+            callingPackage,
+            PackageManager.GET_SIGNATURES or PackageManager.GET_PERMISSIONS
+        )
 
     /**
      * Gets the signature of a given package's [PackageInfo].
@@ -216,19 +218,20 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * If the app is not found, or if the app does not have exactly one signature, this method
      * returns `null` as the signature.
      */
+    @Suppress("deprecation")
     private fun getSignature(packageInfo: PackageInfo): String? =
-            if (packageInfo.signatures == null || packageInfo.signatures.size != 1) {
-                // Security best practices dictate that an app should be signed with exactly one (1)
-                // signature. Because of this, if there are multiple signatures, reject it.
-                null
-            } else {
-                val certificate = packageInfo.signatures[0].toByteArray()
-                getSignatureSha256(certificate)
-            }
+        if (packageInfo.signatures == null || packageInfo.signatures.size != 1) {
+            // Security best practices dictate that an app should be signed with exactly one (1)
+            // signature. Because of this, if there are multiple signatures, reject it.
+            null
+        } else {
+            val certificate = packageInfo.signatures[0].toByteArray()
+            getSignatureSha256(certificate)
+        }
 
-    private fun buildCertificateWhitelist(parser: XmlResourceParser): Map<String, KnownCallerInfo> {
+    private fun buildCertificateAllowList(parser: XmlResourceParser): Map<String, KnownCallerInfo> {
 
-        val certificateWhitelist = LinkedHashMap<String, KnownCallerInfo>()
+        val certificateAllowList = LinkedHashMap<String, KnownCallerInfo>()
         try {
             var eventType = parser.next()
             while (eventType != XmlResourceParser.END_DOCUMENT) {
@@ -241,11 +244,11 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
 
                     callerInfo?.let { info ->
                         val packageName = info.packageName
-                        val existingCallerInfo = certificateWhitelist[packageName]
+                        val existingCallerInfo = certificateAllowList[packageName]
                         if (existingCallerInfo != null) {
                             existingCallerInfo.signatures += callerInfo.signatures
                         } else {
-                            certificateWhitelist[packageName] = callerInfo
+                            certificateAllowList[packageName] = callerInfo
                         }
                     }
                 }
@@ -253,12 +256,12 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
                 eventType = parser.next()
             }
         } catch (xmlException: XmlPullParserException) {
-            AppLogger.e("Could not read allowed callers from XML", xmlException)
+            AppLogger.e("Could not read allowed callers from XML.", xmlException)
         } catch (ioException: IOException) {
-            AppLogger.e("Could not read allowed callers from XML", ioException)
+            AppLogger.e("Could not read allowed callers from XML.", ioException)
         }
 
-        return certificateWhitelist
+        return certificateAllowList
     }
 
     /**
@@ -286,7 +289,8 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
         var eventType = parser.next()
         while (eventType != XmlResourceParser.END_TAG) {
             val isRelease = parser.getAttributeBooleanValue(null, "release", false)
-            val signature = parser.nextText().replace(WHITESPACE_REGEX, AppUtils.EMPTY_STRING).lowercase(Locale.ROOT)
+            val signature =
+                parser.nextText().replace(WHITESPACE_REGEX, AppUtils.EMPTY_STRING).lowercase(Locale.getDefault())
             callerSignatures += KnownSignature(signature, isRelease)
 
             eventType = parser.next()
@@ -299,9 +303,9 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * Finds the Android platform signing key signature. This key is never null.
      */
     private fun getSystemSignature(): String =
-            getPackageInfo(ANDROID_PLATFORM)?.let { platformInfo ->
-                getSignature(platformInfo)
-            } ?: throw IllegalStateException("Platform signature not found")
+        getPackageInfo(ANDROID_PLATFORM)?.let { platformInfo ->
+            getSignature(platformInfo)
+        } ?: throw IllegalStateException("Platform signature not found")
 
     /**
      * Creates a SHA-256 signature given a Base64 encoded certificate.
@@ -331,14 +335,14 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
     }
 
     private data class KnownCallerInfo(
-            val name: String,
-            val packageName: String,
-            val signatures: MutableSet<KnownSignature>
+        val name: String,
+        val packageName: String,
+        val signatures: MutableSet<KnownSignature>
     )
 
     private data class KnownSignature(
-            val signature: String,
-            val release: Boolean
+        val signature: String,
+        val release: Boolean
     )
 
     /**
@@ -346,11 +350,11 @@ class PackageValidator(context: Context, @XmlRes xmlResId: Int) {
      * to see if it's a known caller.
      */
     private data class CallerPackageInfo(
-            val name: String,
-            val packageName: String,
-            val uid: Int,
-            val signature: String?,
-            val permissions: Set<String>
+        val name: String,
+        val packageName: String,
+        val uid: Int,
+        val signature: String?,
+        val permissions: Set<String>
     )
 }
 

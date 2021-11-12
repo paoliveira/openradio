@@ -48,7 +48,7 @@ class RSSettingsDialog : BaseDialogFragment() {
     override fun onCreateDialog(savedInstance: Bundle?): Dialog {
         val view = inflater.inflate(
                 R.layout.dialog_rs_settings,
-                activity!!.findViewById(R.id.dialog_rs_settings_root)
+                requireActivity().findViewById(R.id.dialog_rs_settings_root)
         )
         setWindowDimensions(view, 0.8f, 0.3f)
         val item = extractMediaItem(arguments)

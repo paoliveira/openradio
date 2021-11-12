@@ -32,6 +32,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -428,7 +429,7 @@ class MediaNotification(private val mContext: Context, private val mService: Ope
     private fun makePendingIntent(): PendingIntent? {
 
         // TODO: FIX ME
-        val className = if (mService.isTv) "com.yuriy.openradio.tv.view.activity.TvMainActivity"
+        val className = if (DependencyRegistry.isTv()) "com.yuriy.openradio.tv.view.activity.TvMainActivity"
         else "com.yuriy.openradio.mobile.view.activity.MainActivity"
 
         val componentName = ComponentName(mContext, className)

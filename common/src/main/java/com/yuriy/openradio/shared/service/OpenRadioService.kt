@@ -18,11 +18,9 @@ package com.yuriy.openradio.shared.service
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
-import android.app.UiModeManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.*
@@ -282,20 +280,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         val context = applicationContext
         mUiScope = CoroutineScope(Dispatchers.Main)
         mScope = CoroutineScope(Dispatchers.IO)
-        val orientationStr: String
-        val orientation = resources.configuration.orientation
-        orientationStr = if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            "Landscape"
-        } else {
-            "Portrait"
-        }
-        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        if (uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION) {
-            AppLogger.d("$CLASS_NAME running on a TV Device in $orientationStr")
-            isTv = true
-        } else {
-            AppLogger.d("$CLASS_NAME running on a non-TV Device")
-        }
 
         mNetworkMonitor.addListener(mNetMonitorListener)
         mNetworkMonitor.start(context)

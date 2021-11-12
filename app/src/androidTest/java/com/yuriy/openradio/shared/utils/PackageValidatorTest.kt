@@ -22,7 +22,7 @@ class PackageValidatorTest {
         for (pkg in pkgNames) {
             MatcherAssert.assertThat(
                     "'$pkg' did not pass validation",
-                    validator.isKnownCaller(pkg, id, false), CoreMatchers.`is`(false)
+                    validator.isKnownCaller(pkg, id), CoreMatchers.`is`(false)
             )
         }
     }

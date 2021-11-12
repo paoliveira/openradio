@@ -77,6 +77,12 @@ class TvMainActivity : FragmentActivity(), LatestRadioStationStorageDependency {
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Someone installed TV version on a phone ... need to prevent farther actions.
+        if (!DependencyRegistry.isTv()) {
+            SafeToast.showAnyThread(applicationContext, getString(R.string.tv_on_mobile_message))
+            finish()
+        }
+
         DependencyRegistry.injectLatestRadioStationStorage(this)
 
         setContentView(R.layout.tv_main)
