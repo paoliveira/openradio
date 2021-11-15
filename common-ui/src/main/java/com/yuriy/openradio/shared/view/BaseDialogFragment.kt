@@ -60,7 +60,7 @@ abstract class BaseDialogFragment : DialogFragment() {
      */
     protected fun setWindowDimensions(view: View, widthPercentage: Float, heightPercentage: Float) {
         val displayRectangle = Rect()
-        val window = activity!!.window
+        val window = requireActivity().window
         window.decorView.getWindowVisibleDisplayFrame(displayRectangle)
         view.minimumWidth = (displayRectangle.width() * widthPercentage).toInt()
         view.minimumHeight = (displayRectangle.height() * heightPercentage).toInt()

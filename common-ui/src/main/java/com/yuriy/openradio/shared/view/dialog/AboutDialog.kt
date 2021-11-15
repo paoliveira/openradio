@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
+import android.view.View
 import android.widget.TextView
 import com.google.android.exoplayer2.ExoPlayerLibraryInfo
 import com.yuriy.openradio.shared.R
@@ -33,27 +36,27 @@ class AboutDialog : BaseDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(
-                R.layout.dialog_about,
-                activity!!.findViewById(R.id.dialog_about_root)
+            R.layout.dialog_about,
+            requireActivity().findViewById(R.id.dialog_about_root)
         )
         setWindowDimensions(view, 0.9f, 0.9f)
         val context = context
         val titleText = context!!.getString(R.string.app_name)
         val title = view.findViewById<TextView>(R.id.dialog_about_title_view)
         title.text = titleText
-        val authorLink = view.findViewById<TextView>(R.id.about_author_link_view)
-        authorLink.setOnClickListener {
-            val intent = IntentUtils.makeUrlBrowsableIntent(AUTHOR_PROFILE_URL)
-            IntentUtils.startActivitySafe(context, intent)
-        }
-        val projectHomeLink = view.findViewById<TextView>(R.id.about_project_link_view)
-        projectHomeLink.setOnClickListener {
-            val intent = IntentUtils.makeUrlBrowsableIntent(PROJECT_HOME_URL)
-            IntentUtils.startActivitySafe(context, intent)
-        }
-        val exoPlayerVersion = view.findViewById<TextView>(R.id.exo_player_version_view)
+        val exoPlayerVersion = view.findViewById<TextView>(R.id.about_exo_player_ver_link_view)
         val exoPlayerVersionText = getString(R.string.about_exo_text) + " " + ExoPlayerLibraryInfo.VERSION
         exoPlayerVersion.text = exoPlayerVersionText
+
+        setOnClickListener(context, view, R.id.about_author_link_view, IntentUtils.AUTHOR_PROFILE_URL)
+        setOnClickListener(context, view, R.id.about_project_link_view, IntentUtils.PROJECT_HOME_URL)
+        setOnClickListener(context, view, R.id.about_exo_player_ver_link_view, IntentUtils.EXO_PLAYER_URL)
+        setOnClickListener(context, view, R.id.about_report_issue_link_view, IntentUtils.REPORT_ISSUE_URL)
+        setOnClickListener(context, view, R.id.about_radio_browser_link_view, IntentUtils.RADIO_BROWSER_URL)
+        setOnClickListener(context, view, R.id.about_playlist_parser_name_view, IntentUtils.PLAY_LIST_PARSER_URL)
+        setOnClickListener(context, view, R.id.about_countries_boundaries_view, IntentUtils.OFFLINE_COUNTRIES_URL)
+        setOnClickListener(context, view, R.id.about_easy_swipe_name_view, IntentUtils.SWIPE_EFFECT_URL)
+
         return createAlertDialog(view)
     }
 
@@ -66,17 +69,14 @@ class AboutDialog : BaseDialogFragment() {
         /**
          * Tag string to use in dialog transactions.
          */
-        @JvmField
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
 
-        /**
-         * My profile's url
-         */
-        private const val AUTHOR_PROFILE_URL = "https://www.linkedin.com/in/yurii-chernyshov/"
-
-        /**
-         * Project's url
-         */
-        private const val PROJECT_HOME_URL = "https://bitbucket.org/ChernyshovYuriy/openradio"
+        private fun setOnClickListener(context: Context, view: View, viewId: Int, linkUrl: String) {
+            val textView = view.findViewById<TextView>(viewId)
+            textView.setOnClickListener {
+                val intent = IntentUtils.makeUrlBrowsableIntent(linkUrl)
+                IntentUtils.startActivitySafe(context, intent)
+            }
+        }
     }
 }

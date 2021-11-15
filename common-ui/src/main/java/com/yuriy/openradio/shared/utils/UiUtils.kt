@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.utils
 
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import com.yuriy.openradio.shared.view.dialog.AboutDialog
@@ -29,51 +30,30 @@ import com.yuriy.openradio.shared.view.dialog.SearchDialog
 import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
 
 object UiUtils {
+
     /**
      * Clears any active dialog.
      *
      * @param context [FragmentActivity]
      * @param transaction Instance of Fragment transaction.
      */
-    @JvmStatic
     fun clearDialogs(context: FragmentActivity, transaction: FragmentTransaction) {
         val manager = context.supportFragmentManager
-        var fragment = manager.findFragmentByTag(AboutDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(SearchDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(EqualizerDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(GoogleDriveDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(RSSettingsDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(EditStationDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(SleepTimerDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
-        fragment = manager.findFragmentByTag(NetworkDialog.DIALOG_TAG)
-        if (fragment != null) {
-            transaction.remove(fragment)
-        }
+        removeFragment(transaction, manager.findFragmentByTag(AboutDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(SearchDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(EqualizerDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(GoogleDriveDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(GeneralSettingsDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(RSSettingsDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(EditStationDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(SleepTimerDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(NetworkDialog.DIALOG_TAG))
         transaction.commitNow()
+    }
+
+    private fun removeFragment(transaction: FragmentTransaction, fragment: Fragment?) {
+        if (fragment != null) {
+            transaction.remove(fragment)
+        }
     }
 }

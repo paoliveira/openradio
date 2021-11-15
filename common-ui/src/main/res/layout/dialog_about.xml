@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
     Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +14,10 @@
     limitations under the License.
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:id="@+id/dialog_about_root"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="15dp">
+    android:id="@+id/dialog_about_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="15dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -32,76 +31,141 @@
             android:layout_marginBottom="15dp"
             android:gravity="center"
             android:textSize="20sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:orientation="horizontal">
+        <LinearLayout style="@style/about_item_layout">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:paddingEnd="5dp"
-                android:text="@string/about_author"
-                android:textStyle="bold"/>
+                style="@style/about_item_label"
+                android:text="@string/about_author" />
 
             <TextView
                 android:id="@+id/about_author_link_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:text="@string/about_author_name"
-                android:textColor="@color/or_color_blue_light"
-                android:textStyle="bold"/>
+                style="@style/about_item_text"
+                android:text="@string/about_author_name" />
 
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:orientation="horizontal">
+        <LinearLayout style="@style/about_item_layout">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:paddingEnd="5dp"
-                android:text="@string/about_project_home_title"
-                android:textStyle="bold"/>
+                style="@style/about_item_label"
+                android:text="@string/about_home_title" />
 
             <TextView
                 android:id="@+id/about_project_link_view"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start"
-                android:text="@string/app_name"
-                android:textColor="@color/or_color_blue_light"
-                android:textStyle="bold"/>
+                style="@style/about_item_text"
+                android:text="@string/app_name" />
 
         </LinearLayout>
 
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/about_report_issue" />
+
+            <TextView
+                android:id="@+id/about_report_issue_link_view"
+                style="@style/about_item_text"
+                android:text="@string/link_text" />
+
+        </LinearLayout>
+
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/about_radio_browser_title" />
+
+            <TextView
+                android:id="@+id/about_radio_browser_link_view"
+                style="@style/about_item_text"
+                android:text="@string/link_text" />
+
+        </LinearLayout>
+
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/about_graphics" />
+
+            <TextView
+                style="@style/about_item_text"
+                android:text="@string/about_graphics_link" />
+
+        </LinearLayout>
+
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/about_exo_title" />
+
+            <TextView
+                android:id="@+id/about_exo_player_ver_link_view"
+                style="@style/about_item_text" />
+
+        </LinearLayout>
+
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/about_playlist_title" />
+
+            <TextView
+                android:id="@+id/about_playlist_parser_name_view"
+                style="@style/about_item_text"
+                android:text="@string/about_playlist_url" />
+
+        </LinearLayout>
+
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/about_countries_boundaries_title" />
+
+            <TextView
+                android:id="@+id/about_countries_boundaries_view"
+                style="@style/about_item_text"
+                android:text="@string/about_countries_boundaries_name" />
+
+        </LinearLayout>
+
+        <LinearLayout style="@style/about_item_layout">
+
+            <TextView
+                style="@style/about_item_label"
+                android:text="@string/easy_swipe_title" />
+
+            <TextView
+                android:id="@+id/about_easy_swipe_name_view"
+                style="@style/about_item_text"
+                android:text="@string/easy_swipe_name" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="15dp"
+            android:background="@color/or_color_white"/>
+
+        <TextView
+            style="@style/about_item_label"
+            android:text="@string/support_ivan_text"
+            android:layout_marginBottom="15dp"/>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_marginBottom="15dp"
-            android:text="@string/about_project_home_desc"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_thanks_1"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_thanks_1_title"
+            android:autoLink="web"
+            android:text="@string/ivan_fb_link"
             android:textStyle="bold"/>
 
         <TextView
@@ -110,116 +174,7 @@
             android:layout_gravity="start"
             android:layout_marginBottom="15dp"
             android:autoLink="web"
-            android:text="@string/about_thanks_1_url"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_thanks_2"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_thanks_2_title"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginBottom="15dp"
-            android:text="@string/about_thanks_2_url"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_exo_title"/>
-
-        <TextView
-            android:id="@+id/exo_player_version_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginBottom="15dp"
-            android:autoLink="web"
-            android:text="@string/about_exo_url"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_playlist_title"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_playlist_name"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginBottom="15dp"
-            android:autoLink="web"
-            android:text="@string/about_playlist_url"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_offline_countries_boundaries_title"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/about_offline_countries_boundaries_name"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginBottom="15dp"
-            android:autoLink="web"
-            android:text="@string/about_offline_countries_boundaries_url"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/easy_swipe_title"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:text="@string/easy_swipe_name"
-            android:textStyle="bold"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginBottom="15dp"
-            android:autoLink="web"
-            android:text="@string/easy_swipe_url"
+            android:text="@string/ivan_instagram_link"
             android:textStyle="bold"/>
 
     </LinearLayout>

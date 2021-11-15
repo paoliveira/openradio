@@ -33,12 +33,39 @@ import androidx.activity.result.contract.ActivityResultContracts
 object IntentUtils {
 
     /**
+     * My profile's url base.
+     */
+    private const val AUTHOR_PROFILE_URL_BASE = "www.linkedin.com/in/yurii-chernyshov"
+
+    /**
+     * My profile's url.
+     */
+    const val AUTHOR_PROFILE_URL = "https://$AUTHOR_PROFILE_URL_BASE"
+
+    /**
+     * Project's url
+     */
+    const val PROJECT_HOME_URL = "https://bitbucket.org/ChernyshovYuriy/openradio"
+
+    const val EXO_PLAYER_URL = "https://github.com/google/ExoPlayer"
+
+    const val PLAY_LIST_PARSER_URL = "https://github.com/wseemann/JavaPlaylistParser"
+
+    const val OFFLINE_COUNTRIES_URL = "https://github.com/westnordost/countryboundaries"
+
+    const val SWIPE_EFFECT_URL = "https://github.com/xenione/swipe-maker"
+
+    const val REPORT_ISSUE_URL = "https://bitbucket.org/ChernyshovYuriy/openradio/issues/new"
+
+    const val RADIO_BROWSER_URL = "https://www.radio-browser.info"
+
+    /**
      * Make intent to navigate to provided url.
      *
      * @param url Url to navigate to.
      * @return [Intent].
      */
-    fun makeUrlBrowsableIntent(url: String?): Intent {
+    fun makeUrlBrowsableIntent(url: String): Intent {
         return Intent(Intent.ACTION_VIEW, Uri.parse(url))
     }
 
@@ -93,11 +120,12 @@ object IntentUtils {
         if (context == null) {
             return false
         }
+        val uri = intent.toUri(Intent.URI_INTENT_SCHEME)
         // Verify that the intent will resolve to an activity
-        if (intent.resolveActivity(context.packageManager) != null) {
+        if (intent.resolveActivity(context.packageManager) != null || uri.contains(AUTHOR_PROFILE_URL_BASE)) {
             try {
                 context.startActivity(intent)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 AppLogger.e("Can not start activity", e)
                 return false
             }
