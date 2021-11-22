@@ -94,7 +94,8 @@ object ExoPlayerUtils {
             val cookieManager = CookieManager()
             cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER)
             CookieHandler.setDefault(cookieManager)
-            sHttpDataSourceFactory = DefaultHttpDataSource.Factory().setUserAgent(userAgent)
+            sHttpDataSourceFactory =
+                DefaultHttpDataSource.Factory().setUserAgent(userAgent).setAllowCrossProtocolRedirects(true)
         }
         return sHttpDataSourceFactory
     }

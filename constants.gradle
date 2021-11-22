@@ -15,7 +15,7 @@ project.ext {
     /**
      * Kotlin versions
      */
-    kotlinVersion = "1.5.30"
+    kotlinVersion = "1.6.0"
     kotlinCoreKtx = "1.7.0"
     kotlinActivityKtx = "1.4.0"
     kotlinxCoroutinesCore = "1.3.8"

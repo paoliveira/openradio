@@ -328,10 +328,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
         sessionToken = mSession.sessionToken
         mMediaSessionCb = MediaSessionCallback()
         mSession.setCallback(mMediaSessionCb)
-        mSession.setFlags(
-            MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS
-                or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
-        )
         if (AppUtils.hasVersionLollipop()) {
             mMediaNotification = MediaNotification(applicationContext, this)
             mMediaNotification.notifyService(getString(R.string.notif_just_started_label))
