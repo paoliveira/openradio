@@ -19,12 +19,7 @@ package wseemann.media.jplaylistparser.parser
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.HttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+import okhttp3.*
 import wseemann.media.jplaylistparser.exception.JPlaylistParserException
 import wseemann.media.jplaylistparser.mime.MediaType.Companion.parse
 import wseemann.media.jplaylistparser.parser.asx.ASXPlaylistParser
@@ -53,11 +48,11 @@ class AutoDetectParser(private val mTimeout: Int) {
         if (mimeTypeCpy.split(";".toRegex()).toTypedArray().isNotEmpty()) {
             mimeTypeCpy = mimeTypeCpy.split(";".toRegex()).toTypedArray()[0]
         }
-        val m3uPlaylistParser: AbstractParser = M3UPlaylistParser(mTimeout)
-        val m3u8PlaylistParser: AbstractParser = M3U8PlaylistParser(mTimeout)
-        val plsPlaylistParser: AbstractParser = PLSPlaylistParser(mTimeout)
-        val xspfPlaylistParser: AbstractParser = XSPFPlaylistParser(mTimeout)
-        val asxPlaylistParser: AbstractParser = ASXPlaylistParser(mTimeout)
+        val m3uPlaylistParser = M3UPlaylistParser(mTimeout)
+        val m3u8PlaylistParser = M3U8PlaylistParser(mTimeout)
+        val plsPlaylistParser = PLSPlaylistParser(mTimeout)
+        val xspfPlaylistParser = XSPFPlaylistParser(mTimeout)
+        val asxPlaylistParser = ASXPlaylistParser(mTimeout)
         var extension: String = getFileExtension(url)
         val parser: Parser
         if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)
@@ -99,11 +94,11 @@ class AutoDetectParser(private val mTimeout: Int) {
     @Throws(IOException::class, JPlaylistParserException::class)
     fun parse(url: String?, playlist: Playlist) {
         requireNotNull(url) { "URI cannot be NULL" }
-        val m3uPlaylistParser: AbstractParser = M3UPlaylistParser(mTimeout)
-        val m3u8PlaylistParser: AbstractParser = M3U8PlaylistParser(mTimeout)
-        val plsPlaylistParser: AbstractParser = PLSPlaylistParser(mTimeout)
-        val xspfPlaylistParser: AbstractParser = XSPFPlaylistParser(mTimeout)
-        val asxPlaylistParser: AbstractParser = ASXPlaylistParser(mTimeout)
+        val m3uPlaylistParser = M3UPlaylistParser(mTimeout)
+        val m3u8PlaylistParser = M3U8PlaylistParser(mTimeout)
+        val plsPlaylistParser = PLSPlaylistParser(mTimeout)
+        val xspfPlaylistParser = XSPFPlaylistParser(mTimeout)
+        val asxPlaylistParser = ASXPlaylistParser(mTimeout)
         var extension: String = getFileExtension(url)
         val parser: Parser
         if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)

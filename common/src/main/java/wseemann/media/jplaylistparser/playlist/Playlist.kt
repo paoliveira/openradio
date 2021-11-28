@@ -16,11 +16,9 @@
 
 package wseemann.media.jplaylistparser.playlist
 
-import java.util.*
-
 class Playlist {
 
-    private val mPlaylistEntries: MutableList<PlaylistEntry>
+    private val mPlaylistEntries = ArrayList<PlaylistEntry>()
 
     fun add(playlistEntry: PlaylistEntry) {
         mPlaylistEntries.add(playlistEntry)
@@ -31,11 +29,4 @@ class Playlist {
      */
     val playlistEntries: List<PlaylistEntry>
         get() = mPlaylistEntries
-
-    /**
-     * Constructs a new, empty playlist.
-     */
-    init {
-        mPlaylistEntries = ArrayList()
-    }
 }

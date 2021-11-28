@@ -15,8 +15,6 @@
  */
 package wseemann.media.jplaylistparser.playlist
 
-import java.util.*
-
 /**
  * A multi-valued metadata container.
  */
@@ -24,7 +22,7 @@ class PlaylistEntry {
     /**
      * A map of all metadata attributes.
      */
-    private val metadata: MutableMap<String, Array<String?>>
+    private val metadata = HashMap<String, Array<String?>>()
 
     /**
      * Returns an array of the names contained in the metadata.
@@ -83,7 +81,7 @@ class PlaylistEntry {
         if (other == null) {
             return false
         }
-        val otherCpy: PlaylistEntry = try {
+        val otherCpy = try {
             other as PlaylistEntry
         } catch (cce: ClassCastException) {
             return false
@@ -127,12 +125,5 @@ class PlaylistEntry {
         const val TRACK = "track"
         const val URI = "uri"
         const val PLAYLIST_METADATA = "playlist_metadata"
-    }
-
-    /**
-     * Constructs a new, empty playlist entry.
-     */
-    init {
-        metadata = HashMap()
     }
 }
