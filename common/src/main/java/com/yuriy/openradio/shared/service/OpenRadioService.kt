@@ -114,12 +114,6 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
      */
     private var mIsAndroidAuto = false
 
-    /**
-     * Flag that indicates whether application runs over normal Android or Android TV.
-     */
-    var isTv = false
-        private set
-
     private
     val mPackageValidator by lazy {
         PackageValidator(applicationContext, R.xml.allowed_media_browser_callers)
@@ -1127,7 +1121,7 @@ class OpenRadioService : MediaBrowserServiceCompat(), NetworkMonitorDependency, 
     private inner class NetworkMonitorListenerImpl : NetworkMonitorListener {
 
         override fun onConnectivityChange(type: Int, isConnected: Boolean) {
-            if (mState != PlaybackStateCompat.STATE_PLAYING) {
+            if (mState != PlaybackStateCompat.STATE_PLAYING && mState != PlaybackStateCompat.STATE_ERROR) {
                 return
             }
             if (!isConnected) {
