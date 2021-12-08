@@ -183,6 +183,10 @@ class RadioStation : Serializable {
                 '}'
     }
 
+    fun isValid(): Boolean {
+        return mId.isNotBlank() && name.isNotBlank() && mMediaStream.isValid() && sortId >= MediaSessionCompat.QueueItem.UNKNOWN_ID
+    }
+
     companion object {
 
         /**

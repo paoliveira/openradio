@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.model.storage
 import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.vo.RadioStation
+import org.json.JSONObject
 
 /**
  * Created by Yuriy Chernyshov
@@ -41,7 +42,7 @@ class FavoritesStorage : AbstractRadioStationsStorage() {
     }
 
     /**
-     * Add provided [RadioStation] to the Favorites preferences.
+     * Add provided [RadioStation] to the Favorites preferences, or update it if already there.
      *
      * @param radioStation [RadioStation] to add to Favorites.
      * @param context      Context of the callee.
@@ -78,6 +79,10 @@ class FavoritesStorage : AbstractRadioStationsStorage() {
      */
     fun getAll(context: Context): MutableList<RadioStation> {
         return getAll(context, FILE_NAME)
+    }
+
+    fun getAllAsJson(context: Context): Map<String, JSONObject> {
+        return getAllAsJson(context, FILE_NAME)
     }
 
     fun addAll(context: Context, list: List<RadioStation>) {

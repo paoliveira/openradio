@@ -53,6 +53,10 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
             AppLogger.e("Error while de-marshall $value", e)
             return null
         }
+        return deserialize(jsonObject)
+    }
+
+    public fun deserialize(jsonObject: JSONObject): RadioStation {
         val radioStation = RadioStation.makeDefaultInstance(
             JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_ID)
         )

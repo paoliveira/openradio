@@ -276,6 +276,11 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
                     val dialog = BaseDialogFragment.newInstance(GoogleDriveDialog::class.java.name)
                     dialog.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                 }
+                R.id.nav_export_import -> {
+                    // Show Export/Import Dialog
+                    val dialog = BaseDialogFragment.newInstance(ExportImportDialog::class.java.name)
+                    dialog.show(transaction, ExportImportDialog.DIALOG_TAG)
+                }
                 R.id.nav_logs -> {
                     // Show Application Logs Dialog
                     val dialog = BaseDialogFragment.newInstance(LogsDialog::class.java.name)

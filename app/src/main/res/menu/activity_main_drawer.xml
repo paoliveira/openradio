@@ -40,6 +40,10 @@
             android:icon="@drawable/ic_cloud_black_24dp"
             android:title="@string/main_menu_google_drive"/>
         <item
+            android:id="@+id/nav_export_import"
+            android:icon="@drawable/ic_cloud_black_24dp"
+            android:title="@string/main_menu_export_import"/>
+        <item
             android:id="@+id/nav_logs"
             android:icon="@drawable/ic_file_download_black_24dp"
             android:title="@string/main_menu_logs"/>

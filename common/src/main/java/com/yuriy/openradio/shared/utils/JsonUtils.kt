@@ -92,4 +92,15 @@ object JsonUtils {
     fun getBooleanValue(jsonObject: JSONObject, key: String): Boolean {
         return jsonObject.has(key) && jsonObject.getBoolean(key)
     }
+
+    fun <T> toMap(jsonObject: JSONObject): Map<String, T> {
+        val map: MutableMap<String, T> = HashMap<String, T>()
+        val keyIter: Iterator<String> = jsonObject.keys()
+        while (keyIter.hasNext()) {
+            val key = keyIter.next()
+            map[key] = jsonObject.get(key) as T
+        }
+
+        return map
+    }
 }
