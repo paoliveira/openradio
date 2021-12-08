@@ -21,7 +21,7 @@ import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonSerializer
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+import org.json.JSONObject
 
 /**
  * Created by Yuriy Chernyshov
@@ -97,8 +97,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
      * @return Stored data as String.
      */
     fun getAllAsString(context: Context, name: String): String {
-        val sharedPreferences = getSharedPreferences(context, name)
-        val map = sharedPreferences.all
+        val map = getAllAsMap(context, name)
         val builder = StringBuilder()
         for (key in map.keys) {
             val value = map[key].toString()
@@ -157,8 +156,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
     fun getAll(context: Context, name: String): MutableList<RadioStation> {
         // TODO: Return cache when possible
         val radioStations = ArrayList<RadioStation>()
-        val sharedPreferences = getSharedPreferences(context, name)
-        val map = sharedPreferences.all
+        val map = getAllAsMap(context, name)
         val deserializer = RadioStationJsonDeserializer()
         var counter = 0
         var isListSorted: Boolean? = null
@@ -198,6 +196,15 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
         return radioStations
     }
 
+    protected fun getAllAsJson(context: Context, name: String): Map<String, JSONObject> {
+        return getAllAsMap(context, name).filter { entry -> entry.value is String }
+                .mapValues { entry -> JSONObject(entry.value.toString()) }
+    }
+
+    private fun getAllAsMap(context: Context, name: String): Map<String, *> {
+        return getSharedPreferences(context, name).all
+    }
+
     fun addAll(context: Context, name: String, list: List<RadioStation>) {
         val serializer = RadioStationJsonSerializer()
         val editor = getEditor(context, name)
@@ -216,8 +223,7 @@ abstract class AbstractRadioStationsStorage : AbstractStorage() {
      * @return `true` in case of the are items in collection, `false` - otherwise.
      */
     protected fun isEmpty(context: Context, name: String, excludeKeys: Set<String> = setOf()): Boolean {
-        val sharedPreferences = getSharedPreferences(context, name)
-        val map = sharedPreferences.all
+        val map = getAllAsMap(context, name)
         var counter = 0
         for (keys in map.keys) {
             if (excludeKeys.contains(keys)) {

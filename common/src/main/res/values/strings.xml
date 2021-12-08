@@ -70,6 +70,11 @@
     <string name="google_drive_upload_info">Upload Favorites and Local added Radio Stations to Google Drive.\nNOTE: This operation will overwrite Radio Stations uploaded previously!</string>
     <string name="upload">Upload</string>
     <string name="google_drive_download_info">Download Favorites and Local added Radio Stations from Google Drive.</string>
+    <string name="export_import">Export/Import</string>
+    <string name="export_info">Export favorites and locally added radio stations to a file.\nNOTE: This operation will overwrite radio stations exported previously!</string>
+    <string name="export">Export</string>
+    <string name="import_info">Import favorites and locally added radio stations from a file.</string>
+    <string name="import_button">Import</string>
     <string name="can_not_play_station">Can not play Station</string>
     <string name="media_stream_error">Error</string>
     <string name="media_stream_http_403">Forbidden</string>
@@ -136,6 +141,7 @@
     <string name="main_menu_buffering">@string/buffering</string>
     <string name="main_menu_network">@string/network</string>
     <string name="main_menu_google_drive">Google Drive</string>
+    <string name="main_menu_export_import">Export/Import</string>
     <string name="main_menu_about">About</string>
     <string name="main_menu_sleep_timer">Sleep Timer</string>
     <string name="easy_swipe_title">Swipe effect</string>

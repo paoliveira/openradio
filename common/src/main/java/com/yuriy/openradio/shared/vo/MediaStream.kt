@@ -15,7 +15,9 @@
  */
 package com.yuriy.openradio.shared.vo
 
-import java.util.*
+import android.webkit.URLUtil
+import java.net.MalformedURLException
+import java.net.URL
 
 /**
  * Created by Yuriy Chernyshov
@@ -72,6 +74,8 @@ class MediaStream private constructor() {
         return mVariants.hashCode()
     }
 
+    fun isValid(): Boolean = mVariants.all { variant -> variant.isValid() }
+
     /**
      * Copy constructor.
      *
@@ -104,6 +108,15 @@ class MediaStream private constructor() {
 
         fun copy(): Variant {
             return Variant(bitrate, url)
+        }
+
+        fun isValid(): Boolean {
+            try {
+                URL(url)
+                return URLUtil.isNetworkUrl(url) && bitrate >= 0
+            } catch (e: MalformedURLException) {
+                return false
+            }
         }
     }
 

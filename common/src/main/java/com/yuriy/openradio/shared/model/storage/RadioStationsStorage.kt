@@ -175,7 +175,7 @@ class RadioStationsStorage {
          * @param listB
          */
         @JvmStatic
-        fun merge(listA: MutableList<RadioStation>?, listB: List<RadioStation>?) {
+        fun merge(listA: MutableList<RadioStation>?, listB: Collection<RadioStation>?) {
             if (listA == null || listB == null) {
                 return
             }

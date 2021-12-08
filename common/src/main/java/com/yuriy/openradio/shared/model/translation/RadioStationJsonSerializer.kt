@@ -32,9 +32,13 @@ import org.json.JSONObject
 class RadioStationJsonSerializer : RadioStationSerializer {
 
     override fun serialize(radioStation: RadioStation): String {
+        return jsonify(radioStation).toString()
+    }
+
+    private fun jsonify(radioStation: RadioStation): JSONObject {
         val jsonObject = JSONObject()
         if (radioStation.isMediaStreamEmpty()) {
-            return jsonObject.toString()
+            return jsonObject
         }
         try {
             jsonObject.put(RadioStationJsonHelper.KEY_ID, radioStation.id)
@@ -53,6 +57,6 @@ class RadioStationJsonSerializer : RadioStationSerializer {
             /* Ignore this exception */
             AppLogger.e("Error while marshall $radioStation", e)
         }
-        return jsonObject.toString()
+        return jsonObject
     }
 }

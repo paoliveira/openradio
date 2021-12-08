@@ -20,6 +20,7 @@ import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
+import org.json.JSONObject
 
 /**
  * Created by Yuriy Chernyshov
@@ -65,7 +66,7 @@ class LocalRadioStationsStorage(
     }
 
     /**
-     * Add provided [RadioStation] to the Local Radio Stations preferences.
+     * Add provided [RadioStation] to the Local Radio Stations preferences, or update it if already there.
      *
      * @param radioStation [RadioStation] to add to the Local Radio Stations.
      * @param context      Context of the callee.
@@ -186,6 +187,10 @@ class LocalRadioStationsStorage(
      */
     fun getAllLocals(context: Context): MutableList<RadioStation> {
         return getAll(context, FILE_NAME)
+    }
+
+    fun getAllAsJson(context: Context): Map<String, JSONObject> {
+        return getAllAsJson(context, FILE_NAME)
     }
 
     /**
