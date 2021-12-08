@@ -94,8 +94,8 @@ object JsonUtils {
     }
 
     fun <T> toMap(jsonObject: JSONObject): Map<String, T> {
-        val map: MutableMap<String, T> = HashMap<String, T>()
-        val keyIter: Iterator<String> = jsonObject.keys()
+        val map = HashMap<String, T>()
+        val keyIter = jsonObject.keys()
         while (keyIter.hasNext()) {
             val key = keyIter.next()
             map[key] = jsonObject.get(key) as T

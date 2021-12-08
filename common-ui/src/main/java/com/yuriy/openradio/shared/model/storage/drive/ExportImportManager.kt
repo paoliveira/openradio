@@ -132,6 +132,5 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
         private const val EXPORT_VERSION = 1
         private const val RADIO_STATION_CATEGORY_FAVORITES = "favorites"
         private const val RADIO_STATION_CATEGORY_LOCALS = "locals"
-        private const val FILE_NAME_RADIO_STATIONS = "RadioStations.txt"
     }
 }
