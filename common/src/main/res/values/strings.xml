@@ -71,10 +71,10 @@
     <string name="upload">Upload</string>
     <string name="google_drive_download_info">Download Favorites and Local added Radio Stations from Google Drive.</string>
     <string name="export_import">Export/Import</string>
-    <string name="export_info">Export favorites and locally added radio stations to a file.\nNOTE: This operation will overwrite radio stations exported previously!</string>
-    <string name="export">Export</string>
+    <string name="export_info">Export favorites and locally added radio stations to a file.</string>
+    <string name="export">Export to file...</string>
     <string name="import_info">Import favorites and locally added radio stations from a file.</string>
-    <string name="import_button">Import</string>
+    <string name="import_button">Import from file...</string>
     <string name="can_not_play_station">Can not play Station</string>
     <string name="media_stream_error">Error</string>
     <string name="media_stream_http_403">Forbidden</string>
@@ -121,7 +121,7 @@
     <string name="add_station_genre_label">Genre:</string>
     <string name="add_station_country_label">Country:</string>
     <string name="ellipsis">…</string>
-    <string name="can_not_open_file">Can not open File</string>
+    <string name="can_not_open_file">Can not open file</string>
     <string name="storage_permission_proposed">Storage permission is optional and is needed to get access to icon associated with Radio Station</string>
     <string name="record_audio_permission_proposed">Record Audio permission is needed to perform voice search</string>
     <string name="download">Download</string>

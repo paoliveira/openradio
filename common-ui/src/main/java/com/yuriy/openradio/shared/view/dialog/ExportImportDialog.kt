@@ -17,11 +17,18 @@
 package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
+import androidx.activity.result.ActivityResultLauncher
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.model.storage.drive.ExportImportManager
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
+import com.yuriy.openradio.shared.view.SafeToast
+import java.util.Optional
 
 /**
  * Created by Eran Leshem
@@ -37,28 +44,67 @@ class ExportImportDialog : BaseDialogFragment() {
         mExportImportManager = ExportImportManager(requireContext())
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(R.layout.dialog_export_import,
                 requireActivity().findViewById(R.id.dialog_export_import_root)
         )
         setWindowDimensions(view, 0.9f, 0.5f)
-        view.findViewById<Button>(R.id.export_btn).setOnClickListener { exportRadioStations() }
-        view.findViewById<Button>(R.id.import_btn).setOnClickListener { importRadioStations() }
+        val exportLauncher = IntentUtils.registerForActivityResultIntrl(this, ::onExportFileSelected)
+        view.findViewById<Button>(R.id.export_btn).setOnClickListener { exportRadioStations(exportLauncher) }
+        val importLauncher = IntentUtils.registerForActivityResultIntrl(this, ::onImportFileSelected)
+        view.findViewById<Button>(R.id.import_btn).setOnClickListener { importRadioStations(importLauncher) }
         return createAlertDialog(view)
     }
 
-    private fun exportRadioStations() {
-        mExportImportManager.exportRadioStations()
+    private fun exportRadioStations(exportLauncher: ActivityResultLauncher<Intent>) {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+        intent.type = MIME_TYPE
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.putExtra(Intent.EXTRA_TITLE, FILE_NAME)
+        val chooserIntent = Intent.createChooser(intent, "Select File")
+        exportLauncher.launch(chooserIntent)
+    }
+
+    private fun onExportFileSelected(data: Intent?) {
+        getUri(data).ifPresent {
+            requireActivity().contentResolver.openOutputStream(it)?.use { outputStream ->
+                mExportImportManager.exportRadioStations(outputStream)
+            }
+        }
         dismiss()
     }
 
-    private fun importRadioStations() {
-        mExportImportManager.importRadioStations()
+    private fun importRadioStations(launcher: ActivityResultLauncher<Intent>) {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.type = MIME_TYPE
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        val chooserIntent = Intent.createChooser(intent, "Select File")
+        launcher.launch(chooserIntent)
+    }
+
+    private fun onImportFileSelected(data: Intent?) {
+        getUri(data).ifPresent {
+            requireActivity().contentResolver.openInputStream(it)?.use { inputStream ->
+                mExportImportManager.importRadioStations(inputStream)
+            }
+        }
         dismiss()
+    }
+
+    private fun getUri(data: Intent?): Optional<Uri> {
+        val ctx = context
+        if (ctx == null) {
+            AppLogger.e("Can not process export/import - context is null")
+            return Optional.empty()
+        }
+        val selectedFile = data?.data
+        if (selectedFile == null) {
+            AppLogger.e("Can not process export/import - file uri is null")
+            SafeToast.showAnyThread(context, ctx.getString(R.string.can_not_open_file))
+            return Optional.empty()
+        }
+
+        return Optional.of(selectedFile)
     }
 
     companion object {
@@ -71,5 +117,7 @@ class ExportImportDialog : BaseDialogFragment() {
          * Tag string to use in dialog transactions.
          */
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
+        private const val FILE_NAME = "radio_stations.json"
+        private const val MIME_TYPE = "application/octet-stream"
     }
 }

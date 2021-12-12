@@ -29,15 +29,15 @@ import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.RadioStation
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 
 
 /**
  * @param mContext  Context of the application.
  */
 class ExportImportManager(private val mContext: Context) : FavoritesStorageDependency,
-    LocalRadioStationsStorageDependency {
+        LocalRadioStationsStorageDependency {
 
     private lateinit var mFavoritesStorage: FavoritesStorage
     private lateinit var mLocalRadioStationsStorage: LocalRadioStationsStorage
@@ -58,11 +58,9 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     /**
      * Export Radio Stations to file.
      */
-    fun exportRadioStations() {
+    fun exportRadioStations(outputStream: OutputStream) {
         try {
-            FileOutputStream(getFile()).use {
-                it.write(getExportData().encodeToByteArray())
-            }
+            outputStream.write(getExportData().encodeToByteArray())
             SafeToast.showAnyThread(mContext, "Radio stations were exported")
         } catch (e: JSONException) {
             AppLogger.e("exportRadioStations", e)
@@ -73,11 +71,9 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     /**
      * Import Radio Stations from file.
      */
-    fun importRadioStations() {
+    fun importRadioStations(inputStream: InputStream) {
         try {
-            FileInputStream(getFile()).use {
-                handleImportedData(String(it.readBytes()))
-            }
+            handleImportedData(String(inputStream.readBytes()))
             SafeToast.showAnyThread(mContext, "Radio stations were imported")
         } catch (e: JSONException) {
             AppLogger.e("importRadioStations", e)
@@ -86,8 +82,6 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
             SafeToast.showAnyThread(mContext, "Radio station import failed")
         }
     }
-
-    private fun getFile() = mContext.getExternalFilesDir(null)?.resolve(FILE_NAME)
 
     /**
      * Get data of all Radio Stations which are intended for export.
@@ -117,9 +111,9 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     }
 
     private fun deserialize(category: JSONObject): List<RadioStation> =
-            JsonUtils.toMap<JSONObject>(category).values.map {
-                entry -> val radioStation = RadioStationJsonDeserializer().deserialize(entry)
-                if (! radioStation.isValid()) {
+            JsonUtils.toMap<JSONObject>(category).values.map { entry ->
+                val radioStation = RadioStationJsonDeserializer().deserialize(entry)
+                if (!radioStation.isValid()) {
                     AppLogger.e("deserialize: radio station %s failed to import".format(radioStation.name))
                     throw IllegalArgumentException()
                 }
@@ -127,7 +121,6 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
             }
 
     companion object {
-        private const val FILE_NAME = "radio_Stations.json"
         private const val VERSION_KEY = "version"
         private const val EXPORT_VERSION = 1
         private const val RADIO_STATION_CATEGORY_FAVORITES = "favorites"
