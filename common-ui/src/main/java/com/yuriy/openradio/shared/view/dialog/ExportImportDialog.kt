@@ -23,17 +23,16 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.activity.result.ActivityResultLauncher
 import com.yuriy.openradio.shared.R
-import com.yuriy.openradio.shared.model.storage.drive.ExportImportManager
+import com.yuriy.openradio.shared.model.storage.file.ExportImportManager
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
-import java.util.Optional
 
 /**
- * Created by Eran Leshem
- * Using Android Studio
- * On 11/10/21
+ * Dialog for initiating the export and import of favorite and local radio stations to/from a file.
+ *
+ * @author Eran Leshem
  */
 class ExportImportDialog : BaseDialogFragment() {
 
@@ -66,9 +65,10 @@ class ExportImportDialog : BaseDialogFragment() {
     }
 
     private fun onExportFileSelected(data: Intent?) {
-        getUri(data).ifPresent {
-            requireActivity().contentResolver.openOutputStream(it)?.use { outputStream ->
-                mExportImportManager.exportRadioStations(outputStream)
+        val uri = getUri(data)
+        if (uri != null) {
+            requireActivity().contentResolver.openOutputStream(uri)?.use {
+                mExportImportManager.exportRadioStations(it)
             }
         }
         dismiss()
@@ -83,28 +83,29 @@ class ExportImportDialog : BaseDialogFragment() {
     }
 
     private fun onImportFileSelected(data: Intent?) {
-        getUri(data).ifPresent {
-            requireActivity().contentResolver.openInputStream(it)?.use { inputStream ->
-                mExportImportManager.importRadioStations(inputStream)
+        val uri = getUri(data)
+        if (uri != null) {
+            requireActivity().contentResolver.openInputStream(uri)?.use {
+                mExportImportManager.importRadioStations(it)
             }
         }
         dismiss()
     }
 
-    private fun getUri(data: Intent?): Optional<Uri> {
+    private fun getUri(data: Intent?): Uri? {
         val ctx = context
         if (ctx == null) {
             AppLogger.e("Can not process export/import - context is null")
-            return Optional.empty()
+            return null
         }
         val selectedFile = data?.data
         if (selectedFile == null) {
             AppLogger.e("Can not process export/import - file uri is null")
             SafeToast.showAnyThread(context, ctx.getString(R.string.can_not_open_file))
-            return Optional.empty()
+            return null
         }
 
-        return Optional.of(selectedFile)
+        return selectedFile
     }
 
     companion object {

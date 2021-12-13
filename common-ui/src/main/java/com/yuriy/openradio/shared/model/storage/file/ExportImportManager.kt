@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.model.storage.drive
+package com.yuriy.openradio.shared.model.storage.file
 
 import android.content.Context
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
@@ -32,9 +32,10 @@ import org.json.JSONObject
 import java.io.InputStream
 import java.io.OutputStream
 
-
 /**
- * @param mContext  Context of the application.
+ * Manager for export and import of favorite and local radio stations to/from a file.
+ *
+ * @author Eran Leshem
  */
 class ExportImportManager(private val mContext: Context) : FavoritesStorageDependency,
         LocalRadioStationsStorageDependency {
