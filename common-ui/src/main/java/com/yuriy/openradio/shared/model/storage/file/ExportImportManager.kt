@@ -17,6 +17,9 @@
 package com.yuriy.openradio.shared.model.storage.file
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.dependencies.DependencyRegistry
 import com.yuriy.openradio.shared.dependencies.FavoritesStorageDependency
 import com.yuriy.openradio.shared.dependencies.LocalRadioStationsStorageDependency
@@ -27,10 +30,12 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.RadioStation
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * Manager for export and import of favorite and local radio stations to/from a file.
@@ -59,28 +64,44 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     /**
      * Export Radio Stations to file.
      */
-    fun exportRadioStations(outputStream: OutputStream) {
-        try {
-            outputStream.write(getExportData().encodeToByteArray())
-            SafeToast.showAnyThread(mContext, "Radio stations were exported")
-        } catch (e: JSONException) {
-            AppLogger.e("exportRadioStations", e)
-            SafeToast.showAnyThread(mContext, "Radio station export failed")
+    @OptIn(DelicateCoroutinesApi::class)
+    fun exportRadioStations(intent: Intent?) {
+        val uri = getUri(intent)
+        if (uri != Uri.EMPTY) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    mContext.contentResolver.openOutputStream(uri)?.use {
+                        it.write(getExportData().encodeToByteArray())
+                        SafeToast.showAnyThread(mContext, "Radio stations were exported")
+                    }
+                } catch (e: JSONException) {
+                    AppLogger.e("exportRadioStations", e)
+                    SafeToast.showAnyThread(mContext, "Radio station export failed")
+                }
+            }
         }
     }
 
     /**
      * Import Radio Stations from file.
      */
-    fun importRadioStations(inputStream: InputStream) {
-        try {
-            handleImportedData(String(inputStream.readBytes()))
-            SafeToast.showAnyThread(mContext, "Radio stations were imported")
-        } catch (e: JSONException) {
-            AppLogger.e("importRadioStations", e)
-            SafeToast.showAnyThread(mContext, "Radio station import failed")
-        } catch (e: IllegalArgumentException) {
-            SafeToast.showAnyThread(mContext, "Radio station import failed")
+    @OptIn(DelicateCoroutinesApi::class)
+    fun importRadioStations(intent: Intent?) {
+        val uri = getUri(intent)
+        if (uri != Uri.EMPTY) {
+            GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    mContext.contentResolver.openInputStream(uri)?.use {
+                        handleImportedData(String(it.readBytes()))
+                        SafeToast.showAnyThread(mContext, "Radio stations were imported")
+                    }
+                } catch (e: JSONException) {
+                    AppLogger.e("importRadioStations", e)
+                    SafeToast.showAnyThread(mContext, "Radio station import failed")
+                } catch (e: IllegalArgumentException) {
+                    SafeToast.showAnyThread(mContext, "Radio station import failed")
+                }
+            }
         }
     }
 
@@ -120,6 +141,17 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
                 }
                 radioStation
             }
+
+    private fun getUri(intent: Intent?): Uri {
+        val selectedFile = intent?.data
+        if (selectedFile == null) {
+            AppLogger.e("Can not process export/import - file uri is null")
+            SafeToast.showAnyThread(mContext, mContext.getString(R.string.can_not_open_file))
+            return Uri.EMPTY
+        }
+
+        return selectedFile
+    }
 
     companion object {
         private const val VERSION_KEY = "version"

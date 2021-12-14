@@ -250,6 +250,7 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
         )
         drawer.addDrawerListener(toggle)
         toggle.syncState()
+        manageExportImportMenuItem(navigationView)
         navigationView.setNavigationItemSelectedListener { menuItem: MenuItem ->
             val transaction = supportFragmentManager.beginTransaction()
             UiUtils.clearDialogs(this, transaction)
@@ -316,6 +317,14 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
             val transaction = supportFragmentManager.beginTransaction()
             val dialog = BaseDialogFragment.newInstance(AddStationDialog::class.java.name)
             dialog.show(transaction, AddStationDialog.DIALOG_TAG)
+        }
+    }
+
+    private fun manageExportImportMenuItem(navigationView: NavigationView) {
+        if (!AppUtils.hasVersionKitKat()) {
+            val exportImportMenuItem = navigationView.menu.findItem(R.id.nav_export_import)
+            exportImportMenuItem.setVisible(false)
+            exportImportMenuItem.setEnabled(false)
         }
     }
 

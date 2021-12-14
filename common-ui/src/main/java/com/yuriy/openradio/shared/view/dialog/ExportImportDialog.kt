@@ -18,16 +18,15 @@ package com.yuriy.openradio.shared.view.dialog
 
 import android.app.Dialog
 import android.content.Intent
-import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import androidx.activity.result.ActivityResultLauncher
+import androidx.annotation.RequiresApi
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.model.storage.file.ExportImportManager
-import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.view.BaseDialogFragment
-import com.yuriy.openradio.shared.view.SafeToast
 
 /**
  * Dialog for initiating the export and import of favorite and local radio stations to/from a file.
@@ -43,6 +42,7 @@ class ExportImportDialog : BaseDialogFragment() {
         mExportImportManager = ExportImportManager(requireContext())
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val view = inflater.inflate(R.layout.dialog_export_import,
                 requireActivity().findViewById(R.id.dialog_export_import_root)
@@ -55,25 +55,22 @@ class ExportImportDialog : BaseDialogFragment() {
         return createAlertDialog(view)
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     private fun exportRadioStations(exportLauncher: ActivityResultLauncher<Intent>) {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.type = MIME_TYPE
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.putExtra(Intent.EXTRA_TITLE, FILE_NAME)
+        intent.putExtra(Intent.EXTRA_TITLE, SUGGESTED_FILE_NAME)
         val chooserIntent = Intent.createChooser(intent, "Select File")
         exportLauncher.launch(chooserIntent)
     }
 
-    private fun onExportFileSelected(data: Intent?) {
-        val uri = getUri(data)
-        if (uri != null) {
-            requireActivity().contentResolver.openOutputStream(uri)?.use {
-                mExportImportManager.exportRadioStations(it)
-            }
-        }
+    private fun onExportFileSelected(intent: Intent?) {
+        mExportImportManager.exportRadioStations(intent)
         dismiss()
     }
 
+    @RequiresApi(Build.VERSION_CODES.KITKAT)
     private fun importRadioStations(launcher: ActivityResultLauncher<Intent>) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.type = MIME_TYPE
@@ -82,30 +79,9 @@ class ExportImportDialog : BaseDialogFragment() {
         launcher.launch(chooserIntent)
     }
 
-    private fun onImportFileSelected(data: Intent?) {
-        val uri = getUri(data)
-        if (uri != null) {
-            requireActivity().contentResolver.openInputStream(uri)?.use {
-                mExportImportManager.importRadioStations(it)
-            }
-        }
+    private fun onImportFileSelected(intent: Intent?) {
+        mExportImportManager.importRadioStations(intent)
         dismiss()
-    }
-
-    private fun getUri(data: Intent?): Uri? {
-        val ctx = context
-        if (ctx == null) {
-            AppLogger.e("Can not process export/import - context is null")
-            return null
-        }
-        val selectedFile = data?.data
-        if (selectedFile == null) {
-            AppLogger.e("Can not process export/import - file uri is null")
-            SafeToast.showAnyThread(context, ctx.getString(R.string.can_not_open_file))
-            return null
-        }
-
-        return selectedFile
     }
 
     companion object {
@@ -118,7 +94,7 @@ class ExportImportDialog : BaseDialogFragment() {
          * Tag string to use in dialog transactions.
          */
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
-        private const val FILE_NAME = "radio_stations.json"
+        private const val SUGGESTED_FILE_NAME = "radio_stations.json"
         private const val MIME_TYPE = "application/octet-stream"
     }
 }
