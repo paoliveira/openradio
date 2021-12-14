@@ -30,7 +30,6 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.RadioStation
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -64,7 +63,6 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     /**
      * Export Radio Stations to file.
      */
-    @OptIn(DelicateCoroutinesApi::class)
     fun exportRadioStations(intent: Intent?) {
         val uri = getUri(intent)
         if (uri != Uri.EMPTY) {
@@ -72,11 +70,11 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
                 try {
                     mContext.contentResolver.openOutputStream(uri)?.use {
                         it.write(getExportData().encodeToByteArray())
-                        SafeToast.showAnyThread(mContext, "Radio stations were exported")
+                        SafeToast.showAnyThread(mContext, R.string.radio_stations_exported)
                     }
                 } catch (e: JSONException) {
                     AppLogger.e("exportRadioStations", e)
-                    SafeToast.showAnyThread(mContext, "Radio station export failed")
+                    SafeToast.showAnyThread(mContext, R.string.radio_station_export_failed)
                 }
             }
         }
@@ -85,7 +83,6 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     /**
      * Import Radio Stations from file.
      */
-    @OptIn(DelicateCoroutinesApi::class)
     fun importRadioStations(intent: Intent?) {
         val uri = getUri(intent)
         if (uri != Uri.EMPTY) {
@@ -93,13 +90,13 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
                 try {
                     mContext.contentResolver.openInputStream(uri)?.use {
                         handleImportedData(String(it.readBytes()))
-                        SafeToast.showAnyThread(mContext, "Radio stations were imported")
+                        SafeToast.showAnyThread(mContext, R.string.radio_stations_imported)
                     }
                 } catch (e: JSONException) {
                     AppLogger.e("importRadioStations", e)
-                    SafeToast.showAnyThread(mContext, "Radio station import failed")
+                    SafeToast.showAnyThread(mContext, R.string.radio_station_import_failed)
                 } catch (e: IllegalArgumentException) {
-                    SafeToast.showAnyThread(mContext, "Radio station import failed")
+                    SafeToast.showAnyThread(mContext, R.string.radio_station_import_failed)
                 }
             }
         }
@@ -117,7 +114,7 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     }
 
     /**
-     * Demarshall String into lists of Radio Stations and update storage of the application.
+     * Unmarshall String into lists of Radio Stations and update storage of the application.
      *
      * @param data     imported data.
      */
@@ -133,7 +130,11 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
     }
 
     private fun deserialize(category: JSONObject): List<RadioStation> =
-            JsonUtils.toMap<JSONObject>(category).values.map { entry ->
+            JsonUtils.toMap<Any>(category).values.map { entry ->
+                if (entry !is JSONObject) {
+                    AppLogger.e("deserialize: bad radio station format")
+                    throw IllegalArgumentException()
+                }
                 val radioStation = RadioStationJsonDeserializer().deserialize(entry)
                 if (!radioStation.isValid()) {
                     AppLogger.e("deserialize: radio station %s failed to import".format(radioStation.name))
@@ -146,7 +147,7 @@ class ExportImportManager(private val mContext: Context) : FavoritesStorageDepen
         val selectedFile = intent?.data
         if (selectedFile == null) {
             AppLogger.e("Can not process export/import - file uri is null")
-            SafeToast.showAnyThread(mContext, mContext.getString(R.string.can_not_open_file))
+            SafeToast.showAnyThread(mContext, R.string.can_not_open_file)
             return Uri.EMPTY
         }
 

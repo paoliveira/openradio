@@ -60,14 +60,14 @@ class ExportImportDialog : BaseDialogFragment() {
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
         intent.type = MIME_TYPE
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.putExtra(Intent.EXTRA_TITLE, SUGGESTED_FILE_NAME)
-        val chooserIntent = Intent.createChooser(intent, "Select File")
+        intent.putExtra(Intent.EXTRA_TITLE, getString(R.string.suggested_export_file_name))
+        val chooserIntent = Intent.createChooser(intent, getString(R.string.select_file))
         exportLauncher.launch(chooserIntent)
     }
 
     private fun onExportFileSelected(intent: Intent?) {
-        mExportImportManager.exportRadioStations(intent)
         dismiss()
+        mExportImportManager.exportRadioStations(intent)
     }
 
     @RequiresApi(Build.VERSION_CODES.KITKAT)
@@ -75,13 +75,13 @@ class ExportImportDialog : BaseDialogFragment() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
         intent.type = MIME_TYPE
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        val chooserIntent = Intent.createChooser(intent, "Select File")
+        val chooserIntent = Intent.createChooser(intent, getString(R.string.select_file))
         launcher.launch(chooserIntent)
     }
 
     private fun onImportFileSelected(intent: Intent?) {
-        mExportImportManager.importRadioStations(intent)
         dismiss()
+        mExportImportManager.importRadioStations(intent)
     }
 
     companion object {
@@ -94,7 +94,6 @@ class ExportImportDialog : BaseDialogFragment() {
          * Tag string to use in dialog transactions.
          */
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
-        private const val SUGGESTED_FILE_NAME = "radio_stations.json"
-        private const val MIME_TYPE = "application/octet-stream"
+        private const val MIME_TYPE = "application/json"
     }
 }

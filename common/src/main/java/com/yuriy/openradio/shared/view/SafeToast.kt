@@ -36,6 +36,16 @@ object SafeToast {
      * Show [Toast]. This method can be invoked from any Thread.
      *
      * @param context Context of the Application.
+     * @param resId   Resource id for message to display in the [Toast].
+     */
+    fun showAnyThread(context: Context, resId: Int) {
+        showAnyThread(context, context.getString(resId))
+    }
+
+    /**
+     * Show [Toast]. This method can be invoked from any Thread.
+     *
+     * @param context Context of the Application.
      * @param text    Message to display in the [Toast].
      */
     @JvmStatic

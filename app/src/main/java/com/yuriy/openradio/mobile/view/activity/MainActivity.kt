@@ -323,8 +323,8 @@ class MainActivity : AppCompatActivity(), FavoritesStorageDependency, LatestRadi
     private fun manageExportImportMenuItem(navigationView: NavigationView) {
         if (!AppUtils.hasVersionKitKat()) {
             val exportImportMenuItem = navigationView.menu.findItem(R.id.nav_export_import)
-            exportImportMenuItem.setVisible(false)
-            exportImportMenuItem.setEnabled(false)
+            exportImportMenuItem.isVisible = false
+            exportImportMenuItem.isEnabled = false
         }
     }
 

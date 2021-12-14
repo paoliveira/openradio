@@ -189,4 +189,10 @@
     <string name="support_ivan_text">If you like Open Radio and you like motor racing, please, support my son.\nLike and share!</string>
     <string name="ivan_fb_link">https://www.facebook.com/IvanChernyshovRacer</string>
     <string name="ivan_instagram_link">https://www.instagram.com/ivan.chernyshov.racer</string>
+    <string name="radio_stations_exported">Radio stations were exported</string>
+    <string name="radio_station_export_failed">Radio station export failed</string>
+    <string name="radio_stations_imported">Radio stations were imported</string>
+    <string name="radio_station_import_failed">Radio station import failed</string>
+    <string name="select_file">Select File</string>
+    <string name="suggested_export_file_name">radio_stations.json</string>
 </resources>
