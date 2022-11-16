@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:viewportWidth="362.023"
+    android:viewportHeight="362.023"
+    android:width="362.023dp"
+    android:height="362.023dp">
+    <path
+        android:pathData="M0 60.341H362.023V301.681H0V60.341Z"
+        android:fillColor="#338AF3" />
+    <path
+        android:pathData="M34.315 118.089L10.736 107.683 34.315 97.278 44.718 73.701 55.123 97.278 78.701 107.683 55.123 118.089 44.718 141.664Z"
+        android:fillColor="#F0F0F0" />
+    <path
+        android:pathData="M44.718 86.696L51.144 101.257 65.706 107.683 51.144 114.109 44.718 128.67 38.294 114.109 23.732 107.683 38.294 101.257Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 212.496H362.023V228.239H0V212.496Z"
+        android:fillColor="#FFDA44" />
+    <path
+        android:pathData="M0 243.974H362.023V259.717H0V243.974Z"
+        android:fillColor="#FFDA44" />
+</vector>

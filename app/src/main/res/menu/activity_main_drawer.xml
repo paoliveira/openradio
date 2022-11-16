@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:showIn="navigation_view">
+
+    <group>
+        <item
+            android:id="@+id/nav_general"
+            android:icon="@drawable/tv_settings_btn_bg"
+            android:title="@string/main_menu_general"/>
+        <item
+            android:id="@+id/nav_network"
+            android:icon="@drawable/ic_network"
+            android:title="@string/main_menu_network"/>
+        <item
+            android:id="@+id/nav_buffering"
+            android:icon="@drawable/ic_av_timer_black_24dp"
+            android:title="@string/main_menu_buffering"/>
+        <item
+            android:id="@+id/nav_sleep_timer"
+            android:icon="@drawable/ic_sleep_timer"
+            android:title="@string/main_menu_sleep_timer"/>
+        <item
+            android:id="@+id/nav_google_drive"
+            android:icon="@drawable/ic_cloud_black_24dp"
+            android:title="@string/main_menu_google_drive"/>
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_info_black_24dp"
+            android:title="@string/main_menu_about"/>
+    </group>
+
+</menu>

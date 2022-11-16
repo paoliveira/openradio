@@ -1,0 +1,5 @@
+/build
+release/
+google-services.json
+crashlytics.properties
+sign.properties

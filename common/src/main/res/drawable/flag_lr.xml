@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:viewportWidth="512"
+    android:viewportHeight="512"
+    android:width="200dp"
+    android:height="200dp">
+    <path
+        android:pathData="M0 91.476H512V432.813H0V91.476Z"
+        android:fillColor="#F0F0F0" />
+    <path
+        android:pathData="M0 91.476H512V122.507H0V91.476Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 153.539H512V184.57H0V153.539Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 215.603H512V246.634H0V215.603Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 277.666H512V308.697H0V277.666Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 339.729H512V370.76H0V339.729Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 401.793H512V432.824H0V401.793Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M0 79.177H256V246.634H0V79.177Z"
+        android:fillColor="#0052B4" />
+    <path
+        android:pathData="M127.999 118.382L139.049 152.392 174.813 152.392 145.881 173.413 156.931 207.425 127.999 186.404 99.066 207.425 110.119 173.413 81.187 152.392 116.949 152.392Z"
+        android:fillColor="#F0F0F0" />
+</vector>

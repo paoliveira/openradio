@@ -1,0 +1,16 @@
+Radios source:
+http://www.radio-browser.info
+
+Android guidelines:
+http://developer.android.com/training/auto/index.html
+
+Icons:
+http://www.iconarchive.com/show/beautiful-flat-one-color-icons-by-elegantthemes/radio-icon.html
+
+Icons color:505E74
+
+Online palette:
+http://www.perbang.dk/color+scheme/
+
+adb commands:
+adb shell am broadcast -a "android.intent.action.MEDIA_BUTTON" -n "com.yuriy.openradio/.broadcast.RemoteControlReceiver"

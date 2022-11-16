@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Widget.Automotive.Toolbar" parent="Widget.MaterialComponents.Toolbar">
+        <item name="titleMarginStart">@dimen/toolbar_title_margin_start</item>
+        <item name="titleTextAppearance">@style/TextAppearance.Automotive.PrimaryText</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:paddingStart">@dimen/toolbar_padding</item>
+        <item name="android:paddingEnd">@dimen/toolbar_padding</item>
+        <item name="android:minHeight">@dimen/toolbar_height</item>
+        <item name="navigationIcon">@drawable/toolbar_back_icon</item>
+    </style>
+
+    <style name="Widget.Automotive.Toolbar.NavButton" parent="Widget.AppCompat.Toolbar.Button.Navigation">
+        <item name="tint">@android:color/white</item>
+        <item name="android:background">@drawable/toolbar_back_ripple_background</item>
+        <item name="android:minWidth">@dimen/toolbar_nav_button_size</item>
+    </style>
+
+    <style name="TextAppearance.Automotive.PrimaryText" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">?android:textColorPrimary</item>
+        <item name="android:textSize">@dimen/primary_text_size</item>
+    </style>
+
+</resources>

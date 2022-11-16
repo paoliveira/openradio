@@ -1,0 +1,94 @@
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply plugin: "com.google.gms.google-services"
+apply plugin: "kotlin-kapt"
+apply from: "../constants.gradle"
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+        multiDexEnabled true
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders.firebaseCrashlyticsCollectionEnabled = false
+        }
+
+        release {
+            manifestPlaceholders.firebaseCrashlyticsCollectionEnabled = true
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = project.ext.kotlinJvmTarget
+    }
+
+    packagingOptions {
+        resources {
+            excludes += [
+                    'META-INF/DEPENDENCIES.txt',
+                    'META-INF/DEPENDENCIES'
+            ]
+        }
+    }
+}
+
+dependencies {
+    api "androidx.media:media:$androidxMediaVersion"
+    implementation "androidx.exifinterface:exifinterface:$exifinterfaceVersion"
+
+    kapt "androidx.room:room-compiler:$roomVersion"
+    implementation "androidx.room:room-runtime:$roomVersion"
+    implementation "androidx.room:room-ktx:$roomVersion"
+    implementation "androidx.work:work-runtime-ktx:$workVersion"
+    api "com.android.support:multidex:$multidexVersion"
+    api "com.google.android.material:material:$materialVersion"
+    api "androidx.core:core-ktx:$kotlinCoreKtx"
+    api "androidx.activity:activity-ktx:$kotlinActivityKtx"
+    // Import the Firebase BoM (see: https://firebase.google.com/docs/android/learn-more#bom)
+    api platform("com.google.firebase:firebase-bom:$firebaseBom")
+    api ("com.google.firebase:firebase-analytics-ktx") {
+        exclude module: "play-services-ads-identifier"
+        exclude module: "play-services-measurement"
+        exclude module: "play-services-measurement-sdk"
+    }
+    api ("com.google.firebase:firebase-crashlytics-ktx") {
+        exclude module: "play-services-ads-identifier"
+        exclude module: "play-services-measurement"
+        exclude module: "play-services-measurement-sdk"
+    }
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesAndroid"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesCore"
+    api "com.google.android.exoplayer:exoplayer-core:$exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-hls:$exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-dash:$exoPlayerVersion"
+    api "com.google.android.exoplayer:exoplayer-ui:$exoPlayerVersion"
+    api "com.google.android.exoplayer:extension-cast:$exoPlayerVersion"
+    api "com.google.android.exoplayer:extension-mediasession:$exoPlayerVersion"
+    implementation "com.google.android.gms:play-services-location:$googlePlayServicesLocationVersion"
+    api "com.google.http-client:google-http-client-gson:$googleHttpClientGsonVersion"
+    api("com.google.api-client:google-api-client-android:$googleApiClientAndroidVersion") {
+        exclude group: "org.apache.httpcomponents"
+    }
+    api("com.google.apis:google-api-services-drive:$googleApiServicesDrive") {
+        exclude group: "org.apache.httpcomponents"
+    }
+    // https://mvnrepository.com/artifact/org.jdom/jdom2
+    api group: "org.jdom", name: "jdom2", version: "$jdom2Version"
+    implementation "de.westnordost:countryboundaries:$countryboundariesVersion"
+
+    // https://mvnrepository.com/artifact/junit/junit
+    testImplementation group: "junit", name: "junit", version: "$junitVersion"
+    testImplementation group: "org.json", name: "json", version: "$jsonTestVersion"
+}

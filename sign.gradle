@@ -1,0 +1,43 @@
+apply from: "../constants.gradle"
+
+def versionPropsFile = file("../version.properties")
+def codeKey = "VERSION_CODE"
+if (versionPropsFile.canRead()) {
+    Properties versionProps = new Properties()
+    versionProps.load(new FileInputStream(versionPropsFile))
+    project.ext.versionCode = versionProps[codeKey].toInteger()
+} else {
+    throw new GradleException("Could not read version.properties. File exists: ${versionPropsFile.exists()}")
+}
+println "Version code:" + project.ext.versionCode
+
+def signConfFile = file("../sign.properties")
+if (signConfFile.canRead()) {
+    Properties signProps = new Properties()
+    signProps.load(new FileInputStream(signConfFile))
+    project.ext.storeFileProp = signProps["file"].toString()
+    aliasProp = signProps["alias"].toString()
+    pwdProp = signProps["pwd"].toString()
+} else {
+    throw new GradleException("Could not read sign.properties. File exists: ${signConfFile.exists()}")
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == "signReleaseBundle") {
+        task.doLast() {
+            println "Get And Increment Version code"
+
+            if (versionPropsFile.canRead()) {
+                Properties versionProps = new Properties()
+                versionProps.load(new FileInputStream(versionPropsFile))
+                def code = versionProps[codeKey].toInteger() + 1
+                versionProps[codeKey] = code.toString()
+                versionProps.store(versionPropsFile.newWriter(), null)
+
+                println "Version code incremented to " + code
+            } else {
+                throw new GradleException("Could not read version.properties. File exists: ${versionPropsFile.exists()}")
+            }
+        }
+    }
+}

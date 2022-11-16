@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+apply plugin: "com.google.gms.google-services"
+apply plugin: "com.google.firebase.crashlytics"
+apply from: "../constants.gradle"
+apply from: "../sign.gradle"
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId project.ext.applicationId
+        minSdk project.ext.minSdkVersionTv
+        targetSdkVersion project.ext.targetSdkVersion
+        versionCode project.ext.versionCode
+        versionName project.ext.versionName
+    }
+
+    signingConfigs {
+        config {
+            keyAlias aliasProp
+            keyPassword pwdProp
+            storeFile file(storeFileProp)
+            storePassword pwdProp
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.config
+        }
+        release {
+            signingConfig signingConfigs.config
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = project.ext.kotlinJvmTarget
+    }
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/NOTICE.md', 'META-INF/LICENSE.md']
+        }
+    }
+}
+
+dependencies {
+    implementation project(':common')
+    implementation project(':common-ui')
+
+    implementation "androidx.leanback:leanback:$leanbackVersion"
+    implementation "com.google.android.material:material:$materialVersion"
+}

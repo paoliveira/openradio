@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:viewportWidth="512"
+    android:viewportHeight="512"
+    android:width="200dp"
+    android:height="200dp">
+    <path
+        android:pathData="M196.641 85.337L0 85.337 0 426.663 196.641 426.663 512 426.663 512 85.337Z"
+        android:fillColor="#D80027" />
+    <path
+        android:pathData="M256 157.279L278.663 227.026 352 227.026 292.668 270.132 315.332 339.881 256 296.774 196.668 339.881 219.332 270.132 160 227.026 233.337 227.026Z"
+        android:fillColor="#FFDA44" />
+</vector>

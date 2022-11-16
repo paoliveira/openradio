@@ -1,0 +1,44 @@
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+apply plugin: "com.google.gms.google-services"
+apply plugin: "kotlin-kapt"
+apply from: "../constants.gradle"
+
+android {
+    compileSdkVersion project.ext.compileSdkVersion
+    buildToolsVersion project.ext.buildToolsVersion
+    defaultConfig {
+        minSdkVersion project.ext.minSdkVersion
+        targetSdkVersion project.ext.targetSdkVersion
+    }
+
+    buildTypes {
+        debug {
+
+        }
+
+        release {
+
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = project.ext.kotlinJvmTarget
+    }
+}
+
+dependencies {
+    implementation project(':common')
+
+    api "androidx.constraintlayout:constraintlayout:$constraintlayoutAndroidXVersion"
+    api "androidx.fragment:fragment-ktx:$fragmentKtxVersion"
+    api "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
+    implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
+
+    implementation "com.sun.mail:android-mail:$androidMailVersion"
+}
