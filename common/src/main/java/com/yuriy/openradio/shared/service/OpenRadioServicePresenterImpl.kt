@@ -153,9 +153,9 @@ class OpenRadioServicePresenterImpl(
 
     override fun updateRadioStationFavorite(radioStation: RadioStation, isFavorite: Boolean) {
         if (isFavorite) {
-            mFavoritesStorage.remove(radioStation)
-        } else {
             mFavoritesStorage.add(radioStation)
+        } else {
+            mFavoritesStorage.remove(radioStation)
         }
     }
 

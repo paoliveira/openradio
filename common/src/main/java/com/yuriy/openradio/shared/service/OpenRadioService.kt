@@ -28,7 +28,6 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.utils.MediaConstants
@@ -923,7 +922,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
 
         override fun onStartForeground(notificationId: Int, notification: Notification) {
-            ContextCompat.startForegroundService(
+            ServiceUtils.startForegroundServiceSafe(
                 applicationContext,
                 Intent(applicationContext, this@OpenRadioService.javaClass)
             )

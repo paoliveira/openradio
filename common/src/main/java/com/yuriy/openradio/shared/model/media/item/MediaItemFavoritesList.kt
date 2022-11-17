@@ -18,8 +18,8 @@ package com.yuriy.openradio.shared.model.media.item
 
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.toMediaItemPlayable
 import com.yuriy.openradio.shared.vo.isInvalid
+import com.yuriy.openradio.shared.vo.toMediaItemPlayable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

@@ -19,8 +19,8 @@ package com.yuriy.openradio.mobile.view.activity
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
-import com.yuriy.openradio.shared.utils.toMediaItemPlayable
 import com.yuriy.openradio.shared.vo.RadioStation
+import com.yuriy.openradio.shared.vo.toMediaItemPlayable
 
 class MainActivityPresenterImpl(
     private val mFavoritesStorage: FavoritesStorage,
