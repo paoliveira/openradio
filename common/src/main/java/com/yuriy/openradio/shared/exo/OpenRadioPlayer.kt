@@ -53,7 +53,6 @@ import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.collections.ArrayList
 
 /**
  * Created by Chernyshov Yurii

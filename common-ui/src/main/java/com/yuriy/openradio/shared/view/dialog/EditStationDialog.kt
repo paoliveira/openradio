@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import com.yuriy.openradio.shared.R
+import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommonUi
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.findButton
 import com.yuriy.openradio.shared.utils.findCheckBox
@@ -50,8 +51,15 @@ class EditStationDialog : BaseAddEditStationDialog() {
 
     private lateinit var mEditStationPresenter: EditStationPresenter
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        DependencyRegistryCommonUi.inject(this)
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         dialog?.setTitle(R.string.edit_station_dialog_title)
         val addOrEditBtn = view!!.findButton(R.id.add_edit_station_dialog_add_btn_view)
@@ -65,7 +73,7 @@ class EditStationDialog : BaseAddEditStationDialog() {
             if (radioStation.isInvalid()) {
                 handleInvalidRadioStation(ctx, addOrEditBtn)
             } else {
-                handleUI(ctx, radioStation)
+                handleUI(radioStation)
             }
         } else {
             handleInvalidRadioStation(ctx, addOrEditBtn)
@@ -104,9 +112,8 @@ class EditStationDialog : BaseAddEditStationDialog() {
      * Update UI with Radio Station loaded from storage.
      *
      * @param radioStation Radio Station.
-     * @param context      Context of a callee.
      */
-    private fun handleUI(context: Context, radioStation: RadioStation) {
+    private fun handleUI(radioStation: RadioStation) {
         mNameEdit.setText(radioStation.name)
         mUrlEdit.setText(radioStation.getStreamUrl())
         mCountriesSpinner.setSelection(getCountryPosition(radioStation.country))
