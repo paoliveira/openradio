@@ -83,7 +83,7 @@ class TvSettingsDialog : BaseDialogFragment(), MediaPresenterDependency {
                 }
                 val ctx = activity ?: return@OnItemClickListener
                 val transaction = ctx.supportFragmentManager.beginTransaction()
-                UiUtils.clearDialogs(this@TvSettingsDialog.requireActivity(), transaction)
+                UiUtils.clearDialogs(ctx.supportFragmentManager, transaction)
                 when (position) {
                     0 -> {
                         // Show General Settings Dialog

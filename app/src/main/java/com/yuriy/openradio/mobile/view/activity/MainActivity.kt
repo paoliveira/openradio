@@ -49,9 +49,11 @@ import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
 import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.view.BaseDialogFragment
+import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.*
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.isInvalid
+import java.lang.ref.WeakReference
 
 /**
  * Created with Android Studio.
@@ -105,8 +107,8 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         mMediaPresenter = mediaPresenter
         // Register local receivers.
         mMediaPresenter.registerReceivers(mLocalBroadcastReceiverCb)
-        val mediaItemsAdapter = MobileMediaItemsAdapter(this)
-        val mediaSubscriptionCb = MediaBrowserSubscriptionCallback()
+        val mediaItemsAdapter = MobileMediaItemsAdapter(applicationContext)
+        val mediaSubscriptionCb = MediaBrowserSubscriptionCallback(WeakReference(this))
         val mediaPresenterImpl = MediaPresenterListenerImpl()
         mMediaPresenter.init(
             this, findView(R.id.main_layout), mSavedInstanceState, findViewById(R.id.list_view),
@@ -163,7 +165,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
         // Set up a MediaRouteButton to allow the user to control the current media playback route.
-        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.action_cast)
+        CastButtonFactory.setUpMediaRouteButton(applicationContext, menu, R.id.action_cast)
         return true
     }
 
@@ -181,7 +183,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         // in a transaction.  We also want to remove any currently showing
         // dialog, so make our own transaction and take care of that here.
         val transaction = supportFragmentManager.beginTransaction()
-        UiUtils.clearDialogs(this, transaction)
+        UiUtils.clearDialogs(supportFragmentManager, transaction)
         return when (id) {
             R.id.action_search -> {
                 // Show Search Dialog
@@ -244,7 +246,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         toggle.syncState()
         navigationView.setNavigationItemSelectedListener { menuItem: MenuItem ->
             val transaction = supportFragmentManager.beginTransaction()
-            UiUtils.clearDialogs(this, transaction)
+            UiUtils.clearDialogs(supportFragmentManager, transaction)
             menuItem.isChecked = false
             // Handle navigation view item clicks here.
             when (menuItem.itemId) {
@@ -406,7 +408,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
             radioStation.mediaStream.getVariant(0).bitrate, findTextView(R.id.crs_bitrate_view), true
         )
         val favoriteCheckView = findCheckBox(R.id.crs_favorite_check_view)
-        favoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(this, R.drawable.src_favorite)
+        favoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(applicationContext, R.drawable.src_favorite)
         favoriteCheckView.isChecked = false
         val mediaItem = mMainActivityPresenter.getLastMediaItem()
         MediaItemsAdapter.handleFavoriteAction(favoriteCheckView, description, mediaItem, applicationContext)
@@ -427,7 +429,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         }
     }
 
-    private inner class MediaBrowserSubscriptionCallback : MediaBrowserCompat.SubscriptionCallback() {
+    private class MediaBrowserSubscriptionCallback(private val mReference: WeakReference<MainActivity>) : MediaBrowserCompat.SubscriptionCallback() {
 
         override fun onChildrenLoaded(
             parentId: String, children: List<MediaBrowserCompat.MediaItem>,
@@ -437,33 +439,43 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
                 "$CLASS_NAME children loaded:$parentId, children:${children.size}," +
                         " options:${IntentUtils.bundleToString(options)}"
             )
-            if (mMediaPresenter.getOnSaveInstancePassed()) {
+            val reference = mReference.get()
+            if (reference == null) {
+                AppLogger.w("$CLASS_NAME MediaBrowserSubscriptionCallback onChildrenLoaded reference is gone")
+                return
+            }
+            if (reference.mMediaPresenter.getOnSaveInstancePassed()) {
                 AppLogger.w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
                 return
             }
-            hideProgressBar()
-            val addBtn = findFloatingActionButton(R.id.add_station_btn)
+            reference.hideProgressBar()
+            val addBtn = reference.findFloatingActionButton(R.id.add_station_btn)
             if (parentId == MediaId.MEDIA_ID_ROOT) {
                 addBtn.visible()
             } else {
                 addBtn.gone()
             }
             if (children.isEmpty()) {
-                showNoDataMessage()
+                reference.showNoDataMessage()
             }
 
             // No need to go on if indexed list ended with last item.
             if (PlayerUtils.isEndOfList(children)) {
                 return
             }
-            mMediaPresenter.handleChildrenLoaded(parentId, children)
+            reference.mMediaPresenter.handleChildrenLoaded(parentId, children)
         }
 
         override fun onError(id: String) {
-            hideProgressBar()
-            com.yuriy.openradio.shared.view.SafeToast.showAnyThread(
-                this@MainActivity,
-                this@MainActivity.getString(R.string.error_loading_media)
+            val reference = mReference.get()
+            if (reference == null) {
+                AppLogger.w("$CLASS_NAME MediaBrowserSubscriptionCallback onError reference is gone")
+                return
+            }
+            reference.hideProgressBar()
+            SafeToast.showAnyThread(
+                reference.applicationContext,
+                reference.getString(R.string.error_loading_media)
             )
         }
     }

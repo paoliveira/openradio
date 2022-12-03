@@ -218,7 +218,7 @@ class MediaResourcesManager(context: Context, className: String) {
         // Initialize Media Controller
         mMediaController = try {
             MediaControllerCompat(
-                mActivity,
+                mActivity?.applicationContext,
                 mMediaBrowser.sessionToken
             )
         } catch (e: RemoteException) {

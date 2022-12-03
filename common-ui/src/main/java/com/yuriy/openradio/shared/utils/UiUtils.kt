@@ -21,7 +21,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.yuriy.openradio.shared.view.dialog.*
@@ -127,11 +127,10 @@ object UiUtils {
     /**
      * Clears any active dialog.
      *
-     * @param fragmentActivity [FragmentActivity]
+     * @param manager Reference to the fragment manager.
      * @param transaction Instance of Fragment transaction.
      */
-    fun clearDialogs(fragmentActivity: FragmentActivity, transaction: FragmentTransaction) {
-        val manager = fragmentActivity.supportFragmentManager
+    fun clearDialogs(manager: FragmentManager, transaction: FragmentTransaction) {
         removeFragment(transaction, manager.findFragmentByTag(AboutDialog.DIALOG_TAG))
         removeFragment(transaction, manager.findFragmentByTag(AddStationDialog.DIALOG_TAG))
         removeFragment(transaction, manager.findFragmentByTag(EditStationDialog.DIALOG_TAG))

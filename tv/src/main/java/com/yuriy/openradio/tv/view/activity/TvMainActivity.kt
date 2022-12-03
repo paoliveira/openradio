@@ -243,7 +243,7 @@ class TvMainActivity : FragmentActivity(), MediaPresenterDependency {
 
     private fun showTvSettings() {
         val transaction = supportFragmentManager.beginTransaction()
-        UiUtils.clearDialogs(this, transaction)
+        UiUtils.clearDialogs(supportFragmentManager, transaction)
         // Show Settings Dialog
         val dialogFragment = BaseDialogFragment.newInstance(
             TvSettingsDialog::class.java.name

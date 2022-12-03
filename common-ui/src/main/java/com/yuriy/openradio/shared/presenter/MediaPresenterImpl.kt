@@ -103,7 +103,7 @@ class MediaPresenterImpl(
     /**
      * Adapter for the representing media items in the list.
      */
-    private lateinit var mAdapter: MediaItemsAdapter
+    private var mAdapter: MediaItemsAdapter? = null
 
     /**
      * Receiver for the local application;s events
@@ -146,7 +146,7 @@ class MediaPresenterImpl(
         // Set adapter
         mListView?.adapter = mAdapter
         mListView?.addOnScrollListener(mScrollListener)
-        mAdapter.listener = MediaItemsAdapterListener()
+        mAdapter?.listener = MediaItemsAdapterListener()
         mCurrentRadioStationView?.setOnClickListener {
             activity.startService(OpenRadioStore.makeToggleLastPlayedItemIntent(activity))
         }
@@ -159,7 +159,7 @@ class MediaPresenterImpl(
     }
 
     private fun itemsCount(): Int {
-        return mAdapter.itemCount
+        return mAdapter?.itemCount ?: 0
     }
 
     private fun clean() {
@@ -170,8 +170,11 @@ class MediaPresenterImpl(
         mActivity = null
         mMainLayoutView = null
         mListener = null
-        mAdapter.clear()
-        mAdapter.removeListener()
+        mListView = null
+        mCurrentRadioStationView = null
+        mAdapter?.clear()
+        mAdapter?.removeListener()
+        mAdapter = null
     }
 
     override fun getOnSaveInstancePassed(): Boolean {
@@ -342,8 +345,8 @@ class MediaPresenterImpl(
             // Do not process Home Screen
             return
         }
-        mAdapter.activeItemId = position
-        mAdapter.notifyDataSetChanged()
+        mAdapter?.activeItemId = position
+        mAdapter?.notifyDataSetChanged()
     }
 
     override fun updateListPositions(clickPosition: Int) {
@@ -369,7 +372,7 @@ class MediaPresenterImpl(
             AppLogger.w("$CLASS_NAME can not handle settings with invalid transaction")
             return
         }
-        UiUtils.clearDialogs(mActivity!!, transaction)
+        UiUtils.clearDialogs(mActivity!!.supportFragmentManager, transaction)
         val bundle = Bundle()
         RSSettingsDialog.provideMediaItem(
             bundle, item, mCurrentParentId, itemsCount()
@@ -452,10 +455,10 @@ class MediaPresenterImpl(
         if (PlayerUtils.isEndOfList(children)) {
             return
         }
-        mAdapter.parentId = parentId
-        mAdapter.clearData()
-        mAdapter.addAll(children)
-        mAdapter.notifyDataSetChanged()
+        mAdapter?.parentId = parentId
+        mAdapter?.clearData()
+        mAdapter?.addAll(children)
+        mAdapter?.notifyDataSetChanged()
         restoreSelectedPosition(parentId)
     }
 
@@ -507,7 +510,7 @@ class MediaPresenterImpl(
             AppLogger.w("$CLASS_NAME can not edit with invalid transaction")
             return
         }
-        UiUtils.clearDialogs(mActivity!!, transaction)
+        UiUtils.clearDialogs(mActivity!!.supportFragmentManager, transaction)
 
         val item = view.tag as MediaBrowserCompat.MediaItem
         val mediaId = item.mediaId
@@ -537,7 +540,7 @@ class MediaPresenterImpl(
             AppLogger.w("$CLASS_NAME can not show Remove RS Dialog with invalid transaction")
             return
         }
-        UiUtils.clearDialogs(mActivity!!, transaction)
+        UiUtils.clearDialogs(mActivity!!.supportFragmentManager, transaction)
 
         val item = view.tag as MediaBrowserCompat.MediaItem
         var name = AppUtils.EMPTY_STRING
@@ -668,8 +671,8 @@ class MediaPresenterImpl(
             if (newState != RecyclerView.SCROLL_STATE_IDLE) {
                 return
             }
-            updateListPositions(mAdapter.activeItemId)
-            if (mListLastVisiblePosition == mAdapter.itemCount - 1) {
+            updateListPositions(mAdapter?.activeItemId ?: 0)
+            if (mListLastVisiblePosition == (mAdapter?.itemCount ?: 1) - 1) {
                 onScrolledToEnd()
             }
         }
