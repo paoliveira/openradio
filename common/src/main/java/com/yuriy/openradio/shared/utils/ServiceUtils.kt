@@ -25,7 +25,7 @@ object ServiceUtils {
     fun startForegroundServiceSafe(context: Context, intent: Intent) {
         try {
             ContextCompat.startForegroundService(context, intent)
-        } catch (exception: RuntimeException) {
+        } catch (exception: Throwable) {
             AppLogger.e("Start foreground service failed", exception)
         }
     }

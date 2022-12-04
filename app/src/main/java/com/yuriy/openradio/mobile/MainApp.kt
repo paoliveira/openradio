@@ -24,6 +24,6 @@ class MainApp: MainAppCommonUi() {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
-        DependencyRegistry.init(base)
+        DependencyRegistry.init()
     }
 }

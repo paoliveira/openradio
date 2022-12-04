@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared
 
 import android.content.Context
+import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
 import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommonUi
 import com.yuriy.openradio.shared.dependencies.SleepTimerModelDependency
 import com.yuriy.openradio.shared.model.timer.SleepTimerModel
@@ -38,7 +39,7 @@ open class MainAppCommonUi: MainAppCommon(), SleepTimerModelDependency {
 
     override fun onCreate() {
         super.onCreate()
-        DependencyRegistryCommonUi.inject(this)
+        DependencyRegistryCommon.inject(this)
         mAppScope.launch(Dispatchers.IO) {
             mSleepTimerModel.init()
         }

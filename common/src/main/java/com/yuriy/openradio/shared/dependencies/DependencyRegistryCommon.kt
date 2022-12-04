@@ -40,6 +40,8 @@ import com.yuriy.openradio.shared.model.storage.images.ImagesDatabase
 import com.yuriy.openradio.shared.model.storage.images.ImagesPersistenceLayer
 import com.yuriy.openradio.shared.model.storage.images.ImagesPersistenceLayerImpl
 import com.yuriy.openradio.shared.model.storage.images.ImagesProvider
+import com.yuriy.openradio.shared.model.timer.SleepTimerModel
+import com.yuriy.openradio.shared.model.timer.SleepTimerModelImpl
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.service.OpenRadioServicePresenter
 import com.yuriy.openradio.shared.service.OpenRadioServicePresenterImpl
@@ -59,7 +61,7 @@ object DependencyRegistryCommon {
     private lateinit var sRadioStationManagerLayer: RadioStationManagerLayer
     private lateinit var sImagesPersistenceLayer: ImagesPersistenceLayer
     private lateinit var sOpenRadioServicePresenter: OpenRadioServicePresenter
-
+    private lateinit var sSleepTimerModel: SleepTimerModel
     /**
      * Flag that indicates whether application runs over normal Android or Android TV.
      */
@@ -135,11 +137,12 @@ object DependencyRegistryCommon {
         sLocationStorage = LocationStorage(context)
         val radioStationsComparator = RadioStationsComparator()
         sNetworkSettingsStorage = NetworkSettingsStorage(context)
+        sSleepTimerModel = SleepTimerModelImpl(context)
         sOpenRadioServicePresenter = OpenRadioServicePresenterImpl(
             sNetworkLayer, modelLayer,
             sFavoritesStorage, sDeviceLocalsStorage, sLatestRadioStationStorage, sNetworkSettingsStorage, sLocationStorage,
             sImagesPersistenceLayer, radioStationsComparator, sEqualizerLayer,
-            apiCachePersistent, apiCacheInMemory
+            apiCachePersistent, apiCacheInMemory, sSleepTimerModel
         )
 
         sInit.set(true)
@@ -169,6 +172,10 @@ object DependencyRegistryCommon {
 
     fun inject(service: OpenRadioService) {
         service.configureWith(sOpenRadioServicePresenter)
+    }
+
+    fun inject(dependency: SleepTimerModelDependency) {
+        dependency.configureWith(sSleepTimerModel)
     }
 
     /**
@@ -204,5 +211,9 @@ object DependencyRegistryCommon {
 
     fun getNetworkSettingsStorage(): NetworkSettingsStorage {
         return sNetworkSettingsStorage
+    }
+
+    fun getSleepTimerModel(): SleepTimerModel {
+        return sSleepTimerModel
     }
 }

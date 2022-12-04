@@ -137,7 +137,7 @@ class MediaPresenterImpl(
         mListView = listView
         mAdapter = adapter
         mCurrentRadioStationView = currentRadioStationView
-        mSleepTimerModel.setSleepTimerListener(mTimerListener)
+        mSleepTimerModel.addSleepTimerListener(mTimerListener)
         // Listener of events provided by Media Resource Manager.
         val mediaRsrMgrLst = MediaResourceManagerListenerImpl()
         mMediaRsrMgr.init(activity, mediaRsrMgrLst)
@@ -165,7 +165,7 @@ class MediaPresenterImpl(
     private fun clean() {
         AppLogger.d("$CLASS_NAME clean")
         mMediaRsrMgr.clean()
-        mSleepTimerModel.clearSleepTimerListener()
+        mSleepTimerModel.removeSleepTimerListener(mTimerListener)
         mCallback = null
         mActivity = null
         mMainLayoutView = null

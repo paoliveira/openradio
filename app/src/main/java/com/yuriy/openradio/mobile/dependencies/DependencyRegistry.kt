@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.mobile.dependencies
 
-import android.content.Context
 import com.yuriy.openradio.mobile.view.activity.MainActivity
 import com.yuriy.openradio.mobile.view.activity.MainActivityPresenter
 import com.yuriy.openradio.mobile.view.activity.MainActivityPresenterImpl
@@ -30,10 +29,7 @@ object DependencyRegistry {
     @Volatile
     private var sInit = AtomicBoolean(false)
 
-    /**
-     * Init with application's context only!
-     */
-    fun init(context: Context) {
+    fun init() {
         if (sInit.get()) {
             return
         }

@@ -19,21 +19,18 @@ package com.yuriy.openradio.shared.model.timer
 import android.content.Context
 import com.yuriy.openradio.shared.model.storage.ServiceLifecycleManager
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
-import com.yuriy.openradio.shared.service.OpenRadioStore
-import com.yuriy.openradio.shared.utils.ServiceUtils
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 /**
  * [SleepTimerModelImpl] is a class that is responsible for preparing and managing the data for an Activity or a Fragment.
  * It also handles the communication of the Activity / Fragment with the rest of the application
  * (e.g. calling the business logic classes).
  */
-class SleepTimerModelImpl(
-    private val mContext: Context,
-) : SleepTimerModel {
+class SleepTimerModelImpl(context: Context) : SleepTimerModel {
 
-    private val mSleepTimerStorage = SleepTimerStorage(mContext)
-    private var mTimerListenerExt: SleepTimerListener? = null
+    private val mSleepTimerStorage = SleepTimerStorage(context)
+    private var mTimerListenerExt = ConcurrentLinkedQueue<SleepTimerListener>()
     private val mTimerListener = SleepTimerListenerImpl()
     private val mTimer = SleepTimerImpl(mTimerListener)
 
@@ -144,12 +141,12 @@ class SleepTimerModelImpl(
         return value <= System.currentTimeMillis()
     }
 
-    override fun setSleepTimerListener(listener: SleepTimerListener) {
-        mTimerListenerExt = listener
+    override fun addSleepTimerListener(listener: SleepTimerListener) {
+        mTimerListenerExt.add(listener)
     }
 
-    override fun clearSleepTimerListener() {
-        mTimerListenerExt = null
+    override fun removeSleepTimerListener(listener: SleepTimerListener) {
+        mTimerListenerExt.remove(listener)
     }
 
     private inner class SleepTimerListenerImpl : SleepTimerListener {
@@ -159,11 +156,11 @@ class SleepTimerModelImpl(
             if (ServiceLifecycleManager.isInactive()) {
                 return
             }
-            mTimerListenerExt?.onComplete()
-            ServiceUtils.startForegroundServiceSafe(
-                mContext,
-                OpenRadioStore.makeStopServiceIntent(mContext)
-            )
+            synchronized(mTimerListenerExt) {
+                for (listener in mTimerListenerExt) {
+                    listener.onComplete()
+                }
+            }
         }
     }
 }

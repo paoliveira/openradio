@@ -4,6 +4,7 @@ import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.EqualizerLayer
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
+import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilder
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilderDefault
 import com.yuriy.openradio.shared.vo.Category
@@ -59,6 +60,8 @@ interface OpenRadioServicePresenter {
     fun updateRadioStationFavorite(radioStation: RadioStation, isFavorite: Boolean)
 
     fun updateSortIds(mediaId: String, sortId: Int, categoryMediaId: String)
+
+    fun getSleepTimerModel(): SleepTimerModel
 
     /**
      * Clear resources related to service provider, such as persistent or in memory storage, etc ...

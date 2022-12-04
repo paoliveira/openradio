@@ -21,7 +21,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.FragmentManager
 import com.yuriy.openradio.shared.R
-import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommonUi
+import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
 import com.yuriy.openradio.shared.dependencies.SleepTimerModelDependency
 import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.utils.*
@@ -54,7 +54,7 @@ class SleepTimerDialog : BaseDialogFragment(), SleepTimerModelDependency {
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        DependencyRegistryCommonUi.inject(this)
+        DependencyRegistryCommon.inject(this)
         mView = inflater.inflate(
                 R.layout.dialog_sleep_timer,
                 requireActivity().findViewById(R.id.dialog_sleep_timer_root)

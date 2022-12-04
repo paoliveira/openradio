@@ -10,6 +10,7 @@ import com.yuriy.openradio.shared.model.net.UrlBuilder
 import com.yuriy.openradio.shared.model.storage.*
 import com.yuriy.openradio.shared.model.storage.cache.api.ApiCache
 import com.yuriy.openradio.shared.model.storage.images.ImagesPersistenceLayer
+import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilder
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilderDefault
 import com.yuriy.openradio.shared.utils.MediaItemsComparator
@@ -31,7 +32,8 @@ class OpenRadioServicePresenterImpl(
     private val mRadioStationsComparator: Comparator<RadioStation>,
     private val mEqualizerLayer: EqualizerLayer,
     private val mApiCachePersistent: ApiCache,
-    private val mApiCacheInMemory: ApiCache
+    private val mApiCacheInMemory: ApiCache,
+    private val mSleepTimerModel: SleepTimerModel
 ) : OpenRadioServicePresenter {
 
     private val mMediaItemsComparator = MediaItemsComparator()
@@ -190,5 +192,9 @@ class OpenRadioServicePresenterImpl(
 
     override fun close() {
         mApiCacheInMemory.clear()
+    }
+
+    override fun getSleepTimerModel(): SleepTimerModel {
+        return mSleepTimerModel
     }
 }

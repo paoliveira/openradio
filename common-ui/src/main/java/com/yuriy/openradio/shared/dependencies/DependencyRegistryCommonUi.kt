@@ -20,8 +20,6 @@ import android.content.Context
 import com.yuriy.openradio.shared.model.storage.StorageManagerLayer
 import com.yuriy.openradio.shared.model.storage.StorageManagerLayerImpl
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
-import com.yuriy.openradio.shared.model.timer.SleepTimerModel
-import com.yuriy.openradio.shared.model.timer.SleepTimerModelImpl
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterImpl
 import com.yuriy.openradio.shared.view.dialog.*
@@ -35,7 +33,6 @@ object DependencyRegistryCommonUi {
     private lateinit var sRemoveStationDialogPresenter: RemoveStationDialogPresenter
     private lateinit var sAddEditStationDialogPresenter: AddEditStationDialogPresenter
     private lateinit var sStorageManagerLayer: StorageManagerLayer
-    private lateinit var sSleepTimerModel: SleepTimerModel
 
     @Volatile
     private var sInit = AtomicBoolean(false)
@@ -47,12 +44,11 @@ object DependencyRegistryCommonUi {
         if (sInit.get()) {
             return
         }
-        sSleepTimerModel = SleepTimerModelImpl(context)
         sMediaPresenter = MediaPresenterImpl(
             context,
             DependencyRegistryCommon.getNetworkLayer(),
             DependencyRegistryCommon.getLocationStorage(),
-            sSleepTimerModel
+            DependencyRegistryCommon.getSleepTimerModel()
         )
         sEditStationPresenter = EditStationPresenterImpl(
             DependencyRegistryCommon.getFavoriteStorage(),
@@ -77,10 +73,6 @@ object DependencyRegistryCommonUi {
 
     fun inject(dependency: MediaPresenterDependency) {
         dependency.configureWith(sMediaPresenter)
-    }
-
-    fun inject(dependency: SleepTimerModelDependency) {
-        dependency.configureWith(sSleepTimerModel)
     }
 
     fun inject(dependency: GoogleDriveManager) {

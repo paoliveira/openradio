@@ -49,6 +49,7 @@ import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.storage.ServiceLifecycleManager
+import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.vo.Country
@@ -157,6 +158,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private lateinit var mMediaSessionConnector: MediaSessionConnector
 
     private lateinit var mPresenter: OpenRadioServicePresenter
+    private val mSleepTimerListener = SleepTimerListenerImpl()
 
     /**
      * Default constructor.
@@ -391,15 +393,15 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private fun registerReceivers() {
         mBTConnectionReceiver.register(applicationContext)
         mNoisyAudioStreamReceiver.register(applicationContext)
-
         mPresenter.startNetworkMonitor(applicationContext, mNetMonitorListener)
+        mPresenter.getSleepTimerModel().addSleepTimerListener(mSleepTimerListener)
     }
 
     private fun unregisterReceivers() {
         mBTConnectionReceiver.unregister(applicationContext)
         mNoisyAudioStreamReceiver.unregister(applicationContext)
-
         mPresenter.stopNetworkMonitor(applicationContext)
+        mPresenter.getSleepTimerModel().removeSleepTimerListener(mSleepTimerListener)
     }
 
     private fun handleOnLoadChildren(
@@ -849,6 +851,39 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
+//    private fun startForeground() {
+//        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//        manager.createNotificationChannel(createNotificationChannel())
+//        startForeground(
+//            NOTIFICATION_ID,
+//            createNotification()
+//        )
+//        AppLogger.i("$TAG starting as foreground service")
+//    }
+//
+//    private fun createNotificationChannel(): NotificationChannel {
+//        val channel = NotificationChannel(
+//            NOTIFICATION_CHANNEL_ID,
+//            CHANNEL_NAME,
+//            NotificationManager.IMPORTANCE_NONE
+//        )
+//        channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+//        return channel
+//    }
+//
+//    private fun createNotification(): Notification {
+//        val builder = Notification.Builder(
+//            applicationContext,
+//            NOTIFICATION_CHANNEL_ID
+//        )
+//        return builder.setOngoing(true)
+//            .setContentTitle(NOTIFICATION_CONTENT_TITLE)
+//            .setContentText(NOTIFICATION_CONTENT_TEXT)
+//            .setSmallIcon()
+//            .setCategory(Notification.CATEGORY_SERVICE)
+//            .build()
+//    }
+
     private fun stopSelfResultInt() {
         AppLogger.i("$TAG stop self with size of ${mStartIds.size}")
         while (mStartIds.isEmpty().not()) {
@@ -1090,6 +1125,16 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
+    private inner class SleepTimerListenerImpl : SleepTimerListener {
+
+        override fun onComplete() {
+            AppLogger.i("$TAG on sleep timer completed")
+            mUiScope.launch {
+                closeService()
+            }
+        }
+    }
+
     companion object {
         private lateinit var TAG: String
 
@@ -1106,10 +1151,5 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         private const val API_CALL_TIMEOUT_MS = 3000L
 
         const val MASTER_VOLUME_DEFAULT = 100
-
-        private fun isPlaybackStateActive(state: Int): Boolean {
-            return state == Player.STATE_BUFFERING
-                    || state == Player.STATE_READY
-        }
     }
 }

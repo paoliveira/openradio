@@ -40,7 +40,7 @@ interface SleepTimerModel {
 
     fun isTimestampNotValid(value: Long): Boolean
 
-    fun setSleepTimerListener(listener: SleepTimerListener)
+    fun addSleepTimerListener(listener: SleepTimerListener)
 
-    fun clearSleepTimerListener()
+    fun removeSleepTimerListener(listener: SleepTimerListener)
 }
