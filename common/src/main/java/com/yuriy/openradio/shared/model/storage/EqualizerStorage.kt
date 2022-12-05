@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import com.yuriy.openradio.shared.utils.AppUtils
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
@@ -25,22 +26,18 @@ import com.yuriy.openradio.shared.utils.AppUtils
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class EqualizerStorage(context: Context) : AbstractStorage(context) {
+class EqualizerStorage(contextRef: WeakReference<Context>) : AbstractStorage(contextRef, FILE_NAME) {
 
     fun isEmpty(): Boolean {
-        val preferences = getSharedPreferences(FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, AppUtils.EMPTY_STRING) == AppUtils.EMPTY_STRING
+        return getStringValue(EQUALIZER_STATE, AppUtils.EMPTY_STRING) == AppUtils.EMPTY_STRING
     }
 
     fun saveEqualizerState(state: String) {
-        val editor = getEditor(FILE_NAME)
-        editor.putString(EQUALIZER_STATE, state)
-        editor.apply()
+        putStringValue(EQUALIZER_STATE, state)
     }
 
     fun loadEqualizerState(): String {
-        val preferences = getSharedPreferences(FILE_NAME)
-        return preferences.getString(EQUALIZER_STATE, AppUtils.EMPTY_STRING) ?: AppUtils.EMPTY_STRING
+        return getStringValue(EQUALIZER_STATE, AppUtils.EMPTY_STRING)
     }
 
     companion object {

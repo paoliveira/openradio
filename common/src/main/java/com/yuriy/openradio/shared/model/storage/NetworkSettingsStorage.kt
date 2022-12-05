@@ -17,22 +17,21 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class NetworkSettingsStorage(context: Context) : AbstractStorage(context) {
+class NetworkSettingsStorage(contextRef: WeakReference<Context>) : AbstractStorage(contextRef, FILE_NAME) {
 
     fun setUseMobile(value: Boolean) {
-        val editor = getEditor(FILE_NAME)
-        editor.putBoolean(IS_USE_MOBILE, value)
-        editor.apply()
+        putBooleanValue(IS_USE_MOBILE, value)
     }
 
     fun getUseMobile(): Boolean {
-        return getSharedPreferences(FILE_NAME).getBoolean(IS_USE_MOBILE, true)
+        return getBooleanValue(IS_USE_MOBILE, true)
     }
 
     companion object {

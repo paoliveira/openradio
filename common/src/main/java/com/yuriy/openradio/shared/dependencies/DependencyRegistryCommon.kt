@@ -47,6 +47,7 @@ import com.yuriy.openradio.shared.service.OpenRadioServicePresenter
 import com.yuriy.openradio.shared.service.OpenRadioServicePresenterImpl
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.RadioStationsComparator
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 
 object DependencyRegistryCommon {
@@ -122,22 +123,23 @@ object DependencyRegistryCommon {
         val modelLayer = ModelLayerImpl(
             context, parser, sNetworkLayer, downloader, apiCachePersistent, apiCacheInMemory
         )
-        sFavoritesStorage = FavoritesStorage(context)
-        sLatestRadioStationStorage = LatestRadioStationStorage(context)
+        val contextRef = WeakReference(context)
+        sFavoritesStorage = FavoritesStorage(contextRef)
+        sLatestRadioStationStorage = LatestRadioStationStorage(contextRef)
         sDeviceLocalsStorage = DeviceLocalsStorage(
-            context, sFavoritesStorage, sLatestRadioStationStorage
+            contextRef, sFavoritesStorage, sLatestRadioStationStorage
         )
-        val equalizerStorage = EqualizerStorage(context)
+        val equalizerStorage = EqualizerStorage(contextRef)
         sEqualizerLayer = EqualizerLayerImpl(equalizerStorage)
         val imagesDatabase = ImagesDatabase.getInstance(context)
         sImagesPersistenceLayer = ImagesPersistenceLayerImpl(context, downloader, imagesDatabase)
         sRadioStationManagerLayer = RadioStationManagerLayerImpl(
             modelLayer, sDeviceLocalsStorage, sFavoritesStorage, sImagesPersistenceLayer
         )
-        sLocationStorage = LocationStorage(context)
+        sLocationStorage = LocationStorage(contextRef)
         val radioStationsComparator = RadioStationsComparator()
-        sNetworkSettingsStorage = NetworkSettingsStorage(context)
-        sSleepTimerModel = SleepTimerModelImpl(context)
+        sNetworkSettingsStorage = NetworkSettingsStorage(contextRef)
+        sSleepTimerModel = SleepTimerModelImpl(contextRef)
         sOpenRadioServicePresenter = OpenRadioServicePresenterImpl(
             sNetworkLayer, modelLayer,
             sFavoritesStorage, sDeviceLocalsStorage, sLatestRadioStationStorage, sNetworkSettingsStorage, sLocationStorage,

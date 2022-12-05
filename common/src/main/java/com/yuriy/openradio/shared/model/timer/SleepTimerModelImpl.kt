@@ -19,6 +19,7 @@ package com.yuriy.openradio.shared.model.timer
 import android.content.Context
 import com.yuriy.openradio.shared.model.storage.ServiceLifecycleManager
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -27,9 +28,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * It also handles the communication of the Activity / Fragment with the rest of the application
  * (e.g. calling the business logic classes).
  */
-class SleepTimerModelImpl(context: Context) : SleepTimerModel {
+class SleepTimerModelImpl(contextRef: WeakReference<Context>) : SleepTimerModel {
 
-    private val mSleepTimerStorage = SleepTimerStorage(context)
+    private val mSleepTimerStorage = SleepTimerStorage(contextRef)
     private var mTimerListenerExt = ConcurrentLinkedQueue<SleepTimerListener>()
     private val mTimerListener = SleepTimerListenerImpl()
     private val mTimer = SleepTimerImpl(mTimerListener)

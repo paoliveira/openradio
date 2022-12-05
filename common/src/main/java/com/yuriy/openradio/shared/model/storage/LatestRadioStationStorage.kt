@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.storage
 import android.content.Context
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.isInvalid
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
@@ -25,7 +26,8 @@ import com.yuriy.openradio.shared.vo.isInvalid
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class LatestRadioStationStorage(context: Context) : AbstractRadioStationsStorage(context) {
+class LatestRadioStationStorage(contextRef: WeakReference<Context>) :
+    AbstractRadioStationsStorage(contextRef, FILE_NAME) {
 
     /**
      * Cache object in order to prevent use of storage.
@@ -38,9 +40,9 @@ class LatestRadioStationStorage(context: Context) : AbstractRadioStationsStorage
      * @param radioStation [RadioStation] to add as Latest Radio Station.
      */
     @Synchronized
-    fun add(radioStation: RadioStation) {
+    fun addLatest(radioStation: RadioStation) {
         mRadioStation = RadioStation.makeCopyInstance(radioStation)
-        add(KEY, radioStation, FILE_NAME)
+        add(radioStation, KEY)
     }
 
     /**
@@ -53,7 +55,7 @@ class LatestRadioStationStorage(context: Context) : AbstractRadioStationsStorage
         if (mRadioStation.isInvalid().not()) {
             return mRadioStation
         }
-        val list = getAll(FILE_NAME)
+        val list = getAll()
         // There is only one Radio Station in collection.
         if (list.isNotEmpty()) {
             mRadioStation = RadioStation.makeCopyInstance(list[0])

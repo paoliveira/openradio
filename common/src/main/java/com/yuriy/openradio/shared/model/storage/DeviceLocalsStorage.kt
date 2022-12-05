@@ -22,6 +22,7 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.BITRATE_DEFAULT
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
@@ -30,21 +31,10 @@ import com.yuriy.openradio.shared.vo.RadioStation
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class DeviceLocalsStorage(
-    context: Context,
+    contextRef: WeakReference<Context>,
     private val mFavoritesStorage: FavoritesStorage,
     private val mLatestRadioStationStorage: LatestRadioStationStorage,
-) : AbstractRadioStationsStorage(context) {
-
-    /**
-     * Set value of the Radio Station Id.
-     *
-     * @param value Value of the Radio Station Id.
-     */
-    private fun setId(value: Int) {
-        val editor = getEditor(FILE_NAME)
-        editor.putInt(KEY_ID, value)
-        editor.apply()
-    }
+) : AbstractRadioStationsStorage(contextRef, FILE_NAME) {
 
     /**
      * Creates a value of Id for Radio Station.
@@ -52,8 +42,7 @@ class DeviceLocalsStorage(
      * @return The value of the Radio Station Id.
      */
     fun getId(): String {
-        val sharedPreferences = getSharedPreferences(FILE_NAME)
-        var id = sharedPreferences.getInt(KEY_ID, Int.MAX_VALUE)
+        var id = getIntValue(KEY_ID, Int.MAX_VALUE)
         // If value is Integer MAX, means that this is the first call, initialize it and addToLocals.
         if (id == Int.MAX_VALUE) {
             setId(ID_INIT_VALUE)
@@ -63,32 +52,6 @@ class DeviceLocalsStorage(
         id += 1
         setId(id)
         return id.toString()
-    }
-
-    /**
-     * Add provided [RadioStation] to the Local Radio Stations preferences.
-     *
-     * @param radioStation [RadioStation] to add to the Local Radio Stations.
-     */
-    @Synchronized
-    fun add(radioStation: RadioStation) {
-        add(radioStation, FILE_NAME)
-    }
-
-    @Synchronized
-    fun addAll(list: List<RadioStation>) {
-        return addAll(FILE_NAME, list)
-    }
-
-    /**
-     * Remove provided [RadioStation] from the Local radio Stations preferences
-     * by the provided media Id.
-     *
-     * @param radioStation [RadioStation] to remove from the Local Radio Stations.
-     */
-    @Synchronized
-    fun remove(radioStation: RadioStation) {
-        remove(radioStation, FILE_NAME)
     }
 
     /**
@@ -105,29 +68,29 @@ class DeviceLocalsStorage(
      */
     @Synchronized
     fun update(
-        mediaId: String?, name: String?, url: String?, imageUrl: String?,
+        mediaId: String, name: String, url: String, imageUrl: String?,
         genre: String?, country: String?, addToFav: Boolean
     ): Boolean {
         var result = false
-        val list = getAll(FILE_NAME)
+        val list = getAll()
         for (radioStation in list) {
-            if (radioStation.id.endsWith(mediaId!!)) {
+            if (radioStation.id.endsWith(mediaId)) {
                 remove(radioStation)
                 mFavoritesStorage.remove(radioStation)
-                radioStation.name = name!!
+                radioStation.name = name
                 val mediaStream = makeDefaultInstance()
-                mediaStream.setVariant(BITRATE_DEFAULT, url!!)
+                mediaStream.setVariant(BITRATE_DEFAULT, url)
                 radioStation.mediaStream = mediaStream
                 radioStation.imageUrl = imageUrl ?: AppUtils.EMPTY_STRING
-                radioStation.genre = genre!!
-                radioStation.country = country!!
+                radioStation.genre = genre ?: AppUtils.EMPTY_STRING
+                radioStation.country = country ?: AppUtils.EMPTY_STRING
                 if (addToFav) {
                     mFavoritesStorage.add(radioStation)
                 }
                 add(radioStation)
                 val current = mLatestRadioStationStorage.get()
                 if (current.id.endsWith(mediaId)) {
-                    mLatestRadioStationStorage.add(radioStation)
+                    mLatestRadioStationStorage.addLatest(radioStation)
                 }
                 d("Radio station updated to:$radioStation")
                 result = true
@@ -145,7 +108,7 @@ class DeviceLocalsStorage(
      */
     @Synchronized
     operator fun get(mediaId: String): RadioStation {
-        val list = getAll(FILE_NAME)
+        val list = getAll()
         for (radioStation in list) {
             if (radioStation.id.endsWith(mediaId)) {
                 return radioStation
@@ -155,21 +118,12 @@ class DeviceLocalsStorage(
     }
 
     /**
-     * Return Local added Radio Stations which are stored in the persistent storage represented in a single String.
+     * Set value of the Radio Station Id.
      *
-     * @return Local added Radio Stations in a String representation.
+     * @param value Value of the Radio Station Id.
      */
-    fun getAllLocalAsString(): String {
-        return getAllAsString(FILE_NAME)
-    }
-
-    /**
-     * Return collection of the Local Radio Stations which are stored in the persistent storage.
-     *
-     * @return Collection of the Local Radio Stations.
-     */
-    fun getAllLocals(): ArrayList<RadioStation> {
-        return getAll(FILE_NAME)
+    private fun setId(value: Int) {
+        putIntValue(KEY_ID, value)
     }
 
     companion object {
@@ -187,7 +141,7 @@ class DeviceLocalsStorage(
         /**
          * Init value of the custom Radio Station Id.
          */
-        private const val ID_INIT_VALUE = Int.MAX_VALUE - 1000000
+        private const val ID_INIT_VALUE = Int.MAX_VALUE - 1_000_000
 
         /**
          * Check whether provided value is equal to [.KEY_ID].

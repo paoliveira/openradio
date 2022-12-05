@@ -18,22 +18,21 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import com.yuriy.openradio.shared.vo.Country
+import java.lang.ref.WeakReference
 
 /**
  * [LocationStorage] is a class that provides access to data associated with  Location.
  */
-class LocationStorage(context: Context) : AbstractStorage(context) {
+class LocationStorage(contextRef: WeakReference<Context>) : AbstractStorage(contextRef, FILE_NAME) {
 
     fun getCountryCode(): String {
-        return getSharedPreferences(FILE_NAME).getString(
+        return getStringValue(
             PREFS_KEY_LAST_COUNTRY_CODE, Country.COUNTRY_CODE_DEFAULT
-        ) ?: Country.COUNTRY_CODE_DEFAULT
+        )
     }
 
     fun setCountryCode(value: String) {
-        val editor = getEditor(FILE_NAME)
-        editor.putString(PREFS_KEY_LAST_COUNTRY_CODE, value)
-        editor.apply()
+        putStringValue(PREFS_KEY_LAST_COUNTRY_CODE, value)
     }
 
     companion object {

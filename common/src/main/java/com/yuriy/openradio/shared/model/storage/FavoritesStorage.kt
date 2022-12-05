@@ -20,6 +20,7 @@ import android.content.Context
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.vo.RadioStation
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
@@ -27,7 +28,7 @@ import com.yuriy.openradio.shared.vo.RadioStation
  * On 6/4/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class FavoritesStorage(context: Context) : AbstractRadioStationsStorage(context) {
+class FavoritesStorage(contextRef: WeakReference<Context>) : AbstractRadioStationsStorage(contextRef, FILE_NAME) {
 
     /**
      * Cache key of the Favorite Radio Station in order to ease load from preferences.
@@ -47,7 +48,7 @@ class FavoritesStorage(context: Context) : AbstractRadioStationsStorage(context)
         if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
             radioStation.sortId = mSet.size
         }
-        add(radioStation, FILE_NAME)
+        super.add(radioStation, createKeyForRadioStation(radioStation))
     }
 
     /**
@@ -57,23 +58,10 @@ class FavoritesStorage(context: Context) : AbstractRadioStationsStorage(context)
      * @param radioStation [RadioStation] to remove from Favorites.
      */
     @Synchronized
-    fun remove(radioStation: RadioStation) {
+    override fun remove(radioStation: RadioStation) {
         val key = createKeyForRadioStation(radioStation)
         mSet.remove(key)
-        remove(radioStation, FILE_NAME)
-    }
-
-    /**
-     * Return collection of the Favorite Radio Stations which are stored in the persistent storage.
-     *
-     * @return Collection of the Favorites Radio stations.
-     */
-    fun getAll(): ArrayList<RadioStation> {
-        return getAll(FILE_NAME)
-    }
-
-    fun addAll(list: List<RadioStation>) {
-        return addAll(FILE_NAME, list)
+        super.remove(radioStation)
     }
 
     /**
@@ -82,7 +70,7 @@ class FavoritesStorage(context: Context) : AbstractRadioStationsStorage(context)
      * @return Favorite Radio Stations in a String representation.
      */
     fun getAllFavoritesAsString(): String {
-        return getAllAsString(FILE_NAME)
+        return getAllAsString()
     }
 
     /**

@@ -22,6 +22,7 @@ import com.yuriy.openradio.shared.model.translation.RadioStationJsonSerializer
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.isInvalid
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
@@ -29,72 +30,42 @@ import com.yuriy.openradio.shared.vo.isInvalid
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-abstract class AbstractRadioStationsStorage(context: Context) : AbstractStorage(context) {
+abstract class AbstractRadioStationsStorage(contextRef: WeakReference<Context>, name: String) :
+    AbstractStorage(contextRef, name) {
 
     /**
      * Add provided [RadioStation] to the storage.
      *
      * @param radioStation [RadioStation] to add to the storage.
-     * @param name Name of the file for the preferences.
      */
     @Synchronized
-    protected fun add(radioStation: RadioStation, name: String) {
-        addInternal(createKeyForRadioStation(radioStation), radioStation, name)
-    }
-
-    /**
-     * Add provided [RadioStation] to the storage.
-     *
-     * @param key Key for the Radio Station.
-     * @param radioStation [RadioStation] to add to the storage.
-     * @param name Name of the file for the preferences.
-     */
-    @Synchronized
-    protected fun add(key: String, radioStation: RadioStation, name: String) {
-        val all = getAll(name)
-        var maxSortId = MediaSessionCompat.QueueItem.UNKNOWN_ID
-        for (radioStationLocal in all) {
-            if (radioStationLocal.sortId > maxSortId) {
-                maxSortId = radioStationLocal.sortId
-            }
-        }
-        if (radioStation.sortId == MediaSessionCompat.QueueItem.UNKNOWN_ID) {
-            radioStation.sortId = maxSortId + 1
-        }
-        addInternal(key, radioStation, name)
+    open fun add(radioStation: RadioStation, key: String = createKeyForRadioStation(radioStation)) {
+        val serializer = RadioStationJsonSerializer()
+        putStringValue(key, serializer.serialize(radioStation))
     }
 
     /**
      * Remove provided [RadioStation] from the storage by the provided Media Id.
      *
      * @param radioStation [RadioStation] to remove from the storage.
-     * @param name Name of the file for the preferences.
      */
     @Synchronized
-    protected fun remove(radioStation: RadioStation, name: String) {
-        val editor = getEditor(name)
-        editor.remove(createKeyForRadioStation(radioStation))
-        editor.apply()
-        AppLogger.i("Radio Station $radioStation removed")
+    open fun remove(radioStation: RadioStation) {
+        removeKey(createKeyForRadioStation(radioStation))
     }
 
     @Synchronized
-    fun clear(name: String) {
-        val editor = getEditor(name)
-        editor.clear()
-        editor.apply()
-        AppLogger.i("Radio Stations cleared")
+    fun clear() {
+        clearStorage()
     }
 
     /**
      * Retrieves all data stored and returns as a String where Radio Station represented as String mapped to its key.
      *
-     * @param name Name of the file for the preferences.
      * @return Stored data as String.
      */
-    fun getAllAsString(name: String): String {
-        val sharedPreferences = getSharedPreferences(name)
-        val map = sharedPreferences.all
+    fun getAllAsString(): String {
+        val map = getAllValues()
         val builder = StringBuilder()
         for (key in map.keys) {
             val value = map[key].toString()
@@ -107,7 +78,7 @@ abstract class AbstractRadioStationsStorage(context: Context) : AbstractStorage(
             builder.delete(builder.length - KEY_VALUE_PAIR_DELIMITER.length, builder.length)
         }
         val result = builder.toString()
-        AppLogger.d("$name, getAllAsString:$result")
+        AppLogger.d("getAllAsString:$result")
         return result
     }
 
@@ -146,14 +117,12 @@ abstract class AbstractRadioStationsStorage(context: Context) : AbstractStorage(
     /**
      * Return collection of the Radio Stations which are stored in the persistent storage.
      *
-     * @param name Name of the file for the preferences.
      * @return Collection of the Radio Stations.
      */
-    fun getAll(name: String): ArrayList<RadioStation> {
+    fun getAll(): ArrayList<RadioStation> {
         // TODO: Return cache when possible
         val radioStations = ArrayList<RadioStation>()
-        val sharedPreferences = getSharedPreferences(name)
-        val map = sharedPreferences.all
+        val map = getAllValues()
         val deserializer = RadioStationJsonDeserializer()
         var counter = 0
         var isListSorted: Boolean? = null
@@ -187,55 +156,17 @@ abstract class AbstractRadioStationsStorage(context: Context) : AbstractStorage(
             }
             if (!isListSorted) {
                 radioStation.sortId = counter++
-                addInternal(createKeyForRadioStation(radioStation), radioStation, name)
+                add(radioStation)
             }
         }
         return radioStations
     }
 
-    fun addAll(name: String, list: List<RadioStation>) {
+    fun addAll(list: List<RadioStation>) {
         val serializer = RadioStationJsonSerializer()
-        val editor = getEditor(name)
         for (radioStation in list) {
-            editor.putString(createKeyForRadioStation(radioStation), serializer.serialize(radioStation))
+            putStringValue(createKeyForRadioStation(radioStation), serializer.serialize(radioStation))
         }
-        editor.apply()
-        AppLogger.i("${list.size} Radio Stations added")
-    }
-
-    /**
-     * Determines whether collection is empty or not.
-     *
-     * @param name Name of the file for the preferences.
-     * @return `true` in case of the are items in collection, `false` - otherwise.
-     */
-    protected fun isEmpty(name: String, excludeKeys: Set<String> = setOf()): Boolean {
-        val sharedPreferences = getSharedPreferences(name)
-        val map = sharedPreferences.all
-        var counter = 0
-        for (keys in map.keys) {
-            if (excludeKeys.contains(keys)) {
-                continue
-            }
-            counter++
-        }
-        return counter == 0
-    }
-
-    /**
-     * Add provided [RadioStation] to the storage.
-     *
-     * @param key          Key for the Radio Station.
-     * @param radioStation [RadioStation] to add to the storage.
-     * @param name         Name of the file for the preferences.
-     */
-    @Synchronized
-    private fun addInternal(key: String, radioStation: RadioStation, name: String) {
-        val serializer = RadioStationJsonSerializer()
-        val editor = getEditor(name)
-        editor.putString(key, serializer.serialize(radioStation))
-        editor.apply()
-        AppLogger.i("Radio Station added $radioStation")
     }
 
     /**

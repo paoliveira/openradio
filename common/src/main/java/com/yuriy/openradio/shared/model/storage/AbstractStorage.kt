@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017, 2022 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,33 +17,102 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.yuriy.openradio.shared.utils.AppLogger
+import java.lang.ref.WeakReference
 
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * @param mContextRef Weak reference to the application context.
+ * @param mName Name of the file for the preferences.
  */
-abstract class AbstractStorage(private val mContext: Context) {
+abstract class AbstractStorage(private val mContextRef: WeakReference<Context>, private val mName: String) {
+
+    fun getIntValue(key: String, defaultValue: Int): Int {
+        return getSharedPreferences()?.getInt(key, defaultValue) ?: defaultValue
+    }
+
+    fun getLongValue(key: String, defaultValue: Long): Long {
+        return getSharedPreferences()?.getLong(key, defaultValue) ?: defaultValue
+    }
+
+    fun getStringValue(key: String, defaultValue: String): String {
+        return getSharedPreferences()?.getString(key, defaultValue) ?: defaultValue
+    }
+
+    fun getBooleanValue(key: String, defaultValue: Boolean): Boolean {
+        return getSharedPreferences()?.getBoolean(key, defaultValue) ?: defaultValue
+    }
+
+    fun getAllValues(): MutableMap<String, *> {
+        return getSharedPreferences()?.all ?: HashMap<String, String>()
+    }
+
+    fun putStringValue(key: String, value: String) {
+        val editor = getEditor()
+        editor?.putString(key, value)
+        editor?.apply()
+        AppLogger.i("Added '$key'-'$value'")
+    }
+
+    fun putIntValue(key: String, value: Int) {
+        val editor = getEditor()
+        editor?.putInt(key, value)
+        editor?.apply()
+        AppLogger.i("Added '$key'-'$value'")
+    }
+
+    fun putBooleanValue(key: String, value: Boolean) {
+        val editor = getEditor()
+        editor?.putBoolean(key, value)
+        editor?.apply()
+        AppLogger.i("Added '$key'-'$value'")
+    }
+
+    fun putLongValue(key: String, value: Long) {
+        val editor = getEditor()
+        editor?.putLong(key, value)
+        editor?.apply()
+        AppLogger.i("Added '$key'-'$value'")
+    }
+
+    fun removeKey(key: String) {
+        val editor = getEditor()
+        editor?.remove(key)
+        editor?.apply()
+        AppLogger.i("Removed '$key'")
+    }
+
+    fun clearStorage() {
+        val editor = getEditor()
+        editor?.clear()
+        editor?.apply()
+        AppLogger.i("Storage cleared")
+    }
 
     /**
-     * Return an instance of the Shared Preferences.
+     * Return an instance of the Shared Preferences or null.
      *
-     * @param name Name of the file for the preferences.
-     * @return An instance of the Shared Preferences.
+     * @return An instance of the Shared Preferences or null if context was GCed.
      */
-    fun getSharedPreferences(name: String): SharedPreferences {
-        return mContext.getSharedPreferences(name, Context.MODE_PRIVATE)
+    private fun getSharedPreferences(): SharedPreferences? {
+        val context = mContextRef.get()
+        if (context == null) {
+            AppLogger.e("Abs storage has null ctx!")
+        }
+        return context?.getSharedPreferences(mName, Context.MODE_PRIVATE)
     }
 
     /**
      * Return [SharedPreferences.Editor] associated with the
-     * Shared Preferences.
+     * Shared Preferences or null.
      *
-     * @param name Name of the file for the preferences.
-     * @return [SharedPreferences.Editor].
+     * @return [SharedPreferences.Editor] or null if context was GCed.
      */
-    fun getEditor(name: String): SharedPreferences.Editor {
-        return getSharedPreferences(name).edit()
+    private fun getEditor(): SharedPreferences.Editor? {
+        return getSharedPreferences()?.edit()
     }
 }

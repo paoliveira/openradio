@@ -15,7 +15,7 @@ class StorageManagerLayerImpl(
     }
 
     override fun mergeDeviceLocals(value: String) {
-        val list = mDeviceLocalsStorage.getAllLocals()
+        val list = mDeviceLocalsStorage.getAll()
         val rxList = mDeviceLocalsStorage.getAllFromString(value)
         RadioStationsStorage.merge(list, rxList)
         for (station in list) {
@@ -28,6 +28,6 @@ class StorageManagerLayerImpl(
     }
 
     override fun getAllDeviceLocalsAsString(): String {
-        return mDeviceLocalsStorage.getAllLocalAsString()
+        return mDeviceLocalsStorage.getAllAsString()
     }
 }

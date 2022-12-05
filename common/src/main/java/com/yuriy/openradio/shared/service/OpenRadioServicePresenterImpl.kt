@@ -130,7 +130,7 @@ class OpenRadioServicePresenterImpl(
     }
 
     override fun getAllDeviceLocal(): List<RadioStation> {
-        return mDeviceLocalsStorage.getAllLocals()
+        return mDeviceLocalsStorage.getAll()
     }
 
     override fun getLastRadioStation(): RadioStation {
@@ -138,7 +138,7 @@ class OpenRadioServicePresenterImpl(
     }
 
     override fun setLastRadioStation(radioStation: RadioStation) {
-        mLatestRadioStationStorage.add(radioStation)
+        mLatestRadioStationStorage.addLatest(radioStation)
     }
 
     override fun getCountryCode(): String {
@@ -188,6 +188,7 @@ class OpenRadioServicePresenterImpl(
         mApiCachePersistent.clear()
         mApiCacheInMemory.clear()
         mImagesPersistenceLayer.deleteAll()
+        mLatestRadioStationStorage.clear()
     }
 
     override fun close() {

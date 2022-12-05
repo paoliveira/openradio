@@ -17,30 +17,25 @@
 package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
+import java.lang.ref.WeakReference
 import java.util.*
 
-class SleepTimerStorage(context: Context) : AbstractStorage(context) {
+class SleepTimerStorage(contextRef: WeakReference<Context>) : AbstractStorage(contextRef, FILE_NAME) {
 
     fun saveEnabled(isEnabled: Boolean) {
-        val editor = getEditor(FILE_NAME)
-        editor.putBoolean(ENABLED, isEnabled)
-        editor.apply()
+        putBooleanValue(ENABLED, isEnabled)
     }
 
     fun loadEnabled(): Boolean {
-        val preferences = getSharedPreferences(FILE_NAME)
-        return preferences.getBoolean(ENABLED, false)
+        return getBooleanValue(ENABLED, false)
     }
 
     fun saveDate(time: Long) {
-        val editor = getEditor(FILE_NAME)
-        editor.putLong(TIME, time)
-        editor.apply()
+        putLongValue(TIME, time)
     }
 
     fun loadDate(): Date {
-        val preferences = getSharedPreferences(FILE_NAME)
-        return Date(preferences.getLong(TIME, System.currentTimeMillis()))
+        return Date(getLongValue(TIME, System.currentTimeMillis()))
     }
 
     companion object {

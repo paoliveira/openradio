@@ -43,7 +43,7 @@ object SortUtils {
                 favoritesStorage.addAll(all)
             }
             MediaId.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST -> {
-                val all = deviceLocalsStorage.getAllLocals()
+                val all = deviceLocalsStorage.getAll()
                 resortIds(comparator, all, sortId, mediaId)
                 deviceLocalsStorage.addAll(all)
             }
