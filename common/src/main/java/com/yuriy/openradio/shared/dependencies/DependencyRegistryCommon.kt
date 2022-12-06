@@ -43,7 +43,6 @@ import com.yuriy.openradio.shared.model.storage.images.ImagesProvider
 import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.model.timer.SleepTimerModelImpl
 import com.yuriy.openradio.shared.service.OpenRadioService
-import com.yuriy.openradio.shared.service.OpenRadioServicePresenter
 import com.yuriy.openradio.shared.service.OpenRadioServicePresenterImpl
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.RadioStationsComparator
@@ -61,7 +60,7 @@ object DependencyRegistryCommon {
     private lateinit var sNetworkLayer: NetworkLayer
     private lateinit var sRadioStationManagerLayer: RadioStationManagerLayer
     private lateinit var sImagesPersistenceLayer: ImagesPersistenceLayer
-    private lateinit var sOpenRadioServicePresenter: OpenRadioServicePresenter
+    private lateinit var sOpenRadioServicePresenter: OpenRadioServicePresenterImpl
     private lateinit var sSleepTimerModel: SleepTimerModel
     /**
      * Flag that indicates whether application runs over normal Android or Android TV.
@@ -180,9 +179,14 @@ object DependencyRegistryCommon {
         dependency.configureWith(sSleepTimerModel)
     }
 
+    fun inject(dependency: RemoteControlListenerDependency) {
+        dependency.configureWith(sOpenRadioServicePresenter.getRemoteControlListenerProxy())
+    }
+
     /**
-     * // TODO: Find a better way to cooperate dependencies.
+     * TODO: Find a better way to cooperate below dependencies:
      */
+
     fun getNetworkLayer(): NetworkLayer {
         return sNetworkLayer
     }

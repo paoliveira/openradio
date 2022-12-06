@@ -90,7 +90,7 @@ class DeviceLocalsStorage(
                 add(radioStation)
                 val current = mLatestRadioStationStorage.get()
                 if (current.id.endsWith(mediaId)) {
-                    mLatestRadioStationStorage.addLatest(radioStation)
+                    mLatestRadioStationStorage.add(radioStation)
                 }
                 d("Radio station updated to:$radioStation")
                 result = true

@@ -16,15 +16,15 @@
 
 package com.yuriy.openradio.shared.dependencies
 
-import com.yuriy.openradio.shared.model.timer.SleepTimerModel
+import com.yuriy.openradio.shared.model.media.RemoteControlListener
 
 /**
- * [SleepTimerModelDependency] is an interface that helps to inject [SleepTimerModel] into a client.
+ * [RemoteControlListenerDependency] is an interface that helps to inject [RemoteControlListener] into a client.
  */
-interface SleepTimerModelDependency {
+interface RemoteControlListenerDependency {
 
     /**
-     * Callback to provide [SleepTimerModel] to a client.
+     * Callback to provide [RemoteControlListener] to a client.
      */
-    fun configureWith(sleepTimerModel: SleepTimerModel)
+    fun configureWith(listener: RemoteControlListener)
 }

@@ -28,6 +28,7 @@ import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.media.MediaBrowserServiceCompat
 import androidx.media.utils.MediaConstants
@@ -44,11 +45,11 @@ import com.yuriy.openradio.shared.broadcast.RemoteControlReceiver
 import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
 import com.yuriy.openradio.shared.exo.OpenRadioPlayer
 import com.yuriy.openradio.shared.model.media.MediaId
+import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.model.media.item.*
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
-import com.yuriy.openradio.shared.model.storage.ServiceLifecycleManager
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.view.SafeToast
@@ -159,12 +160,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private lateinit var mPresenter: OpenRadioServicePresenter
     private val mSleepTimerListener = SleepTimerListenerImpl()
+    private val mRemoteControlListener = RemoteControlListenerImpl()
 
     /**
      * Default constructor.
      */
     init {
-        TAG = "ORS[" + hashCode() + "] init"
+        TAG = "ORS[" + hashCode() + "]"
         DependencyRegistryCommon.inject(this)
         mStartIds = ConcurrentLinkedQueue()
         mStorageListener = StorageListener()
@@ -234,7 +236,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
         AppLogger.i("$TAG on create")
-        ServiceLifecycleManager.setActive()
         registerReceivers()
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't
@@ -253,7 +254,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 )
             }
         // Need this component for API 20 and earlier.
-        // I wish to get rid of this because it keeps listen to broadcast even after application is destroyed :-(
         val mediaButtonReceiver = ComponentName(applicationContext, RemoteControlReceiver::class.java)
         // Start a new MediaSession
         mSession = MediaSessionCompat(applicationContext, "OpenRadioService", mediaButtonReceiver, null)
@@ -309,7 +309,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onDestroy() {
         super.onDestroy()
         AppLogger.i("$TAG on destroy")
-        ServiceLifecycleManager.setInactive()
         mIsPackageValid = false
         mUiScope.cancel("Cancel on destroy")
         mScope.cancel("Cancel on destroy")
@@ -395,6 +394,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mNoisyAudioStreamReceiver.register(applicationContext)
         mPresenter.startNetworkMonitor(applicationContext, mNetMonitorListener)
         mPresenter.getSleepTimerModel().addSleepTimerListener(mSleepTimerListener)
+        mPresenter.setRemoteControlListener(mRemoteControlListener)
     }
 
     private fun unregisterReceivers() {
@@ -402,6 +402,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mNoisyAudioStreamReceiver.unregister(applicationContext)
         mPresenter.stopNetworkMonitor(applicationContext)
         mPresenter.getSleepTimerModel().removeSleepTimerListener(mSleepTimerListener)
+        mPresenter.removeRemoteControlListener(mRemoteControlListener)
     }
 
     private fun handleOnLoadChildren(
@@ -820,27 +821,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 notifyChildrenChanged(categoryMediaId)
             }
             OpenRadioStore.VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
-                when (mPlayerState) {
-                    Player.STATE_BUFFERING,
-                    Player.STATE_READY -> {
-                        handlePauseRequest()
-                    }
-                    Player.STATE_IDLE,
-                    Player.STATE_ENDED -> {
-                        handlePlayRequest()
-                    }
-                    else -> {
-                        AppLogger.w(
-                            "$TAG unhandled playback state:${PlayerUtils.playerStateToString(mPlayerState)}"
-                        )
-                    }
-                }
-            }
-            OpenRadioStore.VALUE_NAME_STOP_LAST_PLAYED_ITEM -> {
-                handlePauseRequest()
-            }
-            OpenRadioStore.VALUE_NAME_PLAY_LAST_PLAYED_ITEM -> {
-                handlePlayRequest()
+                togglePlayableItem()
             }
             OpenRadioStore.VALUE_NAME_STOP_SERVICE -> {
                 mUiScope.launch {
@@ -851,38 +832,23 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
-//    private fun startForeground() {
-//        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-//        manager.createNotificationChannel(createNotificationChannel())
-//        startForeground(
-//            NOTIFICATION_ID,
-//            createNotification()
-//        )
-//        AppLogger.i("$TAG starting as foreground service")
-//    }
-//
-//    private fun createNotificationChannel(): NotificationChannel {
-//        val channel = NotificationChannel(
-//            NOTIFICATION_CHANNEL_ID,
-//            CHANNEL_NAME,
-//            NotificationManager.IMPORTANCE_NONE
-//        )
-//        channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE
-//        return channel
-//    }
-//
-//    private fun createNotification(): Notification {
-//        val builder = Notification.Builder(
-//            applicationContext,
-//            NOTIFICATION_CHANNEL_ID
-//        )
-//        return builder.setOngoing(true)
-//            .setContentTitle(NOTIFICATION_CONTENT_TITLE)
-//            .setContentText(NOTIFICATION_CONTENT_TEXT)
-//            .setSmallIcon()
-//            .setCategory(Notification.CATEGORY_SERVICE)
-//            .build()
-//    }
+    private fun togglePlayableItem() {
+        when (mPlayerState) {
+            Player.STATE_BUFFERING,
+            Player.STATE_READY -> {
+                handlePauseRequest()
+            }
+            Player.STATE_IDLE,
+            Player.STATE_ENDED -> {
+                handlePlayRequest()
+            }
+            else -> {
+                AppLogger.w(
+                    "$TAG unhandled playback state:${PlayerUtils.playerStateToString(mPlayerState)}"
+                )
+            }
+        }
+    }
 
     private fun stopSelfResultInt() {
         AppLogger.i("$TAG stop self with size of ${mStartIds.size}")
@@ -957,7 +923,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
 
         override fun onStartForeground(notificationId: Int, notification: Notification) {
-            ServiceUtils.startForegroundServiceSafe(
+            AppLogger.i("$TAG start as foreground")
+            ContextCompat.startForegroundService(
                 applicationContext,
                 Intent(applicationContext, this@OpenRadioService.javaClass)
             )
@@ -965,6 +932,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
 
         override fun onStopForeground(removeNotification: Boolean) {
+            AppLogger.i("$TAG stop as foreground")
             stopForeground(removeNotification)
             stopSelf()
         }
@@ -1135,6 +1103,21 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
+    private inner class RemoteControlListenerImpl: RemoteControlListener {
+
+        override fun onMediaPlay() {
+            handlePlayRequest()
+        }
+
+        override fun onMediaPlayPause() {
+            togglePlayableItem()
+        }
+
+        override fun onMediaPauseStop() {
+            handlePauseRequest()
+        }
+    }
+
     companion object {
         private lateinit var TAG: String
 
@@ -1146,9 +1129,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         /**
          * Delay stop service by using a handler.
          */
-        private const val STOP_DELAY = 30000
+        private const val STOP_DELAY = 30_000
 
-        private const val API_CALL_TIMEOUT_MS = 3000L
+        private const val API_CALL_TIMEOUT_MS = 3_000L
 
         const val MASTER_VOLUME_DEFAULT = 100
     }

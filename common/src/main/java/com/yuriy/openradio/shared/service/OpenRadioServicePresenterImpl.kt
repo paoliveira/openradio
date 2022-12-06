@@ -4,6 +4,7 @@ import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.ModelLayer
 import com.yuriy.openradio.shared.model.media.EqualizerLayer
+import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.model.net.NetworkLayer
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.net.UrlBuilder
@@ -37,6 +38,12 @@ class OpenRadioServicePresenterImpl(
 ) : OpenRadioServicePresenter {
 
     private val mMediaItemsComparator = MediaItemsComparator()
+    private var mRemoteControlListener: RemoteControlListener ?= null
+    private val mRemoteControlListenerProxy = RemoteControlListenerProxy()
+
+    fun getRemoteControlListenerProxy(): RemoteControlListener {
+        return mRemoteControlListenerProxy
+    }
 
     override fun startNetworkMonitor(context: Context, listener: NetworkMonitorListener) {
         mNetworkLayer.startMonitor(context, listener)
@@ -138,7 +145,7 @@ class OpenRadioServicePresenterImpl(
     }
 
     override fun setLastRadioStation(radioStation: RadioStation) {
-        mLatestRadioStationStorage.addLatest(radioStation)
+        mLatestRadioStationStorage.add(radioStation)
     }
 
     override fun getCountryCode(): String {
@@ -197,5 +204,28 @@ class OpenRadioServicePresenterImpl(
 
     override fun getSleepTimerModel(): SleepTimerModel {
         return mSleepTimerModel
+    }
+
+    override fun setRemoteControlListener(value: RemoteControlListener) {
+        mRemoteControlListener = value
+    }
+
+    override fun removeRemoteControlListener(value: RemoteControlListener) {
+        mRemoteControlListener = null
+    }
+
+    private inner class RemoteControlListenerProxy: RemoteControlListener {
+
+        override fun onMediaPlay() {
+            mRemoteControlListener?.onMediaPlay()
+        }
+
+        override fun onMediaPlayPause() {
+            mRemoteControlListener?.onMediaPlayPause()
+        }
+
+        override fun onMediaPauseStop() {
+            mRemoteControlListener?.onMediaPauseStop()
+        }
     }
 }

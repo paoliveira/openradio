@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.model.timer
 
 import android.content.Context
-import com.yuriy.openradio.shared.model.storage.ServiceLifecycleManager
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
 import java.lang.ref.WeakReference
 import java.util.*
@@ -154,9 +153,6 @@ class SleepTimerModelImpl(contextRef: WeakReference<Context>) : SleepTimerModel 
 
         override fun onComplete() {
             mSleepTimerStorage.saveEnabled(false)
-            if (ServiceLifecycleManager.isInactive()) {
-                return
-            }
             synchronized(mTimerListenerExt) {
                 for (listener in mTimerListenerExt) {
                     listener.onComplete()

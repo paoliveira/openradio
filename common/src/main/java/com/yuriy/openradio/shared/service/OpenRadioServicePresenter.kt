@@ -3,6 +3,7 @@ package com.yuriy.openradio.shared.service
 import android.content.Context
 import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.EqualizerLayer
+import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilder
@@ -72,4 +73,8 @@ interface OpenRadioServicePresenter {
      * Close resources related to service provider, such as connections, streams, etc ...
      */
     fun close()
+
+    fun setRemoteControlListener(value: RemoteControlListener)
+
+    fun removeRemoteControlListener(value: RemoteControlListener)
 }

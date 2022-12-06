@@ -40,9 +40,9 @@ class LatestRadioStationStorage(contextRef: WeakReference<Context>) :
      * @param radioStation [RadioStation] to add as Latest Radio Station.
      */
     @Synchronized
-    fun addLatest(radioStation: RadioStation) {
+    fun add(radioStation: RadioStation) {
         mRadioStation = RadioStation.makeCopyInstance(radioStation)
-        add(radioStation, KEY)
+        super.add(radioStation, KEY)
     }
 
     /**

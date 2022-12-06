@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package com.yuriy.openradio.shared.utils
+package com.yuriy.openradio.shared.model.media
 
-import android.content.Context
-import android.content.Intent
-import androidx.core.content.ContextCompat
+interface RemoteControlListener {
 
-object ServiceUtils {
+    fun onMediaPlay()
 
-    fun startForegroundServiceSafe(context: Context, intent: Intent) {
-        try {
-            ContextCompat.startForegroundService(context, intent)
-        } catch (exception: Throwable) {
-            AppLogger.e("Start foreground service failed", exception)
-        }
-    }
+    fun onMediaPlayPause()
+
+    fun onMediaPauseStop()
 }

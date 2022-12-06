@@ -65,15 +65,6 @@ class FavoritesStorage(contextRef: WeakReference<Context>) : AbstractRadioStatio
     }
 
     /**
-     * Return Favorite Radio Stations which are stored in the persistent storage represented in a single String.
-     *
-     * @return Favorite Radio Stations in a String representation.
-     */
-    fun getAllFavoritesAsString(): String {
-        return getAllAsString()
-    }
-
-    /**
      * Check whether provided [RadioStation] is in Favorites preferences.
      *
      * @param radioStation [RadioStation] to check in the Favorites.

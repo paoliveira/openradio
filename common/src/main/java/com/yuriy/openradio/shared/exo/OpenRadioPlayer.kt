@@ -124,7 +124,7 @@ class OpenRadioPlayer(
 
     private lateinit var mMediaSessionConnector: MediaSessionConnector
 
-    private var isForegroundService = false
+    private var mIsForegroundService = false
 
     private var mStreamMetadata = AppUtils.EMPTY_STRING
 
@@ -474,7 +474,7 @@ class OpenRadioPlayer(
                             // "close" button in the notification which stops playback and clears
                             // the notification.
                             mListener.onStopForeground(false)
-                            isForegroundService = false
+                            mIsForegroundService = false
                         }
                     }
                     if (this@OpenRadioPlayer::mNotificationManager.isInitialized) {
@@ -592,18 +592,18 @@ class OpenRadioPlayer(
             notification: Notification,
             ongoing: Boolean
         ) {
-            if (ongoing && !isForegroundService) {
+            if (ongoing && !mIsForegroundService) {
                 try {
                     mListener.onStartForeground(notificationId, notification)
-                    isForegroundService = true
-                } catch (e: Throwable) {
-                    AppLogger.e("$LOG_TAG can't start foreground", e)
+                    mIsForegroundService = true
+                } catch (throwable: Throwable) {
+                    AppLogger.e("$LOG_TAG can't start foreground", throwable)
                 }
             }
         }
 
         override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
-            isForegroundService = false
+            mIsForegroundService = false
             mListener.onStopForeground(true)
         }
     }

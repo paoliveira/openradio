@@ -20,6 +20,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.content.ContextCompat
+import com.yuriy.openradio.shared.utils.AppLogger
 
 /**
  * Created by Chernyshov Yurii
@@ -42,7 +44,9 @@ abstract class AbstractReceiver : BroadcastReceiver() {
 
     fun register(context: Context) {
         if (!mIsRegistered) {
-            context.registerReceiver(this, makeIntentFilter())
+            val filter = makeIntentFilter()
+            val intent = ContextCompat.registerReceiver(context,this, filter, ContextCompat.RECEIVER_EXPORTED)
+            AppLogger.i("Register receiver $intent for $this by $filter")
         }
         mIsRegistered = true
     }
@@ -50,6 +54,7 @@ abstract class AbstractReceiver : BroadcastReceiver() {
     open fun unregister(context: Context) {
         if (mIsRegistered) {
             context.unregisterReceiver(this)
+            AppLogger.i("Unregister receiver $this")
         }
         mIsRegistered = false
     }

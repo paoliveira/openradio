@@ -36,8 +36,6 @@ object OpenRadioStore {
     const val VALUE_NAME_UPDATE_SORT_IDS = "VALUE_NAME_UPDATE_SORT_IDS"
     const val VALUE_NAME_STOP_SERVICE = "VALUE_NAME_STOP_SERVICE"
     const val VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM = "VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM"
-    const val VALUE_NAME_PLAY_LAST_PLAYED_ITEM = "VALUE_NAME_PLAY_LAST_PLAYED_ITEM"
-    const val VALUE_NAME_STOP_LAST_PLAYED_ITEM = "VALUE_NAME_STOP_LAST_PLAYED_ITEM"
     const val VALUE_NAME_NETWORK_SETTINGS_CHANGED = "VALUE_NAME_NETWORK_SETTINGS_CHANGED"
     const val VALUE_NAME_CLEAR_CACHE = "VALUE_NAME_CLEAR_CACHE"
     const val VALUE_NAME_MASTER_VOLUME_CHANGED = "VALUE_NAME_MASTER_VOLUME_CHANGED"
@@ -153,18 +151,6 @@ object OpenRadioStore {
     fun makeToggleLastPlayedItemIntent(context: Context): Intent {
         val intent = makeStartServiceIntent(context)
         intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM)
-        return intent
-    }
-
-    fun makeStopLastPlayedItemIntent(context: Context): Intent {
-        val intent = makeStartServiceIntent(context)
-        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_STOP_LAST_PLAYED_ITEM)
-        return intent
-    }
-
-    fun makePlayLastPlayedItemIntent(context: Context): Intent {
-        val intent = makeStartServiceIntent(context)
-        intent.putExtra(KEY_NAME_COMMAND_NAME, VALUE_NAME_PLAY_LAST_PLAYED_ITEM)
         return intent
     }
     

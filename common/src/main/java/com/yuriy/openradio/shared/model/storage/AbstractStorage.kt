@@ -26,6 +26,8 @@ import java.lang.ref.WeakReference
  * On 10/25/15
  * E-Mail: chernyshov.yuriy@gmail.com
  *
+ * This is an abstract class to prevent its instantiation.
+ *
  * @param mContextRef Weak reference to the application context.
  * @param mName Name of the file for the preferences.
  */

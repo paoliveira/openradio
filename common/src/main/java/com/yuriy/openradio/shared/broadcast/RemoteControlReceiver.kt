@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2022 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,52 +13,66 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.yuriy.openradio.shared.broadcast
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
-import com.yuriy.openradio.shared.model.storage.ServiceLifecycleManager
-import com.yuriy.openradio.shared.service.OpenRadioStore
+import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
+import com.yuriy.openradio.shared.dependencies.RemoteControlListenerDependency
+import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.ServiceUtils
 
 /**
- * Created by Yuriy Chernyshov
+ * Created by Chernyshov Yurii
  * At Android Studio
- * On 3/5/16
+ * On 05/12/22
  * E-Mail: chernyshov.yuriy@gmail.com
+ *
+ * This is a receiver for Remote Control events.
+ *
+ * adb shell am broadcast -a android.intent.action.MEDIA_BUTTON -n com.yuriy.openradio/.shared.broadcast.RemoteControlReceiver --ei android.intent.extra.KEY_EVENT_TEST 126
  */
-class RemoteControlReceiver : BroadcastReceiver() {
+class RemoteControlReceiver : BroadcastReceiver(), RemoteControlListenerDependency {
+
+    private lateinit var mRemoteControlListener: RemoteControlListener
 
     override fun onReceive(context: Context, intent: Intent) {
         AppLogger.d("$CLASS_NAME [" + this.hashCode() + "]->onReceive(" + intent + ")")
-        if (ServiceLifecycleManager.isInactive()) {
-            return
-        }
         if (Intent.ACTION_MEDIA_BUTTON != intent.action) {
             return
         }
+        DependencyRegistryCommon.inject(this)
         val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
-        val keyCode = event?.keyCode ?: Int.MIN_VALUE
+        var keyCode = event?.keyCode ?: Int.MIN_VALUE
+        val intExtra = intent.getIntExtra(EXTRA_KEY_EVENT_TEST, Int.MIN_VALUE)
+        if (keyCode == Int.MIN_VALUE && intExtra != Int.MIN_VALUE) {
+            keyCode = intExtra
+        }
         AnalyticsUtils.logMessage("$CLASS_NAME [" + this.hashCode() + "]->onReceive(" + keyCode + ")")
         when (keyCode) {
             KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                ServiceUtils.startForegroundServiceSafe(context, OpenRadioStore.makePlayLastPlayedItemIntent(context))
+                mRemoteControlListener.onMediaPlay()
             }
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                ServiceUtils.startForegroundServiceSafe(context, OpenRadioStore.makeToggleLastPlayedItemIntent(context))
+                mRemoteControlListener.onMediaPlayPause()
             }
             KeyEvent.KEYCODE_MEDIA_PAUSE, KeyEvent.KEYCODE_MEDIA_STOP -> {
-                ServiceUtils.startForegroundServiceSafe(context, OpenRadioStore.makeStopLastPlayedItemIntent(context))
+                mRemoteControlListener.onMediaPauseStop()
             }
             else -> AppLogger.w("$CLASS_NAME Unhandled key code:$keyCode")
         }
     }
 
+    override fun configureWith(listener: RemoteControlListener) {
+        mRemoteControlListener = listener
+    }
+
     companion object {
         private val CLASS_NAME = RemoteControlReceiver::class.java.simpleName
+        private const val EXTRA_KEY_EVENT_TEST = "android.intent.extra.KEY_EVENT_TEST"
     }
 }
