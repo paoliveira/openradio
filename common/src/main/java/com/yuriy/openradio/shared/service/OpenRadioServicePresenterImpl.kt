@@ -157,7 +157,7 @@ class OpenRadioServicePresenterImpl(
     }
 
     override fun updateRadioStationFavorite(radioStation: RadioStation) {
-        updateRadioStationFavorite(radioStation, isRadioStationFavorite(radioStation))
+        updateRadioStationFavorite(radioStation, isRadioStationFavorite(radioStation).not())
     }
 
     override fun updateRadioStationFavorite(radioStation: RadioStation, isFavorite: Boolean) {
