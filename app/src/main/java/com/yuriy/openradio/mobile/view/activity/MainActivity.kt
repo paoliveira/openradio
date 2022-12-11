@@ -52,6 +52,7 @@ import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.*
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
+import com.yuriy.openradio.shared.vo.getStreamBitrate
 import com.yuriy.openradio.shared.vo.isInvalid
 import java.lang.ref.WeakReference
 
@@ -405,7 +406,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         imgView.setImageResource(R.drawable.ic_radio_station)
         MediaItemsAdapter.updateImage(applicationContext, description, imgView)
         MediaItemsAdapter.updateBitrateView(
-            radioStation.mediaStream.getVariant(0).bitrate, findTextView(R.id.crs_bitrate_view), true
+            radioStation.getStreamBitrate(), findTextView(R.id.crs_bitrate_view), true
         )
         val favoriteCheckView = findCheckBox(R.id.crs_favorite_check_view)
         favoriteCheckView.buttonDrawable = AppCompatResources.getDrawable(applicationContext, R.drawable.src_favorite)

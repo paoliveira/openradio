@@ -47,6 +47,8 @@ import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.getStreamUrl
+import com.yuriy.openradio.shared.vo.getStreamUrlFixed
+import com.yuriy.openradio.shared.vo.toMediaItemPlayable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -269,6 +271,17 @@ class OpenRadioPlayer(
         AppLogger.d("$LOG_TAG add ${list.size} items")
         mMediaItems.addAll(rssToPlayerMediaItems(mContext, list))
         AppLogger.d("$LOG_TAG has ${mMediaItems.size} items")
+    }
+
+    @Synchronized
+    fun updateItem(item: RadioStation) {
+        AppLogger.d("$LOG_TAG update $item")
+        for ((idx, i) in mMediaItems.withIndex()) {
+            if (i.mediaId == item.id) {
+                mMediaItems[idx] = rsToPlayerMediaItem(mContext, item)
+                return
+            }
+        }
     }
 
     fun mediaItemCount(): Int {
@@ -658,7 +671,7 @@ class OpenRadioPlayer(
         }
 
         private fun rsToPlayerMediaItem(context: Context, value: RadioStation): MediaItem {
-            val uri = Uri.parse(value.getStreamUrl())
+            val uri = Uri.parse(value.getStreamUrlFixed())
             return MediaItem.Builder()
                 .setMediaId(value.id)
                 .setUri(uri)

@@ -21,8 +21,8 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.vo.Category
-import com.yuriy.openradio.shared.vo.MediaStream
 import com.yuriy.openradio.shared.vo.RadioStation
+import com.yuriy.openradio.shared.vo.setVariant
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -137,9 +137,7 @@ class ParserLayerJsonImpl : ParserLayer {
             if (jsonObject.has(KEY_BIT_RATE)) {
                 bitrate = jsonObject.getInt(KEY_BIT_RATE)
             }
-            val mediaStream = MediaStream.makeDefaultInstance()
-            mediaStream.setVariant(bitrate, jsonObject.getString(KEY_URL))
-            radioStation.mediaStream = mediaStream
+            radioStation.setVariant(bitrate, jsonObject.getString(KEY_URL))
         }
         return radioStation
     }

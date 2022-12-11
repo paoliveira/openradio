@@ -45,7 +45,7 @@ object NetUtils {
         return if (url.isEmpty()) {
             false
         } else url.lowercase(Locale.ROOT).startsWith("www")
-            || url.lowercase(Locale.ROOT).startsWith("http")
+                || url.lowercase(Locale.ROOT).startsWith("http")
     }
 
     private fun getHttpURLConnection(
@@ -136,7 +136,7 @@ object NetUtils {
         val connection = getHttpURLConnection(context, url, HTTP_METHOD_GET) ?: return false
         val responseCode = try {
             connection.responseCode
-        // Make it Throwable to prevent any new type of RuntimeExceptions, such as "java.net.URISyntaxException"
+            // Make it Throwable to prevent any new type of RuntimeExceptions, such as "java.net.URISyntaxException"
         } catch (throwable: Throwable) {
             closeHttpURLConnection(connection)
             return false
@@ -174,10 +174,11 @@ object NetUtils {
         return result.toString()
     }
 
-    fun extractUrlsFromPlaylist(context: Context, playlistUrl: String): Array<String?> {
-        val connection = getHttpURLConnection(context, playlistUrl, HTTP_METHOD_GET) ?: return arrayOfNulls(0)
+    fun extractUrlsFromPlaylist(context: Context, playlistUrl: String): Array<String> {
+        val connection =
+            getHttpURLConnection(context, playlistUrl, HTTP_METHOD_GET) ?: return Array(1) { AppUtils.EMPTY_STRING }
         var inputStream: InputStream? = null
-        var result: Array<String?>? = null
+        var result = Array(1) { AppUtils.EMPTY_STRING }
         try {
             val contentType = connection.contentType
             inputStream = connection.inputStream
@@ -185,14 +186,12 @@ object NetUtils {
             val playlist = Playlist()
             parser.parse(playlistUrl, contentType, inputStream, playlist)
             val length = playlist.playlistEntries.size
-            result = arrayOfNulls(length)
+            result = Array(length) { AppUtils.EMPTY_STRING }
             AppLogger.d("$CLASS_NAME Found $length streams associated with $playlistUrl")
             for (i in 0 until length) {
                 val entry = playlist.playlistEntries[i]
-                result[i] = entry[PlaylistEntry.URI]
+                result[i] = entry[PlaylistEntry.URI].toString()
                 AppLogger.d("$CLASS_NAME - ${result[i]}")
-                // TODO: Improve - get the first URL currently.
-                break
             }
         } catch (e: Exception) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"
@@ -207,6 +206,6 @@ object NetUtils {
                 }
             }
         }
-        return result ?: arrayOfNulls(0)
+        return result
     }
 }

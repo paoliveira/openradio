@@ -53,10 +53,7 @@ import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.view.SafeToast
-import com.yuriy.openradio.shared.vo.Country
-import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.getStreamUrl
-import com.yuriy.openradio.shared.vo.isInvalid
+import com.yuriy.openradio.shared.vo.*
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -98,7 +95,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Map of the Media Item commands that responsible for the Media Items List creation.
      */
     private val mMediaItemCommands = HashMap<String, MediaItemCommand>()
-    private var mLastPlayedUrl = AppUtils.EMPTY_STRING
 
     /**
      * Track selected Radio Station.
@@ -214,6 +210,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         override fun onAddAll(list: List<RadioStation>) {
             mUiScope.launch {
                 mPlayer.addItems(list)
+            }
+        }
+
+        override fun onUpdate(item: RadioStation) {
+            mUiScope.launch {
+                mPlayer.updateItem(item)
             }
         }
     }
@@ -477,7 +479,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * playlist.
      */
     private fun handleUnrecognizedInputFormatException() {
-        val playlistUrl = mLastPlayedUrl
+        val playlistUrl = mActiveRS.getStreamUrl()
         AnalyticsUtils.logMessage("UnrecognizedInputFormat:$playlistUrl")
         handleStopRequest()
         mScope.launch(Dispatchers.IO) {
@@ -495,7 +497,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
-    private fun handlePlayListUrlsExtracted(urls: Array<String?>) {
+    private fun handlePlayListUrlsExtracted(urls: Array<String>) {
         if (urls.isEmpty()) {
             handleStopRequest()
             return
@@ -504,6 +506,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             handleStopRequest()
             return
         }
+        mActiveRS.setVariantFixed(MediaStream.BITRATE_DEFAULT, urls[0])
+        getStorage(mActiveRS.id).getById(mActiveRS.id).setVariantFixed(MediaStream.BITRATE_DEFAULT, urls[0])
+        mStorageListener.onUpdate(mActiveRS)
         handlePlayRequest()
     }
 
@@ -583,8 +588,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             mSession.isActive = true
         }
 
-        // Cache URL.
-        mLastPlayedUrl = mActiveRS.getStreamUrl()
         mPauseReason = PauseReason.DEFAULT
 
         // Release everything.

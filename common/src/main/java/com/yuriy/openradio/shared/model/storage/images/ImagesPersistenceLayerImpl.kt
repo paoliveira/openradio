@@ -20,9 +20,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import androidx.exifinterface.media.ExifInterface
 import com.yuriy.openradio.shared.model.net.DownloaderLayer
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
@@ -132,7 +132,7 @@ class ImagesPersistenceLayerImpl(
         }
     }
 
-    inner class ImageDownloader(private val mId: String, private val mImageUrl: String, private val mUri: Uri) :
+    private inner class ImageDownloader(private val mId: String, private val mImageUrl: String, private val mUri: Uri) :
         Runnable {
 
         override fun run() {
@@ -175,10 +175,8 @@ class ImagesPersistenceLayerImpl(
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
             var bmp = try {
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return ByteArray(0)
-            } catch (e: OutOfMemoryError) {
-                AppLogger.e("$TAG can't decode ${bytes.size} bytes for $mImageUrl", e)
-                AnalyticsUtils.logBitmapDecode(mImageUrl, bytes.size)
-                return ByteArray(0)
+            } catch (exception: OutOfMemoryError) {
+                return handleOOM(bytes.size, exception)
             }
             var width = bmp.width
             var height = bmp.height
@@ -208,13 +206,24 @@ class ImagesPersistenceLayerImpl(
                 ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180F)
                 ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270F)
             }
-            bmp = Bitmap.createScaledBitmap(bmp, width, height, true)
-            bmp = Bitmap.createBitmap(bmp, 0, 0, width, height, matrix, true)
+            try {
+                bmp = Bitmap.createScaledBitmap(bmp, width, height, true)
+                bmp = Bitmap.createBitmap(bmp, 0, 0, width, height, matrix, true)
+            } catch (exception: OutOfMemoryError) {
+                return handleOOM(bytes.size, exception)
+            }
             val stream = ByteArrayOutputStream()
             bmp.compress(Bitmap.CompressFormat.PNG, 0, stream)
             bmp.recycle()
             stream.close()
             return stream.toByteArray()
+        }
+
+        private fun handleOOM(bytesSize: Int, exception: OutOfMemoryError): ByteArray {
+            System.gc()
+            AppLogger.e("$TAG can't decode $bytesSize bytes for $mImageUrl", exception)
+            AnalyticsUtils.logBitmapDecode(mImageUrl, bytesSize)
+            return ByteArray(0)
         }
     }
 

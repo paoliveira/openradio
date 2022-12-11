@@ -100,7 +100,7 @@ class AutoDetectParser(private val mTimeout: Int) {
         val plsPlaylistParser = PLSPlaylistParser(mTimeout)
         val xspfPlaylistParser = XSPFPlaylistParser(mTimeout)
         val asxPlaylistParser = ASXPlaylistParser(mTimeout)
-        var extension: String = getFileExtension(url)
+        var extension = getFileExtension(url)
         val parser: Parser
         if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)
                 && !extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {

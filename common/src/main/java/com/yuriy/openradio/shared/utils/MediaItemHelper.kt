@@ -24,7 +24,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.getStreamUrl
+import com.yuriy.openradio.shared.vo.getStreamUrlFixed
 
 /**
  * Created by Yuriy Chernyshov
@@ -175,7 +175,7 @@ object MediaItemHelper {
         val title = radioStation.name
         var artist = streamTitle
         val genre = radioStation.genre
-        val source = radioStation.getStreamUrl()
+        val source = radioStation.getStreamUrlFixed()
         val id = radioStation.id
         val album = radioStation.country
 

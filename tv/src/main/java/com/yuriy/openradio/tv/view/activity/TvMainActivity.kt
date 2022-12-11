@@ -39,6 +39,7 @@ import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
 import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
+import com.yuriy.openradio.shared.vo.getStreamBitrate
 import com.yuriy.openradio.shared.vo.isInvalid
 import com.yuriy.openradio.tv.R
 import com.yuriy.openradio.tv.dependencies.DependencyRegistryTv
@@ -275,7 +276,7 @@ class TvMainActivity : FragmentActivity(), MediaPresenterDependency {
         imgView.setImageResource(R.drawable.ic_radio_station)
         MediaItemsAdapter.updateImage(applicationContext, description, imgView)
         MediaItemsAdapter.updateBitrateView(
-            radioStation.mediaStream.getVariant(0).bitrate,
+            radioStation.getStreamBitrate(),
             findTextView(R.id.tv_crs_bitrate_view), true
         )
     }

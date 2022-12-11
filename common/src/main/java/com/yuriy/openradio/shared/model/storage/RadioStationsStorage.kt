@@ -28,6 +28,8 @@ class RadioStationsStorage {
         fun onAdd(item: RadioStation, position: Int)
 
         fun onAddAll(list: List<RadioStation>)
+
+        fun onUpdate(item: RadioStation)
     }
 
     /**

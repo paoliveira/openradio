@@ -25,10 +25,7 @@ import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.service.OpenRadioStore
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.RadioStationValidator
-import com.yuriy.openradio.shared.vo.MediaStream
-import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.RadioStationToAdd
-import com.yuriy.openradio.shared.vo.isInvalid
+import com.yuriy.openradio.shared.vo.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +55,7 @@ class RadioStationManagerLayerImpl(
                         mDeviceLocalsStorage.getId()
                     )
                     radioStation.name = rsToAdd.name
-                    radioStation.mediaStream.setVariant(MediaStream.BITRATE_DEFAULT, rsToAdd.url)
+                    radioStation.setVariant(MediaStream.BITRATE_DEFAULT, rsToAdd.url)
                     radioStation.imageUrl = rsToAdd.imageLocalUrl
                     radioStation.genre = rsToAdd.genre
                     radioStation.country = rsToAdd.country

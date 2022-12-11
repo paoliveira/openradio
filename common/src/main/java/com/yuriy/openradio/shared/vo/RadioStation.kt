@@ -50,7 +50,7 @@ fun RadioStation.toMediaItemPlayable(
     val genre = this.genre
     val id = this.id
     val bundle = Bundle()
-    MediaItemHelper.updateBitrateField(bundle, this.mediaStream.getVariant(0).bitrate)
+    MediaItemHelper.updateBitrateField(bundle, this.getStreamBitrate())
     MediaItemHelper.updateFavoriteField(bundle, isFavorite)
     MediaItemHelper.updateSortIdField(bundle, sortId)
     MediaItemHelper.updateLocalRadioStationField(bundle, isLocal)
@@ -79,6 +79,27 @@ fun RadioStation.getStreamUrl(): String {
     return this.mediaStream.getVariant(0).url
 }
 
+fun RadioStation.getStreamUrlFixed(): String {
+    if (this.isMediaStreamFixedEmpty().not()) {
+        return this.mediaStreamFixed.getVariant(0).url
+    }
+    return this.mediaStream.getVariant(0).url
+}
+
+fun RadioStation.getStreamBitrate(): Int {
+    return this.mediaStream.getVariant(0).bitrate
+}
+
+fun RadioStation.setVariant(bitrate: Int, url: String) {
+    this.mediaStream.clear()
+    this.mediaStream.setVariant(bitrate, url)
+}
+
+fun RadioStation.setVariantFixed(bitrate: Int, url: String) {
+    this.mediaStreamFixed.clear()
+    this.mediaStreamFixed.setVariant(bitrate, url)
+}
+
 class RadioStation : Serializable {
 
     private var mId = AppUtils.EMPTY_STRING
@@ -97,6 +118,7 @@ class RadioStation : Serializable {
     var genre = AppUtils.EMPTY_STRING
     var urlResolved = AppUtils.EMPTY_STRING
     private val mMediaStream: MediaStream
+    private val mMediaStreamFixed: MediaStream
 
     /**
      * Flag indicate that Radio Station has been added locally to the phone storage.
@@ -137,6 +159,7 @@ class RadioStation : Serializable {
     private constructor(rsId: String) {
         id = rsId
         mMediaStream = MediaStream.makeDefaultInstance()
+        mMediaStreamFixed = MediaStream.makeDefaultInstance()
     }
 
     /**
@@ -151,6 +174,7 @@ class RadioStation : Serializable {
         genre = radioStation.genre
         isLocal = radioStation.isLocal
         mMediaStream = MediaStream.makeCopyInstance(radioStation.mMediaStream)
+        mMediaStreamFixed = MediaStream.makeCopyInstance(radioStation.mMediaStreamFixed)
         name = radioStation.name
         sortId = radioStation.sortId
         homePage = radioStation.homePage
@@ -169,6 +193,10 @@ class RadioStation : Serializable {
 
     fun isMediaStreamEmpty(): Boolean {
         return mMediaStream.isEmpty
+    }
+
+    fun isMediaStreamFixedEmpty(): Boolean {
+        return mMediaStreamFixed.isEmpty
     }
 
     var country: String
@@ -200,6 +228,16 @@ class RadioStation : Serializable {
             }
         }
 
+    var mediaStreamFixed: MediaStream
+        get() = mMediaStreamFixed
+        set(value) {
+            mMediaStreamFixed.clear()
+            val size = value.variantsNumber
+            for (i in 0 until size) {
+                mMediaStreamFixed.setVariant(value.getVariant(i).bitrate, value.getVariant(i).url)
+            }
+        }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
@@ -220,6 +258,7 @@ class RadioStation : Serializable {
                 ", lastCheckOkTime=" + lastCheckOkTime +
                 ", name='" + name + '\'' +
                 ", stream='" + mMediaStream + '\'' +
+                ", streamFixed='" + mMediaStreamFixed + '\'' +
                 ", urlResolved='" + urlResolved + '\'' +
                 ", webSite='" + homePage + '\'' +
                 ", country='" + mCountry + '\'' +

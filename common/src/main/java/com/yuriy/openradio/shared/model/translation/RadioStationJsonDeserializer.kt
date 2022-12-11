@@ -22,6 +22,7 @@ import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.JsonUtils
 import com.yuriy.openradio.shared.vo.RadioStation
+import com.yuriy.openradio.shared.vo.setVariant
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
@@ -60,7 +61,7 @@ class RadioStationJsonDeserializer : RadioStationDeserializer {
         if (!TextUtils.isDigitsOnly(bitrateStr) || bitrateStr.isEmpty()) {
             bitrateStr = "0"
         }
-        radioStation.mediaStream.setVariant(
+        radioStation.setVariant(
             bitrateStr.toInt(),
             JsonUtils.getStringValue(jsonObject, RadioStationJsonHelper.KEY_STREAM_URL)
         )
