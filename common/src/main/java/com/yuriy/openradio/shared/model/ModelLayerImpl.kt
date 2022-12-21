@@ -93,19 +93,6 @@ class ModelLayerImpl(
         return value
     }
 
-    override fun getStation(uri: Uri, mediaIdBuilder: MediaIdBuilder): RadioStation {
-        // Download response from the server.
-        val response = String(mDownloaderLayer.downloadDataFromUri(mContext, uri))
-        AppLogger.i("$CLASS_NAME response:$response")
-
-        // Ignore empty response.
-        if (response.isEmpty()) {
-            AppLogger.e("$CLASS_NAME can not parse data, response is empty")
-            return RadioStation.INVALID_INSTANCE
-        }
-        return mDataParser.getRadioStation(response, mediaIdBuilder)
-    }
-
     /**
      * Download data as [String].
      *

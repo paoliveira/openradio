@@ -239,22 +239,6 @@ object AppUtils {
     }
 
     /**
-     * Checks whether or not application runs on Android Auto environment.
-     *
-     * @param clientPackageName The package name of the application which is
-     * requesting access.
-     * @return `true` in case of success, `false` otherwise.
-     */
-    fun isAndroidAuto(clientPackageName: String): Boolean {
-        for (pkg in ANDROID_AUTO_PACKAGE_NAMES) {
-            if (clientPackageName.contains(pkg)) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
      * Return whether the given application package name is on the device's power allowlist.
      * Apps can be placed on the allowlist through the settings UI invoked by
      * android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS.

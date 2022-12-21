@@ -65,14 +65,6 @@ object UrlBuilder {
         get() = Uri.parse(BASE_URL + "tags?reverse=true&order=stationcount&hidebroken=true")
 
     /**
-     * Get Uri for the All Countries list.
-     *
-     * @return [Uri]
-     */
-    val allCountriesUrl: Uri
-        get() = Uri.parse(BASE_URL + "countries")
-
-    /**
      * Get Uri for the list of the Radio Stations in concrete Category.
      *
      * @param categoryId Id of the Category.
@@ -120,16 +112,6 @@ object UrlBuilder {
      */
     fun getRecentlyAddedStations(numOfStations: Int = RECENT_POPULAR_PER_PAGE): Uri {
         return Uri.parse(BASE_URL + "stations/lastchange/" + numOfStations)
-    }
-
-    /**
-     * Get Uri for the concrete Radio Station details.
-     *
-     * @param stationId Id of the Radio Station.
-     * @return [Uri]
-     */
-    fun getStation(stationId: String): Uri {
-        return Uri.parse(BASE_URL + "stations/byuuid?uuids=" + encodeValue(stationId))
     }
 
     /**

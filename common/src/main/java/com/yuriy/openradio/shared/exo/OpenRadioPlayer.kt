@@ -324,7 +324,7 @@ class OpenRadioPlayer(
     }
 
     fun skipToQueueItem(player: Player, id: Long) {
-
+        // Not in use.
     }
 
     fun skipToNext(player: Player) {
@@ -400,7 +400,7 @@ class OpenRadioPlayer(
         if (this::mMediaSessionConnector.isInitialized) {
             mMediaSessionConnector.setPlayer(mCurrentPlayer)
         }
-        previousPlayer?.stop(/* reset= */true)
+        previousPlayer?.stop(true)
     }
 
     private fun releaseIntrnl() {
@@ -518,8 +518,8 @@ class OpenRadioPlayer(
                 val index = if (mMediaItems.isNotEmpty()) {
                     Util.constrainValue(
                         player.currentMediaItemIndex,
-                        /* min= */ 0,
-                        /* max= */ mMediaItems.size - 1
+                        0,
+                        mMediaItems.size - 1
                     )
                 } else -1
                 if (index != -1) {

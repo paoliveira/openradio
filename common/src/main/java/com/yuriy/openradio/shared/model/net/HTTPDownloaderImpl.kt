@@ -76,7 +76,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             } catch (exception: IOException) {
                 AppLogger.e(
                     "$CLASS_NAME getResponse ${
-                        DownloaderException.createExceptionMessage(
+                        NetUtils.createExceptionMessage(
                             url.toString(),
                             parameters
                         )
@@ -87,7 +87,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
                 NetUtils.closeHttpURLConnection(connection)
                 AppLogger.e(
-                    "$CLASS_NAME ${DownloaderException.createExceptionMessage(url.toString(), parameters)}",
+                    "$CLASS_NAME ${NetUtils.createExceptionMessage(url.toString(), parameters)}",
                     Exception("Response code is $responseCode")
                 )
                 return response
@@ -108,7 +108,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             } catch (exception: IOException) {
                 AppLogger.e(
                     "$CLASS_NAME getStream ${
-                        DownloaderException.createExceptionMessage(
+                        NetUtils.createExceptionMessage(
                             url.toString(),
                             parameters
                         )
@@ -160,7 +160,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
                 }
             } catch (exception: UnknownHostException) {
                 AppLogger.e(
-                    "$CLASS_NAME do lookup ${DownloaderException.createExceptionMessage(uri, parameters)}",
+                    "$CLASS_NAME do lookup ${NetUtils.createExceptionMessage(uri, parameters)}",
                     exception
                 )
             }
@@ -198,7 +198,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             } catch (exception: MalformedURLException) {
                 AppLogger.e(
                     "$CLASS_NAME getUrl ${
-                        DownloaderException.createExceptionMessage(
+                        NetUtils.createExceptionMessage(
                             uri,
                             parameters
                         )

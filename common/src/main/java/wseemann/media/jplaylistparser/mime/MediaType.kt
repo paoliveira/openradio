@@ -72,7 +72,7 @@ class MediaType : Comparable<MediaType> {
         }
     }
 
-    private constructor(string: String, slash: Int) {
+    private constructor(string: String) {
         mString = string
     }
 
@@ -149,7 +149,7 @@ class MediaType : Comparable<MediaType> {
                         return null
                     } else if (SIMPLE_TYPES.size < 10000 && isSimpleName(string.substring(0, slash))
                             && isSimpleName(string.substring(slash + 1))) {
-                        type = MediaType(string, slash)
+                        type = MediaType(string)
                         SIMPLE_TYPES[string] = type
                     }
                 }

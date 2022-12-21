@@ -17,9 +17,9 @@
 package com.yuriy.openradio.shared.utils
 
 import android.content.Context
+import android.net.Uri
 import androidx.core.util.Pair
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.model.net.DownloaderException
 import com.yuriy.openradio.shared.view.SafeToast
 import okhttp3.internal.Util
 import wseemann.media.jplaylistparser.parser.AutoDetectParser
@@ -97,7 +97,7 @@ object NetUtils {
                         }
                     } catch (exception: IOException) {
                         AppLogger.e(
-                            " ${DownloaderException.createExceptionMessage(url.toString(), parameters)}", exception
+                            " ${createExceptionMessage(url.toString(), parameters)}", exception
 
                         )
                     }
@@ -207,5 +207,30 @@ object NetUtils {
             }
         }
         return result
+    }
+
+    /**
+     * @param uri
+     * @param parameters
+     * @return
+     */
+    fun createExceptionMessage(uri: Uri,
+                               parameters: List<Pair<String, String>>): String {
+        return createExceptionMessage(uri.toString(), parameters)
+    }
+
+    /**
+     * @param uriStr
+     * @param parameters
+     * @return
+     */
+    fun createExceptionMessage(uriStr: String,
+                               parameters: List<Pair<String, String>>): String {
+        val builder = StringBuilder(uriStr)
+        for (pair in parameters) {
+            builder.append(" ")
+            builder.append(pair.toString())
+        }
+        return builder.toString()
     }
 }

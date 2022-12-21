@@ -39,15 +39,6 @@ class ListAdapterData<T> : Serializable {
     }
 
     /**
-     * Remove provided item from collection.
-     *
-     * @param item Item to be removed.
-     */
-    fun remove(item: T) {
-        mItems.remove(item)
-    }
-
-    /**
      * Get item at the specified position.
      *
      * @param position The position of the item.

@@ -43,7 +43,6 @@ interface ModelLayer {
     /**
      * Get a list of all countries.
      *
-     * @param uri [Uri] of the request.
      * @return Collection of the Countries
      */
     fun getCountries(): List<Country>
@@ -55,14 +54,6 @@ interface ModelLayer {
      * @return collection of the Radio Stations.
      */
     fun getStations(uri: Uri, mediaIdBuilder: MediaIdBuilder): List<RadioStation>
-
-    /**
-     * Get a Radio Station.
-     *
-     * @param uri [Uri] of the request.
-     * @return Radio Station.
-     */
-    fun getStation(uri: Uri, mediaIdBuilder: MediaIdBuilder): RadioStation
 
     /**
      * Add Radio Station to server.

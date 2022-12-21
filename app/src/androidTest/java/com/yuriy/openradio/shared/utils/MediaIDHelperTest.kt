@@ -16,8 +16,6 @@
 
 package com.yuriy.openradio.shared.utils
 
-import android.content.Context
-import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.model.media.MediaId.getCountryCode
 import com.yuriy.openradio.shared.model.media.MediaId.getId
@@ -33,13 +31,6 @@ import org.hamcrest.Matchers
  * E-Mail: chernyshov.yuriy@gmail.com
  */
 class MediaIDHelperTest : TestCase() {
-
-    private lateinit var mContext: Context
-
-    override fun setUp() {
-        super.setUp()
-        mContext = InstrumentationRegistry.getInstrumentation().targetContext
-    }
 
     fun testGetId() {
         val id = MediaId.MEDIA_ID_CHILD_CATEGORIES
