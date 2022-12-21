@@ -230,7 +230,7 @@ class MediaPresenterImpl(
 
     /**
      * Updates root view is there was changes in collection.
-     * Should be call only if current media id is [MediaId.MEDIA_ID_ROOT] or [MediaId.MEDIA_ID_BROWSE]
+     * Should be call only if current media id is [MediaId.MEDIA_ID_ROOT] or [MediaId.MEDIA_ID_BROWSE_CAR]
      * if application runs on car.
      */
     override fun updateRootView() {

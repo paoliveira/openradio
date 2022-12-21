@@ -170,7 +170,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         // Add Media Items implementations to the map
         mMediaItemCommands[MediaId.MEDIA_ID_ROOT] = MediaItemRoot()
         mMediaItemCommands[MediaId.MEDIA_ID_ROOT_CAR] = MediaItemRootCar()
-        mMediaItemCommands[MediaId.MEDIA_ID_BROWSE] = MediaItemBrowseCar()
+        mMediaItemCommands[MediaId.MEDIA_ID_BROWSE_CAR] = MediaItemBrowseCar()
         mMediaItemCommands[MediaId.MEDIA_ID_ALL_CATEGORIES] = MediaItemAllCategories()
         mMediaItemCommands[MediaId.MEDIA_ID_COUNTRIES_LIST] = MediaItemCountriesList()
         mMediaItemCommands[MediaId.MEDIA_ID_COUNTRY_STATIONS] = MediaItemCountryStations()
@@ -180,7 +180,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mMediaItemCommands[MediaId.MEDIA_ID_SEARCH_FROM_APP] = MediaItemSearchFromApp()
         mMediaItemCommands[MediaId.MEDIA_ID_SEARCH_FROM_SERVICE] = MediaItemSearchFromService()
         mMediaItemCommands[MediaId.MEDIA_ID_POPULAR_STATIONS] = MediaItemPopularStations()
-        mMediaItemCommands[MediaId.MEDIA_ID_RECENT_ADDED_STATIONS] = MediaItemRecentlyAddedStations()
+        mMediaItemCommands[MediaId.MEDIA_ID_RECENT_STATIONS] = MediaItemRecentStations()
     }
 
     interface ResultListener {
@@ -271,6 +271,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                         return
                     }
                     mPresenter.updateRadioStationFavorite(mActiveRS)
+                    maybeNotifyRootCarChanged()
                 }
 
                 override fun getCustomAction(player: Player): PlaybackStateCompat.CustomAction? {
@@ -345,7 +346,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mIsRestoreState = OpenRadioStore.getRestoreState(rootHints)
         val extras = Bundle()
         extras.putBoolean(MediaConstants.BROWSER_SERVICE_EXTRAS_KEY_SEARCH_SUPPORTED, true)
-        return BrowserRoot(MediaId.MEDIA_ID_ROOT, extras)
+        mCurrentParentId = if (DependencyRegistryCommon.isCar) MediaId.MEDIA_ID_ROOT_CAR else MediaId.MEDIA_ID_ROOT
+        return BrowserRoot(mCurrentParentId, extras)
     }
 
     override fun onLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>, options: Bundle) {
@@ -383,6 +385,21 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             AppLogger.w("$TAG skipping unmatched parentId: $id")
             result.sendResult(null)
         }
+    }
+
+    private fun maybeNotifyRootCarChanged() {
+        if (DependencyRegistryCommon.isCar.not()) {
+            return
+        }
+        // To force update Favorite menu tab.
+        var mediaId = MediaId.MEDIA_ID_ROOT_CAR
+        if (mCurrentParentId == MediaId.MEDIA_ID_FAVORITES_LIST) {
+            if (mPresenter.getAllFavorites().isNotEmpty()) {
+                // To force update Favorites list.
+                mediaId = MediaId.MEDIA_ID_FAVORITES_LIST
+            }
+        }
+        notifyChildrenChanged(mediaId)
     }
 
     private fun registerReceivers() {
@@ -759,6 +776,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 // Update Favorites Radio station: whether add it or remove it from the storage
                 val isFavorite = OpenRadioStore.getIsFavoriteFromIntent(intent)
                 mPresenter.updateRadioStationFavorite(rs, isFavorite)
+                maybeNotifyRootCarChanged()
             }
             OpenRadioStore.VALUE_NAME_NETWORK_SETTINGS_CHANGED -> {
                 if (mPresenter.isMobileNetwork() &&

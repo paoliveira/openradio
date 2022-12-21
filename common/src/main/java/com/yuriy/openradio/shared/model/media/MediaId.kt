@@ -32,7 +32,7 @@ object MediaId {
 
     const val MEDIA_ID_ROOT = "__ROOT__"
     const val MEDIA_ID_ROOT_CAR = "__ROOT_CAR__"
-    const val MEDIA_ID_BROWSE = "__BROWSE__"
+    const val MEDIA_ID_BROWSE_CAR = "__BROWSE_CAR__"
     const val MEDIA_ID_ALL_CATEGORIES = "__ALL_CATEGORIES__"
     const val MEDIA_ID_COUNTRY_STATIONS = "__COUNTRY_STATIONS__"
     const val MEDIA_ID_COUNTRIES_LIST = "__COUNTRIES_LIST__"
@@ -42,13 +42,13 @@ object MediaId {
     const val MEDIA_ID_SEARCH_FROM_APP = "__SEARCH_FROM_APP__"
     const val MEDIA_ID_SEARCH_FROM_SERVICE = "__SEARCH_FROM_SERVICE__"
     const val MEDIA_ID_POPULAR_STATIONS = "__POPULAR_STATIONS__"
-    const val MEDIA_ID_RECENT_ADDED_STATIONS = "__RECENT_ADDED_STATIONS__"
+    const val MEDIA_ID_RECENT_STATIONS = "__RECENT_STATIONS__"
     const val MEDIA_ID_LIST_ENDED = "MEDIA_ID_LIST_ENDED"
 
     private const val MEDIA_ID_SEARCH_PREFIX = "search:"
 
     private val IDS = arrayOf(
-        MEDIA_ID_BROWSE,
+        MEDIA_ID_BROWSE_CAR,
         MEDIA_ID_ALL_CATEGORIES,
         MEDIA_ID_COUNTRIES_LIST,
         MEDIA_ID_COUNTRY_STATIONS,
@@ -60,7 +60,7 @@ object MediaId {
         MEDIA_ID_SEARCH_FROM_APP,
         MEDIA_ID_SEARCH_FROM_SERVICE,
         MEDIA_ID_POPULAR_STATIONS,
-        MEDIA_ID_RECENT_ADDED_STATIONS,
+        MEDIA_ID_RECENT_STATIONS,
         MEDIA_ID_LIST_ENDED
     )
 

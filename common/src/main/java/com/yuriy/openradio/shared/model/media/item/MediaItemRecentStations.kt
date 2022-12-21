@@ -27,10 +27,10 @@ import kotlinx.coroutines.withTimeoutOrNull
  * On 8/31/15
  * E-Mail: chernyshov.yuriy@gmail.com
  *
- * [MediaItemRecentlyAddedStations] is concrete implementation of the [MediaItemCommand]
+ * [MediaItemRecentStations] is concrete implementation of the [MediaItemCommand]
  * that designed to prepare the recently added radio stations.
  */
-class MediaItemRecentlyAddedStations : MediaItemCommandImpl() {
+class MediaItemRecentStations : MediaItemCommandImpl() {
 
     override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)

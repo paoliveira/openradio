@@ -40,7 +40,7 @@ object MediaItemBuilder {
 
     fun buildRecentMenuItem(context: Context): MediaBrowserCompat.MediaItem {
         val builder = MediaDescriptionCompat.Builder()
-            .setMediaId(MediaId.MEDIA_ID_RECENT_ADDED_STATIONS)
+            .setMediaId(MediaId.MEDIA_ID_RECENT_STATIONS)
             .setTitle(context.getString(R.string.new_stations_title))
         val bundleRecent = Bundle()
         MediaItemHelper.setDrawableId(bundleRecent, R.drawable.ic_fiber_new_black_24dp)
@@ -50,7 +50,7 @@ object MediaItemBuilder {
 
     fun buildBrowseMenuItem(context: Context): MediaBrowserCompat.MediaItem {
         val builder = MediaDescriptionCompat.Builder()
-            .setMediaId(MediaId.MEDIA_ID_BROWSE)
+            .setMediaId(MediaId.MEDIA_ID_BROWSE_CAR)
             .setTitle(context.getString(R.string.browse_title))
         return MediaBrowserCompat.MediaItem(builder.build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
     }
