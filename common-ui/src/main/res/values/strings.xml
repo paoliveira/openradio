@@ -18,7 +18,6 @@
     <string name="about_exo_title">Playback</string>
     <string name="about_exo_text">ExoPlayer</string>
     <string name="about_radio_browser_title">Community Radio Browser</string>
-    <string name="about_thanks_1_url">www.radio-browser.info</string>
     <string name="about_graphics">Graphics</string>
     <string name="about_graphics_link">Vector assets from Android Studio</string>
     <string name="about_author">Author</string>

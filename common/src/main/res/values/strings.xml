@@ -29,7 +29,6 @@
     <string name="media_stream_http_404">Not Found</string>
     <string name="media_stream_network_failed">Network Failed</string>
     <string name="no_data_message">No data received</string>
-    <string name="no_metadata">No Metadata</string>
     <string name="favorite">Favorite</string>
     <string name="favorites_list_title">Favorites</string>
     <string name="new_stations_title">New</string>
@@ -38,19 +37,12 @@
     <string name="all_categories_title">Categories</string>
     <string name="countries_list_title">Countries</string>
     <string name="local_radio_stations_list_title">Locals</string>
-    <string name="can_not_skip">Can not skip</string>
     <string name="no_search_results">No search results</string>
-    <string name="label_previous">Previous</string>
-    <string name="label_next">Next</string>
-    <string name="label_pause">Pause</string>
-    <string name="label_play">Play</string>
     <string name="search_label">Search</string>
     <string name="cancel_label">Cancel</string>
     <string name="storage_permission_proposed">Storage permission is optional and is needed to get access to icon associated with Radio Station</string>
     <string name="record_audio_permission_proposed">Record Audio permission is needed to perform voice search</string>
     <string name="bluetooth_permission_proposed">Bluetooth permission is needed to handle playback when device re-connected</string>
-    <string name="notification_str">Notification</string>
-    <string name="radio_station_str">Radio Station</string>
     <string name="radio_station">radio station</string>
     <string name="radio_stations">radio stations</string>
     <string name="clear_completed">Cache is cleared</string>
@@ -67,20 +59,7 @@
     <string name="default_country_use_location">Use Location</string>
     <string name="mobile_network_disabled">Mobile network is disabled</string>
     <string name="notif_close_app_label">Close Open Radio</string>
-    <string name="notif_stop_app_label">Stopping Open Radio</string>
-    <string name="notif_just_started_label">Open Radio just started</string>
-    <string name="notif_update_favorite_label">Update Favorite Radio Station</string>
-    <string name="notif_toggle_last_rs_label">Toggle last Radio Station</string>
-    <string name="notif_stop_last_rs_label">Stop last Radio Station</string>
-    <string name="notif_play_last_rs_label">Play last Radio Station</string>
-    <string name="cant_start_from_bg">Can\'t start from background</string>
     <!-- Notification Channel -->
     <string name="notification_channel">Now Playing</string>
     <string name="notification_channel_description">Shows what music is currently playing on Open Radio</string>
-
-    <!-- Notification actions -->
-    <string name="notification_skip_to_previous">Skip to previous track</string>
-    <string name="notification_skip_to_next">Skip to next track</string>
-    <string name="notification_play">Play</string>
-    <string name="notification_pause">Pause</string>
 </resources>
