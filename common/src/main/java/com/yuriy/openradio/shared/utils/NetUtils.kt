@@ -179,19 +179,18 @@ object NetUtils {
             getHttpURLConnection(context, playlistUrl, HTTP_METHOD_GET) ?: return Array(1) { AppUtils.EMPTY_STRING }
         var inputStream: InputStream? = null
         var result = Array(1) { AppUtils.EMPTY_STRING }
+        val parser = AutoDetectParser(AppUtils.TIME_OUT)
+        val playlist = Playlist()
+        val contentType = connection.contentType
         try {
-            val contentType = connection.contentType
             inputStream = connection.inputStream
-            val parser = AutoDetectParser(AppUtils.TIME_OUT)
-            val playlist = Playlist()
             parser.parse(playlistUrl, contentType, inputStream, playlist)
             val length = playlist.playlistEntries.size
             result = Array(length) { AppUtils.EMPTY_STRING }
-            AppLogger.d("$CLASS_NAME Found $length streams associated with $playlistUrl")
-            for (i in 0 until length) {
-                val entry = playlist.playlistEntries[i]
-                result[i] = entry[PlaylistEntry.URI].toString()
-                AppLogger.d("$CLASS_NAME - ${result[i]}")
+            AppLogger.d("Found $length streams associated with $playlistUrl:")
+            for ((i, entry) in playlist.playlistEntries.withIndex()) {
+                result[i] = entry[PlaylistEntry.URI]
+                AppLogger.d(" - ${result[i]}")
             }
         } catch (e: Exception) {
             val errorMessage = "Can not get urls from playlist at $playlistUrl"

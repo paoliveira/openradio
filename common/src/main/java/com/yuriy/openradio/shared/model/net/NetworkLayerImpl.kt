@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.model.net
 
 import android.content.Context
-import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.telephony.TelephonyManager

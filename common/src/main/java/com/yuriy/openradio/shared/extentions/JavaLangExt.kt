@@ -27,3 +27,13 @@ import android.net.Uri
  * Helper extension to convert a potentially null [String] to a [Uri] falling back to [Uri.EMPTY]
  */
 fun String?.toUri(): Uri = this?.let { Uri.parse(it) } ?: Uri.EMPTY
+
+/**
+ *
+ */
+fun String?.equalsIgnoreCase(other: String?): Boolean {
+    if (this === null) {
+        return other === null
+    }
+    return (this as java.lang.String).equalsIgnoreCase(other)
+}

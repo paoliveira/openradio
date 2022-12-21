@@ -48,11 +48,6 @@ object AppUtils {
     const val UTF8 = "UTF-8"
     const val EMPTY_STRING = ""
 
-    private val ANDROID_AUTO_PACKAGE_NAMES = arrayOf(
-        "com.google.android.projection.gearhead",
-        "com.android.car"
-    )
-
     private const val KEY_SEARCH_QUERY = "KEY_SEARCH_QUERY"
 
     /**

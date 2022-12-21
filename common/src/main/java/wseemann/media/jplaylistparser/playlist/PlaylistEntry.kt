@@ -15,6 +15,8 @@
  */
 package wseemann.media.jplaylistparser.playlist
 
+import com.yuriy.openradio.shared.utils.AppUtils
+
 /**
  * A multi-valued metadata container.
  */
@@ -22,7 +24,7 @@ class PlaylistEntry {
     /**
      * A map of all metadata attributes.
      */
-    private val metadata = HashMap<String, Array<String?>>()
+    private val metadata = HashMap<String, Array<String>>()
 
     /**
      * Returns an array of the names contained in the metadata.
@@ -41,15 +43,15 @@ class PlaylistEntry {
      * of the metadata.
      * @return the value associated to the specified metadata name.
      */
-    operator fun get(name: String): String? {
+    operator fun get(name: String): String {
         val values = metadata[name]
-        return values?.get(0)
+        return values?.get(0) ?: AppUtils.EMPTY_STRING
     }
 
-    private fun getValuesInternal(name: String): Array<String?> {
+    private fun getValuesInternal(name: String): Array<String> {
         var values = metadata[name]
         if (values == null) {
-            values = arrayOfNulls(0)
+            values = Array(0) { AppUtils.EMPTY_STRING }
         }
         return values
     }
@@ -64,7 +66,7 @@ class PlaylistEntry {
      * @param value
      * the metadata value.
      */
-    operator fun set(name: String, value: String?) {
+    operator fun set(name: String, value: String) {
         metadata[name] = arrayOf(value)
     }
 

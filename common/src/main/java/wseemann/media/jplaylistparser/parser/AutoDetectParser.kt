@@ -16,6 +16,7 @@
 
 package wseemann.media.jplaylistparser.parser
 
+import com.yuriy.openradio.shared.extentions.equalsIgnoreCase
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -59,36 +60,36 @@ class AutoDetectParser(private val mTimeout: Int) {
         val plsPlaylistParser = PLSPlaylistParser(mTimeout)
         val xspfPlaylistParser = XSPFPlaylistParser(mTimeout)
         val asxPlaylistParser = ASXPlaylistParser(mTimeout)
-        var extension: String = getFileExtension(url)
+        var extension = getFileExtension(url)
         val parser: Parser
-        if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)
+        if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)
                 || m3uPlaylistParser.supportedTypes.contains(parse(mimeTypeCpy)) &&
-                !extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+                extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION).not()) {
             parser = m3uPlaylistParser
-        } else if (extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)
+        } else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)
                 || m3uPlaylistParser.supportedTypes.contains(parse(mimeTypeCpy))) {
             parser = m3u8PlaylistParser
-        } else if (extension.equals(PLSPlaylistParser.EXTENSION, ignoreCase = true)
+        } else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)
                 || plsPlaylistParser.supportedTypes.contains(parse(mimeTypeCpy))) {
             parser = plsPlaylistParser
-        } else if (extension.equals(XSPFPlaylistParser.EXTENSION, ignoreCase = true)
+        } else if (extension.equalsIgnoreCase(XSPFPlaylistParser.EXTENSION)
                 || xspfPlaylistParser.supportedTypes.contains(parse(mimeTypeCpy))) {
             parser = xspfPlaylistParser
-        } else if (extension.equals(ASXPlaylistParser.EXTENSION, ignoreCase = true)
+        } else if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)
                 || asxPlaylistParser.supportedTypes.contains(parse(mimeTypeCpy))) {
             parser = asxPlaylistParser
         } else {
             extension = getStreamExtension(url)
-            parser = if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)
-                    && !extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+            parser = if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)
+                    && extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION).not()) {
                 m3uPlaylistParser
-            } else if (extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
                 m3u8PlaylistParser
-            } else if (extension.equals(PLSPlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)) {
                 plsPlaylistParser
-            } else if (extension.equals(XSPFPlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(XSPFPlaylistParser.EXTENSION)) {
                 xspfPlaylistParser
-            } else if (extension.equals(ASXPlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)) {
                 asxPlaylistParser
             } else {
                 throw JPlaylistParserException("Unsupported format:$url")
@@ -98,8 +99,7 @@ class AutoDetectParser(private val mTimeout: Int) {
     }
 
     @Throws(IOException::class, JPlaylistParserException::class)
-    fun parse(url: String?, playlist: Playlist) {
-        requireNotNull(url) { "URI cannot be NULL" }
+    fun parse(url: String, playlist: Playlist) {
         val m3uPlaylistParser = M3UPlaylistParser(mTimeout)
         val m3u8PlaylistParser = M3U8PlaylistParser(mTimeout)
         val plsPlaylistParser = PLSPlaylistParser(mTimeout)
@@ -107,29 +107,29 @@ class AutoDetectParser(private val mTimeout: Int) {
         val asxPlaylistParser = ASXPlaylistParser(mTimeout)
         var extension = getFileExtension(url)
         val parser: Parser
-        if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)
-                && !extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+        if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)
+                && !extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
             parser = m3uPlaylistParser
-        } else if (extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+        } else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
             parser = m3u8PlaylistParser
-        } else if (extension.equals(PLSPlaylistParser.EXTENSION, ignoreCase = true)) {
+        } else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)) {
             parser = plsPlaylistParser
-        } else if (extension.equals(XSPFPlaylistParser.EXTENSION, ignoreCase = true)) {
+        } else if (extension.equalsIgnoreCase(XSPFPlaylistParser.EXTENSION)) {
             parser = xspfPlaylistParser
-        } else if (extension.equals(ASXPlaylistParser.EXTENSION, ignoreCase = true)) {
+        } else if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)) {
             parser = asxPlaylistParser
         } else {
             extension = getStreamExtension(url)
-            parser = if (extension.equals(M3UPlaylistParser.EXTENSION, ignoreCase = true)
-                    && !extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+            parser = if (extension.equalsIgnoreCase(M3UPlaylistParser.EXTENSION)
+                    && !extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
                 m3uPlaylistParser
-            } else if (extension.equals(M3U8PlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(M3U8PlaylistParser.EXTENSION)) {
                 m3u8PlaylistParser
-            } else if (extension.equals(PLSPlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(PLSPlaylistParser.EXTENSION)) {
                 plsPlaylistParser
-            } else if (extension.equals(XSPFPlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(XSPFPlaylistParser.EXTENSION)) {
                 xspfPlaylistParser
-            } else if (extension.equals(ASXPlaylistParser.EXTENSION, ignoreCase = true)) {
+            } else if (extension.equalsIgnoreCase(ASXPlaylistParser.EXTENSION)) {
                 asxPlaylistParser
             } else {
                 throw JPlaylistParserException("Unsupported format:$url")
@@ -244,7 +244,7 @@ class AutoDetectParser(private val mTimeout: Int) {
                     }
                 }
         )
-        latch.await((mTimeout + 1000).toLong(), TimeUnit.SECONDS)
+        latch.await((mTimeout + 1000).toLong(), TimeUnit.MILLISECONDS)
         AppLogger.d("Stream ext:$result")
         return result
     }

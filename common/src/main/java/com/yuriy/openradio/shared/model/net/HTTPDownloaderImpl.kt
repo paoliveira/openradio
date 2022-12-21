@@ -39,7 +39,7 @@ import java.util.concurrent.Executors
  */
 class HTTPDownloaderImpl : DownloaderLayer {
 
-    private var mUrlsSet: Array<String?>? = null
+    private var mUrlsSet: Array<String>? = null
     private val mRandom = Random()
     private val mExecutor = Executors.newFixedThreadPool(8)
 
@@ -53,7 +53,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
     }
 
     class BytesDownloader(
-        private var mUrlsSet: Array<String?>?,
+        private var mUrlsSet: Array<String>?,
         private val mRandom: Random,
         private val context: Context, private val uri: Uri,
         private val parameters: List<Pair<String, String>>,
@@ -151,7 +151,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             try {
                 val list = InetAddress.getAllByName(UrlBuilder.LOOK_UP_DNS)
                 synchronized(mRandom) {
-                    mUrlsSet = arrayOfNulls(list.size)
+                    mUrlsSet = Array(list.size) { AppUtils.EMPTY_STRING }
                     var i = 0
                     for (item in list) {
                         mUrlsSet!![i++] = "https://" + item.canonicalHostName
