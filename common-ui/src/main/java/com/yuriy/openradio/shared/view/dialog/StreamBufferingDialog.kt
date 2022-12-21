@@ -185,7 +185,6 @@ class StreamBufferingDialog : BaseDialogFragment() {
         /**
          * Tag string mTo use in dialog transactions.
          */
-        @JvmField
         val DIALOG_TAG = CLASS_NAME + "_DIALOG_TAG"
     }
 }
