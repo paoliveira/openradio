@@ -137,4 +137,16 @@ object IntentUtils {
             callback(result.data)
         }
     }
+
+    @Suppress("DEPRECATION")
+    inline fun <reified T> getParcelableExtra(key: String, intent: Intent): T? {
+        if (intent.hasExtra(key).not()) {
+            return null
+        }
+        return if (AppUtils.hasVersionTiramisu()) {
+            intent.getParcelableExtra(key, T::class.java)
+        } else {
+            intent.getParcelableExtra(key)
+        }
+    }
 }

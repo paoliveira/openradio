@@ -25,7 +25,7 @@ import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.setVariant
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Yuriy Chernyshov

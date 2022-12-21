@@ -24,6 +24,6 @@ open class MainAppTv: MainAppCommonUi() {
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
-        DependencyRegistryTv.init(base)
+        DependencyRegistryTv.init()
     }
 }

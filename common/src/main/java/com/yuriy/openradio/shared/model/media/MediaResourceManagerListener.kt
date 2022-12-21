@@ -32,5 +32,5 @@ interface MediaResourceManagerListener {
     fun onConnected()
     fun onPlaybackStateChanged(state: PlaybackStateCompat)
     fun onQueueChanged(queue: List<MediaSessionCompat.QueueItem>)
-    fun onMetadataChanged(metadata: MediaMetadataCompat, queue: List<MediaSessionCompat.QueueItem>?)
+    fun onMetadataChanged(metadata: MediaMetadataCompat)
 }

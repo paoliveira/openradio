@@ -33,7 +33,15 @@ import com.yuriy.openradio.shared.dependencies.MediaPresenterDependency
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
-import com.yuriy.openradio.shared.utils.*
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.IntentUtils
+import com.yuriy.openradio.shared.utils.UiUtils
+import com.yuriy.openradio.shared.utils.findImageView
+import com.yuriy.openradio.shared.utils.findProgressBar
+import com.yuriy.openradio.shared.utils.findTextView
+import com.yuriy.openradio.shared.utils.findView
+import com.yuriy.openradio.shared.utils.gone
+import com.yuriy.openradio.shared.utils.visible
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.AddStationDialog
@@ -283,8 +291,7 @@ class TvMainActivity : FragmentActivity(), MediaPresenterDependency {
 
     private fun handleChildrenLoaded(
         parentId: String,
-        children: List<MediaBrowserCompat.MediaItem>,
-        options: Bundle
+        children: List<MediaBrowserCompat.MediaItem>
     ) {
         if (mMediaPresenter.getOnSaveInstancePassed()) {
             AppLogger.w("$CLASS_NAME can not perform on children loaded after OnSaveInstanceState")
@@ -309,14 +316,14 @@ class TvMainActivity : FragmentActivity(), MediaPresenterDependency {
             children: List<MediaBrowserCompat.MediaItem>,
             options: Bundle
         ) {
-            handleChildrenLoaded(parentId, children, options)
+            handleChildrenLoaded(parentId, children)
         }
 
         override fun onChildrenLoaded(
             parentId: String,
             children: List<MediaBrowserCompat.MediaItem>
         ) {
-            handleChildrenLoaded(parentId, children, Bundle())
+            handleChildrenLoaded(parentId, children)
         }
 
         override fun onError(id: String) {

@@ -17,7 +17,9 @@
 package wseemann.media.jplaylistparser.mime
 
 import com.yuriy.openradio.shared.utils.AppUtils
-import java.util.*
+import java.util.Locale
+import java.util.SortedMap
+import java.util.TreeMap
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 

@@ -24,7 +24,7 @@ import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.vo.Country
-import java.util.*
+import java.util.Locale
 
 object MediaItemBuilder {
 

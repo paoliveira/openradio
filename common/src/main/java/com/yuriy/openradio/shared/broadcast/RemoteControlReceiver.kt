@@ -25,6 +25,7 @@ import com.yuriy.openradio.shared.dependencies.RemoteControlListenerDependency
 import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.IntentUtils
 
 /**
  * Created by Chernyshov Yurii
@@ -46,7 +47,7 @@ class RemoteControlReceiver : BroadcastReceiver(), RemoteControlListenerDependen
             return
         }
         DependencyRegistryCommon.inject(this)
-        val event = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+        val event = IntentUtils.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT, intent)
         var keyCode = event?.keyCode ?: Int.MIN_VALUE
         val intExtra = intent.getIntExtra(EXTRA_KEY_EVENT_TEST, Int.MIN_VALUE)
         if (keyCode == Int.MIN_VALUE && intExtra != Int.MIN_VALUE) {

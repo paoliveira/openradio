@@ -29,6 +29,7 @@ import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.permission.PermissionChecker
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.vo.Country
 import de.westnordost.countryboundaries.CountryBoundaries
 import java.io.IOException
@@ -431,7 +432,7 @@ class LocationService : JobIntentService() {
             applicationContext,
             object : LocationServiceListener {
                 override fun onCountryCodeLocated(countryCode: String) {
-                    val messenger = intent.getParcelableExtra<Messenger>(EXTRA_NAME_MESSENGER)
+                    val messenger = IntentUtils.getParcelableExtra<Messenger>(EXTRA_NAME_MESSENGER, intent)
                     val message = makeReplyMessage(countryCode)
                     try {
                         message.what = MSG_ID_ON_LOCATION
@@ -456,19 +457,13 @@ class LocationService : JobIntentService() {
         val locationListener = LocationListenerImpl(
             listener, context, mFusedLocationClient!!
         )
+        val interval = 100L
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, interval).build()
         mFusedLocationClient?.requestLocationUpdates(
-            createLocationRequest(),
+            request,
             locationListener,
             Looper.getMainLooper()
         )
-    }
-
-    private fun createLocationRequest(): LocationRequest {
-        val request = LocationRequest.create()
-        request.interval = 100
-        request.fastestInterval = 100
-        request.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        return request
     }
 
     /**

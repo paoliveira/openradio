@@ -18,5 +18,5 @@ package com.yuriy.openradio.shared.model.net
 
 interface NetworkMonitorListener {
 
-    fun onConnectivityChange(type: Int, isConnected: Boolean)
+    fun onConnectivityChange(isConnected: Boolean)
 }

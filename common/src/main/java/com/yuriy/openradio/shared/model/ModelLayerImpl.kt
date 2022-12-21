@@ -55,7 +55,7 @@ class ModelLayerImpl(
         return mDataParser.getCategories(data)
     }
 
-    override fun getCountries(uri: Uri): List<Country> {
+    override fun getCountries(): List<Country> {
         val list = ArrayList<Country>()
         for (countryName in LocationService.COUNTRY_NAME_TO_CODE.keys) {
             val countryCode = LocationService.COUNTRY_NAME_TO_CODE[countryName] ?: continue

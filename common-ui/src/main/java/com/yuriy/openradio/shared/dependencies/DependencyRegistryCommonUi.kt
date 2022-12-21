@@ -22,7 +22,19 @@ import com.yuriy.openradio.shared.model.storage.StorageManagerLayerImpl
 import com.yuriy.openradio.shared.model.storage.drive.GoogleDriveManager
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterImpl
-import com.yuriy.openradio.shared.view.dialog.*
+import com.yuriy.openradio.shared.view.dialog.AddEditStationDialogPresenter
+import com.yuriy.openradio.shared.view.dialog.AddEditStationDialogPresenterImpl
+import com.yuriy.openradio.shared.view.dialog.BaseAddEditStationDialog
+import com.yuriy.openradio.shared.view.dialog.EditStationDialog
+import com.yuriy.openradio.shared.view.dialog.EditStationPresenter
+import com.yuriy.openradio.shared.view.dialog.EditStationPresenterImpl
+import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
+import com.yuriy.openradio.shared.view.dialog.EqualizerPresenter
+import com.yuriy.openradio.shared.view.dialog.EqualizerPresenterImpl
+import com.yuriy.openradio.shared.view.dialog.NetworkDialog
+import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
+import com.yuriy.openradio.shared.view.dialog.RemoveStationDialogPresenter
+import com.yuriy.openradio.shared.view.dialog.RemoveStationDialogPresenterImpl
 import java.util.concurrent.atomic.AtomicBoolean
 
 object DependencyRegistryCommonUi {

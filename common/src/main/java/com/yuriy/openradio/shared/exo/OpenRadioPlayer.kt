@@ -46,9 +46,7 @@ import com.yuriy.openradio.shared.notification.MediaNotificationManager
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.utils.*
 import com.yuriy.openradio.shared.vo.RadioStation
-import com.yuriy.openradio.shared.vo.getStreamUrl
 import com.yuriy.openradio.shared.vo.getStreamUrlFixed
-import com.yuriy.openradio.shared.vo.toMediaItemPlayable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -481,7 +479,7 @@ class OpenRadioPlayer(
                         updateStreamMetadata(mBufferingLabel)
                     }
                     if (playerState == Player.STATE_READY) {
-                        if (!mCurrentPlayer.playWhenReady) {
+                        if (mCurrentPlayer.playWhenReady.not()) {
                             // If playback is paused we remove the foreground state which allows the
                             // notification to be dismissed. An alternative would be to provide a
                             // "close" button in the notification which stops playback and clears
@@ -605,7 +603,7 @@ class OpenRadioPlayer(
             notification: Notification,
             ongoing: Boolean
         ) {
-            if (ongoing && !mIsForegroundService) {
+            if (ongoing && mIsForegroundService.not()) {
                 try {
                     mListener.onStartForeground(notificationId, notification)
                     mIsForegroundService = true

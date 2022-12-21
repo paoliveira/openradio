@@ -53,7 +53,7 @@ class AppLocalReceiver private constructor() : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         AppLogger.i("$CLASS_NAME On receive:$intent")
         val action = intent.action
-        if (action == null || action.isEmpty()) {
+        if (action.isNullOrEmpty()) {
             return
         }
         if (action == AppLocalBroadcast.getActionCurrentIndexOnQueueChanged()) {

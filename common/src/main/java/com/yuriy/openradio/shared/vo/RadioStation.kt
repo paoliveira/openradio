@@ -27,7 +27,7 @@ import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import java.io.Serializable
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Yuriy Chernyshov

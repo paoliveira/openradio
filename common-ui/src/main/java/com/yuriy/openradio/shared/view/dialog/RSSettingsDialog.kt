@@ -30,7 +30,12 @@ import com.yuriy.openradio.shared.dependencies.MediaPresenterDependency
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.service.OpenRadioStore
-import com.yuriy.openradio.shared.utils.*
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.findImageView
+import com.yuriy.openradio.shared.utils.findTextView
+import com.yuriy.openradio.shared.utils.findView
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 
 /**

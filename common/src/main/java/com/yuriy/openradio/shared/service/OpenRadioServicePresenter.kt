@@ -1,7 +1,6 @@
 package com.yuriy.openradio.shared.service
 
 import android.content.Context
-import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.media.EqualizerLayer
 import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
@@ -21,8 +20,6 @@ interface OpenRadioServicePresenter {
     fun isMobileNetwork(): Boolean
 
     fun getUseMobile(): Boolean
-
-    fun getStationById(id: String): RadioStation
 
     fun getStationsInCategory(categoryId: String, pageNumber: Int): List<RadioStation>
 
@@ -47,8 +44,6 @@ interface OpenRadioServicePresenter {
     fun getEqualizerLayer(): EqualizerLayer
 
     fun getRadioStationsComparator(): Comparator<RadioStation>
-
-    fun getMediaItemsComparator(): Comparator<MediaBrowserCompat.MediaItem>
 
     fun setLastRadioStation(radioStation: RadioStation)
 

@@ -23,7 +23,7 @@ import android.widget.DatePicker
 import androidx.fragment.app.DialogFragment
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.view.SafeToast
-import java.util.*
+import java.util.Calendar
 
 class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener {
 
@@ -50,6 +50,6 @@ class DatePickerFragment : DialogFragment(), DatePickerDialog.OnDateSetListener 
     }
 
     companion object {
-        val TAG = DatePickerFragment::class.java.simpleName
+        val TAG: String = DatePickerFragment::class.java.simpleName
     }
 }

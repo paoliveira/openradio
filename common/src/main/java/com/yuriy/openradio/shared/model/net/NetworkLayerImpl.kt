@@ -47,7 +47,7 @@ class NetworkLayerImpl(private val mConnectivityManager: ConnectivityManager) : 
         mConnectivityReceiver = ConnectivityReceiver(
             object : ConnectivityReceiver.Listener {
 
-                override fun onConnectivityChange(context: Context, intent: Intent) {
+                override fun onConnectivityChange(intent: Intent) {
                     val networkInfo = mConnectivityManager.activeNetworkInfo
                     if (networkInfo == null) {
                         AppLogger.e("$CLASS_NAME network info is null")
@@ -57,7 +57,7 @@ class NetworkLayerImpl(private val mConnectivityManager: ConnectivityManager) : 
                     dumpQuality(networkInfo)
                     AppLogger.i("$CLASS_NAME network changed to $networkInfo")
 
-                    mListener?.onConnectivityChange(mType, networkInfo.isConnectedOrConnecting)
+                    mListener?.onConnectivityChange(networkInfo.isConnectedOrConnecting)
                 }
             }
         )

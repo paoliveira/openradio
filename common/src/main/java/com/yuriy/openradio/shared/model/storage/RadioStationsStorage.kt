@@ -17,7 +17,7 @@
 package com.yuriy.openradio.shared.model.storage
 
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+import java.util.Collections
 
 class RadioStationsStorage {
 
@@ -36,11 +36,6 @@ class RadioStationsStorage {
      * Collection of the Radio Stations.
      */
     private val mRadioStations = Collections.synchronizedList<RadioStation>(ArrayList())
-
-    val isEmpty: Boolean
-        get() {
-            return mRadioStations.isEmpty()
-        }
 
     val all: List<RadioStation>
         get() {

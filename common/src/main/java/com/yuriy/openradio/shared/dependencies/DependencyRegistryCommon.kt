@@ -32,7 +32,12 @@ import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkLayer
 import com.yuriy.openradio.shared.model.net.NetworkLayerImpl
 import com.yuriy.openradio.shared.model.parser.ParserLayerJsonImpl
-import com.yuriy.openradio.shared.model.storage.*
+import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
+import com.yuriy.openradio.shared.model.storage.EqualizerStorage
+import com.yuriy.openradio.shared.model.storage.FavoritesStorage
+import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
+import com.yuriy.openradio.shared.model.storage.LocationStorage
+import com.yuriy.openradio.shared.model.storage.NetworkSettingsStorage
 import com.yuriy.openradio.shared.model.storage.cache.api.InMemoryApiCache
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiCache
 import com.yuriy.openradio.shared.model.storage.cache.api.PersistentApiDb

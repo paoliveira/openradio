@@ -293,7 +293,7 @@ class MediaResourcesManager(context: Context, className: String) {
                 AppLogger.e("$mClassName metadata changed null")
                 return
             }
-            mListener?.onMetadataChanged(metadata, mMediaController?.queue)
+            mListener?.onMetadataChanged(metadata)
         }
 
         fun dispatchLatestState() {

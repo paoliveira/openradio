@@ -43,7 +43,7 @@ import com.yuriy.openradio.shared.utils.visible
 abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
 
     interface Listener {
-        fun onItemSettings(item: MediaBrowserCompat.MediaItem, position: Int)
+        fun onItemSettings(item: MediaBrowserCompat.MediaItem)
         fun onItemSelected(item: MediaBrowserCompat.MediaItem, position: Int)
     }
 
@@ -74,43 +74,12 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
     }
 
     /**
-     * get index of the Item by provided Media Id.
-     *
-     * @param mediaId Media Id of the Radio Station.
-     * @return Index of the Radio Station in the adapter,
-     * or [MediaSessionCompat.QueueItem.UNKNOWN_ID] if nothing founded.
-     */
-    fun getIndexForMediaId(mediaId: String?): Int {
-        val count = mAdapterData.itemsCount
-        var item: MediaBrowserCompat.MediaItem?
-        for (i in 0 until count) {
-            item = mAdapterData.getItem(i)
-            if (item == null) {
-                continue
-            }
-            if (item.description.mediaId == mediaId) {
-                return i
-            }
-        }
-        return MediaSessionCompat.QueueItem.UNKNOWN_ID
-    }
-
-    /**
      * Add [MediaBrowserCompat.MediaItem]s into the collection.
      *
      * @param value [MediaBrowserCompat.MediaItem]s.
      */
     fun addAll(value: List<MediaBrowserCompat.MediaItem>) {
         mAdapterData.addAll(value)
-    }
-
-    /**
-     * Removes Media Item from the adapter.
-     *
-     * @param mediaItem Media Item to remove.
-     */
-    fun remove(mediaItem: MediaBrowserCompat.MediaItem) {
-        mAdapterData.remove(mediaItem)
     }
 
     /**
@@ -124,14 +93,14 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
         clearData()
     }
 
-    inner class OnSettingsListener(item: MediaBrowserCompat.MediaItem, private val mPosition: Int) :
+    inner class OnSettingsListener(item: MediaBrowserCompat.MediaItem) :
         View.OnClickListener {
 
         private val mItem = MediaBrowserCompat.MediaItem(item.description, item.flags)
 
         override fun onClick(view: View) {
             listener?.onItemSettings(
-                MediaBrowserCompat.MediaItem(mItem.description, mItem.flags), mPosition
+                MediaBrowserCompat.MediaItem(mItem.description, mItem.flags)
             )
         }
     }

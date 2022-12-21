@@ -86,7 +86,7 @@ object NetUtils {
                 AppLogger.d("$CLASS_NAME UserAgent:$userAgent")
 
                 // If there are http request parameters:
-                if (parameters != null && parameters.isNotEmpty()) {
+                if (!parameters.isNullOrEmpty()) {
                     connection.setRequestProperty("enctype", "application/x-www-form-urlencoded")
                     try {
                         connection.outputStream.use { outputStream ->

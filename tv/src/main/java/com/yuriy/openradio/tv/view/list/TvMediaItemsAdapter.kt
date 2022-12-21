@@ -45,7 +45,7 @@ class TvMediaItemsAdapter (private var mContext: Context) : MediaItemsAdapter() 
         val mediaItem = getItem(position) ?: return
         val description = mediaItem.description
         val isPlayable = mediaItem.isPlayable
-        holder.mRoot.setOnClickListener {
+        holder.mRoot?.setOnClickListener {
             listener?.onItemSelected(mediaItem, position)
         }
         handleNameAndDescriptionView(holder.mNameView, holder.mDescriptionView, description, parentId)
@@ -57,7 +57,7 @@ class TvMediaItemsAdapter (private var mContext: Context) : MediaItemsAdapter() 
             handleFavoriteAction(
                     holder.mFavoriteCheckView, description, mediaItem, mContext
             )
-            holder.mSettingsView?.setOnClickListener(OnSettingsListener(mediaItem, position))
+            holder.mSettingsView?.setOnClickListener(OnSettingsListener(mediaItem))
             holder.mSettingsView?.visible()
         } else {
             holder.mFavoriteCheckView.gone()
@@ -66,8 +66,8 @@ class TvMediaItemsAdapter (private var mContext: Context) : MediaItemsAdapter() 
         var selected = false
         if (position == activeItemId) {
             selected = true
-            holder.mRoot.requestFocus()
+            holder.mRoot?.requestFocus()
         }
-        holder.mRoot.isSelected = selected
+        holder.mRoot?.isSelected = selected
     }
 }

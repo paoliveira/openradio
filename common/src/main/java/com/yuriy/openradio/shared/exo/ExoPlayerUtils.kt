@@ -31,7 +31,12 @@ import com.google.android.exoplayer2.upstream.cache.Cache
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.yuriy.openradio.shared.exo.extentions.*
+import com.yuriy.openradio.shared.exo.extentions.album
+import com.yuriy.openradio.shared.exo.extentions.albumArtUri
+import com.yuriy.openradio.shared.exo.extentions.artist
+import com.yuriy.openradio.shared.exo.extentions.id
+import com.yuriy.openradio.shared.exo.extentions.mediaUri
+import com.yuriy.openradio.shared.exo.extentions.title
 import com.yuriy.openradio.shared.utils.AnalyticsUtils
 import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.getUserAgent

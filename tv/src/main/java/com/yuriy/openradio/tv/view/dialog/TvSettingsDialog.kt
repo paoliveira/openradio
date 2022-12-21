@@ -22,15 +22,17 @@ import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.ListView
-import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommonUi
-import com.yuriy.openradio.shared.dependencies.MediaPresenterDependency
-import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.utils.UiUtils
 import com.yuriy.openradio.shared.utils.findTextView
 import com.yuriy.openradio.shared.view.BaseDialogFragment
-import com.yuriy.openradio.shared.view.dialog.*
+import com.yuriy.openradio.shared.view.dialog.AboutDialog
+import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
+import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
+import com.yuriy.openradio.shared.view.dialog.NetworkDialog
+import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
+import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.tv.R
-import java.util.*
+import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -39,14 +41,9 @@ import java.util.concurrent.atomic.AtomicBoolean
  * On 12/20/14
  * E-Mail: chernyshov.yuriy@gmail.com
  */
-class TvSettingsDialog : BaseDialogFragment(), MediaPresenterDependency {
+class TvSettingsDialog : BaseDialogFragment() {
 
     private val mIsInstanceSaved = AtomicBoolean(false)
-    private lateinit var mMediaPresenter: MediaPresenter
-
-    override fun configureWith(mediaPresenter: MediaPresenter) {
-        mMediaPresenter = mediaPresenter
-    }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         mIsInstanceSaved.set(false)
@@ -57,7 +54,6 @@ class TvSettingsDialog : BaseDialogFragment(), MediaPresenterDependency {
         setWindowDimensions(view, 0.9f, 0.9f)
 
         val context = requireContext()
-        DependencyRegistryCommonUi.inject(this)
 
         val titleText = context.getString(R.string.app_settings_title)
         val title = view.findTextView(R.id.dialog_tv_settings_title_view)

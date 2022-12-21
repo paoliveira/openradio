@@ -110,10 +110,6 @@ class EqualizerState() {
     companion object {
 
         private val CLASS_NAME = EqualizerState::class.java.simpleName
-
-        fun createState(equalizer: Equalizer): EqualizerState {
-            return EqualizerState(equalizer)
-        }
     }
 
     init {

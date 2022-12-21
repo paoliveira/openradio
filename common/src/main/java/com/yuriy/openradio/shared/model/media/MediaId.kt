@@ -17,7 +17,7 @@
 package com.yuriy.openradio.shared.model.media
 
 import com.yuriy.openradio.shared.utils.AppUtils
-import java.util.*
+import java.util.Locale
 
 /**
  * Created by Yuriy Chernyshov

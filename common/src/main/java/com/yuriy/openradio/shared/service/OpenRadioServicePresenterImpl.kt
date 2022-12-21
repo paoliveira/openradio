@@ -1,25 +1,27 @@
 package com.yuriy.openradio.shared.service
 
 import android.content.Context
-import android.support.v4.media.MediaBrowserCompat
 import com.yuriy.openradio.shared.model.ModelLayer
 import com.yuriy.openradio.shared.model.media.EqualizerLayer
 import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.model.net.NetworkLayer
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.net.UrlBuilder
-import com.yuriy.openradio.shared.model.storage.*
+import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
+import com.yuriy.openradio.shared.model.storage.FavoritesStorage
+import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
+import com.yuriy.openradio.shared.model.storage.LocationStorage
+import com.yuriy.openradio.shared.model.storage.NetworkSettingsStorage
 import com.yuriy.openradio.shared.model.storage.cache.api.ApiCache
 import com.yuriy.openradio.shared.model.storage.images.ImagesPersistenceLayer
 import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilder
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilderDefault
-import com.yuriy.openradio.shared.utils.MediaItemsComparator
 import com.yuriy.openradio.shared.utils.SortUtils
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.Country
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+import java.util.Collections
 
 class OpenRadioServicePresenterImpl(
     private val mNetworkLayer: NetworkLayer,
@@ -37,7 +39,6 @@ class OpenRadioServicePresenterImpl(
     private val mSleepTimerModel: SleepTimerModel
 ) : OpenRadioServicePresenter {
 
-    private val mMediaItemsComparator = MediaItemsComparator()
     private var mRemoteControlListener: RemoteControlListener ?= null
     private val mRemoteControlListenerProxy = RemoteControlListenerProxy()
 
@@ -59,10 +60,6 @@ class OpenRadioServicePresenterImpl(
 
     override fun getUseMobile(): Boolean {
         return mNetworkSettingsStorage.getUseMobile()
-    }
-
-    override fun getStationById(id: String): RadioStation {
-        return mModelLayer.getStation(UrlBuilder.getStation(id), MediaIdBuilderDefault())
     }
 
     override fun getStationsInCategory(categoryId: String, pageNumber: Int): List<RadioStation> {
@@ -122,7 +119,7 @@ class OpenRadioServicePresenterImpl(
     }
 
     override fun getAllCountries(): List<Country> {
-        return ArrayList(mModelLayer.getCountries(UrlBuilder.allCountriesUrl))
+        return ArrayList(mModelLayer.getCountries())
     }
 
     override fun getAllFavorites(): List<RadioStation> {
@@ -185,10 +182,6 @@ class OpenRadioServicePresenterImpl(
 
     override fun getRadioStationsComparator(): Comparator<RadioStation> {
         return mRadioStationsComparator
-    }
-
-    override fun getMediaItemsComparator(): Comparator<MediaBrowserCompat.MediaItem> {
-        return mMediaItemsComparator
     }
 
     override fun clear() {

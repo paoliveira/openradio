@@ -91,7 +91,7 @@ class MediaPresenterImpl(
     /**
      * ID of the parent of current item (whether it is directory or Radio Station).
      */
-    var mCurrentParentId = AppUtils.EMPTY_STRING
+    private var mCurrentParentId = AppUtils.EMPTY_STRING
     private var mCallback: MediaBrowserCompat.SubscriptionCallback? = null
     private var mActivity: FragmentActivity? = null
     private var mMainLayoutView: View? = null
@@ -656,10 +656,7 @@ class MediaPresenterImpl(
             AppLogger.d("$CLASS_NAME qc:$queue")
         }
 
-        override fun onMetadataChanged(
-            metadata: MediaMetadataCompat,
-            queue: List<MediaSessionCompat.QueueItem>?
-        ) {
+        override fun onMetadataChanged(metadata: MediaMetadataCompat) {
             handleMetadataChanged(metadata)
         }
     }
@@ -680,7 +677,7 @@ class MediaPresenterImpl(
 
     private inner class MediaItemsAdapterListener : MediaItemsAdapter.Listener {
 
-        override fun onItemSettings(item: MediaBrowserCompat.MediaItem, position: Int) {
+        override fun onItemSettings(item: MediaBrowserCompat.MediaItem) {
             handleItemSettings(item)
         }
 

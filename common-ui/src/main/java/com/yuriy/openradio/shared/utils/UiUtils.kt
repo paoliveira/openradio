@@ -18,13 +18,33 @@ package com.yuriy.openradio.shared.utils
 
 import android.app.Activity
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.SeekBar
+import android.widget.Spinner
+import android.widget.TextView
+import android.widget.ToggleButton
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.yuriy.openradio.shared.view.dialog.*
+import com.yuriy.openradio.shared.view.dialog.AboutDialog
+import com.yuriy.openradio.shared.view.dialog.AddStationDialog
+import com.yuriy.openradio.shared.view.dialog.EditStationDialog
+import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
+import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
+import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
+import com.yuriy.openradio.shared.view.dialog.NetworkDialog
+import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
+import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
+import com.yuriy.openradio.shared.view.dialog.SearchDialog
+import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
+import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 
 fun Activity.findTextView(id: Int): TextView {
     return findViewById(id)

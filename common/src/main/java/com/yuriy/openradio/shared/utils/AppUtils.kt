@@ -16,18 +16,20 @@
 
 package com.yuriy.openradio.shared.utils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.util.DisplayMetrics
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.fragment.app.FragmentActivity
 import com.google.android.exoplayer2.util.Util
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
-import java.util.*
+import java.util.TreeSet
 
 /**
  * Created by Yuriy Chernyshov
@@ -202,24 +204,13 @@ object AppUtils {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
     }
 
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.N)
-    fun hasVersionN(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-    }
-
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.O)
-    fun hasVersionO(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-    }
-
-    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.Q)
-    fun hasVersionQ(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-    }
-
     @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
     fun hasVersionS(): Boolean {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    }
+    @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.TIRAMISU)
+    fun hasVersionTiramisu(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
     }
 
     fun makeSearchQueryBundle(queryString: String): Bundle {
@@ -261,5 +252,22 @@ object AppUtils {
             }
         }
         return false
+    }
+
+    /**
+     * Return whether the given application package name is on the device's power allowlist.
+     * Apps can be placed on the allowlist through the settings UI invoked by
+     * android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS.
+     * Being on the power allowlist means that the system will not apply most power saving features to the app.
+     * Guardrails for extreme cases may still be applied.
+     */
+    @SuppressLint("NewApi")
+    fun isIgnoringBatteryOptimizations(context: Context): Boolean {
+        if (hasVersionM().not()) {
+            return true
+        }
+        val pwrm = context.applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val name = context.applicationContext.packageName
+        return pwrm.isIgnoringBatteryOptimizations(name)
     }
 }

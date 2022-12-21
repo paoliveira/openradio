@@ -18,7 +18,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import android.content.Context
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.Date
 
 class SleepTimerStorage(contextRef: WeakReference<Context>) : AbstractStorage(contextRef, FILE_NAME) {
 

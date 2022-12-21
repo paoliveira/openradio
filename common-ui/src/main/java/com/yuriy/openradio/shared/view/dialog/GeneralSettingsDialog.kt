@@ -19,7 +19,11 @@ package com.yuriy.openradio.shared.view.dialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.CheckBox
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.SeekBar
 import com.yuriy.openradio.shared.R
 import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommonUi
 import com.yuriy.openradio.shared.dependencies.MediaPresenterDependency
@@ -29,7 +33,13 @@ import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.service.OpenRadioStore
-import com.yuriy.openradio.shared.utils.*
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.findButton
+import com.yuriy.openradio.shared.utils.findCheckBox
+import com.yuriy.openradio.shared.utils.findEditText
+import com.yuriy.openradio.shared.utils.findSeekBar
+import com.yuriy.openradio.shared.utils.findSpinner
+import com.yuriy.openradio.shared.utils.findTextView
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast.showAnyThread
 import com.yuriy.openradio.shared.view.list.CountriesArrayAdapter

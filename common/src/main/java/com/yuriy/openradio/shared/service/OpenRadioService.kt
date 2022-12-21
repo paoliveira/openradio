@@ -79,15 +79,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      */
     private lateinit var mSession: MediaSessionCompat
 
-    private var mPauseReason = PauseReason.DEFAULT
-
     private val mPackageValidator by lazy {
         PackageValidator(applicationContext, R.xml.allowed_media_browser_callers)
     }
 
     private var mIsPackageValid = false
-
-    enum class PauseReason { DEFAULT, NOISY }
 
     private val mDelayedStopHandler: Handler
 
@@ -144,7 +140,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private val mStorageListener: RadioStationsStorage.Listener
     private val mStartIds: ConcurrentLinkedQueue<Int>
     private var mCurrentParentId = AppUtils.EMPTY_STRING
-    private var mIsAndroidAuto = false
 
     /**
      * Current media player state.
@@ -346,7 +341,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             return null
         }
         mIsPackageValid = true
-        mIsAndroidAuto = AppUtils.isAndroidAuto(clientPackageName)
         mCurrentParentId = OpenRadioStore.getCurrentParentId(rootHints)
         mIsRestoreState = OpenRadioStore.getRestoreState(rootHints)
         val extras = Bundle()
@@ -588,8 +582,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             mSession.isActive = true
         }
 
-        mPauseReason = PauseReason.DEFAULT
-
         // Release everything.
         relaxResources()
         mPlayer.reset()
@@ -612,22 +604,17 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     /**
      * Handle a request to pause radio stream with reason provided.
-     *
-     * @param reason Reason to pause.
      */
-    private fun handlePauseRequest(reason: PauseReason = PauseReason.DEFAULT) {
-        mUiScope.launch { handlePauseRequestUiThread(reason) }
+    private fun handlePauseRequest() {
+        mUiScope.launch { handlePauseRequestUiThread() }
     }
 
     /**
      * Handle a request to pause radio stream with reason provided in UI thread.
-     *
-     * @param reason Reason to pause.
      */
-    private fun handlePauseRequestUiThread(reason: PauseReason) {
+    private fun handlePauseRequestUiThread() {
         if (mPlayerState == Player.STATE_READY) {
             // Pause media player and cancel the 'foreground service' state.
-            mPauseReason = reason
             mPlayer.pause()
             // While paused, give up audio focus.
             relaxResources()
@@ -641,7 +628,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         if (mPlayerState == Player.STATE_IDLE || mPlayerState == Player.STATE_ENDED) {
             return
         }
-        mPauseReason = PauseReason.DEFAULT
         // Let go of all resources...
         relaxResources()
     }
@@ -874,7 +860,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     }
 
     private fun callPause() {
-        handlePauseRequest(PauseReason.NOISY)
+        handlePauseRequest()
     }
 
     private fun callPlayFromNetworkConnected() {
@@ -926,7 +912,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
 
         override fun onStartForeground(notificationId: Int, notification: Notification) {
-            AppLogger.i("$TAG start as foreground")
+            val ibo = AppUtils.isIgnoringBatteryOptimizations(applicationContext)
+            AppLogger.i("$TAG start as foreground, ibo:$ibo")
             ContextCompat.startForegroundService(
                 applicationContext,
                 Intent(applicationContext, this@OpenRadioService.javaClass)
@@ -974,7 +961,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             val intent = message.obj as Intent
             val bundle = intent.extras ?: return
             val command = bundle.getString(OpenRadioStore.KEY_NAME_COMMAND_NAME)
-            if (command == null || command.isEmpty()) {
+            if (command.isNullOrEmpty()) {
                 return
             }
             handleMessageInternal(command, intent)
@@ -983,7 +970,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private inner class NetworkMonitorListenerImpl : NetworkMonitorListener {
 
-        override fun onConnectivityChange(type: Int, isConnected: Boolean) {
+        override fun onConnectivityChange(isConnected: Boolean) {
             if (isConnected.not()) {
                 return
             }

@@ -43,23 +43,24 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
     private var mConnectedDevice = AppUtils.EMPTY_STRING
 
     override fun onReceive(context: Context, intent: Intent) {
-        AppLogger.i("$CLASS_NAME receive:$intent")
-        AppLogger.i("$CLASS_NAME    data:" + IntentUtils.intentBundleToString(intent))
-        if (!intent.hasExtra(BluetoothDevice.EXTRA_DEVICE)) {
+        AppLogger.i("$TAG receive:$intent")
+        AppLogger.i("$TAG    data:" + IntentUtils.intentBundleToString(intent))
+        val device = IntentUtils.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE, intent)
+        if (device == null) {
+            AppLogger.w("$TAG no device provided by $intent")
             return
         }
-        val device = intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE) ?: return
         when (intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE, BluetoothAdapter.ERROR)) {
             BluetoothAdapter.STATE_CONNECTED -> {
-                AppLogger.i("$CLASS_NAME connected to ${device.address}")
+                AppLogger.i("$TAG connected to ${device.address}")
                 if (device.address == mConnectedDevice) {
-                    AppLogger.i("$CLASS_NAME connected to the same device.")
+                    AppLogger.i("$TAG connected to the same device.")
                     mListener.onSameDeviceConnected()
                 }
                 mConnectedDevice = device.address
             }
             BluetoothAdapter.STATE_DISCONNECTED -> {
-                AppLogger.i("$CLASS_NAME disconnected from ${device.address}")
+                AppLogger.i("$TAG disconnected from ${device.address}")
                 if (mConnectedDevice.isNotEmpty()) {
                     mListener.onDisconnected()
                 }
@@ -72,6 +73,6 @@ class BTConnectionReceiver(private val mListener: Listener) : AbstractReceiver()
     }
 
     companion object {
-        private val CLASS_NAME = BTConnectionReceiver::class.java.simpleName
+        private val TAG = BTConnectionReceiver::class.java.simpleName
     }
 }

@@ -46,7 +46,7 @@ interface ModelLayer {
      * @param uri [Uri] of the request.
      * @return Collection of the Countries
      */
-    fun getCountries(uri: Uri): List<Country>
+    fun getCountries(): List<Country>
 
     /**
      * Get a list of Radio Stations by provided Uri.

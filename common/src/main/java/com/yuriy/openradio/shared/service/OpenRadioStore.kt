@@ -20,9 +20,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v4.media.MediaDescriptionCompat
-import android.support.v4.media.session.PlaybackStateCompat
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 
 /**
@@ -43,8 +43,8 @@ object OpenRadioStore {
     const val VALUE_NAME_REMOVE_BY_ID = "VALUE_NAME_REMOVE_BY_ID"
     const val VALUE_NAME_UPDATE_TREE = "VALUE_NAME_UPDATE_TREE"
 
-    const val EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION"
-    const val EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE"
+    private const val EXTRA_KEY_MEDIA_DESCRIPTION = "EXTRA_KEY_MEDIA_DESCRIPTION"
+    private const val EXTRA_KEY_IS_FAVORITE = "EXTRA_KEY_IS_FAVORITE"
     const val EXTRA_KEY_MEDIA_ID = "EXTRA_KEY_MEDIA_ID"
     const val EXTRA_KEY_MEDIA_IDS = "EXTRA_KEY_MEDIA_IDS"
     const val EXTRA_KEY_SORT_IDS = "EXTRA_KEY_SORT_IDS"
@@ -170,9 +170,8 @@ object OpenRadioStore {
     }
 
     fun extractMediaDescription(intent: Intent): MediaDescriptionCompat? {
-        return if (!intent.hasExtra(EXTRA_KEY_MEDIA_DESCRIPTION)) {
-            MediaDescriptionCompat.Builder().build()
-        } else intent.getParcelableExtra(EXTRA_KEY_MEDIA_DESCRIPTION)
+        return IntentUtils.getParcelableExtra<MediaDescriptionCompat>(EXTRA_KEY_MEDIA_DESCRIPTION, intent)
+            ?: return MediaDescriptionCompat.Builder().build()
     }
 
     fun putCurrentParentId(bundle: Bundle?, currentParentId: String?) {
@@ -193,11 +192,6 @@ object OpenRadioStore {
             return
         }
         bundle.putInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, value)
-    }
-
-    fun getCurrentPlaybackState(bundle: Bundle?): Int {
-        return bundle?.getInt(BUNDLE_ARG_CURRENT_PLAYBACK_STATE, PlaybackStateCompat.STATE_NONE)
-            ?: PlaybackStateCompat.STATE_NONE
     }
 
     fun putRestoreState(bundle: Bundle?, value: Boolean) {

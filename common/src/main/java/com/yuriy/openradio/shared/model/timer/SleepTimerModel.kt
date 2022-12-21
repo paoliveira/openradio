@@ -16,7 +16,7 @@
 
 package com.yuriy.openradio.shared.model.timer
 
-import java.util.*
+import java.util.Date
 
 interface SleepTimerModel {
 

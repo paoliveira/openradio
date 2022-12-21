@@ -17,7 +17,12 @@
 package com.yuriy.openradio.shared.model.timer
 
 import com.yuriy.openradio.shared.utils.AppLogger
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
 
 class CoroutineTimerTask internal constructor(private val mName: String, action: suspend () -> Unit) {

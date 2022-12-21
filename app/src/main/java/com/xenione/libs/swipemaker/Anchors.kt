@@ -1,6 +1,6 @@
 package com.xenione.libs.swipemaker
 
-import java.util.*
+import java.util.Arrays
 import kotlin.math.abs
 
 /**

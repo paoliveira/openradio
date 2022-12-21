@@ -1,6 +1,5 @@
 package com.yuriy.openradio.automotive.dependencies
 
-import android.content.Context
 import com.yuriy.openradio.automotive.ui.AutomotiveSettingsActivity
 import com.yuriy.openradio.automotive.ui.AutomotiveSettingsActivityPresenter
 import com.yuriy.openradio.automotive.ui.AutomotiveSettingsActivityPresenterImpl
@@ -17,7 +16,7 @@ object DependencyRegistryAutomotive {
     /**
      * Init with application's context only!
      */
-    fun init(context: Context) {
+    fun init() {
         if (sInit.get()) {
             return
         }

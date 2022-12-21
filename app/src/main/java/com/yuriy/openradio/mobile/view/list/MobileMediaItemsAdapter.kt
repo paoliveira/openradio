@@ -62,7 +62,7 @@ class MobileMediaItemsAdapter(private var mContext: Context) : MediaItemsAdapter
         } else {
             holder.mFavoriteCheckView.gone()
         }
-        holder.mSettingsView?.setOnClickListener(OnSettingsListener(mediaItem, position))
+        holder.mSettingsView?.setOnClickListener(OnSettingsListener(mediaItem))
         (holder.mForegroundView as SwipeLayout).isDragDisabled(!isPlayable)
         holder.mForegroundView?.setOnClickListener(OnItemTapListener(mediaItem, position))
         var color = R.color.or_color_primary

@@ -23,8 +23,8 @@ import com.yuriy.openradio.shared.utils.NetUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.hamcrest.MatcherAssert
 import org.hamcrest.core.Is
-import org.junit.Assert
 import org.junit.Test
 import org.junit.runner.RunWith
 import wseemann.media.jplaylistparser.parser.pls.PLSPlaylistParser
@@ -55,7 +55,7 @@ class AutoDetectParserAndroidTest {
         }
         latch.await((AppUtils.TIME_OUT + 1000).toLong(), TimeUnit.SECONDS)
         // Requires internet connection!
-        Assert.assertThat(ext, Is.`is`(PLSPlaylistParser.EXTENSION))
+        MatcherAssert.assertThat(ext, Is.`is`(PLSPlaylistParser.EXTENSION))
     }
 
     @Test

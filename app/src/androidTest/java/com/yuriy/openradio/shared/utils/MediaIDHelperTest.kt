@@ -21,6 +21,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.model.media.MediaId.getCountryCode
 import com.yuriy.openradio.shared.model.media.MediaId.getId
+import com.yuriy.openradio.shared.vo.Country
 import junit.framework.TestCase
 import org.hamcrest.MatcherAssert
 import org.hamcrest.Matchers
@@ -43,27 +44,27 @@ class MediaIDHelperTest : TestCase() {
     fun testGetId() {
         val id = MediaId.MEDIA_ID_CHILD_CATEGORIES
         val startsWith = MediaId.MEDIA_ID_CHILD_CATEGORIES + "11"
-        MatcherAssert.assertThat(getId(mContext, startsWith), Matchers.`is`(id))
+        MatcherAssert.assertThat(getId(startsWith, Country.COUNTRY_CODE_DEFAULT), Matchers.`is`(id))
     }
 
     fun testGetValidCountryCode() {
         val id = MediaId.MEDIA_ID_COUNTRIES_LIST + "BR"
-        MatcherAssert.assertThat(getCountryCode(mContext, id), Matchers.`is`("BR"))
+        MatcherAssert.assertThat(getCountryCode(id, Country.COUNTRY_CODE_DEFAULT), Matchers.`is`("BR"))
     }
 
     fun testGetInvalidCountryCodeFromValidValueSameSubName() {
         val id = MediaId.MEDIA_ID_COUNTRIES_LIST
-        MatcherAssert.assertThat(getCountryCode(mContext, id), Matchers.nullValue())
+        MatcherAssert.assertThat(getCountryCode(id, Country.COUNTRY_CODE_DEFAULT), Matchers.nullValue())
     }
 
     fun testGetInvalidCountryCodeFromValidValueDifferentSubName() {
         val id = MediaId.MEDIA_ID_SEARCH_FROM_APP
-        MatcherAssert.assertThat(getCountryCode(mContext, id), Matchers.nullValue())
+        MatcherAssert.assertThat(getCountryCode(id, Country.COUNTRY_CODE_DEFAULT), Matchers.nullValue())
     }
 
     fun testGetInvalidCountryCodeFromNullValue() {
         val id: String? = null
-        MatcherAssert.assertThat(getCountryCode(mContext, id), Matchers.nullValue())
+        MatcherAssert.assertThat(getCountryCode(id, Country.COUNTRY_CODE_DEFAULT), Matchers.nullValue())
     }
 
     fun testStartsWithAndEquals() {

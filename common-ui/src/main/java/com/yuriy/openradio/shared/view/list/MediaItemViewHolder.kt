@@ -53,7 +53,7 @@ class MediaItemViewHolder(view: View, root_view_id: Int, name_view_id: Int,
 
     val mForegroundView: RelativeLayout? = view.findViewById(foreground_view_id)
 
-    val mRoot = view.findViewById<ViewGroup>(root_view_id)
+    val mRoot: ViewGroup? = view.findViewById(root_view_id)
 
     val mSettingsView: ImageButton? = view.findViewById(settings_btn_view_id)
 }

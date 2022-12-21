@@ -16,7 +16,6 @@
 
 package com.yuriy.openradio.tv.dependencies
 
-import android.content.Context
 import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
 import com.yuriy.openradio.tv.view.activity.TvMainActivity
 import com.yuriy.openradio.tv.view.activity.TvMainActivityPresenter
@@ -33,7 +32,7 @@ object DependencyRegistryTv {
     /**
      * Init with application's context only!
      */
-    fun init(context: Context) {
+    fun init() {
         if (sInit.get()) {
             return
         }

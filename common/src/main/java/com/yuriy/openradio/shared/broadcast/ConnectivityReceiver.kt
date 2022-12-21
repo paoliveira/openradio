@@ -38,11 +38,11 @@ class ConnectivityReceiver(private val mListener: Listener) : AbstractReceiver()
         /**
          * Call when connectivity changed.
          */
-        fun onConnectivityChange(context: Context, intent: Intent)
+        fun onConnectivityChange(intent: Intent)
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        mListener.onConnectivityChange(context, intent)
+        mListener.onConnectivityChange(intent)
     }
 
     override fun makeIntentFilter(): IntentFilter {

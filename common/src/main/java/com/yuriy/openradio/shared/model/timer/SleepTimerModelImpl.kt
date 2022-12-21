@@ -19,7 +19,8 @@ package com.yuriy.openradio.shared.model.timer
 import android.content.Context
 import com.yuriy.openradio.shared.model.storage.SleepTimerStorage
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 import java.util.concurrent.ConcurrentLinkedQueue
 
 /**

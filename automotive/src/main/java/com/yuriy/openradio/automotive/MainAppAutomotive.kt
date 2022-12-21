@@ -10,7 +10,7 @@ class MainAppAutomotive: MainAppCommon() {
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(base)
         DependencyRegistryCommonUi.init(base)
-        DependencyRegistryAutomotive.init(base)
+        DependencyRegistryAutomotive.init()
     }
 }
 

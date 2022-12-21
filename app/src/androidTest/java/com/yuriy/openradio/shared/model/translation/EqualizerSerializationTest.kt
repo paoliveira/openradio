@@ -17,7 +17,6 @@
 package com.yuriy.openradio.shared.model.translation
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.yuriy.openradio.shared.vo.EqualizerState
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
@@ -29,7 +28,6 @@ class EqualizerSerializationTest {
 
     @Test
     fun testSerializationOfEqualizer() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
         val list = ArrayList<String>()
         list.add("One")
         list.add("Two")
@@ -57,7 +55,7 @@ class EqualizerSerializationTest {
         val serializer = EqualizerJsonStateSerializer()
         val value = serializer.serialize(state)
         val deserializer = EqualizerStateJsonDeserializer()
-        val newState = deserializer.deserialize(context, value)
+        val newState = deserializer.deserialize(value)
         val newList = newState.presets
         MatcherAssert.assertThat(newList.size, CoreMatchers.`is`(3))
         MatcherAssert.assertThat(newList[0], CoreMatchers.`is`("One"))

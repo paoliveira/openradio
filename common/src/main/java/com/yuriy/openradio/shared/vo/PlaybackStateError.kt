@@ -20,7 +20,7 @@ import android.content.Context
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.utils.AppUtils
 
-class PlaybackStateError @JvmOverloads constructor(
+class PlaybackStateError(
     val msg: String = AppUtils.EMPTY_STRING,
     val code: Code = Code.NO_ERROR,
     val exception: Throwable? = null

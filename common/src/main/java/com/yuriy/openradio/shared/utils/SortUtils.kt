@@ -20,7 +20,7 @@ import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.*
+import java.util.Collections
 
 object SortUtils {
 
