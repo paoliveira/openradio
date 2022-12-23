@@ -26,6 +26,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.google.android.material.snackbar.Snackbar
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.utils.AppUtils.hasVersionM
 
 /**
@@ -41,13 +42,18 @@ object PermissionChecker {
 
     private const val KEY_PERMISSION_REQUESTED = "KEY_PERMISSION_REQUESTED"
     private const val VALUE_PERMISSION_REQUESTED = "VALUE_PERMISSION_REQUESTED"
+    private val sStoragePermission = if (AppUtils.hasVersionTiramisu()) {
+        Manifest.permission.READ_MEDIA_IMAGES
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
 
     fun isLocationGranted(context: Context): Boolean {
         return isGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
     }
 
     fun isExternalStorageGranted(context: Context): Boolean {
-        return isGranted(context, Manifest.permission.READ_EXTERNAL_STORAGE)
+        return isGranted(context, sStoragePermission)
     }
 
     fun isRecordAudioGranted(context: Context): Boolean {
@@ -70,7 +76,7 @@ object PermissionChecker {
     fun requestExternalStoragePermission(activity: Activity, layout: View) {
         requestPermission(
             activity, layout,
-            Manifest.permission.READ_EXTERNAL_STORAGE, activity.getString(R.string.storage_permission_proposed),
+            sStoragePermission, activity.getString(R.string.storage_permission_proposed),
             REQUEST_CODE_EXT_STORAGE
         )
     }
@@ -126,11 +132,10 @@ object PermissionChecker {
      * @return **TRUE** in case of provided permission is granted,
      * **FALSE** otherwise.
      */
-    private fun isGranted(context: Context?, permission: String): Boolean {
+    private fun isGranted(context: Context, permission: String): Boolean {
         return if (!hasVersionM()) {
             true
-        } else context != null && permission.isNotEmpty()
-                && (ActivityCompat.checkSelfPermission(context, permission)
+        } else permission.isNotEmpty() && (ActivityCompat.checkSelfPermission(context, permission)
                 == PackageManager.PERMISSION_GRANTED)
     }
 }

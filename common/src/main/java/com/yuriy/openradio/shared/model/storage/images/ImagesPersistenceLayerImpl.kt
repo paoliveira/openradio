@@ -52,7 +52,6 @@ class ImagesPersistenceLayerImpl(
      * Coroutine scope to handle non UI operations.
      */
     private val mIoScope = CoroutineScope(Job() + Dispatchers.IO)
-    private val mUiScope = CoroutineScope(Job() + Dispatchers.Main)
 
     override fun open(uri: Uri): ParcelFileDescriptor? {
         AppLogger.d("$TAG open file for '$uri'")

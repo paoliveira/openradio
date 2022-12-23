@@ -16,7 +16,7 @@
 * ACCESS_NETWORK_STATE - To monitor Internet connection state, detect connect and reconnect states.
 * WAKE_LOCK - To keep screen on while playing Radio Station.
 * ACCESS_COARSE_LOCATION - On user's demand only - to select Country for user based on Location. This helps to navigate local Radio Stations.
-* READ_EXTERNAL_STORAGE - On user's demand only - to read image from phone's memory when set it as image for Local Radio Station.
+* READ_EXTERNAL_STORAGE (Android 12 and older), READ_MEDIA_IMAGES (Android 13 and newer) - On user's demand only - to read image from phone's memory when set it as image for Local Radio Station.
 * FOREGROUND_SERVICE - To keep service active while playing stream.
 * BLUETOOTH, BLUETOOTH_ADMIN, BLUETOOTH_CONNECT - On user's demand only - to handle connection with a Bluetooth device.
 * RECORD_AUDIO - On user's demand only - to use voice search engine on Android TV.
