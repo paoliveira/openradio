@@ -17,6 +17,7 @@
 package com.yuriy.openradio.shared.utils
 
 import android.app.Activity
+import android.graphics.BitmapFactory
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -140,6 +141,14 @@ fun View.findSpinner(id: Int): Spinner {
 
 fun View.findSeekBar(id: Int): SeekBar {
     return findViewById(id)
+}
+
+fun ImageView.setImageBitmap(bytes: ByteArray) {
+    if (bytes.isEmpty()) {
+        return
+    }
+    val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    this.setImageBitmap(bitmap)
 }
 
 object UiUtils {

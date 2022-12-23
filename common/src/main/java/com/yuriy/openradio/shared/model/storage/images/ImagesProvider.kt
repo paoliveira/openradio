@@ -22,7 +22,6 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
-import com.yuriy.openradio.shared.utils.AppLogger
 
 class ImagesProvider : ContentProvider() {
 
@@ -51,12 +50,10 @@ class ImagesProvider : ContentProvider() {
     }
 
     override fun insert(uri: Uri, values: ContentValues?): Uri {
-        AppLogger.d("$TAG insert with $uri and $values")
         return Uri.EMPTY
     }
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
-        AppLogger.d("$TAG open file for $uri")
         return mImagesPersistenceLayer.open(uri)
     }
 
@@ -69,10 +66,5 @@ class ImagesProvider : ContentProvider() {
 
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?): Int {
         return 0
-    }
-
-    companion object {
-
-        private const val TAG = "IP"
     }
 }

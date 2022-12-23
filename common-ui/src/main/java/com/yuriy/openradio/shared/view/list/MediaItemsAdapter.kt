@@ -32,7 +32,9 @@ import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.service.OpenRadioStore
 import com.yuriy.openradio.shared.utils.MediaItemHelper
 import com.yuriy.openradio.shared.utils.gone
+import com.yuriy.openradio.shared.utils.setImageBitmap
 import com.yuriy.openradio.shared.utils.visible
+
 
 /**
  * Created by Yuriy Chernyshov
@@ -164,6 +166,8 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
          */
         fun updateImage(context: Context, description: MediaDescriptionCompat, view: ImageView) {
             view.visible()
+            // Show placeholder before load an image.
+            view.setImageResource(R.drawable.ic_radio_station)
             if (description.iconBitmap != null) {
                 view.setImageBitmap(description.iconBitmap)
             } else {
@@ -176,13 +180,14 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
                     return
                 }
                 val imageUri = description.iconUri ?: return
-                // Validate we have a valid bytes in database, because even with valid url there can be a problem of
-                // download the image.
+                val id = ImagesStore.getId(imageUri)
+                // Mark view by tag, later on, when image downloaded and callback invoked in presenter
+                // it will be possible to re-open stream and apply bytes to correct image view.
+                view.tag = id
                 context.contentResolver.openInputStream(imageUri)?.use {
-                    if (it.readBytes().isEmpty()) {
-                        return
-                    }
-                    view.setImageURI(imageUri)
+                    // Get bytes if available. If not, the callback in presenter will hook downloaded bytes
+                    // later on.
+                    view.setImageBitmap(it.readBytes())
                 }
             }
         }

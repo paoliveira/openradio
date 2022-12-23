@@ -402,8 +402,6 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         )
         findProgressBar(R.id.crs_img_progress_view).gone()
         val imgView = findImageView(R.id.crs_img_view)
-        // Show placeholder before load an image.
-        imgView.setImageResource(R.drawable.ic_radio_station)
         MediaItemsAdapter.updateImage(applicationContext, description, imgView)
         MediaItemsAdapter.updateBitrateView(
             radioStation.getStreamBitrate(), findTextView(R.id.crs_bitrate_view), true

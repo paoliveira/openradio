@@ -34,11 +34,9 @@ android {
 
 dependencies {
     implementation project(':common')
-
     api "androidx.constraintlayout:constraintlayout:$constraintlayoutAndroidXVersion"
     api "androidx.fragment:fragment-ktx:$fragmentKtxVersion"
     api "com.google.android.gms:play-services-auth:$googlePlayServicesAuthVersion"
     implementation "com.google.android.gms:play-services-drive:$googlePlayServicesDriveVersion"
-
     implementation "com.sun.mail:android-mail:$androidMailVersion"
 }

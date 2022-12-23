@@ -21,6 +21,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.database.ContentObserver
+import android.net.Uri
 import android.os.*
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
@@ -28,6 +30,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
@@ -45,6 +48,7 @@ import com.yuriy.openradio.shared.model.media.MediaResourcesManager
 import com.yuriy.openradio.shared.model.net.NetworkLayer
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.LocationStorage
+import com.yuriy.openradio.shared.model.storage.images.ImagesStore
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
 import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.permission.PermissionChecker
@@ -121,6 +125,8 @@ class MediaPresenterImpl(
 
     private val mLocationMessenger = Messenger(LocationHandler())
     private val mTimerListener = SleepTimerListenerImpl()
+    // Handle download callback from the images persistent layer.
+    private val mContentObserver = ContentObserverExt()
 
     override fun init(
         activity: FragmentActivity, mainLayout: View,
@@ -156,6 +162,10 @@ class MediaPresenterImpl(
             addMediaItemToStack(mediaId)
         }
         restoreState(bundle)
+        mActivity?.applicationContext?.contentResolver?.registerContentObserver(
+            ImagesStore.AUTHORITY_URI, true,
+            mContentObserver
+        )
     }
 
     private fun itemsCount(): Int {
@@ -164,6 +174,9 @@ class MediaPresenterImpl(
 
     private fun clean() {
         AppLogger.d("$CLASS_NAME clean")
+        mActivity?.applicationContext?.contentResolver?.unregisterContentObserver(
+            mContentObserver
+        )
         mMediaRsrMgr.clean()
         mSleepTimerModel.removeSleepTimerListener(mTimerListener)
         mCallback = null
@@ -700,10 +713,25 @@ class MediaPresenterImpl(
         }
     }
 
-    inner class SleepTimerListenerImpl : SleepTimerListener {
+    private inner class SleepTimerListenerImpl : SleepTimerListener {
 
         override fun onComplete() {
             handleClosePresenter()
+        }
+    }
+
+    private inner class ContentObserverExt : ContentObserver(Handler(Looper.getMainLooper())) {
+
+        override fun onChange(selfChange: Boolean, uri: Uri?, flags: Int) {
+            if (uri == null) {
+                return
+            }
+            val id = ImagesStore.getId(uri)
+            val view = mListView?.findViewWithTag<ImageView>(id) ?: return
+            // Re-read image from the content provider.
+            mContext.contentResolver.openInputStream(uri)?.use {
+                view.setImageBitmap(it.readBytes())
+            }
         }
     }
 

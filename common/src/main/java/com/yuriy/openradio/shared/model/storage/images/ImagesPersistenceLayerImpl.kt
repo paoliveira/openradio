@@ -52,6 +52,7 @@ class ImagesPersistenceLayerImpl(
      * Coroutine scope to handle non UI operations.
      */
     private val mIoScope = CoroutineScope(Job() + Dispatchers.IO)
+    private val mUiScope = CoroutineScope(Job() + Dispatchers.Main)
 
     override fun open(uri: Uri): ParcelFileDescriptor? {
         AppLogger.d("$TAG open file for '$uri'")
@@ -74,7 +75,7 @@ class ImagesPersistenceLayerImpl(
             AppLogger.w("$TAG no bytes available for $uri")
             mIoScope.launch(Dispatchers.IO) {
                 try {
-                    ImageDownloader(id, url, ImagesStore.buildImageLoadedUri(id)).run()
+                    ImageDownloader(id, url, uri).run()
                 } catch (e: Exception) {
                     AppLogger.e("$TAG can't handle image", e)
                 }
@@ -90,7 +91,8 @@ class ImagesPersistenceLayerImpl(
                 try {
                     // Write data to pipe:
                     output.write(bytes)
-                    mContext.contentResolver?.notifyChange(uri, null)
+                    //val uriToReport = uri.buildUpon().appendQueryParameter("load", "success").build()
+                    //mContext.contentResolver?.notifyChange(uriToReport, null)
                 } catch (e: IOException) {
                     AppLogger.e("$TAG exception transferring file", e)
                 } finally {
@@ -137,7 +139,11 @@ class ImagesPersistenceLayerImpl(
         }
     }
 
-    private inner class ImageDownloader(private val mId: String, private val mImageUrl: String, private val mUri: Uri) :
+    private inner class ImageDownloader(
+        private val mId: String,
+        private val mImageUrl: String,
+        private val mUri: Uri
+    ) :
         Runnable {
 
         override fun run() {
@@ -172,9 +178,10 @@ class ImagesPersistenceLayerImpl(
             }
             synchronized(mImagesDatabase) {
                 mImagesDatabase.rsImageDao().insertImage(Image(mId, bytes))
-                AppLogger.d("$TAG db contains ${mImagesDatabase.rsImageDao().getCount()} images")
-                mContext.contentResolver?.notifyChange(mUri, null)
             }
+            val uriToReport = mUri.buildUpon().appendQueryParameter("load", "success").build()
+            AppLogger.d("$TAG image downloaded for $mUri, notify $uriToReport")
+            mContext.contentResolver?.notifyChange(uriToReport, null)
         }
 
         private fun scaleBytes(bytes: ByteArray, orientation: Int): ByteArray {
@@ -189,16 +196,18 @@ class ImagesPersistenceLayerImpl(
             when {
                 width > height -> {
                     // landscape
-                    val ratio: Double = width / MAX_WIDTH
+                    val ratio = width / MAX_WIDTH
                     width = MAX_WIDTH.toInt()
                     height = (height / ratio).toInt()
                 }
+
                 height > width -> {
                     // portrait
-                    val ratio: Double = height / MAX_HEIGHT
+                    val ratio = height / MAX_HEIGHT
                     height = MAX_HEIGHT.toInt()
                     width = (width / ratio).toInt()
                 }
+
                 else -> {
                     // square
                     height = MAX_HEIGHT.toInt()
@@ -233,9 +242,9 @@ class ImagesPersistenceLayerImpl(
     }
 
     companion object {
-        private const val TAG = "IMI"
-        private const val MAX_WIDTH: Double = 500.0
-        private const val MAX_HEIGHT: Double = 500.0
+        private const val TAG = "IPL"
+        private const val MAX_WIDTH = 500.0
+        private const val MAX_HEIGHT = 500.0
 
         /**
          * Maximum bytes for an image.

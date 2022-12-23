@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2021, 2022 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,11 +45,9 @@ object ImagesStore {
     /**
      * Uri to the authority for the this provider.
      */
-    private val AUTHORITY_URI = Uri.parse("content://$AUTHORITY")
+    val AUTHORITY_URI: Uri = Uri.parse("content://$AUTHORITY")
 
     private const val PATH_DELETE = "delete"
-
-    private const val PATH_LOADED = "loaded"
 
     private const val QUERY_PARAM_ID = "id"
 
@@ -80,15 +78,6 @@ object ImagesStore {
             return AppUtils.EMPTY_STRING
         }
         return Uri.decode(uri.getQueryParameter(QUERY_PARAM_URL)) ?: AppUtils.EMPTY_STRING
-    }
-
-    fun buildImageLoadedUri(id: String): Uri {
-        return Uri.Builder()
-            .scheme(ContentResolver.SCHEME_CONTENT)
-            .authority(AUTHORITY)
-            .appendPath(PATH_LOADED)
-            .appendQueryParameter(QUERY_PARAM_ID, id)
-            .build()
     }
 
     fun isAuthorised(uri: Uri): Boolean {

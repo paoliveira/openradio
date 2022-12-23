@@ -105,4 +105,6 @@
     <string name="can_not_set_date">Can not set Date</string>
     <string name="use_mobile_network">Use Mobile network</string>
     <string name="support_ivan_text">If you like Open Radio</string>
+    <item type="id" name="imageUpdated" />
+    <item type="id" name="imageId" />
 </resources>
