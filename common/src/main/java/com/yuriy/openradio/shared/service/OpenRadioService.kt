@@ -23,7 +23,12 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.*
+import android.os.Bundle
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
+import android.os.Message
+import android.os.ResultReceiver
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -46,16 +51,47 @@ import com.yuriy.openradio.shared.dependencies.DependencyRegistryCommon
 import com.yuriy.openradio.shared.exo.OpenRadioPlayer
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.model.media.RemoteControlListener
-import com.yuriy.openradio.shared.model.media.item.*
+import com.yuriy.openradio.shared.model.media.item.MediaItemAllCategories
+import com.yuriy.openradio.shared.model.media.item.MediaItemBrowseCar
+import com.yuriy.openradio.shared.model.media.item.MediaItemChildCategories
+import com.yuriy.openradio.shared.model.media.item.MediaItemCommand
+import com.yuriy.openradio.shared.model.media.item.MediaItemCommandDependencies
+import com.yuriy.openradio.shared.model.media.item.MediaItemCountriesList
+import com.yuriy.openradio.shared.model.media.item.MediaItemCountryStations
+import com.yuriy.openradio.shared.model.media.item.MediaItemFavoritesList
+import com.yuriy.openradio.shared.model.media.item.MediaItemLocalsList
+import com.yuriy.openradio.shared.model.media.item.MediaItemPopularStations
+import com.yuriy.openradio.shared.model.media.item.MediaItemRecentStations
+import com.yuriy.openradio.shared.model.media.item.MediaItemRoot
+import com.yuriy.openradio.shared.model.media.item.MediaItemRootCar
+import com.yuriy.openradio.shared.model.media.item.MediaItemSearchFromApp
+import com.yuriy.openradio.shared.model.media.item.MediaItemSearchFromService
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import com.yuriy.openradio.shared.model.storage.RadioStationsStorage
 import com.yuriy.openradio.shared.model.timer.SleepTimerListener
-import com.yuriy.openradio.shared.utils.*
+import com.yuriy.openradio.shared.utils.AnalyticsUtils
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
+import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.NetUtils
+import com.yuriy.openradio.shared.utils.PackageValidator
+import com.yuriy.openradio.shared.utils.PlayerUtils
 import com.yuriy.openradio.shared.view.SafeToast
-import com.yuriy.openradio.shared.vo.*
-import kotlinx.coroutines.*
+import com.yuriy.openradio.shared.vo.Country
+import com.yuriy.openradio.shared.vo.MediaStream
+import com.yuriy.openradio.shared.vo.RadioStation
+import com.yuriy.openradio.shared.vo.getStreamUrl
+import com.yuriy.openradio.shared.vo.isInvalid
+import com.yuriy.openradio.shared.vo.setVariantFixed
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Created by Yuriy Chernyshov
@@ -99,6 +135,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     private val mUiScope: CoroutineScope
     private val mScope: CoroutineScope
     private val mCommandScope: CoroutineScope
+    private val mRestoreComplete = AtomicBoolean(false)
 
     private val mBTConnectionReceiver = BTConnectionReceiver(
 
@@ -132,7 +169,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Storage of Radio Stations to browse.
      */
     private val mBrowseStorage: RadioStationsStorage
-
+    private val mLatestPlaylist = ArrayList<RadioStation>()
     /**
      * Storage of Radio Stations queried from Search.
      */
@@ -233,6 +270,16 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
         AppLogger.i("$TAG on create")
+        mRestoreComplete.set(false)
+        if (AppPreferencesManager.lastKnownRadioStationEnabled(applicationContext)) {
+            mScope.launch {
+                setActiveRS(mPresenter.getLastRadioStation())
+                restoreActivePlaylist()
+                mRestoreComplete.set(true)
+            }
+        } else {
+            mRestoreComplete.set(true)
+        }
         registerReceivers()
         // Create and start a background HandlerThread since by
         // default a Service runs in the UI Thread, which we don't
@@ -330,7 +377,6 @@ class OpenRadioService : MediaBrowserServiceCompat() {
     override fun onGetRoot(clientPackageName: String, clientUid: Int, rootHints: Bundle?): BrowserRoot? {
         AnalyticsUtils.logMessage(
             "$TAG GetRoot for clientPkgName=$clientPackageName, clientUid=$clientUid, " +
-                    "systemUid=${Process.SYSTEM_UID}, myUid=${Process.myUid()}, " +
                     "rootHints=${IntentUtils.bundleToString(rootHints)}"
         )
         // To ensure you are not allowing any arbitrary app to browse your app's contents, you
@@ -385,6 +431,25 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             AppLogger.w("$TAG skipping unmatched parentId: $id")
             result.sendResult(null)
         }
+    }
+
+    private fun restoreActivePlaylist() {
+        val pl = mPresenter.getAllFavorites()
+        val rs = mActiveRS
+        var found = false
+        if (rs != RadioStation.INVALID_INSTANCE) {
+            for (item in pl) {
+                if (item.id == rs.id) {
+                    found = true
+                    break
+                }
+            }
+        }
+        mLatestPlaylist.clear()
+        if (found.not()) {
+            mLatestPlaylist.add(rs)
+        }
+        mLatestPlaylist.addAll(pl)
     }
 
     private fun maybeNotifyRootCarChanged() {
@@ -663,41 +728,37 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     private fun onResult(list: List<RadioStation>) {
         AppLogger.d("${list.size} children loaded")
-        restoreActiveRadioStation()
+        while (mRestoreComplete.get().not()) {
+            Thread.sleep(100)
+        }
+        AppLogger.d("${list.size} children loaded and restore compete")
         if (list.isEmpty().not()) {
             mBrowseStorage.clear()
             mBrowseStorage.addAll(list)
         }
         mUiScope.launch {
             val count = mPlayer.mediaItemCount()
+            // Case of the first start. Need to provide a playlist as well so the user can browse.
             if (count <= 0) {
-                mBrowseStorage.addFirst(mActiveRS)
-                mStorageListener.onAdd(mActiveRS, 0)
-                handlePlayRequest()
-            }
-            if (count == 1) {
-                // Fill more items base don category.
-                when(mCurrentParentId) {
+                // Fill more items based on category.
+                when (mCurrentParentId) {
                     MediaId.MEDIA_ID_FAVORITES_LIST -> {
-                        AppLogger.d("-- load more favorites")
+                        //AppLogger.d("-- load more favorites")
                     }
+
                     MediaId.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST -> {
-                        AppLogger.d("-- load more locals")
+                        //AppLogger.d("-- load more locals")
                     }
+
                     else -> {
-                        AppLogger.d("-- load more recent")
+                        //AppLogger.d("-- load more recent")
                     }
                 }
+                mBrowseStorage.addAll(mLatestPlaylist)
+                mStorageListener.onAddAll(mLatestPlaylist)
+                handlePlayRequest()
             }
         }
-    }
-
-    private fun restoreActiveRadioStation() {
-        val lastKnownRadioStationEnabled = AppPreferencesManager.lastKnownRadioStationEnabled(applicationContext)
-        if (lastKnownRadioStationEnabled.not()) {
-            return
-        }
-        setActiveRS(mPresenter.getLastRadioStation())
     }
 
     /**
@@ -778,6 +839,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 mPresenter.updateRadioStationFavorite(rs, isFavorite)
                 maybeNotifyRootCarChanged()
             }
+
             OpenRadioStore.VALUE_NAME_NETWORK_SETTINGS_CHANGED -> {
                 if (mPresenter.isMobileNetwork() &&
                     mPresenter.getUseMobile().not()
@@ -790,18 +852,22 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                     return
                 }
             }
+
             OpenRadioStore.VALUE_NAME_UPDATE_TREE -> {
                 notifyChildrenChanged(mCurrentParentId)
             }
+
             OpenRadioStore.VALUE_NAME_CLEAR_CACHE -> {
                 handleClearCache(context)
             }
+
             OpenRadioStore.VALUE_NAME_MASTER_VOLUME_CHANGED -> {
                 handleMasterVolumeChanged(
                     context,
                     intent.getIntExtra(OpenRadioStore.EXTRA_KEY_MASTER_VOLUME, MASTER_VOLUME_DEFAULT)
                 )
             }
+
             OpenRadioStore.VALUE_NAME_REMOVE_BY_ID -> {
                 mStorageListener.onClear()
                 getStorage(mActiveRS.id).removeById(
@@ -809,11 +875,13 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 )
                 mStorageListener.onAddAll(getStorage(mActiveRS.id).all)
             }
+
             OpenRadioStore.VALUE_NAME_NOTIFY_CHILDREN_CHANGED -> {
                 notifyChildrenChanged(
                     intent.getStringExtra(OpenRadioStore.EXTRA_KEY_PARENT_ID) ?: MediaId.MEDIA_ID_ROOT
                 )
             }
+
             OpenRadioStore.VALUE_NAME_UPDATE_SORT_IDS -> {
                 val mediaId = intent.getStringExtra(OpenRadioStore.EXTRA_KEY_MEDIA_IDS)
                 val sortId = intent.getIntExtra(OpenRadioStore.EXTRA_KEY_SORT_IDS, 0)
@@ -827,14 +895,17 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 )
                 notifyChildrenChanged(categoryMediaId)
             }
+
             OpenRadioStore.VALUE_NAME_TOGGLE_LAST_PLAYED_ITEM -> {
                 togglePlayableItem()
             }
+
             OpenRadioStore.VALUE_NAME_STOP_SERVICE -> {
                 mUiScope.launch {
                     closeService()
                 }
             }
+
             else -> AppLogger.w("$TAG unknown command:$command")
         }
     }
@@ -845,10 +916,12 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             Player.STATE_READY -> {
                 handlePauseRequest()
             }
+
             Player.STATE_IDLE,
             Player.STATE_ENDED -> {
                 handlePlayRequest()
             }
+
             else -> {
                 AppLogger.w(
                     "$TAG unhandled playback state:${PlayerUtils.playerStateToString(mPlayerState)}"
@@ -894,7 +967,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             return
         }
         mActiveRS = value
-        AppLogger.i("$TAG ars is $mActiveRS")
+        AppLogger.i("$TAG set ars $mActiveRS")
     }
 
     /**
@@ -1060,16 +1133,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
                 return
             }
             if (mActiveRS.isInvalid()) {
-                AppLogger.w("$mTag no active rs found, tying to restore")
-                restoreActiveRadioStation()
-            }
-            if (mActiveRS.isInvalid()) {
                 AppLogger.w("$mTag no active rs found after restore")
                 return
-            }
-            if (mPlayer.mediaItemCount() <= 0) {
-                // TODO: Add some more stations here, such as Recent or Favorites.
-                mStorageListener.onAdd(mActiveRS, 0)
             }
             handlePlayRequest()
         }
@@ -1111,7 +1176,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         }
     }
 
-    private inner class RemoteControlListenerImpl: RemoteControlListener {
+    private inner class RemoteControlListenerImpl : RemoteControlListener {
 
         override fun onMediaPlay() {
             handlePlayRequest()

@@ -20,6 +20,7 @@ import android.support.v4.media.session.MediaSessionCompat
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonDeserializer
 import com.yuriy.openradio.shared.model.translation.RadioStationJsonSerializer
 import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.isInvalid
 import java.lang.ref.WeakReference
@@ -39,9 +40,16 @@ abstract class AbstractRadioStationsStorage(contextRef: WeakReference<Context>, 
      * @param radioStation [RadioStation] to add to the storage.
      */
     @Synchronized
-    open fun add(radioStation: RadioStation, key: String = createKeyForRadioStation(radioStation)) {
+    fun add(radioStation: RadioStation, key: String = createKeyForRadioStation(radioStation)) {
         val serializer = RadioStationJsonSerializer()
         putStringValue(key, serializer.serialize(radioStation))
+    }
+
+    @Synchronized
+    open fun get(key: String): RadioStation {
+        val radioStation = getStringValue(key, AppUtils.EMPTY_STRING)
+        val deserializer = RadioStationJsonDeserializer()
+        return deserializer.deserialize(radioStation)
     }
 
     /**

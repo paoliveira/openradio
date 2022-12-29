@@ -49,50 +49,50 @@ abstract class AbstractStorage(private val mContextRef: WeakReference<Context>, 
         return getSharedPreferences()?.getBoolean(key, defaultValue) ?: defaultValue
     }
 
-    fun getAllValues(): MutableMap<String, *> {
-        return getSharedPreferences()?.all ?: HashMap<String, String>()
-    }
-
     fun putStringValue(key: String, value: String) {
         val editor = getEditor()
         editor?.putString(key, value)
         editor?.apply()
-        AppLogger.i("Added '$key'-'$value'")
+        AppLogger.i("[$mName] added '$key'-'$value'")
     }
 
     fun putIntValue(key: String, value: Int) {
         val editor = getEditor()
         editor?.putInt(key, value)
         editor?.apply()
-        AppLogger.i("Added '$key'-'$value'")
+        AppLogger.i("[$mName] added '$key'-'$value'")
     }
 
     fun putBooleanValue(key: String, value: Boolean) {
         val editor = getEditor()
         editor?.putBoolean(key, value)
         editor?.apply()
-        AppLogger.i("Added '$key'-'$value'")
+        AppLogger.i("[$mName] added '$key'-'$value'")
     }
 
     fun putLongValue(key: String, value: Long) {
         val editor = getEditor()
         editor?.putLong(key, value)
         editor?.apply()
-        AppLogger.i("Added '$key'-'$value'")
+        AppLogger.i("[$mName] added '$key'-'$value'")
     }
 
-    fun removeKey(key: String) {
+    protected fun getAllValues(): MutableMap<String, *> {
+        return getSharedPreferences()?.all ?: HashMap<String, String>()
+    }
+
+    protected fun removeKey(key: String) {
         val editor = getEditor()
         editor?.remove(key)
         editor?.apply()
-        AppLogger.i("Removed '$key'")
+        AppLogger.i("[$mName] removed '$key'")
     }
 
-    fun clearStorage() {
+    protected fun clearStorage() {
         val editor = getEditor()
         editor?.clear()
         editor?.apply()
-        AppLogger.i("Storage cleared")
+        AppLogger.i("[$mName] cleared")
     }
 
     /**
@@ -103,7 +103,7 @@ abstract class AbstractStorage(private val mContextRef: WeakReference<Context>, 
     private fun getSharedPreferences(): SharedPreferences? {
         val context = mContextRef.get()
         if (context == null) {
-            AppLogger.e("Abs storage has null ctx!")
+            AppLogger.e("[$mName] abs storage has null ctx!")
         }
         return context?.getSharedPreferences(mName, Context.MODE_PRIVATE)
     }

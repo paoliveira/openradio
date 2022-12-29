@@ -42,10 +42,6 @@ class RadioStationsStorage {
             return ArrayList(mRadioStations)
         }
 
-    fun addFirst(radioStation: RadioStation) {
-        mRadioStations.add(0, radioStation)
-    }
-
     fun addAll(list: List<RadioStation>) {
         mRadioStations.addAll(list)
     }

@@ -101,14 +101,14 @@ class DeviceLocalsStorage(
     /**
      * Return Radio Station object associated with media id.
      *
-     * @param mediaId Media Id of the [RadioStation].
+     * @param key Media Id of the [RadioStation].
      * @return Radio Station or `null` if there was nothing found.
      */
     @Synchronized
-    operator fun get(mediaId: String): RadioStation {
+    override operator fun get(key: String): RadioStation {
         val list = getAll()
         for (radioStation in list) {
-            if (radioStation.id.endsWith(mediaId)) {
+            if (radioStation.id.endsWith(key)) {
                 return radioStation
             }
         }

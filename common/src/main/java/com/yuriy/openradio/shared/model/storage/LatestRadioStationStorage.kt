@@ -41,7 +41,7 @@ class LatestRadioStationStorage(contextRef: WeakReference<Context>) :
      */
     @Synchronized
     fun add(radioStation: RadioStation) {
-        mRadioStation = RadioStation.makeCopyInstance(radioStation)
+        mRadioStation = radioStation
         super.add(radioStation, KEY)
     }
 
@@ -55,13 +55,8 @@ class LatestRadioStationStorage(contextRef: WeakReference<Context>) :
         if (mRadioStation.isInvalid().not()) {
             return mRadioStation
         }
-        val list = getAll()
-        // There is only one Radio Station in collection.
-        if (list.isNotEmpty()) {
-            mRadioStation = RadioStation.makeCopyInstance(list[0])
-            return mRadioStation
-        }
-        return RadioStation.INVALID_INSTANCE
+        mRadioStation = super.get(KEY)
+        return mRadioStation
     }
 
     companion object {
