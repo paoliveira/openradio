@@ -1004,12 +1004,14 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
         override fun onStartForeground(notificationId: Int, notification: Notification) {
             val ibo = AppUtils.isIgnoringBatteryOptimizations(applicationContext)
-            AppLogger.i("$TAG start as foreground, ibo:$ibo")
+            AnalyticsUtils.logMessage("Going to strt frgrd srv w ibo:$ibo")
             ContextCompat.startForegroundService(
                 applicationContext,
                 Intent(applicationContext, this@OpenRadioService.javaClass)
             )
+            AnalyticsUtils.logMessage("Going to strt frgrd")
             startForeground(notificationId, notification)
+            AnalyticsUtils.logMessage("Frgrd started")
         }
 
         override fun onStopForeground(removeNotification: Boolean) {

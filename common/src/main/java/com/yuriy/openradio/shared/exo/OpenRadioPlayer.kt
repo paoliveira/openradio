@@ -139,7 +139,7 @@ class OpenRadioPlayer(
      * If Cast is available, create a CastPlayer to handle communication with a Cast session.
      */
     private val mCastPlayer: CastPlayer? by lazy {
-        AppLogger.i("$LOG_TAG init CastPlayer")
+        AppLogger.i("Init CastPlayer")
         try {
             val castContext = CastContext.getSharedInstance(mContext)
             CastPlayer(castContext).apply {
@@ -160,7 +160,7 @@ class OpenRadioPlayer(
     }
 
     private val mExoPlayer: ExoPlayer by lazy {
-        AppLogger.i("$LOG_TAG init ExoPlayer")
+        AppLogger.i("Init ExoPlayer")
         val trackSelector = DefaultTrackSelector(mContext)
         trackSelector.parameters = DefaultTrackSelector.Parameters.Builder(mContext).build()
         val builder = ExoPlayer.Builder(
@@ -227,7 +227,7 @@ class OpenRadioPlayer(
      * Prepare player to play URI.
      */
     fun prepare(mediaId: String) {
-        AppLogger.d("$LOG_TAG prepare $mediaId, cast[${mCastPlayer?.isCastSessionAvailable}]")
+        AppLogger.d("Prepare $mediaId, cast[${mCastPlayer?.isCastSessionAvailable}]")
         if (this::mMediaSessionConnector.isInitialized) {
             mMediaSessionConnector.invalidateMediaSessionMetadata()
         }
@@ -608,7 +608,7 @@ class OpenRadioPlayer(
                     mListener.onStartForeground(notificationId, notification)
                     mIsForegroundService = true
                 } catch (throwable: Throwable) {
-                    AppLogger.e("$LOG_TAG can't start foreground", throwable)
+                    AnalyticsUtils.logMessage("Cnt strt frgrd:${throwable.stackTraceToString()}")
                 }
             }
         }
