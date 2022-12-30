@@ -29,7 +29,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.Collections
 
 /**
  * Created by Chernyshov Yurii

@@ -81,15 +81,13 @@ class TvMainActivity : FragmentActivity(), MediaPresenterDependency {
 
     override fun configureWith(mediaPresenter: MediaPresenter) {
         mMediaPresenter = mediaPresenter
-        // Register local receivers.
-        mMediaPresenter.registerReceivers(mLocalBroadcastReceiverCb)
         val mediaItemsAdapter = TvMediaItemsAdapter(applicationContext)
         val mediaSubscriptionCb = MediaBrowserSubscriptionCallback()
         val mediaPresenterImpl = MediaPresenterListenerImpl()
         mMediaPresenter.init(
             this, findView(R.id.tv_main_layout), mSavedInstanceState, findViewById(R.id.tv_list_view),
             findViewById(R.id.tv_current_radio_station_view), mediaItemsAdapter,
-            mediaSubscriptionCb, mediaPresenterImpl
+            mediaSubscriptionCb, mediaPresenterImpl, mLocalBroadcastReceiverCb
         )
         mMediaPresenter.connect()
     }

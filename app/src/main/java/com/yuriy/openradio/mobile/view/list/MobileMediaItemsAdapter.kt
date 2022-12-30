@@ -22,6 +22,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import com.xenione.libs.swipemaker.SwipeLayout
 import com.yuriy.openradio.mobile.R
 import com.yuriy.openradio.shared.utils.MediaItemHelper
@@ -69,7 +70,7 @@ class MobileMediaItemsAdapter(private var mContext: Context) : MediaItemsAdapter
         if (position == activeItemId) {
             color = R.color.or_color_primary_dark
         }
-        holder.mForegroundView?.setBackgroundColor(mContext.resources.getColor(color))
+        holder.mForegroundView?.setBackgroundColor(ContextCompat.getColor(mContext, color))
     }
 
     override fun onViewRecycled(holder: MediaItemViewHolder) {

@@ -25,12 +25,16 @@ import okhttp3.internal.Util
 import wseemann.media.jplaylistparser.parser.AutoDetectParser
 import wseemann.media.jplaylistparser.playlist.Playlist
 import wseemann.media.jplaylistparser.playlist.PlaylistEntry
-import java.io.*
+import java.io.BufferedWriter
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStreamWriter
+import java.io.UnsupportedEncodingException
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
 import java.net.URLEncoder
-import java.util.*
+import java.util.Locale
 
 object NetUtils {
 

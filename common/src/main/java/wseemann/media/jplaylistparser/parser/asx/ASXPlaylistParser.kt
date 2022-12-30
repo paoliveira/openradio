@@ -38,7 +38,7 @@ import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.SocketTimeoutException
 import java.net.URL
-import java.util.*
+import java.util.Locale
 
 class ASXPlaylistParser(timeout: Int) : AbstractParser(timeout) {
 

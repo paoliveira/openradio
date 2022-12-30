@@ -35,7 +35,6 @@ import com.yuriy.openradio.shared.utils.gone
 import com.yuriy.openradio.shared.utils.setImageBitmap
 import com.yuriy.openradio.shared.utils.visible
 
-
 /**
  * Created by Yuriy Chernyshov
  * At Android Studio
@@ -50,13 +49,20 @@ abstract class MediaItemsAdapter : RecyclerView.Adapter<MediaItemViewHolder>() {
     }
 
     private val mAdapterData = ListAdapterData<MediaBrowserCompat.MediaItem>()
+    private var mActiveItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID
     var parentId = MediaId.MEDIA_ID_ROOT
     var listener: Listener? = null
 
     /**
      * The currently selected / active Item Id.
      */
-    var activeItemId = MediaSessionCompat.QueueItem.UNKNOWN_ID
+    var activeItemId: Int
+        get() {
+            return mActiveItemId
+        }
+        set(value) {
+            mActiveItemId = value
+        }
 
     override fun getItemCount(): Int {
         return mAdapterData.itemsCount

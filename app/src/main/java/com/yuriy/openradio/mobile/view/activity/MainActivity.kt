@@ -47,10 +47,31 @@ import com.yuriy.openradio.shared.dependencies.MediaPresenterDependency
 import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.presenter.MediaPresenter
 import com.yuriy.openradio.shared.presenter.MediaPresenterListener
-import com.yuriy.openradio.shared.utils.*
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.IntentUtils
+import com.yuriy.openradio.shared.utils.PlayerUtils
+import com.yuriy.openradio.shared.utils.UiUtils
+import com.yuriy.openradio.shared.utils.findCheckBox
+import com.yuriy.openradio.shared.utils.findFloatingActionButton
+import com.yuriy.openradio.shared.utils.findImageView
+import com.yuriy.openradio.shared.utils.findProgressBar
+import com.yuriy.openradio.shared.utils.findTextView
+import com.yuriy.openradio.shared.utils.findToolbar
+import com.yuriy.openradio.shared.utils.findView
+import com.yuriy.openradio.shared.utils.gone
+import com.yuriy.openradio.shared.utils.visible
 import com.yuriy.openradio.shared.view.BaseDialogFragment
 import com.yuriy.openradio.shared.view.SafeToast
-import com.yuriy.openradio.shared.view.dialog.*
+import com.yuriy.openradio.shared.view.dialog.AboutDialog
+import com.yuriy.openradio.shared.view.dialog.AddStationDialog
+import com.yuriy.openradio.shared.view.dialog.EqualizerDialog
+import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
+import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
+import com.yuriy.openradio.shared.view.dialog.NetworkDialog
+import com.yuriy.openradio.shared.view.dialog.SearchDialog
+import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
+import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.getStreamBitrate
 import com.yuriy.openradio.shared.vo.isInvalid
@@ -106,15 +127,13 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
 
     override fun configureWith(mediaPresenter: MediaPresenter) {
         mMediaPresenter = mediaPresenter
-        // Register local receivers.
-        mMediaPresenter.registerReceivers(mLocalBroadcastReceiverCb)
         val mediaItemsAdapter = MobileMediaItemsAdapter(applicationContext)
         val mediaSubscriptionCb = MediaBrowserSubscriptionCallback(WeakReference(this))
         val mediaPresenterImpl = MediaPresenterListenerImpl()
         mMediaPresenter.init(
             this, findView(R.id.main_layout), mSavedInstanceState, findViewById(R.id.list_view),
             findViewById(R.id.current_radio_station_view), mediaItemsAdapter,
-            mediaSubscriptionCb, mediaPresenterImpl
+            mediaSubscriptionCb, mediaPresenterImpl, mLocalBroadcastReceiverCb
         )
         mMediaPresenter.connect()
     }
@@ -210,6 +229,7 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
         super.onSaveInstanceState(outState)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         hideNoDataMessage()
         hideProgressBar()

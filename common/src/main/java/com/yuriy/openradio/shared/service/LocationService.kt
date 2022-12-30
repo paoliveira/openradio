@@ -21,10 +21,20 @@ import android.app.Activity
 import android.app.job.JobScheduler
 import android.content.Context
 import android.content.Intent
-import android.os.*
+import android.os.Bundle
+import android.os.Looper
+import android.os.Message
+import android.os.Messenger
+import android.os.RemoteException
 import android.view.View
 import androidx.core.app.JobIntentService
-import com.google.android.gms.location.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationAvailability
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.permission.PermissionChecker
 import com.yuriy.openradio.shared.utils.AppLogger
@@ -33,7 +43,7 @@ import com.yuriy.openradio.shared.utils.IntentUtils
 import com.yuriy.openradio.shared.vo.Country
 import de.westnordost.countryboundaries.CountryBoundaries
 import java.io.IOException
-import java.util.*
+import java.util.TreeMap
 import java.util.concurrent.atomic.AtomicInteger
 
 /**

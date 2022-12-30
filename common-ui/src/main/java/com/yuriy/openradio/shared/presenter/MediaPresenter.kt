@@ -49,7 +49,7 @@ interface MediaPresenter {
 
     fun handleEditRadioStationMenu(view: View)
 
-    fun handleItemSelected(item: MediaBrowserCompat.MediaItem?, clickPosition: Int)
+    fun handleItemSelected(item: MediaBrowserCompat.MediaItem, clickPosition: Int)
 
     fun handleItemSettings(item: MediaBrowserCompat.MediaItem)
 
@@ -66,14 +66,13 @@ interface MediaPresenter {
         bundle: Bundle, listView: RecyclerView, currentRadioStationView: View,
         adapter: MediaItemsAdapter,
         mediaSubscriptionCallback: MediaBrowserCompat.SubscriptionCallback,
-        listener: MediaPresenterListener
+        listener: MediaPresenterListener,
+        localReceiverCallback: AppLocalReceiverCallback
     )
 
     fun onLocationChanged(countryCode: String)
 
     fun getCountryCode(): String
-
-    fun registerReceivers(callback: AppLocalReceiverCallback)
 
     fun setActiveItem(position: Int)
 

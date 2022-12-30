@@ -23,7 +23,11 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.database.ContentObserver
 import android.net.Uri
-import android.os.*
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.os.Messenger
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.MediaMetadataCompat
@@ -32,6 +36,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentTransaction
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -54,9 +59,14 @@ import com.yuriy.openradio.shared.model.timer.SleepTimerModel
 import com.yuriy.openradio.shared.permission.PermissionChecker
 import com.yuriy.openradio.shared.service.LocationService
 import com.yuriy.openradio.shared.service.OpenRadioStore
-import com.yuriy.openradio.shared.utils.*
+import com.yuriy.openradio.shared.utils.AppLogger
+import com.yuriy.openradio.shared.utils.AppUtils
+import com.yuriy.openradio.shared.utils.MediaItemHelper
+import com.yuriy.openradio.shared.utils.PlayerUtils
+import com.yuriy.openradio.shared.utils.UiUtils
+import com.yuriy.openradio.shared.utils.setImageBitmap
+import com.yuriy.openradio.shared.utils.visible
 import com.yuriy.openradio.shared.view.BaseDialogFragment
-import com.yuriy.openradio.shared.view.SafeToast
 import com.yuriy.openradio.shared.view.dialog.EditStationDialog
 import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
@@ -65,7 +75,8 @@ import com.yuriy.openradio.shared.vo.PlaybackStateError
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Hashtable
+import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 
 class MediaPresenterImpl(
@@ -125,6 +136,7 @@ class MediaPresenterImpl(
 
     private val mLocationMessenger = Messenger(LocationHandler())
     private val mTimerListener = SleepTimerListenerImpl()
+
     // Handle download callback from the images persistent layer.
     private val mContentObserver = ContentObserverExt()
 
@@ -133,8 +145,10 @@ class MediaPresenterImpl(
         bundle: Bundle, listView: RecyclerView, currentRadioStationView: View,
         adapter: MediaItemsAdapter,
         mediaSubscriptionCallback: MediaBrowserCompat.SubscriptionCallback,
-        listener: MediaPresenterListener
+        listener: MediaPresenterListener,
+        localReceiverCallback: AppLocalReceiverCallback
     ) {
+        registerReceivers(localReceiverCallback)
         mIsOnSaveInstancePassed.set(false)
         mCallback = mediaSubscriptionCallback
         mActivity = activity
@@ -337,9 +351,9 @@ class MediaPresenterImpl(
             description, mContext.getString(R.string.media_description_default)
         )
         if (PlaybackStateError.isPlaybackStateError(mContext, descriptionView.text.toString())) {
-            descriptionView.setBackgroundColor(mContext.resources.getColor(R.color.or_color_red_light))
+            descriptionView.setBackgroundColor(ContextCompat.getColor(mContext, R.color.or_color_red_light))
         } else {
-            descriptionView.setBackgroundColor(mContext.resources.getColor(R.color.or_color_transparent))
+            descriptionView.setBackgroundColor(ContextCompat.getColor(mContext, R.color.or_color_transparent))
         }
     }
 
@@ -349,17 +363,10 @@ class MediaPresenterImpl(
      * @param position Position of the item in the list.
      */
     override fun setActiveItem(position: Int) {
-        if (mListView == null) {
-            return
-        }
-        if (mCurrentParentId == MediaId.MEDIA_ID_ROOT ||
-            mCurrentParentId == MediaId.MEDIA_ID_ROOT_CAR
-        ) {
-            // Do not process Home Screen
-            return
-        }
+        val prevPos = mAdapter?.activeItemId ?: 0
         mAdapter?.activeItemId = position
-        mAdapter?.notifyDataSetChanged()
+        mAdapter?.notifyItemChanged(prevPos)
+        mAdapter?.notifyItemChanged(position)
     }
 
     override fun updateListPositions(clickPosition: Int) {
@@ -394,7 +401,7 @@ class MediaPresenterImpl(
         fragment.show(transaction, RSSettingsDialog.DIALOG_TAG)
     }
 
-    override fun handleItemSelected(item: MediaBrowserCompat.MediaItem?, clickPosition: Int) {
+    override fun handleItemSelected(item: MediaBrowserCompat.MediaItem, clickPosition: Int) {
         if (mActivity == null) {
             return
         }
@@ -402,12 +409,6 @@ class MediaPresenterImpl(
             return
         }
 
-        // Current selected media item
-        if (item == null) {
-            //TODO: Improve message
-            SafeToast.showAnyThread(mActivity, mActivity!!.getString(R.string.can_not_play_station))
-            return
-        }
         if (item.isBrowsable) {
             if (item.description.title != null
                 && item.description.title == mActivity!!.getString(R.string.category_empty)
@@ -415,7 +416,7 @@ class MediaPresenterImpl(
                 return
             }
         }
-        updateListPositions(clickPosition)
+        //updateListPositions(clickPosition)
         mCurrentMediaId = item.mediaId.toString()
 
         // If it is browsable - then we navigate to the next category
@@ -440,6 +441,7 @@ class MediaPresenterImpl(
                         LocationService.doEnqueueWork(mContext, mLocationMessenger)
                     }
                 }
+
                 Manifest.permission.BLUETOOTH_CONNECT -> {
                     AppPreferencesManager.setBtAutoPlay(mContext, isGranted)
                 }
@@ -447,9 +449,9 @@ class MediaPresenterImpl(
         }
     }
 
-    private fun getPositions(mediaItem: String?): IntArray {
+    private fun getPositions(mediaItem: String): IntArray {
         // Restore clicked position for the Catalogue list.
-        return if (mediaItem.isNullOrEmpty().not() && mPositions.containsKey(mediaItem)) {
+        return if (mediaItem.isEmpty().not() && mPositions.containsKey(mediaItem)) {
             mPositions[mediaItem] ?: return createInitPositionEntry()
         } else createInitPositionEntry()
     }
@@ -458,6 +460,7 @@ class MediaPresenterImpl(
         return intArrayOf(0, MediaSessionCompat.QueueItem.UNKNOWN_ID)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     override fun handleChildrenLoaded(
         parentId: String,
         children: List<MediaBrowserCompat.MediaItem>
@@ -472,7 +475,7 @@ class MediaPresenterImpl(
         mAdapter?.clearData()
         mAdapter?.addAll(children)
         mAdapter?.notifyDataSetChanged()
-        restoreSelectedPosition(parentId)
+        //restoreSelectedPosition(parentId)
     }
 
     private fun restoreSelectedPosition(parentId: String) {
@@ -576,7 +579,7 @@ class MediaPresenterImpl(
     /**
      * Register receiver for the application's local events.
      */
-    override fun registerReceivers(callback: AppLocalReceiverCallback) {
+    private fun registerReceivers(callback: AppLocalReceiverCallback) {
         if (mIsReceiversRegistered.get()) {
             AppLogger.w("$CLASS_NAME receivers are registered")
             return
@@ -630,7 +633,7 @@ class MediaPresenterImpl(
             return
         }
         if (mCurrentRadioStationView?.visibility != View.VISIBLE) {
-            mCurrentRadioStationView?.visible()
+            mCurrentRadioStationView.visible()
         }
         mListener?.handleMetadataChanged(metadata)
     }
