@@ -28,6 +28,7 @@ import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.fragment.app.FragmentActivity
 import com.google.android.exoplayer2.util.Util
 import com.yuriy.openradio.R
+import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.model.storage.AppPreferencesManager
 import java.util.TreeSet
 
@@ -248,5 +249,15 @@ object AppUtils {
         val pwrm = context.applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
         val name = context.applicationContext.packageName
         return pwrm.isIgnoringBatteryOptimizations(name)
+    }
+
+    fun isSameCatalogue(newMediaId: String, prevMediaId: String): Boolean {
+        if (newMediaId != MediaId.MEDIA_ID_ROOT &&
+            newMediaId != MediaId.MEDIA_ID_ROOT_CAR &&
+            newMediaId == prevMediaId
+        ) {
+            return true
+        }
+        return false
     }
 }

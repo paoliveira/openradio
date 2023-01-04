@@ -21,6 +21,7 @@
     <string name="ok_label">OK</string>
     <string name="buffering">Buffering</string>
     <string name="network">Network</string>
+    <string name="source">Source</string>
     <string name="buffering_infinite">Buffering…</string>
     <string name="no_network_connection_toast">No network connection found</string>
     <string name="category_empty">Category is empty</string>
@@ -62,4 +63,6 @@
     <!-- Notification Channel -->
     <string name="notification_channel">Now Playing</string>
     <string name="notification_channel_description">Shows what music is currently playing on Open Radio</string>
+    <string name="source_radio_browser">Radio Browser</string>
+    <string name="source_web_radio">Web Radio</string>
 </resources>

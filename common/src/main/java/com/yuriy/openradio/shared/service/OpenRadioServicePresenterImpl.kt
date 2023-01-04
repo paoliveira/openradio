@@ -6,7 +6,7 @@ import com.yuriy.openradio.shared.model.media.EqualizerLayer
 import com.yuriy.openradio.shared.model.media.RemoteControlListener
 import com.yuriy.openradio.shared.model.net.NetworkLayer
 import com.yuriy.openradio.shared.model.net.NetworkMonitorListener
-import com.yuriy.openradio.shared.model.net.UrlBuilder
+import com.yuriy.openradio.shared.model.net.UrlLayer
 import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.LatestRadioStationStorage
@@ -21,9 +21,9 @@ import com.yuriy.openradio.shared.utils.SortUtils
 import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.Country
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.Collections
 
 class OpenRadioServicePresenterImpl(
+    private val mUrlLayer: UrlLayer,
     private val mNetworkLayer: NetworkLayer,
     private val mModelLayer: ModelLayer,
     private var mFavoritesStorage: FavoritesStorage,
@@ -32,14 +32,13 @@ class OpenRadioServicePresenterImpl(
     private val mNetworkSettingsStorage: NetworkSettingsStorage,
     private val mLocationStorage: LocationStorage,
     private var mImagesPersistenceLayer: ImagesPersistenceLayer,
-    private val mRadioStationsComparator: Comparator<RadioStation>,
     private val mEqualizerLayer: EqualizerLayer,
     private val mApiCachePersistent: ApiCache,
     private val mApiCacheInMemory: ApiCache,
     private val mSleepTimerModel: SleepTimerModel
 ) : OpenRadioServicePresenter {
 
-    private var mRemoteControlListener: RemoteControlListener ?= null
+    private var mRemoteControlListener: RemoteControlListener? = null
     private val mRemoteControlListenerProxy = RemoteControlListenerProxy()
 
     fun getRemoteControlListenerProxy(): RemoteControlListener {
@@ -62,69 +61,56 @@ class OpenRadioServicePresenterImpl(
         return mNetworkSettingsStorage.getUseMobile()
     }
 
-    override fun getStationsInCategory(categoryId: String, pageNumber: Int): List<RadioStation> {
-        return ArrayList(
-            mModelLayer.getStations(
-                UrlBuilder.getStationsInCategory(
-                    categoryId,
-                    pageNumber * (UrlBuilder.ITEMS_PER_PAGE + 1),
-                    UrlBuilder.ITEMS_PER_PAGE
-                ),
-                MediaIdBuilderDefault()
-            )
+    override fun getStationsInCategory(categoryId: String, pageNumber: Int): Set<RadioStation> {
+        return mModelLayer.getStations(
+            mUrlLayer.getStationsInCategory(
+                categoryId,
+                pageNumber
+            ),
+            MediaIdBuilderDefault()
         )
     }
 
-    override fun getStationsByCountry(countryCode: String, pageNumber: Int): List<RadioStation> {
-        return ArrayList(
-            mModelLayer.getStations(
-                UrlBuilder.getStationsByCountry(
-                    countryCode,
-                    pageNumber * (UrlBuilder.ITEMS_PER_PAGE + 1),
-                    UrlBuilder.ITEMS_PER_PAGE
-                ),
-                MediaIdBuilderDefault()
-            )
+    override fun getStationsByCountry(countryCode: String, pageNumber: Int): Set<RadioStation> {
+        return mModelLayer.getStations(
+            mUrlLayer.getStationsByCountry(
+                countryCode,
+                pageNumber
+            ),
+            MediaIdBuilderDefault()
         )
     }
 
-    override fun getRecentlyAddedStations(): List<RadioStation> {
-        return ArrayList(
-            mModelLayer.getStations(
-                UrlBuilder.getRecentlyAddedStations(),
-                MediaIdBuilderDefault()
-            )
+    override fun getRecentlyAddedStations(): Set<RadioStation> {
+        return mModelLayer.getStations(
+            mUrlLayer.getRecentlyAddedStations(),
+            MediaIdBuilderDefault()
         )
     }
 
-    override fun getPopularStations(): List<RadioStation> {
-        return ArrayList(
-            mModelLayer.getStations(
-                UrlBuilder.getPopularStations(),
-                MediaIdBuilderDefault()
-            )
+    override fun getPopularStations(): Set<RadioStation> {
+        return mModelLayer.getStations(
+            mUrlLayer.getPopularStations(),
+            MediaIdBuilderDefault()
         )
     }
 
-    override fun getSearchStations(query: String, mediaIdBuilder: MediaIdBuilder): List<RadioStation> {
-        return ArrayList(
-            mModelLayer.getStations(
-                UrlBuilder.getSearchUrl(query), mediaIdBuilder
-            )
+    override fun getSearchStations(query: String, mediaIdBuilder: MediaIdBuilder): Set<RadioStation> {
+        return mModelLayer.getStations(
+            mUrlLayer.getSearchUrl(query), mediaIdBuilder
         )
     }
 
-    override fun getAllCategories(): List<Category> {
-        return ArrayList(mModelLayer.getCategories(UrlBuilder.allCategoriesUrl))
+    override fun getAllCategories(): Set<Category> {
+        return mModelLayer.getCategories(mUrlLayer.getAllCategoriesUrl())
     }
 
-    override fun getAllCountries(): List<Country> {
-        return ArrayList(mModelLayer.getCountries())
+    override fun getAllCountries(): Set<Country> {
+        return mModelLayer.getCountries()
     }
 
-    override fun getAllFavorites(): List<RadioStation> {
+    override fun getAllFavorites(): Set<RadioStation> {
         val list = mFavoritesStorage.getAll()
-        Collections.sort(list, mRadioStationsComparator)
         // TODO: Investigate this algorithm.
         var counter = 0
         for (radioStation in list) {
@@ -133,7 +119,7 @@ class OpenRadioServicePresenterImpl(
         return list
     }
 
-    override fun getAllDeviceLocal(): List<RadioStation> {
+    override fun getAllDeviceLocal(): Set<RadioStation> {
         return mDeviceLocalsStorage.getAll()
     }
 
@@ -171,17 +157,13 @@ class OpenRadioServicePresenterImpl(
         categoryMediaId: String
     ) {
         SortUtils.updateSortIds(
-            mRadioStationsComparator, mediaId, sortId, categoryMediaId,
+            mediaId, sortId, categoryMediaId,
             mFavoritesStorage, mDeviceLocalsStorage
         )
     }
 
     override fun getEqualizerLayer(): EqualizerLayer {
         return mEqualizerLayer
-    }
-
-    override fun getRadioStationsComparator(): Comparator<RadioStation> {
-        return mRadioStationsComparator
     }
 
     override fun clear() {
@@ -207,7 +189,7 @@ class OpenRadioServicePresenterImpl(
         mRemoteControlListener = null
     }
 
-    private inner class RemoteControlListenerProxy: RemoteControlListener {
+    private inner class RemoteControlListenerProxy : RemoteControlListener {
 
         override fun onMediaPlay() {
             mRemoteControlListener?.onMediaPlay()

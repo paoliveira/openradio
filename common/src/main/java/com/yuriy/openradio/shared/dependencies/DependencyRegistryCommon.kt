@@ -23,6 +23,7 @@ import android.net.ConnectivityManager
 import androidx.multidex.MultiDexApplication
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.common.GoogleApiAvailability
+import com.yuriy.openradio.R
 import com.yuriy.openradio.shared.model.ModelLayerImpl
 import com.yuriy.openradio.shared.model.media.EqualizerLayer
 import com.yuriy.openradio.shared.model.media.EqualizerLayerImpl
@@ -31,7 +32,15 @@ import com.yuriy.openradio.shared.model.media.RadioStationManagerLayerImpl
 import com.yuriy.openradio.shared.model.net.HTTPDownloaderImpl
 import com.yuriy.openradio.shared.model.net.NetworkLayer
 import com.yuriy.openradio.shared.model.net.NetworkLayerImpl
-import com.yuriy.openradio.shared.model.parser.ParserLayerJsonImpl
+import com.yuriy.openradio.shared.model.net.UrlLayer
+import com.yuriy.openradio.shared.model.net.UrlLayerRadioBrowserImpl
+import com.yuriy.openradio.shared.model.net.UrlLayerWebRadioImpl
+import com.yuriy.openradio.shared.model.parser.ParserLayer
+import com.yuriy.openradio.shared.model.parser.ParserLayerRadioBrowserImpl
+import com.yuriy.openradio.shared.model.parser.ParserLayerWebRadioImpl
+import com.yuriy.openradio.shared.model.source.Source
+import com.yuriy.openradio.shared.model.source.SourcesLayer
+import com.yuriy.openradio.shared.model.source.SourcesLayerImpl
 import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
 import com.yuriy.openradio.shared.model.storage.EqualizerStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
@@ -50,7 +59,6 @@ import com.yuriy.openradio.shared.model.timer.SleepTimerModelImpl
 import com.yuriy.openradio.shared.service.OpenRadioService
 import com.yuriy.openradio.shared.service.OpenRadioServicePresenterImpl
 import com.yuriy.openradio.shared.utils.AppLogger
-import com.yuriy.openradio.shared.utils.RadioStationsComparator
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -59,7 +67,7 @@ object DependencyRegistryCommon {
     private lateinit var sFavoritesStorage: FavoritesStorage
     private lateinit var sDeviceLocalsStorage: DeviceLocalsStorage
     private lateinit var sLatestRadioStationStorage: LatestRadioStationStorage
-    private lateinit var sLocationStorage :LocationStorage
+    private lateinit var sLocationStorage: LocationStorage
     private lateinit var sNetworkSettingsStorage: NetworkSettingsStorage
     private lateinit var sEqualizerLayer: EqualizerLayer
     private lateinit var sNetworkLayer: NetworkLayer
@@ -67,6 +75,8 @@ object DependencyRegistryCommon {
     private lateinit var sImagesPersistenceLayer: ImagesPersistenceLayer
     private lateinit var sOpenRadioServicePresenter: OpenRadioServicePresenterImpl
     private lateinit var sSleepTimerModel: SleepTimerModel
+    private lateinit var sSourcesLayer: SourcesLayer
+
     /**
      * Flag that indicates whether application runs over normal Android or Android TV.
      */
@@ -77,7 +87,7 @@ object DependencyRegistryCommon {
     @Volatile
     private var sInit = AtomicBoolean(false)
 
-    fun init(context: Context ) {
+    fun init(context: Context) {
         if (sInit.get()) {
             return
         }
@@ -117,11 +127,13 @@ object DependencyRegistryCommon {
         AppLogger.i("Google API:$isGoogleApiAvailable")
         AppLogger.i("Cast API:$isCastAvailable")
 
-        val parser = ParserLayerJsonImpl()
+        sSourcesLayer = SourcesLayerImpl(context)
         sNetworkLayer = NetworkLayerImpl(
             context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         )
-        val downloader = HTTPDownloaderImpl()
+        val parser = getParserLayer(context, sSourcesLayer.getActiveSource())
+        val urlLayer = getUrlLayer(context, sSourcesLayer.getActiveSource())
+        val downloader = HTTPDownloaderImpl(urlLayer)
         val apiCachePersistent = PersistentApiCache(context, PersistentApiDb.DATABASE_DEFAULT_FILE_NAME)
         val apiCacheInMemory = InMemoryApiCache()
         val modelLayer = ModelLayerImpl(
@@ -138,17 +150,25 @@ object DependencyRegistryCommon {
         val imagesDatabase = ImagesDatabase.getInstance(context)
         sImagesPersistenceLayer = ImagesPersistenceLayerImpl(context, downloader, imagesDatabase)
         sRadioStationManagerLayer = RadioStationManagerLayerImpl(
-            modelLayer, sDeviceLocalsStorage, sFavoritesStorage, sImagesPersistenceLayer
+            modelLayer, urlLayer, sDeviceLocalsStorage, sFavoritesStorage, sImagesPersistenceLayer
         )
         sLocationStorage = LocationStorage(contextRef)
-        val radioStationsComparator = RadioStationsComparator()
         sNetworkSettingsStorage = NetworkSettingsStorage(contextRef)
         sSleepTimerModel = SleepTimerModelImpl(contextRef)
         sOpenRadioServicePresenter = OpenRadioServicePresenterImpl(
-            sNetworkLayer, modelLayer,
-            sFavoritesStorage, sDeviceLocalsStorage, sLatestRadioStationStorage, sNetworkSettingsStorage, sLocationStorage,
-            sImagesPersistenceLayer, radioStationsComparator, sEqualizerLayer,
-            apiCachePersistent, apiCacheInMemory, sSleepTimerModel
+            urlLayer,
+            sNetworkLayer,
+            modelLayer,
+            sFavoritesStorage,
+            sDeviceLocalsStorage,
+            sLatestRadioStationStorage,
+            sNetworkSettingsStorage,
+            sLocationStorage,
+            sImagesPersistenceLayer,
+            sEqualizerLayer,
+            apiCachePersistent,
+            apiCacheInMemory,
+            sSleepTimerModel
         )
 
         sInit.set(true)
@@ -186,6 +206,10 @@ object DependencyRegistryCommon {
 
     fun inject(dependency: RemoteControlListenerDependency) {
         dependency.configureWith(sOpenRadioServicePresenter.getRemoteControlListenerProxy())
+    }
+
+    fun inject(dependency: SourcesLayerDependency) {
+        dependency.configureWith(sSourcesLayer)
     }
 
     /**
@@ -226,5 +250,21 @@ object DependencyRegistryCommon {
 
     fun getSleepTimerModel(): SleepTimerModel {
         return sSleepTimerModel
+    }
+
+    private fun getUrlLayer(context: Context, source: Source): UrlLayer {
+        return if (source.name == context.getString(R.string.source_radio_browser)) {
+            UrlLayerRadioBrowserImpl()
+        } else {
+            UrlLayerWebRadioImpl()
+        }
+    }
+
+    private fun getParserLayer(context: Context, source: Source): ParserLayer {
+        return if (source.name == context.getString(R.string.source_radio_browser)) {
+            ParserLayerRadioBrowserImpl()
+        } else {
+            ParserLayerWebRadioImpl()
+        }
     }
 }

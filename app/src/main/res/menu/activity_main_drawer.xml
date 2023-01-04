@@ -24,6 +24,10 @@
             android:icon="@drawable/tv_settings_btn_bg"
             android:title="@string/main_menu_general"/>
         <item
+            android:id="@+id/nav_source"
+            android:icon="@drawable/ic_source"
+            android:title="@string/main_menu_source"/>
+        <item
             android:id="@+id/nav_network"
             android:icon="@drawable/ic_network"
             android:title="@string/main_menu_network"/>

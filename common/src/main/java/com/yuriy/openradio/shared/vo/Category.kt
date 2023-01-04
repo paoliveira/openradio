@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2020 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2023 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.yuriy.openradio.shared.vo
 
 import android.content.Context
 import com.yuriy.openradio.R
-import com.yuriy.openradio.shared.utils.AppUtils
 
 /**
  * Created by Yuriy Chernyshov
@@ -27,20 +26,15 @@ import com.yuriy.openradio.shared.utils.AppUtils
  *
  * [Category] is a value object that holds data related to category of Radio Stations.
  */
-class Category
-/**
- * Private constructor.
- * Disallow instantiation of this helper class.
- */
-private constructor() {
-
-    var id: String? = null
-    var stationsCount = 0
-    var title = AppUtils.EMPTY_STRING
+class Category(
+    val id: String,
+    val title: String,
+    private val mStationsCount: Int
+) : Comparable<Category> {
 
     fun getDescription(context: Context): String {
-        var desc = stationsCount.toString()
-        desc += if (stationsCount == 0 || stationsCount > 1) {
+        var desc = mStationsCount.toString()
+        desc += if (mStationsCount == 0 || mStationsCount > 1) {
             " " + context.getString(R.string.radio_stations)
         } else {
             " " + context.getString(R.string.radio_station)
@@ -48,14 +42,7 @@ private constructor() {
         return desc
     }
 
-    companion object {
-        /**
-         * Factory method to create instance of the [Category].
-         *
-         * @return Instance of the [Category].
-         */
-        fun makeDefaultInstance(): Category {
-            return Category()
-        }
+    override fun compareTo(other: Category): Int {
+        return other.mStationsCount.compareTo(mStationsCount)
     }
 }

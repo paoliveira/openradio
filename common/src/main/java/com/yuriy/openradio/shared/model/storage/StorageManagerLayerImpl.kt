@@ -22,19 +22,19 @@ class StorageManagerLayerImpl(
 ) : StorageManagerLayer {
 
     override fun mergeFavorites(value: String) {
-        val list = mFavoritesStorage.getAll()
-        val rxList = mFavoritesStorage.getAllFromString(value)
-        RadioStationsStorage.merge(list, rxList)
-        for (station in list) {
+        val set = mFavoritesStorage.getAll()
+        val rxSet = mFavoritesStorage.getAllFromString(value)
+        set.addAll(rxSet)
+        for (station in set) {
             mFavoritesStorage.add(station)
         }
     }
 
     override fun mergeDeviceLocals(value: String) {
-        val list = mDeviceLocalsStorage.getAll()
-        val rxList = mDeviceLocalsStorage.getAllFromString(value)
-        RadioStationsStorage.merge(list, rxList)
-        for (station in list) {
+        val set = mDeviceLocalsStorage.getAll()
+        val rxSet = mDeviceLocalsStorage.getAllFromString(value)
+        set.addAll(rxSet)
+        for (station in set) {
             mDeviceLocalsStorage.add(station)
         }
     }

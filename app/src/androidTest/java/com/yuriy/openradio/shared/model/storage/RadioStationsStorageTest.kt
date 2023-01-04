@@ -17,8 +17,7 @@
 package com.yuriy.openradio.shared.model.storage
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.yuriy.openradio.shared.model.storage.RadioStationsStorage.Companion.merge
-import com.yuriy.openradio.shared.vo.MediaStream.Companion.BITRATE_DEFAULT
+import com.yuriy.openradio.shared.vo.MediaStream.Companion.BIT_RATE_DEFAULT
 import com.yuriy.openradio.shared.vo.MediaStream.Companion.makeDefaultInstance
 import com.yuriy.openradio.shared.vo.RadioStation
 import org.hamcrest.CoreMatchers
@@ -43,7 +42,7 @@ class RadioStationsStorageTest {
         for (i in radioStations.indices) {
             val radioStation = RadioStation.makeDefaultInstance(i.toString())
             val stream = makeDefaultInstance()
-            stream.setVariant(BITRATE_DEFAULT, "Url" + 1)
+            stream.setVariant(BIT_RATE_DEFAULT, "Url" + 1)
             radioStation.mediaStream = stream
             radioStations[i] = radioStation
         }

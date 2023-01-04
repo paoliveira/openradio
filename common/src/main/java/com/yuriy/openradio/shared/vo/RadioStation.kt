@@ -100,7 +100,7 @@ fun RadioStation.setVariantFixed(bitrate: Int, url: String) {
     this.mediaStreamFixed.setVariant(bitrate, url)
 }
 
-class RadioStation : Serializable {
+class RadioStation : Serializable, Comparable<RadioStation> {
 
     private var mId = AppUtils.EMPTY_STRING
 
@@ -249,6 +249,10 @@ class RadioStation : Serializable {
         var result = mId.hashCode()
         result = 31 * result + mMediaStream.hashCode()
         return result
+    }
+
+    override fun compareTo(other: RadioStation): Int {
+        return name.compareTo(other.name)
     }
 
     override fun toString(): String {

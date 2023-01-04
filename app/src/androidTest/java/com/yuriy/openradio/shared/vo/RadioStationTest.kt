@@ -28,7 +28,7 @@ class RadioStationTest {
          */
         fun makeTestInstance(id: String, testIdx: Int): RadioStation {
             val radioStation = RadioStation.makeDefaultInstance(id)
-            radioStation.setVariant(MediaStream.BITRATE_DEFAULT, "http://www.stream-$testIdx.net")
+            radioStation.setVariant(MediaStream.BIT_RATE_DEFAULT, "http://www.stream-$testIdx.net")
             radioStation.imageUrl = "http://www.image-$testIdx.net"
             radioStation.countryCode = Country.COUNTRY_CODE_DEFAULT
             radioStation.genre = "Jazz"

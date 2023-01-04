@@ -27,11 +27,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
-import java.net.InetAddress
-import java.net.MalformedURLException
-import java.net.URL
-import java.net.UnknownHostException
-import java.util.Random
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 
@@ -45,10 +40,8 @@ import java.util.concurrent.Executors
  * [HTTPDownloaderImpl] allows to download data from the
  * resource over HTTP protocol.
  */
-class HTTPDownloaderImpl : DownloaderLayer {
+class HTTPDownloaderImpl(private val mUrlLayer: UrlLayer) : DownloaderLayer {
 
-    private var mUrlsSet: Array<String>? = null
-    private val mRandom = Random()
     private val mExecutor = Executors.newFixedThreadPool(8)
 
     override fun downloadDataFromUri(
@@ -56,27 +49,27 @@ class HTTPDownloaderImpl : DownloaderLayer {
         parameters: List<Pair<String, String>>,
         contentTypeFilter: String
     ): ByteArray {
-        val task = BytesDownloader(mUrlsSet, mRandom, context, uri, parameters, contentTypeFilter)
+        val task = BytesDownloader(context, mUrlLayer, uri, parameters, contentTypeFilter)
         return mExecutor.submit(task).get()
     }
 
     class BytesDownloader(
-        private var mUrlsSet: Array<String>?,
-        private val mRandom: Random,
-        private val context: Context, private val uri: Uri,
-        private val parameters: List<Pair<String, String>>,
-        private val contentTypeFilter: String
+        private val mContext: Context,
+        private val mUrlLayer: UrlLayer,
+        private val mUri: Uri,
+        private val mParameters: List<Pair<String, String>>,
+        private val mContentTypeFilter: String
     ) : Callable<ByteArray> {
 
         override fun call(): ByteArray {
             var response = ByteArray(0)
-            val url = getConnectionUrl(uri, parameters) ?: return response
+            val url = mUrlLayer.getConnectionUrl(mUri, mParameters) ?: return response
             AppLogger.i("$CLASS_NAME Request URL:$url")
             val connection = NetUtils.getHttpURLConnection(
-                context,
+                mContext,
                 url,
-                if (parameters.isEmpty()) NetUtils.HTTP_METHOD_GET else NetUtils.HTTP_METHOD_POST,
-                parameters
+                if (mParameters.isEmpty()) NetUtils.HTTP_METHOD_GET else NetUtils.HTTP_METHOD_POST,
+                mParameters
             ) ?: return response
             var responseCode = 0
             try {
@@ -86,7 +79,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
                     "$CLASS_NAME getResponse ${
                         NetUtils.createExceptionMessage(
                             url.toString(),
-                            parameters
+                            mParameters
                         )
                     }", exception
                 )
@@ -95,7 +88,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             if (responseCode < HttpURLConnection.HTTP_OK || responseCode > HttpURLConnection.HTTP_MULT_CHOICE - 1) {
                 NetUtils.closeHttpURLConnection(connection)
                 AppLogger.e(
-                    "$CLASS_NAME ${NetUtils.createExceptionMessage(url.toString(), parameters)}",
+                    "$CLASS_NAME ${NetUtils.createExceptionMessage(url.toString(), mParameters)}",
                     Exception("Response code is $responseCode")
                 )
                 return response
@@ -104,7 +97,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
             val contentType = connection.getHeaderField("Content-Type")
             AppLogger.d("$CLASS_NAME content type:$contentType for $url")
 
-            if (contentTypeFilter != AppUtils.EMPTY_STRING && !contentType.startsWith(contentTypeFilter)) {
+            if (mContentTypeFilter != AppUtils.EMPTY_STRING && !contentType.startsWith(mContentTypeFilter)) {
                 NetUtils.closeHttpURLConnection(connection)
                 AppLogger.w("$CLASS_NAME filtered out $contentType for $url")
                 return response
@@ -118,7 +111,7 @@ class HTTPDownloaderImpl : DownloaderLayer {
                     "$CLASS_NAME getStream ${
                         NetUtils.createExceptionMessage(
                             url.toString(),
-                            parameters
+                            mParameters
                         )
                     }", exception
                 )
@@ -127,93 +120,6 @@ class HTTPDownloaderImpl : DownloaderLayer {
             }
             AppLogger.d("$CLASS_NAME return ${response.size} bytes for $url")
             return response
-        }
-
-        /**
-         * Do DNS look up in order to get available url for service connection.
-         * Addresses, if found, are cached and next time is used from the cache.
-         *
-         * @param uri        Initial (with dummy and predefined prefix) url to perform look up on.
-         * @param parameters Parameters associated with request.
-         * @return URL object to do connection with.
-         */
-        private fun getConnectionUrl(
-            uri: Uri,
-            parameters: List<Pair<String, String>>
-        ): URL? {
-            // If there is no predefined prefix - return original URL.
-            val uriStr = uri.toString()
-            if (!uriStr.startsWith(UrlBuilder.BASE_URL_PREFIX)) {
-                return getUrl(uriStr, parameters)
-            }
-
-            // Return cached URL if available.
-            synchronized(mRandom) {
-                if (mUrlsSet != null && mUrlsSet!!.isNotEmpty()) {
-                    val i = mRandom.nextInt(mUrlsSet!!.size)
-                    return getUrlModified(uriStr, mUrlsSet!![i], parameters)
-                }
-            }
-
-            // Perform look up and cache results.
-            try {
-                val list = InetAddress.getAllByName(UrlBuilder.LOOK_UP_DNS)
-                synchronized(mRandom) {
-                    mUrlsSet = Array(list.size) { AppUtils.EMPTY_STRING }
-                    var i = 0
-                    for (item in list) {
-                        mUrlsSet!![i++] = "https://" + item.canonicalHostName
-                        AppLogger.i("$CLASS_NAME look up host:" + mUrlsSet!![i - 1])
-                    }
-                }
-            } catch (exception: UnknownHostException) {
-                AppLogger.e(
-                    "$CLASS_NAME do lookup ${NetUtils.createExceptionMessage(uri, parameters)}",
-                    exception
-                )
-            }
-
-            // Do random selection from available addresses.
-            var url: URL? = null
-            synchronized(mRandom) {
-                if (mUrlsSet != null && mUrlsSet!!.isNotEmpty()) {
-                    val i = mRandom.nextInt(mUrlsSet!!.size)
-                    url = getUrlModified(uriStr, mUrlsSet!![i], parameters)
-                }
-            }
-
-            // Uri to URL parse might fail.
-            if (url != null) {
-                return url
-            }
-
-            // Use predefined addresses, these are needs to be verified time after time in order to be up to date.
-            val i = mRandom.nextInt(UrlBuilder.RESERVED_URLS.size)
-            return getUrlModified(uriStr, UrlBuilder.RESERVED_URLS[i], parameters)
-        }
-
-        private fun getUrlModified(
-            uriOrigin: String,
-            uri: String?, parameters: List<Pair<String, String>>
-        ): URL? {
-            val uriModified = uriOrigin.replaceFirst(UrlBuilder.BASE_URL_PREFIX.toRegex(), uri!!)
-            return getUrl(uriModified, parameters)
-        }
-
-        private fun getUrl(uri: String, parameters: List<Pair<String, String>>): URL? {
-            return try {
-                URL(uri)
-            } catch (exception: MalformedURLException) {
-                AppLogger.e(
-                    "$CLASS_NAME getUrl ${
-                        NetUtils.createExceptionMessage(
-                            uri,
-                            parameters
-                        )
-                    }", exception
-                )
-                null
-            }
         }
     }
 

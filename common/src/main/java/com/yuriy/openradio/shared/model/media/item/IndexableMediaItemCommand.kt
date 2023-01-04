@@ -17,7 +17,7 @@
 package com.yuriy.openradio.shared.model.media.item
 
 import com.yuriy.openradio.shared.model.media.item.MediaItemCommand.IUpdatePlaybackState
-import com.yuriy.openradio.shared.model.net.UrlBuilder
+import com.yuriy.openradio.shared.model.net.UrlLayer
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -31,19 +31,19 @@ abstract class IndexableMediaItemCommand internal constructor() : MediaItemComma
     /**
      * Index of the current page of the Radio Stations List.
      */
-    private val mPageIndex = AtomicInteger(UrlBuilder.FIRST_PAGE_INDEX)
+    private val mPageIndex = AtomicInteger(UrlLayer.FIRST_PAGE_INDEX)
 
     override fun execute(playbackStateListener: IUpdatePlaybackState, dependencies: MediaItemCommandDependencies) {
         super.execute(playbackStateListener, dependencies)
         if (dependencies.isSameCatalogue.not()) {
-            mPageIndex.set(UrlBuilder.FIRST_PAGE_INDEX)
+            mPageIndex.set(UrlLayer.FIRST_PAGE_INDEX)
         }
     }
 
     override fun doLoadNoDataReceived(): Boolean {
-        return mPageIndex.get() == UrlBuilder.FIRST_PAGE_INDEX + 1
+        return mPageIndex.get() == UrlLayer.FIRST_PAGE_INDEX + 1
     }
 
-    val pageNumber: Int
+    val nextPageNumber: Int
         get() = mPageIndex.getAndIncrement()
 }

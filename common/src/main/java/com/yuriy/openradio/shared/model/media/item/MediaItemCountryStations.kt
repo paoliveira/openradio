@@ -44,10 +44,12 @@ class MediaItemCountryStations : IndexableMediaItemCommand() {
         mJob = dependencies.mScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 // Load all categories into menu
+                val pageNumber = nextPageNumber
                 handleDataLoaded(
                     playbackStateListener,
                     dependencies,
-                    dependencies.presenter.getStationsByCountry(dependencies.countryCode, pageNumber)
+                    dependencies.presenter.getStationsByCountry(dependencies.countryCode, pageNumber),
+                    pageNumber
                 )
             } ?: dependencies.result.sendResult(null)
         }

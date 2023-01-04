@@ -33,6 +33,7 @@ import androidx.fragment.app.DialogFragment
  * [BaseDialogFragment] is a base class to display Dialog.
  */
 abstract class BaseDialogFragment : DialogFragment() {
+
     /**
      *
      * @param view

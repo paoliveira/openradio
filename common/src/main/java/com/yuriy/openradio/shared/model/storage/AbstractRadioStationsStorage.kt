@@ -24,6 +24,7 @@ import com.yuriy.openradio.shared.utils.AppUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.isInvalid
 import java.lang.ref.WeakReference
+import java.util.TreeSet
 
 /**
  * Created by Yuriy Chernyshov
@@ -97,8 +98,8 @@ abstract class AbstractRadioStationsStorage(contextRef: WeakReference<Context>, 
      * obtained from the [.getAllAsString]
      * @return List of Radio Stations.
      */
-    fun getAllFromString(marshalledRadioStations: String): ArrayList<RadioStation> {
-        val list = ArrayList<RadioStation>()
+    fun getAllFromString(marshalledRadioStations: String): Set<RadioStation> {
+        val list = TreeSet<RadioStation>()
         if (marshalledRadioStations.isEmpty()) {
             return list
         }
@@ -127,9 +128,9 @@ abstract class AbstractRadioStationsStorage(contextRef: WeakReference<Context>, 
      *
      * @return Collection of the Radio Stations.
      */
-    fun getAll(): ArrayList<RadioStation> {
+    fun getAll(): TreeSet<RadioStation> {
         // TODO: Return cache when possible
-        val radioStations = ArrayList<RadioStation>()
+        val radioStations = TreeSet<RadioStation>()
         val map = getAllValues()
         val deserializer = RadioStationJsonDeserializer()
         var counter = 0
@@ -170,9 +171,9 @@ abstract class AbstractRadioStationsStorage(contextRef: WeakReference<Context>, 
         return radioStations
     }
 
-    fun addAll(list: List<RadioStation>) {
+    fun addAll(set: Set<RadioStation>) {
         val serializer = RadioStationJsonSerializer()
-        for (radioStation in list) {
+        for (radioStation in set) {
             putStringValue(createKeyForRadioStation(radioStation), serializer.serialize(radioStation))
         }
     }

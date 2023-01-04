@@ -22,6 +22,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
@@ -45,6 +46,7 @@ import com.yuriy.openradio.shared.view.dialog.RSSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.RemoveStationDialog
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
 import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
+import com.yuriy.openradio.shared.view.dialog.SourceDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 
 fun Activity.findTextView(id: Int): TextView {
@@ -127,6 +129,10 @@ fun View.findImageView(id: Int): ImageView {
     return findViewById(id)
 }
 
+fun View.findImageButton(id: Int): ImageButton {
+    return findViewById(id)
+}
+
 fun View.findView(id: Int): View {
     return findViewById(id)
 }
@@ -172,6 +178,7 @@ object UiUtils {
         removeFragment(transaction, manager.findFragmentByTag(SearchDialog.DIALOG_TAG))
         removeFragment(transaction, manager.findFragmentByTag(SleepTimerDialog.DIALOG_TAG))
         removeFragment(transaction, manager.findFragmentByTag(StreamBufferingDialog.DIALOG_TAG))
+        removeFragment(transaction, manager.findFragmentByTag(SourceDialog.DIALOG_TAG))
         try {
             transaction.commitNow()
         } catch (exception: IllegalStateException) {

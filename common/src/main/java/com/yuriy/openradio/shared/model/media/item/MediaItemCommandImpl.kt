@@ -25,6 +25,7 @@ import com.yuriy.openradio.shared.utils.PlayerUtils
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.toMediaItemPlayable
 import kotlinx.coroutines.Job
+import java.util.TreeSet
 
 /**
  * Created by Chernyshov Yurii
@@ -45,9 +46,10 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
     fun handleDataLoaded(
         playbackStateListener: IUpdatePlaybackState,
         dependencies: MediaItemCommandDependencies,
-        list: List<RadioStation>
+        set: Set<RadioStation>,
+        pageNumber: Int = 0
     ) {
-        if (list.isEmpty()) {
+        if (set.isEmpty()) {
             if (doLoadNoDataReceived()) {
                 val track = MediaItemHelper.buildMediaMetadataForEmptyCategory(
                     dependencies.context,
@@ -68,11 +70,15 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
             }
             return
         }
-        deliverResult(dependencies, list)
+        deliverResult(dependencies, set, pageNumber)
     }
 
-    fun deliverResult(dependencies: MediaItemCommandDependencies, list: List<RadioStation> = ArrayList()) {
-        for (radioStation in list) {
+    fun deliverResult(
+        dependencies: MediaItemCommandDependencies,
+        set: Set<RadioStation> = TreeSet(),
+        pageNumber: Int = 0
+    ) {
+        for (radioStation in set) {
             dependencies.addMediaItem(
                 radioStation.toMediaItemPlayable(
                     isFavorite = dependencies.presenter.isRadioStationFavorite(radioStation)
@@ -80,6 +86,6 @@ abstract class MediaItemCommandImpl internal constructor() : MediaItemCommand {
             )
         }
         dependencies.result.sendResult(dependencies.getMediaItems())
-        dependencies.resultListener.onResult(list)
+        dependencies.resultListener.onResult(set, pageNumber)
     }
 }

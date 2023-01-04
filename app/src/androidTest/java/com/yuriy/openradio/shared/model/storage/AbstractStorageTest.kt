@@ -19,7 +19,6 @@ package com.yuriy.openradio.shared.model.storage
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.yuriy.openradio.shared.utils.RadioStationsComparator
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.RadioStationTest
 import org.hamcrest.CoreMatchers
@@ -29,7 +28,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.lang.ref.WeakReference
-import java.util.Collections
+import java.util.TreeSet
 
 /**
  * Created by Chernyshov Yurii
@@ -74,7 +73,7 @@ class AbstractStorageTest {
         storage.clear()
 
         val num = 10
-        val list = ArrayList<RadioStation>()
+        val list = TreeSet<RadioStation>()
         for (i in 0..num) {
             list.add(RadioStationTest.makeTestInstance("id-$i", i))
         }
@@ -82,8 +81,6 @@ class AbstractStorageTest {
         storage.addAll(list)
 
         val newList = storage.getAll()
-        val comparator = RadioStationsComparator()
-        Collections.sort(newList, comparator)
 
         MatcherAssert.assertThat(newList.size, CoreMatchers.`is`(num + 1))
         for ((i, radioStation) in newList.withIndex()) {

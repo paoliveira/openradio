@@ -62,14 +62,14 @@ class MediaItemCountriesList : MediaItemCommand {
         playbackStateListener: IUpdatePlaybackState,
         dependencies: MediaItemCommandDependencies
     ) {
-        val list = dependencies.presenter.getAllCountries()
-        if (list.isEmpty()) {
+        val set = dependencies.presenter.getAllCountries()
+        if (set.isEmpty()) {
             playbackStateListener.updatePlaybackState(
                 dependencies.context.getString(R.string.no_data_message)
             )
             return
         }
-        for (country in list) {
+        for (country in set) {
             if (!LocationService.COUNTRY_CODE_TO_NAME.containsKey(country.code)) {
                 // Add missing country to the Map of the existing ones.
                 AppLogger.w("$CLASS_NAME Missing country:$country")

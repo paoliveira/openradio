@@ -21,29 +21,27 @@ interface OpenRadioServicePresenter {
 
     fun getUseMobile(): Boolean
 
-    fun getStationsInCategory(categoryId: String, pageNumber: Int): List<RadioStation>
+    fun getStationsInCategory(categoryId: String, pageNumber: Int): Set<RadioStation>
 
-    fun getStationsByCountry(countryCode: String, pageNumber: Int): List<RadioStation>
+    fun getStationsByCountry(countryCode: String, pageNumber: Int): Set<RadioStation>
 
-    fun getRecentlyAddedStations(): List<RadioStation>
+    fun getRecentlyAddedStations(): Set<RadioStation>
 
-    fun getPopularStations(): List<RadioStation>
+    fun getPopularStations(): Set<RadioStation>
 
-    fun getSearchStations(query: String, mediaIdBuilder: MediaIdBuilder = MediaIdBuilderDefault()): List<RadioStation>
+    fun getSearchStations(query: String, mediaIdBuilder: MediaIdBuilder = MediaIdBuilderDefault()): Set<RadioStation>
 
-    fun getAllCategories(): List<Category>
+    fun getAllCategories(): Set<Category>
 
-    fun getAllCountries(): List<Country>
+    fun getAllCountries(): Set<Country>
 
-    fun getAllFavorites(): List<RadioStation>
+    fun getAllFavorites(): Set<RadioStation>
 
-    fun getAllDeviceLocal(): List<RadioStation>
+    fun getAllDeviceLocal(): Set<RadioStation>
 
     fun getLastRadioStation(): RadioStation
 
     fun getEqualizerLayer(): EqualizerLayer
-
-    fun getRadioStationsComparator(): Comparator<RadioStation>
 
     fun setLastRadioStation(radioStation: RadioStation)
 
