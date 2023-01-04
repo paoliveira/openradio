@@ -67,8 +67,8 @@ class MediaItemAllCategories : MediaItemCommand {
         playbackStateListener: IUpdatePlaybackState,
         dependencies: MediaItemCommandDependencies
     ) {
-        val list = dependencies.presenter.getAllCategories()
-        if (list.isEmpty()) {
+        val set = dependencies.presenter.getAllCategories()
+        if (set.isEmpty()) {
             playbackStateListener.updatePlaybackState(
                 dependencies.context.getString(R.string.no_data_message)
             )
@@ -78,7 +78,7 @@ class MediaItemAllCategories : MediaItemCommand {
         // Counter of max number of categories. It is matter for Car since binder can not transfer a huge
         // amount of data.
         var counter = 0
-        for (category in list) {
+        for (category in set) {
             if (dependencies.isCar && counter++ > MAX_COUNTER) {
                 break
             }

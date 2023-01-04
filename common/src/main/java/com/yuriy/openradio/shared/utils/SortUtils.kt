@@ -20,7 +20,6 @@ import com.yuriy.openradio.shared.model.media.MediaId
 import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.vo.RadioStation
-import java.util.Collections
 
 object SortUtils {
 
@@ -32,29 +31,27 @@ object SortUtils {
      * @param categoryMediaId Category.
      */
     fun updateSortIds(
-        comparator: Comparator<RadioStation>,
         mediaId: String, sortId: Int, categoryMediaId: String,
         favoritesStorage: FavoritesStorage, deviceLocalsStorage: DeviceLocalsStorage
     ) {
         when (categoryMediaId) {
             MediaId.MEDIA_ID_FAVORITES_LIST -> {
                 val all = favoritesStorage.getAll()
-                resortIds(comparator, all, sortId, mediaId)
+                resortIds(all, sortId, mediaId)
                 favoritesStorage.addAll(all)
             }
             MediaId.MEDIA_ID_LOCAL_RADIO_STATIONS_LIST -> {
                 val all = deviceLocalsStorage.getAll()
-                resortIds(comparator, all, sortId, mediaId)
+                resortIds(all, sortId, mediaId)
                 deviceLocalsStorage.addAll(all)
             }
         }
     }
 
     private fun resortIds(
-        comparator: Comparator<RadioStation>,
-        all: List<RadioStation>, sortId: Int, mediaId: String
+        all: Set<RadioStation>, sortId: Int, mediaId: String
     ) {
-        Collections.sort(all, comparator)
+        //Collections.sort(all, comparator)
         var counter = 0
         var value: Int
         for (item in all) {

@@ -19,7 +19,7 @@ package com.yuriy.openradio.shared.model.storage
 import android.content.Context
 import com.yuriy.openradio.shared.utils.AppLogger.d
 import com.yuriy.openradio.shared.utils.AppUtils
-import com.yuriy.openradio.shared.vo.MediaStream.Companion.BITRATE_DEFAULT
+import com.yuriy.openradio.shared.vo.MediaStream.Companion.BIT_RATE_DEFAULT
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.setVariant
 import java.lang.ref.WeakReference
@@ -78,7 +78,7 @@ class DeviceLocalsStorage(
                 remove(radioStation)
                 mFavoritesStorage.remove(radioStation)
                 radioStation.name = name
-                radioStation.setVariant(BITRATE_DEFAULT, url)
+                radioStation.setVariant(BIT_RATE_DEFAULT, url)
                 radioStation.imageUrl = imageUrl ?: AppUtils.EMPTY_STRING
                 radioStation.genre = genre ?: AppUtils.EMPTY_STRING
                 radioStation.country = country ?: AppUtils.EMPTY_STRING

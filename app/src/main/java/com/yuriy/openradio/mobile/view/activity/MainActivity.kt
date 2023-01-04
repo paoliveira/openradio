@@ -71,6 +71,7 @@ import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.NetworkDialog
 import com.yuriy.openradio.shared.view.dialog.SearchDialog
 import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
+import com.yuriy.openradio.shared.view.dialog.SourceDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.shared.view.list.MediaItemsAdapter
 import com.yuriy.openradio.shared.vo.getStreamBitrate
@@ -300,6 +301,11 @@ class MainActivity : AppCompatActivity(), MediaPresenterDependency {
                     // Show Network Dialog
                     val dialog = BaseDialogFragment.newInstance(NetworkDialog::class.java.name)
                     dialog.show(transaction, NetworkDialog.DIALOG_TAG)
+                }
+                R.id.nav_source -> {
+                    // Show Source Dialog
+                    val dialog = BaseDialogFragment.newInstance(SourceDialog::class.java.name)
+                    dialog.show(transaction, SourceDialog.DIALOG_TAG)
                 }
                 else -> {
                     // No dialog found.

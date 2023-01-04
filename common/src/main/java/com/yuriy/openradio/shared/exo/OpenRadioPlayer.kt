@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 import java.net.HttpURLConnection
 import java.util.Collections
 import java.util.Locale
+import java.util.TreeSet
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -238,7 +239,7 @@ class OpenRadioPlayer(
      * Prepare player to play URI.
      */
     fun prepare(mediaId: String) {
-        AppLogger.d("Prepare $mediaId, cast[${mCastPlayer?.isCastSessionAvailable}]")
+        AppLogger.d("Prepare '$mediaId', cast[${mCastPlayer?.isCastSessionAvailable}]")
         if (this::mMediaSessionConnector.isInitialized) {
             mMediaSessionConnector.invalidateMediaSessionMetadata()
         }
@@ -276,9 +277,9 @@ class OpenRadioPlayer(
     }
 
     @Synchronized
-    fun addItems(list: List<RadioStation>) {
-        AppLogger.d("$LOG_TAG add ${list.size} items")
-        mMediaItems.addAll(rssToPlayerMediaItems(mContext, list))
+    fun addItems(set: Set<RadioStation>) {
+        AppLogger.d("$LOG_TAG add ${set.size} items")
+        mMediaItems.addAll(rssToPlayerMediaItems(mContext, set))
         AppLogger.d("$LOG_TAG has ${mMediaItems.size} items")
     }
 
@@ -671,7 +672,7 @@ class OpenRadioPlayer(
             return mime
         }
 
-        private fun rssToPlayerMediaItems(context: Context, value: List<RadioStation>): List<MediaItem> {
+        private fun rssToPlayerMediaItems(context: Context, value: Set<RadioStation>): List<MediaItem> {
             val list = ArrayList<MediaItem>()
             for (item in value) {
                 list.add(rsToPlayerMediaItem(context, item))

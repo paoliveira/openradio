@@ -32,6 +32,7 @@ import com.yuriy.openradio.shared.vo.Country
 import com.yuriy.openradio.shared.vo.RadioStation
 import org.json.JSONException
 import org.json.JSONObject
+import java.util.TreeSet
 
 /**
  * Created by Yuriy Chernyshov
@@ -50,23 +51,23 @@ class ModelLayerImpl(
     private val mApiCacheInMemory: ApiCache
 ) : ModelLayer {
 
-    override fun getCategories(uri: Uri): List<Category> {
+    override fun getCategories(uri: Uri): Set<Category> {
         val data = downloadData(uri)
         return mDataParser.getCategories(data)
     }
 
-    override fun getCountries(): List<Country> {
-        val list = ArrayList<Country>()
+    override fun getCountries(): Set<Country> {
+        val set = TreeSet<Country>()
         for (countryName in LocationService.COUNTRY_NAME_TO_CODE.keys) {
             val countryCode = LocationService.COUNTRY_NAME_TO_CODE[countryName] ?: continue
-            list.add(Country(countryName, countryCode))
+            set.add(Country(countryName, countryCode))
         }
-        list.sortWith { c1: Country, c2: Country -> c1.name.compareTo(c2.name) }
-        return list
+        return set
     }
 
-    override fun getStations(uri: Uri, mediaIdBuilder: MediaIdBuilder): List<RadioStation> {
-        return mDataParser.getRadioStations(downloadData(uri), mediaIdBuilder)
+    override fun getStations(uri: Uri, mediaIdBuilder: MediaIdBuilder): Set<RadioStation> {
+        val data = downloadData(uri)
+        return mDataParser.getRadioStations(data, mediaIdBuilder, uri)
     }
 
     override fun addStation(uri: Uri, parameters: List<Pair<String, String>>): Boolean {

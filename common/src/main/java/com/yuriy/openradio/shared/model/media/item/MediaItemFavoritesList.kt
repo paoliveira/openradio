@@ -24,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import java.util.Collections
 
 /**
  * Created by Yuriy Chernyshov
@@ -49,7 +48,6 @@ class MediaItemFavoritesList : MediaItemCommand {
         mJob = dependencies.mScope.launch(Dispatchers.IO) {
             withTimeoutOrNull(MediaItemCommand.CMD_TIMEOUT_MS) {
                 val list = dependencies.presenter.getAllFavorites()
-                Collections.sort(list, dependencies.presenter.getRadioStationsComparator())
                 for (radioStation in list) {
                     if (radioStation.isInvalid()) {
                         AppLogger.w("Skip invalid favorite $radioStation")

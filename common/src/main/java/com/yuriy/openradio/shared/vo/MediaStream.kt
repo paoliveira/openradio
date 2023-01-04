@@ -109,7 +109,7 @@ class MediaStream private constructor() {
 
     companion object {
 
-        const val BITRATE_DEFAULT = 320
+        const val BIT_RATE_DEFAULT = 320
         /**
          * Factory method to create instance of the [MediaStream].
          *

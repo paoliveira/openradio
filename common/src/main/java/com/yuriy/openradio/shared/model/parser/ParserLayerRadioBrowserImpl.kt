@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2021 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2022 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.yuriy.openradio.shared.model.parser
 
+import android.net.Uri
 import com.yuriy.openradio.shared.model.translation.MediaIdBuilder
 import com.yuriy.openradio.shared.utils.AppLogger
 import com.yuriy.openradio.shared.utils.AppUtils
@@ -24,9 +25,9 @@ import com.yuriy.openradio.shared.vo.Category
 import com.yuriy.openradio.shared.vo.RadioStation
 import com.yuriy.openradio.shared.vo.setVariant
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.util.Locale
+import java.util.TreeSet
 
 /**
  * Created by Yuriy Chernyshov
@@ -36,10 +37,10 @@ import java.util.Locale
  *
  * This is implementation of [ParserLayer] that designed to works with JSON as input format.
  */
-class ParserLayerJsonImpl : ParserLayer {
+class ParserLayerRadioBrowserImpl : ParserLayer {
 
     companion object {
-        private const val CLASS_NAME = "JsonDataParserImpl"
+        private const val TAG = "PLRBI"
         private const val KEY_STATION_UUID = "stationuuid"
         private const val KEY_NAME = "name"
         private const val KEY_COUNTRY = "country"
@@ -58,24 +59,24 @@ class ParserLayerJsonImpl : ParserLayer {
         private const val KEY_CODEC = "codec"
     }
 
-    override fun getRadioStation(data: String, mediaIdBuilder: MediaIdBuilder): RadioStation {
-        val list = getRadioStations(data, mediaIdBuilder)
-        return if (list.isNotEmpty()) list[0] else RadioStation.INVALID_INSTANCE
+    override fun getRadioStation(data: String, mediaIdBuilder: MediaIdBuilder, uri: Uri): RadioStation {
+        val list = getRadioStations(data, mediaIdBuilder, uri)
+        return if (list.isNotEmpty()) list.first() else RadioStation.INVALID_INSTANCE
     }
 
-    override fun getRadioStations(data: String, mediaIdBuilder: MediaIdBuilder): List<RadioStation> {
+    override fun getRadioStations(data: String, mediaIdBuilder: MediaIdBuilder, uri: Uri): Set<RadioStation> {
         val array = try {
             JSONArray(data)
         } catch (e: Exception) {
-            AppLogger.e("$CLASS_NAME can't convert data to JSON Array, data:$data", e)
-            return emptyList()
+            AppLogger.e("$TAG to JSON Array, data:$data", e)
+            return emptySet()
         }
-        val result = ArrayList<RadioStation>()
+        val result = TreeSet<RadioStation>()
         for (i in 0 until array.length()) {
-            val jsonObject: JSONObject = try {
+            val jsonObject = try {
                 array[i] as JSONObject
-            } catch (e: JSONException) {
-                AppLogger.e("$CLASS_NAME get stations", e)
+            } catch (e: Exception) {
+                AppLogger.e("$TAG get stations, data:$data", e)
                 continue
             }
             val radioStation = getRadioStation(jsonObject, mediaIdBuilder)
@@ -87,31 +88,31 @@ class ParserLayerJsonImpl : ParserLayer {
         return result
     }
 
-    override fun getCategories(data: String): List<Category> {
+    override fun getCategories(data: String): Set<Category> {
         val array = try {
             JSONArray(data)
-        } catch (e: JSONException) {
-            AppLogger.e("$CLASS_NAME can't convert data to JSON Array, data:$data", e)
-            return emptyList()
+        } catch (e: Exception) {
+            AppLogger.e("$TAG to JSON Array, data:$data", e)
+            return emptySet()
         }
-        val result = ArrayList<Category>()
+        val result = TreeSet<Category>()
         for (i in 0 until array.length()) {
-            val jsonObject: JSONObject =  try {
+            val jsonObject = try {
                 array[i] as JSONObject
-            } catch (e: JSONException) {
-                AppLogger.e("$CLASS_NAME getCategories", e)
+            } catch (e: Exception) {
+                AppLogger.e("$TAG getCategories, data:$data", e)
                 continue
             }
-            val category = Category.makeDefaultInstance()
             if (jsonObject.has(KEY_NAME)) {
-                category.id = jsonObject.getString(KEY_NAME)
-                category.title = jsonObject.getString(KEY_NAME)
+                val id = jsonObject.getString(KEY_NAME)
+                val title = jsonObject.getString(KEY_NAME)
                     .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+                var stationsCount = 0
                 if (jsonObject.has(KEY_STATIONS_COUNT)) {
-                    category.stationsCount = jsonObject.getInt(KEY_STATIONS_COUNT)
+                    stationsCount = jsonObject.getInt(KEY_STATIONS_COUNT)
                 }
+                result.add(Category(id, title, stationsCount))
             }
-            result.add(category)
         }
         return result
     }

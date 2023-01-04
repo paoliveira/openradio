@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.storage
 
 import com.yuriy.openradio.shared.vo.RadioStation
 import java.util.Collections
+import java.util.TreeSet
 
 class RadioStationsStorage {
 
@@ -27,7 +28,7 @@ class RadioStationsStorage {
 
         fun onAdd(item: RadioStation, position: Int)
 
-        fun onAddAll(list: List<RadioStation>)
+        fun onAddAll(set: Set<RadioStation>)
 
         fun onUpdate(item: RadioStation)
     }
@@ -35,15 +36,15 @@ class RadioStationsStorage {
     /**
      * Collection of the Radio Stations.
      */
-    private val mRadioStations = Collections.synchronizedList<RadioStation>(ArrayList())
+    private val mRadioStations = Collections.synchronizedSet<RadioStation>(TreeSet())
 
-    val all: List<RadioStation>
+    val all: Set<RadioStation>
         get() {
-            return ArrayList(mRadioStations)
+            return TreeSet(mRadioStations)
         }
 
-    fun addAll(list: List<RadioStation>) {
-        mRadioStations.addAll(list)
+    fun addAll(set: Set<RadioStation>) {
+        mRadioStations.addAll(set)
     }
 
     fun clear() {
@@ -76,9 +77,9 @@ class RadioStationsStorage {
      */
     fun removeById(mediaId: String) {
         synchronized(mRadioStations) {
-            for ((i, radioStation) in all.withIndex()) {
+            for (radioStation in all) {
                 if (radioStation.id == mediaId) {
-                    mRadioStations.removeAt(i)
+                    mRadioStations.remove(radioStation)
                     break
                 }
             }
@@ -92,7 +93,7 @@ class RadioStationsStorage {
         if (index >= size()) {
             return RadioStation.INVALID_INSTANCE
         }
-        return mRadioStations[index]
+        return mRadioStations.elementAt(index)
     }
 
     /**
@@ -100,29 +101,8 @@ class RadioStationsStorage {
      *
      * @param source Source collection.
      */
-    fun clearAndCopy(source: List<RadioStation>) {
+    fun clearAndCopy(source: Set<RadioStation>) {
         clear()
         addAll(source)
-    }
-
-    companion object {
-
-        /**
-         * Merge Radio Stations from listB to listA.
-         *
-         * @param listA
-         * @param listB
-         */
-        fun merge(listA: ArrayList<RadioStation>?, listB: ArrayList<RadioStation>?) {
-            if (listA == null || listB == null) {
-                return
-            }
-            for (radioStation in listB) {
-                if (listA.contains(radioStation)) {
-                    continue
-                }
-                listA.add(radioStation)
-            }
-        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2022 The "Open Radio" Project. Author: Chernyshov Yuriy
+ * Copyright 2017-2023 The "Open Radio" Project. Author: Chernyshov Yuriy
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.yuriy.openradio.shared.utils
 
 import android.content.Context
 import com.yuriy.openradio.shared.model.ModelLayer
-import com.yuriy.openradio.shared.model.net.UrlBuilder
+import com.yuriy.openradio.shared.model.net.UrlLayer
 import com.yuriy.openradio.shared.vo.RadioStationToAdd
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
  */
 class RadioStationValidator(
     private val mProvider: ModelLayer,
+    private val mUrlLayer: UrlLayer,
     private var mUiScope: CoroutineScope,
     private var mScope: CoroutineScope
 ) {
@@ -62,7 +63,7 @@ class RadioStationValidator(
                 mUiScope.launch { onWarning("Radio Station's home page is invalid") }
             }
             if (rsToAdd.isAddToServer) {
-                val urlData = UrlBuilder.addStation(rsToAdd)
+                val urlData = mUrlLayer.getAddStationUrl(rsToAdd)
                 val uri = urlData.first
                 if (uri == null) {
                     mUiScope.launch { onFailure("Radio Station's stream is invalid") }

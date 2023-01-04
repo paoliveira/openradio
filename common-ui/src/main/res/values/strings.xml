@@ -88,6 +88,7 @@
     <string name="main_menu_general">General</string>
     <string name="main_menu_buffering">@string/buffering</string>
     <string name="main_menu_network">@string/network</string>
+    <string name="main_menu_source">@string/source</string>
     <string name="main_menu_google_drive">Google Drive</string>
     <string name="main_menu_about">About</string>
     <string name="main_menu_sleep_timer">Sleep Timer</string>

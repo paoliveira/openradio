@@ -90,6 +90,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import java.util.TreeSet
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -169,7 +170,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
      * Storage of Radio Stations to browse.
      */
     private val mBrowseStorage: RadioStationsStorage
-    private val mLatestPlaylist = ArrayList<RadioStation>()
+    private val mLatestPlaylist = TreeSet<RadioStation>()
+
     /**
      * Storage of Radio Stations queried from Search.
      */
@@ -222,7 +224,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
 
     interface ResultListener {
 
-        fun onResult(list: List<RadioStation> = ArrayList())
+        fun onResult(set: Set<RadioStation> = TreeSet(), pageNumber: Int = 1)
     }
 
     private inner class StorageListener : RadioStationsStorage.Listener {
@@ -239,9 +241,9 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             }
         }
 
-        override fun onAddAll(list: List<RadioStation>) {
+        override fun onAddAll(set: Set<RadioStation>) {
             mUiScope.launch {
-                mPlayer.addItems(list)
+                mPlayer.addItems(set)
             }
         }
 
@@ -411,9 +413,11 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             applicationContext, result, mPresenter, Country.COUNTRY_CODE_DEFAULT, id, DependencyRegistryCommon.isCar,
             false, mIsRestoreState, AppUtils.makeSearchQueryBundle(query), mCommandScope,
             object : ResultListener {
-                override fun onResult(list: List<RadioStation>) {
-                    mSearchStorage.clear()
-                    mSearchStorage.addAll(list)
+                override fun onResult(set: Set<RadioStation>, pageNumber: Int) {
+                    if (pageNumber == 0) {
+                        mSearchStorage.clear()
+                    }
+                    mSearchStorage.addAll(set)
                 }
             }
         )
@@ -437,7 +441,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         val pl = mPresenter.getAllFavorites()
         val rs = mActiveRS
         var found = false
-        if (rs != RadioStation.INVALID_INSTANCE) {
+        if (rs.isInvalid().not()) {
             for (item in pl) {
                 if (item.id == rs.id) {
                     found = true
@@ -446,7 +450,7 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             }
         }
         mLatestPlaylist.clear()
-        if (found.not()) {
+        if (found.not() && rs.isInvalid().not()) {
             mLatestPlaylist.add(rs)
         }
         mLatestPlaylist.addAll(pl)
@@ -488,13 +492,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         options: Bundle
     ) {
         AppLogger.i("$TAG OnLoadChildren $parentId, options:${IntentUtils.bundleToString(options)}")
-        var isSameCatalogue = false
-        // Check whether category had changed.
-        if (parentId == mCurrentParentId) {
-            isSameCatalogue = true
-        }
+        val isSameCatalogue = AppUtils.isSameCatalogue(parentId, mCurrentParentId)
         mCurrentParentId = parentId
-
         val defaultCountryCode = mPresenter.getCountryCode()
         // If Parent Id contains Country Code - use it in the API.
         val countryCode = MediaId.getCountryCode(mCurrentParentId, defaultCountryCode)
@@ -504,8 +503,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             applicationContext, result, mPresenter, countryCode, mCurrentParentId, isCar,
             isSameCatalogue, mIsRestoreState, options, mCommandScope,
             object : ResultListener {
-                override fun onResult(list: List<RadioStation>) {
-                    this@OpenRadioService.onResult(list)
+                override fun onResult(set: Set<RadioStation>, pageNumber: Int) {
+                    this@OpenRadioService.onResult(set, pageNumber)
                 }
             }
         )
@@ -582,8 +581,8 @@ class OpenRadioService : MediaBrowserServiceCompat() {
             handleStopRequest()
             return
         }
-        mActiveRS.setVariantFixed(MediaStream.BITRATE_DEFAULT, urls[0])
-        getStorage(mActiveRS.id).getById(mActiveRS.id).setVariantFixed(MediaStream.BITRATE_DEFAULT, urls[0])
+        mActiveRS.setVariantFixed(MediaStream.BIT_RATE_DEFAULT, urls[0])
+        getStorage(mActiveRS.id).getById(mActiveRS.id).setVariantFixed(MediaStream.BIT_RATE_DEFAULT, urls[0])
         mStorageListener.onUpdate(mActiveRS)
         handlePlayRequest()
     }
@@ -726,15 +725,17 @@ class OpenRadioService : MediaBrowserServiceCompat() {
         mUiScope.launch { handleStopRequestUiThread() }
     }
 
-    private fun onResult(list: List<RadioStation>) {
-        AppLogger.d("${list.size} children loaded")
+    private fun onResult(set: Set<RadioStation>, pageNumber: Int) {
+        AppLogger.d("${set.size} children loaded")
         while (mRestoreComplete.get().not()) {
             Thread.sleep(100)
         }
-        AppLogger.d("${list.size} children loaded and restore compete")
-        if (list.isEmpty().not()) {
-            mBrowseStorage.clear()
-            mBrowseStorage.addAll(list)
+        AppLogger.d("${set.size} children loaded and restore compete")
+        if (set.isEmpty().not()) {
+            if (pageNumber == 0) {
+                mBrowseStorage.clear()
+            }
+            mBrowseStorage.addAll(set)
         }
         mUiScope.launch {
             val count = mPlayer.mediaItemCount()

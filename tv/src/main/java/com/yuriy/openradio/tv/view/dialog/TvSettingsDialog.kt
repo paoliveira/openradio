@@ -30,6 +30,7 @@ import com.yuriy.openradio.shared.view.dialog.GeneralSettingsDialog
 import com.yuriy.openradio.shared.view.dialog.GoogleDriveDialog
 import com.yuriy.openradio.shared.view.dialog.NetworkDialog
 import com.yuriy.openradio.shared.view.dialog.SleepTimerDialog
+import com.yuriy.openradio.shared.view.dialog.SourceDialog
 import com.yuriy.openradio.shared.view.dialog.StreamBufferingDialog
 import com.yuriy.openradio.tv.R
 import java.util.Collections
@@ -87,26 +88,31 @@ class TvSettingsDialog : BaseDialogFragment() {
                         dialog.show(transaction, GeneralSettingsDialog.DIALOG_TAG)
                     }
                     1 -> {
+                        // Show Source Dialog
+                        val dialog = newInstance(SourceDialog::class.java.name)
+                        dialog.show(transaction, SourceDialog.DIALOG_TAG)
+                    }
+                    2 -> {
                         // Show Network Dialog
                         val dialog = newInstance(NetworkDialog::class.java.name)
                         dialog.show(transaction, NetworkDialog.DIALOG_TAG)
                     }
-                    2 -> {
+                    3 -> {
                         // Show Stream Buffering Dialog
                         val dialog = newInstance(StreamBufferingDialog::class.java.name)
                         dialog.show(transaction, StreamBufferingDialog.DIALOG_TAG)
                     }
-                    3 -> {
+                    4 -> {
                         // Show Sleep Timer Dialog
                         val dialog = newInstance(SleepTimerDialog::class.java.name)
                         dialog.show(transaction, SleepTimerDialog.DIALOG_TAG)
                     }
-                    4 -> {
+                    5 -> {
                         // Show Google Drive Dialog
                         val dialog = newInstance(GoogleDriveDialog::class.java.name)
                         dialog.show(transaction, GoogleDriveDialog.DIALOG_TAG)
                     }
-                    5 -> {
+                    6 -> {
                         // Show About Dialog
                         val dialog = newInstance(AboutDialog::class.java.name)
                         dialog.show(transaction, AboutDialog.DIALOG_TAG)

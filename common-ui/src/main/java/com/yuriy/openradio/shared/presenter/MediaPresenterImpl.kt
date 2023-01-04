@@ -465,6 +465,8 @@ class MediaPresenterImpl(
         parentId: String,
         children: List<MediaBrowserCompat.MediaItem>
     ) {
+        // Check whether category has changed.
+        val isSameCatalogue = AppUtils.isSameCatalogue(parentId, mCurrentParentId)
         mCurrentParentId = parentId
 
         // No need to go on if indexed list ended with last item.
@@ -472,10 +474,12 @@ class MediaPresenterImpl(
             return
         }
         mAdapter?.parentId = parentId
-        mAdapter?.clearData()
+        if (isSameCatalogue.not()) {
+            mAdapter?.clearData()
+        }
         mAdapter?.addAll(children)
         mAdapter?.notifyDataSetChanged()
-        //restoreSelectedPosition(parentId)
+        restoreSelectedPosition(parentId)
     }
 
     private fun restoreSelectedPosition(parentId: String) {

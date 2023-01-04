@@ -18,6 +18,7 @@ package com.yuriy.openradio.shared.model.media
 
 import android.content.Context
 import com.yuriy.openradio.shared.model.ModelLayer
+import com.yuriy.openradio.shared.model.net.UrlLayer
 import com.yuriy.openradio.shared.model.storage.DeviceLocalsStorage
 import com.yuriy.openradio.shared.model.storage.FavoritesStorage
 import com.yuriy.openradio.shared.model.storage.images.ImagesPersistenceLayer
@@ -36,6 +37,7 @@ import kotlinx.coroutines.launch
 
 class RadioStationManagerLayerImpl(
     provider: ModelLayer,
+    urlLayer: UrlLayer,
     private val mDeviceLocalsStorage: DeviceLocalsStorage,
     private val mFavoritesStorage: FavoritesStorage,
     private val mImagesPersistenceLayer: ImagesPersistenceLayer
@@ -43,7 +45,7 @@ class RadioStationManagerLayerImpl(
 
     private var mUiScope = CoroutineScope(Dispatchers.Main)
     private var mScope = CoroutineScope(Dispatchers.IO)
-    private var mRadioStationValidator = RadioStationValidator(provider, mUiScope, mScope)
+    private var mRadioStationValidator = RadioStationValidator(provider, urlLayer, mUiScope, mScope)
 
     override fun addRadioStation(
         context: Context, rsToAdd: RadioStationToAdd,
@@ -59,7 +61,7 @@ class RadioStationManagerLayerImpl(
                         mDeviceLocalsStorage.getId()
                     )
                     radioStation.name = rsToAdd.name
-                    radioStation.setVariant(MediaStream.BITRATE_DEFAULT, rsToAdd.url)
+                    radioStation.setVariant(MediaStream.BIT_RATE_DEFAULT, rsToAdd.url)
                     radioStation.imageUrl = rsToAdd.imageLocalUrl
                     radioStation.genre = rsToAdd.genre
                     radioStation.country = rsToAdd.country
