@@ -17,10 +17,18 @@
 package com.yuriy.openradio.shared.utils
 
 import android.support.v4.media.MediaBrowserCompat
+import android.support.v4.media.MediaDescriptionCompat
 import com.google.android.exoplayer2.Player
-import com.yuriy.openradio.shared.vo.MediaItemListEnded
+import com.yuriy.openradio.shared.model.media.MediaId
 
 object PlayerUtils {
+    /**
+     * This instance is a value object to indicate end of the indexed list.
+     */
+    private val MediaItemListEnded = MediaBrowserCompat.MediaItem(
+        MediaDescriptionCompat.Builder()
+        .setMediaId(MediaId.MEDIA_ID_LIST_ENDED)
+        .build(), MediaBrowserCompat.MediaItem.FLAG_BROWSABLE)
 
     /**
      * @param list
@@ -29,14 +37,14 @@ object PlayerUtils {
     fun isEndOfList(list: List<MediaBrowserCompat.MediaItem?>?): Boolean {
         return (list == null
             || list.size == 1
-            && (list[0] == null || list[0] is MediaItemListEnded))
+            && (list[0] == null || list[0] == MediaItemListEnded))
     }
 
     /**
      * @return
      */
     fun createListEndedResult(): List<MediaBrowserCompat.MediaItem> {
-        return ArrayList<MediaBrowserCompat.MediaItem>(listOf(MediaItemListEnded()))
+        return ArrayList<MediaBrowserCompat.MediaItem>(listOf(MediaItemListEnded))
     }
 
     fun playerStateToString(state: Int): String {
